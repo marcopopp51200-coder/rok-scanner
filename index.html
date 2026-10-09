@@ -113,9 +113,12 @@ tailwind.config = {
       </div>
       <div>
         <h1 class="font-display text-2xl sm:text-3xl font-extrabold gold-text tracking-wide">Kingdom Scanner</h1>
-        <p class="text-sm text-slate-400">Screenshots aus Rise of Kingdoms auswerten – Ressourcen & VIP-Fortschritt</p>
       </div>
     </div>
+    <nav id="mainNav" class="hidden self-start sm:self-auto grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist" aria-label="Bereiche">
+      <button class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-view="scanner" aria-pressed="true" role="tab">Scanner &amp; Dashboard</button>
+      <button class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-view="rank" aria-pressed="false" role="tab">🏆 Rangliste</button>
+    </nav>
     <div id="userBox" class="hidden self-start sm:self-auto items-center gap-2 rounded-xl border border-ink-600 bg-ink-900/70 pl-2 pr-1 py-1">
       <div id="userAvatar" class="w-8 h-8 rounded-lg grid place-items-center font-bold text-ink-950 bg-gradient-to-br from-gold-400 to-gold-600"></div>
       <div class="leading-tight pr-1">
@@ -127,7 +130,7 @@ tailwind.config = {
     </div>
   </header>
 
-  <div class="grid lg:grid-cols-[380px_1fr] gap-6">
+  <div id="scannerView" class="grid lg:grid-cols-[380px_1fr] gap-6">
 
     <!-- Left: input -->
     <aside class="space-y-6">
@@ -353,20 +356,48 @@ tailwind.config = {
         <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
           <span id="histCount" class="text-xs text-slate-500"></span>
           <div class="flex flex-wrap gap-2">
-            <button id="exportData" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Daten sichern (Export)</button>
-            <button id="importData" class="px-4 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:bg-gold-500/10 text-sm">Daten laden (Import)</button>
-            <input id="importFile" type="file" accept="application/json,.json" class="hidden">
             <button id="resetHistory" class="px-4 py-2 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10 text-sm">Verlauf zurücksetzen</button>
           </div>
         </div>
       </section>
 
-      <details id="rawBox" class="hidden panel rounded-2xl p-4 text-xs">
-        <summary class="cursor-pointer text-slate-400 hover:text-gold-300">Rohantwort von Claude</summary>
-        <pre id="rawOut" class="mt-3 whitespace-pre-wrap font-mono text-slate-400"></pre>
-      </details>
     </main>
   </div>
+
+  <!-- Rangliste -->
+  <section id="rankView" class="hidden space-y-6">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 class="font-display text-3xl gold-text">Allianz-Rangliste</h2>
+        <p class="text-sm text-slate-400">Alle Spieler, sortiert nach aktuellen VIP-Punkten</p>
+      </div>
+      <button id="rankRefresh" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6M20 20v-6h-6M20 10a8 8 0 00-14.9-3M4 14a8 8 0 0014.9 3"/></svg>
+        Aktualisieren
+      </button>
+    </div>
+
+    <div id="rankMe" class="hidden panel rounded-2xl p-5 ring-1 ring-gold-500/40"></div>
+
+    <div class="panel rounded-2xl p-2 sm:p-5">
+      <div id="rankState" class="py-12 text-center text-sm text-slate-400"></div>
+      <div class="overflow-x-auto">
+        <table id="rankTable" class="hidden w-full text-sm border-separate border-spacing-y-1">
+          <thead class="text-xs uppercase tracking-wider text-slate-400">
+            <tr>
+              <th class="py-2 px-3 text-left font-medium w-20">Platz</th>
+              <th class="py-2 px-3 text-left font-medium">Spieler</th>
+              <th class="py-2 px-3 text-right font-medium">VIP-Punkte</th>
+              <th class="py-2 px-3 text-center font-medium">VIP-Stufe</th>
+              <th class="py-2 px-3 text-right font-medium whitespace-nowrap">Zuletzt aktualisiert</th>
+            </tr>
+          </thead>
+          <tbody id="rankRows"></tbody>
+        </table>
+      </div>
+    </div>
+    <p id="rankStamp" class="text-xs text-slate-500 text-right"></p>
+  </section>
 
   <footer class="mt-10 text-center text-xs text-slate-600">Inoffizielles Fan-Tool · nicht mit Lilith Games verbunden</footer>
 </div>
@@ -549,6 +580,7 @@ window.RokAuth = (() => {
       }
       await loadCloud();
       await offerLegacyImport();
+      try { await loadOwnRank(); } catch (e) { console.warn('Rangliste nicht erreichbar', e); }
     } catch (e) {
       console.error(e);
       if (lsKeys(NS).length) {                                   // offline: mit lokalem Stand weiterarbeiten
@@ -627,7 +659,37 @@ window.RokAuth = (() => {
   try { sb?.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_OUT' && user) location.reload(); }); } catch {}
 
   document.addEventListener('DOMContentLoaded', boot);
-  return { current: () => profile, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow };
+  // ---------- Rangliste (Tabelle public.leaderboard) ----------
+  // Jeder eingeloggte Spieler darf alle Zeilen lesen, aber nur seine eigene schreiben.
+  let lbLast = null, lbTimer = null;
+  async function loadOwnRank() {
+    const { data, error } = await sb.from('leaderboard').select('vip_points').eq('user_id', user.id).maybeSingle();
+    if (error) throw error;
+    lbLast = data ? +data.vip_points : null;
+  }
+  // Aktuellen VIP-Stand melden. force = neuer Scan (immer aktualisieren), sonst nur bei geänderter Punktzahl.
+  function pushVip(points, level, force = false) {
+    if (!user || points == null || !isFinite(points) || points < 0) return;
+    points = Math.round(points);
+    if (!force && points === lbLast) return;
+    clearTimeout(lbTimer);
+    lbTimer = setTimeout(async () => {
+      const { error } = await sb.from('leaderboard').upsert({
+        user_id: user.id, username: profile.name.slice(0, 40), vip_points: points, vip_level: level || 0,
+        updated_at: new Date().toISOString()
+      });
+      if (error) console.error('Rangliste nicht aktualisiert', error); else lbLast = points;
+    }, 600);
+  }
+  async function loadLeaderboard() {
+    const { data, error } = await sb.from('leaderboard').select('user_id,username,vip_points,vip_level,updated_at')
+      .order('vip_points', { ascending: false }).limit(500);
+    if (error) throw new Error(germanError(error));
+    return data || [];
+  }
+
+  return { current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
+           pushVip, loadLeaderboard };
 })();
 </script>
 
@@ -727,6 +789,7 @@ window.RokApp = () => {
     LS.set(CUR, $('currentVip').value);
     vipCurrent = $('currentVip').value === '' ? vipCurrent : +$('currentVip').value;
     if (!$('vipSection').classList.contains('hidden')) renderVip();
+    else if (vipCurrent != null) RokAuth.pushVip(vipCurrent, levelFor(vipCurrent));
   });
 
   // ---------- Mode ----------
@@ -819,9 +882,8 @@ window.RokApp = () => {
         throw new Error(data?.error || `Serverfehler ${res.status}`);
       }
       const text = String(data.text || '');
-      $('rawOut').textContent = text; $('rawBox').classList.remove('hidden');
       const parsed = parseJson(text);
-      if (!parsed) throw new Error('Antwort konnte nicht als JSON gelesen werden – siehe Rohantwort unten.');
+      if (!parsed) throw new Error('Die Antwort konnte nicht ausgelesen werden. Bitte erneut versuchen.');
       showResult(parsed);
       discardImages(); // erfolgreich ausgelesen → Bilder sofort verwerfen
     } catch (e) {
@@ -894,6 +956,7 @@ window.RokApp = () => {
       vipScanLoaded = true;
       addHistory({ id: activeVipEntryId, ts: Date.now(), type: 'vip', confidence: r.confidence || null, ...vipNumbers() });
       renderVip(r);
+      if (vipCurrent != null) RokAuth.pushVip(vipCurrent, levelFor(vipCurrent), true);   // neuer Scan → Rangliste
     }
   }
   let activeVipEntryId = null;
@@ -1015,6 +1078,7 @@ window.RokApp = () => {
       items: vipItems.map(i => ({ name: i.name, points: i.points, qty: i.qty })) });
     // Korrekturen in der Tabelle / am aktuellen Stand übernehmen den letzten VIP-Scan im Verlauf
     if (activeVipEntryId) updateHistory(activeVipEntryId, vipNumbers());
+    if (vipCurrent != null) RokAuth.pushVip(vipCurrent, levelFor(vipCurrent));
   }
   const pct = (v) => v.toFixed(1).replace('.', ',');
 
@@ -1382,48 +1446,94 @@ window.RokApp = () => {
     histTab = mode; syncTabs(); renderHistory();
   }
 
-  // ---------- Datensicherung: Export / Import ----------
-  // Alle App-Daten liegen im LocalStorage unter "rok_scanner_*". Der API-Key wird NIE exportiert.
-  const PREFIX = 'rok_scanner_', NO_EXPORT = [KEY];
-  // Browser bitten, den Speicher dauerhaft zu behalten (nicht automatisch aufräumen)
+  // Browser bitten, den lokalen Zwischenspeicher nicht automatisch aufzuräumen
   try { navigator.storage?.persist?.(); } catch {}
 
-  function allAppKeys() {
-    const keys = [];
-    try { for (let i = 0; i < localStorage.length; i++) { const raw = localStorage.key(i); if (!raw || !raw.startsWith(NS)) continue; const k = PREFIX + raw.slice(NS.length); if (!NO_EXPORT.includes(k)) keys.push(k); } } catch {}
-    return keys.sort();
+  // ---------- Haupt-Reiter: Scanner & Dashboard | Rangliste ----------
+  let view = (() => { try { return localStorage.getItem('rok_view') === 'rank' ? 'rank' : 'scanner'; } catch { return 'scanner'; } })();
+  function applyView() {
+    document.querySelectorAll('.main-tab').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === view));
+    $('scannerView').classList.toggle('hidden', view !== 'scanner');
+    $('rankView').classList.toggle('hidden', view !== 'rank');
+    try { localStorage.setItem('rok_view', view); } catch {}
+    if (view === 'rank') loadRanking();
   }
-  $('exportData').onclick = () => {
-    const data = {};
-    allAppKeys().forEach(k => { data[k] = LS.get(k); });
-    const backup = { app: 'rok-scanner', version: 1, profile: PROFILE.name, exportedAt: new Date().toISOString(), data };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `rok-scanner-${(PROFILE.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'daten')}-${new Date().toLocaleDateString('sv-SE')}.json`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  document.querySelectorAll('.main-tab').forEach(b => b.onclick = () => { view = b.dataset.view; applyView(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  $('rankRefresh').onclick = () => loadRanking();
+
+  const MEDALS = {
+    1: { icon: '👑', badge: 'bg-gradient-to-br from-yellow-300 to-amber-500 text-ink-950 shadow-[0_0_18px_rgba(245,197,66,.55)]', name: 'text-gold-300' },
+    2: { icon: '🥈', badge: 'bg-gradient-to-br from-slate-100 to-slate-400 text-ink-950', name: 'text-slate-100' },
+    3: { icon: '🥉', badge: 'bg-gradient-to-br from-amber-500 to-orange-800 text-white', name: 'text-amber-300' }
   };
-  $('importData').onclick = () => $('importFile').click();
-  $('importFile').onchange = async (ev) => {
-    const file = ev.target.files?.[0]; ev.target.value = '';
-    if (!file) return;
+  let rankLoading = false;
+  async function loadRanking() {
+    if (rankLoading) return;
+    rankLoading = true;
+    $('rankState').classList.remove('hidden'); $('rankState').textContent = 'Lade Rangliste …';
     try {
-      const backup = JSON.parse(await file.text());
-      if (backup?.app !== 'rok-scanner' || typeof backup.data !== 'object' || !backup.data) throw new Error('Keine gültige Kingdom-Scanner-Sicherung.');
-      const entries = Object.entries(backup.data).filter(([k, v]) => k.startsWith(PREFIX) && !NO_EXPORT.includes(k) && typeof v === 'string');
-      let scans = 0; try { scans = JSON.parse(backup.data[HIST] || '[]').length; } catch {}
-      const when = backup.exportedAt ? new Date(backup.exportedAt).toLocaleString('de-DE') : 'unbekannt';
-      if (!confirm(`Sicherung vom ${when} laden?\n\n${scans} Scans im Verlauf. Die Daten von Profil „${PROFILE.name}“ werden dabei ersetzt.`)) return;
-      allAppKeys().forEach(k => LS.del(k));            // aktuellen Stand ersetzen
-      let ok = true; entries.forEach(([k, v]) => { ok = LS.set(k, v) && ok; });
-      if (!ok) throw new Error('Speichern im Browser fehlgeschlagen (LocalStorage voll oder blockiert).');
-      await RokAuth.flushNow();
-      location.reload();
-    } catch (e) { showError('Import fehlgeschlagen: ' + (e.message || e)); }
-  };
+      const rows = (await RokAuth.loadLeaderboard())
+        .map(r => ({ ...r, vip_points: +r.vip_points || 0 }))
+        .sort((a, b) => b.vip_points - a.vip_points || new Date(a.updated_at) - new Date(b.updated_at));
+      renderRanking(rows);
+    } catch (e) {
+      $('rankTable').classList.add('hidden'); $('rankMe').classList.add('hidden');
+      $('rankState').textContent = 'Rangliste konnte nicht geladen werden: ' + (e.message || e);
+    } finally { rankLoading = false; }
+  }
+  function renderRanking(rows) {
+    const me = RokAuth.userId();
+    $('rankStamp').textContent = `Stand: ${dateLabel(Date.now())} · ${rows.length} Spieler`;
+    if (!rows.length) {
+      $('rankTable').classList.add('hidden'); $('rankMe').classList.add('hidden');
+      $('rankState').textContent = 'Noch niemand in der Rangliste. Scanne dein VIP oder trag deine aktuellen VIP-Punkte im VIP-Bereich ein.';
+      return;
+    }
+    $('rankState').classList.add('hidden'); $('rankTable').classList.remove('hidden');
+    $('rankRows').innerHTML = rows.map((r, i) => {
+      const place = i + 1, m = MEDALS[place], isMe = r.user_id === me;
+      const rowCls = isMe ? 'bg-gold-500/15 outline outline-2 outline-gold-500/70' : (m ? 'bg-ink-850' : 'bg-ink-900/60');
+      return `<tr class="${rowCls}">
+        <td class="py-3 px-3 rounded-l-xl">
+          ${m ? `<span class="inline-flex items-center gap-1.5"><span class="w-9 h-9 rounded-full grid place-items-center text-lg ${m.badge}">${m.icon}</span><span class="font-bold ${m.name}">${place}</span></span>`
+              : `<span class="inline-grid place-items-center w-9 h-9 rounded-full bg-ink-800 text-slate-300 font-semibold">${place}</span>`}
+        </td>
+        <td class="py-3 px-3">
+          <span class="font-semibold ${m ? m.name : 'text-white'}">${esc(r.username)}</span>
+          ${isMe ? '<span class="ml-2 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-gold-500 text-ink-950">Du</span>' : ''}
+        </td>
+        <td class="py-3 px-3 text-right font-bold tabular-nums ${m ? m.name : 'text-white'}" title="${fmt(r.vip_points)}">${fmt(r.vip_points)}</td>
+        <td class="py-3 px-3 text-center"><span class="inline-block px-2.5 py-1 rounded-lg bg-ink-950 border border-gold-500/30 text-gold-300 font-semibold text-xs">VIP ${levelFor(r.vip_points)}</span></td>
+        <td class="py-3 px-3 text-right text-slate-400 whitespace-nowrap rounded-r-xl">${r.updated_at ? dateLabel(new Date(r.updated_at).getTime()) : '–'}</td>
+      </tr>`;
+    }).join('');
+    // Eigene Platzierung
+    const idx = rows.findIndex(r => r.user_id === me);
+    const box = $('rankMe');
+    if (idx < 0) {
+      box.innerHTML = `<div class="text-sm text-slate-300">Du bist noch nicht in der Rangliste. Scanne dein VIP oder trag unter <b>Scanner &amp; Dashboard → VIP</b> deine aktuellen VIP-Punkte ein.</div>`;
+    } else {
+      const meRow = rows[idx], above = rows[idx - 1];
+      const gap = above ? above.vip_points - meRow.vip_points : 0;
+      box.innerHTML = `<div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl grid place-items-center text-2xl font-extrabold ${MEDALS[idx + 1]?.badge || 'bg-ink-800 text-gold-300'}">${MEDALS[idx + 1]?.icon || '#' + (idx + 1)}</div>
+          <div>
+            <div class="text-xs uppercase tracking-widest text-slate-400">Dein Platz</div>
+            <div class="text-2xl font-extrabold text-white">#${idx + 1} <span class="text-sm font-medium text-slate-400">von ${rows.length}</span></div>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="text-lg font-bold text-gold-300 tabular-nums">${fmt(meRow.vip_points)} Punkte · VIP ${levelFor(meRow.vip_points)}</div>
+          <div class="text-xs text-slate-400">${above ? `Noch ${fmt(gap + 1)} Punkte bis Platz ${idx} (${esc(above.username)})` : 'Du führst die Rangliste an! 👑'}</div>
+        </div>
+      </div>`;
+    }
+    box.classList.remove('hidden');
+  }
 
   // Init
+  $('mainNav').classList.replace('hidden', 'grid');
   syncTabs();
   renderHistory();
   $('vipInputs').classList.toggle('hidden', mode === 'resources');
@@ -1456,6 +1566,7 @@ window.RokApp = () => {
   if (lastGems?.gems != null) renderGems({ gems: +lastGems.gems, gemsHand: lastGems.gemsHand ?? null, gemsBag: lastGems.gemsBag ?? null }, lastGems.ts);
   renderFarms();
   applyMode();
+  applyView();
 };
 </script>
 </body>
