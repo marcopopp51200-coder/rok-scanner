@@ -6,6 +6,7 @@
 <title>RoK Scanner – Ressourcen & VIP</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>
 tailwind.config = {
@@ -33,6 +34,75 @@ tailwind.config = {
 </head>
 <body class="min-h-screen text-slate-200 font-sans antialiased">
 
+<!-- Login / Registrierung (Supabase) -->
+<div id="authOverlay" class="fixed inset-0 z-50 overflow-y-auto bg-ink-950/95 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+  <div class="min-h-full grid place-items-center px-4 py-10">
+    <div class="panel w-full max-w-md rounded-2xl p-6">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl grid place-items-center bg-gradient-to-br from-gold-400 to-gold-600">
+          <svg viewBox="0 0 24 24" class="w-6 h-6 text-ink-950" fill="currentColor"><path d="M3 8l4 3 5-7 5 7 4-3-2 11H5L3 8zm2 13h14v1.5H5V21z"/></svg>
+        </div>
+        <div>
+          <h2 id="authTitle" class="font-display text-2xl gold-text">Kingdom Scanner</h2>
+          <p class="text-xs text-slate-400">Dein Account – auf jedem Gerät</p>
+        </div>
+      </div>
+
+      <!-- Laden / Fehler -->
+      <div id="authLoading" class="mt-6 text-center">
+        <svg class="w-8 h-8 mx-auto text-gold-400 spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity=".2" stroke-width="3"/><path d="M22 12a10 10 0 00-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+        <p id="authLoadingText" class="mt-3 text-sm text-slate-300">Verbinde …</p>
+        <button id="authRetry" class="hidden mt-4 px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Erneut versuchen</button>
+      </div>
+
+      <div id="authForms" class="hidden">
+        <div class="mt-5 grid grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist">
+          <button class="auth-tab seg-btn rounded-lg py-2 text-sm font-semibold transition" data-tab="login" aria-pressed="true" role="tab">Einloggen</button>
+          <button class="auth-tab seg-btn rounded-lg py-2 text-sm font-semibold transition" data-tab="register" aria-pressed="false" role="tab">Neuen Account anlegen</button>
+        </div>
+
+        <form id="loginForm" class="mt-5 space-y-3" autocomplete="on">
+          <div>
+            <label for="loginUser" class="text-xs text-slate-400">Benutzername oder E-Mail</label>
+            <input id="loginUser" name="username" autocomplete="username" maxlength="80" required
+                   class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold-500">
+          </div>
+          <div>
+            <label for="loginPass" class="text-xs text-slate-400">Passwort</label>
+            <input id="loginPass" name="password" type="password" autocomplete="current-password" required
+                   class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold-500">
+          </div>
+          <button type="submit" class="w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Einloggen</button>
+        </form>
+
+        <form id="registerForm" class="hidden mt-5 space-y-3" autocomplete="on">
+          <div>
+            <label for="regUser" class="text-xs text-slate-400">Benutzername oder E-Mail</label>
+            <input id="regUser" name="username" autocomplete="username" maxlength="80" required placeholder="z. B. Marco oder marco@mail.de"
+                   class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold-500">
+            <p class="mt-1 text-[11px] text-slate-500">Mit E-Mail kannst du später dein Passwort zurücksetzen.</p>
+          </div>
+          <div>
+            <label for="regPass" class="text-xs text-slate-400">Passwort <span class="text-slate-500">(mind. 6 Zeichen)</span></label>
+            <input id="regPass" name="new-password" type="password" autocomplete="new-password" required
+                   class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold-500">
+          </div>
+          <div>
+            <label for="regPass2" class="text-xs text-slate-400">Passwort bestätigen</label>
+            <input id="regPass2" type="password" autocomplete="new-password" required
+                   class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold-500">
+          </div>
+          <button type="submit" class="w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Account anlegen</button>
+        </form>
+        <p class="mt-5 text-[11px] text-slate-500 leading-relaxed">Account und Scans werden sicher in der Cloud gespeichert – du kannst dich auf jedem Gerät anmelden.</p>
+      </div>
+
+      <div id="authError" role="alert" class="hidden mt-4 rounded-lg border border-red-500/40 bg-red-500/10 text-red-200 text-sm px-3 py-2"></div>
+      <div id="authInfo" class="hidden mt-4 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-200 text-sm px-3 py-2"></div>
+    </div>
+  </div>
+</div>
+
 <div class="max-w-6xl mx-auto px-4 py-6 sm:py-10">
 
   <!-- Header -->
@@ -45,6 +115,15 @@ tailwind.config = {
         <h1 class="font-display text-2xl sm:text-3xl font-extrabold gold-text tracking-wide">Kingdom Scanner</h1>
         <p class="text-sm text-slate-400">Screenshots aus Rise of Kingdoms auswerten – Ressourcen & VIP-Fortschritt</p>
       </div>
+    </div>
+    <div id="userBox" class="hidden self-start sm:self-auto items-center gap-2 rounded-xl border border-ink-600 bg-ink-900/70 pl-2 pr-1 py-1">
+      <div id="userAvatar" class="w-8 h-8 rounded-lg grid place-items-center font-bold text-ink-950 bg-gradient-to-br from-gold-400 to-gold-600"></div>
+      <div class="leading-tight pr-1">
+        <div class="text-[10px] uppercase tracking-widest text-slate-500">Eingeloggt als</div>
+        <div id="userName" class="text-sm font-semibold text-white max-w-[140px] truncate"></div>
+        <div id="syncStatus" class="text-[10px] text-slate-500"></div>
+      </div>
+      <button id="logoutBtn" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white">Abmelden</button>
     </div>
   </header>
 
@@ -293,12 +372,283 @@ tailwind.config = {
 </div>
 
 <script>
-(() => {
+// ================= Supabase: Login + Cloud-Speicher =================
+// Die App arbeitet wie bisher mit einem lokalen Zwischenspeicher (localStorage, pro Nutzer).
+// Jede Änderung wird automatisch in Supabase gespeichert:
+//   • Verlaufseinträge (Scans)    → Tabelle public.scans      (eine Zeile pro Scan)
+//   • alles andere (Farmen, letzte Auswertung, Ziel-Level, Filter …) → Tabelle public.user_state
+// Beim Login werden die Daten aus der Cloud geladen – auf jedem Gerät dieselben.
+window.RokAuth = (() => {
+  const SUPABASE_URL = 'https://tqkhnicaiokyckiqwvpw.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxa2huaWNhaW9reWNraXF3dnB3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1Nzg0NjcsImV4cCI6MjEwNzE1NDQ2N30.8bNhMl2ewyIKh_PqSvGKf34stNIbXfXiOhEPFXDOev0';
+  // Accounts nur mit Benutzernamen bekommen intern diese Ersatz-E-Mail (wird nie angeschrieben).
+  const USERNAME_DOMAIN = 'users.rok-scanner.app';
+  const HIST = 'history_v1';
+
+  const $ = (id) => document.getElementById(id);
+  const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, v); return true; } catch { return false; } };
+  const lsDel = (k) => { try { localStorage.removeItem(k); } catch {} };
+  const lsKeys = (prefix) => { const out = []; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(prefix)) out.push(k); } } catch {} return out; };
+  try { localStorage.removeItem('rok_scanner_api_key'); } catch {}
+
+  let sb = null;
+  try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } }); } catch {}
+
+  let user = null, profile = null, NS = '', PENDING = '';
+  let synced = new Map(), lastState = '{}', timer = null, retryTimer = null, queue = Promise.resolve(), hasPending = false;
+  const nsOf = (id) => 'rok_cloud_' + id + '_';
+
+  // ---------- Hilfsfunktionen ----------
+  const usernameToEmail = (name) => {
+    const local = name.trim().toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9._-]+/g, '-').replace(/^[-.]+|[-.]+$/g, '');
+    return local ? `${local}@${USERNAME_DOMAIN}` : '';
+  };
+  const toEmail = (id) => id.includes('@') ? id.trim().toLowerCase() : usernameToEmail(id);
+  const displayName = (u) => u?.user_metadata?.username || (u?.email || '').split('@')[0] || 'Spieler';
+  function germanError(e) {
+    const m = String(e?.message || e || '');
+    if (/invalid login credentials/i.test(m)) return 'Benutzername/E-Mail oder Passwort ist falsch.';
+    if (/already registered|already exists/i.test(m)) return 'Diesen Account gibt es schon – bitte einloggen.';
+    if (/email not confirmed/i.test(m)) return 'Bitte bestätige zuerst deine E-Mail-Adresse (Link im Postfach).';
+    if (/password should be at least/i.test(m)) return 'Das Passwort ist zu kurz (mind. 6 Zeichen).';
+    if (/email.*invalid|invalid.*email/i.test(m)) return 'Diese E-Mail-Adresse wird nicht akzeptiert. Bei reinen Benutzernamen: siehe Hinweis zur Einrichtung (E-Mail-Bestätigung ausschalten).';
+    if (/not authorized|signups not allowed/i.test(m)) return 'Registrierung ist in Supabase gerade nicht erlaubt (Auth-Einstellungen prüfen).';
+    if (/rate limit|too many/i.test(m)) return 'Zu viele Versuche – bitte kurz warten.';
+    if (/failed to fetch|network/i.test(m)) return 'Keine Verbindung zur Cloud. Internet prüfen.';
+    if (/relation .* does not exist|could not find the table/i.test(m)) return 'Die Datenbank-Tabellen fehlen – bitte das SQL im Supabase SQL Editor ausführen.';
+    return m || 'Unbekannter Fehler.';
+  }
+
+  // ---------- Overlay ----------
+  const msg = (id, m) => { $(id).textContent = m || ''; $(id).classList.toggle('hidden', !m); };
+  function showLoading(text, retry) {
+    $('authOverlay').classList.remove('hidden'); document.body.style.overflow = 'hidden';
+    $('authLoading').classList.remove('hidden'); $('authForms').classList.add('hidden');
+    $('authLoadingText').textContent = text;
+    $('authRetry').classList.toggle('hidden', !retry);
+    $('authRetry').onclick = retry || null;
+  }
+  function setTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === tab));
+    $('loginForm').classList.toggle('hidden', tab !== 'login');
+    $('registerForm').classList.toggle('hidden', tab !== 'register');
+    msg('authError', '');
+    setTimeout(() => (tab === 'login' ? ($('loginUser').value ? $('loginPass') : $('loginUser')) : $('regUser')).focus(), 30);
+  }
+  function showLogin(tab = 'login') {
+    $('authOverlay').classList.remove('hidden'); document.body.style.overflow = 'hidden';
+    $('authLoading').classList.add('hidden'); $('authForms').classList.remove('hidden');
+    setTab(tab);
+  }
+  function hideOverlay() { $('authOverlay').classList.add('hidden'); document.body.style.overflow = ''; }
+
+  // ---------- Sync-Anzeige ----------
+  function status(kind, text) {
+    const el = $('syncStatus'); if (!el) return;
+    el.textContent = text;
+    el.className = 'text-[10px] ' + ({ ok: 'text-emerald-400', busy: 'text-slate-400', err: 'text-amber-300' }[kind] || 'text-slate-500');
+  }
+
+  // ---------- Cloud → lokal ----------
+  function readLocalHistory() { try { return JSON.parse(lsGet(NS + HIST) || '[]').filter(e => e && e.id); } catch { return []; } }
+  function readLocalState() {
+    const st = {};
+    lsKeys(NS).forEach(k => { const sfx = k.slice(NS.length); if (sfx !== HIST) st[sfx] = lsGet(k); });
+    return st;
+  }
+  const rowOf = (e) => ({ id: String(e.id), user_id: user.id, type: e.type, scanned_at: new Date(+e.ts || Date.now()).toISOString(), data: e });
+
+  async function loadCloud() {
+    const [scans, state] = await Promise.all([
+      sb.from('scans').select('id,type,scanned_at,data').order('scanned_at', { ascending: true }),
+      sb.from('user_state').select('data').maybeSingle()
+    ]);
+    if (scans.error) throw scans.error;
+    if (state.error) throw state.error;
+    lsKeys(NS).forEach(lsDel);                                   // lokalen Zwischenspeicher durch Cloud-Stand ersetzen
+    const hist = (scans.data || []).map(r => ({ ...(r.data || {}), id: r.id, type: r.type, ts: +(r.data?.ts) || Date.parse(r.scanned_at) }));
+    lsSet(NS + HIST, JSON.stringify(hist));
+    synced = new Map(hist.map(e => [String(e.id), JSON.stringify(e)]));
+    const st = state.data?.data || {};
+    Object.entries(st).forEach(([k, v]) => { if (typeof v === 'string' && k !== HIST) lsSet(NS + k, v); });
+    lastState = JSON.stringify(readLocalState());
+    return { scans: hist.length, stateKeys: Object.keys(st).length };
+  }
+
+  // ---------- lokal → Cloud ----------
+  async function pushChanges(full = false) {
+    const hist = readLocalHistory();
+    const cur = new Map(hist.map(e => [String(e.id), JSON.stringify(e)]));
+    const up = [...cur].filter(([id, j]) => full || synced.get(id) !== j).map(([, j]) => rowOf(JSON.parse(j)))
+      .filter(r => ['resources', 'vip', 'gems'].includes(r.type));
+    const delIds = full ? [] : [...synced.keys()].filter(id => !cur.has(id));
+    if (up.length) { const { error } = await sb.from('scans').upsert(up, { onConflict: 'user_id,id' }); if (error) throw error; }
+    if (delIds.length) { const { error } = await sb.from('scans').delete().in('id', delIds); if (error) throw error; }
+    const st = readLocalState(), stJson = JSON.stringify(st);
+    if (full || stJson !== lastState) {
+      const { error } = await sb.from('user_state').upsert({ user_id: user.id, data: st, updated_at: new Date().toISOString() });
+      if (error) throw error;
+    }
+    synced = cur; lastState = stJson;
+  }
+  function flushNow() {
+    clearTimeout(timer); clearTimeout(retryTimer);
+    if (!user || !hasPending) return queue;
+    status('busy', '☁ speichert …');
+    queue = queue.then(() => pushChanges()).then(() => {
+      hasPending = false; lsDel(PENDING); status('ok', '☁ in der Cloud gespeichert');
+    }).catch((e) => {
+      console.error('Cloud-Sync fehlgeschlagen', e);
+      status('err', '⚠ nicht gespeichert – neuer Versuch …');
+      retryTimer = setTimeout(flushNow, 15000);
+    });
+    return queue;
+  }
+  // Wird von der App bei jeder Änderung aufgerufen
+  function changed() {
+    if (!user) return;
+    hasPending = true; lsSet(PENDING, '1');
+    status('busy', '☁ ungespeichert …');
+    clearTimeout(timer); timer = setTimeout(flushNow, 800);
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushNow(); });
+  window.addEventListener('beforeunload', (e) => { if (hasPending) { flushNow(); e.preventDefault(); e.returnValue = ''; } });
+
+  // ---------- Daten aus der Version ohne Cloud übernehmen ----------
+  async function offerLegacyImport() {
+    const flag = 'rok_cloud_legacy_done_' + user.id;
+    if (lsGet(flag)) return;
+    if (readLocalHistory().length || Object.keys(readLocalState()).length) { lsSet(flag, '1'); return; }   // Cloud hat schon Daten
+    const sources = [];
+    try { (JSON.parse(lsGet('rok_profiles') || '[]') || []).forEach(p => p?.id && sources.push({ ns: 'rok_data_' + p.id + '_', name: p.name })); } catch {}
+    sources.push({ ns: 'rok_scanner_', name: 'ohne Login' });
+    const withData = sources.map(src => {
+      let n = 0; try { n = JSON.parse(lsGet(src.ns + HIST) || '[]').length; } catch {}
+      return { ...src, n, keys: lsKeys(src.ns).filter(k => k !== 'rok_scanner_api_key') };
+    }).filter(src => src.keys.length);
+    lsSet(flag, '1');
+    if (!withData.length) return;
+    const me = profile.name.toLowerCase();
+    const src = withData.find(x => (x.name || '').toLowerCase() === me) || withData.sort((a, b) => b.n - a.n)[0];
+    if (!confirm(`In diesem Browser liegen noch Daten aus der alten Version (Profil „${src.name}“, ${src.n} Scans).\n\nIn deinen Cloud-Account übernehmen?`)) return;
+    src.keys.forEach(k => lsSet(NS + k.slice(src.ns.length), lsGet(k)));
+    await pushChanges(true);
+  }
+
+  // ---------- Anmelden / Start ----------
+  async function enter(u) {
+    user = u; profile = { id: u.id, name: displayName(u), email: u.email };
+    NS = nsOf(u.id); PENDING = 'rok_cloud_pending_' + u.id;
+    showLoading('Lade deine Daten aus der Cloud …');
+    try {
+      if (lsGet(PENDING)) {                                      // offline gespeicherte Änderungen zuerst hochladen
+        showLoading('Lade ungespeicherte Änderungen hoch …');
+        synced = new Map(); lastState = '';
+        await pushChanges(true); lsDel(PENDING);
+      }
+      await loadCloud();
+      await offerLegacyImport();
+    } catch (e) {
+      console.error(e);
+      if (lsKeys(NS).length) {                                   // offline: mit lokalem Stand weiterarbeiten
+        status('err', '⚠ offline – lokaler Stand');
+      } else {
+        return showLoading(germanError(e), () => enter(u));
+      }
+    }
+    hideOverlay();
+    if (!$('syncStatus').textContent) status('ok', '☁ synchronisiert');
+    window.RokApp();
+  }
+
+  async function login(id, pw) {
+    const email = toEmail(id);
+    if (!email) throw new Error('Bitte Benutzername oder E-Mail eingeben.');
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+    if (error) throw error;
+    await enter(data.user);
+  }
+  async function register(id, pw, pw2) {
+    id = String(id).trim();
+    const isMail = id.includes('@');
+    const username = isMail ? id.split('@')[0] : id.replace(/\s+/g, ' ');
+    if (!isMail && username.length < 2) throw new Error('Der Benutzername muss mindestens 2 Zeichen haben.');
+    if (isMail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id)) throw new Error('Bitte eine gültige E-Mail-Adresse eingeben.');
+    if (pw.length < 6) throw new Error('Das Passwort muss mindestens 6 Zeichen haben.');
+    if (pw !== pw2) throw new Error('Die Passwörter stimmen nicht überein.');
+    const email = toEmail(id);
+    const { data, error } = await sb.auth.signUp({ email, password: pw, options: { data: { username } } });
+    if (error) throw error;
+    if (data.user && Array.isArray(data.user.identities) && !data.user.identities.length) throw new Error('Diesen Account gibt es schon – bitte einloggen.');
+    if (data.session) return enter(data.user);
+    if (!isMail) throw new Error('Supabase verlangt eine E-Mail-Bestätigung. Für Accounts mit Benutzernamen bitte in Supabase unter Authentication → Sign In / Providers → Email die Option „Confirm email“ ausschalten – oder mit E-Mail registrieren.');
+    setTab('login'); $('loginUser').value = id;
+    msg('authInfo', `Fast geschafft! Wir haben eine Bestätigungs-Mail an ${id} geschickt. Klicke auf den Link und logge dich dann ein.`);
+  }
+  async function logout() {
+    try { await flushNow(); } catch {}
+    try { await sb.auth.signOut(); } catch {}
+    if (NS) lsKeys(NS).forEach(lsDel);                           // keine Daten im Browser zurücklassen
+    user = null;
+    location.reload();
+  }
+
+  async function busy(form, fn) {
+    const btn = form.querySelector('button[type=submit]'), label = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Bitte warten …'; msg('authError', ''); msg('authInfo', '');
+    try { await fn(); }
+    catch (e) { showLogin(form.id === 'loginForm' ? 'login' : 'register'); msg('authError', germanError(e)); }
+    finally { btn.disabled = false; btn.textContent = label; }
+  }
+  document.querySelectorAll('.auth-tab').forEach(b => b.onclick = () => { msg('authInfo', ''); setTab(b.dataset.tab); });
+  $('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    busy($('loginForm'), async () => {
+      try { await login($('loginUser').value, $('loginPass').value); }
+      catch (x) { $('loginPass').value = ''; throw x; }
+    });
+  });
+  $('registerForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    busy($('registerForm'), () => register($('regUser').value, $('regPass').value, $('regPass2').value));
+  });
+
+  async function boot() {
+    if (!sb) return showLoading('Die Cloud-Bibliothek (Supabase) konnte nicht geladen werden. Internetverbindung oder Adblocker prüfen.', () => location.reload());
+    showLoading('Verbinde …');
+    try {
+      const { data } = await sb.auth.getSession();
+      if (data?.session?.user) return enter(data.session.user);
+    } catch (e) { console.error(e); }
+    showLogin('login');
+  }
+  // In einem anderen Tab abgemeldet → hier ebenfalls
+  try { sb?.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_OUT' && user) location.reload(); }); } catch {}
+
+  document.addEventListener('DOMContentLoaded', boot);
+  return { current: () => profile, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow };
+})();
+</script>
+
+<script>
+window.RokApp = () => {
   // ---------- Storage helpers ----------
+  // ---------- Profil ----------
+  const PROFILE = RokAuth.current();
+  if (!PROFILE) { RokAuth.showLogin(); return; }   // ohne Login startet die App nicht – keine Daten werden geladen
+  document.getElementById('userBox').classList.replace('hidden', 'flex');
+  document.getElementById('userName').textContent = PROFILE.name;
+  document.getElementById('userAvatar').textContent = PROFILE.name.charAt(0).toUpperCase();
+  document.getElementById('logoutBtn').onclick = () => RokAuth.logout();
+
+  // Alle App-Keys "rok_scanner_xyz" landen pro Profil unter "rok_data_<profil>_xyz"
+  const NS = RokAuth.nsOf(PROFILE.id);
+  const nk = (k) => k.startsWith('rok_scanner_') ? NS + k.slice('rok_scanner_'.length) : k;
   const LS = {
-    get(k, d = null) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } },
-    set(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } },
-    del(k) { try { localStorage.removeItem(k); } catch {} }
+    get(k, d = null) { try { const v = localStorage.getItem(nk(k)); return v === null ? d : v; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(nk(k), v); if (k.startsWith('rok_scanner_')) RokAuth.changed(); return true; } catch { return false; } },
+    del(k) { try { localStorage.removeItem(nk(k)); if (k.startsWith('rok_scanner_')) RokAuth.changed(); } catch {} }
   };
   const KEY = 'rok_scanner_api_key', MODEL = 'rok_scanner_model', CUR = 'rok_scanner_current_vip';
 
@@ -373,7 +723,6 @@ tailwind.config = {
 
   // ---------- Settings ----------
   $('currentVip').value = LS.get(CUR, '');
-  LS.del(KEY); // früher lokal gespeicherter API-Key wird nicht mehr gebraucht
   $('currentVip').addEventListener('input', () => {
     LS.set(CUR, $('currentVip').value);
     vipCurrent = $('currentVip').value === '' ? vipCurrent : +$('currentVip').value;
@@ -1041,17 +1390,17 @@ tailwind.config = {
 
   function allAppKeys() {
     const keys = [];
-    try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(PREFIX) && !NO_EXPORT.includes(k)) keys.push(k); } } catch {}
+    try { for (let i = 0; i < localStorage.length; i++) { const raw = localStorage.key(i); if (!raw || !raw.startsWith(NS)) continue; const k = PREFIX + raw.slice(NS.length); if (!NO_EXPORT.includes(k)) keys.push(k); } } catch {}
     return keys.sort();
   }
   $('exportData').onclick = () => {
     const data = {};
     allAppKeys().forEach(k => { data[k] = LS.get(k); });
-    const backup = { app: 'rok-scanner', version: 1, exportedAt: new Date().toISOString(), data };
+    const backup = { app: 'rok-scanner', version: 1, profile: PROFILE.name, exportedAt: new Date().toISOString(), data };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `rok-scanner-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `rok-scanner-${(PROFILE.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'daten')}-${new Date().toLocaleDateString('sv-SE')}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   };
@@ -1065,10 +1414,11 @@ tailwind.config = {
       const entries = Object.entries(backup.data).filter(([k, v]) => k.startsWith(PREFIX) && !NO_EXPORT.includes(k) && typeof v === 'string');
       let scans = 0; try { scans = JSON.parse(backup.data[HIST] || '[]').length; } catch {}
       const when = backup.exportedAt ? new Date(backup.exportedAt).toLocaleString('de-DE') : 'unbekannt';
-      if (!confirm(`Sicherung vom ${when} laden?\n\n${scans} Scans im Verlauf. Deine aktuellen Daten werden dabei ersetzt (API-Key bleibt erhalten).`)) return;
+      if (!confirm(`Sicherung vom ${when} laden?\n\n${scans} Scans im Verlauf. Die Daten von Profil „${PROFILE.name}“ werden dabei ersetzt.`)) return;
       allAppKeys().forEach(k => LS.del(k));            // aktuellen Stand ersetzen
       let ok = true; entries.forEach(([k, v]) => { ok = LS.set(k, v) && ok; });
       if (!ok) throw new Error('Speichern im Browser fehlgeschlagen (LocalStorage voll oder blockiert).');
+      await RokAuth.flushNow();
       location.reload();
     } catch (e) { showError('Import fehlgeschlagen: ' + (e.message || e)); }
   };
@@ -1106,7 +1456,7 @@ tailwind.config = {
   if (lastGems?.gems != null) renderGems({ gems: +lastGems.gems, gemsHand: lastGems.gemsHand ?? null, gemsBag: lastGems.gemsBag ?? null }, lastGems.ts);
   renderFarms();
   applyMode();
-})();
+};
 </script>
 </body>
 </html>
