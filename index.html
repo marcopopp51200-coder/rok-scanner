@@ -46,43 +46,7 @@ tailwind.config = {
         <p class="text-sm text-slate-400">Screenshots aus Rise of Kingdoms auswerten – Ressourcen & VIP-Fortschritt</p>
       </div>
     </div>
-    <button id="toggleSettings" class="self-start sm:self-auto inline-flex items-center gap-2 text-sm px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 transition">
-      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-      <span id="keyBadge">API-Key</span>
-    </button>
   </header>
-
-  <!-- Settings -->
-  <section id="settings" class="panel rounded-2xl p-5 mb-6 hidden">
-    <div class="grid md:grid-cols-[1fr_220px] gap-4">
-      <div>
-        <label class="text-xs uppercase tracking-widest text-slate-400">Claude API-Key</label>
-        <div class="mt-2 flex gap-2">
-          <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…"
-                 class="flex-1 bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 font-mono text-sm focus:outline-none focus:border-gold-500">
-          <button id="toggleKeyVis" class="px-3 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm" title="Anzeigen/Verbergen">👁</button>
-        </div>
-      </div>
-      <div>
-        <label class="text-xs uppercase tracking-widest text-slate-400">Modell</label>
-        <select id="model" class="mt-2 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold-500">
-          <option value="claude-sonnet-5-5">Claude Sonnet 5.5 (empfohlen)</option>
-          <option value="claude-opus-5-5">Claude Opus 5.5 (genauer)</option>
-          <option value="claude-haiku-5-5">Claude Haiku 5.5 (günstig)</option>
-        </select>
-      </div>
-    </div>
-    <div class="mt-4 flex flex-wrap items-center gap-2">
-      <button id="saveKey" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Speichern</button>
-      <button id="clearKey" class="px-4 py-2 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10 text-sm">Key löschen</button>
-      <span id="keyMsg" class="text-sm text-emerald-400"></span>
-    </div>
-    <p class="mt-4 text-xs text-slate-500 leading-relaxed">
-      Der Key bleibt nur in diesem Browser (LocalStorage) und wird ausschließlich direkt an <span class="font-mono">api.anthropic.com</span> gesendet.
-      Hinweis: LocalStorage ist nicht verschlüsselt – jedes Skript auf derselben Seite und jeder mit Zugriff auf dieses Gerät könnte ihn lesen.
-      Nutze am besten einen eigenen Key mit Ausgabenlimit und öffne die Datei lokal.
-    </p>
-  </section>
 
   <div class="grid lg:grid-cols-[380px_1fr] gap-6">
 
@@ -104,7 +68,7 @@ tailwind.config = {
                class="block cursor-pointer rounded-xl border-2 border-dashed border-ink-600 bg-ink-950/60 p-6 text-center transition">
           <svg class="w-10 h-10 mx-auto text-gold-400 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0-12l-4 4m4-4l4 4"/></svg>
           <div class="font-semibold">Bilder hierher ziehen</div>
-          <div class="text-xs text-slate-400 mt-1">oder klicken · auch Strg+V zum Einfügen · PNG/JPG/WebP</div>
+          <div class="text-xs text-slate-400 mt-1">oder klicken · auch Strg+V zum Einfügen · max. 5 Bilder</div>
           <div class="text-xs text-gold-300/90 mt-2 font-semibold">Nur Screenshots deines Main-Accounts</div>
           <input id="fileInput" type="file" accept="image/*" multiple class="hidden">
         </label>
@@ -408,28 +372,8 @@ tailwind.config = {
   }
 
   // ---------- Settings ----------
-  $('apiKey').value = LS.get(KEY, '');
-  $('model').value = LS.get(MODEL, 'claude-sonnet-5-5');
   $('currentVip').value = LS.get(CUR, '');
-  const updateBadge = () => {
-    const has = !!LS.get(KEY);
-    $('keyBadge').textContent = has ? 'API-Key ✓' : 'API-Key fehlt';
-    $('keyBadge').className = has ? 'text-emerald-400' : 'text-amber-300';
-    if (!has) $('settings').classList.remove('hidden');
-    updateAnalyzeBtn();
-  };
-  $('toggleSettings').onclick = () => $('settings').classList.toggle('hidden');
-  $('toggleKeyVis').onclick = () => { const i = $('apiKey'); i.type = i.type === 'password' ? 'text' : 'password'; };
-  $('saveKey').onclick = () => {
-    const v = $('apiKey').value.trim();
-    if (!v) { $('keyMsg').textContent = 'Bitte einen Key eingeben.'; $('keyMsg').className = 'text-sm text-amber-300'; return; }
-    const ok = LS.set(KEY, v); LS.set(MODEL, $('model').value);
-    $('keyMsg').className = 'text-sm ' + (ok ? 'text-emerald-400' : 'text-red-400');
-    $('keyMsg').textContent = ok ? 'Gespeichert.' : 'Speichern nicht möglich (LocalStorage blockiert).';
-    updateBadge(); setTimeout(() => $('keyMsg').textContent = '', 2500);
-  };
-  $('clearKey').onclick = () => { LS.del(KEY); $('apiKey').value = ''; $('keyMsg').textContent = 'Key entfernt.'; $('keyMsg').className='text-sm text-slate-400'; updateBadge(); };
-  $('model').onchange = () => LS.set(MODEL, $('model').value);
+  LS.del(KEY); // früher lokal gespeicherter API-Key wird nicht mehr gebraucht
   $('currentVip').addEventListener('input', () => {
     LS.set(CUR, $('currentVip').value);
     vipCurrent = $('currentVip').value === '' ? vipCurrent : +$('currentVip').value;
@@ -464,7 +408,7 @@ tailwind.config = {
   async function addFiles(fileList) {
     const files = [...fileList].filter(f => f && f.type.startsWith('image/'));
     for (const f of files) {
-      if (images.length >= 10) { showError('Maximal 10 Bilder pro Analyse.'); break; }
+      if (images.length >= 5) { showError('Maximal 5 Bilder pro Analyse.'); break; }
       try { images.push({ id: crypto.randomUUID?.() || String(Math.random()), name: f.name || 'Screenshot', ...(await prepareImage(f)) }); }
       catch { showError(`„${f.name}" konnte nicht gelesen werden.`); }
     }
@@ -480,11 +424,11 @@ tailwind.config = {
         const img = new Image();
         img.onerror = reject;
         img.onload = () => {
-          const max = 1800, s = Math.min(1, max / Math.max(img.width, img.height));
+          const max = 1600, s = Math.min(1, max / Math.max(img.width, img.height));
           const c = document.createElement('canvas');
           c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
           const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, c.width, c.height);
-          const dataUrl = c.toDataURL('image/jpeg', 0.9);
+          const dataUrl = c.toDataURL('image/jpeg', 0.85);
           resolve({ dataUrl, mediaType: 'image/jpeg', base64: dataUrl.split(',')[1] });
         };
         img.src = r.result;
@@ -502,85 +446,30 @@ tailwind.config = {
     $('thumbs').querySelectorAll('.rm').forEach(b => b.onclick = (e) => { e.preventDefault(); images = images.filter(i => i.id !== b.dataset.id); renderThumbs(); });
     updateAnalyzeBtn();
   }
-  function updateAnalyzeBtn() { $('analyzeBtn').disabled = !(images.length && LS.get(KEY)); }
+  function updateAnalyzeBtn() { $('analyzeBtn').disabled = !images.length; }
 
   // ---------- Claude API ----------
-  const PROMPT = (m) => `Du analysierst Screenshots aus dem Handyspiel "Rise of Kingdoms" (Sprache der Spieloberfläche kann Deutsch, Englisch o. a. sein).
-
-${m === 'resources' ? 'MODUS: Ressourcen. Setze "type" auf "resources".' : m === 'vip' ? 'MODUS: VIP. Setze "type" auf "vip".' : 'MODUS: Edelsteine. Setze "type" auf "gems". Lies die Edelsteine (Gems): "gems_hand" = Edelsteine auf Hand (Anzeige oben/Konto), "gems_bag" = Summe der Edelstein-Items im Rucksack/Inventar (Wert × Anzahl je Kachel). Fehlt eins davon, null. "gems" = gems_hand + gems_bag. Abkürzungen wie 12.5K umrechnen.'}
-
-Alle Screenshots stammen vom Main-Account des Spielers.
-
-RESSOURCEN: Lies für Proviant/Nahrung (food), Holz (wood), Stein (stone) und Gold (gold) je 3 Werte:
-- "rucksack" = Spalte "Durch Gegenstände" (From Items)
-- "gesamt" = Spalte "Gesamtressourcen" / "Gesamt" (Total)
-- "aufHand" = gesamt − rucksack (berechnen)
-- Wandle Abkürzungen in ganze Zahlen um: "8.1B" = 8100000000, "12.5M" = 12500000, "850K" = 850000. Achte auf Dezimaltrennzeichen (8,1 Mrd. = 8100000000).
-- Fehlt ein Wert, nutze null.
-
-VIP: Jede Kachel mit VIP-Punkten zeigt einen Punktewert (z. B. 10, 50, 100, 500, 1000, 5000, 10000) und eine Anzahl (meist unten rechts, z. B. "x23" oder nur "23").
-- Liste jede unterschiedliche Kachel einmal mit points_each und quantity. Ohne sichtbare Anzahl: quantity = 1.
-- Ignoriere Kacheln, die keine VIP-Punkte sind (Beschleuniger, Ressourcen, Schlüssel usw.).
-- Wenn der VIP-Bildschirm sichtbar ist, lies aktuelle Gesamtpunkte (current_points) und VIP-Stufe (current_level), sonst null. Bei Anzeige wie "123,456/200,000" ist current_points die Gesamtzahl, falls ersichtlich; wenn nur Fortschritt innerhalb der Stufe angezeigt wird, setze progress_in_level und level_requirement.
-- Bei mehreren Screenshots: zähle dieselbe Kachel NICHT doppelt, wenn sie offensichtlich zweimal zu sehen ist.
-
-Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
-{
-  "type": "resources" | "vip" | "gems",
-  "gems": number|null,
-  "gems_hand": number|null,
-  "gems_bag": number|null,
-  "resources": {
-    "food":  {"rucksack": number|null, "aufHand": number|null, "gesamt": number|null},
-    "wood":  {"rucksack": number|null, "aufHand": number|null, "gesamt": number|null},
-    "stone": {"rucksack": number|null, "aufHand": number|null, "gesamt": number|null},
-    "gold":  {"rucksack": number|null, "aufHand": number|null, "gesamt": number|null}
-  },
-  "vip": {
-    "current_points": number|null,
-    "current_level": number|null,
-    "progress_in_level": number|null,
-    "level_requirement": number|null,
-    "items": [{"name": string, "points_each": number, "quantity": number}]
-  },
-  "confidence": "hoch" | "mittel" | "niedrig",
-  "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
-}`;
 
   async function analyze() {
     hideError();
-    const key = LS.get(KEY);
-    if (!key) { $('settings').classList.remove('hidden'); return showError('Bitte zuerst deinen API-Key speichern.'); }
     setLoading(true);
     $('discardMsg').classList.add('hidden');
     let content = null, body = null;
     try {
-      content = [
-        ...images.map(im => ({ type: 'image', source: { type: 'base64', media_type: im.mediaType, data: im.base64 } })),
-        { type: 'text', text: PROMPT(mode) }
-      ];
-      body = JSON.stringify({ model: $('model').value, max_tokens: 2000, messages: [{ role: 'user', content }] });
+      content = images.map(im => ({ media_type: im.mediaType, data: im.base64 }));
+      body = JSON.stringify({ mode, images: content });
       content = null;
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-api-key': key,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        body
-      });
+      if (body.length > 4_200_000) throw new Error('Die Bilder sind zusammen zu groß. Bitte weniger Screenshots auf einmal hochladen.');
+      const res = await fetch('/api/scan', { method: 'POST', headers: { 'content-type': 'application/json' }, body });
       body = null;
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const msg = data?.error?.message || res.statusText;
-        if (res.status === 401) throw new Error('API-Key ungültig (401). Bitte prüfen.');
-        if (res.status === 404) throw new Error(`Modell nicht gefunden (404): ${msg}. Wähle in den Einstellungen ein anderes Modell.`);
-        if (res.status === 429) throw new Error('Rate-Limit erreicht (429). Kurz warten und erneut versuchen.');
-        throw new Error(`API-Fehler ${res.status}: ${msg}`);
+        if (res.status === 404) throw new Error('Server-Route /api/scan nicht gefunden. Die Seite muss über Vercel laufen (nicht als lokale Datei).');
+        if (res.status === 413) throw new Error('Die Bilder sind zu groß. Bitte weniger Screenshots auf einmal hochladen.');
+        if (res.status === 429) throw new Error('Gerade zu viele Anfragen. Kurz warten und erneut versuchen.');
+        throw new Error(data?.error || `Serverfehler ${res.status}`);
       }
-      const text = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n');
+      const text = String(data.text || '');
       $('rawOut').textContent = text; $('rawBox').classList.remove('hidden');
       const parsed = parseJson(text);
       if (!parsed) throw new Error('Antwort konnte nicht als JSON gelesen werden – siehe Rohantwort unten.');
@@ -1188,7 +1077,7 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
   syncTabs();
   renderHistory();
   $('vipInputs').classList.toggle('hidden', mode === 'resources');
-  updateBadge();
+  updateAnalyzeBtn();
 
   // Letzten Scan je Seite wiederherstellen (nur Zahlen, keine Bilder)
   const readLast = (type) => {
