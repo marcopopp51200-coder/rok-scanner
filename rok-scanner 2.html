@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoK Scanner – Ressourcen & VIP</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { display: ['Cinzel','serif'], sans: ['Inter','system-ui','sans-serif'] },
+    colors: { ink: { 950:'#07090f', 900:'#0c1019', 850:'#111725', 800:'#161e2f', 700:'#212b40', 600:'#2e3a55' },
+              gold: { 300:'#fde68a', 400:'#f5c542', 500:'#e0a91b', 600:'#b7830f' } }
+  }}
+}
+</script>
+<style>
+  body { background: radial-gradient(1200px 600px at 10% -10%, rgba(224,169,27,.10), transparent 60%),
+                      radial-gradient(900px 500px at 110% 10%, rgba(56,189,248,.08), transparent 60%), #07090f; }
+  .panel { background: linear-gradient(180deg, rgba(22,30,47,.92), rgba(12,16,25,.92)); border: 1px solid rgba(245,197,66,.14);
+           box-shadow: 0 0 0 1px rgba(0,0,0,.4), 0 20px 40px -20px rgba(0,0,0,.8); }
+  .gold-text { background: linear-gradient(180deg,#fde68a,#e0a91b 60%,#b7830f); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .bar { transition: width .9s cubic-bezier(.2,.8,.2,1); }
+  .drop-active { border-color: #f5c542 !important; background: rgba(245,197,66,.07) !important; transform: scale(1.01); }
+  .shimmer { background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent); background-size: 200% 100%; animation: sh 1.4s infinite; }
+  @keyframes sh { from { background-position: 200% 0 } to { background-position: -200% 0 } }
+  .spin { animation: spin 1s linear infinite } @keyframes spin { to { transform: rotate(360deg) } }
+  input[type=number]::-webkit-inner-spin-button { opacity: .4 }
+  .seg-btn[aria-pressed="true"] { background: linear-gradient(180deg,#f5c542,#b7830f); color:#07090f; box-shadow: 0 0 18px rgba(245,197,66,.35); }
+</style>
+</head>
+<body class="min-h-screen text-slate-200 font-sans antialiased">
+
+<div class="max-w-6xl mx-auto px-4 py-6 sm:py-10">
+
+  <!-- Header -->
+  <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+    <div class="flex items-center gap-4">
+      <div class="w-14 h-14 rounded-xl grid place-items-center bg-gradient-to-br from-gold-400 to-gold-600 shadow-[0_0_30px_rgba(245,197,66,.35)]">
+        <svg viewBox="0 0 24 24" class="w-8 h-8 text-ink-950" fill="currentColor"><path d="M3 8l4 3 5-7 5 7 4-3-2 11H5L3 8zm2 13h14v1.5H5V21z"/></svg>
+      </div>
+      <div>
+        <h1 class="font-display text-2xl sm:text-3xl font-extrabold gold-text tracking-wide">Kingdom Scanner</h1>
+        <p class="text-sm text-slate-400">Screenshots aus Rise of Kingdoms auswerten – Ressourcen & VIP-Fortschritt</p>
+      </div>
+    </div>
+    <button id="toggleSettings" class="self-start sm:self-auto inline-flex items-center gap-2 text-sm px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 transition">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+      <span id="keyBadge">API-Key</span>
+    </button>
+  </header>
+
+  <!-- Settings -->
+  <section id="settings" class="panel rounded-2xl p-5 mb-6 hidden">
+    <div class="grid md:grid-cols-[1fr_220px] gap-4">
+      <div>
+        <label class="text-xs uppercase tracking-widest text-slate-400">Claude API-Key</label>
+        <div class="mt-2 flex gap-2">
+          <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…"
+                 class="flex-1 bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 font-mono text-sm focus:outline-none focus:border-gold-500">
+          <button id="toggleKeyVis" class="px-3 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm" title="Anzeigen/Verbergen">👁</button>
+        </div>
+      </div>
+      <div>
+        <label class="text-xs uppercase tracking-widest text-slate-400">Modell</label>
+        <select id="model" class="mt-2 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold-500">
+          <option value="claude-sonnet-5-5">Claude Sonnet 5.5 (empfohlen)</option>
+          <option value="claude-opus-5-5">Claude Opus 5.5 (genauer)</option>
+          <option value="claude-haiku-5-5">Claude Haiku 5.5 (günstig)</option>
+        </select>
+      </div>
+    </div>
+    <div class="mt-4 flex flex-wrap items-center gap-2">
+      <button id="saveKey" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Speichern</button>
+      <button id="clearKey" class="px-4 py-2 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10 text-sm">Key löschen</button>
+      <span id="keyMsg" class="text-sm text-emerald-400"></span>
+    </div>
+    <p class="mt-4 text-xs text-slate-500 leading-relaxed">
+      Der Key bleibt nur in diesem Browser (LocalStorage) und wird ausschließlich direkt an <span class="font-mono">api.anthropic.com</span> gesendet.
+      Hinweis: LocalStorage ist nicht verschlüsselt – jedes Skript auf derselben Seite und jeder mit Zugriff auf dieses Gerät könnte ihn lesen.
+      Nutze am besten einen eigenen Key mit Ausgabenlimit und öffne die Datei lokal.
+    </p>
+  </section>
+
+  <div class="grid lg:grid-cols-[380px_1fr] gap-6">
+
+    <!-- Left: input -->
+    <aside class="space-y-6">
+      <section class="panel rounded-2xl p-5">
+        <h2 class="font-display text-lg text-gold-300 mb-3">1 · Modus</h2>
+        <div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group">
+          <button class="seg-btn rounded-lg py-2 text-sm font-semibold transition" data-mode="resources" aria-pressed="true">Ressourcen</button>
+          <button class="seg-btn rounded-lg py-2 text-sm font-semibold transition" data-mode="vip" aria-pressed="false">VIP</button>
+          <button class="seg-btn rounded-lg py-2 text-sm font-semibold transition" data-mode="gems" aria-pressed="false">Gems</button>
+        </div>
+        <p id="modeHint" class="mt-3 text-xs text-slate-400"></p>
+      </section>
+
+      <section class="panel rounded-2xl p-5">
+        <h2 class="font-display text-lg text-gold-300 mb-3">2 · Screenshots</h2>
+        <label id="dropzone" for="fileInput"
+               class="block cursor-pointer rounded-xl border-2 border-dashed border-ink-600 bg-ink-950/60 p-6 text-center transition">
+          <svg class="w-10 h-10 mx-auto text-gold-400 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0-12l-4 4m4-4l4 4"/></svg>
+          <div class="font-semibold">Bilder hierher ziehen</div>
+          <div class="text-xs text-slate-400 mt-1">oder klicken · auch Strg+V zum Einfügen · PNG/JPG/WebP</div>
+          <div class="text-xs text-gold-300/90 mt-2 font-semibold">Nur Screenshots deines Main-Accounts</div>
+          <input id="fileInput" type="file" accept="image/*" multiple class="hidden">
+        </label>
+        <div id="thumbs" class="mt-4 grid grid-cols-3 gap-2"></div>
+        <p class="mt-3 flex items-start gap-2 text-xs text-slate-500">
+          <span class="text-emerald-400">🛡</span>
+          <span>Bilder werden nur im Arbeitsspeicher gehalten, nie gespeichert und nach erfolgreichem Auslesen sofort verworfen. Im Verlauf bleiben nur Datum, Typ und Zahlen.</span>
+        </p>
+        <div id="discardMsg" class="hidden mt-2 text-xs text-emerald-400">✓ Screenshots wurden nach dem Auslesen verworfen.</div>
+      </section>
+
+      <section id="vipInputs" class="panel rounded-2xl p-5">
+        <h2 class="font-display text-lg text-gold-300 mb-3">3 · Aktueller VIP-Stand</h2>
+        <label class="text-xs text-slate-400">Aktuelle VIP-Punkte</label>
+        <input id="currentVip" type="number" min="0" placeholder="z. B. 412000"
+               class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold-500">
+        <label for="targetLevel" class="block mt-4 text-xs text-slate-400">Ziel-Level</label>
+        <select id="targetLevel" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold-500"></select>
+        <button id="showVipCalc" class="mt-3 w-full text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">Rechner ohne Scan öffnen</button>
+
+        <!-- Erkannte VIP-Items -->
+        <div id="vipItemsBox" class="hidden mt-5 pt-4 border-t border-ink-700">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-semibold">Erkannte VIP-Items</h3>
+            <select id="addToken" class="text-xs bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 hover:border-gold-500/60 focus:outline-none">
+              <option value="">+ Token</option>
+            </select>
+          </div>
+          <table class="w-full text-xs">
+            <thead class="uppercase tracking-wider text-slate-500">
+              <tr class="border-b border-ink-700">
+                <th class="text-left py-1.5 pr-1 font-medium">Pkt./Stk.</th>
+                <th class="text-right py-1.5 px-1 font-medium">Anzahl</th>
+                <th class="text-right py-1.5 pl-1 font-medium">Summe</th>
+                <th class="w-6"></th>
+              </tr>
+            </thead>
+            <tbody id="vipRows"></tbody>
+            <tfoot>
+              <tr><td class="pt-2 text-slate-400">Gesamt</td><td></td><td id="vipRowsTotal" class="pt-2 text-right font-bold text-gold-300"></td><td></td></tr>
+            </tfoot>
+          </table>
+          <p class="text-[11px] text-slate-500 mt-2">Anzahl ist korrigierbar, falls eine Kachel schlecht lesbar war.</p>
+        </div>
+      </section>
+
+      <button id="analyzeBtn" disabled
+              class="relative w-full overflow-hidden py-4 rounded-2xl font-display text-lg font-bold tracking-wide text-ink-950 bg-gradient-to-b from-gold-400 to-gold-600 shadow-[0_10px_30px_-10px_rgba(245,197,66,.6)] disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110 transition">
+        <span id="analyzeLabel">Analysieren</span>
+      </button>
+      <div id="errorBox" class="hidden rounded-xl border border-red-500/40 bg-red-500/10 text-red-200 text-sm p-4"></div>
+    </aside>
+
+    <!-- Right: results -->
+    <main id="results" class="space-y-6">
+      <div id="emptyState" class="panel rounded-2xl p-10 text-center">
+        <div class="text-5xl mb-3">🏰</div>
+        <h3 class="font-display text-xl text-gold-300">Noch keine Auswertung</h3>
+        <p class="text-slate-400 text-sm mt-2 max-w-md mx-auto">Lade einen Screenshot deiner Ressourcenleiste bzw. deines Ressourcen-Inventars – oder deines Inventars mit VIP-Punkte-Items – hoch und klicke auf „Analysieren".</p>
+      </div>
+
+      <div id="loadingState" class="hidden panel rounded-2xl p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <svg class="w-6 h-6 text-gold-400 spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity=".2" stroke-width="3"/><path d="M22 12a10 10 0 00-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+          <span class="font-semibold">Claude liest deine Screenshots …</span>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div class="h-28 rounded-xl bg-ink-800 shimmer"></div><div class="h-28 rounded-xl bg-ink-800 shimmer"></div>
+          <div class="h-28 rounded-xl bg-ink-800 shimmer"></div><div class="h-28 rounded-xl bg-ink-800 shimmer"></div>
+        </div>
+      </div>
+
+      <!-- Resources -->
+      <section id="resSection" class="hidden space-y-4">
+        <div class="flex items-end justify-between">
+          <h2 class="font-display text-2xl gold-text">Ressourcen</h2>
+          <span id="resSource" class="text-xs text-slate-400"></span>
+        </div>
+        <div id="resCards" class="grid sm:grid-cols-2 gap-4"></div>
+        <div class="panel rounded-2xl p-5 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="text-xs uppercase tracking-widest text-slate-400">Gesamt</div>
+            <div id="resTotal" class="text-3xl font-bold text-white"></div>
+          </div>
+          <div id="resNote" class="text-xs text-slate-400 max-w-sm"></div>
+        </div>
+      </section>
+
+      <!-- VIP -->
+      <section id="vipSection" class="hidden space-y-4">
+        <div class="flex items-end justify-between">
+          <h2 class="font-display text-2xl gold-text">VIP-Rechner</h2>
+          
+        </div>
+
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div class="panel rounded-2xl p-5">
+            <div class="text-xs uppercase tracking-widest text-slate-400">Aktuell</div>
+            <div id="vipCurrent" class="text-2xl font-bold mt-1">–</div>
+          </div>
+          <div class="panel rounded-2xl p-5">
+            <div class="text-xs uppercase tracking-widest text-slate-400">Punkte im Rucksack</div>
+            <div id="vipInv" class="text-2xl font-bold mt-1 text-gold-300">–</div>
+          </div>
+          <div class="panel rounded-2xl p-5 ring-1 ring-gold-500/30">
+            <div class="text-xs uppercase tracking-widest text-slate-400">Gesamtwert</div>
+            <div id="vipAfter" class="text-2xl font-bold mt-1 text-white">–</div>
+          </div>
+        </div>
+
+        <div id="vipTargets"></div>
+      </section>
+
+      <!-- Gems -->
+      <section id="gemsSection" class="hidden space-y-4">
+        <div class="flex items-end justify-between">
+          <h2 class="font-display text-2xl gold-text">Edelsteine</h2>
+          <span id="gemsSource" class="text-xs text-slate-400"></span>
+        </div>
+        <div class="panel rounded-2xl p-6 flex items-center gap-5">
+          <!-- Gem-Symbol: hier austauschen -->
+          <div id="gemIcon" class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#f472b633,#a855f722);border:1px solid #f472b655">💎</div>
+          <div>
+            <div class="text-xs uppercase tracking-widest text-slate-400">Edelsteine gesamt (Main)</div>
+            <div id="gemsValue" class="text-4xl font-extrabold text-white tabular-nums">–</div>
+            <div id="gemsDelta" class="text-sm mt-1 text-slate-400"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="panel rounded-2xl p-5">
+            <div class="text-xs uppercase tracking-widest text-slate-400">Auf Hand</div>
+            <div id="gemsHand" class="text-2xl font-bold mt-1 text-white tabular-nums">–</div>
+          </div>
+          <div class="panel rounded-2xl p-5">
+            <div class="text-xs uppercase tracking-widest text-slate-400">Im Rucksack</div>
+            <div id="gemsBag" class="text-2xl font-bold mt-1 text-pink-300 tabular-nums">–</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Farmen -->
+      <section id="farmSection" class="hidden panel rounded-2xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <h2 class="font-display text-2xl gold-text">Farmen</h2>
+          <button id="addFarm" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">+ Farm</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="text-xs uppercase tracking-wider text-slate-400">
+              <tr class="border-b border-ink-700">
+                <th class="py-2 pr-2 font-medium text-left">Farm</th>
+                <th class="py-2 px-1 font-medium text-right">🌾 Proviant</th>
+                <th class="py-2 px-1 font-medium text-right">🪵 Holz</th>
+                <th class="py-2 px-1 font-medium text-right">🪨 Stein</th>
+                <th class="py-2 px-1 font-medium text-right">🪙 Gold</th>
+                <th class="w-8"></th>
+              </tr>
+            </thead>
+            <tbody id="farmRows"></tbody>
+            <tfoot id="farmFoot" class="text-sm"></tfoot>
+          </table>
+        </div>
+        <p class="text-xs text-slate-500 mt-3">Eingabe als Zahl oder Kurzform, z. B. 12500000, 12,5M oder 850K. Wird automatisch gespeichert.</p>
+      </section>
+
+      <!-- History -->
+      <section id="historySection" class="panel rounded-2xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h2 class="font-display text-2xl gold-text">Verlauf</h2>
+          <div class="flex items-center gap-2">
+            <div class="hidden" role="group">
+              <button class="hist-tab seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition" data-tab="resources" aria-pressed="true">Ressourcen</button>
+              <button class="hist-tab seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition" data-tab="vip" aria-pressed="false">VIP-Punkte</button>
+            </div>
+            <div id="farmOpts" class="hidden flex items-center gap-3 text-xs text-slate-300">
+              <label class="inline-flex items-center gap-1.5 cursor-pointer"><input id="optFarm" type="checkbox" class="accent-yellow-500 w-4 h-4">Mit Farms</label>
+            </div>
+            <div id="chartTypeWrap" class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group">
+              <button class="ctype seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition" data-ctype="line" aria-pressed="false">Linie</button>
+              <button class="ctype seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition" data-ctype="bar" aria-pressed="true">Balken</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="resFilter" class="hidden flex flex-wrap gap-1 p-1 mb-4 rounded-xl bg-ink-950 border border-ink-700 w-fit" role="group">
+          <button class="rf-btn seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition" data-view="all" aria-pressed="true">Alle Werte</button>
+          <button class="rf-btn seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition" data-view="bag" aria-pressed="false">Nur Rucksack</button>
+          <button class="rf-btn seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition" data-view="hand" aria-pressed="false">Nur Auf Hand</button>
+          <button class="rf-btn seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition" data-view="total" aria-pressed="false">Nur Gesamt</button>
+        </div>
+        <div class="relative h-72">
+          <canvas id="historyChart"></canvas>
+          <div id="chartEmpty" class="absolute inset-0 grid place-items-center text-sm text-slate-500 text-center px-6"></div>
+        </div>
+
+        <div class="mt-6 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead id="histHead" class="text-xs uppercase tracking-wider text-slate-400"></thead>
+            <tbody id="histRows"></tbody>
+          </table>
+        </div>
+
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <span id="histCount" class="text-xs text-slate-500"></span>
+          <div class="flex flex-wrap gap-2">
+            <button id="exportData" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Daten sichern (Export)</button>
+            <button id="importData" class="px-4 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:bg-gold-500/10 text-sm">Daten laden (Import)</button>
+            <input id="importFile" type="file" accept="application/json,.json" class="hidden">
+            <button id="resetHistory" class="px-4 py-2 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10 text-sm">Verlauf zurücksetzen</button>
+          </div>
+        </div>
+      </section>
+
+      <details id="rawBox" class="hidden panel rounded-2xl p-4 text-xs">
+        <summary class="cursor-pointer text-slate-400 hover:text-gold-300">Rohantwort von Claude</summary>
+        <pre id="rawOut" class="mt-3 whitespace-pre-wrap font-mono text-slate-400"></pre>
+      </details>
+    </main>
+  </div>
+
+  <footer class="mt-10 text-center text-xs text-slate-600">Inoffizielles Fan-Tool · nicht mit Lilith Games verbunden</footer>
+</div>
+
+<script>
+(() => {
+  // ---------- Storage helpers ----------
+  const LS = {
+    get(k, d = null) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } },
+    del(k) { try { localStorage.removeItem(k); } catch {} }
+  };
+  const KEY = 'rok_scanner_api_key', MODEL = 'rok_scanner_model', CUR = 'rok_scanner_current_vip';
+
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => (Math.round(n) || 0).toLocaleString('de-DE');
+  const short = (n) => {
+    n = Number(n) || 0;
+    const d = (x, f) => x.toLocaleString('de-DE', { maximumFractionDigits: f });
+    if (n >= 1e9) return d(n / 1e9, 2) + ' Mrd.';
+    if (n >= 1e6) return d(n / 1e6, 2) + ' Mio.';
+    if (n >= 1e3) return d(n / 1e3, 1) + ' Tsd.';
+    return fmt(n);
+  };
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // ---------- State ----------
+  const MODE_KEY = 'rok_scanner_mode';
+  let mode = ['resources', 'vip', 'gems'].includes(LS.get(MODE_KEY, '')) ? LS.get(MODE_KEY) : 'resources';
+  let images = []; // {id, name, dataUrl, mediaType, base64}
+  let vipItems = [];
+  let vipCurrent = null;
+
+  // Feste VIP-Schwellenwerte (kumulierte Punkte) – Ziel-Level
+  const VIP_THRESHOLDS = {
+    10: 150000,
+    12: 350000,
+    14: 750000,
+    15: 1000000,
+    16: 1500000,
+    17: 2500000,
+    18: 4000000
+  };
+  // Vollständige Tabelle für die Stufen-Anzeige (Stufen 0–13 ergänzt, ab 10 aus VIP_THRESHOLDS)
+  const VIP_TABLE = [0, 200, 400, 1200, 3500, 6000, 11500, 17500, 35000, 75000,
+    VIP_THRESHOLDS[10], 250000, VIP_THRESHOLDS[12], 500000, VIP_THRESHOLDS[14], VIP_THRESHOLDS[15],
+    VIP_THRESHOLDS[16], VIP_THRESHOLDS[17], VIP_THRESHOLDS[18]];
+
+  // Feste Punktwerte der VIP-Tokens (für „+ Token“)
+  const TOKEN_VALUES = [10, 50, 100, 500, 1000, 5000, 10000];
+  // Tages-Punkte werden fest im Hintergrund gerechnet (täglicher Login)
+  const DAILY_POINTS = 200;
+
+  const TARGET = 'rok_scanner_target_level';
+  let targetLevel = +LS.get(TARGET, 18);
+  if (!VIP_THRESHOLDS[targetLevel]) targetLevel = 18;
+  $('targetLevel').innerHTML = Object.entries(VIP_THRESHOLDS)
+    .map(([lv, pts]) => `<option value="${lv}">VIP ${lv} – ${fmt(pts)} Punkte</option>`).join('');
+  $('targetLevel').value = targetLevel;
+  const targetPoints = () => VIP_THRESHOLDS[targetLevel];
+  const dailyPoints = () => DAILY_POINTS;
+  const refreshVipViews = () => {
+    if (!$('vipSection').classList.contains('hidden')) renderVip();
+    if (typeof renderHistory === 'function') renderHistory();
+  };
+  $('targetLevel').addEventListener('change', () => { targetLevel = +$('targetLevel').value; LS.set(TARGET, targetLevel); refreshVipViews(); });
+
+  // "Y Tage (Z Jahre/Monate)"
+  function durationText(days) {
+    const d = Math.ceil(days);
+    if (d < 45) return `${fmt(d)} ${d === 1 ? 'Tag' : 'Tagen'}`;
+    const totalMonths = Math.round(d / 30.44);
+    const y = Math.floor(totalMonths / 12), m = totalMonths % 12;
+    const parts = [];
+    if (y) parts.push(`${y} ${y === 1 ? 'Jahr' : 'Jahren'}`);
+    if (m) parts.push(`${m} ${m === 1 ? 'Monat' : 'Monaten'}`);
+    return `${fmt(d)} Tagen (≈ ${parts.join(' und ')})`;
+  }
+  function targetDate(days) {
+    const t = new Date(); t.setDate(t.getDate() + Math.ceil(days));
+    return t.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
+  }
+
+  // ---------- Settings ----------
+  $('apiKey').value = LS.get(KEY, '');
+  $('model').value = LS.get(MODEL, 'claude-sonnet-5-5');
+  $('currentVip').value = LS.get(CUR, '');
+  const updateBadge = () => {
+    const has = !!LS.get(KEY);
+    $('keyBadge').textContent = has ? 'API-Key ✓' : 'API-Key fehlt';
+    $('keyBadge').className = has ? 'text-emerald-400' : 'text-amber-300';
+    if (!has) $('settings').classList.remove('hidden');
+    updateAnalyzeBtn();
+  };
+  $('toggleSettings').onclick = () => $('settings').classList.toggle('hidden');
+  $('toggleKeyVis').onclick = () => { const i = $('apiKey'); i.type = i.type === 'password' ? 'text' : 'password'; };
+  $('saveKey').onclick = () => {
+    const v = $('apiKey').value.trim();
+    if (!v) { $('keyMsg').textContent = 'Bitte einen Key eingeben.'; $('keyMsg').className = 'text-sm text-amber-300'; return; }
+    const ok = LS.set(KEY, v); LS.set(MODEL, $('model').value);
+    $('keyMsg').className = 'text-sm ' + (ok ? 'text-emerald-400' : 'text-red-400');
+    $('keyMsg').textContent = ok ? 'Gespeichert.' : 'Speichern nicht möglich (LocalStorage blockiert).';
+    updateBadge(); setTimeout(() => $('keyMsg').textContent = '', 2500);
+  };
+  $('clearKey').onclick = () => { LS.del(KEY); $('apiKey').value = ''; $('keyMsg').textContent = 'Key entfernt.'; $('keyMsg').className='text-sm text-slate-400'; updateBadge(); };
+  $('model').onchange = () => LS.set(MODEL, $('model').value);
+  $('currentVip').addEventListener('input', () => {
+    LS.set(CUR, $('currentVip').value);
+    vipCurrent = $('currentVip').value === '' ? vipCurrent : +$('currentVip').value;
+    if (!$('vipSection').classList.contains('hidden')) renderVip();
+  });
+
+  // ---------- Mode ----------
+  const hints = {
+    auto: 'Claude erkennt selbst, ob es eine Ressourcen-Übersicht oder Inventar mit VIP-Packs ist.',
+    resources: 'Liest Proviant, Holz, Stein und Gold – aus der Ressourcenleiste oder dem Ressourcen-Inventar.',
+    vip: 'Liest VIP-Punkte-Kacheln aus dem Inventar (Wert × Anzahl) und berechnet den Weg zu deinem Ziel-Level.',
+    gems: 'Liest die Anzahl deiner Edelsteine und speichert sie im Verlauf.'
+  };
+  document.querySelectorAll('.seg-btn[data-mode]').forEach(b => b.onclick = () => {
+    mode = b.dataset.mode;
+    LS.set(MODE_KEY, mode);
+    hideError();
+    applyMode();
+  });
+
+  // ---------- Upload ----------
+  const dz = $('dropzone');
+  ['dragenter','dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add('drop-active'); }));
+  ['dragleave','drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.remove('drop-active'); }));
+  dz.addEventListener('drop', ev => addFiles(ev.dataTransfer.files));
+  $('fileInput').addEventListener('change', ev => { addFiles(ev.target.files); ev.target.value = ''; });
+  window.addEventListener('paste', ev => {
+    const files = [...(ev.clipboardData?.items || [])].filter(i => i.type.startsWith('image/')).map(i => i.getAsFile());
+    if (files.length) addFiles(files);
+  });
+
+  async function addFiles(fileList) {
+    const files = [...fileList].filter(f => f && f.type.startsWith('image/'));
+    for (const f of files) {
+      if (images.length >= 10) { showError('Maximal 10 Bilder pro Analyse.'); break; }
+      try { images.push({ id: crypto.randomUUID?.() || String(Math.random()), name: f.name || 'Screenshot', ...(await prepareImage(f)) }); }
+      catch { showError(`„${f.name}" konnte nicht gelesen werden.`); }
+    }
+    renderThumbs();
+  }
+
+  // Bild verkleinern (spart Tokens, max. ~1800px lange Seite) und als JPEG kodieren
+  function prepareImage(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onerror = reject;
+      r.onload = () => {
+        const img = new Image();
+        img.onerror = reject;
+        img.onload = () => {
+          const max = 1800, s = Math.min(1, max / Math.max(img.width, img.height));
+          const c = document.createElement('canvas');
+          c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+          const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, c.width, c.height);
+          const dataUrl = c.toDataURL('image/jpeg', 0.9);
+          resolve({ dataUrl, mediaType: 'image/jpeg', base64: dataUrl.split(',')[1] });
+        };
+        img.src = r.result;
+      };
+      r.readAsDataURL(file);
+    });
+  }
+
+  function renderThumbs() {
+    $('thumbs').innerHTML = images.map(im => `
+      <div class="relative group rounded-lg overflow-hidden border border-ink-600 aspect-video bg-ink-950">
+        <img src="${im.dataUrl}" class="w-full h-full object-cover" alt="${esc(im.name)}">
+        <button data-id="${im.id}" class="rm absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 text-xs opacity-0 group-hover:opacity-100 hover:bg-red-600 transition" title="Entfernen">✕</button>
+      </div>`).join('');
+    $('thumbs').querySelectorAll('.rm').forEach(b => b.onclick = (e) => { e.preventDefault(); images = images.filter(i => i.id !== b.dataset.id); renderThumbs(); });
+    updateAnalyzeBtn();
+  }
+  function updateAnalyzeBtn() { $('analyzeBtn').disabled = !(images.length && LS.get(KEY)); }
+
+  // ---------- Claude API ----------
+  const PROMPT = (m) => `Du analysierst Screenshots aus dem Handyspiel "Rise of Kingdoms" (Sprache der Spieloberfläche kann Deutsch, Englisch o. a. sein).
+
+${m === 'resources' ? 'MODUS: Ressourcen. Setze "type" auf "resources".' : m === 'vip' ? 'MODUS: VIP. Setze "type" auf "vip".' : 'MODUS: Edelsteine. Setze "type" auf "gems". Lies die Edelsteine (Gems): "gems_hand" = Edelsteine auf Hand (Anzeige oben/Konto), "gems_bag" = Summe der Edelstein-Items im Rucksack/Inventar (Wert × Anzahl je Kachel). Fehlt eins davon, null. "gems" = gems_hand + gems_bag. Abkürzungen wie 12.5K umrechnen.'}
+
+Alle Screenshots stammen vom Main-Account des Spielers.
+
+RESSOURCEN: Lies für Proviant/Nahrung (food), Holz (wood), Stein (stone) und Gold (gold) je 3 Werte:
+- "rucksack" = Spalte "Durch Gegenstände" (From Items)
+- "gesamt" = Spalte "Gesamtressourcen" / "Gesamt" (Total)
+- "aufHand" = gesamt − rucksack (berechnen)
+- Wandle Abkürzungen in ganze Zahlen um: "8.1B" = 8100000000, "12.5M" = 12500000, "850K" = 850000. Achte auf Dezimaltrennzeichen (8,1 Mrd. = 8100000000).
+- Fehlt ein Wert, nutze null.
+
+VIP: Jede Kachel mit VIP-Punkten zeigt einen Punktewert (z. B. 10, 50, 100, 500, 1000, 5000, 10000) und eine Anzahl (meist unten rechts, z. B. "x23" oder nur "23").
+- Liste jede unterschiedliche Kachel einmal mit points_each und quantity. Ohne sichtbare Anzahl: quantity = 1.
+- Ignoriere Kacheln, die keine VIP-Punkte sind (Beschleuniger, Ressourcen, Schlüssel usw.).
+- Wenn der VIP-Bildschirm sichtbar ist, lies aktuelle Gesamtpunkte (current_points) und VIP-Stufe (current_level), sonst null. Bei Anzeige wie "123,456/200,000" ist current_points die Gesamtzahl, falls ersichtlich; wenn nur Fortschritt innerhalb der Stufe angezeigt wird, setze progress_in_level und level_requirement.
+- Bei mehreren Screenshots: zähle dieselbe Kachel NICHT doppelt, wenn sie offensichtlich zweimal zu sehen ist.
+
+Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
+{
+  "type": "resources" | "vip" | "gems",
+  "gems": number|null,
+  "gems_hand": number|null,
+  "gems_bag": number|null,
+  "resources": {
+    "food":  {"rucksack": number|null, "aufHand": number|null, "gesamt": number|null},
+    "wood":  {"rucksack": number|null, "aufHand": number|null, "gesamt": number|null},
+    "stone": {"rucksack": number|null, "aufHand": number|null, "gesamt": number|null},
+    "gold":  {"rucksack": number|null, "aufHand": number|null, "gesamt": number|null}
+  },
+  "vip": {
+    "current_points": number|null,
+    "current_level": number|null,
+    "progress_in_level": number|null,
+    "level_requirement": number|null,
+    "items": [{"name": string, "points_each": number, "quantity": number}]
+  },
+  "confidence": "hoch" | "mittel" | "niedrig",
+  "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
+}`;
+
+  async function analyze() {
+    hideError();
+    const key = LS.get(KEY);
+    if (!key) { $('settings').classList.remove('hidden'); return showError('Bitte zuerst deinen API-Key speichern.'); }
+    setLoading(true);
+    $('discardMsg').classList.add('hidden');
+    let content = null, body = null;
+    try {
+      content = [
+        ...images.map(im => ({ type: 'image', source: { type: 'base64', media_type: im.mediaType, data: im.base64 } })),
+        { type: 'text', text: PROMPT(mode) }
+      ];
+      body = JSON.stringify({ model: $('model').value, max_tokens: 2000, messages: [{ role: 'user', content }] });
+      content = null;
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body
+      });
+      body = null;
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = data?.error?.message || res.statusText;
+        if (res.status === 401) throw new Error('API-Key ungültig (401). Bitte prüfen.');
+        if (res.status === 404) throw new Error(`Modell nicht gefunden (404): ${msg}. Wähle in den Einstellungen ein anderes Modell.`);
+        if (res.status === 429) throw new Error('Rate-Limit erreicht (429). Kurz warten und erneut versuchen.');
+        throw new Error(`API-Fehler ${res.status}: ${msg}`);
+      }
+      const text = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n');
+      $('rawOut').textContent = text; $('rawBox').classList.remove('hidden');
+      const parsed = parseJson(text);
+      if (!parsed) throw new Error('Antwort konnte nicht als JSON gelesen werden – siehe Rohantwort unten.');
+      showResult(parsed);
+      discardImages(); // erfolgreich ausgelesen → Bilder sofort verwerfen
+    } catch (e) {
+      showError(e.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zur API. Prüfe Internet/Adblocker.' : e.message);
+      $('emptyState').classList.toggle('hidden', !$('resSection').classList.contains('hidden') || !$('vipSection').classList.contains('hidden'));
+    } finally { content = null; body = null; setLoading(false); applyMode(); }
+  }
+
+  // Entfernt alle Bilddaten aus der Seite: Array-Referenzen, Base64-Strings, <img>-Elemente, Datei-Input.
+  // Danach hält die Seite keine Referenz mehr – der Browser gibt den Speicher bei der nächsten Garbage Collection frei.
+  function discardImages() {
+    images.forEach(im => { im.base64 = null; im.dataUrl = null; });
+    images.length = 0;
+    images = [];
+    $('thumbs').querySelectorAll('img').forEach(img => { img.removeAttribute('src'); img.remove(); });
+    $('thumbs').innerHTML = '';
+    $('fileInput').value = '';
+    $('discardMsg').classList.remove('hidden');
+    updateAnalyzeBtn();
+  }
+  $('analyzeBtn').onclick = analyze;
+
+  function parseJson(t) {
+    try { return JSON.parse(t); } catch {}
+    const m = t.match(/\{[\s\S]*\}/); if (!m) return null;
+    try { return JSON.parse(m[0]); } catch { return null; }
+  }
+
+  function setLoading(on) {
+    $('analyzeBtn').disabled = on || !images.length;
+    $('analyzeLabel').textContent = on ? 'Analysiere …' : 'Analysieren';
+    $('loadingState').classList.toggle('hidden', !on);
+    if (on) { ['emptyState','resSection','vipSection','gemsSection'].forEach(id => $(id).classList.add('hidden')); }
+  }
+  function showError(m) { $('errorBox').textContent = m; $('errorBox').classList.remove('hidden'); }
+  function hideError() { $('errorBox').classList.add('hidden'); }
+
+  // ---------- Results ----------
+  function showResult(r) {
+    let type = mode;
+    $('emptyState').classList.add('hidden');
+    if (type === 'gems') {
+      const hand = num(r.gems_hand), bag = num(r.gems_bag), ts = Date.now();
+      const g = (hand != null || bag != null) ? (hand || 0) + (bag || 0) : num(r.gems);
+      if (g == null) throw new Error('Keine Edelsteine im Screenshot erkannt.');
+      const ge = { gems: g, gemsHand: hand ?? (bag == null ? g : null), gemsBag: bag };
+      renderGems(ge, ts);
+      addHistory({ id: newId(), ts, type: 'gems', ...ge, confidence: r.confidence || null });
+      saveLastScan({ type: 'gems', ts, ...ge });
+    } else if (type === 'resources') {
+      const vals = renderResources(r);
+      const entry = { id: newId(), ts: Date.now(), type: 'resources', confidence: r.confidence || null };
+      vals.forEach(v => { entry[v.k] = v.total; entry[BK[v.k]] = v.inv || 0; });
+      entry.total = vals.reduce((a, v) => a + v.total, 0);
+      Object.assign(entry, farmSnapshot());
+      addHistory(entry);
+      renderFarms();
+      saveLastScan({ type: 'resources', ts: entry.ts, confidence: r.confidence || null, notes: r.notes || '',
+        resources: normRes(r.resources) });
+    } else {
+      vipItems = (r.vip?.items || []).map(i => ({ name: i.name || `${i.points_each} VIP-Punkte`, points: +i.points_each || 0, qty: +i.quantity || 0 }));
+      const manual = $('currentVip').value;
+      let cur = manual !== '' ? +manual : r.vip?.current_points;
+      if ((cur === null || cur === undefined) && r.vip?.current_level != null && r.vip?.progress_in_level != null) {
+        cur = (VIP_TABLE[r.vip.current_level] || 0) + (+r.vip.progress_in_level || 0);
+      }
+      vipCurrent = cur ?? null;
+      if (manual === '' && vipCurrent != null) $('currentVip').value = vipCurrent;
+      activeVipEntryId = newId();
+      vipScanLoaded = true;
+      addHistory({ id: activeVipEntryId, ts: Date.now(), type: 'vip', confidence: r.confidence || null, ...vipNumbers() });
+      renderVip(r);
+    }
+  }
+  let activeVipEntryId = null;
+  let vipScanLoaded = false, hasRes = false, hasVip = false, hasGems = false;
+  const LAST = 'rok_scanner_last_scan';
+  const saveLastScan = (data) => LS.set(LAST + '_' + data.type, JSON.stringify(data));
+  const newId = () => (crypto.randomUUID?.() || String(Date.now() + Math.random()));
+  function vipNumbers() {
+    const inventory = vipItems.reduce((a, i) => a + i.points * i.qty, 0);
+    const current = vipCurrent ?? null;
+    return { current, inventory, after: (current ?? 0) + inventory };
+  }
+
+  const RES = [
+    { k: 'food',  label: 'Proviant', icon: '🌾', from: '#fbbf24', to: '#d97706' },
+    { k: 'wood',  label: 'Holz',     icon: '🪵', from: '#a3e635', to: '#65a30d' },
+    { k: 'stone', label: 'Stein',    icon: '🪨', from: '#cbd5e1', to: '#64748b' },
+    { k: 'gold',  label: 'Gold',     icon: '🪙', from: '#fde047', to: '#ca8a04' },
+  ];
+
+  // {food:{rucksack,aufHand,gesamt}} → {bar:{food:gesamt}, inventory:{food:rucksack}}; Auf Hand = Gesamt − Rucksack
+  function normRes(res) {
+    res = res || {};
+    if (res.bar || res.inventory) return { bar: res.bar || {}, inventory: res.inventory || {} };
+    const bar = {}, inventory = {};
+    ['food', 'wood', 'stone', 'gold'].forEach(k => {
+      const o = res[k] || {}, rs = num(o.rucksack), hand = num(o.aufHand);
+      let g = num(o.gesamt);
+      if (g == null && hand != null) g = hand + (rs || 0);
+      bar[k] = g; inventory[k] = rs;
+    });
+    return { bar, inventory };
+  }
+
+  function renderResources(r) {
+    const nr = normRes(r.resources), bar = nr.bar, inv = nr.inventory;
+    const vals = RES.map(x => ({ ...x, bar: num(bar[x.k]), inv: num(inv[x.k]) }))
+                    // Leiste = Gesamtressourcen (inkl. Inventar) → nicht addieren; Inventar nur als Ersatz, wenn keine Leiste sichtbar
+                    .map(x => ({ ...x, total: x.bar ?? x.inv ?? 0 }));
+    const max = Math.max(1, ...vals.map(v => v.total));
+    const sum = vals.reduce((a, v) => a + v.total, 0);
+    $('resCards').innerHTML = vals.map(v => `
+      <div class="panel rounded-2xl p-5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl grid place-items-center text-2xl" style="background:linear-gradient(135deg,${v.from}33,${v.to}22);border:1px solid ${v.from}55">${v.icon}</div>
+            <div>
+              <div class="text-xs uppercase tracking-widest text-slate-400">${v.label}</div>
+              <div class="text-2xl font-bold text-white">${v.total ? short(v.total) : '–'}</div>
+            </div>
+          </div>
+          <div class="text-right text-xs text-slate-500">${sum ? Math.round(v.total / sum * 100) + ' %' : ''}</div>
+        </div>
+        <div class="mt-4 h-2.5 rounded-full bg-ink-950 overflow-hidden">
+          <div class="bar h-full rounded-full" style="width:0;background:linear-gradient(90deg,${v.from},${v.to})" data-w="${v.total / max * 100}"></div>
+        </div>
+        <div class="mt-4 grid grid-cols-3 gap-2 text-center">
+          <div class="rounded-lg bg-ink-950/60 border border-ink-700 px-2 py-2">
+            <div class="text-[10px] uppercase tracking-wider text-slate-500">Gesamt</div>
+            <div class="text-sm font-semibold text-white tabular-nums">${v.total ? short(v.total) : '–'}</div>
+          </div>
+          <div class="rounded-lg bg-ink-950/60 border border-ink-700 px-2 py-2">
+            <div class="text-[10px] uppercase tracking-wider text-slate-500">Rucksack</div>
+            <div class="text-sm font-semibold text-sky-300 tabular-nums">${v.inv != null ? short(v.inv) : '–'}</div>
+          </div>
+          <div class="rounded-lg bg-ink-950/60 border border-gold-500/30 px-2 py-2">
+            <div class="text-[10px] uppercase tracking-wider text-slate-500">Auf Hand</div>
+            <div class="text-sm font-semibold text-gold-300 tabular-nums">${v.total ? short(Math.max(0, v.total - (v.inv || 0))) : '–'}</div>
+          </div>
+        </div>
+      </div>`).join('');
+    $('resTotal').textContent = fmt(sum);
+    $('resSource').textContent = r.confidence ? `Erkennungssicherheit: ${r.confidence}` : '';
+    $('resNote').textContent = r.notes || 'Balken zeigen die Menge relativ zur größten Ressource.';
+    $('resSection').classList.remove('hidden');
+    hasRes = true;
+    animateBars();
+    return vals;
+  }
+  const num = (v) => (v === null || v === undefined || v === '' || isNaN(+v)) ? null : +v;
+
+  function levelFor(points) { let l = 0; VIP_TABLE.forEach((t, i) => { if (points >= t) l = i; }); return l; }
+
+  function renderVip(r) {
+    const inv = vipItems.reduce((a, i) => a + i.points * i.qty, 0);
+    const cur = vipCurrent ?? 0;
+    const after = cur + inv;
+    $('vipCurrent').textContent = vipCurrent == null ? 'unbekannt' : fmt(cur);
+    $('vipInv').textContent = '+' + fmt(inv);
+    $('vipAfter').textContent = fmt(after);
+
+    $('vipTargets').innerHTML = targetCard(cur, after);
+
+    // Erkannte Items (linke Spalte) – Punkte/Stk. fest, nur Anzahl änderbar
+    vipItems.sort((a, b) => b.points - a.points);
+    $('vipRows').innerHTML = vipItems.length ? vipItems.map((i, idx) => `
+      <tr class="border-b border-ink-800">
+        <td class="py-1.5 pr-1"><span class="inline-flex items-center gap-1 font-semibold text-slate-200"><span class="text-gold-400">◆</span>${fmt(i.points)}</span></td>
+        <td class="py-1.5 px-1"><input data-i="${idx}" type="number" min="0" value="${i.qty}" aria-label="Anzahl ${fmt(i.points)}er Tokens"
+              class="w-16 ml-auto block text-right bg-ink-950/60 border border-ink-700 rounded px-1.5 py-1 focus:outline-none focus:border-gold-500"></td>
+        <td class="py-1.5 pl-1 text-right font-semibold text-gold-300 whitespace-nowrap tabular-nums">${fmt(i.points * i.qty)}</td>
+        <td class="text-right"><button data-del="${idx}" class="text-slate-500 hover:text-red-400 px-1" title="Entfernen">✕</button></td>
+      </tr>`).join('')
+      : `<tr><td colspan="4" class="py-4 text-center text-slate-500">Keine VIP-Items erkannt.</td></tr>`;
+    $('vipRowsTotal').textContent = fmt(inv);
+    $('vipItemsBox').classList.remove('hidden');
+
+    $('vipRows').querySelectorAll('input').forEach(inp => inp.addEventListener('change', () => {
+      vipItems[+inp.dataset.i].qty = Math.max(0, Math.round(+inp.value || 0));
+      renderVip();
+    }));
+    $('vipRows').querySelectorAll('[data-del]').forEach(b => b.onclick = () => { vipItems.splice(+b.dataset.del, 1); renderVip(); });
+
+    $('vipSection').classList.remove('hidden');
+    $('emptyState').classList.add('hidden');
+    hasVip = true;
+    animateBars();
+    if (vipScanLoaded) saveLastScan({ type: 'vip', ts: Date.now(), entryId: activeVipEntryId, current: vipCurrent,
+      items: vipItems.map(i => ({ name: i.name, points: i.points, qty: i.qty })) });
+    // Korrekturen in der Tabelle / am aktuellen Stand übernehmen den letzten VIP-Scan im Verlauf
+    if (activeVipEntryId) updateHistory(activeVipEntryId, vipNumbers());
+  }
+  const pct = (v) => v.toFixed(1).replace('.', ',');
+
+  // Große Ziel-Karte: Fortschritt, fehlende Punkte, Hochrechnung in Tagen, Zwischenstufen
+  function targetCard(cur, after) {
+    const target = targetPoints(), daily = dailyPoints();
+    const missing = Math.max(0, target - after);
+    const done = missing === 0;
+    const pCur = Math.min(100, cur / target * 100), pAfter = Math.min(100, after / target * 100);
+    const days = daily > 0 ? missing / daily : Infinity;
+
+    // Nur noch nicht erreichte Zwischenstufen
+    const open = Object.entries(VIP_THRESHOLDS).filter(([lv, pts]) => +lv <= targetLevel && after < pts);
+
+    const ticks = open.filter(([lv]) => +lv < targetLevel).map(([lv, pts]) => {
+      const left = pts / target * 100;
+      return `<div class="absolute inset-y-0 w-px bg-white/25" style="left:${left}%"></div>
+              <div class="absolute top-full mt-1 -translate-x-1/2 text-[10px] text-slate-500" style="left:${left}%">${lv}</div>`;
+    }).join('');
+
+    const headline = done
+      ? `<div class="text-2xl sm:text-3xl font-bold text-emerald-300">VIP ${targetLevel} erreicht! 🎉</div>`
+      : `<div class="grid grid-cols-2 gap-4">
+           <div>
+             <div class="text-xs uppercase tracking-widest text-slate-400">Fehlende Punkte</div>
+             <div class="text-3xl sm:text-4xl font-extrabold text-white mt-1 tabular-nums">${fmt(missing)}</div>
+           </div>
+           <div>
+             <div class="text-xs uppercase tracking-widest text-slate-400">Benötigte Tage</div>
+             <div class="text-3xl sm:text-4xl font-extrabold text-gold-300 mt-1 tabular-nums">${fmt(Math.ceil(days))}</div>
+           </div>
+         </div>`;
+
+    const milestones = open.filter(([lv]) => +lv < targetLevel).map(([lv, pts]) => {
+      const miss = pts - after;
+      return `<div class="rounded-lg border border-ink-700 bg-ink-950/50 px-3 py-2">
+        <div class="text-xs font-semibold text-slate-200">VIP ${lv}</div>
+        <div class="text-[11px] mt-0.5 text-slate-400 tabular-nums">${fmt(miss)} Pkt.</div>
+        <div class="text-[11px] text-gold-300/80 tabular-nums">${fmt(Math.ceil(miss / daily))} Tage</div>
+      </div>`;
+    }).join('');
+
+    return `
+    <div class="panel rounded-2xl p-6 ${done ? 'ring-1 ring-emerald-500/40' : 'ring-1 ring-gold-500/30'}">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <div class="font-display text-2xl ${done ? 'text-emerald-300' : 'gold-text'}">Ziel: VIP ${targetLevel}</div>
+        <div class="text-sm text-slate-400">${fmt(target)} Punkte</div>
+      </div>
+      ${headline}
+      <div class="mt-6 mb-6">
+        <div class="relative h-5 rounded-full bg-ink-950 border border-ink-700">
+          <div class="absolute inset-0 rounded-full overflow-hidden">
+            <div class="bar absolute inset-y-0 left-0 bg-gradient-to-r from-sky-400/40 to-sky-500/40" style="width:0" data-w="${pAfter}"></div>
+            <div class="bar absolute inset-y-0 left-0 bg-gradient-to-r from-gold-400 to-gold-600" style="width:0" data-w="${pCur}"></div>
+          </div>
+          ${ticks}
+        </div>
+      </div>
+      <div class="flex flex-wrap justify-between gap-2 text-xs">
+        <span class="flex items-center gap-1.5 text-slate-400"><i class="inline-block w-3 h-3 rounded-sm bg-gold-500"></i>Aktueller Stand ${pct(pCur)} %</span>
+        <span class="flex items-center gap-1.5 text-slate-400"><i class="inline-block w-3 h-3 rounded-sm bg-sky-500/60"></i>+ Rucksack-VIP → <b class="text-white">${pct(pAfter)} %</b></span>
+      </div>
+    </div>`;
+  }
+
+  $('showVipCalc').onclick = () => {
+    if (vipCurrent == null && $('currentVip').value !== '') vipCurrent = +$('currentVip').value;
+    $('emptyState').classList.add('hidden');
+    renderVip();
+    $('vipSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  $('addToken').innerHTML += TOKEN_VALUES.map(v => `<option value="${v}">${fmt(v)} VIP-Punkte</option>`).join('');
+  $('addToken').onchange = () => {
+    const v = +$('addToken').value; $('addToken').value = '';
+    if (!v) return;
+    const ex = vipItems.find(i => i.points === v);
+    if (ex) ex.qty += 1; else vipItems.push({ name: `${v} VIP-Punkte`, points: v, qty: 1 });
+    renderVip();
+  };
+
+  function animateBars() {
+    requestAnimationFrame(() => requestAnimationFrame(() =>
+      document.querySelectorAll('.bar[data-w]').forEach(b => b.style.width = b.dataset.w + '%')));
+  }
+
+  // ---------- Verlauf (nur Zahlen, keine Bilder) ----------
+  const HIST = 'rok_scanner_history_v1';
+  let history = [];
+  try { history = JSON.parse(LS.get(HIST, '[]')) || []; } catch { history = []; }
+  // Altdaten-Schutz: nur bekannte Zahlenfelder übernehmen
+  const sanitize = (e) => {
+    const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
+    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag']
+      : ['food', 'wood', 'stone', 'gold', 'total', 'farmFood', 'farmWood', 'farmStone', 'farmGold', 'bagFood', 'bagWood', 'bagStone', 'bagGold'];
+    keys.forEach(k => out[k] = (e[k] === null || e[k] === undefined || isNaN(+e[k])) ? null : +e[k]);
+    return out;
+  };
+  history = history.filter(e => e && e.id).map(sanitize);
+
+  let histTab = 'resources', chartType = 'line', chart = null;
+  const saveHistory = () => { if (!LS.set(HIST, JSON.stringify(history))) showError('Verlauf konnte nicht gespeichert werden (LocalStorage blockiert oder voll).'); };
+  function addHistory(entry) {
+    history.push(sanitize(entry)); saveHistory();
+    histTab = entry.type; syncTabs(); renderHistory();
+  }
+  function updateHistory(id, patch) {
+    const i = history.findIndex(e => e.id === id); if (i < 0) return;
+    history[i] = sanitize({ ...history[i], ...patch }); saveHistory(); renderHistory();
+  }
+  function deleteEntry(id) {
+    history = history.filter(e => e.id !== id);
+    if (id === activeVipEntryId) activeVipEntryId = null;
+    saveHistory(); renderHistory();
+  }
+  $('resetHistory').onclick = () => {
+    if (!history.length) return;
+    if (!confirm('Gesamten Verlauf (alle gespeicherten Scans) unwiderruflich löschen?')) return;
+    history = []; activeVipEntryId = null; LS.del(HIST); renderHistory();
+  };
+
+  function syncTabs() {
+    document.querySelectorAll('.hist-tab').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === histTab));
+    document.querySelectorAll('.ctype').forEach(b => b.setAttribute('aria-pressed', b.dataset.ctype === chartType));
+  }
+  document.querySelectorAll('.hist-tab').forEach(b => b.onclick = () => { histTab = b.dataset.tab; syncTabs(); renderHistory(); });
+  document.querySelectorAll('.ctype').forEach(b => b.onclick = () => { chartType = b.dataset.ctype; syncTabs(); renderHistory(); });
+
+  const dateLabel = (ts) => new Date(ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+
+  if (window.Chart) {
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.borderColor = 'rgba(46,58,85,.6)';
+    Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+  }
+
+  function renderHistory() {
+    const list = history.filter(e => e.type === histTab).sort((a, b) => a.ts - b.ts);
+    const labels = list.map(e => dateLabel(e.ts));
+    const isLine = chartType === 'line';
+    let datasets = [];
+
+    if (histTab === 'resources') {
+      if (resView === 'all') {
+        datasets = [['Gesamt', 'total', '#f5c542'], ['Auf Hand', 'hand', '#34d399'], ['Rucksack', 'bag', '#38bdf8']].map(([label, part, c]) => ({
+          label: label + ' (alle Ressourcen)', data: list.map(e => sumPart(e, part)),
+          backgroundColor: isLine ? c + '33' : c + 'cc', borderColor: c, borderWidth: isLine ? 2.5 : 0, borderRadius: 4,
+          tension: .3, pointRadius: 4, pointBackgroundColor: c, spanGaps: true, fill: false }));
+      } else datasets = RES.map(r => ({
+        label: r.label, data: list.map(e => resValue(e, r.k)),
+        backgroundColor: isLine ? r.from + '33' : r.from + 'cc', borderColor: r.from,
+        borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: r.to, spanGaps: true, fill: false
+      }));
+    } else if (histTab === 'gems') {
+      const gs = (label, key, c) => ({ label, data: list.map(e => e[key]), backgroundColor: isLine ? c + '33' : c + 'cc', borderColor: c,
+        borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: c, spanGaps: true, fill: false });
+      datasets = [gs('Gesamt', 'gems', '#f472b6'), gs('Auf Hand', 'gemsHand', '#38bdf8'), gs('Im Rucksack', 'gemsBag', '#a78bfa')];
+    } else {
+      datasets = [
+        { label: 'Aktuelle Punkte', data: list.map(e => e.current), backgroundColor: isLine ? '#f5c54233' : '#e0a91bcc', borderColor: '#f5c542', borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, spanGaps: true, order: 2 },
+        { label: 'Nach Einlösen', data: list.map(e => e.after), backgroundColor: isLine ? '#38bdf833' : '#38bdf899', borderColor: '#38bdf8', borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, spanGaps: true, order: 2 },
+      ];
+    }
+
+
+    // Chart
+    const empty = $('chartEmpty');
+    if (!window.Chart) {
+      empty.textContent = 'Chart.js konnte nicht geladen werden (keine Internetverbindung?). Die Tabelle funktioniert trotzdem.';
+    } else {
+      empty.textContent = list.length ? '' : ({ resources: 'Noch keine Ressourcen-Scans gespeichert.', vip: 'Noch keine VIP-Scans gespeichert.', gems: 'Noch keine Edelstein-Scans gespeichert.' })[histTab];
+      if (chart) chart.destroy();
+      chart = new Chart($('historyChart'), {
+        type: chartType,
+        data: { labels, datasets: list.length ? datasets : [] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { labels: { boxWidth: 12, usePointStyle: true } },
+            tooltip: { backgroundColor: '#0c1019', borderColor: 'rgba(245,197,66,.3)', borderWidth: 1,
+                       callbacks: { label: (c) => `${c.dataset.label}: ${c.raw == null ? '–' : fmt(c.raw)}` } }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, ticks: { callback: (v) => short(v) } }
+          }
+        }
+      });
+    }
+
+    // Tabelle (neueste zuerst)
+    const rows = [...list].reverse();
+    const th_ = 'py-2 px-2 font-medium text-right';
+    if (histTab === 'resources') {
+      $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
+        ${RES.map(r => `<th class="${th_}">${r.icon} ${r.label}</th>`).join('')}<th class="${th_}">Summe</th><th class="w-8"></th></tr>`;
+      const tot = (e) => sumPart(e, resView === 'all' ? 'total' : resView);
+      // Zelle: bei "Alle Werte" Gesamt + Rucksack + Auf Hand, sonst nur der gewählte Wert
+      const cell = (get) => {
+        const main = get(resView === 'all' ? 'total' : resView);
+        if (main == null) return '–';
+        if (resView !== 'all') return `<span title="${fmt(main)}">${short(main)}</span>`;
+        return `<span class="block font-semibold text-white" title="Gesamt: ${fmt(main)}">${short(main)}</span>
+          <span class="block text-[11px] text-sky-300" title="Rucksack: ${fmt(get('bag'))}">R ${short(get('bag'))}</span>
+          <span class="block text-[11px] text-emerald-300" title="Auf Hand: ${fmt(get('hand'))}">H ${short(get('hand'))}</span>`;
+      };
+      $('histRows').innerHTML = rows.map((e, i) => {
+        const prev = rows[i + 1];
+        const delta = prev ? tot(e) - tot(prev) : null;
+        return `<tr class="border-b border-ink-800 hover:bg-ink-850">
+          <td class="py-2 pr-2 whitespace-nowrap text-slate-300">${dateLabel(e.ts)}</td>
+          ${RES.map(r => `<td class="py-2 px-2 text-right tabular-nums whitespace-nowrap align-top">${cell(p => resPart(e, r.k, p))}</td>`).join('')}
+          <td class="py-2 px-2 text-right font-semibold text-gold-300 tabular-nums whitespace-nowrap align-top">${resView === 'all' ? cell(p => sumPart(e, p)) : short(tot(e))}
+            ${delta != null ? `<span class="block text-[11px] font-normal ${delta >= 0 ? 'text-emerald-400' : 'text-red-400'}">${delta >= 0 ? '+' : '−'}${short(Math.abs(delta))}</span>` : ''}</td>
+          <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
+        </tr>`;
+      }).join('');
+    } else if (histTab === 'gems') {
+      $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
+        <th class="${th_}">Auf Hand</th><th class="${th_}">Im Rucksack</th><th class="${th_}">💎 Gesamt</th><th class="${th_}">Veränderung</th><th class="w-8"></th></tr>`;
+      $('histRows').innerHTML = rows.map((e, i) => {
+        const prev = rows[i + 1], d = prev && prev.gems != null && e.gems != null ? e.gems - prev.gems : null;
+        return `<tr class="border-b border-ink-800 hover:bg-ink-850">
+          <td class="py-2 pr-2 whitespace-nowrap text-slate-300">${dateLabel(e.ts)}</td>
+          <td class="py-2 px-2 text-right tabular-nums">${e.gemsHand != null ? fmt(e.gemsHand) : '–'}</td>
+          <td class="py-2 px-2 text-right tabular-nums">${e.gemsBag != null ? fmt(e.gemsBag) : '–'}</td>
+          <td class="py-2 px-2 text-right tabular-nums font-semibold text-pink-300">${e.gems != null ? fmt(e.gems) : '–'}</td>
+          <td class="py-2 px-2 text-right tabular-nums ${d == null ? 'text-slate-500' : d >= 0 ? 'text-emerald-400' : 'text-red-400'}">${d == null ? '–' : (d >= 0 ? '+' : '−') + fmt(Math.abs(d))}</td>
+          <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
+        </tr>`;
+      }).join('');
+    } else {
+      $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
+        <th class="${th_}">Aktuell</th><th class="${th_}">Inventar</th><th class="${th_}">Nach Einlösen</th><th class="${th_}">Stufe</th><th class="w-8"></th></tr>`;
+      $('histRows').innerHTML = rows.map(e => `<tr class="border-b border-ink-800 hover:bg-ink-850">
+          <td class="py-2 pr-2 whitespace-nowrap text-slate-300">${dateLabel(e.ts)}</td>
+          <td class="py-2 px-2 text-right tabular-nums">${e.current != null ? fmt(e.current) : '–'}</td>
+          <td class="py-2 px-2 text-right tabular-nums text-gold-300">+${fmt(e.inventory)}</td>
+          <td class="py-2 px-2 text-right tabular-nums font-semibold">${fmt(e.after)}</td>
+          <td class="py-2 px-2 text-right whitespace-nowrap">${e.current != null ? `VIP ${levelFor(e.current)} → ${levelFor(e.after)}` : `→ VIP ${levelFor(e.after)}`}</td>
+          <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
+        </tr>`).join('');
+    }
+    if (!rows.length) $('histRows').innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-500">Keine Einträge.</td></tr>`;
+    $('histRows').querySelectorAll('[data-hdel]').forEach(b => b.onclick = () => deleteEntry(b.dataset.hdel));
+
+    const n = (t) => history.filter(e => e.type === t).length;
+    $('histCount').textContent = `${history.length} Scans gespeichert (${n('resources')} Ressourcen, ${n('vip')} VIP, ${n('gems')} Gems) · nur Zahlenwerte, keine Bilder`;
+    $('resetHistory').disabled = !history.length;
+    $('resetHistory').classList.toggle('opacity-40', !history.length);
+  }
+
+  // ---------- Farmen ----------
+  const FARMS = 'rok_scanner_farms', OPTS = 'rok_scanner_hist_opts';
+  const FK = { food: 'farmFood', wood: 'farmWood', stone: 'farmStone', gold: 'farmGold' };
+  let farms = [];
+  try { farms = (JSON.parse(LS.get(FARMS, '[]')) || []).map(f => ({ id: String(f.id || newId()), name: String(f.name || 'Farm'),
+    food: +f.food || 0, wood: +f.wood || 0, stone: +f.stone || 0, gold: +f.gold || 0 })); } catch { farms = []; }
+  let resView = 'all';   // all | bag | hand | total
+  try { const o = JSON.parse(LS.get(OPTS, '{}')); if (o.farm != null) $('optFarm').checked = !!o.farm; if (['all', 'bag', 'hand', 'total'].includes(o.view)) resView = o.view; } catch {}
+  const saveOpts = () => LS.set(OPTS, JSON.stringify({ farm: $('optFarm').checked, view: resView }));
+  const syncFilter = () => document.querySelectorAll('.rf-btn').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === resView));
+  $('optFarm').addEventListener('change', () => { saveOpts(); renderHistory(); });
+  document.querySelectorAll('.rf-btn').forEach(b => b.onclick = () => { resView = b.dataset.view; syncFilter(); saveOpts(); renderHistory(); });
+  syncFilter();
+
+  // "12,5M", "850K", "12.500.000" → Zahl
+  function parseAmount(v) {
+    let t = String(v ?? '').trim().toLowerCase().replace(/\s/g, '');
+    if (!t) return 0;
+    const m = t.match(/^([\d.,]+)(k|tsd|m|mio|b|mrd)?$/);
+    if (!m) return NaN;
+    const mult = { k: 1e3, tsd: 1e3, m: 1e6, mio: 1e6, b: 1e9, mrd: 1e9 }[m[2]] || 1;
+    let n = m[1];
+    n = mult > 1 ? n.replace(',', '.') : n.replace(/[.,]/g, '');
+    return Math.round(parseFloat(n) * mult);
+  }
+  const farmSum = (k) => farms.reduce((a, f) => a + (f[k] || 0), 0);
+  function farmSnapshot() { const o = {}; RES.forEach(r => o[FK[r.k]] = farmSum(r.k)); return o; }
+  const BK = { food: 'bagFood', wood: 'bagWood', stone: 'bagStone', gold: 'bagGold' };
+  // Wert je Ressource nach Häkchen: Main (auf Hand oder inkl. Rucksack) + optional Farms
+  // part: 'bag' = Rucksack, 'hand' = Auf Hand (Gesamt − Rucksack), 'total' = Gesamt. Farms zählen zu Auf Hand/Gesamt.
+  function resPart(e, k, part) {
+    const g = e[k], bag = e[BK[k]] || 0, farm = $('optFarm').checked ? (e[FK[k]] || 0) : 0;
+    if (part === 'bag') return g == null ? null : bag;
+    if (g == null && !farm) return null;
+    return part === 'hand' ? Math.max(0, (g || 0) - bag) + farm : (g || 0) + farm;
+  }
+  const resValue = (e, k) => resPart(e, k, resView === 'all' ? 'total' : resView);
+  const sumPart = (e, part) => RES.reduce((a, r) => a + (resPart(e, r.k, part) || 0), 0);
+  function latestResEntry() { return history.filter(e => e.type === 'resources').sort((a, b) => b.ts - a.ts)[0] || null; }
+
+  function saveFarms() {
+    LS.set(FARMS, JSON.stringify(farms));
+    const last = latestResEntry();          // aktuelle Farmwerte gelten für den letzten Ressourcen-Scan
+    if (last) updateHistory(last.id, farmSnapshot()); else renderHistory();
+  }
+  function renderFarms() {
+    const inp = 'w-full min-w-[84px] text-right bg-ink-950/60 border border-ink-700 rounded px-2 py-1.5 tabular-nums focus:outline-none focus:border-gold-500';
+    $('farmRows').innerHTML = farms.length ? farms.map(f => `
+      <tr class="border-b border-ink-800">
+        <td class="py-1.5 pr-2"><input data-id="${f.id}" data-k="name" value="${esc(f.name)}" class="w-full min-w-[90px] bg-ink-950/60 border border-ink-700 rounded px-2 py-1.5 focus:outline-none focus:border-gold-500"></td>
+        ${RES.map(r => `<td class="py-1.5 px-1"><input data-id="${f.id}" data-k="${r.k}" inputmode="decimal" value="${f[r.k] ? fmt(f[r.k]) : ''}" placeholder="0" class="${inp}"></td>`).join('')}
+        <td class="text-right"><button data-fdel="${f.id}" class="text-slate-500 hover:text-red-400 px-1" title="Farm löschen">✕</button></td>
+      </tr>`).join('')
+      : `<tr><td colspan="6" class="py-4 text-center text-slate-500">Noch keine Farmen – „+ Farm“ klicken.</td></tr>`;
+    const main = latestResEntry();
+    const row = (label, vals, cls) => `<tr class="${cls}"><td class="py-1.5 pr-2">${label}</td>${RES.map(r => `<td class="py-1.5 px-1 text-right tabular-nums">${vals(r.k)}</td>`).join('')}<td></td></tr>`;
+    $('farmFoot').innerHTML =
+      row('Summe Farmen', k => short(farmSum(k)), 'text-slate-300 border-t border-ink-700') +
+      row('Main (letzter Scan)', k => main && main[k] != null ? short(main[k]) : '–', 'text-slate-400') +
+      row('<b>Gesamt</b>', k => `<b class="text-gold-300">${short((main?.[k] || 0) + farmSum(k))}</b>`, 'border-t border-ink-700');
+    $('farmRows').querySelectorAll('input').forEach(i => i.addEventListener('change', () => {
+      const f = farms.find(x => x.id === i.dataset.id); if (!f) return;
+      if (i.dataset.k === 'name') f.name = i.value.trim() || 'Farm';
+      else { const v = parseAmount(i.value); if (isNaN(v)) { i.classList.add('border-red-500'); return; } f[i.dataset.k] = v; }
+      saveFarms(); renderFarms();
+    }));
+    $('farmRows').querySelectorAll('[data-fdel]').forEach(b => b.onclick = () => {
+      const f = farms.find(x => x.id === b.dataset.fdel);
+      if (!confirm(`Farm „${f?.name}“ löschen?`)) return;
+      farms = farms.filter(x => x.id !== b.dataset.fdel); saveFarms(); renderFarms();
+    });
+  }
+  $('addFarm').onclick = () => {
+    farms.push({ id: newId(), name: `Farm ${farms.length + 1}`, food: 0, wood: 0, stone: 0, gold: 0 });
+    saveFarms(); renderFarms();
+    $('farmRows').querySelector('tr:last-child input')?.select();
+  };
+
+  // ---------- Gems ----------
+  function renderGems(ge, ts) {
+    const g = ge.gems;
+    $('gemsValue').textContent = fmt(g);
+    $('gemsHand').textContent = ge.gemsHand != null ? fmt(ge.gemsHand) : '–';
+    $('gemsBag').textContent = ge.gemsBag != null ? fmt(ge.gemsBag) : '–';
+    const prev = history.filter(e => e.type === 'gems' && e.ts < ts && e.gems != null).sort((a, b) => b.ts - a.ts)[0];
+    const d = prev ? g - prev.gems : null;
+    $('gemsDelta').innerHTML = d == null ? 'Erster Scan' :
+      `<span class="${d >= 0 ? 'text-emerald-400' : 'text-red-400'}">${d >= 0 ? '+' : '−'}${fmt(Math.abs(d))}</span> seit ${dateLabel(prev.ts)}`;
+    $('gemsSource').textContent = `Letzter Scan: ${dateLabel(ts)}`;
+    hasGems = true;
+  }
+
+  // Getrennte Seiten: Ressourcen | VIP | Gems
+  function applyMode() {
+    const has = { resources: hasRes, vip: hasVip, gems: hasGems }[mode];
+    document.querySelectorAll('.seg-btn[data-mode]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mode === mode));
+    $('modeHint').textContent = hints[mode];
+    $('vipInputs').classList.toggle('hidden', mode !== 'vip');
+    $('resSection').classList.toggle('hidden', mode !== 'resources' || !hasRes);
+    $('vipSection').classList.toggle('hidden', mode !== 'vip' || !hasVip);
+    $('gemsSection').classList.toggle('hidden', mode !== 'gems' || !hasGems);
+    $('farmSection').classList.toggle('hidden', mode !== 'resources');
+    $('farmOpts').classList.toggle('hidden', mode !== 'resources');
+    $('resFilter').classList.toggle('hidden', mode !== 'resources');
+    $('farmOpts').classList.toggle('flex', mode === 'resources');
+    $('emptyState').classList.toggle('hidden', !!has);
+    $('emptyState').querySelector('p').textContent = {
+      resources: 'Lade einen Screenshot der Ressourcen deines Main-Accounts hoch und klicke auf „Analysieren“.',
+      vip: 'Lade einen Screenshot deines Inventars mit VIP-Punkte-Items hoch und klicke auf „Analysieren“ – oder nutze „Rechner ohne Scan öffnen“.',
+      gems: 'Lade einen Screenshot hoch, auf dem deine Edelsteine zu sehen sind, und klicke auf „Analysieren“.'
+    }[mode];
+    histTab = mode; syncTabs(); renderHistory();
+  }
+
+  // ---------- Datensicherung: Export / Import ----------
+  // Alle App-Daten liegen im LocalStorage unter "rok_scanner_*". Der API-Key wird NIE exportiert.
+  const PREFIX = 'rok_scanner_', NO_EXPORT = [KEY];
+  // Browser bitten, den Speicher dauerhaft zu behalten (nicht automatisch aufräumen)
+  try { navigator.storage?.persist?.(); } catch {}
+
+  function allAppKeys() {
+    const keys = [];
+    try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(PREFIX) && !NO_EXPORT.includes(k)) keys.push(k); } } catch {}
+    return keys.sort();
+  }
+  $('exportData').onclick = () => {
+    const data = {};
+    allAppKeys().forEach(k => { data[k] = LS.get(k); });
+    const backup = { app: 'rok-scanner', version: 1, exportedAt: new Date().toISOString(), data };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `rok-scanner-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  $('importData').onclick = () => $('importFile').click();
+  $('importFile').onchange = async (ev) => {
+    const file = ev.target.files?.[0]; ev.target.value = '';
+    if (!file) return;
+    try {
+      const backup = JSON.parse(await file.text());
+      if (backup?.app !== 'rok-scanner' || typeof backup.data !== 'object' || !backup.data) throw new Error('Keine gültige Kingdom-Scanner-Sicherung.');
+      const entries = Object.entries(backup.data).filter(([k, v]) => k.startsWith(PREFIX) && !NO_EXPORT.includes(k) && typeof v === 'string');
+      let scans = 0; try { scans = JSON.parse(backup.data[HIST] || '[]').length; } catch {}
+      const when = backup.exportedAt ? new Date(backup.exportedAt).toLocaleString('de-DE') : 'unbekannt';
+      if (!confirm(`Sicherung vom ${when} laden?\n\n${scans} Scans im Verlauf. Deine aktuellen Daten werden dabei ersetzt (API-Key bleibt erhalten).`)) return;
+      allAppKeys().forEach(k => LS.del(k));            // aktuellen Stand ersetzen
+      let ok = true; entries.forEach(([k, v]) => { ok = LS.set(k, v) && ok; });
+      if (!ok) throw new Error('Speichern im Browser fehlgeschlagen (LocalStorage voll oder blockiert).');
+      location.reload();
+    } catch (e) { showError('Import fehlgeschlagen: ' + (e.message || e)); }
+  };
+
+  // Init
+  syncTabs();
+  renderHistory();
+  $('vipInputs').classList.toggle('hidden', mode === 'resources');
+  updateBadge();
+
+  // Letzten Scan je Seite wiederherstellen (nur Zahlen, keine Bilder)
+  const readLast = (type) => {
+    try {
+      const v = JSON.parse(LS.get(LAST + '_' + type, 'null'));
+      if (v) return v;
+      const old = JSON.parse(LS.get(LAST, 'null'));   // ältere Version: ein gemeinsamer Eintrag
+      return old?.type === type ? old : null;
+    } catch { return null; }
+  };
+  const lastRes = readLast('resources');
+  if (lastRes) {
+    renderResources({ resources: lastRes.resources, confidence: lastRes.confidence, notes: lastRes.notes });
+    $('resSource').textContent = `Letzter Scan: ${dateLabel(lastRes.ts)}` + (lastRes.confidence ? ` · Sicherheit: ${lastRes.confidence}` : '');
+  }
+  const lastVip = readLast('vip');
+  if (lastVip) {
+    vipScanLoaded = true;
+    vipItems = (lastVip.items || []).map(i => ({ name: String(i.name || ''), points: +i.points || 0, qty: +i.qty || 0 }));
+    if ($('currentVip').value === '' && lastVip.current != null) $('currentVip').value = lastVip.current;
+    vipCurrent = $('currentVip').value !== '' ? +$('currentVip').value : (lastVip.current ?? null);
+    activeVipEntryId = lastVip.entryId || null;
+    renderVip();
+  }
+  const lastGems = readLast('gems');
+  if (lastGems?.gems != null) renderGems({ gems: +lastGems.gems, gemsHand: lastGems.gemsHand ?? null, gemsBag: lastGems.gemsBag ?? null }, lastGems.ts);
+  renderFarms();
+  applyMode();
+})();
+</script>
+</body>
+</html>
