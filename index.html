@@ -496,7 +496,6 @@ tailwind.config = {
           <h3 class="font-display text-xl gold-text">Profil bearbeiten</h3>
           <div class="flex flex-wrap gap-2">
             <button id="profScanVip" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">📷 VIP scannen</button>
-            <button id="profScanSpeed" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">📷 Speedups scannen</button>
             <label for="profGovFile" id="profScanGov" class="cursor-pointer text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Statthalter-Profil scannen</label>
             <input id="profGovFile" type="file" accept="image/*" class="hidden">
           </div>
@@ -543,7 +542,10 @@ tailwind.config = {
       <!-- Speedups & Event -->
       <div id="profSpeedPanel" class="panel rounded-2xl p-6">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <h3 class="font-display text-xl gold-text">Speedups</h3>
+          <div class="flex flex-wrap items-center gap-3">
+            <h3 class="font-display text-xl gold-text">Speedups</h3>
+            <button id="profScanSpeed" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">📷 Speedups scannen</button>
+          </div>
           <span id="profSpeedStamp" class="text-xs text-slate-500"></span>
         </div>
         <div id="profSpeed" class="grid sm:grid-cols-3 gap-3"></div>
@@ -553,7 +555,10 @@ tailwind.config = {
       <!-- Charts: automatisch aus den Scans -->
       <div id="profChartsPanel" class="panel rounded-2xl p-6">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <h3 class="font-display text-xl gold-text">Verlauf</h3>
+          <div class="flex flex-wrap items-center gap-3">
+            <h3 class="font-display text-xl gold-text">Verlauf</h3>
+            <button id="pcScan" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">📷 Scannen</button>
+          </div>
           <div class="flex flex-wrap items-center gap-2.5">
             <div id="pcTabs" class="flex flex-wrap gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group" aria-label="Datenart"></div>
             <div id="pcRanges" class="flex flex-wrap gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group" aria-label="Zeitraum"></div>
@@ -652,7 +657,7 @@ window.I18N = (() => {
         'Proviant': 'Food', 'Nahrung': 'Food', 'Holz': 'Wood', 'Stein': 'Stone', 'Gold': 'Gold',
         'Universal': 'Universal', 'Training': 'Training', 'Heilung': 'Healing', 'Forschung': 'Research', 'Bau': 'Building',
         'Truppentraining': 'Troop training', 'Speedups gesamt': 'Speedups total', 'Tage': 'days', 'Std.': 'h', 'Min.': 'min', 'Tag': 'day',
-        'Kill-Punkte': 'Kill Points', 'Höchster Verdienst': 'Highest Merit', 'Verdienst': 'Merit', 'Energie': 'Power',
+        'Kill-Punkte': 'Kill Points', 'Höchster Verdienst': 'Highest Acclaim', 'Verdienst': 'Acclaim', 'Energie': 'Power',
         'VIP-Punkte': 'VIP points', 'VIP-Stufe': 'VIP level', 'Stufe': 'Level', 'Platz': 'Rank', 'Spieler': 'Player',
         'Bis zum nächsten VIP': 'To next VIP', 'Zuletzt aktualisiert': 'Last updated', '(inkl. Gegenstände)': '(incl. items)',
         'Dein Platz': 'Your rank', 'noch kein Scan': 'no scan yet', 'Datum': 'Date', 'Veränderung': 'Change',
@@ -666,7 +671,7 @@ window.I18N = (() => {
         'Profil privat': 'Private profile', 'Dieses Profil ist privat': 'This profile is private',
         'Speedups und Verlauf sind nur für den Spieler selbst sichtbar.': 'Speedups and history are only visible to the player.',
         'Andere sehen dann nur noch den oberen Bereich (Name, Allianz-Tag, VIP, Kill-Punkte, Verdienst, Energie) – Speedups und Verlauf bleiben verborgen.':
-          'Others will only see the top section (name, alliance tag, VIP, kill points, merit, power) – speedups and history stay hidden.',
+          'Others will only see the top section (name, alliance tag, VIP, kill points, acclaim, power) – speedups and history stay hidden.',
         'Nur Ansicht': 'View only', 'Dein Profil · öffentlich': 'Your profile · public', 'Dein Profil · 🔒 privat': 'Your profile · 🔒 private',
         'Dein Profil ·': 'Your profile ·', 'Profil ist jetzt privat': 'Profile is now private', 'Profil ist jetzt öffentlich': 'Profile is now public',
         '– eigenes Bild hochladen oder Symbol wählen': '– upload your own picture or pick a symbol',
@@ -754,6 +759,8 @@ window.I18N = (() => {
         'hoch': 'high', 'mittel': 'medium', 'niedrig': 'low', 'manuell': 'manual'
       },
       patterns: [
+        [/^⚠ In Supabase fehlt die Spalte$/, '⚠ Supabase is missing the column'], [/^– Werte werden vorerst aus den Scans gelesen und nicht dauerhaft in der Rangliste gespeichert\.$/, '– values are read from the scans for now and not stored in the leaderboard.'],
+        [/^(.+) scannen$/, (m, l) => 'Scan ' + L(l)],
         [/^Fortschritt zu VIP (\d+)$/, 'Progress to VIP $1'], [/^([\d,.]+) % von VIP (\d+) bis VIP (\d+)$/, '$1 % from VIP $2 to VIP $3'], [/^bis VIP (\d+)$/, 'to VIP $1'],
         [/^noch ([\d.,]+) Punkte · (\d+) %$/, '$1 points left · $2 %'],
         [/^Noch ([\d.,]+) Punkte bis Platz (\d+) \((.+)\)$/, '$1 more points to rank $2 ($3)'],
@@ -803,9 +810,9 @@ window.I18N = (() => {
   };
   // Begriffe innerhalb von Mustern
   const LABELS = { 'Ressourcen': 'resources', 'Speedups': 'speedups', 'VIP': 'VIP', 'Gems': 'gems', 'AP': 'AP', 'Kill-Punkte': 'kill points',
-    'Verdienst': 'merit', 'Statthalter': 'governor', 'Edelstein': 'gem', 'Training': 'Training', 'Universal': 'Universal', 'Heilung': 'Healing' };
+    'Verdienst': 'acclaim', 'Statthalter': 'governor', 'Edelstein': 'gem', 'Training': 'Training', 'Universal': 'Universal', 'Heilung': 'Healing' };
   const SORT = { 'VIP-Punkten inkl. VIP durch Gegenstände': 'VIP points incl. VIP from items', 'Kill-Punkten aus dem Statthalter-Profil': 'kill points from the governor profile',
-    'höchstem Verdienst aus dem Statthalter-Profil': 'highest merit from the governor profile' };
+    'höchstem Verdienst aus dem Statthalter-Profil': 'highest acclaim from the governor profile' };
   const L = (w) => LABELS[w] || T()[w] || w;
 
   let lang = (() => { try { return localStorage.getItem('lang') === 'en' ? 'en' : 'de'; } catch { return 'de'; } })();
@@ -1258,7 +1265,7 @@ window.RokAuth = (() => {
     const row = { user_id: user.id, username: profile.name.slice(0, 40), [col]: v, updated_at: new Date().toISOString() };
     if (lbLast == null) { row.vip_points = 0; row.vip_level = 0; }
     const { error } = await sb.from('leaderboard').upsert(row);
-    if (error) { console.warn(`${col} nicht in der Rangliste gespeichert (Spalte in Supabase anlegen)`, error); return cur; }
+    if (error) { console.warn(`${col} nicht in der Rangliste gespeichert (Spalte in Supabase anlegen)`, error); if (/column|schema/i.test(error.message || '')) missingCols.add(col); return cur; }
     if (lbLast == null) lbLast = 0;
     return v;
   }
@@ -1280,15 +1287,29 @@ window.RokAuth = (() => {
       if (error) console.error('Rangliste nicht aktualisiert', error); else lbLast = points;
     }, 600);
   }
+  const missingCols = new Set();   // Spalten, die in public.leaderboard (noch) fehlen
   async function loadLeaderboard() {
     // ohne city_skin laden (Bilder nur im Profil) – Fallback '*', falls Spalten fehlen
     const q = (cols) => sb.from('leaderboard').select(cols).order('vip_points', { ascending: false }).limit(500);
     let r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar,kill_points,highest_merit');
-    if (r.error) r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar,kill_points');
-    if (r.error) r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar');
+    if (r.error) { missingCols.add('highest_merit'); r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar,kill_points'); }
+    if (r.error) { missingCols.add('kill_points'); r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar'); }
     if (r.error) r = await q('*');
     if (r.error) throw new Error(germanError(r.error));
-    return r.data || [];
+    const rows = r.data || [];
+    // Fehlende Kill-Punkte / Verdienst aus dem letzten Statthalter-Scan des Spielers ergänzen
+    if (rows.some(x => x.kill_points == null || x.highest_merit == null)) {
+      const g = await sb.from('scans').select('user_id,scanned_at,data').eq('type', 'governor').order('scanned_at', { ascending: false }).limit(1000);
+      if (!g.error) {
+        const seen = new Set();
+        for (const sc of g.data || []) {
+          if (seen.has(sc.user_id)) continue; seen.add(sc.user_id);
+          const row = rows.find(x => x.user_id === sc.user_id), d = sc.data || {};
+          if (row) ['kill_points', 'highest_merit', 'energy'].forEach(k => { if (row[k] == null && d[k] != null) row[k] = +d[k]; });
+        }
+      }
+    }
+    return rows;
   }
 
   // ---------- Game Profil ----------
@@ -1340,7 +1361,7 @@ window.RokAuth = (() => {
   }
 
   return { current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
-           pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, setPrivate, saveNow, pullScans };
+           pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, setPrivate, saveNow, pullScans, missingCols: () => [...missingCols] };
 })();
 </script>
 
@@ -2577,6 +2598,8 @@ window.RokApp = () => {
     try {
       const rows = (await RokAuth.loadLeaderboard())
         .map(r => ({ ...r, vip_points: +r.vip_points || 0, kill_points: r.kill_points == null ? null : +r.kill_points, highest_merit: r.highest_merit == null ? null : +r.highest_merit }));
+      const myGov = history.filter(e => e.type === 'governor').sort((a, b) => b.ts - a.ts)[0], me = rows.find(r => r.user_id === RokAuth.userId());
+      if (myGov && me) ['kill_points', 'highest_merit'].forEach(k => { if (me[k] == null && myGov[k] != null) me[k] = +myGov[k]; });
       rankRows = rows;
       renderRanking(rows);
     } catch (e) {
@@ -2667,6 +2690,8 @@ window.RokApp = () => {
         </div>
       </div>`;
     }
+    if (kills && RokAuth.missingCols().includes(stat.col))
+      box.insertAdjacentHTML('beforeend', `<div class="mt-3 text-xs text-amber-300">⚠ In Supabase fehlt die Spalte <code>${stat.col}</code> – Werte werden vorerst aus den Scans gelesen und nicht dauerhaft in der Rangliste gespeichert.</div>`);
     box.classList.remove('hidden');
   }
 
@@ -2859,6 +2884,7 @@ window.RokApp = () => {
 
     // ---- Bearbeiten ----
     $('profEdit').classList.toggle('hidden', !own);
+    $('profScanSpeed').classList.toggle('hidden', !own);
     if (own) {
       $('profTag').value = meta.alliance_tag || '';
       let chosen = meta.avatar || '', skin = meta.city_skin || '', customAv = isImgAv(meta.avatar) ? meta.avatar : '';
@@ -2921,7 +2947,7 @@ window.RokApp = () => {
     } catch (e) { msg(e.message || String(e), false); }
     finally { $('profSave').disabled = false; }
   }
-  $('profScanVip').onclick = () => { view = 'scanner'; applyView(); mode = 'vip'; LS.set(MODE_KEY, mode); applyMode(); $('dropzone').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  $('profScanVip').onclick = () => goScan('vip');
   // Statthalter-Profil (Kill-Punkte, Höchster Verdienst, Energie) direkt aus dem Profil scannen
   $('profGovFile').onchange = async (ev) => {
     const f = ev.target.files?.[0]; ev.target.value = '';
@@ -2946,12 +2972,14 @@ window.RokApp = () => {
     } catch (e2) { msg(e2.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : e2.message, 'text-red-300'); }
     finally { if (img) { img.base64 = null; img.dataUrl = null; } }   // Bild sofort verwerfen
   };
-  $('profScanSpeed').onclick = () => { view = 'scanner'; applyView(); mode = 'speedups'; LS.set(MODE_KEY, mode); applyMode(); $('dropzone').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  // Zum Scanner & Dashboard im passenden Modus springen
+  function goScan(m) { view = 'scanner'; applyView(); mode = m; LS.set(MODE_KEY, mode); applyMode(); $('dropzone').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  $('profScanSpeed').onclick = () => goScan('speedups');
 
   // ---- Charts-Fenster (ApexCharts): Reiter · Zeitraum · Area/Bar ----
   const PC_TABS = [
-    { id: 'resources', label: 'Ressourcen' }, { id: 'gems', label: 'Gems' }, { id: 'speedups', label: 'Speedups' },
-    { id: 'ap', label: 'Aktionspunkte' }, { id: 'vip', label: 'VIP' }
+    { id: 'speedups', label: 'Speedups' }, { id: 'resources', label: 'Ressourcen' }, { id: 'ap', label: 'Aktionspunkte' },
+    { id: 'gems', label: 'Gems' }, { id: 'vip', label: 'VIP' }
   ];
   const PC_RANGES = [['14d', '14D', 14], ['1m', '1M', 30], ['3m', '3M', 91], ['1y', '1Y', 365], ['all', 'All', 0]];
   const PC_TYPES = [['area', 'Area'], ['bar', 'Bar']];
@@ -3016,6 +3044,10 @@ window.RokApp = () => {
     if (ui.tab === 'resources') renderResLines($('pcResLines'), speedUi.pcRes, () => { saveSpeedUi(); drawPc(); });
     $('pcResetWrap').classList.toggle('hidden', !pcData.P.own);
     $('pcReset').textContent = `🗑 ${TYPE_LABEL[ui.tab] || ''}-Diagramm zurücksetzen`;
+    // Schnell-Scan: öffnet das Dashboard direkt im Modus des gewählten Reiters (nur eigenes Profil)
+    $('pcScan').classList.toggle('hidden', !pcData.P.own);
+    $('pcScan').textContent = `📷 ${PC_TABS.find(t => t.id === ui.tab)?.label || ''} scannen`;
+    $('pcScan').onclick = () => goScan(ui.tab);
     const def = pcDef(ui.tab), isBar = ui.type === 'bar';
     const span = (PC_RANGES.find(r => r[0] === ui.range) || PC_RANGES[1])[2];
     const from = span ? Date.now() - span * 86400000 : 0;
