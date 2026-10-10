@@ -198,47 +198,63 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
 }`;
 
 // ---------- Ausrüstung (Ist-Zustand für den Crafting-Planer) ----------
-const PROMPT_GEAR = `${INTRO}
+// Der Item-Katalog kommt direkt aus Supabase (Tabelle public.gear_items) – nicht vom Browser.
+const SB_URL = process.env.SUPABASE_URL || 'https://tqkhnicaiokyckiqwvpw.supabase.co';
+const SB_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxa2huaWNhaW9reWNraXF3dnB3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1Nzg0NjcsImV4cCI6MjEwNzE1NDQ2N30.8bNhMl2ewyIKh_PqSvGKf34stNIbXfXiOhEPFXDOev0';
+async function gearCatalog() {
+  const get = async (cols) => {
+    const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 4000);
+    try {
+      const r = await fetch(`${SB_URL}/rest/v1/gear_items?select=${cols}&order=slot`, { headers: { apikey: SB_KEY, authorization: `Bearer ${SB_KEY}` }, signal: ctrl.signal });
+      return r.ok ? await r.json() : null;
+    } catch { return null; } finally { clearTimeout(t); }
+  };
+  const rows = (await get('id,name,slot,icon_hint')) || (await get('id,name,slot')) || [];   // icon_hint ist optional
+  return Array.isArray(rows) ? rows.slice(0, 300) : [];
+}
+const clean = (v, n) => String(v ?? '').replace(/[\r\n|]+/g, ' ').slice(0, n).trim();
 
-MODUS: Ausrüstung. Die Screenshots zeigen das Ausrüstungsfenster eines Statthalters/Kommandanten (Main-Account) –
-ggf. zusätzlich geöffnete Item-Details mit Namen und Set.
+const PROMPT_GEAR = (catalog) => `${INTRO}
 
-Lies die 8 Ausrüstungs-Slots aus:
-- "helm"   = Helm (Helmet)
-- "chest"  = Brustpanzer / Rüstung (Chest)
-- "weapon" = Waffe (Weapon)
-- "gloves" = Handschuhe (Gloves)
-- "legs"   = Beinschutz / Hose (Legs)
-- "boots"  = Stiefel (Boots)
-- "acc1", "acc2" = die zwei Accessoire-Slots (Accessory), in Lesereihenfolge (links/oben zuerst)
+MODUS: Ausrüstung. Der Screenshot zeigt die Ausrüstung eines Kommandanten (Main-Account): 8 rautenförmige Felder in fester Anordnung.
+Von oben nach unten:
+1. ganz oben, Mitte                → "helm"   (Helm)
+2. darunter, Mitte                 → "chest"  (Brust / Umhang / Rüstung)
+3. links daneben → "weapon" (Waffe) · rechts daneben → "gloves" (Handschuhe)
+4. darunter, Mitte                 → "legs"   (Beinschutz)
+5. links darunter → "acc1" · rechts darunter → "acc2" (Accessoires)
+6. ganz unten, Mitte               → "boots"  (Stiefel)
+Ignoriere die römischen Ziffern unter den Feldern und das kleine rote Symbol.
 
-Je Slot:
-- "name": Item-Name genau wie im Bild (Deutsch oder Englisch). Ist kein Name lesbar, aber das Set erkennbar, den Set-Namen eintragen.
-- "set": Set-Name, falls sichtbar oder eindeutig erkennbar (z. B. "Ewiges Reich" / "Eternal Empire", "Höllisches Ödland" / "Hellish Wasteland",
-  "Drachenatem" / "Dragon's Breath"); bei KvK-Waffen "KvK" plus Truppentyp; sonst null.
-- "rarity": aus der Hintergrund-/Rahmenfarbe des Items: ORANGE/gold = "legendary", lila = "epic", blau = "elite", grün = "advanced", grau = "normal".
-Leerer oder nicht sichtbarer Slot: null. Rate keine Namen – lieber null und in "notes" erwähnen.
-Bei mehreren Screenshots denselben Slot nur einmal eintragen (die besser lesbare Variante nehmen).
+Seltenheit = Farbe des Feldes: gold/orange = "legendary", lila = "epic", blau = "elite", grün = "advanced", grau = "normal".
+Leeres Feld (nur Umriss/Platzhalter) → null.
+
+Item-Namen sind im Ausrüstungsfenster meist NICHT zu sehen. Ordne jedes Feld anhand des Bildes einem Item aus diesem Katalog zu
+(nur Items mit passendem Slot; Format: id | slot | Name | Aussehen):
+${catalog.length ? catalog.map(c => `- ${clean(c.id, 80)} | ${clean(c.slot, 12)} | ${clean(c.name, 60)} | ${clean(c.icon_hint, 160) || '–'}`).join('\n') : '(Katalog leer)'}
+
+Passt kein Katalog-Item sicher, setze "item_id": null und beschreibe das Item kurz in "description" (z. B. "schwarzes Horn mit rotem Band").
+Ist ein Item-Name im Bild zu lesen (Detailansicht), trage ihn in "name" ein.
 
 Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
 {
   "type": "gear",
   "slots": {
-    "helm":   {"name": string, "set": string|null, "rarity": "legendary"|"epic"|"elite"|"advanced"|"normal"} | null,
+    "helm":   {"item_id": string|null, "name": string|null, "description": string, "rarity": "legendary"|"epic"|"elite"|"advanced"|"normal"} | null,
     "chest":  ... | null,
     "weapon": ... | null,
     "gloves": ... | null,
     "legs":   ... | null,
-    "boots":  ... | null,
     "acc1":   ... | null,
-    "acc2":   ... | null
+    "acc2":   ... | null,
+    "boots":  ... | null
   },
   "confidence": "hoch" | "mittel" | "niedrig",
-  "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
+  "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Zuordnungen"
 }`;
 
 // Der Prompt liegt auf dem Server: so kann die Route nicht als allgemeiner Claude-Proxy missbraucht werden.
-const PROMPT = (m) => m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : m === 'gear' ? PROMPT_GEAR : PROMPT_CLASSIC(m);
+const PROMPT = (m) => m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : PROMPT_CLASSIC(m);
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
@@ -268,6 +284,8 @@ module.exports = async (req, res) => {
   }
   if (total > MAX_TOTAL_B64) return res.status(413).json({ error: 'Die Bilder sind zusammen zu groß.' });
 
+  const promptText = mode === 'gear' ? PROMPT_GEAR(await gearCatalog()) : PROMPT(mode);
+
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -279,7 +297,7 @@ module.exports = async (req, res) => {
           role: 'user',
           content: [
             ...images.map(im => ({ type: 'image', source: { type: 'base64', media_type: im.media_type, data: im.data } })),
-            { type: 'text', text: PROMPT(mode) }
+            { type: 'text', text: promptText }
           ]
         }]
       })
