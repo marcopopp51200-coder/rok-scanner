@@ -1583,9 +1583,11 @@ window.RokAuth = (() => {
 
   // Item-Katalog des Crafting-Planers (Tabelle public.gear_items, für alle lesbar)
   async function loadGearItems() {
-    const { data, error } = await sb.from('gear_items').select('id,name,slot,rarity,set_name,cost_leather,cost_iron,cost_ebony,cost_bone').order('slot').order('name');
-    if (error) throw new Error(germanError(error));
-    return data || [];
+    const q = (cols) => sb.from('gear_items').select(cols).order('slot').order('name');
+    let r = await q('id,name,slot,rarity,set_name,cost_leather,cost_iron,cost_ebony,cost_bone,icon');
+    if (r.error) r = await q('id,name,slot,rarity,set_name,cost_leather,cost_iron,cost_ebony,cost_bone');   // Spalte icon fehlt noch
+    if (r.error) throw new Error(germanError(r.error));
+    return r.data || [];
   }
 
   return { loadGearItems, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
@@ -3570,9 +3572,10 @@ window.RokApp = () => {
   const gNorm = (s) => String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/['’`´]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
   const gNormItem = (i) => ({ id: String(i.id), name: String(i.name || 'Item').slice(0, 60), cat: GEAR_CATS[i.cat] ? i.cat : 'helm',
     set: String(i.set || '').slice(0, 40), rarity: i.rarity === 'epic' ? 'epic' : 'legendary',
-    leather: gNum(i.leather), iron: gNum(i.iron), ebony: gNum(i.ebony), bone: gNum(i.bone), db: !!i.db });
+    leather: gNum(i.leather), iron: gNum(i.iron), ebony: gNum(i.ebony), bone: gNum(i.bone), db: !!i.db,
+    icon: typeof i.icon === 'string' && /^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(i.icon) && i.icon.length < 200000 ? i.icon : '' });
   const gFromDb = (r) => gNormItem({ id: r.id, name: r.name, cat: r.slot, set: r.set_name || '', rarity: r.rarity,
-    leather: r.cost_leather, iron: r.cost_iron, ebony: r.cost_ebony, bone: r.cost_bone, db: true });
+    leather: r.cost_leather, iron: r.cost_iron, ebony: r.cost_ebony, bone: r.cost_bone, icon: r.icon, db: true });
 
   // ---- Katalog: Supabase + eigene Items ----
   let gearDb = (() => { try { const c = JSON.parse(localStorage.getItem(GEAR_CACHE) || '[]'); return Array.isArray(c) ? c.map(i => gNormItem({ ...i, db: true })) : []; } catch { return []; } })();
@@ -3677,7 +3680,8 @@ window.RokApp = () => {
         <span class="gdia absolute inset-0" style="background:${active ? '#ffffff' : f ? f[0] : '#2e3a55'}"></span>
         <span class="gdia absolute inset-[3px]" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : '#111725'}"></span>
         <span class="relative z-10 h-full w-full flex flex-col items-center justify-center text-center px-[24%] pointer-events-none">
-          <span class="text-xl sm:text-2xl leading-none ${it ? '' : 'opacity-40'}">${sl.icon}</span>
+          ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="w-[62%] aspect-square object-contain -mt-1 [filter:drop-shadow(0_2px_3px_rgba(0,0,0,.45))]">`
+            : `<span class="text-xl sm:text-2xl leading-none ${it ? '' : 'opacity-40'}">${sl.icon}</span>`}
           <span class="mt-1 text-[9px] sm:text-[10px] font-bold leading-tight line-clamp-2 ${it ? 'text-white [text-shadow:0_1px_2px_#000]' : 'text-slate-500'}">${it ? esc(it.name) : sl.label}</span>
           ${badge ? `<span class="mt-0.5 text-xs font-extrabold leading-none [text-shadow:0_1px_2px_#000]" style="color:${badge[1]}">${badge[0]}</span>` : ''}
         </span>
@@ -3698,7 +3702,7 @@ window.RokApp = () => {
     const none = !Object.keys(groups).length;
     return `<div class="rounded-xl border border-ink-700 bg-ink-950/60 p-3">
       <div class="flex items-center justify-between gap-2 mb-2">
-        <span class="text-xs uppercase tracking-widest text-slate-400">${sl.icon} <span>${sl.label}</span></span>
+        <span class="flex items-center gap-2 text-xs uppercase tracking-widest text-slate-400">${it?.icon ? `<img src="${it.icon}" alt="" class="w-8 h-8 object-contain">` : sl.icon} <span>${sl.label}</span></span>
         ${it ? `<span class="text-[11px] font-semibold" style="color:${GEAR_RAR[v.rarity].c}">${GEAR_RAR[v.rarity].label}</span>` : ''}
       </div>
       <div class="grid grid-cols-[1fr_auto] gap-1.5">
