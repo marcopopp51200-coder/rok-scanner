@@ -923,6 +923,7 @@ window.I18N = (() => {
         'Für diesen Slot gibt es noch keine Items im Katalog.': 'There are no catalog items for this slot yet.',
         'Ist-Ausrüstung scannen, Wunsch-Set wählen – der Planer rechnet aus, welche Materialien dir noch fehlen.': 'Scan your current gear, pick a target set – the planner shows which materials you are still missing.',
         'Bestand unbekannt – bitte zuerst deine Materialien scannen.': 'Stock unknown – please scan your materials first.',
+        'verfeinern': 'refine', 'Tier': 'Tier',
         'Set gespeichert · in der Cloud (user_state)': 'Set saved · in the cloud (user_state)', 'Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': 'Saved locally · cloud unreachable, will sync automatically'
       },
       patterns: [
@@ -3602,12 +3603,14 @@ window.RokApp = () => {
   }
 
   // ---- Sets ----
-  const gEmptySlots = () => Object.fromEntries(GEAR_SLOTS.map(s => [s.k, { item: '', rarity: 'legendary' }]));
+  const gEmptySlots = () => Object.fromEntries(GEAR_SLOTS.map(s => [s.k, { item: '', rarity: 'legendary', tier: 1 }]));
+  const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
+  const gTier = (v) => { const n = typeof v === 'string' && /^[ivx]+$/i.test(v.trim()) ? ROMAN.indexOf(v.trim().toUpperCase()) + 1 : Math.round(+v || 1); return Math.min(5, Math.max(1, n || 1)); };
   const newGearSet = (name) => ({ id: newId(), name, ist: gEmptySlots(), ziel: gEmptySlots(), dismantle: false, useChests: false, updated: Date.now() });
   function gNormSet(s) {
     const o = newGearSet(String(s?.name || 'Set').slice(0, 40));
     if (s?.id) o.id = String(s.id);
-    ['ist', 'ziel'].forEach(side => GEAR_SLOTS.forEach(sl => { const v = s?.[side]?.[sl.k] || {}; o[side][sl.k] = { item: String(v.item || ''), rarity: v.rarity === 'epic' ? 'epic' : 'legendary' }; }));
+    ['ist', 'ziel'].forEach(side => GEAR_SLOTS.forEach(sl => { const v = s?.[side]?.[sl.k] || {}; o[side][sl.k] = { item: String(v.item || ''), rarity: v.rarity === 'epic' ? 'epic' : 'legendary', tier: gTier(v.tier) }; }));
     o.dismantle = !!s?.dismantle; o.useChests = !!s?.useChests; o.updated = +s?.updated || Date.now();
     return o;
   }
@@ -3635,10 +3638,11 @@ window.RokApp = () => {
     const key = (v) => gItem(v.item) ? v.item + '|' + v.rarity : '';
     const rows = GEAR_SLOTS.map(sl => ({ sl, a: set.ist[sl.k], z: set.ziel[sl.k], status: 'none', cost: null, back: null, used: false }));
     // 1) gleiches Item + gleiche Seltenheit im gleichen Slot → 0 Kosten
-    rows.forEach(r => { if (key(r.z) && key(r.z) === key(r.a)) { r.status = 'same'; r.used = true; } });
+    const tierStatus = (from, to) => (to.tier || 1) > (from.tier || 1) ? 'refine' : 'same';
+    rows.forEach(r => { if (key(r.z) && key(r.z) === key(r.a)) { r.status = tierStatus(r.a, r.z); r.used = true; } });
     // 2) Accessoires dürfen die Plätze tauschen
     const accs = rows.filter(r => r.sl.cat === 'accessory');
-    accs.forEach(r => { if (r.status !== 'none' || !key(r.z)) return; const src = accs.find(o => !o.used && key(o.a) === key(r.z)); if (src) { src.used = true; r.status = 'swap'; } });
+    accs.forEach(r => { if (r.status !== 'none' || !key(r.z)) return; const src = accs.find(o => !o.used && key(o.a) === key(r.z)); if (src) { src.used = true; r.status = tierStatus(src.a, r.z) === 'refine' ? 'refine' : 'swap'; r.from = src.a; } });
     // 3) Rest muss geschmiedet werden
     const need = gZero(), back = gZero();
     rows.forEach(r => { if (r.status === 'none' && key(r.z)) { r.status = 'craft'; r.cost = gearCost(r.z); gAdd(need, r.cost); } });
@@ -3666,25 +3670,27 @@ window.RokApp = () => {
   const gq = (v) => (Math.ceil((v || 0) * 100 - 1e-6) / 100).toLocaleString('de-DE', { maximumFractionDigits: 2 });
   const gCostText = (c) => !c ? '–' : MATS.filter(m => c[m.k] > 1e-4).map(m => `${m.icon} ${gq(c[m.k])}`).join(' · ') || '0';
   const GBADGE = { amber: 'border-amber-400/50 text-amber-300', sky: 'border-sky-400/50 text-sky-300', emerald: 'border-emerald-400/50 text-emerald-300', gold: 'border-gold-500/50 text-gold-300', slate: 'border-ink-600 text-slate-400' };
-  const GSTATUS = { same: ['✓ identisch', 'emerald'], swap: ['⇄ Platz getauscht', 'emerald'], craft: ['⚒ craften', 'gold'] };
+  const GSTATUS = { same: ['✓ identisch', 'emerald'], swap: ['⇄ Platz getauscht', 'emerald'], refine: ['⬆ verfeinern', 'sky'], craft: ['⚒ craften', 'gold'] };
+  const gTierTxt = (r) => r.status === 'refine' ? `Tier ${ROMAN[((r.from || r.a).tier || 1) - 1]} → ${ROMAN[(r.z.tier || 1) - 1]}` : r.status === 'craft' && (r.z.tier || 1) > 1 ? `danach Tier I → ${ROMAN[r.z.tier - 1]}` : '';
 
   // Rauten-Brett (8 Slots wie im Spiel)
   function gearBoard(side, set, calc) {
     return GEAR_SLOTS.map(sl => {
       const v = set[side][sl.k], it = gItem(v.item), f = it ? GFILL[v.rarity] : null, r = calc.rows.find(x => x.sl.k === sl.k);
       const active = gearSel[side] === sl.k;
-      const badge = side === 'ziel' ? { same: ['✓', '#34d399'], swap: ['⇄', '#34d399'], craft: ['⚒', '#fde68a'] }[r.status]
+      const badge = side === 'ziel' ? { same: ['✓', '#34d399'], swap: ['⇄', '#34d399'], refine: ['⬆', '#7dd3fc'], craft: ['⚒', '#fde68a'] }[r.status]
         : gearFlags[sl.k] ? ['⚠', '#fcd34d'] : r.back ? ['♻', '#7dd3fc'] : null;
       return `<button type="button" data-tile="${sl.k}" data-side="${side}" title="${esc(sl.label + (it ? ': ' + it.name : ''))}"
           class="gdia absolute focus:outline-none" style="left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%">
         <span class="gdia absolute inset-0" style="background:${active ? '#ffffff' : f ? f[0] : '#2e3a55'}"></span>
         <span class="gdia absolute inset-[3px]" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : '#111725'}"></span>
-        <span class="relative z-10 h-full w-full flex flex-col items-center justify-center text-center px-[24%] pointer-events-none">
-          ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="w-[62%] aspect-square object-contain -mt-1 [filter:drop-shadow(0_2px_3px_rgba(0,0,0,.45))]">`
+        <span class="relative z-10 h-full w-full flex flex-col items-center justify-center text-center px-[17%] pt-[4%] pointer-events-none">
+          ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="w-[88%] aspect-square object-contain -mb-[6%] [filter:drop-shadow(0_2px_3px_rgba(0,0,0,.45))]">`
             : `<span class="text-xl sm:text-2xl leading-none ${it ? '' : 'opacity-40'}">${sl.icon}</span>`}
           <span class="mt-1 text-[9px] sm:text-[10px] font-bold leading-tight line-clamp-2 ${it ? 'text-white [text-shadow:0_1px_2px_#000]' : 'text-slate-500'}">${it ? esc(it.name) : sl.label}</span>
-          ${badge ? `<span class="mt-0.5 text-xs font-extrabold leading-none [text-shadow:0_1px_2px_#000]" style="color:${badge[1]}">${badge[0]}</span>` : ''}
+          ${badge ? `<span class="absolute top-[13%] left-1/2 -translate-x-1/2 text-sm font-extrabold leading-none [text-shadow:0_1px_2px_#000]" style="color:${badge[1]}">${badge[0]}</span>` : ''}
         </span>
+        ${it ? `<span class="absolute z-10 bottom-[3%] left-1/2 -translate-x-1/2 px-1.5 rounded-md bg-ink-950/85 border border-gold-400/70 text-[10px] font-extrabold text-gold-300 leading-4 pointer-events-none">${ROMAN[(v.tier || 1) - 1]}</span>` : ''}
       </button>`;
     }).join('');
   }
@@ -3693,7 +3699,7 @@ window.RokApp = () => {
     const sl = GEAR_SLOTS.find(s => s.k === gearSel[side]) || GEAR_SLOTS[0], v = set[side][sl.k], it = gItem(v.item);
     const r = calc.rows.find(x => x.sl.k === sl.k);
     const note = side === 'ist' ? (gearFlags[sl.k] ? ['⚠ ' + gearFlags[sl.k], 'amber'] : r.back ? ['♻ wird zerlegt: + ' + gCostText(r.back), 'sky'] : null)
-      : r.status === 'craft' ? ['⚒ craften: ' + gCostText(r.cost), 'gold'] : GSTATUS[r.status] || null;
+      : r.status === 'craft' ? ['⚒ craften: ' + gCostText(r.cost) + (gTierTxt(r) ? ' · ' + gTierTxt(r) : ''), 'gold'] : r.status === 'refine' ? ['⬆ verfeinern: ' + gTierTxt(r), 'sky'] : GSTATUS[r.status] || null;
     const sel = 'w-full min-w-0 bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-gold-500 disabled:opacity-40';
     const groups = {};
     gearCat.filter(i => i.cat === sl.cat).forEach(i => { const g = i.db ? (i.set || 'Katalog') : 'Eigene Items'; (groups[g] = groups[g] || []).push(i); });
@@ -3703,12 +3709,12 @@ window.RokApp = () => {
     return `<div class="rounded-xl border border-ink-700 bg-ink-950/60 p-3">
       <div class="flex items-center justify-between gap-2 mb-2">
         <span class="flex items-center gap-2 text-xs uppercase tracking-widest text-slate-400">${it?.icon ? `<img src="${it.icon}" alt="" class="w-8 h-8 object-contain">` : sl.icon} <span>${sl.label}</span></span>
-        ${it ? `<span class="text-[11px] font-semibold" style="color:${GEAR_RAR[v.rarity].c}">${GEAR_RAR[v.rarity].label}</span>` : ''}
+        ${it ? `<span class="text-[11px] font-semibold text-gold-300">Tier ${ROMAN[(v.tier || 1) - 1]}</span>` : ''}
       </div>
       <div class="grid grid-cols-[1fr_auto] gap-1.5">
         <select data-side="${side}" data-slot="${sl.k}" data-f="item" class="${sel}" aria-label="${sl.label}">${opts}</select>
-        <select data-side="${side}" data-slot="${sl.k}" data-f="rarity" class="${sel}" ${it ? '' : 'disabled'} aria-label="Seltenheit">
-          <option value="legendary"${v.rarity !== 'epic' ? ' selected' : ''}>Legendär</option><option value="epic"${v.rarity === 'epic' ? ' selected' : ''}>Episch</option>
+        <select data-side="${side}" data-slot="${sl.k}" data-f="tier" class="${sel}" ${it ? '' : 'disabled'} aria-label="Tier">
+          ${ROMAN.map((t, i) => `<option value="${i + 1}"${(v.tier || 1) === i + 1 ? ' selected' : ''}>Tier ${t}</option>`).join('')}
         </select>
       </div>
       ${none ? '<div class="mt-2 text-[11px] text-slate-500">Für diesen Slot gibt es noch keine Items im Katalog.</div>' : ''}
@@ -3770,7 +3776,7 @@ window.RokApp = () => {
       <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">${cards}</div>`;
 
     // Slot-Vergleich
-    const nm = (v) => { const it = gItem(v.item); return it ? `${esc(it.name)} <span class="text-[10px] font-semibold" style="color:${GEAR_RAR[v.rarity].c}">${GEAR_RAR[v.rarity].label}</span>` : '<span class="text-slate-500">–</span>'; };
+    const nm = (v) => { const it = gItem(v.item); return it ? `${esc(it.name)} <span class="text-[10px] font-semibold text-gold-300">Tier ${ROMAN[(v.tier || 1) - 1]}</span>` : '<span class="text-slate-500">–</span>'; };
     $('gearPlan').innerHTML = `<h3 class="font-display text-xl gold-text mb-3">Slot-Vergleich</h3>
       <div class="overflow-x-auto"><table class="w-full text-sm">
         <thead class="text-xs uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700">
@@ -3780,7 +3786,7 @@ window.RokApp = () => {
           return `<tr class="border-b border-ink-800">
             <td class="py-2 pr-2 whitespace-nowrap text-slate-300">${r.sl.icon} ${r.sl.label}</td>
             <td class="py-2 px-2">${nm(r.a)}</td><td class="py-2 px-2">${nm(r.z)}</td>
-            <td class="py-2 px-2 whitespace-nowrap">${s[0] ? `<span class="text-[11px] px-2 py-0.5 rounded-full border ${GBADGE[s[1]]}">${s[0]}</span>` : ''}</td>
+            <td class="py-2 px-2 whitespace-nowrap">${s[0] ? `<span class="text-[11px] px-2 py-0.5 rounded-full border ${GBADGE[s[1]]}">${s[0]}</span>` : ''}${gTierTxt(r) ? `<div class="mt-1 text-[10px] text-sky-300">${gTierTxt(r)}</div>` : ''}</td>
             <td class="py-2 px-2 text-right tabular-nums whitespace-nowrap text-xs">${r.cost ? gCostText(r.cost) : '–'}</td>
             <td class="py-2 pl-2 text-right tabular-nums whitespace-nowrap text-xs text-sky-300">${r.back ? '+ ' + gCostText(r.back) : '–'}</td></tr>`; }).join('')}</tbody>
       </table></div>`;
@@ -3818,8 +3824,8 @@ window.RokApp = () => {
   ['gearIstEdit', 'gearZielEdit'].forEach(id => $(id).addEventListener('change', (ev) => {
     const t = ev.target.closest('select[data-slot]'); if (!t) return;
     const v = activeSet()[t.dataset.side][t.dataset.slot];
-    if (t.dataset.f === 'item') { v.item = t.value; const it = gItem(t.value); if (it) v.rarity = it.rarity; }
-    else v.rarity = t.value === 'epic' ? 'epic' : 'legendary';
+    if (t.dataset.f === 'item') { v.item = t.value; const it = gItem(t.value); if (it) v.rarity = it.rarity; v.tier = 1; }
+    else v.tier = gTier(t.value);
     if (t.dataset.side === 'ist') delete gearFlags[t.dataset.slot];
     saveGear(); renderGearMain();
   }));
@@ -3923,10 +3929,10 @@ window.RokApp = () => {
       if (!it) it = gearMatch(sl.cat, info);
       const rar = gearRarity(info.rarity);
       if (it) {
-        set.ist[sl.k] = { item: it.id, rarity: rar || it.rarity }; hit++;
+        set.ist[sl.k] = { item: it.id, rarity: rar || it.rarity, tier: gTier(info.tier) }; hit++;
         if (rar === 'epic' && !/epi|lila|purple/.test(gNorm(info.rarity))) gearFlags[sl.k] = `Seltenheit „${info.rarity}“ → als Episch gesetzt`;
       } else {
-        set.ist[sl.k] = { item: '', rarity: rar || 'legendary' };
+        set.ist[sl.k] = { item: '', rarity: rar || 'legendary', tier: gTier(info.tier) };
         gearFlags[sl.k] = 'nicht im Katalog: ' + String(info.name || info.description || 'unbekanntes Item').slice(0, 60);
       }
     });
