@@ -3,7 +3,7 @@
 // Der API-Key kommt ausschließlich aus der Umgebungsvariable ANTHROPIC_API_KEY und verlässt nie den Server.
 
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5';
-const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor']);
+const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'mats']);
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MAX_IMAGES = 5;
 const MAX_TOTAL_B64 = 4_300_000; // Vercel erlaubt max. 4,5 MB pro Anfrage
@@ -149,8 +149,56 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
   "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
 }`;
 
+// ---------- Schmiedematerialien ----------
+const PROMPT_MATS = `${INTRO}
+
+MODUS: Schmiedematerialien. Alle Screenshots stammen vom Main-Account des Spielers (Inventar / Materialien-Übersicht).
+
+AUFBAU DER SCREENSHOTS:
+- Ganz oben stehen meist MATERIALKISTEN (bronzene/goldene Truhen). Diese gehören in "chests" – NICHT zu einem Material addieren.
+- Darunter Abschnitte mit Überschrift, typischerweise in dieser Reihenfolge: Leder (Leather), Eisenerz (Iron Ore), Ebenholz (Ebony), Tierknochen (Animal Bone).
+- In jeder Zeile sind die Kacheln von der HÖCHSTEN zur NIEDRIGSTEN Seltenheit sortiert (links Legendär … rechts Normal).
+
+Materialarten (falls keine Überschrift sichtbar ist, am Symbol erkennen):
+- "leather" = Leder: braune Tierhaut / Pergament-Rollen
+- "iron"    = Eisenerz: graue Steine / Erzbrocken
+- "ebony"   = Ebenholz: dunkle, rötlich-braune Holzstämme / Bretter
+- "bone"    = Tierknochen: cremefarbene Knochen / Krallen
+- Kisten ("chests"): Schatztruhen
+
+Seltenheit = HINTERGRUNDFARBE der Kachel:
+- "white"  = grau (Normal)
+- "green"  = grün (Fortgeschritten / Advanced)
+- "blue"   = blau (Elite)
+- "purple" = lila (Episch / Epic)
+- "gold"   = ORANGE (Legendär / Legendary)
+
+Die Anzahl steht unten rechts auf der Kachel (z. B. "1.234"). Punkt/Komma sind Tausendertrennzeichen: "1.234" = 1234, "12,5K" = 12500.
+
+WICHTIG – KEINE DOPPELZÄHLUNG:
+Spieler schicken oft 2 (oder mehr) Screenshots, die sich überlappen (gescrollt). Dieselbe Kachel (gleiches Material + gleiche Seltenheit) kann auf mehreren Bildern erscheinen.
+Jede Kombination Material+Seltenheit gibt es im Inventar nur EINMAL – trage ihre Zahl genau einmal ein und addiere sie NIEMALS über Screenshots hinweg.
+Weichen die Zahlen zwischen zwei Bildern ab, nimm die besser lesbare.
+
+Ignoriere alles andere (Ausrüstung, Baupläne, Beschleuniger, Ressourcen, Schlüssel usw.).
+Nicht sichtbare Kombinationen: null.
+
+Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
+{
+  "type": "materials",
+  "chests": {"white": number|null, "green": number|null, "blue": number|null, "purple": number|null, "gold": number|null},
+  "materials": {
+    "leather": {"white": number|null, "green": number|null, "blue": number|null, "purple": number|null, "gold": number|null},
+    "iron":    {"white": number|null, "green": number|null, "blue": number|null, "purple": number|null, "gold": number|null},
+    "ebony":   {"white": number|null, "green": number|null, "blue": number|null, "purple": number|null, "gold": number|null},
+    "bone":    {"white": number|null, "green": number|null, "blue": number|null, "purple": number|null, "gold": number|null}
+  },
+  "confidence": "hoch" | "mittel" | "niedrig",
+  "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
+}`;
+
 // Der Prompt liegt auf dem Server: so kann die Route nicht als allgemeiner Claude-Proxy missbraucht werden.
-const PROMPT = (m) => m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'governor' ? PROMPT_GOVERNOR : PROMPT_CLASSIC(m);
+const PROMPT = (m) => m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : PROMPT_CLASSIC(m);
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
