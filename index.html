@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RoK Scanner – Ressourcen & VIP</title>
+<title>Wiz fan Club – Kingdom Scanner</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -23,6 +23,8 @@ tailwind.config = {
   .panel { background: linear-gradient(180deg, rgba(22,30,47,.92), rgba(12,16,25,.92)); border: 1px solid rgba(245,197,66,.14);
            box-shadow: 0 0 0 1px rgba(0,0,0,.4), 0 20px 40px -20px rgba(0,0,0,.8); }
   .gold-text { background: linear-gradient(180deg,#fde68a,#e0a91b 60%,#b7830f); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .wiz-title { background: linear-gradient(180deg,#fff7d1 0%,#fde68a 25%,#f5c542 55%,#b7830f 85%,#7a5508 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+               filter: drop-shadow(0 2px 0 rgba(60,38,4,.9)) drop-shadow(0 0 22px rgba(245,197,66,.35)); }
   .bar { transition: width .9s cubic-bezier(.2,.8,.2,1); }
   .drop-active { border-color: #f5c542 !important; background: rgba(245,197,66,.07) !important; transform: scale(1.01); }
   .shimmer { background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent); background-size: 200% 100%; animation: sh 1.4s infinite; }
@@ -43,7 +45,7 @@ tailwind.config = {
           <svg viewBox="0 0 24 24" class="w-6 h-6 text-ink-950" fill="currentColor"><path d="M3 8l4 3 5-7 5 7 4-3-2 11H5L3 8zm2 13h14v1.5H5V21z"/></svg>
         </div>
         <div>
-          <h2 id="authTitle" class="font-display text-2xl gold-text">Kingdom Scanner</h2>
+          <h2 id="authTitle" class="wiz-title font-display text-2xl font-extrabold tracking-wider">Wiz fan Club</h2>
           <p class="text-xs text-slate-400">Dein Account</p>
         </div>
       </div>
@@ -110,11 +112,12 @@ tailwind.config = {
         <svg viewBox="0 0 24 24" class="w-8 h-8 text-ink-950" fill="currentColor"><path d="M3 8l4 3 5-7 5 7 4-3-2 11H5L3 8zm2 13h14v1.5H5V21z"/></svg>
       </div>
       <div>
-        <h1 class="font-display text-2xl sm:text-3xl font-extrabold gold-text tracking-wide">Kingdom Scanner</h1>
+        <div class="text-[10px] sm:text-xs uppercase tracking-[.45em] text-gold-400/70 font-semibold">⚜ Kingdom Scanner ⚜</div>
+        <h1 class="wiz-title font-display text-4xl sm:text-5xl font-extrabold tracking-wider leading-tight">Wiz fan Club</h1>
+        <div class="mt-1 h-px w-full bg-gradient-to-r from-gold-400/90 via-gold-300/30 to-transparent"></div>
       </div>
     </div>
-    <nav id="mainNav" class="hidden self-start sm:self-auto grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist" aria-label="Bereiche">
-      <button class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-view="scanner" aria-pressed="true" role="tab">Scanner &amp; Dashboard</button>
+    <nav id="mainNav" class="hidden self-start sm:self-auto grid-cols-1 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist" aria-label="Bereiche">
       <button class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-view="rank" aria-pressed="false" role="tab">🏆 Rangliste</button>
     </nav>
     <div id="userBox" class="hidden relative self-start sm:self-auto">
@@ -128,9 +131,12 @@ tailwind.config = {
         </span>
         <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
       </button>
-      <div id="userMenu" role="menu" class="hidden absolute right-0 mt-2 w-52 z-40 panel rounded-xl p-1.5 shadow-2xl">
+      <div id="userMenu" role="menu" class="hidden absolute right-0 mt-2 w-56 z-50 panel !bg-ink-900 rounded-xl p-1.5 shadow-2xl">
         <button id="menuProfile" role="menuitem" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
           <span>🛡️</span> Game Profil
+        </button>
+        <button id="menuScanner" role="menuitem" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
+          <span>📊</span> Scanner &amp; Dashboard
         </button>
         <div class="my-1 border-t border-ink-700"></div>
         <button id="logoutBtn" role="menuitem" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left font-semibold text-red-300 hover:bg-red-600 hover:text-white">
@@ -146,11 +152,12 @@ tailwind.config = {
     <aside class="space-y-6">
       <section class="panel rounded-2xl p-5">
         <h2 class="font-display text-lg text-gold-300 mb-3">1 · Modus</h2>
-        <div class="grid grid-cols-4 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group">
-          <button class="seg-btn rounded-lg py-2 text-sm font-semibold transition" data-mode="speedups" aria-pressed="false">Speedups</button>
-          <button class="seg-btn rounded-lg py-2 text-sm font-semibold transition" data-mode="resources" aria-pressed="true">Ressourcen</button>
-          <button class="seg-btn rounded-lg py-2 text-sm font-semibold transition" data-mode="vip" aria-pressed="false">VIP</button>
-          <button class="seg-btn rounded-lg py-2 text-sm font-semibold transition" data-mode="gems" aria-pressed="false">Gems</button>
+        <div class="grid grid-cols-5 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group">
+          <button class="seg-btn rounded-lg py-2 px-0.5 text-xs font-semibold transition" data-mode="speedups" aria-pressed="false">Speedups</button>
+          <button class="seg-btn rounded-lg py-2 px-0.5 text-xs font-semibold transition" data-mode="resources" aria-pressed="true">Ressourcen</button>
+          <button class="seg-btn rounded-lg py-2 px-0.5 text-xs font-semibold transition" data-mode="vip" aria-pressed="false">VIP</button>
+          <button class="seg-btn rounded-lg py-2 px-0.5 text-xs font-semibold transition" data-mode="gems" aria-pressed="false">Gems</button>
+          <button class="seg-btn rounded-lg py-2 px-0.5 text-xs font-semibold transition" data-mode="ap" aria-pressed="false">AP</button>
         </div>
         <p id="modeHint" class="mt-3 text-xs text-slate-400"></p>
       </section>
@@ -182,6 +189,17 @@ tailwind.config = {
         </div>
         <button id="speedSave" class="mt-4 w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Bestand speichern</button>
         <div id="speedSaveMsg" class="hidden mt-2 text-xs text-emerald-400">✓ Gespeichert</div>
+      </section>
+
+      <section id="apInputs" class="hidden panel rounded-2xl p-5">
+        <h2 class="font-display text-lg text-gold-300 mb-1">3 · AP eingeben</h2>
+        <p class="text-xs text-slate-400 mb-3">Alternativ zum Scan: aktuelle Aktionspunkte von Hand eintragen.</p>
+        <div class="flex gap-2">
+          <input id="apManual" type="number" min="0" step="1" placeholder="z. B. 12500"
+                 class="flex-1 min-w-0 bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500">
+          <button id="apSave" class="px-4 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Speichern</button>
+        </div>
+        <div id="apSaveMsg" class="hidden mt-2 text-xs text-emerald-400">✓ Gespeichert</div>
       </section>
 
       <section id="vipInputs" class="panel rounded-2xl p-5">
@@ -342,6 +360,22 @@ tailwind.config = {
         </div>
       </section>
 
+      <!-- AP -->
+      <section id="apSection" class="hidden space-y-4">
+        <div class="flex items-end justify-between">
+          <h2 class="font-display text-2xl gold-text">Aktionspunkte</h2>
+          <span id="apSource" class="text-xs text-slate-400"></span>
+        </div>
+        <div class="panel rounded-2xl p-6 flex items-center gap-5">
+          <div class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#34d39933,#10b98122);border:1px solid #34d39955">⚡</div>
+          <div>
+            <div class="text-xs uppercase tracking-widest text-slate-400">AP (Aktionspunkte)</div>
+            <div id="apValue" class="text-4xl font-extrabold text-white tabular-nums">–</div>
+            <div id="apDelta" class="text-sm mt-1 text-slate-400"></div>
+          </div>
+        </div>
+      </section>
+
       <!-- Farmen -->
       <section id="farmSection" class="hidden panel rounded-2xl p-5">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -429,39 +463,42 @@ tailwind.config = {
       <!-- Bearbeiten (nur eigenes Profil) -->
       <div id="profEdit" class="hidden panel rounded-2xl p-6">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <h3 class="font-display text-xl gold-text">Werte aktualisieren</h3>
+          <h3 class="font-display text-xl gold-text">Profil bearbeiten</h3>
           <div class="flex flex-wrap gap-2">
-            <button id="profScanVip" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">📷 Neuen VIP-Scan einfügen</button>
-            <button id="profScanSpeed" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">📷 Neuen Speedup-Scan einfügen</button>
+            <button id="profScanVip" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">📷 VIP scannen</button>
+            <button id="profScanSpeed" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">📷 Speedups scannen</button>
           </div>
         </div>
         <div class="grid md:grid-cols-2 gap-6">
-          <div class="space-y-4">
-            <div>
-              <label for="profTag" class="text-xs text-slate-400">Allianz-Tag</label>
-              <input id="profTag" maxlength="6" placeholder="z. B. ABC1"
-                     class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm uppercase focus:outline-none focus:border-gold-500">
-            </div>
-            <div>
-              <div class="text-xs text-slate-400">Profilbild</div>
-              <div id="profAvatars" class="mt-1 flex flex-wrap gap-1.5"></div>
-            </div>
-            <div>
-              <label for="profVip" class="text-xs text-slate-400">Aktuelle VIP-Punkte <span class="text-slate-500">(ohne Gegenstände)</span></label>
-              <input id="profVip" type="number" min="0" step="1"
-                     class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500">
+          <div>
+            <div class="flex items-end gap-3">
+              <div class="flex-1 min-w-0">
+                <label for="profTag" class="text-xs text-slate-400">Allianz-Tag</label>
+                <input id="profTag" maxlength="6" placeholder="z. B. ABC1"
+                       class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm uppercase focus:outline-none focus:border-gold-500">
+              </div>
+              <div>
+                <div class="text-xs text-slate-400">City-Skin</div>
+                <div class="mt-1 flex items-center gap-2">
+                  <label id="profSkinPrev" for="profSkinFile" title="City-Skin hochladen"
+                         class="w-[42px] h-[42px] rounded-xl border border-dashed border-gold-500/50 bg-ink-950 grid place-items-center overflow-hidden cursor-pointer hover:border-gold-400"></label>
+                  <div class="flex flex-col items-start leading-tight">
+                    <label for="profSkinFile" class="cursor-pointer text-xs font-semibold text-gold-300 hover:text-gold-200">📷 Hochladen</label>
+                    <button id="profSkinDel" type="button" class="text-[11px] text-slate-500 hover:text-red-300">Entfernen</button>
+                  </div>
+                  <input id="profSkinFile" type="file" accept="image/*" class="hidden">
+                </div>
+              </div>
             </div>
           </div>
           <div>
-            <div class="text-xs text-slate-400 mb-1">Speedups korrigieren</div>
-            <div class="grid grid-cols-[1fr_repeat(3,56px)] gap-x-1.5 gap-y-2 items-center text-xs">
-              <span></span><span class="text-center text-slate-500">Tage</span><span class="text-center text-slate-500">Std.</span><span class="text-center text-slate-500">Min.</span>
-              <div id="profSpeedRows" class="contents"></div>
-            </div>
+            <div class="text-xs text-slate-400">Profilbild</div>
+            <div id="profAvatars" class="mt-1 flex flex-wrap gap-1.5"></div>
           </div>
         </div>
-        <div class="mt-5 flex flex-wrap items-center gap-3">
-          <button id="profSave" class="px-5 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Werte speichern</button>
+        <p class="mt-4 text-xs text-slate-500">VIP-Punkte, Speedups, Edelsteine, AP und Ressourcen werden automatisch aus deinen Scans im Scanner &amp; Dashboard übernommen.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="profSave" class="px-5 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Profil speichern</button>
           <span id="profMsg" class="text-sm"></span>
         </div>
       </div>
@@ -481,15 +518,35 @@ tailwind.config = {
         <div id="profEvKpi" class="mt-4"></div>
       </div>
 
-      <!-- Verlauf -->
+      <!-- Verlauf: 3 Diagramme, automatisch aus den Scans -->
       <div class="panel rounded-2xl p-6">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <h3 class="font-display text-xl gold-text">Verlauf</h3>
-          <div id="profLines" class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-300"></div>
+          <h3 class="font-display text-xl gold-text">⏱️ Verlauf · Speedups</h3>
+          <span class="text-xs text-slate-500">in Tagen</span>
         </div>
-        <div class="relative h-80">
-          <canvas id="profChart"></canvas>
-          <div id="profChartEmpty" class="absolute inset-0 grid place-items-center text-sm text-slate-500 text-center px-6"></div>
+        <div class="relative h-72">
+          <canvas id="pcSpeed"></canvas>
+          <div id="pcSpeedEmpty" class="absolute inset-0 grid place-items-center text-sm text-slate-500 text-center px-6 pointer-events-none"></div>
+        </div>
+      </div>
+      <div class="panel rounded-2xl p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h3 class="font-display text-xl gold-text">👑 Verlauf · Wachstum &amp; Währung</h3>
+          <span class="text-xs text-slate-500">VIP rechts · Gems &amp; AP links</span>
+        </div>
+        <div class="relative h-72">
+          <canvas id="pcGrowth"></canvas>
+          <div id="pcGrowthEmpty" class="absolute inset-0 grid place-items-center text-sm text-slate-500 text-center px-6 pointer-events-none"></div>
+        </div>
+      </div>
+      <div class="panel rounded-2xl p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h3 class="font-display text-xl gold-text">🌾 Verlauf · Ressourcen</h3>
+          <span class="text-xs text-slate-500">Main-Account, Gesamt je Ressource</span>
+        </div>
+        <div class="relative h-72">
+          <canvas id="pcRes"></canvas>
+          <div id="pcResEmpty" class="absolute inset-0 grid place-items-center text-sm text-slate-500 text-center px-6 pointer-events-none"></div>
         </div>
       </div>
     </div>
@@ -645,15 +702,16 @@ window.RokAuth = (() => {
     const hist = readLocalHistory();
     const cur = new Map(hist.map(e => [String(e.id), JSON.stringify(e)]));
     const up = [...cur].filter(([id, j]) => full || synced.get(id) !== j).map(([, j]) => rowOf(JSON.parse(j)))
-      .filter(r => ['resources', 'vip', 'gems', 'speedups'].includes(r.type));
+      .filter(r => ['resources', 'vip', 'gems', 'speedups', 'ap'].includes(r.type));
     const delIds = full ? [] : [...synced.keys()].filter(id => !cur.has(id));
     // Speedups getrennt senden: fehlt das SQL-Update, blockiert das nicht die übrigen Daten
-    const core = up.filter(r => r.type !== 'speedups'), extra = up.filter(r => r.type === 'speedups'), failed = [];
+    const isExtra = (r) => r.type === 'speedups' || r.type === 'ap';
+    const core = up.filter(r => !isExtra(r)), extra = up.filter(isExtra), failed = [];
     if (core.length) { const { error } = await sb.from('scans').upsert(core, { onConflict: 'user_id,id' }); if (error) throw error; }
     speedWarn = false;
     if (extra.length) {
       const { error } = await sb.from('scans').upsert(extra, { onConflict: 'user_id,id' });
-      if (error) { console.warn('Speedups nicht gespeichert – speedups.sql in Supabase ausführen', error); speedWarn = true; failed.push(...extra.map(r => r.id)); }
+      if (error) { console.warn('Speedups/AP nicht gespeichert – SQL-Update in Supabase ausführen', error); speedWarn = true; failed.push(...extra.map(r => r.id)); }
     }
     if (delIds.length) { const { error } = await sb.from('scans').delete().in('id', delIds); if (error) throw error; }
     const st = readLocalState(), stJson = JSON.stringify(st);
@@ -670,7 +728,7 @@ window.RokAuth = (() => {
     status('busy', '☁ speichert …');
     queue = queue.then(() => pushChanges()).then(() => {
       hasPending = false; lsDel(PENDING);
-      if (speedWarn) status('err', '⚠ Speedups: SQL-Update in Supabase nötig'); else status('ok', '☁ in der Cloud gespeichert');
+      if (speedWarn) status('err', '⚠ Speedups/AP: SQL-Update in Supabase nötig'); else status('ok', '☁ in der Cloud gespeichert');
     }).catch((e) => {
       console.error('Cloud-Sync fehlgeschlagen', e);
       status('err', '⚠ nicht gespeichert – neuer Versuch …');
@@ -803,12 +861,12 @@ window.RokAuth = (() => {
   document.addEventListener('DOMContentLoaded', boot);
   // ---------- Rangliste (Tabelle public.leaderboard) ----------
   // Jeder eingeloggte Spieler darf alle Zeilen lesen, aber nur seine eigene schreiben.
-  let lbLast = null, lbTimer = null, ownMeta = { alliance_tag: '', avatar: '' };
+  let lbLast = null, lbTimer = null, ownMeta = { alliance_tag: '', avatar: '', city_skin: '' };
   async function loadOwnRank() {
     const { data, error } = await sb.from('leaderboard').select('*').eq('user_id', user.id).maybeSingle();
     if (error) throw error;
     lbLast = data ? +data.vip_points : null;
-    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '' };
+    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '' };
   }
   // Aktuellen VIP-Stand melden. force = neuer Scan (immer aktualisieren), sonst nur bei geänderter Punktzahl.
   function pushVip(points, level, force = false) {
@@ -825,10 +883,12 @@ window.RokAuth = (() => {
     }, 600);
   }
   async function loadLeaderboard() {
-    const { data, error } = await sb.from('leaderboard').select('*')
-      .order('vip_points', { ascending: false }).limit(500);
-    if (error) throw new Error(germanError(error));
-    return data || [];
+    // ohne city_skin laden (Bilder nur im Profil) – Fallback '*', falls Spalten fehlen
+    const q = (cols) => sb.from('leaderboard').select(cols).order('vip_points', { ascending: false }).limit(500);
+    let r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar');
+    if (r.error) r = await q('*');
+    if (r.error) throw new Error(germanError(r.error));
+    return r.data || [];
   }
 
   // ---------- Game Profil ----------
@@ -841,21 +901,34 @@ window.RokAuth = (() => {
       if (/alliance_tag|avatar|column/i.test(error.message || '')) throw new Error('Allianz-Tag/Profilbild: bitte zuerst profile.sql in Supabase ausführen.');
       throw new Error(germanError(error));
     }
-    ownMeta = { alliance_tag: row.alliance_tag || '', avatar: row.avatar || '' };
+    ownMeta = { ...ownMeta, alliance_tag: row.alliance_tag || '', avatar: row.avatar || '' };
     if (lbLast == null) lbLast = row.vip_points;
+  }
+  // City-Skin in public.leaderboard.city_skin (für andere sichtbar). false = Spalte fehlt noch.
+  async function saveSkin(skin, points) {
+    const row = { user_id: user.id, username: profile.name.slice(0, 40), city_skin: skin || null };
+    if (lbLast == null) { row.vip_points = Math.max(0, Math.round(points || 0)); row.vip_level = 0; row.updated_at = new Date().toISOString(); }
+    const { error } = await sb.from('leaderboard').upsert(row);
+    if (error) {
+      if (/city_skin|column/i.test(error.message || '')) return false;
+      throw new Error(germanError(error));
+    }
+    ownMeta = { ...ownMeta, city_skin: skin || '' };
+    if (lbLast == null) lbLast = row.vip_points;
+    return true;
   }
   // Öffentliches Profil eines Spielers: Kopfzeile + VIP-/Speedup-Verlauf
   async function loadProfile(uid) {
     const [lb, sc] = await Promise.all([
       sb.from('leaderboard').select('*').eq('user_id', uid).maybeSingle(),
-      sb.from('scans').select('type,scanned_at,data').eq('user_id', uid).in('type', ['vip', 'speedups']).order('scanned_at', { ascending: true })
+      sb.from('scans').select('type,scanned_at,data').eq('user_id', uid).in('type', ['vip', 'speedups', 'gems', 'ap', 'resources']).order('scanned_at', { ascending: true })
     ]);
     if (lb.error) throw new Error(germanError(lb.error));
     return { row: lb.data, scans: sc.error ? [] : (sc.data || []), scansError: !!sc.error };
   }
 
   return { current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
-           pushVip, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, loadProfile };
+           pushVip, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile };
 })();
 </script>
 
@@ -893,7 +966,7 @@ window.RokApp = () => {
 
   // ---------- State ----------
   const MODE_KEY = 'rok_scanner_mode';
-  let mode = ['speedups', 'resources', 'vip', 'gems'].includes(LS.get(MODE_KEY, '')) ? LS.get(MODE_KEY) : 'resources';
+  let mode = ['speedups', 'resources', 'vip', 'gems', 'ap'].includes(LS.get(MODE_KEY, '')) ? LS.get(MODE_KEY) : 'resources';
   let images = []; // {id, name, dataUrl, mediaType, base64}
   let vipItems = [];
   let vipCurrent = null;
@@ -974,6 +1047,7 @@ window.RokApp = () => {
     resources: 'Liest Proviant, Holz, Stein und Gold – aus der Ressourcenleiste oder dem Ressourcen-Inventar.',
     vip: 'Liest VIP-Punkte-Kacheln aus dem Inventar (Wert × Anzahl) und berechnet den Weg zu deinem Ziel-Level.',
     gems: 'Liest die Anzahl deiner Edelsteine und speichert sie im Verlauf.',
+    ap: 'Liest deine Aktionspunkte (AP) und speichert sie im Verlauf.',
     speedups: 'Liest deine Beschleuniger (Universal, Bau, Forschung, Training, Heilung) aus dem Inventar und rechnet die Gesamtzeit aus.'
   };
   document.querySelectorAll('.seg-btn[data-mode]').forEach(b => b.onclick = () => {
@@ -1093,7 +1167,7 @@ window.RokApp = () => {
     $('analyzeBtn').disabled = on || !images.length;
     $('analyzeLabel').textContent = on ? 'Analysiere …' : 'Analysieren';
     $('loadingState').classList.toggle('hidden', !on);
-    if (on) { ['emptyState','resSection','vipSection','gemsSection','speedSection'].forEach(id => $(id).classList.add('hidden')); }
+    if (on) { ['emptyState','resSection','vipSection','gemsSection','speedSection','apSection'].forEach(id => $(id).classList.add('hidden')); }
   }
   function showError(m) { $('errorBox').textContent = m; $('errorBox').classList.remove('hidden'); }
   function hideError() { $('errorBox').classList.add('hidden'); }
@@ -1110,6 +1184,10 @@ window.RokApp = () => {
       renderSpeedups(e, ts);
       addHistory({ id: newId(), ts, type: 'speedups', ...e, confidence: r.confidence || null });
       saveLastScan({ type: 'speedups', ts, ...e });
+    } else if (type === 'ap') {
+      const ap = num(r.ap ?? r.action_points);
+      if (ap == null) throw new Error('Keine Aktionspunkte im Screenshot erkannt.');
+      saveApEntry(Math.max(0, Math.round(ap)), r.confidence || null);
     } else if (type === 'gems') {
       const hand = num(r.gems_hand), bag = num(r.gems_bag), ts = Date.now();
       const g = (hand != null || bag != null) ? (hand || 0) + (bag || 0) : num(r.gems);
@@ -1145,7 +1223,7 @@ window.RokApp = () => {
     }
   }
   let activeVipEntryId = null;
-  let vipScanLoaded = false, hasRes = false, hasVip = false, hasGems = false, hasSpeed = false;
+  let vipScanLoaded = false, hasRes = false, hasVip = false, hasGems = false, hasSpeed = false, hasAp = false;
   const LAST = 'rok_scanner_last_scan';
   const saveLastScan = (data) => LS.set(LAST + '_' + data.type, JSON.stringify(data));
   const newId = () => (crypto.randomUUID?.() || String(Date.now() + Math.random()));
@@ -1354,8 +1432,8 @@ window.RokApp = () => {
   try { history = JSON.parse(LS.get(HIST, '[]')) || []; } catch { history = []; }
   // Altdaten-Schutz: nur bekannte Zahlenfelder übernehmen
   const sanitize = (e) => {
-    const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
-    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag']
+    const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups', 'ap'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
+    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap']
       : out.type === 'speedups' ? ['universal', 'building', 'research', 'training', 'healing', 'total']
       : ['food', 'wood', 'stone', 'gold', 'total', 'farmFood', 'farmWood', 'farmStone', 'farmGold', 'bagFood', 'bagWood', 'bagStone', 'bagGold'];
     keys.forEach(k => out[k] = (e[k] === null || e[k] === undefined || isNaN(+e[k])) ? null : +e[k]);
@@ -1425,6 +1503,9 @@ window.RokApp = () => {
         backgroundColor: isLine ? l.c + '33' : l.c + 'cc', borderColor: l.c, borderWidth: isLine ? (l.k === 'combined' ? 3.5 : 2.5) : 0,
         borderDash: l.k === 'combined' && isLine ? [8, 5] : undefined,
         borderRadius: 4, tension: .3, pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: l.c, spanGaps: true, fill: false }));
+    } else if (histTab === 'ap') {
+      datasets = [{ label: 'AP', data: list.map(e => e.ap), backgroundColor: isLine ? '#34d39933' : '#34d399cc', borderColor: '#34d399',
+        borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: '#34d399', spanGaps: true, fill: false }];
     } else if (histTab === 'gems') {
       const gs = (label, key, c) => ({ label, data: list.map(e => e[key]), backgroundColor: isLine ? c + '33' : c + 'cc', borderColor: c,
         borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: c, spanGaps: true, fill: false });
@@ -1442,7 +1523,7 @@ window.RokApp = () => {
     if (!window.Chart) {
       empty.textContent = 'Chart.js konnte nicht geladen werden (keine Internetverbindung?). Die Tabelle funktioniert trotzdem.';
     } else {
-      empty.textContent = list.length ? '' : ({ speedups: 'Noch keine Speedup-Scans gespeichert.', resources: 'Noch keine Ressourcen-Scans gespeichert.', vip: 'Noch keine VIP-Scans gespeichert.', gems: 'Noch keine Edelstein-Scans gespeichert.' })[histTab];
+      empty.textContent = list.length ? '' : ({ speedups: 'Noch keine Speedup-Scans gespeichert.', resources: 'Noch keine Ressourcen-Scans gespeichert.', vip: 'Noch keine VIP-Scans gespeichert.', gems: 'Noch keine Edelstein-Scans gespeichert.', ap: 'Noch keine AP-Scans gespeichert.' })[histTab];
       if (chart) chart.destroy();
       chart = new Chart($('historyChart'), {
         type: chartType,
@@ -1504,6 +1585,18 @@ window.RokApp = () => {
           <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
         </tr>`;
       }).join('');
+    } else if (histTab === 'ap') {
+      $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
+        <th class="${th_}">⚡ AP</th><th class="${th_}">Veränderung</th><th class="w-8"></th></tr>`;
+      $('histRows').innerHTML = rows.map((e, i) => {
+        const prev = rows[i + 1], d = prev && prev.ap != null && e.ap != null ? e.ap - prev.ap : null;
+        return `<tr class="border-b border-ink-800 hover:bg-ink-850">
+          <td class="py-2 pr-2 whitespace-nowrap text-slate-300">${dateLabel(e.ts)}</td>
+          <td class="py-2 px-2 text-right tabular-nums font-semibold text-emerald-300">${e.ap != null ? fmt(e.ap) : '–'}</td>
+          <td class="py-2 px-2 text-right tabular-nums ${d == null ? 'text-slate-500' : d >= 0 ? 'text-emerald-400' : 'text-red-400'}">${d == null ? '–' : (d >= 0 ? '+' : '−') + fmt(Math.abs(d))}</td>
+          <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
+        </tr>`;
+      }).join('');
     } else if (histTab === 'gems') {
       $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
         <th class="${th_}">Auf Hand</th><th class="${th_}">Im Rucksack</th><th class="${th_}">💎 Gesamt</th><th class="${th_}">Veränderung</th><th class="w-8"></th></tr>`;
@@ -1534,7 +1627,7 @@ window.RokApp = () => {
     $('histRows').querySelectorAll('[data-hdel]').forEach(b => b.onclick = () => deleteEntry(b.dataset.hdel));
 
     const n = (t) => history.filter(e => e.type === t).length;
-    $('histCount').textContent = `${history.length} Scans gespeichert (${n('speedups')} Speedups, ${n('resources')} Ressourcen, ${n('vip')} VIP, ${n('gems')} Gems) · nur Zahlenwerte, keine Bilder`;
+    $('histCount').textContent = `${history.length} Scans gespeichert (${n('speedups')} Speedups, ${n('resources')} Ressourcen, ${n('vip')} VIP, ${n('gems')} Gems, ${n('ap')} AP) · nur Zahlenwerte, keine Bilder`;
     $('resetHistory').disabled = !history.length;
     $('resetHistory').classList.toggle('opacity-40', !history.length);
   }
@@ -1770,15 +1863,43 @@ window.RokApp = () => {
     hasGems = true;
   }
 
-  // Getrennte Seiten: Ressourcen | VIP | Gems
+  // ---------- AP (Aktionspunkte) ----------
+  function renderAp(ap, ts) {
+    $('apValue').textContent = fmt(ap);
+    const prev = history.filter(e => e.type === 'ap' && e.ts < ts && e.ap != null).sort((a, b) => b.ts - a.ts)[0];
+    const d = prev ? ap - prev.ap : null;
+    $('apDelta').innerHTML = d == null ? 'Erster Scan' :
+      `<span class="${d >= 0 ? 'text-emerald-400' : 'text-red-400'}">${d >= 0 ? '+' : '−'}${fmt(Math.abs(d))}</span> seit ${dateLabel(prev.ts)}`;
+    $('apSource').textContent = `Letzter Scan: ${dateLabel(ts)}`;
+    hasAp = true;
+  }
+  function saveApEntry(ap, confidence) {
+    const ts = Date.now();
+    renderAp(ap, ts);
+    addHistory({ id: newId(), ts, type: 'ap', ap, confidence });
+    saveLastScan({ type: 'ap', ts, ap });
+  }
+  $('apSave').onclick = () => {
+    const v = $('apManual').value.trim();
+    if (v === '' || isNaN(+v) || +v < 0) { showError('Bitte gültige AP eingeben.'); return; }
+    hideError();
+    saveApEntry(Math.round(+v), 'manuell');
+    applyMode();
+    $('apManual').value = '';
+    $('apSaveMsg').classList.remove('hidden'); setTimeout(() => $('apSaveMsg').classList.add('hidden'), 2500);
+  };
+
+  // Getrennte Seiten: Ressourcen | VIP | Gems | Speedups | AP
   function applyMode() {
-    const has = { speedups: hasSpeed, resources: hasRes, vip: hasVip, gems: hasGems }[mode];
+    const has = { speedups: hasSpeed, resources: hasRes, vip: hasVip, gems: hasGems, ap: hasAp }[mode];
     document.querySelectorAll('.seg-btn[data-mode]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mode === mode));
     $('modeHint').textContent = hints[mode];
     $('vipInputs').classList.toggle('hidden', mode !== 'vip');
     $('resSection').classList.toggle('hidden', mode !== 'resources' || !hasRes);
     $('vipSection').classList.toggle('hidden', mode !== 'vip' || !hasVip);
     $('gemsSection').classList.toggle('hidden', mode !== 'gems' || !hasGems);
+    $('apSection').classList.toggle('hidden', mode !== 'ap' || !hasAp);
+    $('apInputs').classList.toggle('hidden', mode !== 'ap');
     $('speedSection').classList.toggle('hidden', mode !== 'speedups' || !hasSpeed);
     $('speedInputs').classList.toggle('hidden', mode !== 'speedups');
     $('speedOpts').classList.toggle('hidden', mode !== 'speedups');
@@ -1791,6 +1912,7 @@ window.RokApp = () => {
       resources: 'Lade einen Screenshot der Ressourcen deines Main-Accounts hoch und klicke auf „Analysieren“.',
       vip: 'Lade einen Screenshot deines Inventars mit VIP-Punkte-Items hoch und klicke auf „Analysieren“ – oder nutze „Rechner ohne Scan öffnen“.',
       gems: 'Lade einen Screenshot hoch, auf dem deine Edelsteine zu sehen sind, und klicke auf „Analysieren“.',
+      ap: 'Lade einen Screenshot hoch, auf dem deine Aktionspunkte (AP) zu sehen sind, und klicke auf „Analysieren“ – oder trag sie links von Hand ein.',
       speedups: 'Lade Screenshots deiner Beschleuniger aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag deinen Bestand links unter „Speedups eingeben“ ein.'
     }[mode];
     histTab = mode; syncTabs(); renderHistory();
@@ -1800,13 +1922,14 @@ window.RokApp = () => {
   try { navigator.storage?.persist?.(); } catch {}
 
   // ---------- Haupt-Reiter: Scanner & Dashboard | Rangliste ----------
-  let view = (() => { try { return localStorage.getItem('rok_view') === 'rank' ? 'rank' : 'scanner'; } catch { return 'scanner'; } })();
-  let lastMainView = view === 'rank' ? 'rank' : 'scanner';
+  let view = 'rank';   // Startseite = Rangliste; Scanner & Dashboard über das Profil-Menü
+  let lastMainView = 'rank';
   function applyView() {
     document.querySelectorAll('.main-tab').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === view));
     $('scannerView').classList.toggle('hidden', view !== 'scanner');
     $('rankView').classList.toggle('hidden', view !== 'rank');
     $('profileView').classList.toggle('hidden', view !== 'profile');
+    $('mainNav').classList.toggle('hidden', view === 'profile');   // Game Profil: Reiter ausblenden → cleane Ansicht
     if (view !== 'profile') { lastMainView = view; try { localStorage.setItem('rok_view', view); } catch {} }
     if (view === 'rank') loadRanking();
     if (view === 'profile') loadGameProfile();
@@ -1922,7 +2045,11 @@ window.RokApp = () => {
     const inner = av ? esc(av) : esc(String(name || '?').charAt(0).toUpperCase());
     return `<span class="${cls} shrink-0 inline-grid place-items-center rounded-xl font-bold ${av ? 'bg-ink-800 border border-gold-500/40' : 'bg-gradient-to-br from-gold-400 to-gold-600 text-ink-950'}">${inner}</span>`;
   }
-  function renderHeaderAvatar() { $('userAvatar').innerHTML = avatarHtml(PROFILE.name, RokAuth.ownMeta().avatar, 'w-8 h-8 text-sm'); }
+  // Icon oben rechts (Wiz fan Club) – fest eingebettet, rund
+  const WIZ_ICON = 'data:image/jpeg;base64,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';
+  function renderHeaderAvatar() {
+    $('userAvatar').innerHTML = `<img src="${WIZ_ICON}" alt="" class="block w-10 h-10 rounded-full object-cover object-center ring-2 ring-gold-400/80 shadow-[0_0_14px_rgba(245,197,66,.45)]">`;
+  }
 
   // Dropdown
   const closeMenu = () => { $('userMenu').classList.add('hidden'); $('userMenuBtn').setAttribute('aria-expanded', 'false'); };
@@ -1930,15 +2057,39 @@ window.RokApp = () => {
   document.addEventListener('click', (ev) => { if (!$('userBox').contains(ev.target)) closeMenu(); });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeMenu(); });
   $('menuProfile').onclick = () => { closeMenu(); openProfile(RokAuth.userId()); };
+  $('menuScanner').onclick = () => { closeMenu(); view = 'scanner'; applyView(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-  let profileUid = null, profChart = null;
+  let profileUid = null;
+  const SKIN = 'rok_scanner_city_skin';   // eigener City-Skin (lokal + Cloud user_state)
+  const safeSkin = (v) => typeof v === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v) ? v : '';
+  const ownSkin = () => safeSkin(LS.get(SKIN, null) ?? RokAuth.ownMeta().city_skin);
+  // Bild mittig quadratisch zuschneiden (leicht gezoomt) und als kleines JPEG speichern
+  function cropSquare(file, size = 192) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onerror = reject;
+      r.onload = () => {
+        const img = new Image();
+        img.onerror = reject;
+        img.onload = () => {
+          const side = Math.min(img.width, img.height) * 0.8;
+          const sx = (img.width - side) / 2, sy = (img.height - side) / 2;
+          const c = document.createElement('canvas'); c.width = c.height = size;
+          const ctx = c.getContext('2d'); ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+          resolve(c.toDataURL('image/jpeg', 0.82));
+        };
+        img.src = r.result;
+      };
+      r.readAsDataURL(file);
+    });
+  }
   const PROF_EV = [
     { id: 'zenith', label: 'Zenith / MGE Training', short: 'Training + Universal', keys: ['training', 'universal'] },
     { id: 'kvk',    label: 'KvK Krieg / Heilung',   short: 'Heilung + Universal',  keys: ['healing', 'universal'] },
     { id: 'all',    label: 'Gesamt',                short: 'Alle Speedups',        keys: ['universal', 'building', 'research', 'training', 'healing'] }
   ];
   speedUi.profEv = speedUi.profEv || 'zenith';
-  speedUi.profLines = { vip: true, training: true, healing: true, universal: true, combined: true, ...(speedUi.profLines || {}) };
 
   function openProfile(uid) {
     if (!uid) return;
@@ -1957,7 +2108,7 @@ window.RokApp = () => {
       const [p, all] = await Promise.all([RokAuth.loadProfile(uid), RokAuth.loadLeaderboard().catch(() => [])]);
       if (uid !== profileUid) return;                         // inzwischen anderes Profil geöffnet
       let entries;
-      if (own) entries = history.filter(e => e.type === 'vip' || e.type === 'speedups').map(e => ({ ...e }));
+      if (own) entries = history.map(e => ({ ...e }));
       else entries = p.scans.map(r => ({ ...(r.data || {}), type: r.type, ts: +(r.data?.ts) || Date.parse(r.scanned_at) }));
       entries.sort((a, b) => a.ts - b.ts);
       const row = p.row || (own ? { username: PROFILE.name, vip_points: null } : null);
@@ -1974,7 +2125,7 @@ window.RokApp = () => {
 
   function renderGameProfile(P) {
     const { own, row, entries } = P;
-    const meta = own ? RokAuth.ownMeta() : { alliance_tag: row.alliance_tag || '', avatar: row.avatar || '' };
+    const meta = own ? { ...RokAuth.ownMeta(), city_skin: ownSkin() } : { alliance_tag: row.alliance_tag || '', avatar: row.avatar || '', city_skin: safeSkin(row.city_skin) };
     const vipEntries = entries.filter(e => e.type === 'vip');
     const speedEntries = entries.filter(e => e.type === 'speedups' && e.total != null);
     // VIP-Punkte inkl. Gegenstände (wie in der Rangliste)
@@ -1993,6 +2144,7 @@ window.RokApp = () => {
           <div class="flex flex-wrap items-baseline gap-x-3">
             <h2 class="font-display text-3xl gold-text">${esc(row.username)}</h2>
             ${meta.alliance_tag ? `<span class="text-lg font-semibold text-slate-300">[${esc(meta.alliance_tag)}]</span>` : (own ? '<span class="text-xs text-slate-500">kein Allianz-Tag</span>' : '')}
+            ${meta.city_skin ? `<img src="${meta.city_skin}" alt="City-Skin" title="City-Skin" class="self-center w-12 h-12 rounded-xl object-cover object-center border border-gold-500/60 shadow-[0_0_14px_rgba(245,197,66,.3)]">` : ''}
           </div>
           <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
             ${lvl != null ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold text-ink-950 bg-gradient-to-br from-gold-300 to-gold-600 shadow-[0_0_16px_rgba(245,197,66,.35)]">👑 VIP ${lvl}</span>` : '<span class="text-slate-500">Noch kein VIP-Stand</span>'}
@@ -2044,50 +2196,47 @@ window.RokApp = () => {
     $('profEdit').classList.toggle('hidden', !own);
     if (own) {
       $('profTag').value = meta.alliance_tag || '';
-      $('profVip').value = vipCurrent != null ? vipCurrent : '';
-      $('profSpeedRows').innerHTML = speedGridHtml(sp || {});
-      let chosen = meta.avatar || '';
+      let chosen = meta.avatar || '', skin = meta.city_skin || '';
+      const drawSkin = () => {
+        $('profSkinPrev').innerHTML = skin ? `<img src="${skin}" alt="City-Skin" class="w-full h-full object-cover object-center">` : '<span class="text-xl">🏯</span>';
+        $('profSkinDel').classList.toggle('hidden', !skin);
+      };
+      drawSkin();
+      $('profSkinFile').onchange = async (ev) => {
+        const f = ev.target.files?.[0]; ev.target.value = '';
+        if (!f || !f.type.startsWith('image/')) return;
+        try { skin = await cropSquare(f); drawSkin(); $('profMsg').textContent = 'City-Skin bereit – „Profil speichern“ klicken.'; $('profMsg').className = 'text-sm text-slate-300'; }
+        catch { $('profMsg').textContent = 'Bild konnte nicht gelesen werden.'; $('profMsg').className = 'text-sm text-red-300'; }
+      };
+      $('profSkinDel').onclick = () => { skin = ''; drawSkin(); };
       const drawAv = () => {
         $('profAvatars').innerHTML = AVATARS.map(a => `<button data-av="${a}" title="${a ? a : 'Anfangsbuchstabe'}" class="rounded-xl ${a === chosen ? 'ring-2 ring-gold-400' : 'opacity-70 hover:opacity-100'}">${avatarHtml(row.username, a, 'w-10 h-10 text-lg')}</button>`).join('');
         $('profAvatars').querySelectorAll('[data-av]').forEach(b => b.onclick = () => { chosen = b.dataset.av; drawAv(); });
       };
       drawAv();
-      $('profSave').onclick = () => saveOwnProfile(() => chosen, sp);
+      $('profSave').onclick = () => saveOwnProfile(() => chosen, () => skin);
     }
 
-    // ---- Diagramm ----
-    renderProfileChart(entries, ev, P);
+    // ---- Diagramme ----
+    renderProfileCharts(entries, P);
   }
 
-  async function saveOwnProfile(getAvatar, oldSpeed) {
+  async function saveOwnProfile(getAvatar, getSkin) {
     const msg = (t, ok) => { $('profMsg').textContent = t; $('profMsg').className = 'text-sm ' + (ok ? 'text-emerald-400' : 'text-red-300'); };
     $('profSave').disabled = true; msg('Speichere …', true);
     try {
-      // 1) VIP-Punkte
-      const vRaw = $('profVip').value.trim();
-      if (vRaw !== '') {
-        const v = Math.max(0, Math.round(+vRaw));
-        if (isNaN(v)) throw new Error('Bitte gültige VIP-Punkte eingeben.');
-        if (v !== vipCurrent) {
-          $('currentVip').value = v;
-          $('currentVip').dispatchEvent(new Event('input'));          // gleicher Weg wie im VIP-Rechner
-          addHistory({ id: newId(), ts: Date.now(), type: 'vip', ...vipNumbers(), confidence: 'manuell' });
-          pushRanking(true);
-        }
-      }
-      // 2) Speedups
-      const e = readSpeedGrid($('profSpeedRows'));
-      const changed = SPEED.some(c => (e[c.k] || 0) !== (oldSpeed?.[c.k] || 0));
-      if (changed && e.total) saveSpeedEntry(e);
-      // 3) Allianz-Tag + Profilbild
+      // Allianz-Tag + Profilbild
       const meta = { alliance_tag: $('profTag').value.trim().toUpperCase().slice(0, 6), avatar: getAvatar() };
       const old = RokAuth.ownMeta();
-      if (meta.alliance_tag !== (old.alliance_tag || '') || meta.avatar !== (old.avatar || '')) {
-        await RokAuth.saveMeta(meta, vipNumbers().after);
-        renderHeaderAvatar();
+      if (meta.alliance_tag !== (old.alliance_tag || '') || meta.avatar !== (old.avatar || '')) await RokAuth.saveMeta(meta, vipNumbers().after);
+      // City-Skin: immer in deinem Cloud-Speicher, zusätzlich in der Rangliste (für andere sichtbar)
+      let note = '';
+      const skin = getSkin();
+      if (skin !== ownSkin() || skin !== (RokAuth.ownMeta().city_skin || '')) {
+        LS.set(SKIN, skin);
+        if (!(await RokAuth.saveSkin(skin, vipNumbers().after))) note = ' · City-Skin nur für dich sichtbar (Spalte city_skin in Supabase fehlt)';
       }
-      applyMode();
-      msg('✓ Gespeichert', true);
+      msg('✓ Gespeichert' + note, true);
       setTimeout(() => { if (view === 'profile') loadGameProfile(); }, 900);
     } catch (e) { msg(e.message || String(e), false); }
     finally { $('profSave').disabled = false; }
@@ -2095,51 +2244,68 @@ window.RokApp = () => {
   $('profScanVip').onclick = () => { view = 'scanner'; applyView(); mode = 'vip'; LS.set(MODE_KEY, mode); applyMode(); $('dropzone').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
   $('profScanSpeed').onclick = () => { view = 'scanner'; applyView(); mode = 'speedups'; LS.set(MODE_KEY, mode); applyMode(); $('dropzone').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
 
-  function renderProfileChart(entries, ev, P) {
-    const L = speedUi.profLines;
-    const opts = [['vip', '👑 VIP-Punkte', '#f5c542'], ['training', '⚔️ Training', '#f87171'], ['healing', '❤️ Heilung', '#34d399'],
-                  ['universal', '⏱️ Universal', '#a78bfa'], ['combined', `◆ Kombiniert (${ev.short})`, '#38bdf8']];
-    $('profLines').innerHTML = opts.map(([k, l, c]) => `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-pl="${k}" ${L[k] ? 'checked' : ''} class="w-4 h-4" style="accent-color:${c}">${l}</label>`).join('');
-    $('profLines').querySelectorAll('input').forEach(i => i.onchange = () => { L[i.dataset.pl] = i.checked; saveSpeedUi(); renderProfileChart(entries, ev, P); });
-    const pts = entries.filter(e => (e.type === 'vip' && e.after != null) || (e.type === 'speedups' && e.total != null));
-    const empty = $('profChartEmpty');
-    if (profChart) { profChart.destroy(); profChart = null; }
+  // ---- 3 Verlaufsdiagramme, chronologisch aus den Scans ----
+  const PCH = {};
+  function drawProfChart(id, entries, series, axes, emptyText) {
+    const empty = $(id + 'Empty');
+    if (PCH[id]) { PCH[id].destroy(); delete PCH[id]; }
     if (!window.Chart) { empty.textContent = 'Diagramm konnte nicht geladen werden.'; return; }
-    if (!pts.length) {
-      empty.textContent = P.own ? 'Noch keine VIP- oder Speedup-Daten im Verlauf.' : (P.scansError ? 'Verlauf nicht verfügbar.' : 'Dieser Spieler hat noch keinen öffentlichen Verlauf.');
-      return;
-    }
+    const pts = entries.filter(e => series.some(s => s.get(e) != null));
+    if (!pts.length) { empty.textContent = emptyText; return; }
     empty.textContent = '';
-    const labels = pts.map(e => dateLabel(e.ts));
-    const sv = (e, f) => e.type === 'speedups' ? f(e) / 1440 : null;
-    const line = (label, c, data, extra = {}) => ({ label, data, borderColor: c, backgroundColor: c + '33', borderWidth: 2.5, tension: .3, pointRadius: 3.5, pointHoverRadius: 6, pointBackgroundColor: c, spanGaps: true, fill: false, ...extra });
-    const ds = [];
-    if (L.vip) ds.push(line('VIP-Punkte', '#f5c542', pts.map(e => e.type === 'vip' ? e.after : null), { yAxisID: 'y1', borderWidth: 3 }));
-    if (L.training) ds.push(line('Training', '#f87171', pts.map(e => sv(e, x => x.training || 0))));
-    if (L.healing) ds.push(line('Heilung', '#34d399', pts.map(e => sv(e, x => x.healing || 0))));
-    if (L.universal) ds.push(line('Universal', '#a78bfa', pts.map(e => sv(e, x => x.universal || 0))));
-    if (L.combined) ds.push(line('Kombiniert: ' + ev.short, '#38bdf8', pts.map(e => sv(e, x => ev.keys.reduce((a, k) => a + (x[k] || 0), 0))), { borderDash: [8, 5], borderWidth: 3 }));
-    const hasSpeed = ds.some(d => d.yAxisID !== 'y1'), hasVip = ds.some(d => d.yAxisID === 'y1');
-    profChart = new Chart($('profChart'), {
+    const datasets = series.map(s => ({
+      label: s.label, data: pts.map(e => s.get(e)), yAxisID: s.axis || 'y', fmt: s.fmt,
+      borderColor: s.c, backgroundColor: s.c + '33', pointBackgroundColor: s.c,
+      borderWidth: s.w || 2.5, borderDash: s.dash, tension: .3, pointRadius: 3.5, pointHoverRadius: 6, spanGaps: true, fill: false }));
+    const scales = { x: { grid: { display: false } } };
+    Object.entries(axes).forEach(([k, a]) => {
+      if (!datasets.some(d => d.yAxisID === k)) return;
+      scales[k] = { position: k === 'y' ? 'left' : 'right', beginAtZero: true, grid: k === 'y' ? {} : { drawOnChartArea: false },
+        title: { display: !!a.title, text: a.title, color: '#94a3b8' }, ticks: { callback: a.tick } };
+    });
+    PCH[id] = new Chart($(id), {
       type: 'line',
-      data: { labels, datasets: ds },
+      data: { labels: pts.map(e => dateLabel(e.ts)), datasets },
       options: {
         responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
         plugins: {
           legend: { labels: { boxWidth: 12, usePointStyle: true } },
-          tooltip: { backgroundColor: '#0c1019', borderColor: 'rgba(245,197,66,.3)', borderWidth: 1,
-            filter: (c) => c.raw != null,
-            callbacks: { label: (c) => c.dataset.yAxisID === 'y1' ? `VIP-Punkte: ${fmt(c.raw)}` : `${c.dataset.label}: ${durText(c.raw * 1440)}` } }
+          tooltip: { backgroundColor: '#0c1019', borderColor: 'rgba(245,197,66,.3)', borderWidth: 1, filter: (c) => c.raw != null,
+            callbacks: { label: (c) => `${c.dataset.label}: ${c.dataset.fmt(c.raw)}` } }
         },
-        scales: {
-          x: { grid: { display: false } },
-          y: { display: hasSpeed, position: 'left', beginAtZero: true, title: { display: true, text: 'Tage', color: '#94a3b8' },
-               ticks: { callback: (v) => (+v).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' T' } },
-          y1: { display: hasVip, position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, title: { display: true, text: 'VIP-Punkte', color: '#94a3b8' },
-                ticks: { callback: (v) => short(v) } }
-        }
+        scales
       }
     });
+  }
+  function renderProfileCharts(entries, P) {
+    const none = (what) => P.own ? `Noch keine ${what} im Verlauf – scanne sie im Scanner & Dashboard.`
+      : (P.scansError ? 'Verlauf nicht verfügbar.' : `Dieser Spieler hat noch keine ${what} gespeichert.`);
+    const of = (type, f) => (e) => { if (e.type !== type) return null; const v = num(f(e)); return v == null ? null : v; };
+    const tage = (v) => durText(v * 1440), tageTick = (v) => (+v).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' T';
+
+    // 1) Speedups: Training, Heilung, Universal, Gesamt
+    const sp = (k) => of('speedups', e => e.total == null ? null : (num(e[k]) || 0) / 1440);
+    drawProfChart('pcSpeed', entries, [
+      { label: '⚔️ Training',  c: '#f87171', get: sp('training'),  fmt: tage },
+      { label: '❤️ Heilung',   c: '#34d399', get: sp('healing'),   fmt: tage },
+      { label: '⏱️ Universal', c: '#a78bfa', get: sp('universal'), fmt: tage },
+      { label: '◆ Gesamt',     c: '#f5c542', get: of('speedups', e => e.total == null ? null : num(e.total) / 1440), fmt: tage, w: 3.5, dash: [8, 5] }
+    ], { y: { title: 'Tage', tick: tageTick } }, none('Speedup-Scans'));
+
+    // 2) Wachstum & Währung: VIP (rechte Achse), Gems + AP (linke Achse)
+    drawProfChart('pcGrowth', entries, [
+      { label: '👑 VIP-Punkte', c: '#f5c542', get: of('vip', e => e.after), fmt: fmt, axis: 'y1', w: 3 },
+      { label: '💎 Gems',       c: '#f472b6', get: of('gems', e => e.gems), fmt: fmt },
+      { label: '⚡ AP',         c: '#38bdf8', get: of('ap', e => e.ap), fmt: fmt }
+    ], { y: { title: 'Gems / AP', tick: (v) => short(v) }, y1: { title: 'VIP-Punkte', tick: (v) => short(v) } }, none('VIP-, Gems- oder AP-Scans'));
+
+    // 3) Ressourcen: Nahrung, Holz, Stein, Gold (Gesamt des Main-Accounts)
+    drawProfChart('pcRes', entries, [
+      { label: '🌾 Nahrung', c: '#fb923c', get: of('resources', e => e.food),  fmt: fmt },
+      { label: '🪵 Holz',    c: '#84cc16', get: of('resources', e => e.wood),  fmt: fmt },
+      { label: '🪨 Stein',   c: '#cbd5e1', get: of('resources', e => e.stone), fmt: fmt },
+      { label: '🪙 Gold',    c: '#facc15', get: of('resources', e => e.gold),  fmt: fmt }
+    ], { y: { title: 'Menge', tick: (v) => short(v) } }, none('Ressourcen-Scans'));
   }
 
   // Init
@@ -2177,6 +2343,8 @@ window.RokApp = () => {
   if (lastSpeed?.total != null) renderSpeedups(lastSpeed, lastSpeed.ts);
   else { renderSpeedInputs(); renderEvent(); }
   renderSpeedOpts();
+  const lastAp = readLast('ap');
+  if (lastAp?.ap != null) renderAp(+lastAp.ap, lastAp.ts);
   const lastGems = readLast('gems');
   if (lastGems?.gems != null) renderGems({ gems: +lastGems.gems, gemsHand: lastGems.gemsHand ?? null, gemsBag: lastGems.gemsBag ?? null }, lastGems.ts);
   renderFarms();
