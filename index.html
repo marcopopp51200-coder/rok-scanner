@@ -30,6 +30,7 @@ tailwind.config = {
   #pcChart .apexcharts-tooltip.apexcharts-theme-dark { background: #0c1019; border: 1px solid rgba(245,197,66,.3); }
   #pcChart .apexcharts-tooltip.apexcharts-theme-dark .apexcharts-tooltip-title { background: #111725; border-bottom: 1px solid rgba(245,197,66,.2); }
   #profPrivate[aria-checked="true"] span { transform: translateX(24px); }
+  .lang-opt[aria-checked="false"] .lang-check { visibility: hidden; }
   .bar { transition: width .9s cubic-bezier(.2,.8,.2,1); }
   .drop-active { border-color: #f5c542 !important; background: rgba(245,197,66,.07) !important; transform: scale(1.01); }
   .shimmer { background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent); background-size: 200% 100%; animation: sh 1.4s infinite; }
@@ -130,18 +131,29 @@ tailwind.config = {
         <span id="userAvatar"></span>
         <span class="leading-tight">
           <span class="block text-[10px] uppercase tracking-widest text-slate-500">Eingeloggt als</span>
-          <span id="userName" class="block text-sm font-semibold text-white max-w-[140px] truncate"></span>
+          <span id="userName" translate="no" class="block text-sm font-semibold text-white max-w-[140px] truncate"></span>
           <span id="syncStatus" class="block text-[10px] text-slate-500"></span>
         </span>
         <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
       </button>
-      <div id="userMenu" role="menu" class="hidden absolute right-0 mt-2 w-56 z-50 panel !bg-ink-900 rounded-xl p-1.5 shadow-2xl">
+      <div id="userMenu" role="menu" class="hidden absolute right-0 mt-2 w-72 z-50 panel !bg-ink-900 rounded-xl p-1.5 shadow-2xl">
         <button id="menuProfile" role="menuitem" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
           <span>🛡️</span> Game Profil
         </button>
         <button id="menuScanner" role="menuitem" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
           <span>📊</span> Scanner &amp; Dashboard
         </button>
+        <div translate="no">
+          <button id="menuLang" role="menuitem" aria-haspopup="true" aria-expanded="false" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9s1.3-6.4 3.8-9z"/></svg>
+            <span>Language</span>
+            <span id="langCurrent" class="ml-auto px-2 py-0.5 rounded-md bg-ink-800 border border-ink-600 text-[11px] font-semibold text-slate-200 whitespace-nowrap">Deutsch 🇩🇪</span>
+          </button>
+          <div id="langMenu" role="menu" class="hidden mx-1 mb-1 rounded-lg border border-ink-600 bg-ink-950 p-1">
+            <button type="button" role="menuitemradio" data-lang="de" aria-checked="true" class="lang-opt w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm text-left hover:bg-ink-800 aria-checked:text-gold-300">Deutsch 🇩🇪 <span class="lang-check">✓</span></button>
+            <button type="button" role="menuitemradio" data-lang="en" aria-checked="false" class="lang-opt w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm text-left hover:bg-ink-800 aria-checked:text-gold-300">English 🇺🇸 <span class="lang-check">✓</span></button>
+          </div>
+        </div>
         <div class="my-1 border-t border-ink-700"></div>
         <button id="logoutBtn" role="menuitem" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left font-semibold text-red-300 hover:bg-red-600 hover:text-white">
           <span>⎋</span> Abmelden
@@ -190,6 +202,22 @@ tailwind.config = {
           <span>Bilder werden nur im Arbeitsspeicher gehalten, nie gespeichert und nach erfolgreichem Auslesen sofort verworfen. Im Verlauf bleiben nur Datum, Typ und Zahlen.</span>
         </p>
         <div id="discardMsg" class="hidden mt-2 text-xs text-emerald-400">✓ Screenshots wurden nach dem Auslesen verworfen.</div>
+      </section>
+
+      <!-- Summen (nur Modus Ressourcen), linke Spalte -->
+      <section id="resTotals" class="hidden panel rounded-2xl p-5 space-y-4">
+        <div>
+          <div class="text-xs uppercase tracking-widest text-slate-400">Gesamt</div>
+          <div id="resTotal" class="text-3xl font-bold text-white tabular-nums"></div>
+        </div>
+        <div class="pt-3 border-t border-ink-700">
+          <div class="text-xs uppercase tracking-widest text-slate-400">Farm Gesamt</div>
+          <div id="resFarmTotal" class="text-2xl font-bold text-orange-300 tabular-nums"></div>
+        </div>
+        <div class="pt-3 border-t border-ink-700">
+          <div class="text-xs uppercase tracking-widest text-slate-400">Main + Farm Gesamt</div>
+          <div id="resAllTotal" class="text-3xl font-bold text-gold-300 tabular-nums"></div>
+        </div>
       </section>
 
       <section id="speedInputs" class="hidden panel rounded-2xl p-5">
@@ -293,12 +321,6 @@ tailwind.config = {
           <span id="resSource" class="text-xs text-slate-400"></span>
         </div>
         <div id="resCards" class="grid sm:grid-cols-2 gap-4"></div>
-        <div class="panel rounded-2xl p-5 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div class="text-xs uppercase tracking-widest text-slate-400">Gesamt</div>
-            <div id="resTotal" class="text-3xl font-bold text-white"></div>
-          </div>
-        </div>
       </section>
 
       <!-- VIP -->
@@ -488,6 +510,16 @@ tailwind.config = {
                        class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm uppercase focus:outline-none focus:border-gold-500">
               </div>
             </div>
+            <div class="mt-4 flex items-center justify-between gap-3 rounded-xl border border-ink-700 bg-ink-950/50 px-4 py-3">
+              <div>
+                <div class="text-sm font-semibold text-white">🔒 Profil privat</div>
+                <div class="text-xs text-slate-400">Andere sehen dann nur noch den oberen Bereich (Name, Allianz-Tag, VIP, Kill-Punkte, Verdienst, Energie) – Speedups und Verlauf bleiben verborgen.</div>
+              </div>
+              <button id="profPrivate" type="button" role="switch" aria-checked="false"
+                      class="relative shrink-0 w-14 h-8 rounded-full border border-ink-600 bg-ink-800 transition-colors aria-checked:bg-gold-500 aria-checked:border-gold-400">
+                <span class="absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow transition-transform"></span>
+              </button>
+            </div>
           </div>
           <div>
             <div class="text-xs text-slate-400">Profilbild <span class="text-slate-500">– eigenes Bild hochladen oder Symbol wählen</span></div>
@@ -495,17 +527,6 @@ tailwind.config = {
             <div id="profAvatars" class="mt-1 flex flex-wrap gap-1.5"></div>
           </div>
         </div>
-        <div class="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-700 bg-ink-950/50 px-4 py-3">
-          <div>
-            <div class="text-sm font-semibold text-white">🔒 Profil privat</div>
-            <div class="text-xs text-slate-400">Andere sehen dann nur noch den oberen Bereich (Name, Allianz-Tag, VIP, Kill-Punkte, Verdienst, Energie) – Speedups und Verlauf bleiben verborgen.</div>
-          </div>
-          <button id="profPrivate" type="button" role="switch" aria-checked="false"
-                  class="relative shrink-0 w-14 h-8 rounded-full border border-ink-600 bg-ink-800 transition-colors aria-checked:bg-gold-500 aria-checked:border-gold-400">
-            <span class="absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow transition-transform"></span>
-          </button>
-        </div>
-        <p class="mt-4 text-xs text-slate-500">VIP-Punkte, Speedups, Edelsteine, AP und Ressourcen werden automatisch aus deinen Scans im Scanner &amp; Dashboard übernommen.</p>
         <div class="mt-4 flex flex-wrap items-center gap-3">
           <button id="profSave" class="px-5 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Profil speichern</button>
           <span id="profMsg" class="text-sm"></span>
@@ -553,21 +574,18 @@ tailwind.config = {
 
   <!-- Rangliste -->
   <section id="rankView" class="hidden space-y-6">
-    <div class="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h2 class="font-display text-3xl gold-text">Allianz-Rangliste</h2>
-        <p id="rankSub" class="text-sm text-slate-400">Alle Spieler, sortiert nach VIP-Punkten inkl. VIP durch Gegenstände – Name anklicken öffnet das Game Profil</p>
+    <div class="space-y-3">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="font-display text-3xl gold-text">Rangliste</h2>
+        <button id="rankRefresh" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6M20 20v-6h-6M20 10a8 8 0 00-14.9-3M4 14a8 8 0 0014.9 3"/></svg>
+          Aktualisieren
+        </button>
       </div>
-      <div class="flex flex-wrap items-center gap-2">
-      <div id="rankTabs" class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist" aria-label="Sortierung">
-        <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-sort="vip" aria-pressed="true" role="tab">👑 VIP</button>
-        <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-sort="kills" aria-pressed="false" role="tab">⚔️ Kill-Punkte</button>
-        <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-sort="merit" aria-pressed="false" role="tab">🏅 Verdienst</button>
-      </div>
-      <button id="rankRefresh" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6M20 20v-6h-6M20 10a8 8 0 00-14.9-3M4 14a8 8 0 0014.9 3"/></svg>
-        Aktualisieren
-      </button>
+      <div id="rankTabs" class="w-fit max-w-full grid grid-cols-3 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist" aria-label="Sortierung">
+        <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition" data-sort="vip" aria-pressed="true" role="tab">👑 VIP</button>
+        <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition" data-sort="kills" aria-pressed="false" role="tab">⚔️ Kill-Punkte</button>
+        <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition" data-sort="merit" aria-pressed="false" role="tab">🏅 Verdienst</button>
       </div>
     </div>
 
@@ -596,6 +614,315 @@ tailwind.config = {
 
   <footer class="mt-10 text-center text-xs text-slate-600">Inoffizielles Fan-Tool · nicht mit Lilith Games verbunden</footer>
 </div>
+
+<script>
+// ================= Sprache / Language (DE ⇄ EN) =================
+// Deutsch ist die Grundsprache der Seite. translations.en übersetzt jeden deutschen Text ins Englische.
+// Feste Texte stehen in "texts", Texte mit Zahlen/Namen in "patterns" (Regex → Ersatz).
+// Die Umschaltung tauscht alle Texte live aus (auch später erzeugte), ohne Neuladen. Auswahl: localStorage 'lang'.
+window.I18N = (() => {
+  const LANGS = { de: { name: 'Deutsch', flag: '🇩🇪' }, en: { name: 'English', flag: '🇺🇸' } };
+  const translations = {
+    de: {},   // Grundsprache – Texte stehen direkt im HTML/JS
+    en: {
+      texts: {
+        // Navigation & Überschriften
+        'Allianz-Rangliste': 'Alliance Leaderboard', 'Rangliste': 'Leaderboard', 'Game Profil': 'Game Profile',
+        'Scanner & Dashboard': 'Scanner & Dashboard', 'Profil bearbeiten': 'Edit Profile', 'Verlauf': 'History',
+        'Modus': 'Mode', 'Ressourcen': 'Resources', 'Speedups': 'Speedups', 'VIP': 'VIP', 'Gems': 'Gems', 'AP': 'AP',
+        'Edelsteine': 'Gems', 'Aktionspunkte': 'Action Points', 'AP (Aktionspunkte)': 'AP (Action Points)', 'Farmen': 'Farms', 'Farm': 'Farm',
+        'VIP-Rechner': 'VIP Calculator', 'Dein Account': 'Your account', 'Eingeloggt als': 'Logged in as',
+        '1 · Screenshots': '1 · Screenshots', '2 · Speedups eingeben': '2 · Enter speedups', '2 · AP-Flaschen': '2 · AP bottles',
+        '2 · Aktueller VIP-Stand': '2 · Current VIP status', 'Erkannte VIP-Items': 'Detected VIP items',
+        // Buttons & Labels
+        'Profil speichern': 'Save Profile', 'Abmelden': 'Logout', 'Allianz-Tag': 'Alliance Tag', 'Profilbild': 'Profile picture',
+        'Benötigte Bündnis-Credits': 'Required Alliance Credits', 'Bündnis-Credits benötigt': 'Alliance Credits required',
+        'Analysieren': 'Analyze', 'Analysiere …': 'Analyzing …', 'Aktualisieren': 'Refresh', '← Zurück': '← Back',
+        'Einloggen': 'Log in', 'Neuen Account anlegen': 'Create new account', 'Account anlegen': 'Create account',
+        'Benutzername': 'Username', 'Passwort': 'Password', 'Passwort bestätigen': 'Confirm password', '(mind. 6 Zeichen)': '(min. 6 characters)',
+        'Erneut versuchen': 'Try again', 'Bitte warten …': 'Please wait …',
+        'VIP scannen': 'Scan VIP', 'Speedups scannen': 'Scan speedups', 'Statthalter-Profil scannen': 'Scan governor profile',
+        'Bestand speichern': 'Save inventory', 'AP speichern': 'Save AP', 'Rechner ohne Scan öffnen': 'Open calculator without scan',
+        'Verlauf zurücksetzen': 'Reset history', 'Diagramm zurücksetzen': 'Reset chart', '+ Farm': '+ Farm',
+        'Linie': 'Line', 'Balken': 'Bar', 'Area': 'Area', 'Bar': 'Bar', 'All': 'All',
+        'Gesamt': 'Total', 'Farm Gesamt': 'Farm total', 'Main + Farm Gesamt': 'Main + farm total', 'Ohne Rucksack': 'Without backpack', 'Mit Farms': 'With farms', '+ Farms': '+ Farms', 'Linien:': 'Lines:',
+        'Main': 'Main', 'Main + Rucksack': 'Main + backpack', 'Main + Rucksack + Farms': 'Main + backpack + farms',
+        'Rucksack': 'Backpack', 'Auf Hand': 'On hand', 'Im Rucksack': 'In backpack', 'Summe': 'Sum', 'Summe Farmen': 'Farms total',
+        'Main (letzter Scan)': 'Main (last scan)', 'Ressourcen gesamt': 'Resources total',
+        'Proviant': 'Food', 'Nahrung': 'Food', 'Holz': 'Wood', 'Stein': 'Stone', 'Gold': 'Gold',
+        'Universal': 'Universal', 'Training': 'Training', 'Heilung': 'Healing', 'Forschung': 'Research', 'Bau': 'Building',
+        'Truppentraining': 'Troop training', 'Speedups gesamt': 'Speedups total', 'Tage': 'days', 'Std.': 'h', 'Min.': 'min', 'Tag': 'day',
+        'Kill-Punkte': 'Kill Points', 'Höchster Verdienst': 'Highest Merit', 'Verdienst': 'Merit', 'Energie': 'Power',
+        'VIP-Punkte': 'VIP points', 'VIP-Stufe': 'VIP level', 'Stufe': 'Level', 'Platz': 'Rank', 'Spieler': 'Player',
+        'Bis zum nächsten VIP': 'To next VIP', 'Zuletzt aktualisiert': 'Last updated', '(inkl. Gegenstände)': '(incl. items)',
+        'Dein Platz': 'Your rank', 'noch kein Scan': 'no scan yet', 'Datum': 'Date', 'Veränderung': 'Change',
+        'Aktuell': 'Current', 'Punkte im Rucksack': 'Points in backpack', 'Gesamtwert': 'Total value',
+        'Aktuelle VIP-Punkte': 'Current VIP points', 'Ziel-Level': 'Target level', 'Fehlende Punkte': 'Missing points',
+        'Benötigte Tage': 'Days needed', 'Pkt./Stk.': 'Pts/pc', 'Anzahl': 'Quantity', 'Inventar': 'Inventory',
+        'Nach Einlösen': 'After redeeming', 'Aktuelle Punkte': 'Current points', 'Stk.': 'pcs',
+        'Edelsteine gesamt (Main)': 'Gems total (main)', '💎 Gesamt': '💎 Total', 'AP gesamt': 'AP total', 'Aktionspunkte gesamt': 'Action points total',
+        '50er': '50s', '100er': '100s', '500er': '500s', '1.000er': '1,000s',
+        '50er Flaschen': '50 bottles', '100er Flaschen': '100 bottles', '500er Flaschen': '500 bottles', '1.000er Flaschen': '1,000 bottles',
+        'Profil privat': 'Private profile', 'Dieses Profil ist privat': 'This profile is private',
+        'Speedups und Verlauf sind nur für den Spieler selbst sichtbar.': 'Speedups and history are only visible to the player.',
+        'Andere sehen dann nur noch den oberen Bereich (Name, Allianz-Tag, VIP, Kill-Punkte, Verdienst, Energie) – Speedups und Verlauf bleiben verborgen.':
+          'Others will only see the top section (name, alliance tag, VIP, kill points, merit, power) – speedups and history stay hidden.',
+        'Nur Ansicht': 'View only', 'Dein Profil · öffentlich': 'Your profile · public', 'Dein Profil · 🔒 privat': 'Your profile · 🔒 private',
+        'Dein Profil ·': 'Your profile ·', 'Profil ist jetzt privat': 'Profile is now private', 'Profil ist jetzt öffentlich': 'Profile is now public',
+        '– eigenes Bild hochladen oder Symbol wählen': '– upload your own picture or pick a symbol',
+        'Max Level erreicht 👑': 'Max level reached 👑', 'Höchste VIP-Stufe erreicht': 'Highest VIP level reached',
+        'Du führst die Rangliste an! 👑': 'You lead the leaderboard! 👑', 'Noch': 'Need', 'und tippe auf': 'and tap',
+        'keine Daten': 'no data', 'Erster Scan': 'First scan', 'unbekannt': 'unknown', 'Keine Einträge.': 'No entries.',
+        // Scanner-Hinweise
+        'Bilder hierher ziehen': 'Drop images here', 'oder klicken · auch Strg+V zum Einfügen · max. 5 Bilder': 'or click · Ctrl+V to paste · max. 5 images',
+        'Nur Screenshots deines Main-Accounts': 'Only screenshots of your main account',
+        'Bilder werden nur im Arbeitsspeicher gehalten, nie gespeichert und nach erfolgreichem Auslesen sofort verworfen. Im Verlauf bleiben nur Datum, Typ und Zahlen.':
+          'Images are only kept in memory, never stored, and discarded right after reading. The history keeps only date, type and numbers.',
+        '✓ Screenshots wurden nach dem Auslesen verworfen.': '✓ Screenshots were discarded after reading.',
+        'Claude liest deine Screenshots …': 'Claude is reading your screenshots …', 'Noch keine Auswertung': 'No analysis yet',
+        'Alternativ zum Scan: Bestand von Hand eintragen.': 'Alternatively: enter your inventory manually.',
+        'Anzahl je Flaschengröße aus dem Inventar. Ein Scan füllt die Felder vor – kurz prüfen, dann speichern.':
+          'Number per bottle size from your inventory. A scan fills the fields – check quickly, then save.',
+        'Anzahl ist korrigierbar, falls eine Kachel schlecht lesbar war.': 'Quantity can be corrected if a tile was hard to read.',
+        'Eingabe als Zahl oder Kurzform, z. B. 12500000, 12,5M oder 850K. Wird automatisch gespeichert.':
+          'Enter a number or short form, e.g. 12500000, 12.5M or 850K. Saved automatically.',
+        'Noch keine Farmen – „+ Farm“ klicken.': 'No farms yet – click “+ Farm”.',
+        'Lade einen Screenshot der Ressourcen deines Main-Accounts hoch und klicke auf „Analysieren“.': 'Upload a screenshot of your main account’s resources and click “Analyze”.',
+        'Lade einen Screenshot deines Inventars mit VIP-Punkte-Items hoch und klicke auf „Analysieren“ – oder nutze „Rechner ohne Scan öffnen“.':
+          'Upload a screenshot of your inventory with VIP point items and click “Analyze” – or use “Open calculator without scan”.',
+        'Lade einen Screenshot hoch, auf dem deine Edelsteine zu sehen sind, und klicke auf „Analysieren“.': 'Upload a screenshot showing your gems and click “Analyze”.',
+        'Lade Screenshots deiner Beschleuniger aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag deinen Bestand links unter „Speedups eingeben“ ein.':
+          'Upload screenshots of your speedups and click “Analyze” – or enter your inventory on the left under “Enter speedups”.',
+        'Lade einen Screenshot deiner AP-Flaschen aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag die Anzahl je Flaschengröße links ein.':
+          'Upload a screenshot of your AP bottles and click “Analyze” – or enter the number per bottle size on the left.',
+        'VIP-Punkte, Speedups, Edelsteine, AP und Ressourcen werden automatisch aus deinen Scans im Scanner & Dashboard übernommen.':
+          'VIP points, speedups, gems, AP and resources are taken automatically from your scans in Scanner & Dashboard.',
+        'Inoffizielles Fan-Tool · nicht mit Lilith Games verbunden': 'Unofficial fan tool · not affiliated with Lilith Games',
+        // Status & Laden
+        'Verbinde …': 'Connecting …', 'Lade deine Daten aus der Cloud …': 'Loading your data from the cloud …',
+        'Lade ungespeicherte Änderungen hoch …': 'Uploading unsaved changes …', 'Lade Rangliste …': 'Loading leaderboard …',
+        'Lade Game Profil …': 'Loading game profile …', 'Lese Statthalter-Profil …': 'Reading governor profile …', 'Lese AP lokal …': 'Reading AP locally …',
+        'Speichere …': 'Saving …', '✓ Gespeichert': '✓ Saved', '✓ Statthalter-Profil gespeichert': '✓ Governor profile saved',
+        '☁ synchronisiert': '☁ synced', '☁ in der Cloud gespeichert': '☁ saved to cloud', '☁ speichert …': '☁ saving …',
+        '☁ ungespeichert …': '☁ unsaved …', '☁ gespeichert (Profil-Speicher)': '☁ saved (profile storage)',
+        '⚠ nicht gespeichert – neuer Versuch …': '⚠ not saved – retrying …', '⚠ offline – lokaler Stand': '⚠ offline – local data',
+        '✓ Gespeichert · in Supabase (scans)': '✓ Saved · in Supabase (scans)',
+        '✓ Gespeichert · im Profil-Speicher (für public.scans fehlt noch das SQL-Update)': '✓ Saved · in profile storage (SQL update for public.scans still missing)',
+        '✓ Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': '✓ Saved locally · cloud unreachable, will sync automatically',
+        '✓ Lokal gespeichert, Cloud folgt': '✓ Saved locally, cloud follows',
+        '✓ Gespeichert (Profil-Speicher – SQL-Update für public.scans fehlt)': '✓ Saved (profile storage – SQL update for public.scans missing)',
+        'Profilbild bereit – „Profil speichern“ klicken.': 'Picture ready – click “Save Profile”.',
+        'Noch kein Statthalter-Scan': 'No governor scan yet', 'Verlauf nicht verfügbar.': 'History not available.',
+        'Noch niemand in der Rangliste. Scanne dein VIP oder trag deine aktuellen VIP-Punkte im VIP-Bereich ein.':
+          'Nobody on the leaderboard yet. Scan your VIP or enter your current VIP points in the VIP section.',
+        // Fehlermeldungen
+        'Benutzername oder Passwort ist falsch.': 'Username or password is wrong.', 'Diesen Account gibt es schon – bitte einloggen.': 'This account already exists – please log in.',
+        'Bitte bestätige zuerst deine E-Mail-Adresse (Link im Postfach).': 'Please confirm your e-mail address first (link in your inbox).',
+        'Das Passwort ist zu kurz (mind. 6 Zeichen).': 'The password is too short (min. 6 characters).',
+        'Zu viele Versuche – bitte kurz warten.': 'Too many attempts – please wait a moment.', 'Keine Verbindung zur Cloud. Internet prüfen.': 'No connection to the cloud. Check your internet.',
+        'Bitte Benutzernamen eingeben.': 'Please enter a username.', 'Bitte eine gültige E-Mail-Adresse eingeben.': 'Please enter a valid e-mail address.',
+        'Das Passwort muss mindestens 6 Zeichen haben.': 'The password must have at least 6 characters.', 'Der Benutzername muss mindestens 2 Zeichen haben.': 'The username must have at least 2 characters.',
+        'Die Passwörter stimmen nicht überein.': 'The passwords do not match.', 'Dieses Profil wurde nicht gefunden.': 'This profile was not found.',
+        'Registrierung ist in Supabase gerade nicht erlaubt (Auth-Einstellungen prüfen).': 'Sign-up is currently not allowed in Supabase (check auth settings).',
+        'Die Datenbank-Tabellen fehlen – bitte das SQL im Supabase SQL Editor ausführen.': 'Database tables are missing – please run the SQL in the Supabase SQL editor.',
+        'Die Cloud-Bibliothek (Supabase) konnte nicht geladen werden. Internetverbindung oder Adblocker prüfen.': 'The cloud library (Supabase) could not be loaded. Check your internet connection or ad blocker.',
+        'Maximal 5 Bilder pro Analyse.': 'Maximum 5 images per analysis.', 'Die Antwort konnte nicht ausgelesen werden. Bitte erneut versuchen.': 'The response could not be read. Please try again.',
+        'Die Bilder sind zu groß. Bitte weniger Screenshots auf einmal hochladen.': 'The images are too large. Please upload fewer screenshots at once.',
+        'Die Bilder sind zusammen zu groß. Bitte weniger Screenshots auf einmal hochladen.': 'The images are too large together. Please upload fewer screenshots at once.',
+        'Gerade zu viele Anfragen. Kurz warten und erneut versuchen.': 'Too many requests right now. Wait a moment and try again.',
+        'Server-Route /api/scan nicht gefunden. Die Seite muss über Vercel laufen (nicht als lokale Datei).': 'Server route /api/scan not found. The page must run on Vercel (not as a local file).',
+        'Netzwerkfehler – keine Verbindung zur API. Prüfe Internet/Adblocker.': 'Network error – no connection to the API server. Check internet/ad blocker.',
+        'Netzwerkfehler – keine Verbindung zum Scan-Server.': 'Network error – no connection to the scan server.',
+        'Keine Speedups im Screenshot erkannt.': 'No speedups detected in the screenshot.', 'Keine Edelsteine im Screenshot erkannt.': 'No gems detected in the screenshot.',
+        'Keine Werte im Screenshot erkannt.': 'No values detected in the screenshot.',
+        'Keine AP-Flaschen im Screenshot erkannt. Bitte die Anzahl links von Hand eintragen.': 'No AP bottles detected in the screenshot. Please enter the numbers on the left.',
+        'Bitte mindestens eine Flaschen-Anzahl eintragen.': 'Please enter at least one bottle count.', 'Bitte mindestens einen Speedup-Wert eintragen.': 'Please enter at least one speedup value.',
+        'Bild konnte nicht gelesen werden.': 'Image could not be read.',
+        'Verlauf konnte nicht gespeichert werden (LocalStorage blockiert oder voll).': 'History could not be saved (LocalStorage blocked or full).',
+        'Chart.js konnte nicht geladen werden (keine Internetverbindung?). Die Tabelle funktioniert trotzdem.': 'Chart.js could not be loaded (no internet?). The table still works.',
+        'Diagramm-Bibliothek konnte nicht geladen werden (Internet/Adblocker prüfen).': 'Chart library could not be loaded (check internet/ad blocker).',
+        'Der Scan-Server (/api/scan) kennt den Speedup-Scan noch nicht. Trag deinen Bestand links unter „Speedups eingeben“ ein – das wird normal gespeichert.':
+          'The scan server (/api/scan) does not know the speedup scan yet. Enter your inventory on the left under “Enter speedups” – it is saved normally.',
+        'Der Scan-Server kennt den Statthalter-Scan noch nicht – bitte die neue api/scan.js einspielen.': 'The scan server does not know the governor scan yet – please deploy the new api/scan.js.',
+        'Privat-Schalter: bitte zuerst die Spalte is_private in Supabase anlegen (SQL siehe Anleitung).': 'Private switch: please create the column is_private in Supabase first (see SQL instructions).',
+        'Gesamten Verlauf (alle gespeicherten Scans) unwiderruflich löschen?': 'Permanently delete the entire history (all saved scans)?',
+        // Attribute (Platzhalter, Tooltips)
+        'z. B. dein Ingame-Name': 'e.g. your in-game name', 'z. B. ABC1': 'e.g. ABC1', 'z. B. 1.961.265': 'e.g. 1,961,265',
+        'Eintrag löschen': 'Delete entry', 'Farm löschen': 'Delete farm', 'Game Profil öffnen': 'Open game profile', 'Zur Rangliste': 'To leaderboard',
+        'Eigenes Bild hochladen': 'Upload your own picture', 'Anfangsbuchstabe': 'Initial', 'Entfernen': 'Remove', 'Sortierung': 'Sorting',
+        'Zeitraum': 'Time range', 'Darstellung': 'Display', 'Datenart': 'Data type', 'Ansicht': 'View', 'Bereiche': 'Sections',
+        'hoch': 'high', 'mittel': 'medium', 'niedrig': 'low', 'manuell': 'manual'
+      },
+      patterns: [
+        [/^Fortschritt zu VIP (\d+)$/, 'Progress to VIP $1'], [/^([\d,.]+) % von VIP (\d+) bis VIP (\d+)$/, '$1 % from VIP $2 to VIP $3'], [/^bis VIP (\d+)$/, 'to VIP $1'],
+        [/^noch ([\d.,]+) Punkte · (\d+) %$/, '$1 points left · $2 %'],
+        [/^Noch ([\d.,]+) Punkte bis Platz (\d+) \((.+)\)$/, '$1 more points to rank $2 ($3)'],
+        [/^Noch ([\d.,]+) (Kill-Punkte|Verdienst) bis Platz (\d+) \((.+)\)$/, (m, a, l, b, c) => `${a} more ${L(l)} to rank ${b} (${c})`],
+        [/^Du führst die (.+)-Rangliste an! (.*)$/, (m, l, i) => `You lead the ${L(l)} leaderboard! ${i}`],
+        [/^Für dich ist noch kein (.+)-Wert gespeichert\. Öffne dein$/, (m, l) => `No ${L(l)} value saved for you yet. Open your`],
+        [/^Alle Spieler, sortiert nach (.+?) – Name anklicken öffnet das Game Profil$/, (m, w) => `All players, sorted by ${SORT[w] || w} – click a name to open the game profile`],
+        [/^Stand: (.+?) · (\d+) Spieler$/, 'As of $1 · $2 players'], [/^Stand: (.+)$/, 'As of $1'],
+        [/^Letzter Scan: (.+)$/, (m, r) => 'Last scan: ' + r.replace(/ · Sicherheit: (.+)$/, (x, c) => ' · Confidence: ' + (T()[c] || c))], [/^aktualisiert (.+)$/, 'updated $1'], [/^Statthalter-Profil vom (.+)$/, 'Governor profile from $1'],
+        [/^seit (.+)$/, (m, r) => 'since ' + r.replace(/ · ≈ ([\d.,]+) Tage$/, ' · ≈ $1 days')],
+        [/^(\d+) Scans gespeichert \((\d+) Speedups, (\d+) Ressourcen, (\d+) VIP, (\d+) Gems, (\d+) AP\) · nur Zahlenwerte, keine Bilder$/,
+          '$1 scans saved ($2 speedups, $3 resources, $4 VIP, $5 gems, $6 AP) · numbers only, no images'],
+        [/^VIP (\d+) – ([\d.,]+) Punkte$/, 'VIP $1 – $2 points'], [/^([\d.,]+) Punkte · VIP (\d+)$/, '$1 points · VIP $2'], [/^([\d.,]+) Punkte$/, '$1 points'],
+        [/^von (\d+)$/, 'of $1'], [/^Ziel: VIP (\d+)$/, 'Target: VIP $1'], [/^VIP (\d+) erreicht! 🎉$/, 'VIP $1 reached! 🎉'],
+        [/^Aktueller Stand ([\d,.]+) %$/, 'Current $1 %'], [/^Erkennungssicherheit: (.+)$/, (m, c) => 'Confidence: ' + (T()[c] || c)],
+        [/^Benötigte Bündnis-Credits · bis VIP (\d+)$/, 'Required Alliance Credits · to VIP $1'],
+        [/^Punkte fehlen bis VIP (\d+) →$/, 'points missing to VIP $1 →'], [/^Punkte fehlen →$/, 'points missing →'],
+        [/^Bis zum Ziel VIP (\d+)$/, 'To target VIP $1'],
+        [/^Grundlage: 100 VIP-Punkte = 50\.000 Bündnis-Credits \(500 Credits je Punkt\)\. Gerechnet mit ([\d.,]+) VIP-Punkten inkl\. Gegenständen\.$/,
+          'Basis: 100 VIP points = 50,000 Alliance Credits (500 credits per point). Calculated with $1 VIP points incl. items.'],
+        [/^\+ Rucksack-VIP →$/, '+ backpack VIP →'],
+        [/^(.+)-Diagramm zurücksetzen$/, (m, l) => `Reset ${L(l)} chart`],
+        [/^⚠ (.+)-Diagramm wirklich zurücksetzen\?\n\nAlle (\d+) gespeicherten .+-Scans werden unwiderruflich gelöscht – auch in der Cloud\. Die anderen Diagramme bleiben erhalten\.$/,
+          (m, l, n) => `⚠ Really reset the ${L(l)} chart?\n\nAll ${n} saved ${L(l)} scans will be permanently deleted – also in the cloud. The other charts are kept.`],
+        [/^Im (.+)-Diagramm sind keine Einträge\.$/, (m, l) => `The ${L(l)} chart has no entries.`],
+        [/^Farm „(.+)“ löschen\?$/, 'Delete farm “$1”?'],
+        [/^Keine (.+)-Daten im gewählten Zeitraum – „All“ zeigt den ganzen Verlauf\.$/, (m, l) => `No ${L(l)} data in the selected range – “All” shows the full history.`],
+        [/^Noch keine (.+)-Scans – scanne sie im Scanner & Dashboard\.$/, (m, l) => `No ${L(l)} scans yet – scan them in Scanner & Dashboard.`],
+        [/^Noch keine (.+)-Scans gespeichert\.$/, (m, l) => `No ${L(l)} scans saved yet.`],
+        [/^Dieser Spieler hat noch keine (.+)-Daten\.$/, (m, l) => `This player has no ${L(l)} data yet.`],
+        [/^Noch kein Scan – „📷 Statthalter-Profil scannen“$/, 'No scan yet – “📷 Scan governor profile”'],
+        [/^„📷 Statthalter-Profil scannen“$/, '“📷 Scan governor profile”'],
+        [/^✓ Ausgewertet \((.+?)\): ([\d.,]+) AP\. Falls eine Zahl nicht stimmt: Feld korrigieren und „AP speichern“ – das überschreibt diesen Scan\.$/,
+          (m, c, n) => `✓ Analyzed (${T()[c] || c}): ${n} AP. If a number is wrong: correct the field and click “Save AP” – this overwrites the scan.`],
+        [/^„(.+)" konnte nicht gelesen werden\.$/, '“$1” could not be read.'],
+        [/^Profil konnte nicht geladen werden: (.*)$/, (m, e) => 'Profile could not be loaded: ' + tr(e)],
+        [/^Rangliste konnte nicht geladen werden: (.*)$/, (m, e) => 'Leaderboard could not be loaded: ' + tr(e)],
+        [/^Kombiniert: (.+)$/, (m, k) => 'Combined: ' + k.split(' + ').map(L).join(' + ')],
+        [/^Kombiniert \((.+)\)$/, (m, k) => 'Combined (' + k.split(' + ').map(L).join(' + ') + ')'],
+        [/^In diesem Browser liegen noch Daten aus der alten Version \(Profil „(.+)“, (\d+) Scans\)\.\n\nIn deinen Cloud-Account übernehmen\?$/,
+          'This browser still holds data from the old version (profile “$1”, $2 scans).\n\nMove it into your cloud account?'],
+        [/^Fast geschafft! Wir haben eine Bestätigungs-Mail an (.+) geschickt\. Klicke auf den Link und logge dich dann ein\.$/,
+          'Almost done! We sent a confirmation e-mail to $1. Click the link, then log in.'],
+        [/^Der Scan-Server kennt den AP-Scan noch nicht[\s\S]*$/, 'The scan server does not know the AP scan yet (the new api/scan.js is not deployed) and the in-browser fallback could not read the bottles reliably. Please deploy the new api/scan.js – until then enter the number per bottle size on the left.']
+      ]
+    }
+  };
+  // Begriffe innerhalb von Mustern
+  const LABELS = { 'Ressourcen': 'resources', 'Speedups': 'speedups', 'VIP': 'VIP', 'Gems': 'gems', 'AP': 'AP', 'Kill-Punkte': 'kill points',
+    'Verdienst': 'merit', 'Statthalter': 'governor', 'Edelstein': 'gem', 'Training': 'Training', 'Universal': 'Universal', 'Heilung': 'Healing' };
+  const SORT = { 'VIP-Punkten inkl. VIP durch Gegenstände': 'VIP points incl. VIP from items', 'Kill-Punkten aus dem Statthalter-Profil': 'kill points from the governor profile',
+    'höchstem Verdienst aus dem Statthalter-Profil': 'highest merit from the governor profile' };
+  const L = (w) => LABELS[w] || T()[w] || w;
+
+  let lang = (() => { try { return localStorage.getItem('lang') === 'en' ? 'en' : 'de'; } catch { return 'de'; } })();
+  const T = () => translations.en.texts;
+
+  // Einheiten in Zahlen-Texten: "12 Tage, 3 Std., 5 Min." · "12T 3h" · "102 Mio." · "1,2 Mrd."
+  function units(s) {
+    if (!/\d/.test(s)) return s;
+    return s.replace(/(\d) Tage\b/g, '$1 days').replace(/(\d) Tag\b/g, '$1 day').replace(/(\d) Std\./g, '$1 h').replace(/(\d) Min\./g, '$1 min')
+            .replace(/(\d)T\b/g, '$1d').replace(/(\d) T\b/g, '$1 d').replace(/(\d) Mio\./g, '$1 M').replace(/(\d) Mrd\./g, '$1 B').replace(/(\d) Tsd\./g, '$1 K')
+            .replace(/(\d) Tage$/, '$1 days').replace(/ Spieler$/, ' players').replace(/≈ ([\d.,]+) Tage/g, '≈ $1 days');
+  }
+  // Übersetzt einen deutschen Text (ganzer Text, sonst mit führendem Symbol/Emoji, sonst Muster, sonst Einheiten)
+  function tr(src) {
+    if (lang !== 'en' || src == null) return src;
+    const s = String(src), t = T();
+    if (t[s] != null) return t[s];
+    const m = s.match(/^([^A-Za-zÄÖÜäöüß0-9„(+–←]*)([\s\S]*?)(:?)$/);   // Symbole vorn (z. B. "⚔️ ") und ":" hinten abtrennen
+    if (m && m[2] && t[m[2]] != null) return m[1] + t[m[2]] + m[3];
+    for (const [re, rep] of translations.en.patterns) {
+      if (m && m[1] && re.test(m[2])) return m[1] + m[2].replace(re, rep) + m[3];   // erst ohne führendes Symbol
+      if (re.test(s)) return s.replace(re, rep);
+    }
+    return units(s);
+  }
+
+  // ---------- DOM: alle Textknoten + Attribute austauschen, Original (Deutsch) merken ----------
+  const ATTRS = ['placeholder', 'title', 'aria-label'];
+  const SKIP = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'NOSCRIPT']);
+  const skipNode = (el) => !el || SKIP.has(el.tagName) || !!el.closest?.('[translate="no"]');
+  function doText(n) {
+    if (n.__i18nSet !== n.nodeValue) n.__de = n.nodeValue;          // neu oder von der App geändert → gilt als Deutsch
+    if (n.__de == null) return;
+    const lead = n.__de.match(/^\s*/)[0], trail = n.__de.match(/\s*$/)[0], core = n.__de.trim();
+    const out = (lang === 'en' && core && /[A-Za-zÄÖÜäöüß]/.test(core)) ? lead + tr(core) + trail : n.__de;
+    if (out !== n.nodeValue) n.nodeValue = out;
+    n.__i18nSet = out;
+  }
+  function doAttrs(el) {
+    el.__deA = el.__deA || {}; el.__setA = el.__setA || {};
+    for (const a of ATTRS) {
+      if (!el.hasAttribute(a)) continue;
+      const v = el.getAttribute(a);
+      if (el.__setA[a] !== v) el.__deA[a] = v;
+      const out = lang === 'en' ? tr(el.__deA[a]) : el.__deA[a];
+      if (out !== v) el.setAttribute(a, out);
+      el.__setA[a] = out;
+    }
+  }
+  function walk(root) {
+    if (!root) return;
+    if (root.nodeType === 3) { if (!skipNode(root.parentElement)) doText(root); return; }
+    if (root.nodeType !== 1 || skipNode(root)) return;
+    doAttrs(root);
+    root.querySelectorAll('[placeholder],[title],[aria-label]').forEach(el => { if (!skipNode(el)) doAttrs(el); });
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: (n) => skipNode(n.parentElement) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+    let n; while ((n = w.nextNode())) doText(n);
+  }
+  const obs = new MutationObserver((list) => {
+    for (const m of list) {
+      if (m.type === 'childList') m.addedNodes.forEach(walk);
+      else if (m.type === 'characterData') { if (!skipNode(m.target.parentElement)) doText(m.target); }
+      else if (m.type === 'attributes' && !skipNode(m.target)) doAttrs(m.target);
+    }
+  });
+  const observe = () => obs.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS });
+
+  // Dialoge (confirm/alert) ebenfalls übersetzen
+  const _confirm = window.confirm.bind(window), _alert = window.alert.bind(window);
+  window.confirm = (m) => _confirm(tr(m));
+  window.alert = (m) => _alert(tr(m));
+
+  // Chart.js: Beschriftungen in der Zeichenfläche (Legende, Achsentitel, Tooltips, Achsenwerte)
+  function wrapChart() {
+    if (!window.Chart || window.Chart.__i18n) return;
+    const C = window.Chart;
+    const wrapFn = (f) => typeof f === 'function' ? function (...a) { return tr(f.apply(this, a)); } : f;
+    window.Chart = new Proxy(C, { construct(target, args) {
+      const cfg = args[1] || {};
+      (cfg.data?.datasets || []).forEach(d => { if (d.label) d.label = tr(d.label); });
+      const sc = cfg.options?.scales || {};
+      Object.values(sc).forEach(a => { if (a?.title?.text) a.title.text = tr(a.title.text); if (a?.ticks?.callback) a.ticks.callback = wrapFn(a.ticks.callback); });
+      const cb = cfg.options?.plugins?.tooltip?.callbacks;
+      if (cb?.label) cb.label = wrapFn(cb.label);
+      return new target(...args);
+    }, get(t, p) { return p === '__i18n' ? true : t[p]; }, set(t, p, v) { t[p] = v; return true; } });
+  }
+
+  function setLang(l) {
+    lang = LANGS[l] ? l : 'de';
+    try { localStorage.setItem('lang', lang); } catch {}
+    document.documentElement.lang = lang;
+    walk(document.body);
+    if (lang === 'en') observe(); else obs.disconnect();
+    renderSwitch();
+    window.dispatchEvent(new CustomEvent('langchange', { detail: lang }));
+  }
+  function renderSwitch() {
+    const cur = document.getElementById('langCurrent');
+    if (cur) cur.textContent = `${LANGS[lang].name} ${LANGS[lang].flag}`;
+    document.querySelectorAll('.lang-opt').forEach(b => b.setAttribute('aria-checked', String(b.dataset.lang === lang)));
+  }
+  function init() {
+    wrapChart();
+    document.documentElement.lang = lang;
+    const btn = document.getElementById('menuLang'), menu = document.getElementById('langMenu');
+    if (btn && menu) {
+      btn.onclick = (ev) => { ev.stopPropagation(); const open = menu.classList.toggle('hidden') === false; btn.setAttribute('aria-expanded', String(open)); };
+      menu.querySelectorAll('.lang-opt').forEach(b => b.onclick = (ev) => { ev.stopPropagation(); setLang(b.dataset.lang); menu.classList.add('hidden'); btn.setAttribute('aria-expanded', 'false'); });
+    }
+    renderSwitch();
+    if (lang === 'en') { walk(document.body); observe(); }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  return { tr, setLang, lang: () => lang, translations };
+})();
+</script>
 
 <script>
 // ================= Supabase: Login + Cloud-Speicher =================
@@ -762,6 +1089,14 @@ window.RokAuth = (() => {
     await flushNow();
     if (hasPending) return { ok: false, where: 'none' };              // Netz/Cloud-Fehler → wird automatisch erneut versucht
     return lastFailedTypes.includes(type) ? { ok: true, where: 'user_state' } : { ok: true, where: 'scans' };
+  }
+  async function pullScans() {
+    if (!user) return [];
+    await flushNow();                                                 // erst eigene Änderungen hochladen (auch Löschungen)
+    const { data, error } = await sb.from('scans').select('id,type,scanned_at,data').eq('user_id', user.id).order('scanned_at', { ascending: true });
+    if (error) throw error;
+    const have = new Set(readLocalHistory().map(e => String(e.id)));
+    return (data || []).map(entryOf).filter(e => !have.has(String(e.id)));
   }
   function flushNow() {
     clearTimeout(timer); clearTimeout(retryTimer);
@@ -1005,7 +1340,7 @@ window.RokAuth = (() => {
   }
 
   return { current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
-           pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, setPrivate, saveNow };
+           pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, setPrivate, saveNow, pullScans };
 })();
 </script>
 
@@ -1442,7 +1777,11 @@ window.RokApp = () => {
           </div>
         </div>
       </div>`).join('');
-    $('resTotal').textContent = fmt(sum);
+    // Gesamt = nur Main · Farm Gesamt = alle Farmen · Main + Farm Gesamt = beides
+    const mainSum = raw.reduce((a, v) => a + v.total, 0), farmAll = RES.reduce((a, r) => a + farmSum(r.k), 0);
+    $('resTotal').textContent = fmt(mainSum);
+    $('resFarmTotal').textContent = fmt(farmAll);
+    $('resAllTotal').textContent = fmt(mainSum + farmAll);
     $('resSource').textContent = r.confidence ? `Erkennungssicherheit: ${r.confidence}` : '';
     $('resSection').classList.remove('hidden');
     hasRes = true;
@@ -1614,7 +1953,8 @@ window.RokApp = () => {
   history = history.filter(e => e && e.id).map(sanitize);
 
   let histTab = 'resources', chartType = 'line', chart = null;
-  const saveHistory = () => { if (!LS.set(HIST, JSON.stringify(history))) showError('Verlauf konnte nicht gespeichert werden (LocalStorage blockiert oder voll).'); };
+  let onHistoryChange = null;   // wird vom Game Profil gesetzt (Live-Aktualisierung)
+  const saveHistory = () => { if (!LS.set(HIST, JSON.stringify(history))) showError('Verlauf konnte nicht gespeichert werden (LocalStorage blockiert oder voll).'); if (onHistoryChange) onHistoryChange(); };
   function addHistory(entry) {
     history.push(sanitize(entry)); saveHistory();
     histTab = entry.type; syncTabs(); renderHistory();
@@ -1864,7 +2204,7 @@ window.RokApp = () => {
 
   function saveFarms() {
     LS.set(FARMS, JSON.stringify(farms));
-    if (resCardFarm) rerenderResCards();
+    rerenderResCards();                      // Karten + Summen (Farm Gesamt) aktualisieren
     const last = latestResEntry();          // aktuelle Farmwerte gelten für den letzten Ressourcen-Scan
     if (last) updateHistory(last.id, farmSnapshot()); else renderHistory();
   }
@@ -2144,6 +2484,7 @@ window.RokApp = () => {
     document.querySelectorAll('.seg-btn[data-mode]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mode === mode));
     $('vipInputs').classList.toggle('hidden', mode !== 'vip');
     $('resSection').classList.toggle('hidden', mode !== 'resources' || !hasRes);
+    $('resTotals').classList.toggle('hidden', mode !== 'resources' || !hasRes);
     $('vipSection').classList.toggle('hidden', mode !== 'vip' || !hasVip);
     $('gemsSection').classList.toggle('hidden', mode !== 'gems' || !hasGems);
     $('apSection').classList.toggle('hidden', mode !== 'ap' || !hasAp);
@@ -2246,8 +2587,6 @@ window.RokApp = () => {
   function renderRanking(all) {
     const me = RokAuth.userId(), stat = RANK_STAT[rankSort] || null, kills = !!stat;
     document.querySelectorAll('.rank-tab').forEach(b => b.setAttribute('aria-pressed', b.dataset.sort === rankSort));
-    $('rankSub').textContent = kills ? `Alle Spieler, sortiert nach ${stat.sub} aus dem Statthalter-Profil – Name anklicken öffnet das Game Profil`
-                                     : 'Alle Spieler, sortiert nach VIP-Punkten inkl. VIP durch Gegenstände – Name anklicken öffnet das Game Profil';
     const byName = (a, b) => String(a.username).localeCompare(b.username);
     const rows = [...all].sort(kills
       ? (a, b) => ((b[stat.col] ?? -1) - (a[stat.col] ?? -1)) || byName(a, b)       // ohne Wert ans Ende
@@ -2276,7 +2615,7 @@ window.RokApp = () => {
         <td class="py-3 px-3">
           <button data-profile="${esc(r.user_id)}" class="group inline-flex items-center gap-3 text-left" title="Game Profil öffnen">
             ${avatarHtml(r.username, r.avatar, 'w-10 h-10 text-base')}
-            <span class="font-semibold group-hover:text-gold-300 group-hover:underline underline-offset-4 ${m ? m.name : 'text-white'}">${esc(r.username)}</span>
+            <span class="font-semibold group-hover:text-gold-300 group-hover:underline underline-offset-4 ${m ? m.name : 'text-white'}" translate="no">${esc(r.username)}</span>
             ${r.alliance_tag ? `<span class="px-2 py-0.5 rounded-md bg-ink-950 border border-gold-500/30 text-gold-300 font-semibold text-xs">[${esc(r.alliance_tag)}]</span>` : ''}
           </button>
         </td>
@@ -2358,7 +2697,30 @@ window.RokApp = () => {
   $('menuProfile').onclick = () => { closeMenu(); openProfile(RokAuth.userId()); };
   $('menuScanner').onclick = () => { closeMenu(); view = 'scanner'; applyView(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-  let profileUid = null;
+  let profileUid = null, lastProfileP = null, profRefreshT = null;
+  const ownProfileOpen = () => view === 'profile' && profileUid && profileUid === RokAuth.userId();
+  const ownEntries = () => history.map(e => ({ ...e })).sort((a, b) => a.ts - b.ts);
+  // Dashboard → Game Profil: Änderungen sofort übernehmen (Diagramm, Speedups, Statthalter-Werte)
+  function refreshOwnProfile() {
+    if (!ownProfileOpen() || !lastProfileP?.own) return;
+    renderGameProfile({ ...lastProfileP, entries: ownEntries(), isPrivate: !!RokAuth.ownMeta().is_private });
+  }
+  onHistoryChange = () => { clearTimeout(profRefreshT); profRefreshT = setTimeout(refreshOwnProfile, 250); };
+  // Cloud → lokal: Scans von anderen Geräten nachladen
+  let syncBusy = false;
+  async function syncOwnHistory() {
+    if (syncBusy) return false; syncBusy = true;
+    try {
+      const fresh = await RokAuth.pullScans();
+      if (!fresh.length) return false;
+      fresh.forEach(e => history.push(sanitize(e)));
+      saveHistory(); renderHistory();
+      return true;
+    } catch (e) { console.warn('Verlauf-Sync fehlgeschlagen', e); return false; }
+    finally { syncBusy = false; }
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && ownProfileOpen()) syncOwnHistory(); });
+  setInterval(() => { if (document.visibilityState === 'visible' && ownProfileOpen()) syncOwnHistory(); }, 60000);
   const SKIN = 'rok_scanner_city_skin';   // eigener City-Skin (lokal + Cloud user_state)
   const safeSkin = (v) => typeof v === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v) ? v : '';
   const ownSkin = () => safeSkin(LS.get(SKIN, null) ?? RokAuth.ownMeta().city_skin);
@@ -2415,7 +2777,7 @@ window.RokApp = () => {
       const [p, all] = await Promise.all([RokAuth.loadProfile(uid), RokAuth.loadLeaderboard().catch(() => [])]);
       if (uid !== profileUid) return;                         // inzwischen anderes Profil geöffnet
       let entries;
-      if (own) entries = history.map(e => ({ ...e }));
+      if (own) { await syncOwnHistory(); entries = ownEntries(); }
       else entries = p.scans.map(e => ({ ...e }));
       entries.sort((a, b) => a.ts - b.ts);
       const row = p.row || (own ? { username: PROFILE.name, vip_points: null } : null);
@@ -2431,6 +2793,7 @@ window.RokApp = () => {
   }
 
   function renderGameProfile(P) {
+    lastProfileP = P;
     const { own, row, entries } = P;
     const meta = own ? { ...RokAuth.ownMeta(), city_skin: ownSkin() } : { alliance_tag: row.alliance_tag || '', avatar: row.avatar || '', city_skin: safeSkin(row.city_skin) };
     const vipEntries = entries.filter(e => e.type === 'vip');
@@ -2454,7 +2817,7 @@ window.RokApp = () => {
         ${avatarHtml(row.username, meta.avatar, 'w-20 h-20 text-4xl rounded-2xl')}
         <div class="flex-1 min-w-[200px]">
           <div class="flex flex-wrap items-baseline gap-x-3">
-            <h2 class="font-display text-3xl gold-text">${esc(row.username)}</h2>
+            <h2 class="font-display text-3xl gold-text" translate="no">${esc(row.username)}</h2>
             ${meta.alliance_tag ? `<span class="text-lg font-semibold text-slate-300">[${esc(meta.alliance_tag)}]</span>` : (own ? '<span class="text-xs text-slate-500">kein Allianz-Tag</span>' : '')}
           </div>
           <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
@@ -2716,6 +3079,9 @@ window.RokApp = () => {
     });
     pcChart.render().then(() => { if (!def.showExtra) def.extra.forEach(x => { try { pcChart.hideSeries(x.name); } catch {} }); });   // Einzelwerte per Legende einblenden
   }
+
+  // Sprache gewechselt → Diagramme neu zeichnen (Beschriftungen im Canvas/SVG)
+  window.addEventListener('langchange', () => { renderHistory(); if (view === 'profile' && typeof drawPc === 'function') drawPc(); });
 
   // Init
   renderHeaderAvatar();
