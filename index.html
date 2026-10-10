@@ -29,6 +29,7 @@ tailwind.config = {
   /* Charts im Game Profil: Tooltip im App-Stil */
   #pcChart .apexcharts-tooltip.apexcharts-theme-dark { background: #0c1019; border: 1px solid rgba(245,197,66,.3); }
   #pcChart .apexcharts-tooltip.apexcharts-theme-dark .apexcharts-tooltip-title { background: #111725; border-bottom: 1px solid rgba(245,197,66,.2); }
+  #profPrivate[aria-checked="true"] span { transform: translateX(24px); }
   .bar { transition: width .9s cubic-bezier(.2,.8,.2,1); }
   .drop-active { border-color: #f5c542 !important; background: rgba(245,197,66,.07) !important; transform: scale(1.01); }
   .shimmer { background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent); background-size: 200% 100%; animation: sh 1.4s infinite; }
@@ -179,6 +180,11 @@ tailwind.config = {
           <input id="fileInput" type="file" accept="image/*" multiple class="hidden">
         </label>
         <div id="thumbs" class="mt-4 grid grid-cols-3 gap-2"></div>
+        <button id="analyzeBtn" disabled
+              class="mt-4 relative w-full overflow-hidden py-3.5 rounded-xl font-display text-lg font-bold tracking-wide text-ink-950 bg-gradient-to-b from-gold-400 to-gold-600 shadow-[0_10px_30px_-10px_rgba(245,197,66,.6)] disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110 transition">
+          <span id="analyzeLabel">Analysieren</span>
+        </button>
+        <div id="errorBox" class="hidden mt-3 rounded-xl border border-red-500/40 bg-red-500/10 text-red-200 text-sm p-4"></div>
         <p class="mt-3 flex items-start gap-2 text-xs text-slate-500">
           <span class="text-emerald-400">🛡</span>
           <span>Bilder werden nur im Arbeitsspeicher gehalten, nie gespeichert und nach erfolgreichem Auslesen sofort verworfen. Im Verlauf bleiben nur Datum, Typ und Zahlen.</span>
@@ -255,11 +261,6 @@ tailwind.config = {
         </div>
       </section>
 
-      <button id="analyzeBtn" disabled
-              class="relative w-full overflow-hidden py-4 rounded-2xl font-display text-lg font-bold tracking-wide text-ink-950 bg-gradient-to-b from-gold-400 to-gold-600 shadow-[0_10px_30px_-10px_rgba(245,197,66,.6)] disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110 transition">
-        <span id="analyzeLabel">Analysieren</span>
-      </button>
-      <div id="errorBox" class="hidden rounded-xl border border-red-500/40 bg-red-500/10 text-red-200 text-sm p-4"></div>
 
     </aside>
 
@@ -285,7 +286,10 @@ tailwind.config = {
       <!-- Resources -->
       <section id="resSection" class="hidden space-y-4">
         <div class="flex items-end justify-between">
-          <h2 class="font-display text-2xl gold-text">Ressourcen</h2>
+          <div class="flex flex-wrap items-center gap-4">
+            <h2 class="font-display text-2xl gold-text">Ressourcen</h2>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer text-sm text-slate-300"><input id="resCardFarm" type="checkbox" class="w-4 h-4 accent-yellow-500">Mit Farms</label>
+          </div>
           <span id="resSource" class="text-xs text-slate-400"></span>
         </div>
         <div id="resCards" class="grid sm:grid-cols-2 gap-4"></div>
@@ -294,7 +298,6 @@ tailwind.config = {
             <div class="text-xs uppercase tracking-widest text-slate-400">Gesamt</div>
             <div id="resTotal" class="text-3xl font-bold text-white"></div>
           </div>
-          <div id="resNote" class="text-xs text-slate-400 max-w-sm"></div>
         </div>
       </section>
 
@@ -402,7 +405,7 @@ tailwind.config = {
         </div>
 
         <div id="speedOpts" class="hidden flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-xs text-slate-300"></div>
-        <div id="resLines" class="hidden flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-xs text-slate-300"></div>
+        <div id="resLines" class="hidden grid grid-cols-3 gap-1 p-1 mb-4 rounded-xl bg-ink-950 border border-ink-700 w-full sm:w-fit" role="group" aria-label="Ansicht"></div>
         <div class="relative h-72">
           <canvas id="historyChart"></canvas>
           <div id="chartEmpty" class="absolute inset-0 grid place-items-center text-sm text-slate-500 text-center px-6"></div>
@@ -484,18 +487,6 @@ tailwind.config = {
                 <input id="profTag" maxlength="6" placeholder="z. B. ABC1"
                        class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm uppercase focus:outline-none focus:border-gold-500">
               </div>
-              <div>
-                <div class="text-xs text-slate-400">City-Skin</div>
-                <div class="mt-1 flex items-center gap-2">
-                  <label id="profSkinPrev" for="profSkinFile" title="City-Skin hochladen"
-                         class="w-[42px] h-[42px] rounded-xl border border-dashed border-gold-500/50 bg-ink-950 grid place-items-center overflow-hidden cursor-pointer hover:border-gold-400"></label>
-                  <div class="flex flex-col items-start leading-tight">
-                    <label for="profSkinFile" class="cursor-pointer text-xs font-semibold text-gold-300 hover:text-gold-200">📷 Hochladen</label>
-                    <button id="profSkinDel" type="button" class="text-[11px] text-slate-500 hover:text-red-300">Entfernen</button>
-                  </div>
-                  <input id="profSkinFile" type="file" accept="image/*" class="hidden">
-                </div>
-              </div>
             </div>
           </div>
           <div>
@@ -504,6 +495,16 @@ tailwind.config = {
             <div id="profAvatars" class="mt-1 flex flex-wrap gap-1.5"></div>
           </div>
         </div>
+        <div class="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-700 bg-ink-950/50 px-4 py-3">
+          <div>
+            <div class="text-sm font-semibold text-white">🔒 Profil privat</div>
+            <div class="text-xs text-slate-400">Andere sehen dann nur noch den oberen Bereich (Name, Allianz-Tag, VIP, Kill-Punkte, Verdienst, Energie) – Speedups und Verlauf bleiben verborgen.</div>
+          </div>
+          <button id="profPrivate" type="button" role="switch" aria-checked="false"
+                  class="relative shrink-0 w-14 h-8 rounded-full border border-ink-600 bg-ink-800 transition-colors aria-checked:bg-gold-500 aria-checked:border-gold-400">
+            <span class="absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow transition-transform"></span>
+          </button>
+        </div>
         <p class="mt-4 text-xs text-slate-500">VIP-Punkte, Speedups, Edelsteine, AP und Ressourcen werden automatisch aus deinen Scans im Scanner &amp; Dashboard übernommen.</p>
         <div class="mt-4 flex flex-wrap items-center gap-3">
           <button id="profSave" class="px-5 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Profil speichern</button>
@@ -511,8 +512,15 @@ tailwind.config = {
         </div>
       </div>
 
+      <!-- Privat-Hinweis (nur für andere bei privatem Profil) -->
+      <div id="profPrivNote" class="hidden panel rounded-2xl p-8 text-center">
+        <div class="text-4xl mb-2">🔒</div>
+        <div class="font-display text-xl gold-text">Dieses Profil ist privat</div>
+        <p class="text-sm text-slate-400 mt-1">Speedups und Verlauf sind nur für den Spieler selbst sichtbar.</p>
+      </div>
+
       <!-- Speedups & Event -->
-      <div class="panel rounded-2xl p-6">
+      <div id="profSpeedPanel" class="panel rounded-2xl p-6">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h3 class="font-display text-xl gold-text">Speedups</h3>
           <span id="profSpeedStamp" class="text-xs text-slate-500"></span>
@@ -522,7 +530,7 @@ tailwind.config = {
       </div>
 
       <!-- Charts: automatisch aus den Scans -->
-      <div class="panel rounded-2xl p-6">
+      <div id="profChartsPanel" class="panel rounded-2xl p-6">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h3 class="font-display text-xl gold-text">Verlauf</h3>
           <div class="flex flex-wrap items-center gap-2.5">
@@ -551,9 +559,10 @@ tailwind.config = {
         <p id="rankSub" class="text-sm text-slate-400">Alle Spieler, sortiert nach VIP-Punkten inkl. VIP durch Gegenstände – Name anklicken öffnet das Game Profil</p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-      <div id="rankTabs" class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist" aria-label="Sortierung">
+      <div id="rankTabs" class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist" aria-label="Sortierung">
         <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-sort="vip" aria-pressed="true" role="tab">👑 VIP</button>
         <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-sort="kills" aria-pressed="false" role="tab">⚔️ Kill-Punkte</button>
+        <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-sort="merit" aria-pressed="false" role="tab">🏅 Verdienst</button>
       </div>
       <button id="rankRefresh" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6M20 20v-6h-6M20 10a8 8 0 00-14.9-3M4 14a8 8 0 0014.9 3"/></svg>
@@ -899,21 +908,29 @@ window.RokAuth = (() => {
     if (error) throw error;
     lbLast = data ? +data.vip_points : null;
     lbKills = data?.kill_points != null ? +data.kill_points : null;
-    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '' };
+    lbMerit = data?.highest_merit != null ? +data.highest_merit : null;
+    lbEnergy = data?.energy != null ? +data.energy : null;
+    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', is_private: !!data?.is_private };
   }
   // Aktuellen VIP-Stand melden. force = neuer Scan (immer aktualisieren), sonst nur bei geänderter Punktzahl.
   // Kill-Punkte aus dem Statthalter-Scan in die Rangliste schreiben (Spalte kill_points)
-  let lbKills = null;
-  async function pushKills(kp) {
-    if (!user || kp == null || !isFinite(kp) || kp < 0) return { ok: false };
-    kp = Math.round(kp);
-    if (kp === lbKills) return { ok: true };
-    const row = { user_id: user.id, username: profile.name.slice(0, 40), kill_points: kp, updated_at: new Date().toISOString() };
+  // Statthalter-Werte in die Rangliste schreiben: kill_points und highest_merit (je eigene Spalte, einzeln gesendet)
+  let lbKills = null, lbMerit = null, lbEnergy = null;
+  async function pushStat(col, v, cur) {
+    if (!user || v == null || !isFinite(v) || v < 0) return null;
+    v = Math.round(v);
+    if (v === cur) return v;
+    const row = { user_id: user.id, username: profile.name.slice(0, 40), [col]: v, updated_at: new Date().toISOString() };
     if (lbLast == null) { row.vip_points = 0; row.vip_level = 0; }
     const { error } = await sb.from('leaderboard').upsert(row);
-    if (error) { console.warn('Kill-Punkte nicht in der Rangliste gespeichert', error); return { ok: false, missingColumn: /kill_points|column/i.test(error.message || '') }; }
-    lbKills = kp; if (lbLast == null) lbLast = 0;
-    return { ok: true };
+    if (error) { console.warn(`${col} nicht in der Rangliste gespeichert (Spalte in Supabase anlegen)`, error); return cur; }
+    if (lbLast == null) lbLast = 0;
+    return v;
+  }
+  async function pushGov(g) {
+    lbKills = await pushStat('kill_points', g?.kill_points, lbKills);
+    lbMerit = await pushStat('highest_merit', g?.highest_merit, lbMerit);
+    lbEnergy = await pushStat('energy', g?.energy, lbEnergy);
   }
   function pushVip(points, level, force = false) {
     if (!user || points == null || !isFinite(points) || points < 0) return;
@@ -931,7 +948,8 @@ window.RokAuth = (() => {
   async function loadLeaderboard() {
     // ohne city_skin laden (Bilder nur im Profil) – Fallback '*', falls Spalten fehlen
     const q = (cols) => sb.from('leaderboard').select(cols).order('vip_points', { ascending: false }).limit(500);
-    let r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar,kill_points');
+    let r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar,kill_points,highest_merit');
+    if (r.error) r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar,kill_points');
     if (r.error) r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar');
     if (r.error) r = await q('*');
     if (r.error) throw new Error(germanError(r.error));
@@ -966,16 +984,28 @@ window.RokAuth = (() => {
   }
   // Öffentliches Profil eines Spielers: Kopfzeile + VIP-/Speedup-Verlauf
   async function loadProfile(uid) {
-    const [lb, sc] = await Promise.all([
-      sb.from('leaderboard').select('*').eq('user_id', uid).maybeSingle(),
-      sb.from('scans').select('id,type,scanned_at,data').eq('user_id', uid).in('type', ['vip', 'speedups', 'gems', 'ap', 'resources', 'governor']).order('scanned_at', { ascending: true })
-    ]);
+    const lb = await sb.from('leaderboard').select('*').eq('user_id', uid).maybeSingle();
     if (lb.error) throw new Error(germanError(lb.error));
-    return { row: lb.data, scans: sc.error ? [] : (sc.data || []).map(entryOf), scansError: !!sc.error };
+    // Privates Profil eines anderen Spielers: Verlauf gar nicht erst abrufen (nur die Kopfzeile ist sichtbar)
+    if (lb.data?.is_private && uid !== user?.id) return { row: lb.data, scans: [], scansError: false, isPrivate: true };
+    const sc = await sb.from('scans').select('id,type,scanned_at,data').eq('user_id', uid).in('type', ['vip', 'speedups', 'gems', 'ap', 'resources', 'governor']).order('scanned_at', { ascending: true });
+    return { row: lb.data, scans: sc.error ? [] : (sc.data || []).map(entryOf), scansError: !!sc.error, isPrivate: !!lb.data?.is_private };
+  }
+  // Profil privat / öffentlich schalten (Spalte leaderboard.is_private)
+  async function setPrivate(on) {
+    const row = { user_id: user.id, username: profile.name.slice(0, 40), is_private: !!on };
+    if (lbLast == null) { row.vip_points = 0; row.vip_level = 0; row.updated_at = new Date().toISOString(); }
+    const { error } = await sb.from('leaderboard').upsert(row);
+    if (error) {
+      if (/is_private|column/i.test(error.message || '')) throw new Error('Privat-Schalter: bitte zuerst die Spalte is_private in Supabase anlegen (SQL siehe Anleitung).');
+      throw new Error(germanError(error));
+    }
+    ownMeta = { ...ownMeta, is_private: !!on };
+    if (lbLast == null) lbLast = 0;
   }
 
   return { current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
-           pushVip, pushKills, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, saveNow };
+           pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, setPrivate, saveNow };
 })();
 </script>
 
@@ -1251,7 +1281,7 @@ window.RokApp = () => {
       const c = parseApBottles(data?.text);
       if (c) return { ...c, confidence: 'OCR lokal' };
     }
-    throw new Error('AP-Flaschen im Screenshot nicht sicher erkannt. Bitte die Anzahl je Flaschengröße links eintragen.');
+    throw new Error('Der Scan-Server kennt den AP-Scan noch nicht (die neue api/scan.js ist nicht deployt), und die Notfall-Erkennung im Browser hat die Flaschen nicht sicher erkannt. Bitte die neue api/scan.js auf Vercel einspielen – bis dahin die Anzahl je Flaschengröße links eintragen.');
   }
 
   // Entfernt alle Bilddaten aus der Seite: Array-Referenzen, Base64-Strings, <img>-Elemente, Datei-Input.
@@ -1370,11 +1400,16 @@ window.RokApp = () => {
     return { bar, inventory };
   }
 
+  let lastResR = null;
   function renderResources(r) {
+    lastResR = r;
     const nr = normRes(r.resources), bar = nr.bar, inv = nr.inventory;
-    const vals = RES.map(x => ({ ...x, bar: num(bar[x.k]), inv: num(inv[x.k]) }))
+    const raw = RES.map(x => ({ ...x, bar: num(bar[x.k]), inv: num(inv[x.k]) }))
                     // Leiste = Gesamtressourcen (inkl. Inventar) → nicht addieren; Inventar nur als Ersatz, wenn keine Leiste sichtbar
                     .map(x => ({ ...x, total: x.bar ?? x.inv ?? 0 }));
+    // Anzeige: optional + Farmen (gespeichert wird immer der reine Main-Wert)
+    const withFarm = typeof resCardFarm !== 'undefined' && resCardFarm;
+    const vals = raw.map(x => { const f = withFarm ? farmSum(x.k) : 0; return { ...x, farm: f, total: x.total + f }; });
     const max = Math.max(1, ...vals.map(v => v.total));
     const sum = vals.reduce((a, v) => a + v.total, 0);
     $('resCards').innerHTML = vals.map(v => `
@@ -1403,17 +1438,16 @@ window.RokApp = () => {
           </div>
           <div class="rounded-lg bg-ink-950/60 border border-gold-500/30 px-2 py-2">
             <div class="text-[10px] uppercase tracking-wider text-slate-500">Auf Hand</div>
-            <div class="text-sm font-semibold text-gold-300 tabular-nums">${v.total ? short(Math.max(0, v.total - (v.inv || 0))) : '–'}</div>
+            <div class="text-sm font-semibold text-gold-300 tabular-nums">${v.total ? short(Math.max(0, v.total - (v.inv || 0))) : '–'}</div>${v.farm ? `<div class="text-[10px] text-orange-300 tabular-nums">inkl. ${short(v.farm)} Farms</div>` : ''}
           </div>
         </div>
       </div>`).join('');
     $('resTotal').textContent = fmt(sum);
     $('resSource').textContent = r.confidence ? `Erkennungssicherheit: ${r.confidence}` : '';
-    $('resNote').textContent = r.notes || 'Balken zeigen die Menge relativ zur größten Ressource.';
     $('resSection').classList.remove('hidden');
     hasRes = true;
     animateBars();
-    return vals;
+    return raw;
   }
   const num = (v) => (v === null || v === undefined || v === '' || isNaN(+v)) ? null : +v;
 
@@ -1637,10 +1671,10 @@ window.RokApp = () => {
     let datasets = [];
 
     if (histTab === 'resources') {
-      datasets = RES_LINES.filter(([k]) => resLines[k]).map(([part, label, c]) => ({
-        label, data: list.map(e => sumPart(e, part)),
-        backgroundColor: isLine ? c + '33' : c + 'cc', borderColor: c, borderWidth: isLine ? 2.5 : 0, borderRadius: 4,
-        tension: .3, pointRadius: 4, pointBackgroundColor: c, spanGaps: true, fill: false }));
+      datasets = RES.map(r => ({
+        label: r.label, data: list.map(e => resPart(e, r.k, resView)),
+        backgroundColor: isLine ? r.from + '33' : r.from + 'cc', borderColor: r.from, borderWidth: isLine ? 2.5 : 0, borderRadius: 4,
+        tension: .3, pointRadius: 4, pointBackgroundColor: r.to, spanGaps: true, fill: false }));
     } else if (histTab === 'speedups') {
       const ev = currentEvent();
       const lines = [...SPEED.map(c => ({ ...c, val: (e) => e[c.k] })),
@@ -1698,24 +1732,14 @@ window.RokApp = () => {
     if (histTab === 'resources') {
       $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
         ${RES.map(r => `<th class="${th_}">${r.icon} ${r.label}</th>`).join('')}<th class="${th_}">Summe</th><th class="w-8"></th></tr>`;
-      const tot = (e) => sumPart(e, resLines.farm ? 'farm' : 'total');
-      // Zelle: Main + Rucksack, darunter Main, Rucksack und (bei Häkchen) mit Farms
-      const cell = (get) => {
-        const main = get('total');
-        if (main == null) return '–';
-        return `<span class="block font-semibold text-white" title="Main + Rucksack: ${fmt(main)}">${short(main)}</span>
-          <span class="block text-[11px] text-emerald-300" title="Main: ${fmt(get('hand'))}">M ${short(get('hand'))}</span>
-          <span class="block text-[11px] text-sky-300" title="Rucksack: ${fmt(get('bag'))}">R ${short(get('bag'))}</span>
-          ${resLines.farm ? `<span class="block text-[11px] text-orange-300" title="Main + Rucksack + Farms: ${fmt(get('farm'))}">+F ${short(get('farm'))}</span>` : ''}`;
-      };
+      const tot = (e) => sumPart(e, resView);
+      // Zelle: nur der Wert der gewählten Ansicht (Gesamt / Ohne Rucksack / Mit Farms)
+      const cell = (get) => { const v = get(resView); return v == null ? '–' : `<span class="font-semibold text-white" title="${fmt(v)}">${short(v)}</span>`; };
       $('histRows').innerHTML = rows.map((e, i) => {
-        const prev = rows[i + 1];
-        const delta = prev ? tot(e) - tot(prev) : null;
         return `<tr class="border-b border-ink-800 hover:bg-ink-850">
           <td class="py-2 pr-2 whitespace-nowrap text-slate-300">${dateLabel(e.ts)}</td>
           ${RES.map(r => `<td class="py-2 px-2 text-right tabular-nums whitespace-nowrap align-top">${cell(p => resPart(e, r.k, p))}</td>`).join('')}
-          <td class="py-2 px-2 text-right font-semibold text-gold-300 tabular-nums whitespace-nowrap align-top">${cell(p => sumPart(e, p))}
-            ${delta != null ? `<span class="block text-[11px] font-normal ${delta >= 0 ? 'text-emerald-400' : 'text-red-400'}">${delta >= 0 ? '+' : '−'}${short(Math.abs(delta))}</span>` : ''}</td>
+          <td class="py-2 px-2 text-right font-semibold text-gold-300 tabular-nums whitespace-nowrap align-top">${cell(p => sumPart(e, p))}</td>
           <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
         </tr>`;
       }).join('');
@@ -1798,7 +1822,19 @@ window.RokApp = () => {
       `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-rl="${k}" ${state[k] ? 'checked' : ''} class="w-4 h-4" style="accent-color:${c}">${k === 'farm' ? '+ Farms' : l}</label>`).join('');
     el.querySelectorAll('input').forEach(i => i.onchange = () => { state[i.dataset.rl] = i.checked; onChange(); });
   }
-  renderResLines($('resLines'), resLines, () => { saveOpts(); renderHistory(); });
+  // Scanner-Verlauf: 3 Reiter (eine Ansicht gleichzeitig)
+  const RES_VIEWS = [['total', 'Gesamt'], ['hand', 'Ohne Rucksack'], ['farm', 'Mit Farms']];
+  let resView = 'total', resCardFarm = false;
+  try { const o = JSON.parse(LS.get(OPTS, '{}')); if (RES_VIEWS.some(([k]) => k === o.view)) resView = o.view; resCardFarm = !!o.cardFarm; } catch {}
+  const saveResOpts = () => LS.set(OPTS, JSON.stringify({ lines: resLines, view: resView, cardFarm: resCardFarm }));
+  function renderResViewTabs() {
+    $('resLines').innerHTML = RES_VIEWS.map(([k, l]) => `<button type="button" data-rv="${k}" aria-pressed="${k === resView}" class="seg-btn rounded-lg px-4 py-1.5 text-xs font-semibold transition">${l}</button>`).join('');
+    $('resLines').querySelectorAll('[data-rv]').forEach(b => b.onclick = () => { resView = b.dataset.rv; saveResOpts(); renderResViewTabs(); renderHistory(); });
+  }
+  renderResViewTabs();
+  function rerenderResCards() { if (!lastResR) return; const src = $('resSource').textContent; renderResources(lastResR); $('resSource').textContent = src; }
+  $('resCardFarm').checked = resCardFarm;
+  $('resCardFarm').onchange = () => { resCardFarm = $('resCardFarm').checked; saveResOpts(); rerenderResCards(); };
 
   // "12,5M", "850K", "12.500.000" → Zahl
   function parseAmount(v) {
@@ -1828,6 +1864,7 @@ window.RokApp = () => {
 
   function saveFarms() {
     LS.set(FARMS, JSON.stringify(farms));
+    if (resCardFarm) rerenderResCards();
     const last = latestResEntry();          // aktuelle Farmwerte gelten für den letzten Ressourcen-Scan
     if (last) updateHistory(last.id, farmSnapshot()); else renderHistory();
   }
@@ -1867,10 +1904,10 @@ window.RokApp = () => {
   // ---------- Speedups ----------
   const SPEED = [
     { k: 'universal', label: 'Universal', icon: '⏱️', c: '#f5c542' },
-    { k: 'building',  label: 'Bau',       icon: '🔨', c: '#fb923c' },
-    { k: 'research',  label: 'Forschung', icon: '📘', c: '#38bdf8' },
     { k: 'training',  label: 'Training',  icon: '⚔️', c: '#f87171' },
-    { k: 'healing',   label: 'Heilung',   icon: '❤️', c: '#34d399' }
+    { k: 'healing',   label: 'Heilung',   icon: '❤️', c: '#34d399' },
+    { k: 'research',  label: 'Forschung', icon: '📘', c: '#38bdf8' },
+    { k: 'building',  label: 'Bau',       icon: '🔨', c: '#fb923c' }
   ];
   // Minuten → "12 T 5 Std 30 Min" (kurz: "12T 5h 30m")
   function durText(min, compact = false) {
@@ -2055,35 +2092,43 @@ window.RokApp = () => {
   const savedText = (r) => r.where === 'scans' ? '✓ Gespeichert · in Supabase (scans)'
     : r.where === 'user_state' ? '✓ Gespeichert · im Profil-Speicher (für public.scans fehlt noch das SQL-Update)'
     : '✓ Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt';
+  // Letzter AP-Eintrag: Korrekturen innerhalb von 30 Minuten überschreiben ihn statt einen neuen anzulegen
+  let activeAp = null;   // { id, ts }
   async function saveApEntry(c, confidence) {
-    const ts = Date.now(), entry = { ...c, total_ap: apTotal(c) };
+    const entry = { ...c, total_ap: apTotal(c) };
+    const fresh = activeAp && Date.now() - activeAp.ts < 30 * 60000 && history.some(e => e.id === activeAp.id);
+    const ts = fresh ? activeAp.ts : Date.now();
+    if (fresh) updateHistory(activeAp.id, { ...entry, confidence });
+    else { activeAp = { id: newId(), ts }; addHistory({ id: activeAp.id, ts, type: 'ap', ...entry, confidence }); }
     renderAp(entry, ts);
-    addHistory({ id: newId(), ts, type: 'ap', ...entry, confidence });
     saveLastScan({ type: 'ap', ts, ...entry });
     applyMode();
     return RokAuth.saveNow('ap');
   }
+  // Anzahl robust lesen: "4.656" / "4,656" / 4656 → 4656
+  const toCount = (v) => { if (v == null || v === '') return null; if (typeof v === 'number') return isFinite(v) ? Math.max(0, Math.round(v)) : null; const d = String(v).replace(/[^\d]/g, ''); return d === '' ? null : +d; };
   $('apSave').onclick = async () => {
     const c = readApFields();
     if (!c.total_ap) { showError('Bitte mindestens eine Flaschen-Anzahl eintragen.'); return; }
-    hideError(); $('apPrefillMsg').classList.add('hidden');
+    hideError();
     AP_SIZES.forEach(z => $('ap' + z).classList.remove('border-amber-400'));
     $('apSave').disabled = true;
     try { flash($('apSaveMsg'), savedText(await saveApEntry(c, 'manuell')), true); }
     finally { $('apSave').disabled = false; }
   };
-  // Scan-Ergebnis → Felder vorbefüllen (Nutzer prüft und speichert selbst)
+  // Scan-Ergebnis → sofort auswerten (Karte + Verlauf + Supabase) und die 4 Felder zum Korrigieren füllen
   function prefillAp(r) {
     const c = {}; let found = 0;
     const src = r.ap && typeof r.ap === 'object' ? r.ap : r;
-    AP_SIZES.forEach(z => { const v = num(src['ap_' + z] ?? src[String(z)]); if (v != null) { c['ap_' + z] = v; found++; } });
-    (r.items || r.ap_items || []).forEach(i => { const z = +i.points_each || +i.size; if (AP_SIZES.includes(z)) { c['ap_' + z] = (c['ap_' + z] || 0) + (+i.quantity || 0); found++; } });
+    AP_SIZES.forEach(z => { const v = toCount(src['ap_' + z] ?? src['ap' + z] ?? src[String(z)]); if (v != null) { c['ap_' + z] = v; found++; } });
+    (r.items || r.ap_items || src.items || []).forEach(i => { const z = toCount(i.points_each ?? i.size); const q = toCount(i.quantity) ?? 0; if (AP_SIZES.includes(z)) { c['ap_' + z] = (c['ap_' + z] || 0) + q; found++; } });
     if (!found) throw new Error('Keine AP-Flaschen im Screenshot erkannt. Bitte die Anzahl links von Hand eintragen.');
     fillApFields(c);
     AP_SIZES.forEach(z => $('ap' + z).classList.toggle('border-amber-400', c['ap_' + z] != null));
-    $('apPrefillMsg').textContent = `Erkannt (${r.confidence || 'Scan'}) – bitte die markierten Felder prüfen und dann „AP speichern“ klicken.`;
+    activeAp = null;                                                  // neuer Scan = neuer Verlaufseintrag
+    $('apPrefillMsg').textContent = `✓ Ausgewertet (${r.confidence || 'Scan'}): ${fmt(apTotal(c))} AP. Falls eine Zahl nicht stimmt: Feld korrigieren und „AP speichern“ – das überschreibt diesen Scan.`;
     $('apPrefillMsg').classList.remove('hidden');
-    $('apInputs').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    saveApEntry(c, r.confidence || 'Scan').then(res => flash($('apSaveMsg'), savedText(res), true)).catch(e => showError(e.message || String(e)));
   }
 
   // ---------- Speedups: Live-Summe der Eingabe ----------
@@ -2173,7 +2218,12 @@ window.RokApp = () => {
     3: { icon: '🥉', badge: 'bg-gradient-to-br from-amber-500 to-orange-800 text-white', name: 'text-amber-300' }
   };
   let rankLoading = false;
-  let rankSort = (() => { try { return localStorage.getItem('rok_rank_sort') === 'kills' ? 'kills' : 'vip'; } catch { return 'vip'; } })();
+  // Statthalter-Ranglisten: Spalte, Beschriftung, Symbol
+  const RANK_STAT = {
+    kills: { col: 'kill_points',   label: 'Kill-Punkte', icon: '⚔️', sub: 'Kill-Punkten' },
+    merit: { col: 'highest_merit', label: 'Verdienst',   icon: '🏅', sub: 'höchstem Verdienst' }
+  };
+  let rankSort = (() => { try { const v = localStorage.getItem('rok_rank_sort'); return RANK_STAT[v] ? v : 'vip'; } catch { return 'vip'; } })();
   let rankRows = [];
   document.querySelectorAll('.rank-tab').forEach(b => b.onclick = () => {
     rankSort = b.dataset.sort; try { localStorage.setItem('rok_rank_sort', rankSort); } catch {}
@@ -2185,7 +2235,7 @@ window.RokApp = () => {
     $('rankState').classList.remove('hidden'); $('rankState').textContent = 'Lade Rangliste …';
     try {
       const rows = (await RokAuth.loadLeaderboard())
-        .map(r => ({ ...r, vip_points: +r.vip_points || 0, kill_points: r.kill_points == null ? null : +r.kill_points }));
+        .map(r => ({ ...r, vip_points: +r.vip_points || 0, kill_points: r.kill_points == null ? null : +r.kill_points, highest_merit: r.highest_merit == null ? null : +r.highest_merit }));
       rankRows = rows;
       renderRanking(rows);
     } catch (e) {
@@ -2194,17 +2244,17 @@ window.RokApp = () => {
     } finally { rankLoading = false; }
   }
   function renderRanking(all) {
-    const me = RokAuth.userId(), kills = rankSort === 'kills';
+    const me = RokAuth.userId(), stat = RANK_STAT[rankSort] || null, kills = !!stat;
     document.querySelectorAll('.rank-tab').forEach(b => b.setAttribute('aria-pressed', b.dataset.sort === rankSort));
-    $('rankSub').textContent = kills ? 'Alle Spieler, sortiert nach Kill-Punkten aus dem Statthalter-Profil – Name anklicken öffnet das Game Profil'
+    $('rankSub').textContent = kills ? `Alle Spieler, sortiert nach ${stat.sub} aus dem Statthalter-Profil – Name anklicken öffnet das Game Profil`
                                      : 'Alle Spieler, sortiert nach VIP-Punkten inkl. VIP durch Gegenstände – Name anklicken öffnet das Game Profil';
     const byName = (a, b) => String(a.username).localeCompare(b.username);
     const rows = [...all].sort(kills
-      ? (a, b) => ((b.kill_points ?? -1) - (a.kill_points ?? -1)) || byName(a, b)       // ohne Kill-Punkte ans Ende
+      ? (a, b) => ((b[stat.col] ?? -1) - (a[stat.col] ?? -1)) || byName(a, b)       // ohne Wert ans Ende
       : (a, b) => (b.vip_points - a.vip_points) || (new Date(a.updated_at) - new Date(b.updated_at)) || byName(a, b));
     const th = (t, cls = 'text-left') => `<th class="py-2 px-3 ${cls} font-medium whitespace-nowrap">${t}</th>`;
     $('rankHead').innerHTML = '<tr>' + th('Platz', 'text-left w-20') + th('Spieler') + (kills
-      ? th('⚔️ Kill-Punkte', 'text-right') + th('Zuletzt aktualisiert', 'text-right')
+      ? th(`${stat.icon} ${stat.label}`, 'text-right') + th('Zuletzt aktualisiert', 'text-right')
       : th('VIP-Punkte <span class="normal-case tracking-normal text-slate-500">(inkl. Gegenstände)</span>', 'text-right') + th('VIP-Stufe', 'text-center')
         + th('Bis zum nächsten VIP', 'text-left min-w-[190px]') + th('Zuletzt aktualisiert', 'text-right')) + '</tr>';
     $('rankStamp').textContent = `Stand: ${dateLabel(Date.now())} · ${rows.length} Spieler`;
@@ -2215,7 +2265,7 @@ window.RokApp = () => {
     }
     $('rankState').classList.add('hidden'); $('rankTable').classList.remove('hidden');
     $('rankRows').innerHTML = rows.map((r, i) => {
-      const noKp = kills && r.kill_points == null;
+      const noKp = kills && r[stat.col] == null;
       const place = i + 1, m = noKp ? null : MEDALS[place], isMe = r.user_id === me;
       const rowCls = isMe ? 'bg-gold-500/15 outline outline-2 outline-gold-500/70' : (m ? 'bg-ink-850' : 'bg-ink-900/60');
       return `<tr class="${rowCls}">
@@ -2230,7 +2280,7 @@ window.RokApp = () => {
             ${r.alliance_tag ? `<span class="px-2 py-0.5 rounded-md bg-ink-950 border border-gold-500/30 text-gold-300 font-semibold text-xs">[${esc(r.alliance_tag)}]</span>` : ''}
           </button>
         </td>
-        ${kills ? `<td class="py-3 px-3 text-right font-bold tabular-nums ${noKp ? 'text-slate-500' : m ? m.name : 'text-white'}">${noKp ? 'noch kein Scan' : fmt(r.kill_points)}</td>` : `
+        ${kills ? `<td class="py-3 px-3 text-right font-bold tabular-nums ${noKp ? 'text-slate-500' : m ? m.name : 'text-white'}">${noKp ? 'noch kein Scan' : fmt(r[stat.col])}</td>` : `
         <td class="py-3 px-3 text-right font-bold tabular-nums ${m ? m.name : 'text-white'}" title="${fmt(r.vip_points)}">${fmt(r.vip_points)}</td>
         <td class="py-3 px-3 text-center"><span class="inline-block px-2.5 py-1 rounded-lg bg-ink-950 border border-gold-500/30 text-gold-300 font-semibold text-xs">VIP ${lbLevel(r.vip_points)}</span></td>
         <td class="py-3 px-3">${nextCell(r.vip_points)}</td>`}
@@ -2241,21 +2291,21 @@ window.RokApp = () => {
     // Eigene Platzierung
     const idx = rows.findIndex(r => r.user_id === me), box = $('rankMe');
     if (kills) {
-      const ranked = rows.filter(r => r.kill_points != null), k = ranked.findIndex(r => r.user_id === me);
-      if (k < 0) box.innerHTML = `<div class="text-sm text-slate-300">Du hast noch keine Kill-Punkte. Öffne dein <b>Game Profil</b> und tippe auf <b>„📷 Statthalter-Profil scannen“</b>.</div>`;
+      const ranked = rows.filter(r => r[stat.col] != null), k = ranked.findIndex(r => r.user_id === me);
+      if (k < 0) box.innerHTML = `<div class="text-sm text-slate-300">Für dich ist noch kein ${stat.label}-Wert gespeichert. Öffne dein <b>Game Profil</b> und tippe auf <b>„📷 Statthalter-Profil scannen“</b>.</div>`;
       else {
         const meRow = ranked[k], above = ranked[k - 1];
         box.innerHTML = `<div class="flex flex-wrap items-center justify-between gap-4">
           <div class="flex items-center gap-4">
             <div class="w-14 h-14 rounded-2xl grid place-items-center text-2xl font-extrabold ${MEDALS[k + 1]?.badge || 'bg-ink-800 text-gold-300'}">${MEDALS[k + 1]?.icon || '#' + (k + 1)}</div>
             <div>
-              <div class="text-xs uppercase tracking-widest text-slate-400">Dein Platz · Kill-Punkte</div>
+              <div class="text-xs uppercase tracking-widest text-slate-400">Dein Platz · ${stat.label}</div>
               <div class="text-2xl font-extrabold text-white">#${k + 1} <span class="text-sm font-medium text-slate-400">von ${ranked.length}</span></div>
             </div>
           </div>
           <div class="text-right">
-            <div class="text-lg font-bold text-gold-300 tabular-nums">⚔️ ${fmt(meRow.kill_points)} Kill-Punkte</div>
-            <div class="text-xs text-slate-400">${above ? `Noch ${fmt(above.kill_points - meRow.kill_points + 1)} Kill-Punkte bis Platz ${k} (${esc(above.username)})` : 'Du führst die Kill-Rangliste an! ⚔️'}</div>
+            <div class="text-lg font-bold text-gold-300 tabular-nums">${stat.icon} ${fmt(meRow[stat.col])} ${stat.label}</div>
+            <div class="text-xs text-slate-400">${above ? `Noch ${fmt(above[stat.col] - meRow[stat.col] + 1)} ${stat.label} bis Platz ${k} (${esc(above.username)})` : `Du führst die ${stat.label}-Rangliste an! ${stat.icon}`}</div>
           </div>
         </div>`;
       }
@@ -2357,7 +2407,7 @@ window.RokApp = () => {
 
   async function loadGameProfile() {
     const uid = profileUid, own = uid === RokAuth.userId();
-    $('profModeBadge').textContent = own ? '✎ Dein Profil · bearbeitbar' : '👁 Nur Ansicht';
+    $('profModeBadge').textContent = own ? '✎ Dein Profil · ' + (RokAuth.ownMeta().is_private ? '🔒 privat' : 'öffentlich') : '👁 Nur Ansicht';
     $('profModeBadge').className = 'text-xs px-2.5 py-1 rounded-full border ' + (own ? 'border-gold-500/50 text-gold-300' : 'border-ink-600 text-slate-400');
     $('profBody').classList.add('hidden');
     $('profState').classList.remove('hidden'); $('profState').textContent = 'Lade Game Profil …';
@@ -2373,7 +2423,7 @@ window.RokApp = () => {
       const sorted = all.map(r => ({ ...r, vip_points: +r.vip_points || 0 }))
         .sort((a, b) => (b.vip_points - a.vip_points) || (new Date(a.updated_at) - new Date(b.updated_at)) || String(a.username).localeCompare(b.username));
       const place = sorted.findIndex(r => r.user_id === uid) + 1;
-      renderGameProfile({ own, row, entries, place, players: sorted.length, scansError: p.scansError });
+      renderGameProfile({ own, row, entries, place, players: sorted.length, scansError: p.scansError, isPrivate: own ? !!RokAuth.ownMeta().is_private : !!p.isPrivate });
       $('profState').classList.add('hidden'); $('profBody').classList.remove('hidden');
     } catch (e) {
       $('profState').textContent = 'Profil konnte nicht geladen werden: ' + (e.message || e);
@@ -2394,7 +2444,10 @@ window.RokApp = () => {
 
     // ---- Kopf ----
     const govEntries = entries.filter(e => e.type === 'governor');
-    const gov = govEntries.length ? govEntries[govEntries.length - 1] : null;      // letzter Statthalter-Scan
+    // letzter Statthalter-Scan – bei privaten Profilen (kein Verlauf) aus der Rangliste
+    const gov = govEntries.length ? govEntries[govEntries.length - 1]
+      : (row.kill_points != null || row.highest_merit != null || row.energy != null)
+        ? { kill_points: row.kill_points != null ? +row.kill_points : null, highest_merit: row.highest_merit != null ? +row.highest_merit : null, energy: row.energy != null ? +row.energy : null, ts: null } : null;
     const lvl = points != null ? lbLevel(points) : null, nx = points != null ? lbNext(points) : null;
     $('profHead').innerHTML = `
       <div class="flex flex-wrap items-center gap-5">
@@ -2403,11 +2456,9 @@ window.RokApp = () => {
           <div class="flex flex-wrap items-baseline gap-x-3">
             <h2 class="font-display text-3xl gold-text">${esc(row.username)}</h2>
             ${meta.alliance_tag ? `<span class="text-lg font-semibold text-slate-300">[${esc(meta.alliance_tag)}]</span>` : (own ? '<span class="text-xs text-slate-500">kein Allianz-Tag</span>' : '')}
-            ${meta.city_skin ? `<img src="${meta.city_skin}" alt="City-Skin" title="City-Skin" class="self-center w-12 h-12 rounded-xl object-cover object-center border border-gold-500/60 shadow-[0_0_14px_rgba(245,197,66,.3)]">` : ''}
           </div>
           <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
             ${lvl != null ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold text-ink-950 bg-gradient-to-br from-gold-300 to-gold-600 shadow-[0_0_16px_rgba(245,197,66,.35)]">👑 VIP ${lvl}</span>` : '<span class="text-slate-500">Noch kein VIP-Stand</span>'}
-            ${P.place ? `<span class="px-2.5 py-1 rounded-lg bg-ink-950 border border-ink-700 text-slate-300">🏆 Platz #${P.place} von ${P.players}</span>` : ''}
             ${row.updated_at ? `<span class="text-xs text-slate-500">aktualisiert ${dateLabel(new Date(row.updated_at).getTime())}</span>` : ''}
           </div>
         </div>
@@ -2417,7 +2468,7 @@ window.RokApp = () => {
             <div class="text-[10px] uppercase tracking-widest text-slate-400 whitespace-nowrap">${ic} ${label}</div>
             <div class="text-lg sm:text-xl font-extrabold text-white tabular-nums mt-0.5">${gov && gov[k] != null ? fmt(gov[k]) : '–'}</div>
           </div>`).join('')}
-          <div class="col-span-3 text-[11px] text-slate-500 text-right">${gov ? `Statthalter-Profil vom ${dateLabel(gov.ts)}` : (own ? 'Noch kein Scan – „📷 Statthalter-Profil scannen“' : 'Noch kein Statthalter-Scan')}</div>
+          <div class="col-span-3 text-[11px] text-slate-500 text-right">${gov ? (gov.ts ? `Statthalter-Profil vom ${dateLabel(gov.ts)}` : '') : (own ? 'Noch kein Scan – „📷 Statthalter-Profil scannen“' : 'Noch kein Statthalter-Scan')}</div>
         </div>
       </div>
       ${nx ? `<div class="mt-5">
@@ -2457,18 +2508,6 @@ window.RokApp = () => {
           $('profMsg').textContent = 'Profilbild bereit – „Profil speichern“ klicken.'; $('profMsg').className = 'text-sm text-slate-300';
         } catch { $('profMsg').textContent = 'Bild konnte nicht gelesen werden.'; $('profMsg').className = 'text-sm text-red-300'; }
       };
-      const drawSkin = () => {
-        $('profSkinPrev').innerHTML = skin ? `<img src="${skin}" alt="City-Skin" class="w-full h-full object-cover object-center">` : '<span class="text-xl">🏯</span>';
-        $('profSkinDel').classList.toggle('hidden', !skin);
-      };
-      drawSkin();
-      $('profSkinFile').onchange = async (ev) => {
-        const f = ev.target.files?.[0]; ev.target.value = '';
-        if (!f || !f.type.startsWith('image/')) return;
-        try { skin = await cropSquare(f); drawSkin(); $('profMsg').textContent = 'City-Skin bereit – „Profil speichern“ klicken.'; $('profMsg').className = 'text-sm text-slate-300'; }
-        catch { $('profMsg').textContent = 'Bild konnte nicht gelesen werden.'; $('profMsg').className = 'text-sm text-red-300'; }
-      };
-      $('profSkinDel').onclick = () => { skin = ''; drawSkin(); };
       const drawAv = () => {
         const own = isImgAv(chosen) ? chosen : (isImgAv(customAv) ? customAv : '');
         $('profAvatars').innerHTML =
@@ -2478,14 +2517,35 @@ window.RokApp = () => {
         $('profAvatars').querySelectorAll('[data-av]').forEach(b => b.onclick = () => { chosen = b.dataset.av === 'custom' ? own : b.dataset.av; drawAv(); });
       };
       drawAv();
-      $('profSave').onclick = () => saveOwnProfile(() => chosen, () => skin);
+      $('profSave').onclick = () => saveOwnProfile(() => chosen);
     }
 
     // ---- Diagramme ----
+    // Privat: andere sehen nur den Kopf
+    const hideBody = !own && P.isPrivate;
+    $('profPrivNote').classList.toggle('hidden', !hideBody);
+    $('profSpeedPanel').classList.toggle('hidden', hideBody);
+    $('profChartsPanel').classList.toggle('hidden', hideBody);
+    if (own) {
+      const sw = $('profPrivate');
+      sw.setAttribute('aria-checked', String(!!P.isPrivate));
+      sw.onclick = async () => {
+        const next = sw.getAttribute('aria-checked') !== 'true';
+        sw.disabled = true;
+        try {
+          await RokAuth.setPrivate(next);
+          sw.setAttribute('aria-checked', String(next));
+          $('profMsg').textContent = next ? '🔒 Profil ist jetzt privat' : '🌐 Profil ist jetzt öffentlich'; $('profMsg').className = 'text-sm text-emerald-400';
+          $('profModeBadge').textContent = '✎ Dein Profil · ' + (next ? '🔒 privat' : 'öffentlich');
+        } catch (e) { $('profMsg').textContent = e.message || String(e); $('profMsg').className = 'text-sm text-red-300'; }
+        finally { sw.disabled = false; }
+      };
+    }
+    if (hideBody) return;
     renderProfileCharts(entries, P);
   }
 
-  async function saveOwnProfile(getAvatar, getSkin) {
+  async function saveOwnProfile(getAvatar) {
     const msg = (t, ok) => { $('profMsg').textContent = t; $('profMsg').className = 'text-sm ' + (ok ? 'text-emerald-400' : 'text-red-300'); };
     $('profSave').disabled = true; msg('Speichere …', true);
     try {
@@ -2493,14 +2553,7 @@ window.RokApp = () => {
       const meta = { alliance_tag: $('profTag').value.trim().toUpperCase().slice(0, 6), avatar: getAvatar() };
       const old = RokAuth.ownMeta();
       if (meta.alliance_tag !== (old.alliance_tag || '') || meta.avatar !== (old.avatar || '')) { await RokAuth.saveMeta(meta, vipNumbers().after); renderHeaderAvatar(); }
-      // City-Skin: immer in deinem Cloud-Speicher, zusätzlich in der Rangliste (für andere sichtbar)
-      let note = '';
-      const skin = getSkin();
-      if (skin !== ownSkin() || skin !== (RokAuth.ownMeta().city_skin || '')) {
-        LS.set(SKIN, skin);
-        if (!(await RokAuth.saveSkin(skin, vipNumbers().after))) note = ' · City-Skin nur für dich sichtbar (Spalte city_skin in Supabase fehlt)';
-      }
-      msg('✓ Gespeichert' + note, true);
+      msg('✓ Gespeichert', true);
       setTimeout(() => { if (view === 'profile') loadGameProfile(); }, 900);
     } catch (e) { msg(e.message || String(e), false); }
     finally { $('profSave').disabled = false; }
@@ -2524,7 +2577,7 @@ window.RokApp = () => {
       if (e.kill_points == null && e.highest_merit == null && e.energy == null) throw new Error('Keine Werte im Screenshot erkannt.');
       addHistory({ id: newId(), ts: Date.now(), type: 'governor', ...e, confidence: r.confidence || null });
       const saved = await RokAuth.saveNow('governor');
-      if (e.kill_points != null) await RokAuth.pushKills(e.kill_points);   // Kill-Rangliste
+      await RokAuth.pushGov(e);                                          // Kill- und Verdienst-Rangliste
       msg(saved.where === 'scans' ? '✓ Statthalter-Profil gespeichert' : saved.where === 'user_state' ? '✓ Gespeichert (Profil-Speicher – SQL-Update für public.scans fehlt)' : '✓ Lokal gespeichert, Cloud folgt', 'text-emerald-400');
       loadGameProfile();
     } catch (e2) { msg(e2.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : e2.message, 'text-red-300'); }
@@ -2706,8 +2759,8 @@ window.RokApp = () => {
   if (lastGems?.gems != null) renderGems({ gems: +lastGems.gems, gemsHand: lastGems.gemsHand ?? null, gemsBag: lastGems.gemsBag ?? null }, lastGems.ts);
   renderFarms();
   applyMode();
-  { const g = history.filter(e => e.type === 'governor' && e.kill_points != null).sort((a, b) => b.ts - a.ts)[0];
-    if (g) RokAuth.pushKills(g.kill_points); }
+  { const g = history.filter(e => e.type === 'governor').sort((a, b) => b.ts - a.ts)[0];
+    if (g) RokAuth.pushGov(g); }
   applyView();
 };
 </script>
