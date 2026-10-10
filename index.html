@@ -187,19 +187,34 @@ tailwind.config = {
           <span></span><span class="text-center text-slate-500">Tage</span><span class="text-center text-slate-500">Std.</span><span class="text-center text-slate-500">Min.</span>
           <div id="speedInputRows" class="contents"></div>
         </div>
-        <button id="speedSave" class="mt-4 w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Bestand speichern</button>
-        <div id="speedSaveMsg" class="hidden mt-2 text-xs text-emerald-400">✓ Gespeichert</div>
+        <div class="mt-3 rounded-lg border border-gold-500/30 bg-gold-500/5 px-3 py-2 flex items-center justify-between gap-2">
+          <span class="text-xs uppercase tracking-widest text-slate-400">Gesamt</span>
+          <span id="speedSum" class="text-sm font-extrabold text-gold-300 tabular-nums text-right">0 Min.</span>
+        </div>
+        <button id="speedSave" class="mt-3 w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Bestand speichern</button>
+        <div id="speedSaveMsg" class="hidden mt-2 text-xs"></div>
       </section>
 
       <section id="apInputs" class="hidden panel rounded-2xl p-5">
-        <h2 class="font-display text-lg text-gold-300 mb-1">3 · AP eingeben</h2>
-        <p class="text-xs text-slate-400 mb-3">Alternativ zum Scan: aktuelle Aktionspunkte von Hand eintragen.</p>
-        <div class="flex gap-2">
-          <input id="apManual" type="number" min="0" step="1" placeholder="z. B. 12500"
-                 class="flex-1 min-w-0 bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500">
-          <button id="apSave" class="px-4 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Speichern</button>
+        <h2 class="font-display text-lg text-gold-300 mb-1">3 · AP-Flaschen</h2>
+        <p class="text-xs text-slate-400 mb-3">Anzahl je Flaschengröße aus dem Inventar. Ein Scan füllt die Felder vor – kurz prüfen, dann speichern.</p>
+        <div class="space-y-2" id="apFields">
+          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300">🧪 50er Flaschen <span class="text-slate-500 text-xs">× 50</span></span>
+            <input id="ap50" data-ap="50" type="number" min="0" step="1" placeholder="0" class="ap-in w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300">🧪 100er Flaschen <span class="text-slate-500 text-xs">× 100</span></span>
+            <input id="ap100" data-ap="100" type="number" min="0" step="1" placeholder="0" class="ap-in w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300">⚗️ 500er Flaschen <span class="text-slate-500 text-xs">× 500</span></span>
+            <input id="ap500" data-ap="500" type="number" min="0" step="1" placeholder="0" class="ap-in w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300">⚗️ 1.000er Flaschen <span class="text-slate-500 text-xs">× 1.000</span></span>
+            <input id="ap1000" data-ap="1000" type="number" min="0" step="1" placeholder="0" class="ap-in w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
         </div>
-        <div id="apSaveMsg" class="hidden mt-2 text-xs text-emerald-400">✓ Gespeichert</div>
+        <div class="mt-3 rounded-lg border border-gold-500/30 bg-gold-500/5 px-3 py-2 flex items-center justify-between">
+          <span class="text-xs uppercase tracking-widest text-slate-400">Gesamt</span>
+          <span id="apSum" class="text-lg font-extrabold text-gold-300 tabular-nums">0 AP</span>
+        </div>
+        <div id="apPrefillMsg" class="hidden mt-2 text-xs text-amber-300"></div>
+        <button id="apSave" class="mt-3 w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">AP speichern</button>
+        <div id="apSaveMsg" class="hidden mt-2 text-xs"></div>
       </section>
 
       <section id="vipInputs" class="panel rounded-2xl p-5">
@@ -374,6 +389,7 @@ tailwind.config = {
             <div id="apDelta" class="text-sm mt-1 text-slate-400"></div>
           </div>
         </div>
+        <div id="apBreak" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
       </section>
 
       <!-- Farmen -->
@@ -617,7 +633,7 @@ window.RokAuth = (() => {
   try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } }); } catch {}
 
   let user = null, profile = null, NS = '', PENDING = '';
-  let speedWarn = false;
+  let speedWarn = false, lastFailedTypes = [];
   let synced = new Map(), lastState = '{}', timer = null, retryTimer = null, queue = Promise.resolve(), hasPending = false;
   const nsOf = (id) => 'rok_cloud_' + id + '_';
 
@@ -679,7 +695,25 @@ window.RokAuth = (() => {
     lsKeys(NS).forEach(k => { const sfx = k.slice(NS.length); if (sfx !== HIST) st[sfx] = lsGet(k); });
     return st;
   }
-  const rowOf = (e) => ({ id: String(e.id), user_id: user.id, type: e.type, scanned_at: new Date(+e.ts || Date.now()).toISOString(), data: e });
+  // Datenstruktur in public.scans
+  //   ap:       data = { ap_50, ap_100, ap_500, ap_1000, total_ap }        (Anzahl Flaschen bzw. Summe AP)
+  //   speedups: data = { training, heal, universal, building, research, total }   (alles in Minuten)
+  //   andere Typen: wie bisher
+  const n0 = (v) => Math.max(0, Math.round(+v || 0));
+  function dataOf(e) {
+    if (e.type === 'ap') return { ap_50: n0(e.ap_50), ap_100: n0(e.ap_100), ap_500: n0(e.ap_500), ap_1000: n0(e.ap_1000), total_ap: n0(e.total_ap) };
+    if (e.type === 'speedups') return { training: n0(e.training), heal: n0(e.healing), universal: n0(e.universal),
+                                        building: n0(e.building), research: n0(e.research), total: n0(e.total) };
+    return e;
+  }
+  const rowOf = (e) => ({ id: String(e.id), user_id: user.id, type: e.type, scanned_at: new Date(+e.ts || Date.now()).toISOString(), data: dataOf(e) });
+  // Zeile aus public.scans → Verlaufseintrag der App
+  function entryOf(r) {
+    const d = r.data || {}, e = { ...d, id: String(r.id ?? d.id ?? r.scanned_at), type: r.type, ts: +d.ts || Date.parse(r.scanned_at) };
+    if (r.type === 'speedups' && e.healing == null && d.heal != null) e.healing = +d.heal;
+    if (r.type === 'ap' && e.total_ap == null && d.ap != null) e.total_ap = +d.ap;      // ältere AP-Einträge
+    return e;
+  }
 
   async function loadCloud() {
     const [scans, state] = await Promise.all([
@@ -689,7 +723,7 @@ window.RokAuth = (() => {
     if (scans.error) throw scans.error;
     if (state.error) throw state.error;
     lsKeys(NS).forEach(lsDel);                                   // lokalen Zwischenspeicher durch Cloud-Stand ersetzen
-    const hist = (scans.data || []).map(r => ({ ...(r.data || {}), id: r.id, type: r.type, ts: +(r.data?.ts) || Date.parse(r.scanned_at) }));
+    const hist = (scans.data || []).map(entryOf);
     const st = state.data?.data || {};
     let saved = [];
     try { saved = (JSON.parse(st[UNSYNCED] || '[]') || []).filter(e => e && e.id && !hist.some(h => String(h.id) === String(e.id))); } catch {}
@@ -719,6 +753,7 @@ window.RokAuth = (() => {
       if (error) { console.warn(`Scans vom Typ "${t}" von public.scans abgelehnt – werden im Profil-Speicher (user_state) gesichert`, error); speedWarn = true; failed.push(...rows.map(r => r.id)); }
     }
     // Abgelehnte Scans gehen nicht verloren: sie liegen zusätzlich in user_state und werden beim Laden wieder eingefügt
+    lastFailedTypes = [...new Set(extra.filter(r => failed.includes(r.id)).map(r => r.type))];
     const failedRows = hist.filter(e => failed.includes(String(e.id)));
     if (failedRows.length) lsSet(NS + UNSYNCED, JSON.stringify(failedRows)); else lsDel(NS + UNSYNCED);
     if (delIds.length) { const { error } = await sb.from('scans').delete().in('id', delIds); if (error) throw error; }
@@ -729,6 +764,13 @@ window.RokAuth = (() => {
     }
     synced = cur; lastState = stJson;
     failed.forEach(id => synced.delete(id));   // beim nächsten Speichern erneut versuchen
+  }
+  // Sofort an Supabase senden und melden, ob der Typ in public.scans gelandet ist
+  async function saveNow(type) {
+    hasPending = true;
+    await flushNow();
+    if (hasPending) return { ok: false, where: 'none' };              // Netz/Cloud-Fehler → wird automatisch erneut versucht
+    return lastFailedTypes.includes(type) ? { ok: true, where: 'user_state' } : { ok: true, where: 'scans' };
   }
   function flushNow() {
     clearTimeout(timer); clearTimeout(retryTimer);
@@ -929,14 +971,14 @@ window.RokAuth = (() => {
   async function loadProfile(uid) {
     const [lb, sc] = await Promise.all([
       sb.from('leaderboard').select('*').eq('user_id', uid).maybeSingle(),
-      sb.from('scans').select('type,scanned_at,data').eq('user_id', uid).in('type', ['vip', 'speedups', 'gems', 'ap', 'resources']).order('scanned_at', { ascending: true })
+      sb.from('scans').select('id,type,scanned_at,data').eq('user_id', uid).in('type', ['vip', 'speedups', 'gems', 'ap', 'resources']).order('scanned_at', { ascending: true })
     ]);
     if (lb.error) throw new Error(germanError(lb.error));
-    return { row: lb.data, scans: sc.error ? [] : (sc.data || []), scansError: !!sc.error };
+    return { row: lb.data, scans: sc.error ? [] : (sc.data || []).map(entryOf), scansError: !!sc.error };
   }
 
   return { current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
-           pushVip, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile };
+           pushVip, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, saveNow };
 })();
 </script>
 
@@ -1007,6 +1049,10 @@ window.RokApp = () => {
   // Wählbare Ziel-Level im VIP-Rechner
   const VIP_THRESHOLDS = Object.fromEntries(VIP_LEVELS.filter(x => x.level >= 1).map(x => [x.level, x.points]));
 
+  // AP-Flaschen im Inventar: feste Größen
+  const AP_SIZES = [50, 100, 500, 1000];
+  const apTotal = (c) => AP_SIZES.reduce((a, z) => a + (Math.max(0, Math.round(+c['ap_' + z] || 0)) * z), 0);
+
   // Tages-Punkte werden fest im Hintergrund gerechnet (täglicher Login)
   const DAILY_POINTS = 200;
 
@@ -1055,7 +1101,7 @@ window.RokApp = () => {
     resources: 'Liest Proviant, Holz, Stein und Gold – aus der Ressourcenleiste oder dem Ressourcen-Inventar.',
     vip: 'Liest VIP-Punkte-Kacheln aus dem Inventar (Wert × Anzahl) und berechnet den Weg zu deinem Ziel-Level.',
     gems: 'Liest die Anzahl deiner Edelsteine und speichert sie im Verlauf.',
-    ap: 'Liest deine Aktionspunkte (AP) und speichert sie im Verlauf.',
+    ap: 'Liest deine AP-Flaschen (50, 100, 500, 1.000) aus dem Inventar, füllt die 4 Felder vor und rechnet die Gesamt-AP aus.',
     speedups: 'Liest deine Beschleuniger (Universal, Bau, Forschung, Training, Heilung) aus dem Inventar und rechnet die Gesamtzeit aus.'
   };
   document.querySelectorAll('.seg-btn[data-mode]').forEach(b => b.onclick = () => {
@@ -1134,10 +1180,15 @@ window.RokApp = () => {
       const res = await fetch('/api/scan', { method: 'POST', headers: { 'content-type': 'application/json' }, body });
       body = null;
       const data = await res.json().catch(() => ({}));
-      if (!res.ok && mode === 'ap' && (res.status === 400 || /modus|mode/i.test(data?.error || ''))) {
-        showResult(await localApScan());                         // Server kennt „ap“ (noch) nicht → lokal auslesen
+      const modeRejected = !res.ok && (res.status === 400 || /modus|mode/i.test(data?.error || ''));
+      if (modeRejected && mode === 'ap') {
+        showResult(await localApScan());                         // Server kennt „ap“ (noch) nicht → lokal auslesen, Felder vorbefüllen
         discardImages();
         return;
+      }
+      if (modeRejected && mode === 'speedups') {
+        $('speedInputs').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        throw new Error('Der Scan-Server (/api/scan) kennt den Speedup-Scan noch nicht. Trag deinen Bestand links unter „Speedups eingeben“ ein – das wird normal gespeichert.');
       }
       if (!res.ok) {
         if (res.status === 404) throw new Error('Server-Route /api/scan nicht gefunden. Die Seite muss über Vercel laufen (nicht als lokale Datei).');
@@ -1167,24 +1218,32 @@ window.RokApp = () => {
     document.head.appendChild(sc);
   }));
   const toInt = (t) => +String(t).replace(/[^\d]/g, '');
-  // Erkennt „1.234/1.000“, „1234 / 1000“ (erste Zahl = aktuelle AP) oder „AP 1.234“
-  function parseAp(text) {
+  // Erkennt Flaschen-Kacheln: „1.000 AP … x12“ / „500 AP … ×3“; sonst Paare aus Größen- und Mengenangaben in Lesereihenfolge
+  function parseApBottles(text) {
     const t = String(text || '').replace(/[Oo](?=\d)|(?<=\d)[Oo]/g, '0');
-    const N = '(\\d{1,3}(?:[.,\\s]\\d{3})+|\\d+)';
-    const out = [];
-    for (const m of t.matchAll(new RegExp(N + '\\s*/\\s*' + N, 'g'))) out.push(toInt(m[1]));
-    if (!out.length) { const m = t.match(new RegExp('(?:AP|Aktionspunkte|Action\\s*Points?)[^\\d]{0,15}' + N, 'i')); if (m) out.push(toInt(m[1])); }
-    return out.filter(n => n > 0 && n < 1e7);
+    const sizeOf = (v) => { v = toInt(v); return AP_SIZES.includes(v) ? v : null; };
+    const c = {}; let hits = 0;
+    const add = (z, q) => { if (z && q >= 0 && q < 1e6) { c['ap_' + z] = (c['ap_' + z] || 0) + q; hits++; } };
+    for (const line of t.split(/\n+/)) {
+      const m = line.match(/\b(1[.,]?000|500|100|50)\s*(?:AP|Aktionspunkte|Action\s*Points?)\b.*?[x×]\s*(\d[\d.,]*)/i);
+      if (m) add(sizeOf(m[1]), toInt(m[2]));
+    }
+    if (!hits) {
+      const sizes = [...t.matchAll(/\b(1[.,]?000|500|100|50)\s*(?:AP|Aktionspunkte|Action)/gi)].map(m => sizeOf(m[1]));
+      const qty = [...t.matchAll(/[x×]\s*(\d[\d.,]*)/g)].map(m => toInt(m[1]));
+      if (sizes.length && sizes.length === qty.length) sizes.forEach((z, i) => add(z, qty[i]));
+    }
+    return hits ? c : null;
   }
   async function localApScan() {
     $('analyzeLabel').textContent = 'Lese AP lokal …';
     const T = await loadTesseract();
     for (const im of images) {
       const { data } = await T.recognize(im.dataUrl, 'eng');
-      const found = parseAp(data?.text);
-      if (found.length) return { ap: found[0], confidence: 'OCR lokal' };
+      const c = parseApBottles(data?.text);
+      if (c) return { ...c, confidence: 'OCR lokal' };
     }
-    throw new Error('AP im Screenshot nicht erkannt. Trag deine AP links unter „AP eingeben“ von Hand ein.');
+    throw new Error('AP-Flaschen im Screenshot nicht sicher erkannt. Bitte die Anzahl je Flaschengröße links eintragen.');
   }
 
   // Entfernt alle Bilddaten aus der Seite: Array-Referenzen, Base64-Strings, <img>-Elemente, Datei-Input.
@@ -1221,17 +1280,16 @@ window.RokApp = () => {
     let type = mode;
     $('emptyState').classList.add('hidden');
     if (type === 'speedups') {
-      const sp = r.speedups || {}, ts = Date.now(), e = {};
+      const raw = r.speedups || r, sp = { ...raw, healing: raw.healing ?? raw.heal }, ts = Date.now(), e = {};
       SPEED.forEach(c => e[c.k] = Math.max(0, Math.round(num(sp[c.k]) || 0)));
       e.total = SPEED.reduce((a, c) => a + e[c.k], 0);
       if (!e.total) throw new Error('Keine Speedups im Screenshot erkannt.');
       renderSpeedups(e, ts);
       addHistory({ id: newId(), ts, type: 'speedups', ...e, confidence: r.confidence || null });
       saveLastScan({ type: 'speedups', ts, ...e });
+      RokAuth.saveNow('speedups');
     } else if (type === 'ap') {
-      const ap = num(r.ap ?? r.action_points);
-      if (ap == null) throw new Error('Keine Aktionspunkte im Screenshot erkannt.');
-      saveApEntry(Math.max(0, Math.round(ap)), r.confidence || null);
+      prefillAp(r);                                              // nicht sofort speichern: Nutzer prüft die 4 Felder
     } else if (type === 'gems') {
       const hand = num(r.gems_hand), bag = num(r.gems_bag), ts = Date.now();
       const g = (hand != null || bag != null) ? (hand || 0) + (bag || 0) : num(r.gems);
@@ -1477,10 +1535,11 @@ window.RokApp = () => {
   // Altdaten-Schutz: nur bekannte Zahlenfelder übernehmen
   const sanitize = (e) => {
     const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups', 'ap'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
-    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap']
+    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap']
       : out.type === 'speedups' ? ['universal', 'building', 'research', 'training', 'healing', 'total']
       : ['food', 'wood', 'stone', 'gold', 'total', 'farmFood', 'farmWood', 'farmStone', 'farmGold', 'bagFood', 'bagWood', 'bagStone', 'bagGold'];
     keys.forEach(k => out[k] = (e[k] === null || e[k] === undefined || isNaN(+e[k])) ? null : +e[k]);
+    if (out.type === 'ap' && out.total_ap == null && e.ap != null && !isNaN(+e.ap)) out.total_ap = +e.ap;   // ältere AP-Einträge
     return out;
   };
   history = history.filter(e => e && e.id).map(sanitize);
@@ -1548,7 +1607,7 @@ window.RokApp = () => {
         borderDash: l.k === 'combined' && isLine ? [8, 5] : undefined,
         borderRadius: 4, tension: .3, pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: l.c, spanGaps: true, fill: false }));
     } else if (histTab === 'ap') {
-      datasets = [{ label: 'AP', data: list.map(e => e.ap), backgroundColor: isLine ? '#34d39933' : '#34d399cc', borderColor: '#34d399',
+      datasets = [{ label: 'AP gesamt', data: list.map(e => e.total_ap), backgroundColor: isLine ? '#34d39933' : '#34d399cc', borderColor: '#34d399',
         borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: '#34d399', spanGaps: true, fill: false }];
     } else if (histTab === 'gems') {
       const gs = (label, key, c) => ({ label, data: list.map(e => e[key]), backgroundColor: isLine ? c + '33' : c + 'cc', borderColor: c,
@@ -1631,12 +1690,13 @@ window.RokApp = () => {
       }).join('');
     } else if (histTab === 'ap') {
       $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
-        <th class="${th_}">⚡ AP</th><th class="${th_}">Veränderung</th><th class="w-8"></th></tr>`;
+        <th class="${th_}">50er</th><th class="${th_}">100er</th><th class="${th_}">500er</th><th class="${th_}">1.000er</th><th class="${th_}">⚡ AP gesamt</th><th class="${th_}">Veränderung</th><th class="w-8"></th></tr>`;
       $('histRows').innerHTML = rows.map((e, i) => {
-        const prev = rows[i + 1], d = prev && prev.ap != null && e.ap != null ? e.ap - prev.ap : null;
+        const prev = rows[i + 1], d = prev && prev.total_ap != null && e.total_ap != null ? e.total_ap - prev.total_ap : null;
         return `<tr class="border-b border-ink-800 hover:bg-ink-850">
           <td class="py-2 pr-2 whitespace-nowrap text-slate-300">${dateLabel(e.ts)}</td>
-          <td class="py-2 px-2 text-right tabular-nums font-semibold text-emerald-300">${e.ap != null ? fmt(e.ap) : '–'}</td>
+          ${AP_SIZES.map(z => `<td class="py-2 px-2 text-right tabular-nums text-slate-300">${e['ap_' + z] != null ? fmt(e['ap_' + z]) : '–'}</td>`).join('')}
+          <td class="py-2 px-2 text-right tabular-nums font-semibold text-emerald-300">${e.total_ap != null ? fmt(e.total_ap) : '–'}</td>
           <td class="py-2 px-2 text-right tabular-nums ${d == null ? 'text-slate-500' : d >= 0 ? 'text-emerald-400' : 'text-red-400'}">${d == null ? '–' : (d >= 0 ? '+' : '−') + fmt(Math.abs(d))}</td>
           <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
         </tr>`;
@@ -1831,7 +1891,7 @@ window.RokApp = () => {
   }
 
   // ---------- Manuelle Eingabe ----------
-  function renderSpeedInputs() { $('speedInputRows').innerHTML = speedGridHtml(curSpeed || {}); }
+  function renderSpeedInputs() { $('speedInputRows').innerHTML = speedGridHtml(curSpeed || {}); if (typeof updateSpeedSum === 'function') updateSpeedSum(); }
   // Liest ein Raster aus Tage/Std./Min.-Feldern (data-sk, data-u) in Minuten je Typ
   function readSpeedGrid(container) {
     const e = {}; SPEED.forEach(c => e[c.k] = 0);
@@ -1856,12 +1916,13 @@ window.RokApp = () => {
     saveLastScan({ type: 'speedups', ts, ...e });
     applyMode();
   }
-  $('speedSave').onclick = () => {
+  $('speedSave').onclick = async () => {
     const e = readSpeedGrid($('speedInputRows'));
     if (!e.total) { showError('Bitte mindestens einen Speedup-Wert eintragen.'); return; }
     hideError();
-    saveSpeedEntry(e);
-    $('speedSaveMsg').classList.remove('hidden'); setTimeout(() => $('speedSaveMsg').classList.add('hidden'), 2500);
+    $('speedSave').disabled = true;
+    try { saveSpeedEntry(e); flash($('speedSaveMsg'), savedText(await RokAuth.saveNow('speedups')), true); }
+    finally { $('speedSave').disabled = false; }
   };
 
   function renderSpeedups(e, ts) {
@@ -1907,31 +1968,79 @@ window.RokApp = () => {
     hasGems = true;
   }
 
-  // ---------- AP (Aktionspunkte) ----------
-  function renderAp(ap, ts) {
-    $('apValue').textContent = fmt(ap);
-    const prev = history.filter(e => e.type === 'ap' && e.ts < ts && e.ap != null).sort((a, b) => b.ts - a.ts)[0];
-    const d = prev ? ap - prev.ap : null;
+  // ---------- AP (Aktionspunkte) – 4 Flaschengrößen ----------
+  function readApFields() {
+    const c = {};
+    AP_SIZES.forEach(z => c['ap_' + z] = Math.max(0, Math.round(+$('ap' + z).value || 0)));
+    c.total_ap = apTotal(c);
+    return c;
+  }
+  function fillApFields(c) {
+    AP_SIZES.forEach(z => { const v = c?.['ap_' + z]; $('ap' + z).value = v ? v : ''; });
+    updateApSum();
+  }
+  function updateApSum() { $('apSum').textContent = fmt(readApFields().total_ap) + ' AP'; }
+  document.querySelectorAll('.ap-in').forEach(i => i.addEventListener('input', () => { i.classList.remove('border-amber-400'); updateApSum(); }));
+
+  function renderAp(c, ts) {
+    const total = c.total_ap ?? apTotal(c);
+    $('apValue').textContent = fmt(total) + ' AP';
+    const prev = history.filter(e => e.type === 'ap' && e.ts < ts && e.total_ap != null).sort((a, b) => b.ts - a.ts)[0];
+    const d = prev ? total - prev.total_ap : null;
     $('apDelta').innerHTML = d == null ? 'Erster Scan' :
       `<span class="${d >= 0 ? 'text-emerald-400' : 'text-red-400'}">${d >= 0 ? '+' : '−'}${fmt(Math.abs(d))}</span> seit ${dateLabel(prev.ts)}`;
+    $('apBreak').innerHTML = AP_SIZES.map(z => {
+      const n = +c['ap_' + z] || 0;
+      return `<div class="panel rounded-2xl p-4">
+        <div class="text-[10px] uppercase tracking-widest text-slate-400">${z >= 500 ? '⚗️' : '🧪'} ${fmt(z)}er Flaschen</div>
+        <div class="text-xl font-bold text-white tabular-nums mt-1">${fmt(n)} <span class="text-sm font-medium text-slate-400">Stk.</span></div>
+        <div class="text-xs text-emerald-300 tabular-nums">= ${fmt(n * z)} AP</div>
+      </div>`;
+    }).join('');
     $('apSource').textContent = `Letzter Scan: ${dateLabel(ts)}`;
     hasAp = true;
   }
-  function saveApEntry(ap, confidence) {
-    const ts = Date.now();
-    renderAp(ap, ts);
-    addHistory({ id: newId(), ts, type: 'ap', ap, confidence });
-    saveLastScan({ type: 'ap', ts, ap });
-  }
-  $('apSave').onclick = () => {
-    const v = $('apManual').value.trim();
-    if (v === '' || isNaN(+v) || +v < 0) { showError('Bitte gültige AP eingeben.'); return; }
-    hideError();
-    saveApEntry(Math.round(+v), 'manuell');
+  const flash = (el, html, ok) => { el.innerHTML = html; el.className = 'mt-2 text-xs ' + (ok ? 'text-emerald-400' : 'text-amber-300'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.add('hidden'), 6000); };
+  const savedText = (r) => r.where === 'scans' ? '✓ Gespeichert · in Supabase (scans)'
+    : r.where === 'user_state' ? '✓ Gespeichert · im Profil-Speicher (für public.scans fehlt noch das SQL-Update)'
+    : '✓ Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt';
+  async function saveApEntry(c, confidence) {
+    const ts = Date.now(), entry = { ...c, total_ap: apTotal(c) };
+    renderAp(entry, ts);
+    addHistory({ id: newId(), ts, type: 'ap', ...entry, confidence });
+    saveLastScan({ type: 'ap', ts, ...entry });
     applyMode();
-    $('apManual').value = '';
-    $('apSaveMsg').classList.remove('hidden'); setTimeout(() => $('apSaveMsg').classList.add('hidden'), 2500);
+    return RokAuth.saveNow('ap');
+  }
+  $('apSave').onclick = async () => {
+    const c = readApFields();
+    if (!c.total_ap) { showError('Bitte mindestens eine Flaschen-Anzahl eintragen.'); return; }
+    hideError(); $('apPrefillMsg').classList.add('hidden');
+    AP_SIZES.forEach(z => $('ap' + z).classList.remove('border-amber-400'));
+    $('apSave').disabled = true;
+    try { flash($('apSaveMsg'), savedText(await saveApEntry(c, 'manuell')), true); }
+    finally { $('apSave').disabled = false; }
   };
+  // Scan-Ergebnis → Felder vorbefüllen (Nutzer prüft und speichert selbst)
+  function prefillAp(r) {
+    const c = {}; let found = 0;
+    const src = r.ap && typeof r.ap === 'object' ? r.ap : r;
+    AP_SIZES.forEach(z => { const v = num(src['ap_' + z] ?? src[String(z)]); if (v != null) { c['ap_' + z] = v; found++; } });
+    (r.items || r.ap_items || []).forEach(i => { const z = +i.points_each || +i.size; if (AP_SIZES.includes(z)) { c['ap_' + z] = (c['ap_' + z] || 0) + (+i.quantity || 0); found++; } });
+    if (!found) throw new Error('Keine AP-Flaschen im Screenshot erkannt. Bitte die Anzahl links von Hand eintragen.');
+    fillApFields(c);
+    AP_SIZES.forEach(z => $('ap' + z).classList.toggle('border-amber-400', c['ap_' + z] != null));
+    $('apPrefillMsg').textContent = `Erkannt (${r.confidence || 'Scan'}) – bitte die markierten Felder prüfen und dann „AP speichern“ klicken.`;
+    $('apPrefillMsg').classList.remove('hidden');
+    $('apInputs').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // ---------- Speedups: Live-Summe der Eingabe ----------
+  function updateSpeedSum() {
+    const e = readSpeedGrid($('speedInputRows'));
+    $('speedSum').textContent = e.total ? `${durText(e.total)} · ${days(e.total)} Tage` : '0 Min.';
+  }
+  $('speedInputRows').addEventListener('input', updateSpeedSum);
 
   // Getrennte Seiten: Ressourcen | VIP | Gems | Speedups | AP
   function applyMode() {
@@ -1956,7 +2065,7 @@ window.RokApp = () => {
       resources: 'Lade einen Screenshot der Ressourcen deines Main-Accounts hoch und klicke auf „Analysieren“.',
       vip: 'Lade einen Screenshot deines Inventars mit VIP-Punkte-Items hoch und klicke auf „Analysieren“ – oder nutze „Rechner ohne Scan öffnen“.',
       gems: 'Lade einen Screenshot hoch, auf dem deine Edelsteine zu sehen sind, und klicke auf „Analysieren“.',
-      ap: 'Lade einen Screenshot hoch, auf dem deine Aktionspunkte (AP) zu sehen sind, und klicke auf „Analysieren“ – oder trag sie links von Hand ein.',
+      ap: 'Lade einen Screenshot deiner AP-Flaschen aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag die Anzahl je Flaschengröße links ein.',
       speedups: 'Lade Screenshots deiner Beschleuniger aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag deinen Bestand links unter „Speedups eingeben“ ein.'
     }[mode];
     histTab = mode; syncTabs(); renderHistory();
@@ -2153,7 +2262,7 @@ window.RokApp = () => {
       if (uid !== profileUid) return;                         // inzwischen anderes Profil geöffnet
       let entries;
       if (own) entries = history.map(e => ({ ...e }));
-      else entries = p.scans.map(r => ({ ...(r.data || {}), type: r.type, ts: +(r.data?.ts) || Date.parse(r.scanned_at) }));
+      else entries = p.scans.map(e => ({ ...e }));
       entries.sort((a, b) => a.ts - b.ts);
       const row = p.row || (own ? { username: PROFILE.name, vip_points: null } : null);
       if (!row) throw new Error('Dieses Profil wurde nicht gefunden.');
@@ -2340,7 +2449,7 @@ window.RokApp = () => {
     drawProfChart('pcGrowth', entries, [
       { label: '👑 VIP-Punkte', c: '#f5c542', get: of('vip', e => e.after), fmt: fmt, axis: 'y1', w: 3 },
       { label: '💎 Gems',       c: '#f472b6', get: of('gems', e => e.gems), fmt: fmt },
-      { label: '⚡ AP',         c: '#38bdf8', get: of('ap', e => e.ap), fmt: fmt }
+      { label: '⚡ AP',         c: '#38bdf8', get: of('ap', e => e.total_ap), fmt: fmt }
     ], { y: { title: 'Gems / AP', tick: (v) => short(v) }, y1: { title: 'VIP-Punkte', tick: (v) => short(v) } }, none('VIP-, Gems- oder AP-Scans'));
 
     // 3) Ressourcen: Nahrung, Holz, Stein, Gold (Gesamt des Main-Accounts)
@@ -2388,7 +2497,8 @@ window.RokApp = () => {
   else { renderSpeedInputs(); renderEvent(); }
   renderSpeedOpts();
   const lastAp = readLast('ap');
-  if (lastAp?.ap != null) renderAp(+lastAp.ap, lastAp.ts);
+  if (lastAp && (lastAp.total_ap != null || lastAp.ap != null)) { const c = { ...lastAp, total_ap: lastAp.total_ap ?? +lastAp.ap }; renderAp(c, lastAp.ts); fillApFields(c); }
+  else updateApSum();
   const lastGems = readLast('gems');
   if (lastGems?.gems != null) renderGems({ gems: +lastGems.gems, gemsHand: lastGems.gemsHand ?? null, gemsBag: lastGems.gemsBag ?? null }, lastGems.ts);
   renderFarms();
