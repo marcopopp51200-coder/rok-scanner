@@ -224,7 +224,8 @@ Von oben nach unten:
 4. darunter, Mitte                 → "legs"   (Beinschutz)
 5. links darunter → "acc1" · rechts darunter → "acc2" (Accessoires)
 6. ganz unten, Mitte               → "boots"  (Stiefel)
-Ignoriere die römischen Ziffern unter den Feldern und das kleine rote Symbol.
+Unter jedem Feld steht eine römische Ziffer I, II, III, IV oder V – das ist das Tier des Items: als Zahl 1–5 in "tier" eintragen (I=1, II=2, III=3, IV=4, V=5; nicht lesbar → 1).
+Ignoriere das kleine rote Symbol.
 
 Seltenheit = Farbe des Feldes: gold/orange = "legendary", lila = "epic", blau = "elite", grün = "advanced", grau = "normal".
 Leeres Feld (nur Umriss/Platzhalter) → null.
@@ -240,7 +241,7 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
 {
   "type": "gear",
   "slots": {
-    "helm":   {"item_id": string|null, "name": string|null, "description": string, "rarity": "legendary"|"epic"|"elite"|"advanced"|"normal"} | null,
+    "helm":   {"item_id": string|null, "name": string|null, "description": string, "rarity": "legendary"|"epic"|"elite"|"advanced"|"normal", "tier": 1|2|3|4|5} | null,
     "chest":  ... | null,
     "weapon": ... | null,
     "gloves": ... | null,
