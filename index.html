@@ -3573,7 +3573,7 @@ window.RokApp = () => {
   const gNormItem = (i) => ({ id: String(i.id), name: String(i.name || 'Item').slice(0, 60), cat: GEAR_CATS[i.cat] ? i.cat : 'helm',
     set: String(i.set || '').slice(0, 40), rarity: i.rarity === 'epic' ? 'epic' : 'legendary',
     leather: gNum(i.leather), iron: gNum(i.iron), ebony: gNum(i.ebony), bone: gNum(i.bone), db: !!i.db,
-    icon: typeof i.icon === 'string' && /^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(i.icon) && i.icon.length < 200000 ? i.icon : '' });
+    icon: typeof i.icon === 'string' && i.icon.length < 200000 && (/^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(i.icon) || /^\/icons\/[A-Za-z0-9_.-]+\.(webp|png|jpe?g)$/.test(i.icon)) ? i.icon : '' });
   const gFromDb = (r) => gNormItem({ id: r.id, name: r.name, cat: r.slot, set: r.set_name || '', rarity: r.rarity,
     leather: r.cost_leather, iron: r.cost_iron, ebony: r.cost_ebony, bone: r.cost_bone, icon: r.icon, db: true });
 
