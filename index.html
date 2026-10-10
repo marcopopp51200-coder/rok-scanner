@@ -44,7 +44,7 @@ tailwind.config = {
         </div>
         <div>
           <h2 id="authTitle" class="font-display text-2xl gold-text">Kingdom Scanner</h2>
-          <p class="text-xs text-slate-400">Dein Account – auf jedem Gerät</p>
+          <p class="text-xs text-slate-400">Dein Account</p>
         </div>
       </div>
 
@@ -63,8 +63,8 @@ tailwind.config = {
 
         <form id="loginForm" class="mt-5 space-y-3" autocomplete="on">
           <div>
-            <label for="loginUser" class="text-xs text-slate-400">Benutzername oder E-Mail</label>
-            <input id="loginUser" name="username" autocomplete="username" maxlength="80" required
+            <label for="loginUser" class="text-xs text-slate-400">Benutzername</label>
+            <input id="loginUser" name="username" autocomplete="username" maxlength="80" required placeholder="z. B. dein Ingame-Name"
                    class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold-500">
           </div>
           <div>
@@ -77,10 +77,9 @@ tailwind.config = {
 
         <form id="registerForm" class="hidden mt-5 space-y-3" autocomplete="on">
           <div>
-            <label for="regUser" class="text-xs text-slate-400">Benutzername oder E-Mail</label>
-            <input id="regUser" name="username" autocomplete="username" maxlength="80" required placeholder="z. B. Marco oder marco@mail.de"
+            <label for="regUser" class="text-xs text-slate-400">Benutzername</label>
+            <input id="regUser" name="username" autocomplete="username" maxlength="80" required placeholder="z. B. dein Ingame-Name"
                    class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold-500">
-            <p class="mt-1 text-[11px] text-slate-500">Mit E-Mail kannst du später dein Passwort zurücksetzen.</p>
           </div>
           <div>
             <label for="regPass" class="text-xs text-slate-400">Passwort <span class="text-slate-500">(mind. 6 Zeichen)</span></label>
@@ -94,7 +93,6 @@ tailwind.config = {
           </div>
           <button type="submit" class="w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Account anlegen</button>
         </form>
-        <p class="mt-5 text-[11px] text-slate-500 leading-relaxed">Account und Scans werden sicher in der Cloud gespeichert – du kannst dich auf jedem Gerät anmelden.</p>
       </div>
 
       <div id="authError" role="alert" class="hidden mt-4 rounded-lg border border-red-500/40 bg-red-500/10 text-red-200 text-sm px-3 py-2"></div>
@@ -119,14 +117,26 @@ tailwind.config = {
       <button class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-view="scanner" aria-pressed="true" role="tab">Scanner &amp; Dashboard</button>
       <button class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-view="rank" aria-pressed="false" role="tab">🏆 Rangliste</button>
     </nav>
-    <div id="userBox" class="hidden self-start sm:self-auto items-center gap-2 rounded-xl border border-ink-600 bg-ink-900/70 pl-2 pr-1 py-1">
-      <div id="userAvatar" class="w-8 h-8 rounded-lg grid place-items-center font-bold text-ink-950 bg-gradient-to-br from-gold-400 to-gold-600"></div>
-      <div class="leading-tight pr-1">
-        <div class="text-[10px] uppercase tracking-widest text-slate-500">Eingeloggt als</div>
-        <div id="userName" class="text-sm font-semibold text-white max-w-[140px] truncate"></div>
-        <div id="syncStatus" class="text-[10px] text-slate-500"></div>
+    <div id="userBox" class="hidden relative self-start sm:self-auto">
+      <button id="userMenuBtn" aria-haspopup="menu" aria-expanded="false"
+              class="flex items-center gap-2 rounded-xl border border-ink-600 bg-ink-900/70 pl-2 pr-3 py-1.5 hover:border-gold-500/60 transition text-left">
+        <span id="userAvatar"></span>
+        <span class="leading-tight">
+          <span class="block text-[10px] uppercase tracking-widest text-slate-500">Eingeloggt als</span>
+          <span id="userName" class="block text-sm font-semibold text-white max-w-[140px] truncate"></span>
+          <span id="syncStatus" class="block text-[10px] text-slate-500"></span>
+        </span>
+        <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div id="userMenu" role="menu" class="hidden absolute right-0 mt-2 w-52 z-40 panel rounded-xl p-1.5 shadow-2xl">
+        <button id="menuProfile" role="menuitem" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
+          <span>🛡️</span> Game Profil
+        </button>
+        <div class="my-1 border-t border-ink-700"></div>
+        <button id="logoutBtn" role="menuitem" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left font-semibold text-red-300 hover:bg-red-600 hover:text-white">
+          <span>⎋</span> Abmelden
+        </button>
       </div>
-      <button id="logoutBtn" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white">Abmelden</button>
     </div>
   </header>
 
@@ -136,7 +146,8 @@ tailwind.config = {
     <aside class="space-y-6">
       <section class="panel rounded-2xl p-5">
         <h2 class="font-display text-lg text-gold-300 mb-3">1 · Modus</h2>
-        <div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group">
+        <div class="grid grid-cols-4 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group">
+          <button class="seg-btn rounded-lg py-2 text-sm font-semibold transition" data-mode="speedups" aria-pressed="false">Speedups</button>
           <button class="seg-btn rounded-lg py-2 text-sm font-semibold transition" data-mode="resources" aria-pressed="true">Ressourcen</button>
           <button class="seg-btn rounded-lg py-2 text-sm font-semibold transition" data-mode="vip" aria-pressed="false">VIP</button>
           <button class="seg-btn rounded-lg py-2 text-sm font-semibold transition" data-mode="gems" aria-pressed="false">Gems</button>
@@ -162,6 +173,17 @@ tailwind.config = {
         <div id="discardMsg" class="hidden mt-2 text-xs text-emerald-400">✓ Screenshots wurden nach dem Auslesen verworfen.</div>
       </section>
 
+      <section id="speedInputs" class="hidden panel rounded-2xl p-5">
+        <h2 class="font-display text-lg text-gold-300 mb-1">3 · Speedups eingeben</h2>
+        <p class="text-xs text-slate-400 mb-3">Alternativ zum Scan: Bestand von Hand eintragen.</p>
+        <div class="grid grid-cols-[1fr_repeat(3,56px)] gap-x-1.5 gap-y-2 items-center text-xs">
+          <span></span><span class="text-center text-slate-500">Tage</span><span class="text-center text-slate-500">Std.</span><span class="text-center text-slate-500">Min.</span>
+          <div id="speedInputRows" class="contents"></div>
+        </div>
+        <button id="speedSave" class="mt-4 w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Bestand speichern</button>
+        <div id="speedSaveMsg" class="hidden mt-2 text-xs text-emerald-400">✓ Gespeichert</div>
+      </section>
+
       <section id="vipInputs" class="panel rounded-2xl p-5">
         <h2 class="font-display text-lg text-gold-300 mb-3">3 · Aktueller VIP-Stand</h2>
         <label class="text-xs text-slate-400">Aktuelle VIP-Punkte</label>
@@ -175,9 +197,6 @@ tailwind.config = {
         <div id="vipItemsBox" class="hidden mt-5 pt-4 border-t border-ink-700">
           <div class="flex items-center justify-between mb-2">
             <h3 class="text-sm font-semibold">Erkannte VIP-Items</h3>
-            <select id="addToken" class="text-xs bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 hover:border-gold-500/60 focus:outline-none">
-              <option value="">+ Token</option>
-            </select>
           </div>
           <table class="w-full text-xs">
             <thead class="uppercase tracking-wider text-slate-500">
@@ -264,6 +283,38 @@ tailwind.config = {
         <div id="vipTargets"></div>
       </section>
 
+      <!-- Speedups -->
+      <section id="speedSection" class="hidden space-y-4">
+        <div class="flex items-end justify-between">
+          <h2 class="font-display text-2xl gold-text">Speedups</h2>
+          <span id="speedSource" class="text-xs text-slate-400"></span>
+        </div>
+        <div class="panel rounded-2xl p-6 flex items-center gap-5">
+          <div class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#38bdf833,#6366f122);border:1px solid #38bdf855">⏱️</div>
+          <div>
+            <div class="text-xs uppercase tracking-widest text-slate-400">Speedups gesamt</div>
+            <div id="speedTotal" class="text-4xl font-extrabold text-white tabular-nums">–</div>
+            <div id="speedDelta" class="text-sm mt-1 text-slate-400"></div>
+          </div>
+        </div>
+        <div id="speedCards" class="grid sm:grid-cols-2 gap-4"></div>
+
+        <div class="panel rounded-2xl p-5">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h3 class="font-display text-xl gold-text">Event-Rechner</h3>
+            <span class="text-xs text-slate-500">z. B. für Zenith, MGE oder KvK</span>
+          </div>
+          <div id="eventBtns" class="flex flex-wrap gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group"></div>
+          <div id="eventFormula" class="mt-3 text-xs text-slate-400"></div>
+          <div id="eventKpis" class="mt-4 grid sm:grid-cols-3 gap-3"></div>
+          <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+            <label for="eventPpm">Punkte pro 1 Min. Speedup in diesem Event:</label>
+            <input id="eventPpm" type="number" min="0" step="any" class="w-24 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm text-right text-white focus:outline-none focus:border-gold-500">
+            <span class="text-slate-500">(wird pro Event gespeichert)</span>
+          </div>
+        </div>
+      </section>
+
       <!-- Gems -->
       <section id="gemsSection" class="hidden space-y-4">
         <div class="flex items-end justify-between">
@@ -335,6 +386,7 @@ tailwind.config = {
           </div>
         </div>
 
+        <div id="speedOpts" class="hidden flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-xs text-slate-300"></div>
         <div id="resFilter" class="hidden flex flex-wrap gap-1 p-1 mb-4 rounded-xl bg-ink-950 border border-ink-700 w-fit" role="group">
           <button class="rf-btn seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition" data-view="all" aria-pressed="true">Alle Werte</button>
           <button class="rf-btn seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition" data-view="bag" aria-pressed="false">Nur Rucksack</button>
@@ -364,12 +416,91 @@ tailwind.config = {
     </main>
   </div>
 
+  <!-- Game Profil -->
+  <section id="profileView" class="hidden space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <button id="profBack" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">← Zurück</button>
+      <span id="profModeBadge" class="text-xs px-2.5 py-1 rounded-full border"></span>
+    </div>
+    <div id="profState" class="hidden panel rounded-2xl p-10 text-center text-sm text-slate-400"></div>
+    <div id="profBody" class="hidden space-y-6">
+      <div id="profHead" class="panel rounded-2xl p-6"></div>
+
+      <!-- Bearbeiten (nur eigenes Profil) -->
+      <div id="profEdit" class="hidden panel rounded-2xl p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h3 class="font-display text-xl gold-text">Werte aktualisieren</h3>
+          <div class="flex flex-wrap gap-2">
+            <button id="profScanVip" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">📷 Neuen VIP-Scan einfügen</button>
+            <button id="profScanSpeed" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">📷 Neuen Speedup-Scan einfügen</button>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="space-y-4">
+            <div>
+              <label for="profTag" class="text-xs text-slate-400">Allianz-Tag</label>
+              <input id="profTag" maxlength="6" placeholder="z. B. ABC1"
+                     class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm uppercase focus:outline-none focus:border-gold-500">
+            </div>
+            <div>
+              <div class="text-xs text-slate-400">Profilbild</div>
+              <div id="profAvatars" class="mt-1 flex flex-wrap gap-1.5"></div>
+            </div>
+            <div>
+              <label for="profVip" class="text-xs text-slate-400">Aktuelle VIP-Punkte <span class="text-slate-500">(ohne Gegenstände)</span></label>
+              <input id="profVip" type="number" min="0" step="1"
+                     class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500">
+            </div>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 mb-1">Speedups korrigieren</div>
+            <div class="grid grid-cols-[1fr_repeat(3,56px)] gap-x-1.5 gap-y-2 items-center text-xs">
+              <span></span><span class="text-center text-slate-500">Tage</span><span class="text-center text-slate-500">Std.</span><span class="text-center text-slate-500">Min.</span>
+              <div id="profSpeedRows" class="contents"></div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-5 flex flex-wrap items-center gap-3">
+          <button id="profSave" class="px-5 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Werte speichern</button>
+          <span id="profMsg" class="text-sm"></span>
+        </div>
+      </div>
+
+      <!-- Speedups & Event -->
+      <div class="panel rounded-2xl p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h3 class="font-display text-xl gold-text">Speedups</h3>
+          <span id="profSpeedStamp" class="text-xs text-slate-500"></span>
+        </div>
+        <div id="profSpeed" class="grid sm:grid-cols-3 gap-3"></div>
+        <div id="profSpeedMinor" class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-400"></div>
+        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <div id="profEvBtns" class="flex flex-wrap gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group"></div>
+          <span id="profEvFormula" class="text-xs text-slate-400"></span>
+        </div>
+        <div id="profEvKpi" class="mt-4"></div>
+      </div>
+
+      <!-- Verlauf -->
+      <div class="panel rounded-2xl p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h3 class="font-display text-xl gold-text">Verlauf</h3>
+          <div id="profLines" class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-300"></div>
+        </div>
+        <div class="relative h-80">
+          <canvas id="profChart"></canvas>
+          <div id="profChartEmpty" class="absolute inset-0 grid place-items-center text-sm text-slate-500 text-center px-6"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Rangliste -->
   <section id="rankView" class="hidden space-y-6">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
         <h2 class="font-display text-3xl gold-text">Allianz-Rangliste</h2>
-        <p class="text-sm text-slate-400">Alle Spieler, sortiert nach aktuellen VIP-Punkten</p>
+        <p class="text-sm text-slate-400">Alle Spieler, sortiert nach VIP-Punkten inkl. VIP durch Gegenstände</p>
       </div>
       <button id="rankRefresh" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6M20 20v-6h-6M20 10a8 8 0 00-14.9-3M4 14a8 8 0 0014.9 3"/></svg>
@@ -387,8 +518,9 @@ tailwind.config = {
             <tr>
               <th class="py-2 px-3 text-left font-medium w-20">Platz</th>
               <th class="py-2 px-3 text-left font-medium">Spieler</th>
-              <th class="py-2 px-3 text-right font-medium">VIP-Punkte</th>
+              <th class="py-2 px-3 text-right font-medium whitespace-nowrap">VIP-Punkte <span class="normal-case tracking-normal text-slate-500">(inkl. Gegenstände)</span></th>
               <th class="py-2 px-3 text-center font-medium">VIP-Stufe</th>
+              <th class="py-2 px-3 text-left font-medium whitespace-nowrap min-w-[190px]">Bis zum nächsten VIP</th>
               <th class="py-2 px-3 text-right font-medium whitespace-nowrap">Zuletzt aktualisiert</th>
             </tr>
           </thead>
@@ -427,6 +559,7 @@ window.RokAuth = (() => {
   try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } }); } catch {}
 
   let user = null, profile = null, NS = '', PENDING = '';
+  let speedWarn = false;
   let synced = new Map(), lastState = '{}', timer = null, retryTimer = null, queue = Promise.resolve(), hasPending = false;
   const nsOf = (id) => 'rok_cloud_' + id + '_';
 
@@ -439,7 +572,7 @@ window.RokAuth = (() => {
   const displayName = (u) => u?.user_metadata?.username || (u?.email || '').split('@')[0] || 'Spieler';
   function germanError(e) {
     const m = String(e?.message || e || '');
-    if (/invalid login credentials/i.test(m)) return 'Benutzername/E-Mail oder Passwort ist falsch.';
+    if (/invalid login credentials/i.test(m)) return 'Benutzername oder Passwort ist falsch.';
     if (/already registered|already exists/i.test(m)) return 'Diesen Account gibt es schon – bitte einloggen.';
     if (/email not confirmed/i.test(m)) return 'Bitte bestätige zuerst deine E-Mail-Adresse (Link im Postfach).';
     if (/password should be at least/i.test(m)) return 'Das Passwort ist zu kurz (mind. 6 Zeichen).';
@@ -492,7 +625,7 @@ window.RokAuth = (() => {
 
   async function loadCloud() {
     const [scans, state] = await Promise.all([
-      sb.from('scans').select('id,type,scanned_at,data').order('scanned_at', { ascending: true }),
+      sb.from('scans').select('id,type,scanned_at,data').eq('user_id', user.id).order('scanned_at', { ascending: true }),   // nur eigene Zeilen
       sb.from('user_state').select('data').maybeSingle()
     ]);
     if (scans.error) throw scans.error;
@@ -512,9 +645,16 @@ window.RokAuth = (() => {
     const hist = readLocalHistory();
     const cur = new Map(hist.map(e => [String(e.id), JSON.stringify(e)]));
     const up = [...cur].filter(([id, j]) => full || synced.get(id) !== j).map(([, j]) => rowOf(JSON.parse(j)))
-      .filter(r => ['resources', 'vip', 'gems'].includes(r.type));
+      .filter(r => ['resources', 'vip', 'gems', 'speedups'].includes(r.type));
     const delIds = full ? [] : [...synced.keys()].filter(id => !cur.has(id));
-    if (up.length) { const { error } = await sb.from('scans').upsert(up, { onConflict: 'user_id,id' }); if (error) throw error; }
+    // Speedups getrennt senden: fehlt das SQL-Update, blockiert das nicht die übrigen Daten
+    const core = up.filter(r => r.type !== 'speedups'), extra = up.filter(r => r.type === 'speedups'), failed = [];
+    if (core.length) { const { error } = await sb.from('scans').upsert(core, { onConflict: 'user_id,id' }); if (error) throw error; }
+    speedWarn = false;
+    if (extra.length) {
+      const { error } = await sb.from('scans').upsert(extra, { onConflict: 'user_id,id' });
+      if (error) { console.warn('Speedups nicht gespeichert – speedups.sql in Supabase ausführen', error); speedWarn = true; failed.push(...extra.map(r => r.id)); }
+    }
     if (delIds.length) { const { error } = await sb.from('scans').delete().in('id', delIds); if (error) throw error; }
     const st = readLocalState(), stJson = JSON.stringify(st);
     if (full || stJson !== lastState) {
@@ -522,13 +662,15 @@ window.RokAuth = (() => {
       if (error) throw error;
     }
     synced = cur; lastState = stJson;
+    failed.forEach(id => synced.delete(id));   // beim nächsten Speichern erneut versuchen
   }
   function flushNow() {
     clearTimeout(timer); clearTimeout(retryTimer);
     if (!user || !hasPending) return queue;
     status('busy', '☁ speichert …');
     queue = queue.then(() => pushChanges()).then(() => {
-      hasPending = false; lsDel(PENDING); status('ok', '☁ in der Cloud gespeichert');
+      hasPending = false; lsDel(PENDING);
+      if (speedWarn) status('err', '⚠ Speedups: SQL-Update in Supabase nötig'); else status('ok', '☁ in der Cloud gespeichert');
     }).catch((e) => {
       console.error('Cloud-Sync fehlgeschlagen', e);
       status('err', '⚠ nicht gespeichert – neuer Versuch …');
@@ -596,7 +738,7 @@ window.RokAuth = (() => {
 
   async function login(id, pw) {
     const email = toEmail(id);
-    if (!email) throw new Error('Bitte Benutzername oder E-Mail eingeben.');
+    if (!email) throw new Error('Bitte Benutzernamen eingeben.');
     const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
     if (error) throw error;
     await enter(data.user);
@@ -661,11 +803,12 @@ window.RokAuth = (() => {
   document.addEventListener('DOMContentLoaded', boot);
   // ---------- Rangliste (Tabelle public.leaderboard) ----------
   // Jeder eingeloggte Spieler darf alle Zeilen lesen, aber nur seine eigene schreiben.
-  let lbLast = null, lbTimer = null;
+  let lbLast = null, lbTimer = null, ownMeta = { alliance_tag: '', avatar: '' };
   async function loadOwnRank() {
-    const { data, error } = await sb.from('leaderboard').select('vip_points').eq('user_id', user.id).maybeSingle();
+    const { data, error } = await sb.from('leaderboard').select('*').eq('user_id', user.id).maybeSingle();
     if (error) throw error;
     lbLast = data ? +data.vip_points : null;
+    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '' };
   }
   // Aktuellen VIP-Stand melden. force = neuer Scan (immer aktualisieren), sonst nur bei geänderter Punktzahl.
   function pushVip(points, level, force = false) {
@@ -682,14 +825,37 @@ window.RokAuth = (() => {
     }, 600);
   }
   async function loadLeaderboard() {
-    const { data, error } = await sb.from('leaderboard').select('user_id,username,vip_points,vip_level,updated_at')
+    const { data, error } = await sb.from('leaderboard').select('*')
       .order('vip_points', { ascending: false }).limit(500);
     if (error) throw new Error(germanError(error));
     return data || [];
   }
 
+  // ---------- Game Profil ----------
+  // Profil-Kopf (Allianz-Tag, Profilbild) liegt in public.leaderboard.
+  async function saveMeta(meta, points) {
+    const row = { user_id: user.id, username: profile.name.slice(0, 40), alliance_tag: meta.alliance_tag || null, avatar: meta.avatar || null };
+    if (lbLast == null) { row.vip_points = Math.max(0, Math.round(points || 0)); row.vip_level = 0; row.updated_at = new Date().toISOString(); }
+    const { error } = await sb.from('leaderboard').upsert(row);
+    if (error) {
+      if (/alliance_tag|avatar|column/i.test(error.message || '')) throw new Error('Allianz-Tag/Profilbild: bitte zuerst profile.sql in Supabase ausführen.');
+      throw new Error(germanError(error));
+    }
+    ownMeta = { alliance_tag: row.alliance_tag || '', avatar: row.avatar || '' };
+    if (lbLast == null) lbLast = row.vip_points;
+  }
+  // Öffentliches Profil eines Spielers: Kopfzeile + VIP-/Speedup-Verlauf
+  async function loadProfile(uid) {
+    const [lb, sc] = await Promise.all([
+      sb.from('leaderboard').select('*').eq('user_id', uid).maybeSingle(),
+      sb.from('scans').select('type,scanned_at,data').eq('user_id', uid).in('type', ['vip', 'speedups']).order('scanned_at', { ascending: true })
+    ]);
+    if (lb.error) throw new Error(germanError(lb.error));
+    return { row: lb.data, scans: sc.error ? [] : (sc.data || []), scansError: !!sc.error };
+  }
+
   return { current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
-           pushVip, loadLeaderboard };
+           pushVip, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, loadProfile };
 })();
 </script>
 
@@ -699,9 +865,8 @@ window.RokApp = () => {
   // ---------- Profil ----------
   const PROFILE = RokAuth.current();
   if (!PROFILE) { RokAuth.showLogin(); return; }   // ohne Login startet die App nicht – keine Daten werden geladen
-  document.getElementById('userBox').classList.replace('hidden', 'flex');
+  document.getElementById('userBox').classList.remove('hidden');
   document.getElementById('userName').textContent = PROFILE.name;
-  document.getElementById('userAvatar').textContent = PROFILE.name.charAt(0).toUpperCase();
   document.getElementById('logoutBtn').onclick = () => RokAuth.logout();
 
   // Alle App-Keys "rok_scanner_xyz" landen pro Profil unter "rok_data_<profil>_xyz"
@@ -728,35 +893,46 @@ window.RokApp = () => {
 
   // ---------- State ----------
   const MODE_KEY = 'rok_scanner_mode';
-  let mode = ['resources', 'vip', 'gems'].includes(LS.get(MODE_KEY, '')) ? LS.get(MODE_KEY) : 'resources';
+  let mode = ['speedups', 'resources', 'vip', 'gems'].includes(LS.get(MODE_KEY, '')) ? LS.get(MODE_KEY) : 'resources';
   let images = []; // {id, name, dataUrl, mediaType, base64}
   let vipItems = [];
   let vipCurrent = null;
 
   // Feste VIP-Schwellenwerte (kumulierte Punkte) – Ziel-Level
-  const VIP_THRESHOLDS = {
-    10: 150000,
-    12: 350000,
-    14: 750000,
-    15: 1000000,
-    16: 1500000,
-    17: 2500000,
-    18: 4000000
-  };
-  // Vollständige Tabelle für die Stufen-Anzeige (Stufen 0–13 ergänzt, ab 10 aus VIP_THRESHOLDS)
-  const VIP_TABLE = [0, 200, 400, 1200, 3500, 6000, 11500, 17500, 35000, 75000,
-    VIP_THRESHOLDS[10], 250000, VIP_THRESHOLDS[12], 500000, VIP_THRESHOLDS[14], VIP_THRESHOLDS[15],
-    VIP_THRESHOLDS[16], VIP_THRESHOLDS[17], VIP_THRESHOLDS[18]];
+  // EINE gemeinsame VIP-Tabelle für die ganze App (VIP-Rechner, Verlauf, Rangliste)
+  const VIP_LEVELS = [
+    { level: 0, points: 0 },
+    { level: 1, points: 10 },
+    { level: 2, points: 100 },
+    { level: 3, points: 300 },
+    { level: 4, points: 1000 },
+    { level: 5, points: 2500 },
+    { level: 6, points: 10000 },
+    { level: 7, points: 25000 },
+    { level: 8, points: 45000 },
+    { level: 9, points: 75000 },
+    { level: 10, points: 150000 },
+    { level: 11, points: 250000 },
+    { level: 12, points: 350000 },
+    { level: 13, points: 500000 },
+    { level: 14, points: 750000 },
+    { level: 15, points: 1000000 },
+    { level: 16, points: 1500000 },
+    { level: 17, points: 2500000 },
+    { level: 18, points: 4000000 }
+  ];
+  // Punkte je Stufe (Index = Stufe)
+  const VIP_TABLE = VIP_LEVELS.map(x => x.points);
+  // Wählbare Ziel-Level im VIP-Rechner
+  const VIP_THRESHOLDS = Object.fromEntries(VIP_LEVELS.filter(x => x.level >= 1).map(x => [x.level, x.points]));
 
-  // Feste Punktwerte der VIP-Tokens (für „+ Token“)
-  const TOKEN_VALUES = [10, 50, 100, 500, 1000, 5000, 10000];
   // Tages-Punkte werden fest im Hintergrund gerechnet (täglicher Login)
   const DAILY_POINTS = 200;
 
   const TARGET = 'rok_scanner_target_level';
   let targetLevel = +LS.get(TARGET, 18);
   if (!VIP_THRESHOLDS[targetLevel]) targetLevel = 18;
-  $('targetLevel').innerHTML = Object.entries(VIP_THRESHOLDS)
+  $('targetLevel').innerHTML = Object.entries(VIP_THRESHOLDS).sort((a, b) => b[0] - a[0])   // VIP 18 oben
     .map(([lv, pts]) => `<option value="${lv}">VIP ${lv} – ${fmt(pts)} Punkte</option>`).join('');
   $('targetLevel').value = targetLevel;
   const targetPoints = () => VIP_THRESHOLDS[targetLevel];
@@ -789,7 +965,7 @@ window.RokApp = () => {
     LS.set(CUR, $('currentVip').value);
     vipCurrent = $('currentVip').value === '' ? vipCurrent : +$('currentVip').value;
     if (!$('vipSection').classList.contains('hidden')) renderVip();
-    else if (vipCurrent != null) RokAuth.pushVip(vipCurrent, levelFor(vipCurrent));
+    else pushRanking();
   });
 
   // ---------- Mode ----------
@@ -797,7 +973,8 @@ window.RokApp = () => {
     auto: 'Claude erkennt selbst, ob es eine Ressourcen-Übersicht oder Inventar mit VIP-Packs ist.',
     resources: 'Liest Proviant, Holz, Stein und Gold – aus der Ressourcenleiste oder dem Ressourcen-Inventar.',
     vip: 'Liest VIP-Punkte-Kacheln aus dem Inventar (Wert × Anzahl) und berechnet den Weg zu deinem Ziel-Level.',
-    gems: 'Liest die Anzahl deiner Edelsteine und speichert sie im Verlauf.'
+    gems: 'Liest die Anzahl deiner Edelsteine und speichert sie im Verlauf.',
+    speedups: 'Liest deine Beschleuniger (Universal, Bau, Forschung, Training, Heilung) aus dem Inventar und rechnet die Gesamtzeit aus.'
   };
   document.querySelectorAll('.seg-btn[data-mode]').forEach(b => b.onclick = () => {
     mode = b.dataset.mode;
@@ -916,7 +1093,7 @@ window.RokApp = () => {
     $('analyzeBtn').disabled = on || !images.length;
     $('analyzeLabel').textContent = on ? 'Analysiere …' : 'Analysieren';
     $('loadingState').classList.toggle('hidden', !on);
-    if (on) { ['emptyState','resSection','vipSection','gemsSection'].forEach(id => $(id).classList.add('hidden')); }
+    if (on) { ['emptyState','resSection','vipSection','gemsSection','speedSection'].forEach(id => $(id).classList.add('hidden')); }
   }
   function showError(m) { $('errorBox').textContent = m; $('errorBox').classList.remove('hidden'); }
   function hideError() { $('errorBox').classList.add('hidden'); }
@@ -925,7 +1102,15 @@ window.RokApp = () => {
   function showResult(r) {
     let type = mode;
     $('emptyState').classList.add('hidden');
-    if (type === 'gems') {
+    if (type === 'speedups') {
+      const sp = r.speedups || {}, ts = Date.now(), e = {};
+      SPEED.forEach(c => e[c.k] = Math.max(0, Math.round(num(sp[c.k]) || 0)));
+      e.total = SPEED.reduce((a, c) => a + e[c.k], 0);
+      if (!e.total) throw new Error('Keine Speedups im Screenshot erkannt.');
+      renderSpeedups(e, ts);
+      addHistory({ id: newId(), ts, type: 'speedups', ...e, confidence: r.confidence || null });
+      saveLastScan({ type: 'speedups', ts, ...e });
+    } else if (type === 'gems') {
       const hand = num(r.gems_hand), bag = num(r.gems_bag), ts = Date.now();
       const g = (hand != null || bag != null) ? (hand || 0) + (bag || 0) : num(r.gems);
       if (g == null) throw new Error('Keine Edelsteine im Screenshot erkannt.');
@@ -956,14 +1141,20 @@ window.RokApp = () => {
       vipScanLoaded = true;
       addHistory({ id: activeVipEntryId, ts: Date.now(), type: 'vip', confidence: r.confidence || null, ...vipNumbers() });
       renderVip(r);
-      if (vipCurrent != null) RokAuth.pushVip(vipCurrent, levelFor(vipCurrent), true);   // neuer Scan → Rangliste
+      pushRanking(true);   // neuer Scan → Rangliste
     }
   }
   let activeVipEntryId = null;
-  let vipScanLoaded = false, hasRes = false, hasVip = false, hasGems = false;
+  let vipScanLoaded = false, hasRes = false, hasVip = false, hasGems = false, hasSpeed = false;
   const LAST = 'rok_scanner_last_scan';
   const saveLastScan = (data) => LS.set(LAST + '_' + data.type, JSON.stringify(data));
   const newId = () => (crypto.randomUUID?.() || String(Date.now() + Math.random()));
+  // Rangliste: aktuelle VIP-Punkte + VIP durch Gegenstände (Rucksack)
+  function pushRanking(force = false) {
+    const n = vipNumbers();
+    if (n.current == null && !n.inventory) return;
+    RokAuth.pushVip(n.after, lbLevel(n.after), force);
+  }
   function vipNumbers() {
     const inventory = vipItems.reduce((a, i) => a + i.points * i.qty, 0);
     const current = vipCurrent ?? null;
@@ -1051,7 +1242,7 @@ window.RokApp = () => {
     $('vipTargets').innerHTML = targetCard(cur, after);
 
     // Erkannte Items (linke Spalte) – Punkte/Stk. fest, nur Anzahl änderbar
-    vipItems.sort((a, b) => b.points - a.points);
+    vipItems.sort((a, b) => a.points - b.points);   // kleinster Token oben, größter unten
     $('vipRows').innerHTML = vipItems.length ? vipItems.map((i, idx) => `
       <tr class="border-b border-ink-800">
         <td class="py-1.5 pr-1"><span class="inline-flex items-center gap-1 font-semibold text-slate-200"><span class="text-gold-400">◆</span>${fmt(i.points)}</span></td>
@@ -1078,7 +1269,7 @@ window.RokApp = () => {
       items: vipItems.map(i => ({ name: i.name, points: i.points, qty: i.qty })) });
     // Korrekturen in der Tabelle / am aktuellen Stand übernehmen den letzten VIP-Scan im Verlauf
     if (activeVipEntryId) updateHistory(activeVipEntryId, vipNumbers());
-    if (vipCurrent != null) RokAuth.pushVip(vipCurrent, levelFor(vipCurrent));
+    pushRanking();
   }
   const pct = (v) => v.toFixed(1).replace('.', ',');
 
@@ -1151,14 +1342,6 @@ window.RokApp = () => {
     $('vipSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  $('addToken').innerHTML += TOKEN_VALUES.map(v => `<option value="${v}">${fmt(v)} VIP-Punkte</option>`).join('');
-  $('addToken').onchange = () => {
-    const v = +$('addToken').value; $('addToken').value = '';
-    if (!v) return;
-    const ex = vipItems.find(i => i.points === v);
-    if (ex) ex.qty += 1; else vipItems.push({ name: `${v} VIP-Punkte`, points: v, qty: 1 });
-    renderVip();
-  };
 
   function animateBars() {
     requestAnimationFrame(() => requestAnimationFrame(() =>
@@ -1171,8 +1354,9 @@ window.RokApp = () => {
   try { history = JSON.parse(LS.get(HIST, '[]')) || []; } catch { history = []; }
   // Altdaten-Schutz: nur bekannte Zahlenfelder übernehmen
   const sanitize = (e) => {
-    const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
+    const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
     const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag']
+      : out.type === 'speedups' ? ['universal', 'building', 'research', 'training', 'healing', 'total']
       : ['food', 'wood', 'stone', 'gold', 'total', 'farmFood', 'farmWood', 'farmStone', 'farmGold', 'bagFood', 'bagWood', 'bagStone', 'bagGold'];
     keys.forEach(k => out[k] = (e[k] === null || e[k] === undefined || isNaN(+e[k])) ? null : +e[k]);
     return out;
@@ -1232,6 +1416,15 @@ window.RokApp = () => {
         backgroundColor: isLine ? r.from + '33' : r.from + 'cc', borderColor: r.from,
         borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: r.to, spanGaps: true, fill: false
       }));
+    } else if (histTab === 'speedups') {
+      const ev = currentEvent();
+      const lines = [...SPEED.map(c => ({ ...c, val: (e) => e[c.k] })),
+        { k: 'combined', label: 'Kombiniert: ' + ev.short, c: '#f5c542', val: (e) => ev.keys.reduce((a, k) => a + (e[k] || 0), 0) }];
+      datasets = lines.filter(l => speedLines[l.k]).map(l => ({
+        label: l.label, data: list.map(e => e.total == null ? null : l.val(e) / 1440),
+        backgroundColor: isLine ? l.c + '33' : l.c + 'cc', borderColor: l.c, borderWidth: isLine ? (l.k === 'combined' ? 3.5 : 2.5) : 0,
+        borderDash: l.k === 'combined' && isLine ? [8, 5] : undefined,
+        borderRadius: 4, tension: .3, pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: l.c, spanGaps: true, fill: false }));
     } else if (histTab === 'gems') {
       const gs = (label, key, c) => ({ label, data: list.map(e => e[key]), backgroundColor: isLine ? c + '33' : c + 'cc', borderColor: c,
         borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: c, spanGaps: true, fill: false });
@@ -1249,7 +1442,7 @@ window.RokApp = () => {
     if (!window.Chart) {
       empty.textContent = 'Chart.js konnte nicht geladen werden (keine Internetverbindung?). Die Tabelle funktioniert trotzdem.';
     } else {
-      empty.textContent = list.length ? '' : ({ resources: 'Noch keine Ressourcen-Scans gespeichert.', vip: 'Noch keine VIP-Scans gespeichert.', gems: 'Noch keine Edelstein-Scans gespeichert.' })[histTab];
+      empty.textContent = list.length ? '' : ({ speedups: 'Noch keine Speedup-Scans gespeichert.', resources: 'Noch keine Ressourcen-Scans gespeichert.', vip: 'Noch keine VIP-Scans gespeichert.', gems: 'Noch keine Edelstein-Scans gespeichert.' })[histTab];
       if (chart) chart.destroy();
       chart = new Chart($('historyChart'), {
         type: chartType,
@@ -1260,11 +1453,12 @@ window.RokApp = () => {
           plugins: {
             legend: { labels: { boxWidth: 12, usePointStyle: true } },
             tooltip: { backgroundColor: '#0c1019', borderColor: 'rgba(245,197,66,.3)', borderWidth: 1,
-                       callbacks: { label: (c) => `${c.dataset.label}: ${c.raw == null ? '–' : fmt(c.raw)}` } }
+                       callbacks: { label: (c) => `${c.dataset.label}: ${c.raw == null ? '–' : histTab === 'speedups' ? durText(c.raw * 1440) : fmt(c.raw)}` } }
           },
           scales: {
             x: { grid: { display: false } },
-            y: { beginAtZero: true, ticks: { callback: (v) => short(v) } }
+            y: { beginAtZero: true, ticks: { callback: (v) => histTab === 'speedups' ? (+v).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' T' : short(v) },
+                 title: { display: histTab === 'speedups', text: 'Tage', color: '#94a3b8' } }
           }
         }
       });
@@ -1294,6 +1488,19 @@ window.RokApp = () => {
           ${RES.map(r => `<td class="py-2 px-2 text-right tabular-nums whitespace-nowrap align-top">${cell(p => resPart(e, r.k, p))}</td>`).join('')}
           <td class="py-2 px-2 text-right font-semibold text-gold-300 tabular-nums whitespace-nowrap align-top">${resView === 'all' ? cell(p => sumPart(e, p)) : short(tot(e))}
             ${delta != null ? `<span class="block text-[11px] font-normal ${delta >= 0 ? 'text-emerald-400' : 'text-red-400'}">${delta >= 0 ? '+' : '−'}${short(Math.abs(delta))}</span>` : ''}</td>
+          <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
+        </tr>`;
+      }).join('');
+    } else if (histTab === 'speedups') {
+      $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
+        ${SPEED.map(c => `<th class="${th_}">${c.icon} ${c.label}</th>`).join('')}<th class="${th_}">Gesamt</th><th class="w-8"></th></tr>`;
+      $('histRows').innerHTML = rows.map((e, i) => {
+        const prev = rows[i + 1], d = prev && prev.total != null && e.total != null ? e.total - prev.total : null;
+        return `<tr class="border-b border-ink-800 hover:bg-ink-850">
+          <td class="py-2 pr-2 whitespace-nowrap text-slate-300">${dateLabel(e.ts)}</td>
+          ${SPEED.map(c => `<td class="py-2 px-2 text-right tabular-nums whitespace-nowrap">${e[c.k] != null ? durText(e[c.k], true) : '–'}</td>`).join('')}
+          <td class="py-2 px-2 text-right font-semibold text-sky-300 tabular-nums whitespace-nowrap">${e.total != null ? durText(e.total, true) : '–'}
+            ${d ? `<span class="block text-[11px] font-normal ${d >= 0 ? 'text-emerald-400' : 'text-red-400'}">${d >= 0 ? '+' : '−'}${durText(Math.abs(d), true)}</span>` : ''}</td>
           <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
         </tr>`;
       }).join('');
@@ -1327,7 +1534,7 @@ window.RokApp = () => {
     $('histRows').querySelectorAll('[data-hdel]').forEach(b => b.onclick = () => deleteEntry(b.dataset.hdel));
 
     const n = (t) => history.filter(e => e.type === t).length;
-    $('histCount').textContent = `${history.length} Scans gespeichert (${n('resources')} Ressourcen, ${n('vip')} VIP, ${n('gems')} Gems) · nur Zahlenwerte, keine Bilder`;
+    $('histCount').textContent = `${history.length} Scans gespeichert (${n('speedups')} Speedups, ${n('resources')} Ressourcen, ${n('vip')} VIP, ${n('gems')} Gems) · nur Zahlenwerte, keine Bilder`;
     $('resetHistory').disabled = !history.length;
     $('resetHistory').classList.toggle('opacity-40', !history.length);
   }
@@ -1410,6 +1617,145 @@ window.RokApp = () => {
     $('farmRows').querySelector('tr:last-child input')?.select();
   };
 
+  // ---------- Speedups ----------
+  const SPEED = [
+    { k: 'universal', label: 'Universal', icon: '⏱️', c: '#f5c542' },
+    { k: 'building',  label: 'Bau',       icon: '🔨', c: '#fb923c' },
+    { k: 'research',  label: 'Forschung', icon: '📘', c: '#38bdf8' },
+    { k: 'training',  label: 'Training',  icon: '⚔️', c: '#f87171' },
+    { k: 'healing',   label: 'Heilung',   icon: '❤️', c: '#34d399' }
+  ];
+  // Minuten → "12 T 5 Std 30 Min" (kurz: "12T 5h 30m")
+  function durText(min, compact = false) {
+    min = Math.round(min || 0);
+    const d = Math.floor(min / 1440), h = Math.floor(min % 1440 / 60), m = min % 60;
+    const parts = compact ? [d && `${fmt(d)}T`, h && `${h}h`, m && `${m}m`] : [d && `${fmt(d)} ${d === 1 ? 'Tag' : 'Tage'}`, h && `${h} Std.`, m && `${m} Min.`];
+    return parts.filter(Boolean).join(compact ? ' ' : ', ') || (compact ? '0m' : '0 Min.');
+  }
+  // ---------- Event-Rechner ----------
+  const EVENTS = [
+    { id: 'zenith', label: 'Zenith / Truppentraining', short: 'Training + Universal', keys: ['training', 'universal'] },
+    { id: 'kvk',    label: 'KvK Krieg / Heilung',      short: 'Heilung + Universal',  keys: ['healing', 'universal'] },
+    { id: 'train',  label: 'Reines Training',          short: 'Training',             keys: ['training'] },
+    { id: 'heal',   label: 'Reine Heilung',            short: 'Heilung',              keys: ['healing'] },
+    { id: 'all',    label: 'Gesamt-Vorrat',            short: 'Alle Speedups',        keys: ['universal', 'building', 'research', 'training', 'healing'] }
+  ];
+  const SPEED_UI = 'rok_scanner_speed_ui';
+  let speedUi = { event: 'zenith', ppm: {}, lines: { training: true, healing: true, universal: true, combined: true, research: false, building: false } };
+  try { const u = JSON.parse(LS.get(SPEED_UI, '{}')); speedUi = { ...speedUi, ...u, ppm: { ...(u.ppm || {}) }, lines: { ...speedUi.lines, ...(u.lines || {}) } }; } catch {}
+  const speedLines = speedUi.lines;
+  const saveSpeedUi = () => LS.set(SPEED_UI, JSON.stringify(speedUi));
+  const currentEvent = () => EVENTS.find(x => x.id === speedUi.event) || EVENTS[0];
+  let curSpeed = null;
+  const days = (min) => (min / 1440).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+  function renderEvent() {
+    const ev = currentEvent();
+    $('eventBtns').innerHTML = EVENTS.map(x => `<button class="ev-btn seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition" data-ev="${x.id}" aria-pressed="${x.id === ev.id}">${x.label}</button>`).join('');
+    $('eventBtns').querySelectorAll('.ev-btn').forEach(b => b.onclick = () => { speedUi.event = b.dataset.ev; saveSpeedUi(); renderEvent(); renderSpeedOpts(); renderHistory(); });
+    const label = (k) => SPEED.find(c => c.k === k);
+    $('eventFormula').innerHTML = 'Berechnung: ' + ev.keys.map(k => `<span class="text-slate-200">${label(k).icon} ${label(k).label}</span>`).join(' + ');
+    const ppm = speedUi.ppm[ev.id];
+    if (document.activeElement !== $('eventPpm')) $('eventPpm').value = ppm ?? '';
+    const e = curSpeed || {};
+    const min = ev.keys.reduce((a, k) => a + (e[k] || 0), 0);
+    const pts = ppm ? Math.round(min * ppm) : null;
+    const uni = ev.keys.includes('universal') && ev.keys.length > 1 ? (e.universal || 0) : null;
+    $('eventKpis').innerHTML = `
+      <div class="rounded-xl bg-ink-950/60 border border-gold-500/30 p-4">
+        <div class="text-[10px] uppercase tracking-widest text-slate-400">Gesamtdauer</div>
+        <div class="text-3xl font-extrabold text-white tabular-nums mt-1">${days(min)} <span class="text-base font-semibold text-slate-400">Tage</span></div>
+        <div class="text-xs text-slate-400 mt-1">${durText(min)}</div>
+      </div>
+      <div class="rounded-xl bg-ink-950/60 border border-ink-700 p-4">
+        <div class="text-[10px] uppercase tracking-widest text-slate-400">Punkte-Potenzial</div>
+        <div class="text-3xl font-extrabold tabular-nums mt-1 ${pts != null ? 'text-gold-300' : 'text-slate-500'}">${pts != null ? fmt(pts) : '–'}</div>
+        <div class="text-xs text-slate-400 mt-1">${pts != null ? `${fmt(min)} Min. × ${String(ppm).replace('.', ',')} Punkte` : 'Punkte pro Minute unten eintragen'}</div>
+      </div>
+      <div class="rounded-xl bg-ink-950/60 border border-ink-700 p-4">
+        <div class="text-[10px] uppercase tracking-widest text-slate-400">${uni != null ? 'Davon Universal' : 'Minuten gesamt'}</div>
+        <div class="text-3xl font-extrabold text-white tabular-nums mt-1">${uni != null ? days(uni) + ' <span class="text-base font-semibold text-slate-400">Tage</span>' : fmt(min)}</div>
+        <div class="text-xs text-slate-400 mt-1">${uni != null ? (min ? Math.round(uni / min * 100) : 0) + ' % des Event-Vorrats' : 'für die Punkte-Rechnung'}</div>
+      </div>`;
+  }
+  $('eventPpm').addEventListener('input', () => {
+    const v = $('eventPpm').value === '' ? null : Math.max(0, +$('eventPpm').value);
+    if (v == null || isNaN(v)) delete speedUi.ppm[speedUi.event]; else speedUi.ppm[speedUi.event] = v;
+    saveSpeedUi(); renderEvent();
+  });
+
+  function renderSpeedOpts() {
+    const ev = currentEvent();
+    const opts = [['training', '⚔️ Training', '#f87171'], ['healing', '❤️ Heilung', '#34d399'], ['universal', '⏱️ Universal', '#f5c542'],
+                  ['combined', `◆ Kombiniert (${ev.short})`, '#f5c542'], ['research', '📘 Forschung', '#38bdf8'], ['building', '🔨 Bau', '#fb923c']];
+    $('speedOpts').innerHTML = '<span class="text-slate-500">Linien:</span>' + opts.map(([k, l, c]) =>
+      `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-line="${k}" ${speedLines[k] ? 'checked' : ''} class="w-4 h-4" style="accent-color:${c}">${l}</label>`).join('');
+    $('speedOpts').querySelectorAll('input').forEach(i => i.onchange = () => { speedLines[i.dataset.line] = i.checked; saveSpeedUi(); renderHistory(); });
+  }
+
+  // ---------- Manuelle Eingabe ----------
+  function renderSpeedInputs() { $('speedInputRows').innerHTML = speedGridHtml(curSpeed || {}); }
+  // Liest ein Raster aus Tage/Std./Min.-Feldern (data-sk, data-u) in Minuten je Typ
+  function readSpeedGrid(container) {
+    const e = {}; SPEED.forEach(c => e[c.k] = 0);
+    container.querySelectorAll('input[data-sk]').forEach(i => { e[i.dataset.sk] += Math.max(0, Math.round((+i.value || 0) * +i.dataset.u)); });
+    e.total = SPEED.reduce((a, c) => a + e[c.k], 0);
+    return e;
+  }
+  function speedGridHtml(e) {
+    const inp = 'w-full bg-ink-950 border border-ink-600 rounded-lg px-1.5 py-1.5 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500';
+    return SPEED.map(c => {
+      const m = e?.[c.k] || 0, d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60), mi = m % 60;
+      return `<span class="text-slate-300 whitespace-nowrap">${c.icon} ${c.label}</span>
+        <input data-sk="${c.k}" data-u="1440" type="number" min="0" step="1" value="${d || ''}" placeholder="0" class="${inp}">
+        <input data-sk="${c.k}" data-u="60" type="number" min="0" step="1" value="${h || ''}" placeholder="0" class="${inp}">
+        <input data-sk="${c.k}" data-u="1" type="number" min="0" step="1" value="${mi || ''}" placeholder="0" class="${inp}">`;
+    }).join('');
+  }
+  function saveSpeedEntry(e) {
+    const ts = Date.now();
+    renderSpeedups(e, ts);
+    addHistory({ id: newId(), ts, type: 'speedups', ...e, confidence: 'manuell' });
+    saveLastScan({ type: 'speedups', ts, ...e });
+    applyMode();
+  }
+  $('speedSave').onclick = () => {
+    const e = readSpeedGrid($('speedInputRows'));
+    if (!e.total) { showError('Bitte mindestens einen Speedup-Wert eintragen.'); return; }
+    hideError();
+    saveSpeedEntry(e);
+    $('speedSaveMsg').classList.remove('hidden'); setTimeout(() => $('speedSaveMsg').classList.add('hidden'), 2500);
+  };
+
+  function renderSpeedups(e, ts) {
+    curSpeed = { ...e };
+    $('speedTotal').textContent = durText(e.total);
+    const prev = history.filter(x => x.type === 'speedups' && x.ts < ts && x.total != null).sort((a, b) => b.ts - a.ts)[0];
+    const d = prev ? e.total - prev.total : null;
+    $('speedDelta').innerHTML = (d == null ? 'Erster Scan' :
+      `<span class="${d >= 0 ? 'text-emerald-400' : 'text-red-400'}">${d >= 0 ? '+' : '−'}${durText(Math.abs(d))}</span> seit ${dateLabel(prev.ts)}`)
+      + ` · ≈ ${fmt(Math.round(e.total / 1440))} Tage`;
+    const max = Math.max(1, ...SPEED.map(c => e[c.k] || 0));
+    $('speedCards').innerHTML = SPEED.map(c => `
+      <div class="panel rounded-2xl p-5">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl grid place-items-center text-2xl" style="background:${c.c}22;border:1px solid ${c.c}55">${c.icon}</div>
+          <div class="min-w-0">
+            <div class="text-xs uppercase tracking-widest text-slate-400">${c.label}</div>
+            <div class="text-xl font-bold text-white tabular-nums">${durText(e[c.k] || 0)}</div>
+          </div>
+          <div class="ml-auto text-xs text-slate-500 tabular-nums">${e.total ? Math.round((e[c.k] || 0) / e.total * 100) : 0} %</div>
+        </div>
+        <div class="mt-4 h-2.5 rounded-full bg-ink-950 overflow-hidden">
+          <div class="bar h-full rounded-full" style="width:0;background:${c.c}" data-w="${(e[c.k] || 0) / max * 100}"></div>
+        </div>
+      </div>`).join('');
+    $('speedSource').textContent = `Letzter Scan: ${dateLabel(ts)}`;
+    hasSpeed = true;
+    renderEvent(); renderSpeedInputs();
+    animateBars();
+  }
+
   // ---------- Gems ----------
   function renderGems(ge, ts) {
     const g = ge.gems;
@@ -1426,13 +1772,16 @@ window.RokApp = () => {
 
   // Getrennte Seiten: Ressourcen | VIP | Gems
   function applyMode() {
-    const has = { resources: hasRes, vip: hasVip, gems: hasGems }[mode];
+    const has = { speedups: hasSpeed, resources: hasRes, vip: hasVip, gems: hasGems }[mode];
     document.querySelectorAll('.seg-btn[data-mode]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mode === mode));
     $('modeHint').textContent = hints[mode];
     $('vipInputs').classList.toggle('hidden', mode !== 'vip');
     $('resSection').classList.toggle('hidden', mode !== 'resources' || !hasRes);
     $('vipSection').classList.toggle('hidden', mode !== 'vip' || !hasVip);
     $('gemsSection').classList.toggle('hidden', mode !== 'gems' || !hasGems);
+    $('speedSection').classList.toggle('hidden', mode !== 'speedups' || !hasSpeed);
+    $('speedInputs').classList.toggle('hidden', mode !== 'speedups');
+    $('speedOpts').classList.toggle('hidden', mode !== 'speedups');
     $('farmSection').classList.toggle('hidden', mode !== 'resources');
     $('farmOpts').classList.toggle('hidden', mode !== 'resources');
     $('resFilter').classList.toggle('hidden', mode !== 'resources');
@@ -1441,7 +1790,8 @@ window.RokApp = () => {
     $('emptyState').querySelector('p').textContent = {
       resources: 'Lade einen Screenshot der Ressourcen deines Main-Accounts hoch und klicke auf „Analysieren“.',
       vip: 'Lade einen Screenshot deines Inventars mit VIP-Punkte-Items hoch und klicke auf „Analysieren“ – oder nutze „Rechner ohne Scan öffnen“.',
-      gems: 'Lade einen Screenshot hoch, auf dem deine Edelsteine zu sehen sind, und klicke auf „Analysieren“.'
+      gems: 'Lade einen Screenshot hoch, auf dem deine Edelsteine zu sehen sind, und klicke auf „Analysieren“.',
+      speedups: 'Lade Screenshots deiner Beschleuniger aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag deinen Bestand links unter „Speedups eingeben“ ein.'
     }[mode];
     histTab = mode; syncTabs(); renderHistory();
   }
@@ -1451,15 +1801,41 @@ window.RokApp = () => {
 
   // ---------- Haupt-Reiter: Scanner & Dashboard | Rangliste ----------
   let view = (() => { try { return localStorage.getItem('rok_view') === 'rank' ? 'rank' : 'scanner'; } catch { return 'scanner'; } })();
+  let lastMainView = view === 'rank' ? 'rank' : 'scanner';
   function applyView() {
     document.querySelectorAll('.main-tab').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === view));
     $('scannerView').classList.toggle('hidden', view !== 'scanner');
     $('rankView').classList.toggle('hidden', view !== 'rank');
-    try { localStorage.setItem('rok_view', view); } catch {}
+    $('profileView').classList.toggle('hidden', view !== 'profile');
+    if (view !== 'profile') { lastMainView = view; try { localStorage.setItem('rok_view', view); } catch {} }
     if (view === 'rank') loadRanking();
+    if (view === 'profile') loadGameProfile();
   }
   document.querySelectorAll('.main-tab').forEach(b => b.onclick = () => { view = b.dataset.view; applyView(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
   $('rankRefresh').onclick = () => loadRanking();
+
+  // VIP-Stufen der Rangliste (kumulierte Punkte, Index = Stufe)
+  const LB_VIP = VIP_TABLE;   // dieselbe Tabelle wie im VIP-Rechner
+  const LB_MAX = LB_VIP.length - 1;   // VIP 18
+  function lbLevel(p) { let l = 0; for (let i = 1; i <= LB_MAX; i++) if (p >= LB_VIP[i]) l = i; return l; }
+  function lbNext(p) {
+    const lvl = lbLevel(p);
+    if (lvl >= LB_MAX) return { max: true, lvl };
+    const from = LB_VIP[lvl], to = LB_VIP[lvl + 1];
+    return { max: false, lvl, next: lvl + 1, need: to - p, pct: Math.max(0, Math.min(100, (p - from) / (to - from) * 100)) };
+  }
+  function nextCell(p) {
+    const n = lbNext(p);
+    if (n.max) return `<span class="font-semibold text-gold-300 whitespace-nowrap">Max Level erreicht 👑</span>
+      <div class="mt-1.5 h-1.5 rounded-full bg-gradient-to-r from-gold-400 to-gold-600"></div>`;
+    return `<div class="text-xs text-slate-300 whitespace-nowrap">Noch <b class="text-white tabular-nums">${fmt(n.need)}</b> bis VIP ${n.next}</div>
+      <div class="mt-1.5 flex items-center gap-2">
+        <div class="flex-1 h-1.5 rounded-full bg-ink-950 border border-ink-700 overflow-hidden" title="${n.pct.toFixed(1).replace('.', ',')} % von VIP ${n.lvl} bis VIP ${n.next}">
+          <div class="h-full rounded-full bg-gradient-to-r from-sky-400 to-gold-400" style="width:${n.pct}%"></div>
+        </div>
+        <span class="text-[10px] text-slate-500 tabular-nums w-8 text-right">${Math.floor(n.pct)} %</span>
+      </div>`;
+  }
 
   const MEDALS = {
     1: { icon: '👑', badge: 'bg-gradient-to-br from-yellow-300 to-amber-500 text-ink-950 shadow-[0_0_18px_rgba(245,197,66,.55)]', name: 'text-gold-300' },
@@ -1474,7 +1850,7 @@ window.RokApp = () => {
     try {
       const rows = (await RokAuth.loadLeaderboard())
         .map(r => ({ ...r, vip_points: +r.vip_points || 0 }))
-        .sort((a, b) => b.vip_points - a.vip_points || new Date(a.updated_at) - new Date(b.updated_at));
+        .sort((a, b) => (b.vip_points - a.vip_points) || (new Date(a.updated_at) - new Date(b.updated_at)) || String(a.username).localeCompare(b.username));
       renderRanking(rows);
     } catch (e) {
       $('rankTable').classList.add('hidden'); $('rankMe').classList.add('hidden');
@@ -1499,14 +1875,22 @@ window.RokApp = () => {
               : `<span class="inline-grid place-items-center w-9 h-9 rounded-full bg-ink-800 text-slate-300 font-semibold">${place}</span>`}
         </td>
         <td class="py-3 px-3">
-          <span class="font-semibold ${m ? m.name : 'text-white'}">${esc(r.username)}</span>
-          ${isMe ? '<span class="ml-2 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-gold-500 text-ink-950">Du</span>' : ''}
+          <button data-profile="${esc(r.user_id)}" class="group inline-flex items-center gap-2.5 text-left" title="Game Profil öffnen">
+            ${avatarHtml(r.username, r.avatar, 'w-9 h-9 text-base')}
+            <span>
+              <span class="font-semibold group-hover:underline underline-offset-4 ${m ? m.name : 'text-white'}">${esc(r.username)}</span>
+              ${r.alliance_tag ? `<span class="ml-1 text-xs text-slate-400">[${esc(r.alliance_tag)}]</span>` : ''}
+              ${isMe ? '<span class="ml-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-gold-500 text-ink-950">Du</span>' : ''}
+            </span>
+          </button>
         </td>
         <td class="py-3 px-3 text-right font-bold tabular-nums ${m ? m.name : 'text-white'}" title="${fmt(r.vip_points)}">${fmt(r.vip_points)}</td>
-        <td class="py-3 px-3 text-center"><span class="inline-block px-2.5 py-1 rounded-lg bg-ink-950 border border-gold-500/30 text-gold-300 font-semibold text-xs">VIP ${levelFor(r.vip_points)}</span></td>
+        <td class="py-3 px-3 text-center"><span class="inline-block px-2.5 py-1 rounded-lg bg-ink-950 border border-gold-500/30 text-gold-300 font-semibold text-xs">VIP ${lbLevel(r.vip_points)}</span></td>
+        <td class="py-3 px-3">${nextCell(r.vip_points)}</td>
         <td class="py-3 px-3 text-right text-slate-400 whitespace-nowrap rounded-r-xl">${r.updated_at ? dateLabel(new Date(r.updated_at).getTime()) : '–'}</td>
       </tr>`;
     }).join('');
+    $('rankRows').querySelectorAll('[data-profile]').forEach(b => b.onclick = () => openProfile(b.dataset.profile));
     // Eigene Platzierung
     const idx = rows.findIndex(r => r.user_id === me);
     const box = $('rankMe');
@@ -1524,7 +1908,7 @@ window.RokApp = () => {
           </div>
         </div>
         <div class="text-right">
-          <div class="text-lg font-bold text-gold-300 tabular-nums">${fmt(meRow.vip_points)} Punkte · VIP ${levelFor(meRow.vip_points)}</div>
+          <div class="text-lg font-bold text-gold-300 tabular-nums">${fmt(meRow.vip_points)} Punkte · VIP ${lbLevel(meRow.vip_points)}</div>
           <div class="text-xs text-slate-400">${above ? `Noch ${fmt(gap + 1)} Punkte bis Platz ${idx} (${esc(above.username)})` : 'Du führst die Rangliste an! 👑'}</div>
         </div>
       </div>`;
@@ -1532,7 +1916,234 @@ window.RokApp = () => {
     box.classList.remove('hidden');
   }
 
+  // ================= Game Profil =================
+  const AVATARS = ['', '👑', '⚔️', '🛡️', '🐉', '🦁', '🐺', '🏹', '🔥', '⭐', '🌙', '💎'];
+  function avatarHtml(name, av, cls = 'w-8 h-8 text-sm') {
+    const inner = av ? esc(av) : esc(String(name || '?').charAt(0).toUpperCase());
+    return `<span class="${cls} shrink-0 inline-grid place-items-center rounded-xl font-bold ${av ? 'bg-ink-800 border border-gold-500/40' : 'bg-gradient-to-br from-gold-400 to-gold-600 text-ink-950'}">${inner}</span>`;
+  }
+  function renderHeaderAvatar() { $('userAvatar').innerHTML = avatarHtml(PROFILE.name, RokAuth.ownMeta().avatar, 'w-8 h-8 text-sm'); }
+
+  // Dropdown
+  const closeMenu = () => { $('userMenu').classList.add('hidden'); $('userMenuBtn').setAttribute('aria-expanded', 'false'); };
+  $('userMenuBtn').onclick = (ev) => { ev.stopPropagation(); const open = $('userMenu').classList.toggle('hidden') === false; $('userMenuBtn').setAttribute('aria-expanded', String(open)); };
+  document.addEventListener('click', (ev) => { if (!$('userBox').contains(ev.target)) closeMenu(); });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeMenu(); });
+  $('menuProfile').onclick = () => { closeMenu(); openProfile(RokAuth.userId()); };
+
+  let profileUid = null, profChart = null;
+  const PROF_EV = [
+    { id: 'zenith', label: 'Zenith / MGE Training', short: 'Training + Universal', keys: ['training', 'universal'] },
+    { id: 'kvk',    label: 'KvK Krieg / Heilung',   short: 'Heilung + Universal',  keys: ['healing', 'universal'] },
+    { id: 'all',    label: 'Gesamt',                short: 'Alle Speedups',        keys: ['universal', 'building', 'research', 'training', 'healing'] }
+  ];
+  speedUi.profEv = speedUi.profEv || 'zenith';
+  speedUi.profLines = { vip: true, training: true, healing: true, universal: true, combined: true, ...(speedUi.profLines || {}) };
+
+  function openProfile(uid) {
+    if (!uid) return;
+    profileUid = uid; view = 'profile'; applyView();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  $('profBack').onclick = () => { view = lastMainView; applyView(); };
+
+  async function loadGameProfile() {
+    const uid = profileUid, own = uid === RokAuth.userId();
+    $('profModeBadge').textContent = own ? '✎ Dein Profil · bearbeitbar' : '👁 Nur Ansicht';
+    $('profModeBadge').className = 'text-xs px-2.5 py-1 rounded-full border ' + (own ? 'border-gold-500/50 text-gold-300' : 'border-ink-600 text-slate-400');
+    $('profBody').classList.add('hidden');
+    $('profState').classList.remove('hidden'); $('profState').textContent = 'Lade Game Profil …';
+    try {
+      const [p, all] = await Promise.all([RokAuth.loadProfile(uid), RokAuth.loadLeaderboard().catch(() => [])]);
+      if (uid !== profileUid) return;                         // inzwischen anderes Profil geöffnet
+      let entries;
+      if (own) entries = history.filter(e => e.type === 'vip' || e.type === 'speedups').map(e => ({ ...e }));
+      else entries = p.scans.map(r => ({ ...(r.data || {}), type: r.type, ts: +(r.data?.ts) || Date.parse(r.scanned_at) }));
+      entries.sort((a, b) => a.ts - b.ts);
+      const row = p.row || (own ? { username: PROFILE.name, vip_points: null } : null);
+      if (!row) throw new Error('Dieses Profil wurde nicht gefunden.');
+      const sorted = all.map(r => ({ ...r, vip_points: +r.vip_points || 0 }))
+        .sort((a, b) => (b.vip_points - a.vip_points) || (new Date(a.updated_at) - new Date(b.updated_at)) || String(a.username).localeCompare(b.username));
+      const place = sorted.findIndex(r => r.user_id === uid) + 1;
+      renderGameProfile({ own, row, entries, place, players: sorted.length, scansError: p.scansError });
+      $('profState').classList.add('hidden'); $('profBody').classList.remove('hidden');
+    } catch (e) {
+      $('profState').textContent = 'Profil konnte nicht geladen werden: ' + (e.message || e);
+    }
+  }
+
+  function renderGameProfile(P) {
+    const { own, row, entries } = P;
+    const meta = own ? RokAuth.ownMeta() : { alliance_tag: row.alliance_tag || '', avatar: row.avatar || '' };
+    const vipEntries = entries.filter(e => e.type === 'vip');
+    const speedEntries = entries.filter(e => e.type === 'speedups' && e.total != null);
+    // VIP-Punkte inkl. Gegenstände (wie in der Rangliste)
+    let points = row.vip_points != null ? +row.vip_points : null;
+    if (own) { const n = vipNumbers(); if (n.current != null || n.inventory) points = n.after; }
+    if (points == null && vipEntries.length) points = vipEntries[vipEntries.length - 1].after;
+    const sp = own && curSpeed ? curSpeed : (speedEntries[speedEntries.length - 1] || null);
+    const spTs = own ? (speedEntries[speedEntries.length - 1]?.ts) : sp?.ts;
+
+    // ---- Kopf ----
+    const lvl = points != null ? lbLevel(points) : null, nx = points != null ? lbNext(points) : null;
+    $('profHead').innerHTML = `
+      <div class="flex flex-wrap items-center gap-5">
+        ${avatarHtml(row.username, meta.avatar, 'w-20 h-20 text-4xl rounded-2xl')}
+        <div class="flex-1 min-w-[200px]">
+          <div class="flex flex-wrap items-baseline gap-x-3">
+            <h2 class="font-display text-3xl gold-text">${esc(row.username)}</h2>
+            ${meta.alliance_tag ? `<span class="text-lg font-semibold text-slate-300">[${esc(meta.alliance_tag)}]</span>` : (own ? '<span class="text-xs text-slate-500">kein Allianz-Tag</span>' : '')}
+          </div>
+          <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
+            ${lvl != null ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold text-ink-950 bg-gradient-to-br from-gold-300 to-gold-600 shadow-[0_0_16px_rgba(245,197,66,.35)]">👑 VIP ${lvl}</span>` : '<span class="text-slate-500">Noch kein VIP-Stand</span>'}
+            ${P.place ? `<span class="px-2.5 py-1 rounded-lg bg-ink-950 border border-ink-700 text-slate-300">🏆 Platz #${P.place} von ${P.players}</span>` : ''}
+            ${row.updated_at ? `<span class="text-xs text-slate-500">aktualisiert ${dateLabel(new Date(row.updated_at).getTime())}</span>` : ''}
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="text-[10px] uppercase tracking-widest text-slate-400">VIP-Punkte gesamt</div>
+          <div class="text-3xl font-extrabold text-white tabular-nums">${points != null ? fmt(points) : '–'}</div>
+        </div>
+      </div>
+      ${nx ? `<div class="mt-5">
+        <div class="flex justify-between text-xs mb-1.5">
+          <span class="text-slate-400">${nx.max ? 'Höchste VIP-Stufe erreicht' : `Fortschritt zu VIP ${nx.next}`}</span>
+          <span class="${nx.max ? 'text-gold-300 font-semibold' : 'text-slate-300'}">${nx.max ? 'Max Level erreicht 👑' : `noch ${fmt(nx.need)} Punkte · ${Math.floor(nx.pct)} %`}</span>
+        </div>
+        <div class="h-3 rounded-full bg-ink-950 border border-ink-700 overflow-hidden">
+          <div class="h-full rounded-full bg-gradient-to-r from-gold-400 to-gold-600" style="width:${nx.max ? 100 : nx.pct}%"></div>
+        </div>
+      </div>` : ''}`;
+
+    // ---- Speedups ----
+    const main = [['training', 'Truppentraining'], ['healing', 'Heilung'], ['universal', 'Universal']];
+    $('profSpeed').innerHTML = main.map(([k, label]) => {
+      const c = SPEED.find(x => x.k === k), m = sp?.[k] || 0;
+      return `<div class="rounded-xl bg-ink-950/60 border border-ink-700 p-4">
+        <div class="flex items-center gap-2 text-xs uppercase tracking-widest text-slate-400"><span class="text-lg">${c.icon}</span>${label}</div>
+        <div class="text-2xl font-extrabold text-white tabular-nums mt-1">${sp ? days(m) : '–'} <span class="text-sm font-semibold text-slate-400">Tage</span></div>
+        <div class="text-xs text-slate-400">${sp ? durText(m) : 'keine Daten'}</div>
+      </div>`;
+    }).join('');
+    $('profSpeedMinor').innerHTML = sp ? ['research', 'building'].map(k => { const c = SPEED.find(x => x.k === k); return `<span>${c.icon} ${c.label}: <b class="text-slate-200">${durText(sp[k] || 0)}</b></span>`; }).join('') : '';
+    $('profSpeedStamp').textContent = spTs ? `Stand: ${dateLabel(spTs)}` : '';
+    const ev = PROF_EV.find(x => x.id === speedUi.profEv) || PROF_EV[0];
+    $('profEvBtns').innerHTML = PROF_EV.map(x => `<button class="pev-btn seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition" data-pev="${x.id}" aria-pressed="${x.id === ev.id}">${x.label}</button>`).join('');
+    $('profEvBtns').querySelectorAll('.pev-btn').forEach(b => b.onclick = () => { speedUi.profEv = b.dataset.pev; saveSpeedUi(); renderGameProfile(P); });
+    $('profEvFormula').innerHTML = 'Berechnung: ' + ev.keys.map(k => { const c = SPEED.find(x => x.k === k); return `${c.icon} ${c.label}`; }).join(' + ');
+    const evMin = sp ? ev.keys.reduce((a, k) => a + (sp[k] || 0), 0) : null;
+    $('profEvKpi').innerHTML = `<div class="rounded-xl bg-gold-500/10 border border-gold-500/40 p-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <div class="text-[10px] uppercase tracking-widest text-slate-400">${ev.label}</div>
+          <div class="text-4xl font-extrabold text-gold-300 tabular-nums mt-1">${evMin != null ? days(evMin) : '–'} <span class="text-base font-semibold text-slate-400">Tage</span></div>
+        </div>
+        <div class="text-sm text-slate-300">${evMin != null ? durText(evMin) : 'Noch keine Speedup-Daten'}</div>
+      </div>`;
+
+    // ---- Bearbeiten ----
+    $('profEdit').classList.toggle('hidden', !own);
+    if (own) {
+      $('profTag').value = meta.alliance_tag || '';
+      $('profVip').value = vipCurrent != null ? vipCurrent : '';
+      $('profSpeedRows').innerHTML = speedGridHtml(sp || {});
+      let chosen = meta.avatar || '';
+      const drawAv = () => {
+        $('profAvatars').innerHTML = AVATARS.map(a => `<button data-av="${a}" title="${a ? a : 'Anfangsbuchstabe'}" class="rounded-xl ${a === chosen ? 'ring-2 ring-gold-400' : 'opacity-70 hover:opacity-100'}">${avatarHtml(row.username, a, 'w-10 h-10 text-lg')}</button>`).join('');
+        $('profAvatars').querySelectorAll('[data-av]').forEach(b => b.onclick = () => { chosen = b.dataset.av; drawAv(); });
+      };
+      drawAv();
+      $('profSave').onclick = () => saveOwnProfile(() => chosen, sp);
+    }
+
+    // ---- Diagramm ----
+    renderProfileChart(entries, ev, P);
+  }
+
+  async function saveOwnProfile(getAvatar, oldSpeed) {
+    const msg = (t, ok) => { $('profMsg').textContent = t; $('profMsg').className = 'text-sm ' + (ok ? 'text-emerald-400' : 'text-red-300'); };
+    $('profSave').disabled = true; msg('Speichere …', true);
+    try {
+      // 1) VIP-Punkte
+      const vRaw = $('profVip').value.trim();
+      if (vRaw !== '') {
+        const v = Math.max(0, Math.round(+vRaw));
+        if (isNaN(v)) throw new Error('Bitte gültige VIP-Punkte eingeben.');
+        if (v !== vipCurrent) {
+          $('currentVip').value = v;
+          $('currentVip').dispatchEvent(new Event('input'));          // gleicher Weg wie im VIP-Rechner
+          addHistory({ id: newId(), ts: Date.now(), type: 'vip', ...vipNumbers(), confidence: 'manuell' });
+          pushRanking(true);
+        }
+      }
+      // 2) Speedups
+      const e = readSpeedGrid($('profSpeedRows'));
+      const changed = SPEED.some(c => (e[c.k] || 0) !== (oldSpeed?.[c.k] || 0));
+      if (changed && e.total) saveSpeedEntry(e);
+      // 3) Allianz-Tag + Profilbild
+      const meta = { alliance_tag: $('profTag').value.trim().toUpperCase().slice(0, 6), avatar: getAvatar() };
+      const old = RokAuth.ownMeta();
+      if (meta.alliance_tag !== (old.alliance_tag || '') || meta.avatar !== (old.avatar || '')) {
+        await RokAuth.saveMeta(meta, vipNumbers().after);
+        renderHeaderAvatar();
+      }
+      applyMode();
+      msg('✓ Gespeichert', true);
+      setTimeout(() => { if (view === 'profile') loadGameProfile(); }, 900);
+    } catch (e) { msg(e.message || String(e), false); }
+    finally { $('profSave').disabled = false; }
+  }
+  $('profScanVip').onclick = () => { view = 'scanner'; applyView(); mode = 'vip'; LS.set(MODE_KEY, mode); applyMode(); $('dropzone').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  $('profScanSpeed').onclick = () => { view = 'scanner'; applyView(); mode = 'speedups'; LS.set(MODE_KEY, mode); applyMode(); $('dropzone').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+
+  function renderProfileChart(entries, ev, P) {
+    const L = speedUi.profLines;
+    const opts = [['vip', '👑 VIP-Punkte', '#f5c542'], ['training', '⚔️ Training', '#f87171'], ['healing', '❤️ Heilung', '#34d399'],
+                  ['universal', '⏱️ Universal', '#a78bfa'], ['combined', `◆ Kombiniert (${ev.short})`, '#38bdf8']];
+    $('profLines').innerHTML = opts.map(([k, l, c]) => `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-pl="${k}" ${L[k] ? 'checked' : ''} class="w-4 h-4" style="accent-color:${c}">${l}</label>`).join('');
+    $('profLines').querySelectorAll('input').forEach(i => i.onchange = () => { L[i.dataset.pl] = i.checked; saveSpeedUi(); renderProfileChart(entries, ev, P); });
+    const pts = entries.filter(e => (e.type === 'vip' && e.after != null) || (e.type === 'speedups' && e.total != null));
+    const empty = $('profChartEmpty');
+    if (profChart) { profChart.destroy(); profChart = null; }
+    if (!window.Chart) { empty.textContent = 'Diagramm konnte nicht geladen werden.'; return; }
+    if (!pts.length) {
+      empty.textContent = P.own ? 'Noch keine VIP- oder Speedup-Daten im Verlauf.' : (P.scansError ? 'Verlauf nicht verfügbar.' : 'Dieser Spieler hat noch keinen öffentlichen Verlauf.');
+      return;
+    }
+    empty.textContent = '';
+    const labels = pts.map(e => dateLabel(e.ts));
+    const sv = (e, f) => e.type === 'speedups' ? f(e) / 1440 : null;
+    const line = (label, c, data, extra = {}) => ({ label, data, borderColor: c, backgroundColor: c + '33', borderWidth: 2.5, tension: .3, pointRadius: 3.5, pointHoverRadius: 6, pointBackgroundColor: c, spanGaps: true, fill: false, ...extra });
+    const ds = [];
+    if (L.vip) ds.push(line('VIP-Punkte', '#f5c542', pts.map(e => e.type === 'vip' ? e.after : null), { yAxisID: 'y1', borderWidth: 3 }));
+    if (L.training) ds.push(line('Training', '#f87171', pts.map(e => sv(e, x => x.training || 0))));
+    if (L.healing) ds.push(line('Heilung', '#34d399', pts.map(e => sv(e, x => x.healing || 0))));
+    if (L.universal) ds.push(line('Universal', '#a78bfa', pts.map(e => sv(e, x => x.universal || 0))));
+    if (L.combined) ds.push(line('Kombiniert: ' + ev.short, '#38bdf8', pts.map(e => sv(e, x => ev.keys.reduce((a, k) => a + (x[k] || 0), 0))), { borderDash: [8, 5], borderWidth: 3 }));
+    const hasSpeed = ds.some(d => d.yAxisID !== 'y1'), hasVip = ds.some(d => d.yAxisID === 'y1');
+    profChart = new Chart($('profChart'), {
+      type: 'line',
+      data: { labels, datasets: ds },
+      options: {
+        responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { boxWidth: 12, usePointStyle: true } },
+          tooltip: { backgroundColor: '#0c1019', borderColor: 'rgba(245,197,66,.3)', borderWidth: 1,
+            filter: (c) => c.raw != null,
+            callbacks: { label: (c) => c.dataset.yAxisID === 'y1' ? `VIP-Punkte: ${fmt(c.raw)}` : `${c.dataset.label}: ${durText(c.raw * 1440)}` } }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { display: hasSpeed, position: 'left', beginAtZero: true, title: { display: true, text: 'Tage', color: '#94a3b8' },
+               ticks: { callback: (v) => (+v).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' T' } },
+          y1: { display: hasVip, position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, title: { display: true, text: 'VIP-Punkte', color: '#94a3b8' },
+                ticks: { callback: (v) => short(v) } }
+        }
+      }
+    });
+  }
+
   // Init
+  renderHeaderAvatar();
   $('mainNav').classList.replace('hidden', 'grid');
   syncTabs();
   renderHistory();
@@ -1562,6 +2173,10 @@ window.RokApp = () => {
     activeVipEntryId = lastVip.entryId || null;
     renderVip();
   }
+  const lastSpeed = readLast('speedups');
+  if (lastSpeed?.total != null) renderSpeedups(lastSpeed, lastSpeed.ts);
+  else { renderSpeedInputs(); renderEvent(); }
+  renderSpeedOpts();
   const lastGems = readLast('gems');
   if (lastGems?.gems != null) renderGems({ gems: +lastGems.gems, gemsHand: lastGems.gemsHand ?? null, gemsBag: lastGems.gemsBag ?? null }, lastGems.ts);
   renderFarms();
