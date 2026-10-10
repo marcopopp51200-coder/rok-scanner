@@ -226,7 +226,7 @@ tailwind.config = {
       <section id="vipInputs" class="panel rounded-2xl p-5">
         <h2 class="font-display text-lg text-gold-300 mb-3">2 · Aktueller VIP-Stand</h2>
         <label class="text-xs text-slate-400">Aktuelle VIP-Punkte</label>
-        <input id="currentVip" type="number" min="0" placeholder="z. B. 412000"
+        <input id="currentVip" type="text" inputmode="numeric" autocomplete="off" placeholder="z. B. 1.961.265"
                class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold-500">
         <label for="targetLevel" class="block mt-4 text-xs text-slate-400">Ziel-Level</label>
         <select id="targetLevel" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold-500"></select>
@@ -339,20 +339,6 @@ tailwind.config = {
         </div>
         <div id="speedCards" class="grid sm:grid-cols-2 gap-4"></div>
 
-        <div class="panel rounded-2xl p-5">
-          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <h3 class="font-display text-xl gold-text">Event-Rechner</h3>
-            <span class="text-xs text-slate-500">z. B. für Zenith, MGE oder KvK</span>
-          </div>
-          <div id="eventBtns" class="flex flex-wrap gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group"></div>
-          <div id="eventFormula" class="mt-3 text-xs text-slate-400"></div>
-          <div id="eventKpis" class="mt-4 grid sm:grid-cols-3 gap-3"></div>
-          <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-400">
-            <label for="eventPpm">Punkte pro 1 Min. Speedup in diesem Event:</label>
-            <input id="eventPpm" type="number" min="0" step="any" class="w-24 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm text-right text-white focus:outline-none focus:border-gold-500">
-            <span class="text-slate-500">(wird pro Event gespeichert)</span>
-          </div>
-        </div>
       </section>
 
       <!-- Gems -->
@@ -438,6 +424,9 @@ tailwind.config = {
         </div>
       </section>
 
+      <!-- Bündnis-Credits (nur im Modus VIP), unter dem Verlauf -->
+      <section id="creditSection" class="hidden panel rounded-2xl p-5 ring-1 ring-gold-500/30"></section>
+
       <!-- Farmen (nur im Modus Ressourcen), unter dem Diagramm -->
       <section id="farmSection" class="hidden panel rounded-2xl p-5">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -483,6 +472,8 @@ tailwind.config = {
           <div class="flex flex-wrap gap-2">
             <button id="profScanVip" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">📷 VIP scannen</button>
             <button id="profScanSpeed" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">📷 Speedups scannen</button>
+            <label for="profGovFile" id="profScanGov" class="cursor-pointer text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Statthalter-Profil scannen</label>
+            <input id="profGovFile" type="file" accept="image/*" class="hidden">
           </div>
         </div>
         <div class="grid md:grid-cols-2 gap-6">
@@ -528,11 +519,6 @@ tailwind.config = {
         </div>
         <div id="profSpeed" class="grid sm:grid-cols-3 gap-3"></div>
         <div id="profSpeedMinor" class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-400"></div>
-        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <div id="profEvBtns" class="flex flex-wrap gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group"></div>
-          <span id="profEvFormula" class="text-xs text-slate-400"></span>
-        </div>
-        <div id="profEvKpi" class="mt-4"></div>
       </div>
 
       <!-- Charts: automatisch aus den Scans -->
@@ -562,12 +548,18 @@ tailwind.config = {
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
         <h2 class="font-display text-3xl gold-text">Allianz-Rangliste</h2>
-        <p class="text-sm text-slate-400">Alle Spieler, sortiert nach VIP-Punkten inkl. VIP durch Gegenstände – Name anklicken öffnet das Game Profil</p>
+        <p id="rankSub" class="text-sm text-slate-400">Alle Spieler, sortiert nach VIP-Punkten inkl. VIP durch Gegenstände – Name anklicken öffnet das Game Profil</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+      <div id="rankTabs" class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist" aria-label="Sortierung">
+        <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-sort="vip" aria-pressed="true" role="tab">👑 VIP</button>
+        <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-sort="kills" aria-pressed="false" role="tab">⚔️ Kill-Punkte</button>
       </div>
       <button id="rankRefresh" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6M20 20v-6h-6M20 10a8 8 0 00-14.9-3M4 14a8 8 0 0014.9 3"/></svg>
         Aktualisieren
       </button>
+      </div>
     </div>
 
     <div id="rankMe" class="hidden panel rounded-2xl p-5 ring-1 ring-gold-500/40"></div>
@@ -576,7 +568,7 @@ tailwind.config = {
       <div id="rankState" class="py-12 text-center text-sm text-slate-400"></div>
       <div class="overflow-x-auto">
         <table id="rankTable" class="hidden w-full text-sm border-separate border-spacing-y-1">
-          <thead class="text-xs uppercase tracking-wider text-slate-400">
+          <thead id="rankHead" class="text-xs uppercase tracking-wider text-slate-400">
             <tr>
               <th class="py-2 px-3 text-left font-medium w-20">Platz</th>
               <th class="py-2 px-3 text-left font-medium">Spieler</th>
@@ -691,6 +683,7 @@ window.RokAuth = (() => {
   const n0 = (v) => Math.max(0, Math.round(+v || 0));
   function dataOf(e) {
     if (e.type === 'ap') return { ap_50: n0(e.ap_50), ap_100: n0(e.ap_100), ap_500: n0(e.ap_500), ap_1000: n0(e.ap_1000), total_ap: n0(e.total_ap) };
+    if (e.type === 'governor') return { kill_points: n0(e.kill_points), highest_merit: n0(e.highest_merit), energy: n0(e.energy) };
     if (e.type === 'speedups') return { training: n0(e.training), heal: n0(e.healing), universal: n0(e.universal),
                                         building: n0(e.building), research: n0(e.research), total: n0(e.total) };
     return e;
@@ -728,14 +721,14 @@ window.RokAuth = (() => {
     const hist = readLocalHistory();
     const cur = new Map(hist.map(e => [String(e.id), JSON.stringify(e)]));
     const up = [...cur].filter(([id, j]) => full || synced.get(id) !== j).map(([, j]) => rowOf(JSON.parse(j)))
-      .filter(r => ['resources', 'vip', 'gems', 'speedups', 'ap'].includes(r.type));
+      .filter(r => ['resources', 'vip', 'gems', 'speedups', 'ap', 'governor'].includes(r.type));
     const delIds = full ? [] : [...synced.keys()].filter(id => !cur.has(id));
     // Speedups getrennt senden: fehlt das SQL-Update, blockiert das nicht die übrigen Daten
-    const isExtra = (r) => r.type === 'speedups' || r.type === 'ap';
+    const isExtra = (r) => r.type === 'speedups' || r.type === 'ap' || r.type === 'governor';
     const core = up.filter(r => !isExtra(r)), extra = up.filter(isExtra), failed = [];
     if (core.length) { const { error } = await sb.from('scans').upsert(core, { onConflict: 'user_id,id' }); if (error) throw error; }
     speedWarn = false;
-    for (const t of ['speedups', 'ap']) {                         // je Typ einzeln: lehnt die DB einen Typ ab, blockiert er den anderen nicht
+    for (const t of ['speedups', 'ap', 'governor']) {                         // je Typ einzeln: lehnt die DB einen Typ ab, blockiert er den anderen nicht
       const rows = extra.filter(r => r.type === t);
       if (!rows.length) continue;
       const { error } = await sb.from('scans').upsert(rows, { onConflict: 'user_id,id' });
@@ -905,9 +898,23 @@ window.RokAuth = (() => {
     const { data, error } = await sb.from('leaderboard').select('*').eq('user_id', user.id).maybeSingle();
     if (error) throw error;
     lbLast = data ? +data.vip_points : null;
+    lbKills = data?.kill_points != null ? +data.kill_points : null;
     ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '' };
   }
   // Aktuellen VIP-Stand melden. force = neuer Scan (immer aktualisieren), sonst nur bei geänderter Punktzahl.
+  // Kill-Punkte aus dem Statthalter-Scan in die Rangliste schreiben (Spalte kill_points)
+  let lbKills = null;
+  async function pushKills(kp) {
+    if (!user || kp == null || !isFinite(kp) || kp < 0) return { ok: false };
+    kp = Math.round(kp);
+    if (kp === lbKills) return { ok: true };
+    const row = { user_id: user.id, username: profile.name.slice(0, 40), kill_points: kp, updated_at: new Date().toISOString() };
+    if (lbLast == null) { row.vip_points = 0; row.vip_level = 0; }
+    const { error } = await sb.from('leaderboard').upsert(row);
+    if (error) { console.warn('Kill-Punkte nicht in der Rangliste gespeichert', error); return { ok: false, missingColumn: /kill_points|column/i.test(error.message || '') }; }
+    lbKills = kp; if (lbLast == null) lbLast = 0;
+    return { ok: true };
+  }
   function pushVip(points, level, force = false) {
     if (!user || points == null || !isFinite(points) || points < 0) return;
     points = Math.round(points);
@@ -924,7 +931,8 @@ window.RokAuth = (() => {
   async function loadLeaderboard() {
     // ohne city_skin laden (Bilder nur im Profil) – Fallback '*', falls Spalten fehlen
     const q = (cols) => sb.from('leaderboard').select(cols).order('vip_points', { ascending: false }).limit(500);
-    let r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar');
+    let r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar,kill_points');
+    if (r.error) r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar');
     if (r.error) r = await q('*');
     if (r.error) throw new Error(germanError(r.error));
     return r.data || [];
@@ -960,14 +968,14 @@ window.RokAuth = (() => {
   async function loadProfile(uid) {
     const [lb, sc] = await Promise.all([
       sb.from('leaderboard').select('*').eq('user_id', uid).maybeSingle(),
-      sb.from('scans').select('id,type,scanned_at,data').eq('user_id', uid).in('type', ['vip', 'speedups', 'gems', 'ap', 'resources']).order('scanned_at', { ascending: true })
+      sb.from('scans').select('id,type,scanned_at,data').eq('user_id', uid).in('type', ['vip', 'speedups', 'gems', 'ap', 'resources', 'governor']).order('scanned_at', { ascending: true })
     ]);
     if (lb.error) throw new Error(germanError(lb.error));
     return { row: lb.data, scans: sc.error ? [] : (sc.data || []).map(entryOf), scansError: !!sc.error };
   }
 
   return { current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
-           pushVip, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, saveNow };
+           pushVip, pushKills, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, saveNow };
 })();
 </script>
 
@@ -1076,12 +1084,21 @@ window.RokApp = () => {
   }
 
   // ---------- Settings ----------
-  $('currentVip').value = LS.get(CUR, '');
+  // VIP-Feld: zeigt Tausenderpunkte (1.961.265), gespeichert wird die reine Zahl
+  const vipInputNum = () => { const d = $('currentVip').value.replace(/\D/g, ''); return d === '' ? null : +d; };
+  const setVipInput = (v) => { const d = String(v ?? '').replace(/\D/g, ''); $('currentVip').value = d === '' ? '' : (+d).toLocaleString('de-DE'); };
+  setVipInput(LS.get(CUR, ''));
   $('currentVip').addEventListener('input', () => {
-    LS.set(CUR, $('currentVip').value);
-    vipCurrent = $('currentVip').value === '' ? vipCurrent : +$('currentVip').value;
+    const el = $('currentVip'), digitsBefore = el.value.slice(0, el.selectionStart ?? el.value.length).replace(/\D/g, '').length;
+    const n = vipInputNum();
+    setVipInput(n);
+    // Cursor hinter dieselbe Ziffer setzen
+    let pos = 0, seen = 0; while (pos < el.value.length && seen < digitsBefore) { if (/\d/.test(el.value[pos])) seen++; pos++; }
+    try { el.setSelectionRange(pos, pos); } catch {}
+    LS.set(CUR, n == null ? '' : String(n));
+    vipCurrent = n == null ? vipCurrent : n;
     if (!$('vipSection').classList.contains('hidden')) renderVip();
-    else pushRanking();
+    else { pushRanking(); renderCredits(); }
   });
 
   // ---------- Mode ----------
@@ -1301,13 +1318,13 @@ window.RokApp = () => {
         resources: normRes(r.resources) });
     } else {
       vipItems = (r.vip?.items || []).map(i => ({ name: i.name || `${i.points_each} VIP-Punkte`, points: +i.points_each || 0, qty: +i.quantity || 0 }));
-      const manual = $('currentVip').value;
-      let cur = manual !== '' ? +manual : r.vip?.current_points;
+      const manual = vipInputNum();
+      let cur = manual != null ? manual : r.vip?.current_points;
       if ((cur === null || cur === undefined) && r.vip?.current_level != null && r.vip?.progress_in_level != null) {
         cur = (VIP_TABLE[r.vip.current_level] || 0) + (+r.vip.progress_in_level || 0);
       }
       vipCurrent = cur ?? null;
-      if (manual === '' && vipCurrent != null) $('currentVip').value = vipCurrent;
+      if (manual == null && vipCurrent != null) setVipInput(vipCurrent);
       activeVipEntryId = newId();
       vipScanLoaded = true;
       addHistory({ id: activeVipEntryId, ts: Date.now(), type: 'vip', confidence: r.confidence || null, ...vipNumbers() });
@@ -1402,6 +1419,32 @@ window.RokApp = () => {
 
   function levelFor(points) { let l = 0; VIP_TABLE.forEach((t, i) => { if (points >= t) l = i; }); return l; }
 
+  // 100 VIP-Punkte = 50.000 Bündnis-Credits → 500 Credits je VIP-Punkt
+  const CREDITS_PER_VIP = 500;
+  function renderCredits() {
+    const box = $('creditSection');
+    const n = vipNumbers(), show = mode === 'vip' && (n.current != null || n.inventory > 0);
+    box.classList.toggle('hidden', !show);
+    if (!show) return;
+    const p = n.after, nx = lbNext(p);
+    const line = (label, miss) => `<div class="rounded-xl bg-ink-950/60 border border-ink-700 px-4 py-3">
+        <div class="text-[10px] uppercase tracking-widest text-slate-400">${label}</div>
+        <div class="mt-1 text-sm text-slate-300"><b class="text-white tabular-nums">${fmt(miss)}</b> Punkte fehlen → <b class="text-gold-300 tabular-nums">${fmt(miss * CREDITS_PER_VIP)}</b> Bündnis-Credits benötigt</div>
+      </div>`;
+    const toTarget = targetPoints() - p;
+    box.innerHTML = `
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 shrink-0 rounded-2xl grid place-items-center text-3xl" style="background:linear-gradient(135deg,#f5c54233,#b7830f22);border:1px solid #f5c54255">🤝</div>
+        <div class="min-w-0">
+          <div class="text-xs uppercase tracking-widest text-slate-400">Benötigte Bündnis-Credits${nx.max ? '' : ` · bis VIP ${nx.next}`}</div>
+          <div class="text-3xl sm:text-4xl font-extrabold text-gold-300 tabular-nums">${nx.max ? '–' : fmt(nx.need * CREDITS_PER_VIP)}</div>
+          <div class="text-sm text-slate-300 mt-0.5">${nx.max ? 'Max Level erreicht 👑' : `<b class="text-white tabular-nums">${fmt(nx.need)}</b> Punkte fehlen bis VIP ${nx.next} → <b class="text-gold-300 tabular-nums">${fmt(nx.need * CREDITS_PER_VIP)}</b> Bündnis-Credits benötigt`}</div>
+        </div>
+      </div>
+      ${toTarget > 0 && (nx.max || targetLevel > nx.next) ? `<div class="mt-4">${line(`Bis zum Ziel VIP ${targetLevel}`, toTarget)}</div>` : ''}
+      <p class="mt-3 text-[11px] text-slate-500">Grundlage: 100 VIP-Punkte = 50.000 Bündnis-Credits (500 Credits je Punkt). Gerechnet mit ${fmt(p)} VIP-Punkten inkl. Gegenständen.</p>`;
+  }
+
   function renderVip(r) {
     const inv = vipItems.reduce((a, i) => a + i.points * i.qty, 0);
     const cur = vipCurrent ?? 0;
@@ -1441,6 +1484,7 @@ window.RokApp = () => {
     // Korrekturen in der Tabelle / am aktuellen Stand übernehmen den letzten VIP-Scan im Verlauf
     if (activeVipEntryId) updateHistory(activeVipEntryId, vipNumbers());
     pushRanking();
+    renderCredits();
   }
   const pct = (v) => v.toFixed(1).replace('.', ',');
 
@@ -1507,7 +1551,7 @@ window.RokApp = () => {
   }
 
   $('showVipCalc').onclick = () => {
-    if (vipCurrent == null && $('currentVip').value !== '') vipCurrent = +$('currentVip').value;
+    if (vipCurrent == null && vipInputNum() != null) vipCurrent = vipInputNum();
     $('emptyState').classList.add('hidden');
     renderVip();
     $('vipSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1525,8 +1569,8 @@ window.RokApp = () => {
   try { history = JSON.parse(LS.get(HIST, '[]')) || []; } catch { history = []; }
   // Altdaten-Schutz: nur bekannte Zahlenfelder übernehmen
   const sanitize = (e) => {
-    const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups', 'ap'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
-    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap']
+    const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups', 'ap', 'governor'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
+    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'energy']
       : out.type === 'speedups' ? ['universal', 'building', 'research', 'training', 'healing', 'total']
       : ['food', 'wood', 'stone', 'gold', 'total', 'farmFood', 'farmWood', 'farmStone', 'farmGold', 'bagFood', 'bagWood', 'bagStone', 'bagGold'];
     keys.forEach(k => out[k] = (e[k] === null || e[k] === undefined || isNaN(+e[k])) ? null : +e[k]);
@@ -1551,7 +1595,7 @@ window.RokApp = () => {
     saveHistory(); renderHistory();
   }
   // Ein Diagramm (= alle Scans eines Typs) löschen – mit Sicherheitsabfrage
-  const TYPE_LABEL = { resources: 'Ressourcen', speedups: 'Speedups', vip: 'VIP', gems: 'Gems', ap: 'AP' };
+  const TYPE_LABEL = { resources: 'Ressourcen', speedups: 'Speedups', vip: 'VIP', gems: 'Gems', ap: 'AP', governor: 'Statthalter' };
   function resetHistoryType(type) {
     const n = history.filter(e => e.type === type).length;
     if (!n) { alert(`Im ${TYPE_LABEL[type]}-Diagramm sind keine Einträge.`); return false; }
@@ -1853,6 +1897,7 @@ window.RokApp = () => {
   const days = (min) => (min / 1440).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   function renderEvent() {
+    if (!$('eventBtns')) return;                                      // Event-Rechner ist aus dem Layout entfernt
     const ev = currentEvent();
     $('eventBtns').innerHTML = EVENTS.map(x => `<button class="ev-btn seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition" data-ev="${x.id}" aria-pressed="${x.id === ev.id}">${x.label}</button>`).join('');
     $('eventBtns').querySelectorAll('.ev-btn').forEach(b => b.onclick = () => { speedUi.event = b.dataset.ev; saveSpeedUi(); renderEvent(); renderSpeedOpts(); renderHistory(); });
@@ -1881,7 +1926,7 @@ window.RokApp = () => {
         <div class="text-xs text-slate-400 mt-1">${uni != null ? (min ? Math.round(uni / min * 100) : 0) + ' % des Event-Vorrats' : 'für die Punkte-Rechnung'}</div>
       </div>`;
   }
-  $('eventPpm').addEventListener('input', () => {
+  $('eventPpm')?.addEventListener('input', () => {
     const v = $('eventPpm').value === '' ? null : Math.max(0, +$('eventPpm').value);
     if (v == null || isNaN(v)) delete speedUi.ppm[speedUi.event]; else speedUi.ppm[speedUi.event] = v;
     saveSpeedUi(); renderEvent();
@@ -2063,6 +2108,7 @@ window.RokApp = () => {
     $('speedOpts').classList.toggle('hidden', mode !== 'speedups');
     $('farmSection').classList.toggle('hidden', mode !== 'resources');
     $('resLines').classList.toggle('hidden', mode !== 'resources');
+    renderCredits();
     $('emptyState').classList.toggle('hidden', !!has);
     $('emptyState').querySelector('p').textContent = {
       resources: 'Lade einen Screenshot der Ressourcen deines Main-Accounts hoch und klicke auf „Analysieren“.',
@@ -2127,22 +2173,40 @@ window.RokApp = () => {
     3: { icon: '🥉', badge: 'bg-gradient-to-br from-amber-500 to-orange-800 text-white', name: 'text-amber-300' }
   };
   let rankLoading = false;
+  let rankSort = (() => { try { return localStorage.getItem('rok_rank_sort') === 'kills' ? 'kills' : 'vip'; } catch { return 'vip'; } })();
+  let rankRows = [];
+  document.querySelectorAll('.rank-tab').forEach(b => b.onclick = () => {
+    rankSort = b.dataset.sort; try { localStorage.setItem('rok_rank_sort', rankSort); } catch {}
+    renderRanking(rankRows);
+  });
   async function loadRanking() {
     if (rankLoading) return;
     rankLoading = true;
     $('rankState').classList.remove('hidden'); $('rankState').textContent = 'Lade Rangliste …';
     try {
       const rows = (await RokAuth.loadLeaderboard())
-        .map(r => ({ ...r, vip_points: +r.vip_points || 0 }))
-        .sort((a, b) => (b.vip_points - a.vip_points) || (new Date(a.updated_at) - new Date(b.updated_at)) || String(a.username).localeCompare(b.username));
+        .map(r => ({ ...r, vip_points: +r.vip_points || 0, kill_points: r.kill_points == null ? null : +r.kill_points }));
+      rankRows = rows;
       renderRanking(rows);
     } catch (e) {
       $('rankTable').classList.add('hidden'); $('rankMe').classList.add('hidden');
       $('rankState').textContent = 'Rangliste konnte nicht geladen werden: ' + (e.message || e);
     } finally { rankLoading = false; }
   }
-  function renderRanking(rows) {
-    const me = RokAuth.userId();
+  function renderRanking(all) {
+    const me = RokAuth.userId(), kills = rankSort === 'kills';
+    document.querySelectorAll('.rank-tab').forEach(b => b.setAttribute('aria-pressed', b.dataset.sort === rankSort));
+    $('rankSub').textContent = kills ? 'Alle Spieler, sortiert nach Kill-Punkten aus dem Statthalter-Profil – Name anklicken öffnet das Game Profil'
+                                     : 'Alle Spieler, sortiert nach VIP-Punkten inkl. VIP durch Gegenstände – Name anklicken öffnet das Game Profil';
+    const byName = (a, b) => String(a.username).localeCompare(b.username);
+    const rows = [...all].sort(kills
+      ? (a, b) => ((b.kill_points ?? -1) - (a.kill_points ?? -1)) || byName(a, b)       // ohne Kill-Punkte ans Ende
+      : (a, b) => (b.vip_points - a.vip_points) || (new Date(a.updated_at) - new Date(b.updated_at)) || byName(a, b));
+    const th = (t, cls = 'text-left') => `<th class="py-2 px-3 ${cls} font-medium whitespace-nowrap">${t}</th>`;
+    $('rankHead').innerHTML = '<tr>' + th('Platz', 'text-left w-20') + th('Spieler') + (kills
+      ? th('⚔️ Kill-Punkte', 'text-right') + th('Zuletzt aktualisiert', 'text-right')
+      : th('VIP-Punkte <span class="normal-case tracking-normal text-slate-500">(inkl. Gegenstände)</span>', 'text-right') + th('VIP-Stufe', 'text-center')
+        + th('Bis zum nächsten VIP', 'text-left min-w-[190px]') + th('Zuletzt aktualisiert', 'text-right')) + '</tr>';
     $('rankStamp').textContent = `Stand: ${dateLabel(Date.now())} · ${rows.length} Spieler`;
     if (!rows.length) {
       $('rankTable').classList.add('hidden'); $('rankMe').classList.add('hidden');
@@ -2151,12 +2215,13 @@ window.RokApp = () => {
     }
     $('rankState').classList.add('hidden'); $('rankTable').classList.remove('hidden');
     $('rankRows').innerHTML = rows.map((r, i) => {
-      const place = i + 1, m = MEDALS[place], isMe = r.user_id === me;
+      const noKp = kills && r.kill_points == null;
+      const place = i + 1, m = noKp ? null : MEDALS[place], isMe = r.user_id === me;
       const rowCls = isMe ? 'bg-gold-500/15 outline outline-2 outline-gold-500/70' : (m ? 'bg-ink-850' : 'bg-ink-900/60');
       return `<tr class="${rowCls}">
         <td class="py-3 px-3 rounded-l-xl">
           ${m ? `<span class="inline-flex items-center gap-1.5"><span class="w-9 h-9 rounded-full grid place-items-center text-lg ${m.badge}">${m.icon}</span><span class="font-bold ${m.name}">${place}</span></span>`
-              : `<span class="inline-grid place-items-center w-9 h-9 rounded-full bg-ink-800 text-slate-300 font-semibold">${place}</span>`}
+              : `<span class="inline-grid place-items-center w-9 h-9 rounded-full bg-ink-800 text-slate-300 font-semibold">${noKp ? '–' : place}</span>`}
         </td>
         <td class="py-3 px-3">
           <button data-profile="${esc(r.user_id)}" class="group inline-flex items-center gap-3 text-left" title="Game Profil öffnen">
@@ -2165,16 +2230,36 @@ window.RokApp = () => {
             ${r.alliance_tag ? `<span class="px-2 py-0.5 rounded-md bg-ink-950 border border-gold-500/30 text-gold-300 font-semibold text-xs">[${esc(r.alliance_tag)}]</span>` : ''}
           </button>
         </td>
+        ${kills ? `<td class="py-3 px-3 text-right font-bold tabular-nums ${noKp ? 'text-slate-500' : m ? m.name : 'text-white'}">${noKp ? 'noch kein Scan' : fmt(r.kill_points)}</td>` : `
         <td class="py-3 px-3 text-right font-bold tabular-nums ${m ? m.name : 'text-white'}" title="${fmt(r.vip_points)}">${fmt(r.vip_points)}</td>
         <td class="py-3 px-3 text-center"><span class="inline-block px-2.5 py-1 rounded-lg bg-ink-950 border border-gold-500/30 text-gold-300 font-semibold text-xs">VIP ${lbLevel(r.vip_points)}</span></td>
-        <td class="py-3 px-3">${nextCell(r.vip_points)}</td>
+        <td class="py-3 px-3">${nextCell(r.vip_points)}</td>`}
         <td class="py-3 px-3 text-right text-slate-400 whitespace-nowrap rounded-r-xl">${r.updated_at ? dateLabel(new Date(r.updated_at).getTime()) : '–'}</td>
       </tr>`;
     }).join('');
     $('rankRows').querySelectorAll('[data-profile]').forEach(b => b.onclick = () => openProfile(b.dataset.profile));
     // Eigene Platzierung
     const idx = rows.findIndex(r => r.user_id === me), box = $('rankMe');
-    if (idx < 0) {
+    if (kills) {
+      const ranked = rows.filter(r => r.kill_points != null), k = ranked.findIndex(r => r.user_id === me);
+      if (k < 0) box.innerHTML = `<div class="text-sm text-slate-300">Du hast noch keine Kill-Punkte. Öffne dein <b>Game Profil</b> und tippe auf <b>„📷 Statthalter-Profil scannen“</b>.</div>`;
+      else {
+        const meRow = ranked[k], above = ranked[k - 1];
+        box.innerHTML = `<div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl grid place-items-center text-2xl font-extrabold ${MEDALS[k + 1]?.badge || 'bg-ink-800 text-gold-300'}">${MEDALS[k + 1]?.icon || '#' + (k + 1)}</div>
+            <div>
+              <div class="text-xs uppercase tracking-widest text-slate-400">Dein Platz · Kill-Punkte</div>
+              <div class="text-2xl font-extrabold text-white">#${k + 1} <span class="text-sm font-medium text-slate-400">von ${ranked.length}</span></div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-lg font-bold text-gold-300 tabular-nums">⚔️ ${fmt(meRow.kill_points)} Kill-Punkte</div>
+            <div class="text-xs text-slate-400">${above ? `Noch ${fmt(above.kill_points - meRow.kill_points + 1)} Kill-Punkte bis Platz ${k} (${esc(above.username)})` : 'Du führst die Kill-Rangliste an! ⚔️'}</div>
+          </div>
+        </div>`;
+      }
+    } else if (idx < 0) {
       box.innerHTML = `<div class="text-sm text-slate-300">Du bist noch nicht in der Rangliste. Scanne dein VIP oder trag unter <b>Scanner &amp; Dashboard → VIP</b> deine aktuellen VIP-Punkte ein.</div>`;
     } else {
       const meRow = rows[idx], above = rows[idx - 1];
@@ -2308,6 +2393,8 @@ window.RokApp = () => {
     const spTs = own ? (speedEntries[speedEntries.length - 1]?.ts) : sp?.ts;
 
     // ---- Kopf ----
+    const govEntries = entries.filter(e => e.type === 'governor');
+    const gov = govEntries.length ? govEntries[govEntries.length - 1] : null;      // letzter Statthalter-Scan
     const lvl = points != null ? lbLevel(points) : null, nx = points != null ? lbNext(points) : null;
     $('profHead').innerHTML = `
       <div class="flex flex-wrap items-center gap-5">
@@ -2324,9 +2411,13 @@ window.RokApp = () => {
             ${row.updated_at ? `<span class="text-xs text-slate-500">aktualisiert ${dateLabel(new Date(row.updated_at).getTime())}</span>` : ''}
           </div>
         </div>
-        <div class="text-right">
-          <div class="text-[10px] uppercase tracking-widest text-slate-400">VIP-Punkte gesamt</div>
-          <div class="text-3xl font-extrabold text-white tabular-nums">${points != null ? fmt(points) : '–'}</div>
+        <div class="grid grid-cols-3 gap-2 sm:gap-3 w-full lg:w-auto">
+          ${[['⚔️', 'Kill-Punkte', 'kill_points'], ['🏅', 'Höchster Verdienst', 'highest_merit'], ['⚡', 'Energie', 'energy']].map(([ic, label, k]) => `
+          <div class="rounded-xl bg-ink-950/60 border border-ink-700 px-3 py-2.5 lg:min-w-[150px]">
+            <div class="text-[10px] uppercase tracking-widest text-slate-400 whitespace-nowrap">${ic} ${label}</div>
+            <div class="text-lg sm:text-xl font-extrabold text-white tabular-nums mt-0.5">${gov && gov[k] != null ? fmt(gov[k]) : '–'}</div>
+          </div>`).join('')}
+          <div class="col-span-3 text-[11px] text-slate-500 text-right">${gov ? `Statthalter-Profil vom ${dateLabel(gov.ts)}` : (own ? 'Noch kein Scan – „📷 Statthalter-Profil scannen“' : 'Noch kein Statthalter-Scan')}</div>
         </div>
       </div>
       ${nx ? `<div class="mt-5">
@@ -2351,18 +2442,6 @@ window.RokApp = () => {
     }).join('');
     $('profSpeedMinor').innerHTML = sp ? ['research', 'building'].map(k => { const c = SPEED.find(x => x.k === k); return `<span>${c.icon} ${c.label}: <b class="text-slate-200">${durText(sp[k] || 0)}</b></span>`; }).join('') : '';
     $('profSpeedStamp').textContent = spTs ? `Stand: ${dateLabel(spTs)}` : '';
-    const ev = PROF_EV.find(x => x.id === speedUi.profEv) || PROF_EV[0];
-    $('profEvBtns').innerHTML = PROF_EV.map(x => `<button class="pev-btn seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition" data-pev="${x.id}" aria-pressed="${x.id === ev.id}">${x.label}</button>`).join('');
-    $('profEvBtns').querySelectorAll('.pev-btn').forEach(b => b.onclick = () => { speedUi.profEv = b.dataset.pev; saveSpeedUi(); renderGameProfile(P); });
-    $('profEvFormula').innerHTML = 'Berechnung: ' + ev.keys.map(k => { const c = SPEED.find(x => x.k === k); return `${c.icon} ${c.label}`; }).join(' + ');
-    const evMin = sp ? ev.keys.reduce((a, k) => a + (sp[k] || 0), 0) : null;
-    $('profEvKpi').innerHTML = `<div class="rounded-xl bg-gold-500/10 border border-gold-500/40 p-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <div class="text-[10px] uppercase tracking-widest text-slate-400">${ev.label}</div>
-          <div class="text-4xl font-extrabold text-gold-300 tabular-nums mt-1">${evMin != null ? days(evMin) : '–'} <span class="text-base font-semibold text-slate-400">Tage</span></div>
-        </div>
-        <div class="text-sm text-slate-300">${evMin != null ? durText(evMin) : 'Noch keine Speedup-Daten'}</div>
-      </div>`;
 
     // ---- Bearbeiten ----
     $('profEdit').classList.toggle('hidden', !own);
@@ -2427,6 +2506,30 @@ window.RokApp = () => {
     finally { $('profSave').disabled = false; }
   }
   $('profScanVip').onclick = () => { view = 'scanner'; applyView(); mode = 'vip'; LS.set(MODE_KEY, mode); applyMode(); $('dropzone').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  // Statthalter-Profil (Kill-Punkte, Höchster Verdienst, Energie) direkt aus dem Profil scannen
+  $('profGovFile').onchange = async (ev) => {
+    const f = ev.target.files?.[0]; ev.target.value = '';
+    if (!f || !f.type.startsWith('image/')) return;
+    const msg = (t, cls) => { $('profMsg').textContent = t; $('profMsg').className = 'text-sm ' + cls; };
+    msg('Lese Statthalter-Profil …', 'text-slate-300');
+    let img = null;
+    try {
+      img = await prepareImage(f);
+      const res = await fetch('/api/scan', { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ mode: 'governor', images: [{ media_type: img.mediaType, data: img.base64 }] }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(res.status === 400 && /modus/i.test(data?.error || '') ? 'Der Scan-Server kennt den Statthalter-Scan noch nicht – bitte die neue api/scan.js einspielen.' : (data?.error || `Serverfehler ${res.status}`));
+      const r = parseJson(String(data.text || '')) || {};
+      const e = { kill_points: num(r.kill_points), highest_merit: num(r.highest_merit), energy: num(r.energy) };
+      if (e.kill_points == null && e.highest_merit == null && e.energy == null) throw new Error('Keine Werte im Screenshot erkannt.');
+      addHistory({ id: newId(), ts: Date.now(), type: 'governor', ...e, confidence: r.confidence || null });
+      const saved = await RokAuth.saveNow('governor');
+      if (e.kill_points != null) await RokAuth.pushKills(e.kill_points);   // Kill-Rangliste
+      msg(saved.where === 'scans' ? '✓ Statthalter-Profil gespeichert' : saved.where === 'user_state' ? '✓ Gespeichert (Profil-Speicher – SQL-Update für public.scans fehlt)' : '✓ Lokal gespeichert, Cloud folgt', 'text-emerald-400');
+      loadGameProfile();
+    } catch (e2) { msg(e2.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : e2.message, 'text-red-300'); }
+    finally { if (img) { img.base64 = null; img.dataUrl = null; } }   // Bild sofort verwerfen
+  };
   $('profScanSpeed').onclick = () => { view = 'scanner'; applyView(); mode = 'speedups'; LS.set(MODE_KEY, mode); applyMode(); $('dropzone').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
 
   // ---- Charts-Fenster (ApexCharts): Reiter · Zeitraum · Area/Bar ----
@@ -2587,8 +2690,8 @@ window.RokApp = () => {
   if (lastVip) {
     vipScanLoaded = true;
     vipItems = (lastVip.items || []).map(i => ({ name: String(i.name || ''), points: +i.points || 0, qty: +i.qty || 0 }));
-    if ($('currentVip').value === '' && lastVip.current != null) $('currentVip').value = lastVip.current;
-    vipCurrent = $('currentVip').value !== '' ? +$('currentVip').value : (lastVip.current ?? null);
+    if (vipInputNum() == null && lastVip.current != null) setVipInput(lastVip.current);
+    vipCurrent = vipInputNum() ?? (lastVip.current ?? null);
     activeVipEntryId = lastVip.entryId || null;
     renderVip();
   }
@@ -2603,6 +2706,8 @@ window.RokApp = () => {
   if (lastGems?.gems != null) renderGems({ gems: +lastGems.gems, gemsHand: lastGems.gemsHand ?? null, gemsBag: lastGems.gemsBag ?? null }, lastGems.ts);
   renderFarms();
   applyMode();
+  { const g = history.filter(e => e.type === 'governor' && e.kill_points != null).sort((a, b) => b.ts - a.ts)[0];
+    if (g) RokAuth.pushKills(g.kill_points); }
   applyView();
 };
 </script>
