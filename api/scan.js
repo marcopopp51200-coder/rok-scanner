@@ -3,7 +3,7 @@
 // Der API-Key kommt ausschließlich aus der Umgebungsvariable ANTHROPIC_API_KEY und verlässt nie den Server.
 
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5';
-const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'mats']);
+const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'mats', 'gear']);
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MAX_IMAGES = 5;
 const MAX_TOTAL_B64 = 4_300_000; // Vercel erlaubt max. 4,5 MB pro Anfrage
@@ -197,8 +197,48 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
   "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
 }`;
 
+// ---------- Ausrüstung (Ist-Zustand für den Crafting-Planer) ----------
+const PROMPT_GEAR = `${INTRO}
+
+MODUS: Ausrüstung. Die Screenshots zeigen das Ausrüstungsfenster eines Statthalters/Kommandanten (Main-Account) –
+ggf. zusätzlich geöffnete Item-Details mit Namen und Set.
+
+Lies die 8 Ausrüstungs-Slots aus:
+- "helm"   = Helm (Helmet)
+- "chest"  = Brustpanzer / Rüstung (Chest)
+- "weapon" = Waffe (Weapon)
+- "gloves" = Handschuhe (Gloves)
+- "legs"   = Beinschutz / Hose (Legs)
+- "boots"  = Stiefel (Boots)
+- "acc1", "acc2" = die zwei Accessoire-Slots (Accessory), in Lesereihenfolge (links/oben zuerst)
+
+Je Slot:
+- "name": Item-Name genau wie im Bild (Deutsch oder Englisch). Ist kein Name lesbar, aber das Set erkennbar, den Set-Namen eintragen.
+- "set": Set-Name, falls sichtbar oder eindeutig erkennbar (z. B. "Ewiges Reich" / "Eternal Empire", "Höllisches Ödland" / "Hellish Wasteland",
+  "Drachenatem" / "Dragon's Breath"); bei KvK-Waffen "KvK" plus Truppentyp; sonst null.
+- "rarity": aus der Hintergrund-/Rahmenfarbe des Items: ORANGE/gold = "legendary", lila = "epic", blau = "elite", grün = "advanced", grau = "normal".
+Leerer oder nicht sichtbarer Slot: null. Rate keine Namen – lieber null und in "notes" erwähnen.
+Bei mehreren Screenshots denselben Slot nur einmal eintragen (die besser lesbare Variante nehmen).
+
+Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
+{
+  "type": "gear",
+  "slots": {
+    "helm":   {"name": string, "set": string|null, "rarity": "legendary"|"epic"|"elite"|"advanced"|"normal"} | null,
+    "chest":  ... | null,
+    "weapon": ... | null,
+    "gloves": ... | null,
+    "legs":   ... | null,
+    "boots":  ... | null,
+    "acc1":   ... | null,
+    "acc2":   ... | null
+  },
+  "confidence": "hoch" | "mittel" | "niedrig",
+  "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
+}`;
+
 // Der Prompt liegt auf dem Server: so kann die Route nicht als allgemeiner Claude-Proxy missbraucht werden.
-const PROMPT = (m) => m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : PROMPT_CLASSIC(m);
+const PROMPT = (m) => m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : m === 'gear' ? PROMPT_GEAR : PROMPT_CLASSIC(m);
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
