@@ -168,12 +168,13 @@ tailwind.config = {
   <div id="scannerView">
   <section class="panel rounded-2xl p-5 mb-6">
     <h2 class="font-display text-lg text-gold-300 mb-3 text-center">Modus</h2>
-    <div class="grid grid-cols-5 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group">
+    <div class="grid grid-cols-3 sm:grid-cols-6 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group">
       <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="speedups" aria-pressed="false">Speedups</button>
       <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="resources" aria-pressed="true">Ressourcen</button>
       <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="vip" aria-pressed="false">VIP</button>
       <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="gems" aria-pressed="false">Gems</button>
       <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="ap" aria-pressed="false">AP</button>
+      <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="mats" aria-pressed="false">Mats</button>
     </div>
   </section>
   <div class="grid lg:grid-cols-[380px_1fr] gap-6">
@@ -181,7 +182,7 @@ tailwind.config = {
     <!-- Left: input -->
     <aside class="space-y-6">
 
-      <section class="panel rounded-2xl p-5">
+      <section id="shotsSection" class="panel rounded-2xl p-5">
         <h2 class="font-display text-lg text-gold-300 mb-3">1 · Screenshots</h2>
         <label id="dropzone" for="fileInput"
                class="block cursor-pointer rounded-xl border-2 border-dashed border-ink-600 bg-ink-950/60 p-6 text-center transition">
@@ -255,6 +256,14 @@ tailwind.config = {
         <div id="apPrefillMsg" class="hidden mt-2 text-xs text-amber-300"></div>
         <button id="apSave" class="mt-3 w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">AP speichern</button>
         <div id="apSaveMsg" class="hidden mt-2 text-xs"></div>
+      </section>
+
+      <section id="matsInputs" class="hidden panel rounded-2xl p-5">
+        <h2 class="font-display text-lg text-gold-300 mb-1">2 · Materialien eingeben</h2>
+        <p class="text-xs text-slate-400 mb-3">Anzahl je Seltenheit. Ein Scan füllt die Felder – kurz prüfen, dann speichern.</p>
+        <div id="matsGrid" class="grid grid-cols-[1fr_repeat(5,minmax(0,46px))] gap-1 items-center text-xs"></div>
+        <button id="matsSave" class="mt-4 w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Materialien speichern</button>
+        <div id="matsSaveMsg" class="hidden mt-2 text-xs"></div>
       </section>
 
       <section id="vipInputs" class="panel rounded-2xl p-5">
@@ -393,6 +402,17 @@ tailwind.config = {
         </div>
       </section>
 
+      <!-- Materialien -->
+      <section id="matsSection" class="hidden space-y-4">
+        <div class="flex items-end justify-between">
+          <h2 class="font-display text-2xl gold-text">Materialien</h2>
+          <span id="matsSource" class="text-xs text-slate-400"></span>
+        </div>
+        <div id="matsChests" class="panel rounded-2xl p-5"></div>
+        <div id="matsSum" class="panel rounded-2xl p-5 ring-1 ring-gold-500/30"></div>
+        <div id="matsCards" class="grid sm:grid-cols-2 gap-4"></div>
+      </section>
+
       <!-- AP -->
       <section id="apSection" class="hidden space-y-4">
         <div class="flex items-end justify-between">
@@ -495,20 +515,30 @@ tailwind.config = {
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h3 class="font-display text-xl gold-text">Profil bearbeiten</h3>
           <div class="flex flex-wrap gap-2">
-            <button id="profScanVip" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">📷 VIP scannen</button>
             <label for="profGovFile" id="profScanGov" class="cursor-pointer text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Statthalter-Profil scannen</label>
             <input id="profGovFile" type="file" accept="image/*" class="hidden">
           </div>
         </div>
         <div class="grid md:grid-cols-2 gap-6">
           <div>
-            <div class="flex items-end gap-3">
+            <div>
+              <label for="profGovId" class="text-xs text-slate-400">Governor ID</label>
+              <input id="profGovId" inputmode="numeric" maxlength="12" placeholder="z. B. 12345678" translate="no"
+                     class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm tabular-nums focus:outline-none focus:border-gold-500">
+              <div class="text-[11px] text-slate-500 mt-1">Wird beim „📷 Statthalter-Profil scannen“ automatisch ausgelesen.</div>
+            </div>
+            <div class="mt-4 flex items-end gap-3">
               <div class="flex-1 min-w-0">
                 <label for="profTag" class="text-xs text-slate-400">Allianz-Tag</label>
                 <input id="profTag" maxlength="6" placeholder="z. B. ABC1"
                        class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm uppercase focus:outline-none focus:border-gold-500">
               </div>
             </div>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400">Profilbild <span class="text-slate-500">– eigenes Bild hochladen oder Symbol wählen</span></div>
+            <input id="profAvatarFile" type="file" accept="image/*" class="hidden">
+            <div id="profAvatars" class="mt-1 flex flex-wrap gap-1.5"></div>
             <div class="mt-4 flex items-center justify-between gap-3 rounded-xl border border-ink-700 bg-ink-950/50 px-4 py-3">
               <div>
                 <div class="text-sm font-semibold text-white">🔒 Profil privat</div>
@@ -519,11 +549,6 @@ tailwind.config = {
                 <span class="absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow transition-transform"></span>
               </button>
             </div>
-          </div>
-          <div>
-            <div class="text-xs text-slate-400">Profilbild <span class="text-slate-500">– eigenes Bild hochladen oder Symbol wählen</span></div>
-            <input id="profAvatarFile" type="file" accept="image/*" class="hidden">
-            <div id="profAvatars" class="mt-1 flex flex-wrap gap-1.5"></div>
           </div>
         </div>
         <div class="mt-4 flex flex-wrap items-center gap-3">
@@ -604,7 +629,7 @@ tailwind.config = {
             <tr>
               <th class="py-2 px-3 text-left font-medium w-20">Platz</th>
               <th class="py-2 px-3 text-left font-medium">Spieler</th>
-              <th class="py-2 px-3 text-right font-medium whitespace-nowrap">VIP-Punkte <span class="normal-case tracking-normal text-slate-500">(inkl. Gegenstände)</span></th>
+              <th class="py-2 px-3 text-right font-medium whitespace-nowrap">VIP-Punkte</th>
               <th class="py-2 px-3 text-center font-medium">VIP-Stufe</th>
               <th class="py-2 px-3 text-left font-medium whitespace-nowrap min-w-[190px]">Bis zum nächsten VIP</th>
               <th class="py-2 px-3 text-right font-medium whitespace-nowrap">Zuletzt aktualisiert</th>
@@ -635,12 +660,22 @@ window.I18N = (() => {
         'Allianz-Rangliste': 'Alliance Leaderboard', 'Rangliste': 'Leaderboard', 'Game Profil': 'Game Profile',
         'Scanner & Dashboard': 'Scanner & Dashboard', 'Profil bearbeiten': 'Edit Profile', 'Verlauf': 'History',
         'Modus': 'Mode', 'Ressourcen': 'Resources', 'Speedups': 'Speedups', 'VIP': 'VIP', 'Gems': 'Gems', 'AP': 'AP',
-        'Edelsteine': 'Gems', 'Aktionspunkte': 'Action Points', 'AP (Aktionspunkte)': 'AP (Action Points)', 'Farmen': 'Farms', 'Farm': 'Farm',
+        'Edelsteine': 'Gems', 'Mats': 'Mats', 'Materialien': 'Materials', 'Kisten': 'Chests', 'Material-Kisten': 'Material chests', 'Kisten (Legendär)': 'Chests (legendary)', 'Leder': 'Leather', 'Eisenerz': 'Iron Ore', 'Ebenholz': 'Ebony', 'Tierknochen': 'Animal Bone',
+        'Normal': 'Normal', 'Fortgeschritten': 'Advanced', 'Elite': 'Elite', 'Episch': 'Epic', 'Legendär': 'Legendary',
+        '2 · Materialien eingeben': '2 · Enter materials', 'Materialien speichern': 'Save materials', 'Materialien scannen': 'Scan materials',
+        'Anzahl je Seltenheit. Ein Scan füllt die Felder – kurz prüfen, dann speichern.': 'Number per rarity. A scan fills the fields – check quickly, then save.',
+        'Gesamt · Äquivalent in Legendär': 'Total · legendary equivalent', 'Äquivalent in Legendär:': 'Legendary equivalent:', 'Gesamt (Legendär)': 'Total (legendary)',
+        'Noch keine Material-Scans gespeichert.': 'No material scans saved yet.', 'Bitte mindestens ein Material eintragen.': 'Please enter at least one material.',
+        'Keine Materialien im Screenshot erkannt. Bitte die Anzahl links von Hand eintragen.': 'No materials detected in the screenshot. Please enter the numbers on the left.',
+        'Lade Screenshots deiner Schmiedematerialien aus dem Rucksack hoch und klicke auf „Materialien scannen“ – oder trag die Anzahl links von Hand ein.':
+          'Upload screenshots of your crafting materials and click “Scan materials” – or enter the numbers on the left.',
+        'Der Scan-Server kennt den Material-Scan noch nicht – bitte die neue api/scan.js auf Vercel einspielen. Bis dahin kannst du die Materialien links von Hand eintragen.':
+          'The scan server does not know the material scan yet – please deploy the new api/scan.js on Vercel. Until then enter the materials on the left.', 'Aktionspunkte': 'Action Points', 'AP (Aktionspunkte)': 'AP (Action Points)', 'Farmen': 'Farms', 'Farm': 'Farm',
         'VIP-Rechner': 'VIP Calculator', 'Dein Account': 'Your account', 'Eingeloggt als': 'Logged in as',
         '1 · Screenshots': '1 · Screenshots', '2 · Speedups eingeben': '2 · Enter speedups', '2 · AP-Flaschen': '2 · AP bottles',
         '2 · Aktueller VIP-Stand': '2 · Current VIP status', 'Erkannte VIP-Items': 'Detected VIP items',
         // Buttons & Labels
-        'Profil speichern': 'Save Profile', 'Abmelden': 'Logout', 'Allianz-Tag': 'Alliance Tag', 'Profilbild': 'Profile picture',
+        'Profil speichern': 'Save Profile', 'Wird beim „📷 Statthalter-Profil scannen“ automatisch ausgelesen.': 'Read automatically when you “📷 Scan governor profile”.', 'Abmelden': 'Logout', 'Allianz-Tag': 'Alliance Tag', 'Profilbild': 'Profile picture',
         'Benötigte Bündnis-Credits': 'Required Alliance Credits', 'Bündnis-Credits benötigt': 'Alliance Credits required',
         'Analysieren': 'Analyze', 'Analysiere …': 'Analyzing …', 'Aktualisieren': 'Refresh', '← Zurück': '← Back',
         'Einloggen': 'Log in', 'Neuen Account anlegen': 'Create new account', 'Account anlegen': 'Create account',
@@ -752,7 +787,7 @@ window.I18N = (() => {
         'Privat-Schalter: bitte zuerst die Spalte is_private in Supabase anlegen (SQL siehe Anleitung).': 'Private switch: please create the column is_private in Supabase first (see SQL instructions).',
         'Gesamten Verlauf (alle gespeicherten Scans) unwiderruflich löschen?': 'Permanently delete the entire history (all saved scans)?',
         // Attribute (Platzhalter, Tooltips)
-        'z. B. dein Ingame-Name': 'e.g. your in-game name', 'z. B. ABC1': 'e.g. ABC1', 'z. B. 1.961.265': 'e.g. 1,961,265',
+        'z. B. dein Ingame-Name': 'e.g. your in-game name', 'z. B. ABC1': 'e.g. ABC1', 'z. B. 12345678': 'e.g. 12345678', 'z. B. 1.961.265': 'e.g. 1,961,265',
         'Eintrag löschen': 'Delete entry', 'Farm löschen': 'Delete farm', 'Game Profil öffnen': 'Open game profile', 'Zur Rangliste': 'To leaderboard',
         'Eigenes Bild hochladen': 'Upload your own picture', 'Anfangsbuchstabe': 'Initial', 'Entfernen': 'Remove', 'Sortierung': 'Sorting',
         'Zeitraum': 'Time range', 'Darstellung': 'Display', 'Datenart': 'Data type', 'Ansicht': 'View', 'Bereiche': 'Sections',
@@ -773,6 +808,10 @@ window.I18N = (() => {
         [/^seit (.+)$/, (m, r) => 'since ' + r.replace(/ · ≈ ([\d.,]+) Tage$/, ' · ≈ $1 days')],
         [/^(\d+) Scans gespeichert \((\d+) Speedups, (\d+) Ressourcen, (\d+) VIP, (\d+) Gems, (\d+) AP\) · nur Zahlenwerte, keine Bilder$/,
           '$1 scans saved ($2 speedups, $3 resources, $4 VIP, $5 gems, $6 AP) · numbers only, no images'],
+        [/^(\d+) Scans gespeichert \((\d+) Speedups, (\d+) Ressourcen, (\d+) VIP, (\d+) Gems, (\d+) AP, (\d+) Mats\) · nur Zahlenwerte, keine Bilder$/,
+          '$1 scans saved ($2 speedups, $3 resources, $4 VIP, $5 gems, $6 AP, $7 mats) · numbers only, no images'],
+        [/^(.+) % zum nächsten legendären Material$/, '$1 % to the next legendary material'], [/^(.+) volle legendäre herstellbar$/, '$1 full legendary craftable'],
+        [/^(\d+) % zum nächsten$/, '$1 % to the next'], [/^inkl\. Kisten:$/, 'incl. chests:'], [/^(.+) · (Normal|Fortgeschritten|Elite|Episch|Legendär)$/, (m, a, b) => L(a) + ' · ' + L(b)],
         [/^(VIP \d+|SVIP) – ([\d.,]+) Punkte$/, '$1 – $2 points'], [/^([\d.,]+) Punkte · (VIP \d+|SVIP)$/, '$1 points · $2'], [/^([\d.,]+) Punkte$/, '$1 points'],
         [/^von (\d+)$/, 'of $1'], [/^Ziel: (VIP \d+|SVIP)$/, 'Target: $1'], [/^(VIP \d+|SVIP) erreicht! 🎉$/, '$1 reached! 🎉'],
         [/^Aktueller Stand ([\d,.]+) %$/, 'Current $1 %'], [/^Erkennungssicherheit: (.+)$/, (m, c) => 'Confidence: ' + (T()[c] || c)],
@@ -810,7 +849,7 @@ window.I18N = (() => {
   };
   // Begriffe innerhalb von Mustern
   const LABELS = { 'Ressourcen': 'resources', 'Speedups': 'speedups', 'VIP': 'VIP', 'Gems': 'gems', 'AP': 'AP', 'Kill-Punkte': 'kill points',
-    'Verdienst': 'acclaim', 'Statthalter': 'governor', 'Edelstein': 'gem', 'Training': 'Training', 'Universal': 'Universal', 'Heilung': 'Healing' };
+    'Verdienst': 'acclaim', 'Statthalter': 'governor', 'Materialien': 'materials', 'Material': 'material', 'Edelstein': 'gem', 'Training': 'Training', 'Universal': 'Universal', 'Heilung': 'Healing' };
   const SORT = { 'VIP-Punkten inkl. VIP durch Gegenstände': 'VIP points incl. VIP from items', 'Kill-Punkten aus dem Statthalter-Profil': 'kill points from the governor profile',
     'höchstem Verdienst aus dem Statthalter-Profil': 'highest acclaim from the governor profile' };
   const L = (w) => LABELS[w] || T()[w] || w;
@@ -944,6 +983,7 @@ window.RokAuth = (() => {
   // Accounts nur mit Benutzernamen bekommen intern diese Ersatz-E-Mail (wird nie angeschrieben).
   const USERNAME_DOMAIN = 'users.rok-scanner.app';
   const HIST = 'history_v1';
+  const DELQ = 'delete_queue';   // nur hier gemerkte IDs werden in der Cloud gelöscht (= vom Nutzer selbst gelöscht)
   const UNSYNCED = 'unsynced_scans';   // Scans, die public.scans (noch) nicht annimmt
 
   const $ = (id) => document.getElementById(id);
@@ -1012,11 +1052,21 @@ window.RokAuth = (() => {
     el.className = 'text-[10px] ' + ({ ok: 'text-emerald-400', busy: 'text-slate-400', err: 'text-amber-300' }[kind] || 'text-slate-500');
   }
 
+  // ---------- Löschen nur auf ausdrücklichen Wunsch ----------
+  // Früher galt: „fehlt lokal → in der Cloud löschen“. Das ist gefährlich (z. B. leerer Browser-Speicher).
+  // Jetzt löscht die Cloud ausschließlich IDs, die der Nutzer selbst über ✕ / Zurücksetzen entfernt hat.
+  const readDelQ = () => { try { return (JSON.parse(lsGet(NS + DELQ) || '[]') || []).map(String); } catch { return []; } };
+  function markDeleted(ids) {
+    if (!user || !ids?.length) return;
+    const q = new Set(readDelQ()); ids.forEach(id => q.add(String(id)));
+    lsSet(NS + DELQ, JSON.stringify([...q]));
+  }
+
   // ---------- Cloud → lokal ----------
   function readLocalHistory() { try { return JSON.parse(lsGet(NS + HIST) || '[]').filter(e => e && e.id); } catch { return []; } }
   function readLocalState() {
     const st = {};
-    lsKeys(NS).forEach(k => { const sfx = k.slice(NS.length); if (sfx !== HIST) st[sfx] = lsGet(k); });
+    lsKeys(NS).forEach(k => { const sfx = k.slice(NS.length); if (sfx !== HIST && sfx !== DELQ) st[sfx] = lsGet(k); });
     return st;
   }
   // Datenstruktur in public.scans
@@ -1026,6 +1076,12 @@ window.RokAuth = (() => {
   const n0 = (v) => Math.max(0, Math.round(+v || 0));
   function dataOf(e) {
     if (e.type === 'ap') return { ap_50: n0(e.ap_50), ap_100: n0(e.ap_100), ap_500: n0(e.ap_500), ap_1000: n0(e.ap_1000), total_ap: n0(e.total_ap) };
+    if (e.type === 'materials') {                                     // data = { leather: {white,green,blue,purple,gold}, …, total_legendary }
+      const d = {}; ['leather', 'iron', 'ebony', 'bone'].forEach(m => { d[m] = {}; ['white', 'green', 'blue', 'purple', 'gold'].forEach(g => d[m][g] = n0(e[m + '_' + g])); });
+      d.chests = {}; ['white', 'green', 'blue', 'purple', 'gold'].forEach(g => d.chests[g] = n0(e['chest_' + g]));
+      d.total_legendary = Math.round((+e.total_leg || 0) * 100) / 100;
+      return d;
+    }
     if (e.type === 'governor') return { kill_points: n0(e.kill_points), highest_merit: n0(e.highest_merit), energy: n0(e.energy) };
     if (e.type === 'speedups') return { training: n0(e.training), heal: n0(e.healing), universal: n0(e.universal),
                                         building: n0(e.building), research: n0(e.research), total: n0(e.total) };
@@ -1037,6 +1093,11 @@ window.RokAuth = (() => {
     const d = r.data || {}, e = { ...d, id: String(r.id ?? d.id ?? r.scanned_at), type: r.type, ts: +d.ts || Date.parse(r.scanned_at) };
     if (r.type === 'speedups' && e.healing == null && d.heal != null) e.healing = +d.heal;
     if (r.type === 'ap' && e.total_ap == null && d.ap != null) e.total_ap = +d.ap;      // ältere AP-Einträge
+    if (r.type === 'materials') {                                     // verschachtelt → flach (leather_white …)
+      ['leather', 'iron', 'ebony', 'bone'].forEach(m => ['white', 'green', 'blue', 'purple', 'gold'].forEach(g => { const v = d[m]?.[g]; if (v != null) e[m + '_' + g] = +v; }));
+      ['white', 'green', 'blue', 'purple', 'gold'].forEach(g => { const v = d.chests?.[g]; if (v != null) e['chest_' + g] = +v; });
+      if (d.total_legendary != null) e.total_leg = +d.total_legendary;
+    }
     return e;
   }
 
@@ -1047,8 +1108,9 @@ window.RokAuth = (() => {
     ]);
     if (scans.error) throw scans.error;
     if (state.error) throw state.error;
-    lsKeys(NS).forEach(lsDel);                                   // lokalen Zwischenspeicher durch Cloud-Stand ersetzen
-    const hist = (scans.data || []).map(entryOf);
+    const delQ = new Set(readDelQ());                            // noch nicht übertragene Löschungen behalten
+    lsKeys(NS).forEach(k => { if (k !== NS + DELQ) lsDel(k); }); // lokalen Zwischenspeicher durch Cloud-Stand ersetzen
+    const hist = (scans.data || []).map(entryOf).filter(e => !delQ.has(String(e.id)));
     const st = state.data?.data || {};
     let saved = [];
     try { saved = (JSON.parse(st[UNSYNCED] || '[]') || []).filter(e => e && e.id && !hist.some(h => String(h.id) === String(e.id))); } catch {}
@@ -1064,14 +1126,14 @@ window.RokAuth = (() => {
     const hist = readLocalHistory();
     const cur = new Map(hist.map(e => [String(e.id), JSON.stringify(e)]));
     const up = [...cur].filter(([id, j]) => full || synced.get(id) !== j).map(([, j]) => rowOf(JSON.parse(j)))
-      .filter(r => ['resources', 'vip', 'gems', 'speedups', 'ap', 'governor'].includes(r.type));
-    const delIds = full ? [] : [...synced.keys()].filter(id => !cur.has(id));
+      .filter(r => ['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'materials'].includes(r.type));
+    const delIds = readDelQ().filter(id => !cur.has(id));        // nur selbst gelöschte Einträge
     // Speedups getrennt senden: fehlt das SQL-Update, blockiert das nicht die übrigen Daten
-    const isExtra = (r) => r.type === 'speedups' || r.type === 'ap' || r.type === 'governor';
+    const isExtra = (r) => ['speedups', 'ap', 'governor', 'materials'].includes(r.type);
     const core = up.filter(r => !isExtra(r)), extra = up.filter(isExtra), failed = [];
     if (core.length) { const { error } = await sb.from('scans').upsert(core, { onConflict: 'user_id,id' }); if (error) throw error; }
     speedWarn = false;
-    for (const t of ['speedups', 'ap', 'governor']) {                         // je Typ einzeln: lehnt die DB einen Typ ab, blockiert er den anderen nicht
+    for (const t of ['speedups', 'ap', 'governor', 'materials']) {                         // je Typ einzeln: lehnt die DB einen Typ ab, blockiert er den anderen nicht
       const rows = extra.filter(r => r.type === t);
       if (!rows.length) continue;
       const { error } = await sb.from('scans').upsert(rows, { onConflict: 'user_id,id' });
@@ -1081,7 +1143,12 @@ window.RokAuth = (() => {
     lastFailedTypes = [...new Set(extra.filter(r => failed.includes(r.id)).map(r => r.type))];
     const failedRows = hist.filter(e => failed.includes(String(e.id)));
     if (failedRows.length) lsSet(NS + UNSYNCED, JSON.stringify(failedRows)); else lsDel(NS + UNSYNCED);
-    if (delIds.length) { const { error } = await sb.from('scans').delete().in('id', delIds); if (error) throw error; }
+    if (delIds.length) {
+      const { error } = await sb.from('scans').delete().in('id', delIds); if (error) throw error;
+      const rest = readDelQ().filter(id => !delIds.includes(id));
+      if (rest.length) lsSet(NS + DELQ, JSON.stringify(rest)); else lsDel(NS + DELQ);
+      delIds.forEach(id => synced.delete(id));
+    }
     const st = readLocalState(), stJson = JSON.stringify(st);
     if (full || stJson !== lastState) {
       const { error } = await sb.from('user_state').upsert({ user_id: user.id, data: st, updated_at: new Date().toISOString() });
@@ -1103,7 +1170,8 @@ window.RokAuth = (() => {
     const { data, error } = await sb.from('scans').select('id,type,scanned_at,data').eq('user_id', user.id).order('scanned_at', { ascending: true });
     if (error) throw error;
     const have = new Set(readLocalHistory().map(e => String(e.id)));
-    return (data || []).map(entryOf).filter(e => !have.has(String(e.id)));
+    const dq = new Set(readDelQ());
+    return (data || []).map(entryOf).filter(e => !have.has(String(e.id)) && !dq.has(String(e.id)));
   }
   function flushNow() {
     clearTimeout(timer); clearTimeout(retryTimer);
@@ -1252,7 +1320,7 @@ window.RokAuth = (() => {
     lbKills = data?.kill_points != null ? +data.kill_points : null;
     lbMerit = data?.highest_merit != null ? +data.highest_merit : null;
     lbEnergy = data?.energy != null ? +data.energy : null;
-    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', is_private: !!data?.is_private };
+    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', is_private: !!data?.is_private, governor_id: data?.governor_id || '' };
   }
   // Aktuellen VIP-Stand melden. force = neuer Scan (immer aktualisieren), sonst nur bei geänderter Punktzahl.
   // Kill-Punkte aus dem Statthalter-Scan in die Rangliste schreiben (Spalte kill_points)
@@ -1344,8 +1412,22 @@ window.RokAuth = (() => {
     if (lb.error) throw new Error(germanError(lb.error));
     // Privates Profil eines anderen Spielers: Verlauf gar nicht erst abrufen (nur die Kopfzeile ist sichtbar)
     if (lb.data?.is_private && uid !== user?.id) return { row: lb.data, scans: [], scansError: false, isPrivate: true };
-    const sc = await sb.from('scans').select('id,type,scanned_at,data').eq('user_id', uid).in('type', ['vip', 'speedups', 'gems', 'ap', 'resources', 'governor']).order('scanned_at', { ascending: true });
+    const sc = await sb.from('scans').select('id,type,scanned_at,data').eq('user_id', uid).in('type', ['vip', 'speedups', 'gems', 'ap', 'resources', 'governor', 'materials']).order('scanned_at', { ascending: true });
     return { row: lb.data, scans: sc.error ? [] : (sc.data || []).map(entryOf), scansError: !!sc.error, isPrivate: !!lb.data?.is_private };
+  }
+  // Governor ID (Spalte leaderboard.governor_id, Text)
+  async function saveGovId(id) {
+    id = String(id || '').replace(/\D/g, '').slice(0, 12);
+    const row = { user_id: user.id, username: profile.name.slice(0, 40), governor_id: id || null };
+    if (lbLast == null) { row.vip_points = 0; row.vip_level = 0; row.updated_at = new Date().toISOString(); }
+    const { error } = await sb.from('leaderboard').upsert(row);
+    if (error) {
+      if (/governor_id|column|schema/i.test(error.message || '')) { missingCols.add('governor_id'); throw new Error('Governor ID: bitte zuerst die Spalte governor_id in Supabase anlegen (SQL siehe Anleitung).'); }
+      throw new Error(germanError(error));
+    }
+    ownMeta = { ...ownMeta, governor_id: id };
+    if (lbLast == null) lbLast = 0;
+    return id;
   }
   // Profil privat / öffentlich schalten (Spalte leaderboard.is_private)
   async function setPrivate(on) {
@@ -1361,7 +1443,7 @@ window.RokAuth = (() => {
   }
 
   return { current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
-           pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, setPrivate, saveNow, pullScans, missingCols: () => [...missingCols] };
+           pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
 })();
 </script>
 
@@ -1399,7 +1481,7 @@ window.RokApp = () => {
 
   // ---------- State ----------
   const MODE_KEY = 'rok_scanner_mode';
-  let mode = ['speedups', 'resources', 'vip', 'gems', 'ap'].includes(LS.get(MODE_KEY, '')) ? LS.get(MODE_KEY) : 'resources';
+  let mode = ['speedups', 'resources', 'vip', 'gems', 'ap', 'mats'].includes(LS.get(MODE_KEY, '')) ? LS.get(MODE_KEY) : 'resources';
   let images = []; // {id, name, dataUrl, mediaType, base64}
   let vipItems = [];
   let vipCurrent = null;
@@ -1435,6 +1517,32 @@ window.RokApp = () => {
   const VIP_TABLE = VIP_LEVELS.map(x => x.points);
   // Wählbare Ziel-Level im VIP-Rechner
   const VIP_THRESHOLDS = Object.fromEntries(VIP_LEVELS.filter(x => x.level >= 1).map(x => [x.level, x.points]));
+
+  // ---------- Schmiedematerialien ----------
+  // 4:1-Umrechnung: 1 Legendär = 4 Episch = 16 Elite = 64 Fortgeschritten = 256 Normal
+  const MATS = [
+    { k: 'leather', label: 'Leder',       icon: '🐂', c: '#d97706' },
+    { k: 'iron',    label: 'Eisenerz',    icon: '⛓️', c: '#94a3b8' },
+    { k: 'ebony',   label: 'Ebenholz',    icon: '🪵', c: '#a16207' },
+    { k: 'bone',    label: 'Tierknochen', icon: '🦴', c: '#e5e7eb' }
+  ];
+  const GRADES = [
+    { k: 'white',  label: 'Normal',          short: 'W', c: '#cbd5e1', div: 256 },
+    { k: 'green',  label: 'Fortgeschritten', short: 'G', c: '#4ade80', div: 64 },
+    { k: 'blue',   label: 'Elite',           short: 'B', c: '#60a5fa', div: 16 },
+    { k: 'purple', label: 'Episch',          short: 'L', c: '#c084fc', div: 4 },
+    { k: 'gold',   label: 'Legendär',        short: 'G', c: '#f97316', div: 1 }
+  ];
+  const MAT_KEYS = MATS.flatMap(m => GRADES.map(g => m.k + '_' + g.k));
+  // Material-Kisten (gleiche 5 Seltenheiten) – werden getrennt ganz oben angezeigt
+  const CHEST = { k: 'chest', label: 'Kisten', icon: '📦', c: '#b45309' };
+  const CHEST_KEYS = GRADES.map(g => 'chest_' + g.k);
+  const ALL_MAT_KEYS = [...CHEST_KEYS, ...MAT_KEYS];
+  // Gesamt-Legendär = Gold + Lila/4 + Blau/16 + Grün/64 + Weiß/256
+  const matLeg = (e, m) => GRADES.reduce((a, g) => a + (+e[m + '_' + g.k] || 0) / g.div, 0);
+  const matTotal = (e) => MATS.reduce((a, m) => a + matLeg(e, m.k), 0);
+  const chestLeg = (e) => matLeg(e, 'chest');
+  const fmtLeg = (v) => (Math.round((v || 0) * 100) / 100).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   // AP-Flaschen im Inventar: feste Größen
   const AP_SIZES = [50, 100, 500, 1000];
@@ -1497,6 +1605,7 @@ window.RokApp = () => {
     resources: 'Liest Proviant, Holz, Stein und Gold – aus der Ressourcenleiste oder dem Ressourcen-Inventar.',
     vip: 'Liest VIP-Punkte-Kacheln aus dem Inventar (Wert × Anzahl) und berechnet den Weg zu deinem Ziel-Level.',
     gems: 'Liest die Anzahl deiner Edelsteine und speichert sie im Verlauf.',
+    mats: 'Liest Leder, Eisenerz, Ebenholz und Tierknochen in allen Seltenheiten und rechnet sie in Legendär um.',
     ap: 'Liest deine AP-Flaschen (50, 100, 500, 1.000) aus dem Inventar, füllt die 4 Felder vor und rechnet die Gesamt-AP aus.',
     speedups: 'Liest deine Beschleuniger (Universal, Bau, Forschung, Training, Heilung) aus dem Inventar und rechnet die Gesamtzeit aus.'
   };
@@ -1582,6 +1691,7 @@ window.RokApp = () => {
         discardImages();
         return;
       }
+      if (modeRejected && mode === 'mats') throw new Error('Der Scan-Server kennt den Material-Scan noch nicht – bitte die neue api/scan.js auf Vercel einspielen. Bis dahin kannst du die Materialien links von Hand eintragen.');
       if (modeRejected && mode === 'speedups') {
         $('speedInputs').scrollIntoView({ behavior: 'smooth', block: 'center' });
         throw new Error('Der Scan-Server (/api/scan) kennt den Speedup-Scan noch nicht. Trag deinen Bestand links unter „Speedups eingeben“ ein – das wird normal gespeichert.');
@@ -1666,7 +1776,7 @@ window.RokApp = () => {
 
   function setLoading(on) {
     $('analyzeBtn').disabled = on || !images.length;
-    $('analyzeLabel').textContent = on ? 'Analysiere …' : 'Analysieren';
+    $('analyzeLabel').textContent = on ? 'Analysiere …' : (mode === 'mats' ? 'Materialien scannen' : 'Analysieren');
     $('loadingState').classList.toggle('hidden', !on);
     if (on) { ['emptyState','resSection','vipSection','gemsSection','speedSection','apSection'].forEach(id => $(id).classList.add('hidden')); }
   }
@@ -1686,6 +1796,8 @@ window.RokApp = () => {
       addHistory({ id: newId(), ts, type: 'speedups', ...e, confidence: r.confidence || null });
       saveLastScan({ type: 'speedups', ts, ...e });
       RokAuth.saveNow('speedups');
+    } else if (type === 'mats') {
+      prefillMats(r);                                            // sofort auswerten, Felder zum Korrigieren füllen
     } else if (type === 'ap') {
       prefillAp(r);                                              // nicht sofort speichern: Nutzer prüft die 4 Felder
     } else if (type === 'gems') {
@@ -1723,7 +1835,7 @@ window.RokApp = () => {
     }
   }
   let activeVipEntryId = null;
-  let vipScanLoaded = false, hasRes = false, hasVip = false, hasGems = false, hasSpeed = false, hasAp = false;
+  let vipScanLoaded = false, hasRes = false, hasVip = false, hasGems = false, hasSpeed = false, hasAp = false, hasMats = false;
   const LAST = 'rok_scanner_last_scan';
   const saveLastScan = (data) => LS.set(LAST + '_' + data.type, JSON.stringify(data));
   const newId = () => (crypto.randomUUID?.() || String(Date.now() + Math.random()));
@@ -1967,8 +2079,8 @@ window.RokApp = () => {
   try { history = JSON.parse(LS.get(HIST, '[]')) || []; } catch { history = []; }
   // Altdaten-Schutz: nur bekannte Zahlenfelder übernehmen
   const sanitize = (e) => {
-    const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups', 'ap', 'governor'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
-    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'energy']
+    const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups', 'ap', 'governor', 'materials'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
+    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'materials' ? [...ALL_MAT_KEYS, 'total_leg'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'energy']
       : out.type === 'speedups' ? ['universal', 'building', 'research', 'training', 'healing', 'total']
       : ['food', 'wood', 'stone', 'gold', 'total', 'farmFood', 'farmWood', 'farmStone', 'farmGold', 'bagFood', 'bagWood', 'bagStone', 'bagGold'];
     keys.forEach(k => out[k] = (e[k] === null || e[k] === undefined || isNaN(+e[k])) ? null : +e[k]);
@@ -1989,21 +2101,23 @@ window.RokApp = () => {
     history[i] = sanitize({ ...history[i], ...patch }); saveHistory(); renderHistory();
   }
   function deleteEntry(id) {
+    RokAuth.markDeleted([id]);
     history = history.filter(e => e.id !== id);
     if (id === activeVipEntryId) activeVipEntryId = null;
     saveHistory(); renderHistory();
   }
   // Ein Diagramm (= alle Scans eines Typs) löschen – mit Sicherheitsabfrage
-  const TYPE_LABEL = { resources: 'Ressourcen', speedups: 'Speedups', vip: 'VIP', gems: 'Gems', ap: 'AP', governor: 'Statthalter' };
+  const TYPE_LABEL = { resources: 'Ressourcen', speedups: 'Speedups', vip: 'VIP', gems: 'Gems', ap: 'AP', governor: 'Statthalter', materials: 'Materialien' };
   function resetHistoryType(type) {
     const n = history.filter(e => e.type === type).length;
     if (!n) { alert(`Im ${TYPE_LABEL[type]}-Diagramm sind keine Einträge.`); return false; }
     if (!confirm(`⚠ ${TYPE_LABEL[type]}-Diagramm wirklich zurücksetzen?\n\nAlle ${n} gespeicherten ${TYPE_LABEL[type]}-Scans werden unwiderruflich gelöscht – auch in der Cloud. Die anderen Diagramme bleiben erhalten.`)) return false;
+    RokAuth.markDeleted(history.filter(e => e.type === type).map(e => e.id));
     history = history.filter(e => e.type !== type);
     if (type === 'vip') activeVipEntryId = null;
     LS.del(LAST + '_' + type);
     if (type === 'resources') hasRes = false; else if (type === 'gems') hasGems = false;
-    else if (type === 'speedups') hasSpeed = false; else if (type === 'ap') hasAp = false;   // Ergebnis-Karte des Typs ausblenden
+    else if (type === 'speedups') hasSpeed = false; else if (type === 'ap') hasAp = false; else if (type === 'materials') hasMats = false;   // Ergebnis-Karte des Typs ausblenden
     saveHistory(); applyMode();
     return true;
   }
@@ -2011,7 +2125,8 @@ window.RokApp = () => {
   $('resetHistory').onclick = () => {
     if (!history.length) return;
     if (!confirm('Gesamten Verlauf (alle gespeicherten Scans) unwiderruflich löschen?')) return;
-    history = []; activeVipEntryId = null; LS.del(HIST); renderHistory();
+    RokAuth.markDeleted(history.map(e => e.id));
+    history = []; activeVipEntryId = null; saveHistory(); renderHistory();
   };
 
   function syncTabs() {
@@ -2043,12 +2158,18 @@ window.RokApp = () => {
     } else if (histTab === 'speedups') {
       const ev = currentEvent();
       const lines = [...SPEED.map(c => ({ ...c, val: (e) => e[c.k] })),
-        { k: 'combined', label: 'Kombiniert: ' + ev.short, c: '#f5c542', val: (e) => ev.keys.reduce((a, k) => a + (e[k] || 0), 0) }];
+      ];
       datasets = lines.filter(l => speedLines[l.k]).map(l => ({
         label: l.label, data: list.map(e => e.total == null ? null : l.val(e) / 1440),
         backgroundColor: isLine ? l.c + '33' : l.c + 'cc', borderColor: l.c, borderWidth: isLine ? (l.k === 'combined' ? 3.5 : 2.5) : 0,
         borderDash: l.k === 'combined' && isLine ? [8, 5] : undefined,
         borderRadius: 4, tension: .3, pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: l.c, spanGaps: true, fill: false }));
+    } else if (histTab === 'materials') {
+      datasets = [...MATS.map(m => ({ label: m.label, data: list.map(e => Math.round(matLeg(e, m.k) * 100) / 100), c: m.c })),
+                  { label: 'Kisten', data: list.map(e => Math.round(chestLeg(e) * 100) / 100), c: CHEST.c },
+                  { label: 'Gesamt (Legendär)', data: list.map(e => Math.round(matTotal(e) * 100) / 100), c: '#facc15', dash: true }]
+        .map(d => ({ label: d.label, data: d.data, backgroundColor: isLine ? d.c + '33' : d.c + 'cc', borderColor: d.c, borderWidth: isLine ? (d.dash ? 3.5 : 2.5) : 0,
+          borderDash: d.dash && isLine ? [8, 5] : undefined, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: d.c, spanGaps: true, fill: false }));
     } else if (histTab === 'ap') {
       datasets = [{ label: 'AP gesamt', data: list.map(e => e.total_ap), backgroundColor: isLine ? '#34d39933' : '#34d399cc', borderColor: '#34d399',
         borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: '#34d399', spanGaps: true, fill: false }];
@@ -2069,7 +2190,7 @@ window.RokApp = () => {
     if (!window.Chart) {
       empty.textContent = 'Chart.js konnte nicht geladen werden (keine Internetverbindung?). Die Tabelle funktioniert trotzdem.';
     } else {
-      empty.textContent = list.length ? '' : ({ speedups: 'Noch keine Speedup-Scans gespeichert.', resources: 'Noch keine Ressourcen-Scans gespeichert.', vip: 'Noch keine VIP-Scans gespeichert.', gems: 'Noch keine Edelstein-Scans gespeichert.', ap: 'Noch keine AP-Scans gespeichert.' })[histTab];
+      empty.textContent = list.length ? '' : ({ speedups: 'Noch keine Speedup-Scans gespeichert.', resources: 'Noch keine Ressourcen-Scans gespeichert.', vip: 'Noch keine VIP-Scans gespeichert.', gems: 'Noch keine Edelstein-Scans gespeichert.', ap: 'Noch keine AP-Scans gespeichert.', materials: 'Noch keine Material-Scans gespeichert.' })[histTab];
       if (chart) chart.destroy();
       chart = new Chart($('historyChart'), {
         type: chartType,
@@ -2121,6 +2242,16 @@ window.RokApp = () => {
           <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
         </tr>`;
       }).join('');
+    } else if (histTab === 'materials') {
+      $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
+        ${MATS.map(m => `<th class="${th_}">${m.icon} ${m.label}</th>`).join('')}<th class="${th_}">⚒️ Gesamt (Legendär)</th><th class="${th_}">📦 Kisten</th><th class="w-8"></th></tr>`;
+      $('histRows').innerHTML = rows.map(e => `<tr class="border-b border-ink-800 hover:bg-ink-850">
+          <td class="py-2 pr-2 whitespace-nowrap text-slate-300">${dateLabel(e.ts)}</td>
+          ${MATS.map(m => `<td class="py-2 px-2 text-right tabular-nums">${fmtLeg(matLeg(e, m.k))}</td>`).join('')}
+          <td class="py-2 px-2 text-right tabular-nums font-semibold text-gold-300">${fmtLeg(matTotal(e))}</td>
+          <td class="py-2 px-2 text-right tabular-nums text-slate-300">${fmtLeg(chestLeg(e))}</td>
+          <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
+        </tr>`).join('');
     } else if (histTab === 'ap') {
       $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
         <th class="${th_}">50er</th><th class="${th_}">100er</th><th class="${th_}">500er</th><th class="${th_}">1.000er</th><th class="${th_}">⚡ AP gesamt</th><th class="${th_}">Veränderung</th><th class="w-8"></th></tr>`;
@@ -2164,7 +2295,7 @@ window.RokApp = () => {
     $('histRows').querySelectorAll('[data-hdel]').forEach(b => b.onclick = () => deleteEntry(b.dataset.hdel));
 
     const n = (t) => history.filter(e => e.type === t).length;
-    $('histCount').textContent = `${history.length} Scans gespeichert (${n('speedups')} Speedups, ${n('resources')} Ressourcen, ${n('vip')} VIP, ${n('gems')} Gems, ${n('ap')} AP) · nur Zahlenwerte, keine Bilder`;
+    $('histCount').textContent = `${history.length} Scans gespeichert (${n('speedups')} Speedups, ${n('resources')} Ressourcen, ${n('vip')} VIP, ${n('gems')} Gems, ${n('ap')} AP, ${n('materials')} Mats) · nur Zahlenwerte, keine Bilder`;
     $('resetChart').textContent = `🗑 ${TYPE_LABEL[histTab] || ''}-Diagramm zurücksetzen`;
     $('resetChart').disabled = !list.length; $('resetChart').classList.toggle('opacity-40', !list.length);
     $('resetHistory').disabled = !history.length;
@@ -2337,7 +2468,7 @@ window.RokApp = () => {
   function renderSpeedOpts() {
     const ev = currentEvent();
     const opts = [['training', '⚔️ Training', '#f87171'], ['healing', '❤️ Heilung', '#34d399'], ['universal', '⏱️ Universal', '#f5c542'],
-                  ['combined', `◆ Kombiniert (${ev.short})`, '#f5c542'], ['research', '📘 Forschung', '#38bdf8'], ['building', '🔨 Bau', '#fb923c']];
+                  ['research', '📘 Forschung', '#38bdf8'], ['building', '🔨 Bau', '#fb923c']];
     $('speedOpts').innerHTML = '<span class="text-slate-500">Linien:</span>' + opts.map(([k, l, c]) =>
       `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-line="${k}" ${speedLines[k] ? 'checked' : ''} class="w-4 h-4" style="accent-color:${c}">${l}</label>`).join('');
     $('speedOpts').querySelectorAll('input').forEach(i => i.onchange = () => { speedLines[i.dataset.line] = i.checked; saveSpeedUi(); renderHistory(); });
@@ -2496,6 +2627,98 @@ window.RokApp = () => {
     saveApEntry(c, r.confidence || 'Scan').then(res => flash($('apSaveMsg'), savedText(res), true)).catch(e => showError(e.message || String(e)));
   }
 
+  // ---------- Materialien: Eingabe, Auswertung, Karten ----------
+  $('matsGrid').innerHTML = '<span></span>' + GRADES.map(g => `<span class="text-center" title="${g.label}"><i class="inline-block w-3 h-3 rounded-sm" style="background:${g.c}"></i></span>`).join('')
+    + [CHEST, ...MATS].map(m => `<span class="text-slate-300 whitespace-nowrap truncate">${m.icon} ${m.label}</span>` + GRADES.map(g =>
+      `<input id="m_${m.k}_${g.k}" type="number" min="0" step="1" placeholder="0" title="${m.label} · ${g.label}"
+         class="mat-in w-full bg-ink-950 border rounded-md px-1 py-1.5 text-xs text-right tabular-nums focus:outline-none focus:border-gold-500" style="border-color:${g.c}55">`).join('')).join('');
+  function readMatFields() { const e = {}; ALL_MAT_KEYS.forEach(k => e[k] = Math.max(0, Math.round(+$('m_' + k).value || 0))); e.total_leg = matTotal(e); return e; }
+  function fillMatFields(e) { ALL_MAT_KEYS.forEach(k => { $('m_' + k).value = e?.[k] ? e[k] : ''; }); }
+  document.querySelectorAll('.mat-in').forEach(i => i.addEventListener('input', () => i.classList.remove('ring-1', 'ring-amber-400')));
+
+  function renderMats(e, ts) {
+    const total = matTotal(e), chestEq = chestLeg(e);
+    $('matsChests').innerHTML = `
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="flex items-center gap-2"><span class="text-2xl">📦</span><span class="text-sm font-semibold text-white">Material-Kisten</span></div>
+        <div class="text-sm text-slate-300">Äquivalent in Legendär: <b class="text-gold-300 tabular-nums">${fmtLeg(chestEq)}</b></div>
+      </div>
+      <div class="grid grid-cols-5 gap-1.5">
+        ${GRADES.map(g => `<div class="rounded-lg bg-ink-950/60 px-1 py-2 text-center border" style="border-color:${g.c}66" title="${g.label}">
+          <div class="text-[10px] font-semibold" style="color:${g.c}">${g.label}</div>
+          <div class="text-sm font-bold text-white tabular-nums">${fmt(+e['chest_' + g.k] || 0)}</div></div>`).join('')}
+      </div>`;
+    $('matsSum').innerHTML = `
+      <div class="flex flex-wrap items-center gap-5">
+        <div class="w-14 h-14 shrink-0 rounded-2xl grid place-items-center text-3xl" style="background:linear-gradient(135deg,#facc1533,#b7830f22);border:1px solid #facc1555">⚒️</div>
+        <div class="flex-1 min-w-[180px]">
+          <div class="text-xs uppercase tracking-widest text-slate-400">Gesamt · Äquivalent in Legendär</div>
+          <div class="text-4xl font-extrabold text-gold-300 tabular-nums">${fmtLeg(total)}</div>
+          ${chestEq ? `<div class="text-xs text-slate-400 mt-0.5">inkl. Kisten: <b class="text-white tabular-nums">${fmtLeg(total + chestEq)}</b></div>` : ''}
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full sm:w-auto">
+          ${MATS.map(m => `<div class="rounded-lg bg-ink-950/60 border border-ink-700 px-3 py-2 text-center">
+            <div class="text-[10px] uppercase tracking-wider text-slate-500 whitespace-nowrap">${m.icon} ${m.label}</div>
+            <div class="text-sm font-bold text-white tabular-nums">${fmtLeg(matLeg(e, m.k))}</div></div>`).join('')}
+        </div>
+      </div>`;
+    $('matsCards').innerHTML = MATS.map(m => {
+      const leg = matLeg(e, m.k), full = Math.floor(leg + 1e-9), pct = Math.round((leg - full) * 100);
+      return `<div class="panel rounded-2xl p-5">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl grid place-items-center text-2xl" style="background:${m.c}22;border:1px solid ${m.c}55">${m.icon}</div>
+          <div class="min-w-0">
+            <div class="text-xs uppercase tracking-widest text-slate-400">${m.label}</div>
+            <div class="text-sm text-slate-300">Äquivalent in Legendär: <b class="text-xl text-gold-300 tabular-nums">${fmtLeg(leg)}</b></div>
+          </div>
+        </div>
+        <div class="mt-4 grid grid-cols-5 gap-1.5">
+          ${GRADES.map(g => `<div class="rounded-lg bg-ink-950/60 px-1 py-2 text-center border" style="border-color:${g.c}66" title="${g.label}">
+            <div class="text-[10px] font-semibold" style="color:${g.c}">${g.label}</div>
+            <div class="text-sm font-bold text-white tabular-nums">${fmt(+e[m.k + '_' + g.k] || 0)}</div></div>`).join('')}
+        </div>
+        <div class="mt-4 h-2.5 rounded-full bg-ink-950 overflow-hidden" title="${pct} % zum nächsten legendären Material">
+          <div class="bar h-full rounded-full bg-gradient-to-r from-gold-400 to-gold-600" style="width:0" data-w="${pct}"></div>
+        </div>
+        <div class="mt-1.5 flex justify-between text-[11px] text-slate-400"><span>${fmt(full)} volle legendäre herstellbar</span><span>${pct} % zum nächsten</span></div>
+      </div>`;
+    }).join('');
+    $('matsSource').textContent = ts ? `Letzter Scan: ${dateLabel(ts)}` : '';
+    hasMats = true;
+    animateBars();
+  }
+  // Speichern: Korrekturen innerhalb von 30 Minuten überschreiben den letzten Eintrag
+  let activeMats = null;
+  async function saveMatsEntry(e, confidence) {
+    const entry = { ...e, total_leg: matTotal(e) };
+    const fresh = activeMats && Date.now() - activeMats.ts < 30 * 60000 && history.some(x => x.id === activeMats.id);
+    const ts = fresh ? activeMats.ts : Date.now();
+    if (fresh) updateHistory(activeMats.id, { ...entry, confidence });
+    else { activeMats = { id: newId(), ts }; addHistory({ id: activeMats.id, ts, type: 'materials', ...entry, confidence }); }
+    renderMats(entry, ts);
+    saveLastScan({ type: 'materials', ts, ...entry });
+    applyMode();
+    return RokAuth.saveNow('materials');
+  }
+  $('matsSave').onclick = async () => {
+    const e = readMatFields();
+    if (!ALL_MAT_KEYS.some(k => e[k] > 0)) { showError('Bitte mindestens ein Material eintragen.'); return; }
+    hideError(); $('matsSave').disabled = true;
+    try { flash($('matsSaveMsg'), savedText(await saveMatsEntry(e, 'manuell')), true); }
+    finally { $('matsSave').disabled = false; }
+  };
+  function prefillMats(r) {
+    const src = r.materials || r, e = {}; let found = 0;
+    MATS.forEach(m => GRADES.forEach(g => { const v = toCount(src?.[m.k]?.[g.k]); if (v != null) { e[m.k + '_' + g.k] = v; found++; } }));
+    const ch = r.chests || src.chests;
+    GRADES.forEach(g => { const v = toCount(ch?.[g.k]); if (v != null) { e['chest_' + g.k] = v; found++; } });
+    if (!found) throw new Error('Keine Materialien im Screenshot erkannt. Bitte die Anzahl links von Hand eintragen.');
+    ALL_MAT_KEYS.forEach(k => { if (e[k] == null) e[k] = 0; });
+    fillMatFields(e);
+    activeMats = null;
+    saveMatsEntry(e, r.confidence || 'Scan').then(res => flash($('matsSaveMsg'), savedText(res), true)).catch(x => showError(x.message || String(x)));
+  }
+
   // ---------- Speedups: Live-Summe der Eingabe ----------
   function updateSpeedSum() {
     const e = readSpeedGrid($('speedInputRows'));
@@ -2505,7 +2728,7 @@ window.RokApp = () => {
 
   // Getrennte Seiten: Ressourcen | VIP | Gems | Speedups | AP
   function applyMode() {
-    const has = { speedups: hasSpeed, resources: hasRes, vip: hasVip, gems: hasGems, ap: hasAp }[mode];
+    const has = { speedups: hasSpeed, resources: hasRes, vip: hasVip, gems: hasGems, ap: hasAp, mats: hasMats }[mode];
     document.querySelectorAll('.seg-btn[data-mode]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mode === mode));
     $('vipInputs').classList.toggle('hidden', mode !== 'vip');
     $('resSection').classList.toggle('hidden', mode !== 'resources' || !hasRes);
@@ -2519,6 +2742,9 @@ window.RokApp = () => {
     $('speedOpts').classList.toggle('hidden', mode !== 'speedups');
     $('farmSection').classList.toggle('hidden', mode !== 'resources');
     $('resLines').classList.toggle('hidden', mode !== 'resources');
+    $('matsSection').classList.toggle('hidden', mode !== 'mats' || !hasMats);
+    $('matsInputs').classList.toggle('hidden', mode !== 'mats');
+    if ($('loadingState').classList.contains('hidden')) $('analyzeLabel').textContent = mode === 'mats' ? 'Materialien scannen' : 'Analysieren';
     renderCredits();
     $('emptyState').classList.toggle('hidden', !!has);
     $('emptyState').querySelector('p').textContent = {
@@ -2526,9 +2752,10 @@ window.RokApp = () => {
       vip: 'Lade einen Screenshot deines Inventars mit VIP-Punkte-Items hoch und klicke auf „Analysieren“ – oder nutze „Rechner ohne Scan öffnen“.',
       gems: 'Lade einen Screenshot hoch, auf dem deine Edelsteine zu sehen sind, und klicke auf „Analysieren“.',
       ap: 'Lade einen Screenshot deiner AP-Flaschen aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag die Anzahl je Flaschengröße links ein.',
-      speedups: 'Lade Screenshots deiner Beschleuniger aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag deinen Bestand links unter „Speedups eingeben“ ein.'
+      speedups: 'Lade Screenshots deiner Beschleuniger aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag deinen Bestand links unter „Speedups eingeben“ ein.',
+      mats: 'Lade Screenshots deiner Schmiedematerialien aus dem Rucksack hoch und klicke auf „Materialien scannen“ – oder trag die Anzahl links von Hand ein.'
     }[mode];
-    histTab = mode; syncTabs(); renderHistory();
+    histTab = mode === 'mats' ? 'materials' : mode; syncTabs(); renderHistory();
   }
 
   // Browser bitten, den lokalen Zwischenspeicher nicht automatisch aufzuräumen
@@ -2621,7 +2848,7 @@ window.RokApp = () => {
     const th = (t, cls = 'text-left') => `<th class="py-2 px-3 ${cls} font-medium whitespace-nowrap">${t}</th>`;
     $('rankHead').innerHTML = '<tr>' + th('Platz', 'text-left w-20') + th('Spieler') + (kills
       ? th(`${stat.icon} ${stat.label}`, 'text-right') + th('Zuletzt aktualisiert', 'text-right')
-      : th('VIP-Punkte <span class="normal-case tracking-normal text-slate-500">(inkl. Gegenstände)</span>', 'text-right') + th('VIP-Stufe', 'text-center')
+      : th('VIP-Punkte', 'text-right') + th('VIP-Stufe', 'text-center')
         + th('Bis zum nächsten VIP', 'text-left min-w-[190px]') + th('Zuletzt aktualisiert', 'text-right')) + '</tr>';
     $('rankStamp').textContent = `Stand: ${dateLabel(Date.now())} · ${rows.length} Spieler`;
     if (!rows.length) {
@@ -2824,7 +3051,7 @@ window.RokApp = () => {
   function renderGameProfile(P) {
     lastProfileP = P;
     const { own, row, entries } = P;
-    const meta = own ? { ...RokAuth.ownMeta(), city_skin: ownSkin() } : { alliance_tag: row.alliance_tag || '', avatar: row.avatar || '', city_skin: safeSkin(row.city_skin) };
+    const meta = own ? { ...RokAuth.ownMeta(), city_skin: ownSkin() } : { alliance_tag: row.alliance_tag || '', avatar: row.avatar || '', city_skin: safeSkin(row.city_skin), governor_id: row.governor_id || '' };
     const vipEntries = entries.filter(e => e.type === 'vip');
     const speedEntries = entries.filter(e => e.type === 'speedups' && e.total != null);
     // VIP-Punkte inkl. Gegenstände (wie in der Rangliste)
@@ -2851,6 +3078,7 @@ window.RokApp = () => {
           </div>
           <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
             ${lvl != null ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold text-ink-950 bg-gradient-to-br from-gold-300 to-gold-600 shadow-[0_0_16px_rgba(245,197,66,.35)]">👑 ${vipName(lvl)}</span>` : '<span class="text-slate-500">Noch kein VIP-Stand</span>'}
+            ${meta.governor_id ? `<span class="px-2 py-0.5 rounded-md bg-ink-950 border border-ink-600 text-slate-300 text-xs tabular-nums" translate="no">ID ${esc(meta.governor_id)}</span>` : ''}
             ${row.updated_at ? `<span class="text-xs text-slate-500">aktualisiert ${dateLabel(new Date(row.updated_at).getTime())}</span>` : ''}
           </div>
         </div>
@@ -2891,6 +3119,7 @@ window.RokApp = () => {
     $('profScanSpeed').classList.toggle('hidden', !own);
     if (own) {
       $('profTag').value = meta.alliance_tag || '';
+      $('profGovId').value = meta.governor_id || '';
       let chosen = meta.avatar || '', skin = meta.city_skin || '', customAv = isImgAv(meta.avatar) ? meta.avatar : '';
       $('profAvatarFile').onchange = async (ev) => {
         const f = ev.target.files?.[0]; ev.target.value = '';
@@ -2946,12 +3175,13 @@ window.RokApp = () => {
       const meta = { alliance_tag: $('profTag').value.trim().toUpperCase().slice(0, 6), avatar: getAvatar() };
       const old = RokAuth.ownMeta();
       if (meta.alliance_tag !== (old.alliance_tag || '') || meta.avatar !== (old.avatar || '')) { await RokAuth.saveMeta(meta, vipNumbers().after); renderHeaderAvatar(); }
+      const gid = $('profGovId').value.replace(/\D/g, '').slice(0, 12);
+      if (gid !== (old.governor_id || '')) await RokAuth.saveGovId(gid);
       msg('✓ Gespeichert', true);
       setTimeout(() => { if (view === 'profile') loadGameProfile(); }, 900);
     } catch (e) { msg(e.message || String(e), false); }
     finally { $('profSave').disabled = false; }
   }
-  $('profScanVip').onclick = () => goScan('vip');
   // Statthalter-Profil (Kill-Punkte, Höchster Verdienst, Energie) direkt aus dem Profil scannen
   $('profGovFile').onchange = async (ev) => {
     const f = ev.target.files?.[0]; ev.target.value = '';
@@ -2967,11 +3197,17 @@ window.RokApp = () => {
       if (!res.ok) throw new Error(res.status === 400 && /modus/i.test(data?.error || '') ? 'Der Scan-Server kennt den Statthalter-Scan noch nicht – bitte die neue api/scan.js einspielen.' : (data?.error || `Serverfehler ${res.status}`));
       const r = parseJson(String(data.text || '')) || {};
       const e = { kill_points: num(r.kill_points), highest_merit: num(r.highest_merit), energy: num(r.energy) };
-      if (e.kill_points == null && e.highest_merit == null && e.energy == null) throw new Error('Keine Werte im Screenshot erkannt.');
-      addHistory({ id: newId(), ts: Date.now(), type: 'governor', ...e, confidence: r.confidence || null });
-      const saved = await RokAuth.saveNow('governor');
-      await RokAuth.pushGov(e);                                          // Kill- und Verdienst-Rangliste
-      msg(saved.where === 'scans' ? '✓ Statthalter-Profil gespeichert' : saved.where === 'user_state' ? '✓ Gespeichert (Profil-Speicher – SQL-Update für public.scans fehlt)' : '✓ Lokal gespeichert, Cloud folgt', 'text-emerald-400');
+      const gid = String(r.governor_id ?? '').replace(/\D/g, '').slice(0, 12);
+      if (e.kill_points == null && e.highest_merit == null && e.energy == null && !gid) throw new Error('Keine Werte im Screenshot erkannt.');
+      let gidErr = '';
+      if (gid) { $('profGovId').value = gid; if (gid !== (RokAuth.ownMeta().governor_id || '')) { try { await RokAuth.saveGovId(gid); } catch (x) { gidErr = ' · ' + x.message; } } }
+      let saved = { where: 'scans' };
+      if (e.kill_points != null || e.highest_merit != null || e.energy != null) {
+        addHistory({ id: newId(), ts: Date.now(), type: 'governor', ...e, confidence: r.confidence || null });
+        saved = await RokAuth.saveNow('governor');
+        await RokAuth.pushGov(e);
+      }                                          // Kill- und Verdienst-Rangliste
+      msg((saved.where === 'scans' ? '✓ Statthalter-Profil gespeichert' : saved.where === 'user_state' ? '✓ Gespeichert (Profil-Speicher – SQL-Update für public.scans fehlt)' : '✓ Lokal gespeichert, Cloud folgt') + gidErr, gidErr ? 'text-amber-300' : 'text-emerald-400');
       loadGameProfile();
     } catch (e2) { msg(e2.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : e2.message, 'text-red-300'); }
     finally { if (img) { img.base64 = null; img.dataUrl = null; } }   // Bild sofort verwerfen
@@ -3154,6 +3390,8 @@ window.RokApp = () => {
   if (lastSpeed?.total != null) renderSpeedups(lastSpeed, lastSpeed.ts);
   else { renderSpeedInputs(); renderEvent(); }
   renderSpeedOpts();
+  const lastMats = readLast('materials');
+  if (lastMats) { renderMats(lastMats, lastMats.ts); fillMatFields(lastMats); }
   const lastAp = readLast('ap');
   if (lastAp && (lastAp.total_ap != null || lastAp.ap != null)) { const c = { ...lastAp, total_ap: lastAp.total_ap ?? +lastAp.ap }; renderAp(c, lastAp.ts); fillApFields(c); }
   else updateApSum();
