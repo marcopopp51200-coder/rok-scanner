@@ -604,6 +604,7 @@ window.RokAuth = (() => {
   // Accounts nur mit Benutzernamen bekommen intern diese Ersatz-E-Mail (wird nie angeschrieben).
   const USERNAME_DOMAIN = 'users.rok-scanner.app';
   const HIST = 'history_v1';
+  const UNSYNCED = 'unsynced_scans';   // Scans, die public.scans (noch) nicht annimmt
 
   const $ = (id) => document.getElementById(id);
   const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -689,9 +690,11 @@ window.RokAuth = (() => {
     if (state.error) throw state.error;
     lsKeys(NS).forEach(lsDel);                                   // lokalen Zwischenspeicher durch Cloud-Stand ersetzen
     const hist = (scans.data || []).map(r => ({ ...(r.data || {}), id: r.id, type: r.type, ts: +(r.data?.ts) || Date.parse(r.scanned_at) }));
-    lsSet(NS + HIST, JSON.stringify(hist));
-    synced = new Map(hist.map(e => [String(e.id), JSON.stringify(e)]));
     const st = state.data?.data || {};
+    let saved = [];
+    try { saved = (JSON.parse(st[UNSYNCED] || '[]') || []).filter(e => e && e.id && !hist.some(h => String(h.id) === String(e.id))); } catch {}
+    lsSet(NS + HIST, JSON.stringify([...hist, ...saved].sort((a, b) => (+a.ts || 0) - (+b.ts || 0))));
+    synced = new Map(hist.map(e => [String(e.id), JSON.stringify(e)]));   // gesicherte Scans gelten als „noch nicht in scans“ → erneuter Versuch
     Object.entries(st).forEach(([k, v]) => { if (typeof v === 'string' && k !== HIST) lsSet(NS + k, v); });
     lastState = JSON.stringify(readLocalState());
     return { scans: hist.length, stateKeys: Object.keys(st).length };
@@ -709,10 +712,15 @@ window.RokAuth = (() => {
     const core = up.filter(r => !isExtra(r)), extra = up.filter(isExtra), failed = [];
     if (core.length) { const { error } = await sb.from('scans').upsert(core, { onConflict: 'user_id,id' }); if (error) throw error; }
     speedWarn = false;
-    if (extra.length) {
-      const { error } = await sb.from('scans').upsert(extra, { onConflict: 'user_id,id' });
-      if (error) { console.warn('Speedups/AP nicht gespeichert – SQL-Update in Supabase ausführen', error); speedWarn = true; failed.push(...extra.map(r => r.id)); }
+    for (const t of ['speedups', 'ap']) {                         // je Typ einzeln: lehnt die DB einen Typ ab, blockiert er den anderen nicht
+      const rows = extra.filter(r => r.type === t);
+      if (!rows.length) continue;
+      const { error } = await sb.from('scans').upsert(rows, { onConflict: 'user_id,id' });
+      if (error) { console.warn(`Scans vom Typ "${t}" von public.scans abgelehnt – werden im Profil-Speicher (user_state) gesichert`, error); speedWarn = true; failed.push(...rows.map(r => r.id)); }
     }
+    // Abgelehnte Scans gehen nicht verloren: sie liegen zusätzlich in user_state und werden beim Laden wieder eingefügt
+    const failedRows = hist.filter(e => failed.includes(String(e.id)));
+    if (failedRows.length) lsSet(NS + UNSYNCED, JSON.stringify(failedRows)); else lsDel(NS + UNSYNCED);
     if (delIds.length) { const { error } = await sb.from('scans').delete().in('id', delIds); if (error) throw error; }
     const st = readLocalState(), stJson = JSON.stringify(st);
     if (full || stJson !== lastState) {
@@ -728,7 +736,7 @@ window.RokAuth = (() => {
     status('busy', '☁ speichert …');
     queue = queue.then(() => pushChanges()).then(() => {
       hasPending = false; lsDel(PENDING);
-      if (speedWarn) status('err', '⚠ Speedups/AP: SQL-Update in Supabase nötig'); else status('ok', '☁ in der Cloud gespeichert');
+      status('ok', speedWarn ? '☁ gespeichert (Profil-Speicher)' : '☁ in der Cloud gespeichert');
     }).catch((e) => {
       console.error('Cloud-Sync fehlgeschlagen', e);
       status('err', '⚠ nicht gespeichert – neuer Versuch …');
@@ -1126,6 +1134,11 @@ window.RokApp = () => {
       const res = await fetch('/api/scan', { method: 'POST', headers: { 'content-type': 'application/json' }, body });
       body = null;
       const data = await res.json().catch(() => ({}));
+      if (!res.ok && mode === 'ap' && (res.status === 400 || /modus|mode/i.test(data?.error || ''))) {
+        showResult(await localApScan());                         // Server kennt „ap“ (noch) nicht → lokal auslesen
+        discardImages();
+        return;
+      }
       if (!res.ok) {
         if (res.status === 404) throw new Error('Server-Route /api/scan nicht gefunden. Die Seite muss über Vercel laufen (nicht als lokale Datei).');
         if (res.status === 413) throw new Error('Die Bilder sind zu groß. Bitte weniger Screenshots auf einmal hochladen.');
@@ -1141,6 +1154,37 @@ window.RokApp = () => {
       showError(e.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zur API. Prüfe Internet/Adblocker.' : e.message);
       $('emptyState').classList.toggle('hidden', !$('resSection').classList.contains('hidden') || !$('vipSection').classList.contains('hidden'));
     } finally { content = null; body = null; setLoading(false); applyMode(); }
+  }
+
+  // ---------- Lokale Texterkennung für AP (Tesseract.js, läuft komplett im Browser) ----------
+  let tessP = null;
+  const loadTesseract = () => tessP || (tessP = new Promise((resolve, reject) => {
+    if (window.Tesseract) return resolve(window.Tesseract);
+    const sc = document.createElement('script');
+    sc.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    sc.onload = () => resolve(window.Tesseract);
+    sc.onerror = () => { tessP = null; reject(new Error('Texterkennung (Tesseract) konnte nicht geladen werden. Trag deine AP links unter „AP eingeben“ ein.')); };
+    document.head.appendChild(sc);
+  }));
+  const toInt = (t) => +String(t).replace(/[^\d]/g, '');
+  // Erkennt „1.234/1.000“, „1234 / 1000“ (erste Zahl = aktuelle AP) oder „AP 1.234“
+  function parseAp(text) {
+    const t = String(text || '').replace(/[Oo](?=\d)|(?<=\d)[Oo]/g, '0');
+    const N = '(\\d{1,3}(?:[.,\\s]\\d{3})+|\\d+)';
+    const out = [];
+    for (const m of t.matchAll(new RegExp(N + '\\s*/\\s*' + N, 'g'))) out.push(toInt(m[1]));
+    if (!out.length) { const m = t.match(new RegExp('(?:AP|Aktionspunkte|Action\\s*Points?)[^\\d]{0,15}' + N, 'i')); if (m) out.push(toInt(m[1])); }
+    return out.filter(n => n > 0 && n < 1e7);
+  }
+  async function localApScan() {
+    $('analyzeLabel').textContent = 'Lese AP lokal …';
+    const T = await loadTesseract();
+    for (const im of images) {
+      const { data } = await T.recognize(im.dataUrl, 'eng');
+      const found = parseAp(data?.text);
+      if (found.length) return { ap: found[0], confidence: 'OCR lokal' };
+    }
+    throw new Error('AP im Screenshot nicht erkannt. Trag deine AP links unter „AP eingeben“ von Hand ein.');
   }
 
   // Entfernt alle Bilddaten aus der Seite: Array-Referenzen, Base64-Strings, <img>-Elemente, Datei-Input.
