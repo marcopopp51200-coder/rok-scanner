@@ -761,7 +761,7 @@ window.I18N = (() => {
       patterns: [
         [/^⚠ In Supabase fehlt die Spalte$/, '⚠ Supabase is missing the column'], [/^– Werte werden vorerst aus den Scans gelesen und nicht dauerhaft in der Rangliste gespeichert\.$/, '– values are read from the scans for now and not stored in the leaderboard.'],
         [/^(.+) scannen$/, (m, l) => 'Scan ' + L(l)],
-        [/^Fortschritt zu VIP (\d+)$/, 'Progress to VIP $1'], [/^([\d,.]+) % von VIP (\d+) bis VIP (\d+)$/, '$1 % from VIP $2 to VIP $3'], [/^bis VIP (\d+)$/, 'to VIP $1'],
+        [/^Fortschritt zu (VIP \d+|SVIP)$/, 'Progress to $1'], [/^([\d,.]+) % von (VIP \d+|SVIP) bis (VIP \d+|SVIP)$/, '$1 % from $2 to $3'], [/^bis (VIP \d+|SVIP)$/, 'to $1'],
         [/^noch ([\d.,]+) Punkte · (\d+) %$/, '$1 points left · $2 %'],
         [/^Noch ([\d.,]+) Punkte bis Platz (\d+) \((.+)\)$/, '$1 more points to rank $2 ($3)'],
         [/^Noch ([\d.,]+) (Kill-Punkte|Verdienst) bis Platz (\d+) \((.+)\)$/, (m, a, l, b, c) => `${a} more ${L(l)} to rank ${b} (${c})`],
@@ -773,12 +773,12 @@ window.I18N = (() => {
         [/^seit (.+)$/, (m, r) => 'since ' + r.replace(/ · ≈ ([\d.,]+) Tage$/, ' · ≈ $1 days')],
         [/^(\d+) Scans gespeichert \((\d+) Speedups, (\d+) Ressourcen, (\d+) VIP, (\d+) Gems, (\d+) AP\) · nur Zahlenwerte, keine Bilder$/,
           '$1 scans saved ($2 speedups, $3 resources, $4 VIP, $5 gems, $6 AP) · numbers only, no images'],
-        [/^VIP (\d+) – ([\d.,]+) Punkte$/, 'VIP $1 – $2 points'], [/^([\d.,]+) Punkte · VIP (\d+)$/, '$1 points · VIP $2'], [/^([\d.,]+) Punkte$/, '$1 points'],
-        [/^von (\d+)$/, 'of $1'], [/^Ziel: VIP (\d+)$/, 'Target: VIP $1'], [/^VIP (\d+) erreicht! 🎉$/, 'VIP $1 reached! 🎉'],
+        [/^(VIP \d+|SVIP) – ([\d.,]+) Punkte$/, '$1 – $2 points'], [/^([\d.,]+) Punkte · (VIP \d+|SVIP)$/, '$1 points · $2'], [/^([\d.,]+) Punkte$/, '$1 points'],
+        [/^von (\d+)$/, 'of $1'], [/^Ziel: (VIP \d+|SVIP)$/, 'Target: $1'], [/^(VIP \d+|SVIP) erreicht! 🎉$/, '$1 reached! 🎉'],
         [/^Aktueller Stand ([\d,.]+) %$/, 'Current $1 %'], [/^Erkennungssicherheit: (.+)$/, (m, c) => 'Confidence: ' + (T()[c] || c)],
-        [/^Benötigte Bündnis-Credits · bis VIP (\d+)$/, 'Required Alliance Credits · to VIP $1'],
-        [/^Punkte fehlen bis VIP (\d+) →$/, 'points missing to VIP $1 →'], [/^Punkte fehlen →$/, 'points missing →'],
-        [/^Bis zum Ziel VIP (\d+)$/, 'To target VIP $1'],
+        [/^Benötigte Bündnis-Credits · bis (VIP \d+|SVIP)$/, 'Required Alliance Credits · to $1'],
+        [/^Punkte fehlen bis (VIP \d+|SVIP) →$/, 'points missing to $1 →'], [/^Punkte fehlen →$/, 'points missing →'],
+        [/^Bis zum Ziel (VIP \d+|SVIP)$/, 'To target $1'],
         [/^Grundlage: 100 VIP-Punkte = 50\.000 Bündnis-Credits \(500 Credits je Punkt\)\. Gerechnet mit ([\d.,]+) VIP-Punkten inkl\. Gegenständen\.$/,
           'Basis: 100 VIP points = 50,000 Alliance Credits (500 credits per point). Calculated with $1 VIP points incl. items.'],
         [/^\+ Rucksack-VIP →$/, '+ backpack VIP →'],
@@ -1425,8 +1425,12 @@ window.RokApp = () => {
     { level: 15, points: 1000000 },
     { level: 16, points: 1500000 },
     { level: 17, points: 2500000 },
-    { level: 18, points: 4000000 }
+    { level: 18, points: 4000000 },
+    { level: 19, points: 6000000 },
+    { level: 20, points: 9000000 }    // SVIP
   ];
+  // Anzeigename: Stufe 20 = SVIP
+  const vipName = (l) => +l >= 20 ? 'SVIP' : 'VIP ' + l;
   // Punkte je Stufe (Index = Stufe)
   const VIP_TABLE = VIP_LEVELS.map(x => x.points);
   // Wählbare Ziel-Level im VIP-Rechner
@@ -1443,7 +1447,7 @@ window.RokApp = () => {
   let targetLevel = +LS.get(TARGET, 18);
   if (!VIP_THRESHOLDS[targetLevel]) targetLevel = 18;
   $('targetLevel').innerHTML = Object.entries(VIP_THRESHOLDS).sort((a, b) => b[0] - a[0])   // VIP 18 oben
-    .map(([lv, pts]) => `<option value="${lv}">VIP ${lv} – ${fmt(pts)} Punkte</option>`).join('');
+    .map(([lv, pts]) => `<option value="${lv}">${vipName(lv)} – ${fmt(pts)} Punkte</option>`).join('');
   $('targetLevel').value = targetLevel;
   const targetPoints = () => VIP_THRESHOLDS[targetLevel];
   const dailyPoints = () => DAILY_POINTS;
@@ -1830,12 +1834,12 @@ window.RokApp = () => {
       <div class="flex items-center gap-4">
         <div class="w-14 h-14 shrink-0 rounded-2xl grid place-items-center text-3xl" style="background:linear-gradient(135deg,#f5c54233,#b7830f22);border:1px solid #f5c54255">🤝</div>
         <div class="min-w-0">
-          <div class="text-xs uppercase tracking-widest text-slate-400">Benötigte Bündnis-Credits${nx.max ? '' : ` · bis VIP ${nx.next}`}</div>
+          <div class="text-xs uppercase tracking-widest text-slate-400">Benötigte Bündnis-Credits${nx.max ? '' : ` · bis ${vipName(nx.next)}`}</div>
           <div class="text-3xl sm:text-4xl font-extrabold text-gold-300 tabular-nums">${nx.max ? '–' : fmt(nx.need * CREDITS_PER_VIP)}</div>
-          <div class="text-sm text-slate-300 mt-0.5">${nx.max ? 'Max Level erreicht 👑' : `<b class="text-white tabular-nums">${fmt(nx.need)}</b> Punkte fehlen bis VIP ${nx.next} → <b class="text-gold-300 tabular-nums">${fmt(nx.need * CREDITS_PER_VIP)}</b> Bündnis-Credits benötigt`}</div>
+          <div class="text-sm text-slate-300 mt-0.5">${nx.max ? 'Max Level erreicht 👑' : `<b class="text-white tabular-nums">${fmt(nx.need)}</b> Punkte fehlen bis ${vipName(nx.next)} → <b class="text-gold-300 tabular-nums">${fmt(nx.need * CREDITS_PER_VIP)}</b> Bündnis-Credits benötigt`}</div>
         </div>
       </div>
-      ${toTarget > 0 && (nx.max || targetLevel > nx.next) ? `<div class="mt-4">${line(`Bis zum Ziel VIP ${targetLevel}`, toTarget)}</div>` : ''}
+      ${toTarget > 0 && (nx.max || targetLevel > nx.next) ? `<div class="mt-4">${line(`Bis zum Ziel ${vipName(targetLevel)}`, toTarget)}</div>` : ''}
       <p class="mt-3 text-[11px] text-slate-500">Grundlage: 100 VIP-Punkte = 50.000 Bündnis-Credits (500 Credits je Punkt). Gerechnet mit ${fmt(p)} VIP-Punkten inkl. Gegenständen.</p>`;
   }
 
@@ -1896,11 +1900,11 @@ window.RokApp = () => {
     const ticks = open.filter(([lv]) => +lv < targetLevel).map(([lv, pts]) => {
       const left = pts / target * 100;
       return `<div class="absolute inset-y-0 w-px bg-white/25" style="left:${left}%"></div>
-              <div class="absolute top-full mt-1 -translate-x-1/2 text-[10px] text-slate-500" style="left:${left}%">${lv}</div>`;
+              <div class="absolute top-full mt-1 -translate-x-1/2 text-[10px] text-slate-500" style="left:${left}%">${+lv >= 20 ? 'S' : lv}</div>`;
     }).join('');
 
     const headline = done
-      ? `<div class="text-2xl sm:text-3xl font-bold text-emerald-300">VIP ${targetLevel} erreicht! 🎉</div>`
+      ? `<div class="text-2xl sm:text-3xl font-bold text-emerald-300">${vipName(targetLevel)} erreicht! 🎉</div>`
       : `<div class="grid grid-cols-2 gap-4">
            <div>
              <div class="text-xs uppercase tracking-widest text-slate-400">Fehlende Punkte</div>
@@ -1915,7 +1919,7 @@ window.RokApp = () => {
     const milestones = open.filter(([lv]) => +lv < targetLevel).map(([lv, pts]) => {
       const miss = pts - after;
       return `<div class="rounded-lg border border-ink-700 bg-ink-950/50 px-3 py-2">
-        <div class="text-xs font-semibold text-slate-200">VIP ${lv}</div>
+        <div class="text-xs font-semibold text-slate-200">${vipName(lv)}</div>
         <div class="text-[11px] mt-0.5 text-slate-400 tabular-nums">${fmt(miss)} Pkt.</div>
         <div class="text-[11px] text-gold-300/80 tabular-nums">${fmt(Math.ceil(miss / daily))} Tage</div>
       </div>`;
@@ -1924,7 +1928,7 @@ window.RokApp = () => {
     return `
     <div class="panel rounded-2xl p-6 ${done ? 'ring-1 ring-emerald-500/40' : 'ring-1 ring-gold-500/30'}">
       <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-        <div class="font-display text-2xl ${done ? 'text-emerald-300' : 'gold-text'}">Ziel: VIP ${targetLevel}</div>
+        <div class="font-display text-2xl ${done ? 'text-emerald-300' : 'gold-text'}">Ziel: ${vipName(targetLevel)}</div>
         <div class="text-sm text-slate-400">${fmt(target)} Punkte</div>
       </div>
       ${headline}
@@ -2152,7 +2156,7 @@ window.RokApp = () => {
           <td class="py-2 px-2 text-right tabular-nums">${e.current != null ? fmt(e.current) : '–'}</td>
           <td class="py-2 px-2 text-right tabular-nums text-gold-300">+${fmt(e.inventory)}</td>
           <td class="py-2 px-2 text-right tabular-nums font-semibold">${fmt(e.after)}</td>
-          <td class="py-2 px-2 text-right whitespace-nowrap">${e.current != null ? `VIP ${levelFor(e.current)} → ${levelFor(e.after)}` : `→ VIP ${levelFor(e.after)}`}</td>
+          <td class="py-2 px-2 text-right whitespace-nowrap">${e.current != null ? `${vipName(levelFor(e.current))} → ${vipName(levelFor(e.after))}` : `→ ${vipName(levelFor(e.after))}`}</td>
           <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
         </tr>`).join('');
     }
@@ -2565,9 +2569,9 @@ window.RokApp = () => {
     const n = lbNext(p);
     if (n.max) return `<span class="font-semibold text-gold-300 whitespace-nowrap">Max Level erreicht 👑</span>
       <div class="mt-1.5 h-1.5 rounded-full bg-gradient-to-r from-gold-400 to-gold-600"></div>`;
-    return `<div class="text-xs text-slate-300 whitespace-nowrap">Noch <b class="text-white tabular-nums">${fmt(n.need)}</b> bis VIP ${n.next}</div>
+    return `<div class="text-xs text-slate-300 whitespace-nowrap">Noch <b class="text-white tabular-nums">${fmt(n.need)}</b> bis ${vipName(n.next)}</div>
       <div class="mt-1.5 flex items-center gap-2">
-        <div class="flex-1 h-1.5 rounded-full bg-ink-950 border border-ink-700 overflow-hidden" title="${n.pct.toFixed(1).replace('.', ',')} % von VIP ${n.lvl} bis VIP ${n.next}">
+        <div class="flex-1 h-1.5 rounded-full bg-ink-950 border border-ink-700 overflow-hidden" title="${n.pct.toFixed(1).replace('.', ',')} % von ${vipName(n.lvl)} bis ${vipName(n.next)}">
           <div class="h-full rounded-full bg-gradient-to-r from-sky-400 to-gold-400" style="width:${n.pct}%"></div>
         </div>
         <span class="text-[10px] text-slate-500 tabular-nums w-8 text-right">${Math.floor(n.pct)} %</span>
@@ -2644,7 +2648,7 @@ window.RokApp = () => {
         </td>
         ${kills ? `<td class="py-3 px-3 text-right font-bold tabular-nums ${noKp ? 'text-slate-500' : m ? m.name : 'text-white'}">${noKp ? 'noch kein Scan' : fmt(r[stat.col])}</td>` : `
         <td class="py-3 px-3 text-right font-bold tabular-nums ${m ? m.name : 'text-white'}" title="${fmt(r.vip_points)}">${fmt(r.vip_points)}</td>
-        <td class="py-3 px-3 text-center"><span class="inline-block px-2.5 py-1 rounded-lg bg-ink-950 border border-gold-500/30 text-gold-300 font-semibold text-xs">VIP ${lbLevel(r.vip_points)}</span></td>
+        <td class="py-3 px-3 text-center"><span class="inline-block px-2.5 py-1 rounded-lg bg-ink-950 border border-gold-500/30 text-gold-300 font-semibold text-xs">${vipName(lbLevel(r.vip_points))}</span></td>
         <td class="py-3 px-3">${nextCell(r.vip_points)}</td>`}
         <td class="py-3 px-3 text-right text-slate-400 whitespace-nowrap rounded-r-xl">${r.updated_at ? dateLabel(new Date(r.updated_at).getTime()) : '–'}</td>
       </tr>`;
@@ -2685,7 +2689,7 @@ window.RokApp = () => {
           </div>
         </div>
         <div class="text-right">
-          <div class="text-lg font-bold text-gold-300 tabular-nums">${fmt(meRow.vip_points)} Punkte · VIP ${lbLevel(meRow.vip_points)}</div>
+          <div class="text-lg font-bold text-gold-300 tabular-nums">${fmt(meRow.vip_points)} Punkte · ${vipName(lbLevel(meRow.vip_points))}</div>
           <div class="text-xs text-slate-400">${above ? `Noch ${fmt(gap + 1)} Punkte bis Platz ${idx} (${esc(above.username)})` : 'Du führst die Rangliste an! 👑'}</div>
         </div>
       </div>`;
@@ -2846,7 +2850,7 @@ window.RokApp = () => {
             ${meta.alliance_tag ? `<span class="text-lg font-semibold text-slate-300">[${esc(meta.alliance_tag)}]</span>` : (own ? '<span class="text-xs text-slate-500">kein Allianz-Tag</span>' : '')}
           </div>
           <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
-            ${lvl != null ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold text-ink-950 bg-gradient-to-br from-gold-300 to-gold-600 shadow-[0_0_16px_rgba(245,197,66,.35)]">👑 VIP ${lvl}</span>` : '<span class="text-slate-500">Noch kein VIP-Stand</span>'}
+            ${lvl != null ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold text-ink-950 bg-gradient-to-br from-gold-300 to-gold-600 shadow-[0_0_16px_rgba(245,197,66,.35)]">👑 ${vipName(lvl)}</span>` : '<span class="text-slate-500">Noch kein VIP-Stand</span>'}
             ${row.updated_at ? `<span class="text-xs text-slate-500">aktualisiert ${dateLabel(new Date(row.updated_at).getTime())}</span>` : ''}
           </div>
         </div>
@@ -2861,7 +2865,7 @@ window.RokApp = () => {
       </div>
       ${nx ? `<div class="mt-5">
         <div class="flex justify-between text-xs mb-1.5">
-          <span class="text-slate-400">${nx.max ? 'Höchste VIP-Stufe erreicht' : `Fortschritt zu VIP ${nx.next}`}</span>
+          <span class="text-slate-400">${nx.max ? 'Höchste VIP-Stufe erreicht' : `Fortschritt zu ${vipName(nx.next)}`}</span>
           <span class="${nx.max ? 'text-gold-300 font-semibold' : 'text-slate-300'}">${nx.max ? 'Max Level erreicht 👑' : `noch ${fmt(nx.need)} Punkte · ${Math.floor(nx.pct)} %`}</span>
         </div>
         <div class="h-3 rounded-full bg-ink-950 border border-ink-700 overflow-hidden">
