@@ -3,7 +3,7 @@
 // Der API-Key kommt ausschließlich aus der Umgebungsvariable ANTHROPIC_API_KEY und verlässt nie den Server.
 
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5';
-const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap']);
+const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor']);
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MAX_IMAGES = 5;
 const MAX_TOTAL_B64 = 4_300_000; // Vercel erlaubt max. 4,5 MB pro Anfrage
@@ -123,8 +123,34 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
   "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
 }`;
 
+// ---------- Statthalter-Profil (Kill-Punkte, Höchster Verdienst, Energie) ----------
+const PROMPT_GOVERNOR = `${INTRO}
+
+MODUS: Statthalter-Profil. Der Screenshot zeigt das Profil des Statthalters (Governor) mit Zeilen wie:
+  Energie               84.895.038      (englisch: "Power")
+  Kill-Punkte           5.482.675.899   (englisch: "Kill Points")
+  Verdienst             0               (englisch: "Merit") – NICHT verwenden
+  Höchster Verdienst    20.061.883      (englisch: "Highest Merit")
+
+Lies genau diese drei Werte als ganze Zahlen:
+- "energy"        = Energie / Power
+- "kill_points"   = Kill-Punkte / Kill Points
+- "highest_merit" = Höchster Verdienst / Highest Merit (nicht den normalen "Verdienst")
+Punkt oder Komma sind Tausendertrennzeichen: "5.482.675.899" = 5482675899. Abkürzungen umrechnen ("84.9M" = 84900000).
+Ignoriere alles andere (Aktionspunkte-Leiste, ID, Kultur, Bündnis, Abzeichen). Fehlt ein Wert, nutze null.
+
+Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
+{
+  "type": "governor",
+  "energy": number|null,
+  "kill_points": number|null,
+  "highest_merit": number|null,
+  "confidence": "hoch" | "mittel" | "niedrig",
+  "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
+}`;
+
 // Der Prompt liegt auf dem Server: so kann die Route nicht als allgemeiner Claude-Proxy missbraucht werden.
-const PROMPT = (m) => m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : PROMPT_CLASSIC(m);
+const PROMPT = (m) => m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'governor' ? PROMPT_GOVERNOR : PROMPT_CLASSIC(m);
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
