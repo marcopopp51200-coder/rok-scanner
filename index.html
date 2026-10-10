@@ -122,8 +122,9 @@ tailwind.config = {
         <div class="mt-1 h-px w-full bg-gradient-to-r from-gold-400/90 via-gold-300/30 to-transparent"></div>
       </div>
     </div>
-    <nav id="mainNav" class="hidden self-start sm:self-auto grid-cols-1 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist" aria-label="Bereiche">
+    <nav id="mainNav" class="hidden self-start sm:self-end sm:translate-y-6 grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist" aria-label="Bereiche">
       <button class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-view="rank" aria-pressed="false" role="tab">🏆 Rangliste</button>
+      <button class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-view="craft" aria-pressed="false" role="tab">⚒️ Craft</button>
     </nav>
     <div id="userBox" class="hidden relative self-start sm:self-auto">
       <button id="userMenuBtn" aria-haspopup="menu" aria-expanded="false"
@@ -408,8 +409,8 @@ tailwind.config = {
           <h2 class="font-display text-2xl gold-text">Materialien</h2>
           <span id="matsSource" class="text-xs text-slate-400"></span>
         </div>
-        <div id="matsChests" class="panel rounded-2xl p-5"></div>
         <div id="matsSum" class="panel rounded-2xl p-5 ring-1 ring-gold-500/30"></div>
+        <div id="matsChests" class="panel rounded-2xl p-5"></div>
         <div id="matsCards" class="grid sm:grid-cols-2 gap-4"></div>
       </section>
 
@@ -447,6 +448,7 @@ tailwind.config = {
         </div>
 
         <div id="speedOpts" class="hidden flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-xs text-slate-300"></div>
+        <div id="matOpts" class="hidden flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-xs text-slate-300"></div>
         <div id="resLines" class="hidden grid grid-cols-3 gap-1 p-1 mb-4 rounded-xl bg-ink-950 border border-ink-700 w-full sm:w-fit" role="group" aria-label="Ansicht"></div>
         <div class="relative h-72">
           <canvas id="historyChart"></canvas>
@@ -602,6 +604,101 @@ tailwind.config = {
     </div>
   </section>
 
+  <!-- Craft: Materialien & Crafting-Planer (Multi-Set Gear-Planer) -->
+  <section id="craftView" class="hidden space-y-6">
+    <div>
+      <h2 class="font-display text-3xl gold-text">Materialien &amp; Crafting-Planer</h2>
+      <p class="text-sm text-slate-400 mt-1">Ist-Ausrüstung scannen, Wunsch-Set wählen – der Planer rechnet Materialien, Goldmünzen und Baupläne aus.</p>
+    </div>
+
+    <!-- Set-Verwaltung -->
+    <section class="panel rounded-2xl p-5">
+      <div class="flex flex-wrap items-end gap-3">
+        <div class="flex-1 min-w-[220px]">
+          <label for="gearSetSel" class="text-xs text-slate-400">Aktives Set</label>
+          <select id="gearSetSel" translate="no" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm font-semibold focus:outline-none focus:border-gold-500"></select>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button id="gearNew" class="px-3 py-2.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400 text-sm font-semibold">+ Neues Set erstellen</button>
+          <button id="gearSave" class="px-3 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold">💾 Set speichern</button>
+          <button id="gearRename" class="px-3 py-2.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">✎ Set umbenennen</button>
+          <button id="gearDelete" class="px-3 py-2.5 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10 text-sm">🗑 Set löschen</button>
+        </div>
+      </div>
+      <form id="gearNameForm" class="hidden mt-4 flex flex-wrap items-end gap-2">
+        <div class="flex-1 min-w-[220px]">
+          <label for="gearNameInput" id="gearNameLabel" class="text-xs text-slate-400">Name des neuen Sets</label>
+          <input id="gearNameInput" maxlength="40" required placeholder="z. B. Infanterie Marsch 1"
+                 class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-gold-500">
+        </div>
+        <button type="submit" class="px-4 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold">Übernehmen</button>
+        <button type="button" id="gearNameCancel" class="px-4 py-2.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">Abbrechen</button>
+      </form>
+      <div id="gearMsg" class="hidden mt-3 text-xs"></div>
+    </section>
+
+    <!-- Split-Screen: Ist | Ziel -->
+    <div class="grid lg:grid-cols-2 gap-6">
+      <section class="panel rounded-2xl p-5">
+        <h3 class="font-display text-xl gold-text">Aktuelle Ausrüstung</h3>
+        <p class="text-xs text-slate-400 mb-3">Ist-Zustand · per Scan oder von Hand</p>
+        <label id="gearDrop" for="gearFile" class="block cursor-pointer rounded-xl border-2 border-dashed border-ink-600 bg-ink-950/60 p-4 text-center transition">
+          <div class="text-sm font-semibold">📷 Screenshot des Ausrüstungsfensters</div>
+          <div class="text-xs text-slate-400 mt-1">hierher ziehen oder klicken · max. 2 Bilder · Bilder werden nach dem Auslesen verworfen</div>
+          <input id="gearFile" type="file" accept="image/*" multiple class="hidden">
+        </label>
+        <div id="gearScanMsg" class="hidden mt-2 text-xs"></div>
+        <div id="gearIst" class="mt-4 grid sm:grid-cols-2 gap-2"></div>
+      </section>
+      <section class="panel rounded-2xl p-5">
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h3 class="font-display text-xl gold-text">Ziel-Ausrüstung</h3>
+            <p class="text-xs text-slate-400 mb-3">Wunsch-Set · leere Slots werden nicht berechnet</p>
+          </div>
+          <button id="gearCopyIst" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⇢ Ist übernehmen</button>
+        </div>
+        <div id="gearZiel" class="mt-1 grid sm:grid-cols-2 gap-2"></div>
+      </section>
+    </div>
+
+    <!-- Optionen -->
+    <section class="panel rounded-2xl p-5 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
+      <label class="inline-flex items-center gap-2 cursor-pointer"><input id="gearDismantle" type="checkbox" class="w-4 h-4 accent-yellow-500">Bestehendes Equipment zerlegen (Dismantle)</label>
+      <label class="inline-flex items-center gap-2">Rückgabe beim Zerlegen
+        <input id="gearDisRate" type="number" min="0" max="100" step="5" class="w-20 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-right tabular-nums focus:outline-none focus:border-gold-500"> %</label>
+      <label class="inline-flex items-center gap-2 cursor-pointer"><input id="gearUseChests" type="checkbox" class="w-4 h-4 accent-yellow-500">Material-Kisten zum Auffüllen nutzen</label>
+    </section>
+
+    <!-- Ergebnis -->
+    <section id="gearResult" class="space-y-4"></section>
+    <section id="gearPlan" class="panel rounded-2xl p-5"></section>
+    <section id="gearBp" class="panel rounded-2xl p-5"></section>
+
+    <!-- Katalog -->
+    <details id="gearCatBox" class="panel rounded-2xl p-5">
+      <summary class="cursor-pointer font-display text-xl gold-text">Item-Katalog &amp; Materialkosten</summary>
+      <p class="text-xs text-slate-400 mt-2">Kosten je Item in <b>legendärer</b> Qualität (Anzahl legendärer Materialien). Episch = gleiche Anzahl lila Materialien (= ¼ legendär) mit eigener Goldmünzen-Spalte.
+        Werte mit <span class="text-amber-300">⚠</span> sind Platzhalter – trag die echten Werte aus dem Schmiede-Fenster ein, dann verschwindet die Markierung. Eigene Items mit „+ Item“ anlegen.</p>
+      <div class="mt-3 overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="uppercase tracking-wider text-slate-400">
+            <tr class="border-b border-ink-700">
+              <th class="py-2 pr-1 text-left font-medium">Item</th><th class="py-2 px-1 text-left font-medium">Slot</th><th class="py-2 px-1 text-left font-medium">Set</th>
+              <th class="py-2 px-1 font-medium">🐂</th><th class="py-2 px-1 font-medium">⛓️</th><th class="py-2 px-1 font-medium">🪵</th><th class="py-2 px-1 font-medium">🦴</th>
+              <th class="py-2 px-1 font-medium">🪙 Legendär</th><th class="py-2 px-1 font-medium">🪙 Episch</th><th class="w-6"></th>
+            </tr>
+          </thead>
+          <tbody id="gearCatRows"></tbody>
+        </table>
+      </div>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <button id="gearCatAdd" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">+ Item</button>
+        <button id="gearCatReset" class="text-xs px-3 py-2 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10">Standard-Katalog wiederherstellen</button>
+      </div>
+    </details>
+  </section>
+
   <!-- Rangliste -->
   <section id="rankView" class="hidden space-y-6">
     <div class="space-y-3">
@@ -613,9 +710,9 @@ tailwind.config = {
         </button>
       </div>
       <div id="rankTabs" class="w-fit max-w-full grid grid-cols-3 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist" aria-label="Sortierung">
-        <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition" data-sort="vip" aria-pressed="true" role="tab">👑 VIP</button>
         <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition" data-sort="kills" aria-pressed="false" role="tab">⚔️ Kill-Punkte</button>
         <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition" data-sort="merit" aria-pressed="false" role="tab">🏅 Verdienst</button>
+        <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition" data-sort="vip" aria-pressed="true" role="tab">👑 VIP</button>
       </div>
     </div>
 
@@ -661,10 +758,10 @@ window.I18N = (() => {
         'Scanner & Dashboard': 'Scanner & Dashboard', 'Profil bearbeiten': 'Edit Profile', 'Verlauf': 'History',
         'Modus': 'Mode', 'Ressourcen': 'Resources', 'Speedups': 'Speedups', 'VIP': 'VIP', 'Gems': 'Gems', 'AP': 'AP',
         'Edelsteine': 'Gems', 'Mats': 'Mats', 'Materialien': 'Materials', 'Kisten': 'Chests', 'Material-Kisten': 'Material chests', 'Kisten (Legendär)': 'Chests (legendary)', 'Leder': 'Leather', 'Eisenerz': 'Iron Ore', 'Ebenholz': 'Ebony', 'Tierknochen': 'Animal Bone',
-        'Normal': 'Normal', 'Fortgeschritten': 'Advanced', 'Elite': 'Elite', 'Episch': 'Epic', 'Legendär': 'Legendary',
+        'Normal': 'Normal', 'Fortgeschritten': 'Advanced', 'Advanced': 'Advanced', 'Elite': 'Elite', 'Episch': 'Epic', 'Legendär': 'Legendary',
         '2 · Materialien eingeben': '2 · Enter materials', 'Materialien speichern': 'Save materials', 'Materialien scannen': 'Scan materials',
         'Anzahl je Seltenheit. Ein Scan füllt die Felder – kurz prüfen, dann speichern.': 'Number per rarity. A scan fills the fields – check quickly, then save.',
-        'Gesamt · Äquivalent in Legendär': 'Total · legendary equivalent', 'Äquivalent in Legendär:': 'Legendary equivalent:', 'Gesamt (Legendär)': 'Total (legendary)',
+        'Gesamt · Äquivalent in Legendär': 'Total · legendary equivalent', 'Antippen: in Gesamtsumme zählen / nicht zählen': 'Tap: include in / exclude from total', 'Äquivalent in Legendär:': 'Legendary equivalent:', 'Gesamt (Legendär)': 'Total (legendary)',
         'Noch keine Material-Scans gespeichert.': 'No material scans saved yet.', 'Bitte mindestens ein Material eintragen.': 'Please enter at least one material.',
         'Keine Materialien im Screenshot erkannt. Bitte die Anzahl links von Hand eintragen.': 'No materials detected in the screenshot. Please enter the numbers on the left.',
         'Lade Screenshots deiner Schmiedematerialien aus dem Rucksack hoch und klicke auf „Materialien scannen“ – oder trag die Anzahl links von Hand ein.':
@@ -791,7 +888,33 @@ window.I18N = (() => {
         'Eintrag löschen': 'Delete entry', 'Farm löschen': 'Delete farm', 'Game Profil öffnen': 'Open game profile', 'Zur Rangliste': 'To leaderboard',
         'Eigenes Bild hochladen': 'Upload your own picture', 'Anfangsbuchstabe': 'Initial', 'Entfernen': 'Remove', 'Sortierung': 'Sorting',
         'Zeitraum': 'Time range', 'Darstellung': 'Display', 'Datenart': 'Data type', 'Ansicht': 'View', 'Bereiche': 'Sections',
-        'hoch': 'high', 'mittel': 'medium', 'niedrig': 'low', 'manuell': 'manual'
+        'hoch': 'high', 'mittel': 'medium', 'niedrig': 'low', 'manuell': 'manual',
+        // Crafting-Planer
+        'Materialien & Crafting-Planer': 'Materials & Crafting Planner',
+        'Ist-Ausrüstung scannen, Wunsch-Set wählen – der Planer rechnet Materialien, Goldmünzen und Baupläne aus.': 'Scan your current gear, pick a target set – the planner works out materials, gold coins and blueprints.',
+        'Aktives Set': 'Active set', '+ Neues Set erstellen': '+ Create new set', 'Set speichern': 'Save set', 'Set umbenennen': 'Rename set', 'Set löschen': 'Delete set',
+        'Name des neuen Sets': 'Name of the new set', 'Neuer Name für das Set': 'New name for the set', 'Übernehmen': 'Apply', 'Abbrechen': 'Cancel', 'z. B. Infanterie Marsch 1': 'e.g. Infantry march 1',
+        'Aktuelle Ausrüstung': 'Current equipment', 'Ist-Zustand · per Scan oder von Hand': 'Current state · by scan or by hand', 'Screenshot des Ausrüstungsfensters': 'Screenshot of the equipment window',
+        'hierher ziehen oder klicken · max. 2 Bilder · Bilder werden nach dem Auslesen verworfen': 'drop here or click · max. 2 images · images are discarded after reading',
+        'Ziel-Ausrüstung': 'Target equipment', 'Wunsch-Set · leere Slots werden nicht berechnet': 'Target set · empty slots are not calculated', 'Ist übernehmen': 'Copy current',
+        'Bestehendes Equipment zerlegen (Dismantle)': 'Dismantle existing equipment', 'Rückgabe beim Zerlegen': 'Return when dismantling', 'Material-Kisten zum Auffüllen nutzen': 'Use material chests to fill gaps',
+        'Item-Katalog & Materialkosten': 'Item catalog & material costs', 'Standard-Katalog wiederherstellen': 'Restore default catalog', 'Item': 'Item', 'Slot': 'Slot', 'Set': 'Set',
+        'Helm': 'Helmet', 'Brust': 'Chest', 'Waffe': 'Weapon', 'Handschuhe': 'Gloves', 'Beine': 'Legs', 'Stiefel': 'Boots', 'Accessoire': 'Accessory', 'Accessoire 1': 'Accessory 1', 'Accessoire 2': 'Accessory 2',
+        'leer': 'empty', '– leer –': '– empty –', 'Seltenheit': 'Rarity', 'Slot-Vergleich': 'Slot comparison', 'Ist': 'Current', 'Ziel': 'Target', 'Status': 'Status', 'Kosten': 'Cost', 'Zerlegen': 'Dismantle',
+        'identisch': 'identical', 'Platz getauscht': 'slot swapped', 'craften': 'craft', 'kein Ziel': 'no target', 'wird zerlegt': 'will be dismantled',
+        'Benötigte Baupläne': 'Required blueprints', 'vorhanden': 'owned', 'fehlt': 'missing', 'Haken setzen, wenn du den Bauplan schon besitzt – gilt für alle Sets.': 'Tick if you already own the blueprint – applies to all sets.',
+        'Keine Baupläne nötig – im Ziel-Set muss nichts geschmiedet werden.': 'No blueprints needed – nothing to craft in the target set.',
+        'Gesamtbedarf': 'Total requirement', 'legendäre Materialien': 'legendary materials', 'Goldmünzen': 'Gold coins', 'Items zu craften': 'items to craft',
+        'Bedarf (legendär)': 'Needed (legendary)', 'Bedarf': 'Needed', 'Bestand': 'Stock', '+ Zerlegen': '+ dismantle', '+ aus Kisten': '+ from chests', 'Überschuss': 'Surplus',
+        'Nicht benötigt': 'Not needed', 'Bestand unbekannt': 'Stock unknown', 'Materialien scannen': 'Scan materials', 'Ressourcen scannen': 'Scan resources',
+        'Keine Zusatzkosten – das Ziel-Set entspricht der Ist-Ausrüstung oder ist leer.': 'No extra cost – the target set matches your current gear or is empty.',
+        'Bestand teilweise unbekannt – bitte Materialien und Ressourcen scannen.': 'Stock partly unknown – please scan materials and resources.',
+        'Alles vorhanden – das Set kann geschmiedet werden.': 'Everything available – the set can be crafted.',
+        'Claude liest deine Ausrüstung …': 'Claude is reading your equipment …', 'Ein Set mit diesem Namen gibt es schon.': 'A set with this name already exists.',
+        'Ziel-Ausrüstung mit der Ist-Ausrüstung überschreiben?': 'Overwrite the target equipment with the current equipment?',
+        'Keine Ausrüstung im Screenshot erkannt. Bitte die Slots von Hand wählen.': 'No equipment detected in the screenshot. Please pick the slots by hand.',
+        'Der Scan-Server kennt den Ausrüstungs-Scan noch nicht – bitte den Modus „gear“ in api/scan.js ergänzen. Bis dahin die Slots von Hand wählen.': 'The scan server does not know the equipment scan yet – please add the “gear” mode to api/scan.js. Until then pick the slots by hand.',
+        'Set gespeichert · in der Cloud (user_state)': 'Set saved · in the cloud (user_state)', 'Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': 'Saved locally · cloud unreachable, will sync automatically'
       },
       patterns: [
         [/^⚠ In Supabase fehlt die Spalte$/, '⚠ Supabase is missing the column'], [/^– Werte werden vorerst aus den Scans gelesen und nicht dauerhaft in der Rangliste gespeichert\.$/, '– values are read from the scans for now and not stored in the leaderboard.'],
@@ -810,8 +933,8 @@ window.I18N = (() => {
           '$1 scans saved ($2 speedups, $3 resources, $4 VIP, $5 gems, $6 AP) · numbers only, no images'],
         [/^(\d+) Scans gespeichert \((\d+) Speedups, (\d+) Ressourcen, (\d+) VIP, (\d+) Gems, (\d+) AP, (\d+) Mats\) · nur Zahlenwerte, keine Bilder$/,
           '$1 scans saved ($2 speedups, $3 resources, $4 VIP, $5 gems, $6 AP, $7 mats) · numbers only, no images'],
-        [/^(.+) % zum nächsten legendären Material$/, '$1 % to the next legendary material'], [/^(.+) volle legendäre herstellbar$/, '$1 full legendary craftable'],
-        [/^(\d+) % zum nächsten$/, '$1 % to the next'], [/^inkl\. Kisten:$/, 'incl. chests:'], [/^(.+) · (Normal|Fortgeschritten|Elite|Episch|Legendär)$/, (m, a, b) => L(a) + ' · ' + L(b)],
+        [/^(.+) % zum nächsten legendären Material$/, '$1 % to the next legendary material'], [/^(.+) volle legendäre herstellbar$/, '$1 full legendary craftable'], [/^(\d) von 5 ausgewählt – Kachel antippen zum Ein-\/Ausschließen$/, '$1 of 5 selected – tap a tile to include/exclude'],
+        [/^(\d+) % zum nächsten$/, '$1 % to the next'], [/^inkl\. Kisten:$/, 'incl. chests:'], [/^(.+) · (Normal|Fortgeschritten|Advanced|Elite|Episch|Legendär)$/, (m, a, b) => L(a) + ' · ' + L(b)],
         [/^(VIP \d+|SVIP) – ([\d.,]+) Punkte$/, '$1 – $2 points'], [/^([\d.,]+) Punkte · (VIP \d+|SVIP)$/, '$1 points · $2'], [/^([\d.,]+) Punkte$/, '$1 points'],
         [/^von (\d+)$/, 'of $1'], [/^Ziel: (VIP \d+|SVIP)$/, 'Target: $1'], [/^(VIP \d+|SVIP) erreicht! 🎉$/, '$1 reached! 🎉'],
         [/^Aktueller Stand ([\d,.]+) %$/, 'Current $1 %'], [/^Erkennungssicherheit: (.+)$/, (m, c) => 'Confidence: ' + (T()[c] || c)],
@@ -843,6 +966,13 @@ window.I18N = (() => {
           'This browser still holds data from the old version (profile “$1”, $2 scans).\n\nMove it into your cloud account?'],
         [/^Fast geschafft! Wir haben eine Bestätigungs-Mail an (.+) geschickt\. Klicke auf den Link und logge dich dann ein\.$/,
           'Almost done! We sent a confirmation e-mail to $1. Click the link, then log in.'],
+        [/^Es fehlen noch ([\d.,]+) legendäre (.+)$/, (m, n, l) => `Still missing ${n} legendary ${L(l)}`],
+        [/^Es fehlen noch (.+) Goldmünzen$/, 'Still missing $1 gold coins'], [/^Genug (.+) vorhanden$/, (m, l) => `Enough ${L(l)} available`],
+        [/^(\d+) von 5 Ressourcen reichen noch nicht\.$/, '$1 of 5 resources are not enough yet.'], [/^(\d+) von (\d+) vorhanden$/, '$1 of $2 owned'],
+        [/^(\d+) von (\d+) Slots erkannt(.*)$/, (m, a, b, r) => `${a} of ${b} slots detected` + r.replace(' – markierte Slots bitte von Hand wählen.', ' – please pick the marked slots by hand.').replace(' · Sicherheit: ', ' · Confidence: ')],
+        [/^Set „(.+)“ (erstellt|gelöscht)$/, (m, n, a) => `Set “${n}” ${a === 'erstellt' ? 'created' : 'deleted'}`], [/^Set umbenannt in „(.+)“$/, 'Set renamed to “$1”'],
+        [/^Set „(.+)“ wirklich löschen\? Das kann nicht rückgängig gemacht werden\.$/, 'Really delete set “$1”? This cannot be undone.'],
+        [/^nicht im Katalog: (.+)$/, 'not in catalog: $1'],
         [/^Der Scan-Server kennt den AP-Scan noch nicht[\s\S]*$/, 'The scan server does not know the AP scan yet (the new api/scan.js is not deployed) and the in-browser fallback could not read the bottles reliably. Please deploy the new api/scan.js – until then enter the number per bottle size on the left.']
       ]
     }
@@ -1082,7 +1212,7 @@ window.RokAuth = (() => {
       d.total_legendary = Math.round((+e.total_leg || 0) * 100) / 100;
       return d;
     }
-    if (e.type === 'governor') return { kill_points: n0(e.kill_points), highest_merit: n0(e.highest_merit), energy: n0(e.energy) };
+    if (e.type === 'governor') return { kill_points: n0(e.kill_points), highest_merit: n0(e.highest_merit), energy: n0(e.energy), ...(e.governor_id ? { governor_id: String(e.governor_id) } : {}) };
     if (e.type === 'speedups') return { training: n0(e.training), heal: n0(e.healing), universal: n0(e.universal),
                                         building: n0(e.building), research: n0(e.research), total: n0(e.total) };
     return e;
@@ -1528,7 +1658,7 @@ window.RokApp = () => {
   ];
   const GRADES = [
     { k: 'white',  label: 'Normal',          short: 'W', c: '#cbd5e1', div: 256 },
-    { k: 'green',  label: 'Fortgeschritten', short: 'G', c: '#4ade80', div: 64 },
+    { k: 'green',  label: 'Advanced', short: 'G', c: '#4ade80', div: 64 },
     { k: 'blue',   label: 'Elite',           short: 'B', c: '#60a5fa', div: 16 },
     { k: 'purple', label: 'Episch',          short: 'L', c: '#c084fc', div: 4 },
     { k: 'gold',   label: 'Legendär',        short: 'G', c: '#f97316', div: 1 }
@@ -1542,6 +1672,9 @@ window.RokApp = () => {
   const matLeg = (e, m) => GRADES.reduce((a, g) => a + (+e[m + '_' + g.k] || 0) / g.div, 0);
   const matTotal = (e) => MATS.reduce((a, m) => a + matLeg(e, m.k), 0);
   const chestLeg = (e) => matLeg(e, 'chest');
+  // Auswahl: welche Materialien in die Gesamtsumme zählen (anklickbar, pro Gerät gemerkt)
+  const matSel = (() => { try { const v = JSON.parse(localStorage.getItem('rok_mat_sel') || 'null'); if (v && typeof v === 'object') return v; } catch {} return { leather: true, iron: true, ebony: true, bone: true, chest: false }; })();
+  const matSelTotal = (e) => [...MATS.map(m => m.k), 'chest'].reduce((a, k) => a + (matSel[k] ? matLeg(e, k) : 0), 0);
   const fmtLeg = (v) => (Math.round((v || 0) * 100) / 100).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   // AP-Flaschen im Inventar: feste Größen
@@ -2080,7 +2213,7 @@ window.RokApp = () => {
   // Altdaten-Schutz: nur bekannte Zahlenfelder übernehmen
   const sanitize = (e) => {
     const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups', 'ap', 'governor', 'materials'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
-    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'materials' ? [...ALL_MAT_KEYS, 'total_leg'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'energy']
+    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'materials' ? [...ALL_MAT_KEYS, 'total_leg'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'energy', 'governor_id']
       : out.type === 'speedups' ? ['universal', 'building', 'research', 'training', 'healing', 'total']
       : ['food', 'wood', 'stone', 'gold', 'total', 'farmFood', 'farmWood', 'farmStone', 'farmGold', 'bagFood', 'bagWood', 'bagStone', 'bagGold'];
     keys.forEach(k => out[k] = (e[k] === null || e[k] === undefined || isNaN(+e[k])) ? null : +e[k]);
@@ -2165,10 +2298,11 @@ window.RokApp = () => {
         borderDash: l.k === 'combined' && isLine ? [8, 5] : undefined,
         borderRadius: 4, tension: .3, pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: l.c, spanGaps: true, fill: false }));
     } else if (histTab === 'materials') {
-      datasets = [...MATS.map(m => ({ label: m.label, data: list.map(e => Math.round(matLeg(e, m.k) * 100) / 100), c: m.c })),
-                  { label: 'Kisten', data: list.map(e => Math.round(chestLeg(e) * 100) / 100), c: CHEST.c },
-                  { label: 'Gesamt (Legendär)', data: list.map(e => Math.round(matTotal(e) * 100) / 100), c: '#facc15', dash: true }]
-        .map(d => ({ label: d.label, data: d.data, backgroundColor: isLine ? d.c + '33' : d.c + 'cc', borderColor: d.c, borderWidth: isLine ? (d.dash ? 3.5 : 2.5) : 0,
+      datasets = [...MATS.map(m => ({ k: m.k, label: m.label, data: list.map(e => Math.round(matLeg(e, m.k) * 100) / 100), c: m.c })),
+                  { k: 'chest', label: 'Kisten', data: list.map(e => Math.round(chestLeg(e) * 100) / 100), c: CHEST.c },
+                  { k: 'total', label: 'Gesamt (Legendär)', data: list.map(e => Math.round(matSelTotal(e) * 100) / 100), c: '#facc15', dash: true }]
+        .filter(d => speedUi.matLines[d.k])
+        .map(d => ({ __k: d.k, label: d.label, data: d.data, backgroundColor: isLine ? d.c + '33' : d.c + 'cc', borderColor: d.c, borderWidth: isLine ? (d.dash ? 3.5 : 2.5) : 0,
           borderDash: d.dash && isLine ? [8, 5] : undefined, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: d.c, spanGaps: true, fill: false }));
     } else if (histTab === 'ap') {
       datasets = [{ label: 'AP gesamt', data: list.map(e => e.total_ap), backgroundColor: isLine ? '#34d39933' : '#34d399cc', borderColor: '#34d399',
@@ -2185,6 +2319,8 @@ window.RokApp = () => {
     }
 
 
+    // ausgeblendete Linien (Klick auf die Legende) wiederherstellen
+    datasets.forEach((d, i) => { d.__k = d.__k || d.label || i; if (histHidden.has(histTab + ':' + d.__k)) d.hidden = true; });
     // Chart
     const empty = $('chartEmpty');
     if (!window.Chart) {
@@ -2199,7 +2335,15 @@ window.RokApp = () => {
           responsive: true, maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
           plugins: {
-            legend: { labels: { boxWidth: 12, usePointStyle: true } },
+            legend: { labels: { boxWidth: 12, usePointStyle: true },
+              onHover: (ev) => { if (ev.native?.target) ev.native.target.style.cursor = 'pointer'; },
+              onLeave: (ev) => { if (ev.native?.target) ev.native.target.style.cursor = ''; },
+              onClick: (ev, item, legend) => {
+                const ch = legend.chart, i = item.datasetIndex, key = histTab + ':' + (datasets[i]?.__k || i);
+                const vis = !ch.isDatasetVisible(i); ch.setDatasetVisibility(i, vis); ch.update();
+                if (vis) histHidden.delete(key); else histHidden.add(key);
+                try { localStorage.setItem('rok_hist_hidden', JSON.stringify([...histHidden])); } catch {}
+              } },
             tooltip: { backgroundColor: '#0c1019', borderColor: 'rgba(245,197,66,.3)', borderWidth: 1,
                        callbacks: { label: (c) => `${c.dataset.label}: ${c.raw == null ? '–' : histTab === 'speedups' ? durText(c.raw * 1440) : fmt(c.raw)}` } }
           },
@@ -2424,7 +2568,16 @@ window.RokApp = () => {
   let speedUi = { event: 'zenith', ppm: {}, lines: { training: true, healing: true, universal: true, combined: true, research: false, building: false } };
   try { const u = JSON.parse(LS.get(SPEED_UI, '{}')); speedUi = { ...speedUi, ...u, ppm: { ...(u.ppm || {}) }, lines: { ...speedUi.lines, ...(u.lines || {}) } }; } catch {}
   const speedLines = speedUi.lines;
+  const histHidden = new Set((() => { try { return JSON.parse(localStorage.getItem('rok_hist_hidden') || '[]'); } catch { return []; } })());
   const saveSpeedUi = () => LS.set(SPEED_UI, JSON.stringify(speedUi));
+  // Material-Linien (Scanner-Verlauf + Profil teilen sich die Auswahl)
+  speedUi.matLines = { leather: true, iron: true, ebony: true, bone: true, chest: true, total: true, ...(speedUi.matLines || {}) };
+  const MAT_LINES = () => [...MATS.map(m => [m.k, m.icon + ' ' + m.label, m.c]), ['chest', CHEST.icon + ' ' + CHEST.label, CHEST.c], ['total', '⚒️ Gesamt', '#facc15']];
+  function renderMatLines(el, onChange) {
+    el.innerHTML = '<span class="text-slate-500">Linien:</span>' + MAT_LINES().map(([k, l, c]) =>
+      `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-ml="${k}" ${speedUi.matLines[k] ? 'checked' : ''} class="w-4 h-4" style="accent-color:${c}">${l}</label>`).join('');
+    el.querySelectorAll('input').forEach(i => i.onchange = () => { speedUi.matLines[i.dataset.ml] = i.checked; saveSpeedUi(); onChange(); });
+  }
   const currentEvent = () => EVENTS.find(x => x.id === speedUi.event) || EVENTS[0];
   let curSpeed = null;
   const days = (min) => (min / 1440).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -2648,20 +2801,30 @@ window.RokApp = () => {
           <div class="text-[10px] font-semibold" style="color:${g.c}">${g.label}</div>
           <div class="text-sm font-bold text-white tabular-nums">${fmt(+e['chest_' + g.k] || 0)}</div></div>`).join('')}
       </div>`;
+    const sel = matSelTotal(e), nSel = [...MATS.map(m => m.k), 'chest'].filter(k => matSel[k]).length;
+    const tile = (k, icon, label, v) => `<button type="button" data-msel="${k}" aria-pressed="${!!matSel[k]}" title="Antippen: in Gesamtsumme zählen / nicht zählen"
+        class="rounded-lg bg-ink-950/60 px-3 py-2 text-center border-2 transition ${matSel[k] ? 'border-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.25)]' : 'border-ink-700 opacity-50 hover:opacity-80'}">
+        <div class="text-[10px] uppercase tracking-wider whitespace-nowrap ${matSel[k] ? 'text-emerald-300' : 'text-slate-500'}">${icon} ${label}</div>
+        <div class="text-sm font-bold text-white tabular-nums">${fmtLeg(v)}</div></button>`;
     $('matsSum').innerHTML = `
       <div class="flex flex-wrap items-center gap-5">
         <div class="w-14 h-14 shrink-0 rounded-2xl grid place-items-center text-3xl" style="background:linear-gradient(135deg,#facc1533,#b7830f22);border:1px solid #facc1555">⚒️</div>
         <div class="flex-1 min-w-[180px]">
           <div class="text-xs uppercase tracking-widest text-slate-400">Gesamt · Äquivalent in Legendär</div>
-          <div class="text-4xl font-extrabold text-gold-300 tabular-nums">${fmtLeg(total)}</div>
-          ${chestEq ? `<div class="text-xs text-slate-400 mt-0.5">inkl. Kisten: <b class="text-white tabular-nums">${fmtLeg(total + chestEq)}</b></div>` : ''}
+          <div class="text-4xl font-extrabold text-gold-300 tabular-nums">${fmtLeg(sel)}</div>
+          <div class="text-xs text-slate-400 mt-0.5">${nSel} von 5 ausgewählt – Kachel antippen zum Ein-/Ausschließen</div>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full sm:w-auto">
-          ${MATS.map(m => `<div class="rounded-lg bg-ink-950/60 border border-ink-700 px-3 py-2 text-center">
-            <div class="text-[10px] uppercase tracking-wider text-slate-500 whitespace-nowrap">${m.icon} ${m.label}</div>
-            <div class="text-sm font-bold text-white tabular-nums">${fmtLeg(matLeg(e, m.k))}</div></div>`).join('')}
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 w-full sm:w-auto">
+          ${MATS.map(m => tile(m.k, m.icon, m.label, matLeg(e, m.k))).join('')}
+          ${tile('chest', CHEST.icon, CHEST.label, chestEq)}
         </div>
       </div>`;
+    $('matsSum').querySelectorAll('[data-msel]').forEach(b => b.onclick = () => {
+      matSel[b.dataset.msel] = !matSel[b.dataset.msel];
+      try { localStorage.setItem('rok_mat_sel', JSON.stringify(matSel)); } catch {}
+      renderMats(e, ts);
+      if (histTab === 'materials') renderHistory();
+    });
     $('matsCards').innerHTML = MATS.map(m => {
       const leg = matLeg(e, m.k), full = Math.floor(leg + 1e-9), pct = Math.round((leg - full) * 100);
       return `<div class="panel rounded-2xl p-5">
@@ -2740,6 +2903,8 @@ window.RokApp = () => {
     $('speedSection').classList.toggle('hidden', mode !== 'speedups' || !hasSpeed);
     $('speedInputs').classList.toggle('hidden', mode !== 'speedups');
     $('speedOpts').classList.toggle('hidden', mode !== 'speedups');
+    $('matOpts').classList.toggle('hidden', mode !== 'mats');
+    if (mode === 'mats') renderMatLines($('matOpts'), () => renderHistory());
     $('farmSection').classList.toggle('hidden', mode !== 'resources');
     $('resLines').classList.toggle('hidden', mode !== 'resources');
     $('matsSection').classList.toggle('hidden', mode !== 'mats' || !hasMats);
@@ -2774,10 +2939,12 @@ window.RokApp = () => {
     $('scannerView').classList.toggle('hidden', view !== 'scanner');
     $('rankView').classList.toggle('hidden', view !== 'rank');
     $('profileView').classList.toggle('hidden', view !== 'profile');
-    $('mainNav').classList.toggle('hidden', view !== 'rank');      // Reiter „Rangliste“ nur auf der Startseite
+    $('craftView').classList.toggle('hidden', view !== 'craft');
+    $('mainNav').classList.toggle('hidden', view !== 'rank' && view !== 'craft');      // Reiter „Rangliste“ / „Craft“ nur auf der Startseite
     if (view !== 'profile') { lastMainView = view; try { localStorage.setItem('rok_view', view); } catch {} }
     if (view === 'rank') loadRanking();
     if (view === 'profile') loadGameProfile();
+    if (view === 'craft') renderGear();
   }
   document.querySelectorAll('.main-tab').forEach(b => b.onclick = () => { view = b.dataset.view; applyView(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
   $('rankRefresh').onclick = () => loadRanking();
@@ -3067,6 +3234,7 @@ window.RokApp = () => {
     const gov = govEntries.length ? govEntries[govEntries.length - 1]
       : (row.kill_points != null || row.highest_merit != null || row.energy != null)
         ? { kill_points: row.kill_points != null ? +row.kill_points : null, highest_merit: row.highest_merit != null ? +row.highest_merit : null, energy: row.energy != null ? +row.energy : null, ts: null } : null;
+    if (!meta.governor_id) { const gi = [...govEntries].reverse().find(x => x.governor_id); if (gi) meta.governor_id = String(gi.governor_id); }
     const lvl = points != null ? lbLevel(points) : null, nx = points != null ? lbNext(points) : null;
     $('profHead').innerHTML = `
       <div class="flex flex-wrap items-center gap-5">
@@ -3102,7 +3270,7 @@ window.RokApp = () => {
       </div>` : ''}`;
 
     // ---- Speedups ----
-    const main = [['training', 'Training'], ['healing', 'Heilung'], ['universal', 'Universal']];
+    const main = [['universal', 'Universal'], ['training', 'Training'], ['healing', 'Heilung']];
     $('profSpeed').innerHTML = main.map(([k, label]) => {
       const c = SPEED.find(x => x.k === k), m = sp?.[k] || 0;
       return `<div class="rounded-xl bg-ink-950/60 border border-ink-700 p-4">
@@ -3176,7 +3344,9 @@ window.RokApp = () => {
       const old = RokAuth.ownMeta();
       if (meta.alliance_tag !== (old.alliance_tag || '') || meta.avatar !== (old.avatar || '')) { await RokAuth.saveMeta(meta, vipNumbers().after); renderHeaderAvatar(); }
       const gid = $('profGovId').value.replace(/\D/g, '').slice(0, 12);
-      if (gid !== (old.governor_id || '')) await RokAuth.saveGovId(gid);
+      let warn = '';
+      if (gid !== (old.governor_id || '')) { try { await RokAuth.saveGovId(gid); } catch (x) { warn = x.message; } }
+      if (warn) { $('profMsg').textContent = '✓ Gespeichert · ' + warn; $('profMsg').className = 'text-sm text-amber-300'; return; }
       msg('✓ Gespeichert', true);
       setTimeout(() => { if (view === 'profile') loadGameProfile(); }, 900);
     } catch (e) { msg(e.message || String(e), false); }
@@ -3197,16 +3367,14 @@ window.RokApp = () => {
       if (!res.ok) throw new Error(res.status === 400 && /modus/i.test(data?.error || '') ? 'Der Scan-Server kennt den Statthalter-Scan noch nicht – bitte die neue api/scan.js einspielen.' : (data?.error || `Serverfehler ${res.status}`));
       const r = parseJson(String(data.text || '')) || {};
       const e = { kill_points: num(r.kill_points), highest_merit: num(r.highest_merit), energy: num(r.energy) };
-      const gid = String(r.governor_id ?? '').replace(/\D/g, '').slice(0, 12);
+      let gid = String(r.governor_id ?? r.id ?? r.governorId ?? '').replace(/\D/g, '').slice(0, 12);
+      if (!gid) { const m = String(data.text || '').match(/ID\s*[:：]?\s*(\d{5,12})/i); if (m) gid = m[1]; }
       if (e.kill_points == null && e.highest_merit == null && e.energy == null && !gid) throw new Error('Keine Werte im Screenshot erkannt.');
       let gidErr = '';
       if (gid) { $('profGovId').value = gid; if (gid !== (RokAuth.ownMeta().governor_id || '')) { try { await RokAuth.saveGovId(gid); } catch (x) { gidErr = ' · ' + x.message; } } }
-      let saved = { where: 'scans' };
-      if (e.kill_points != null || e.highest_merit != null || e.energy != null) {
-        addHistory({ id: newId(), ts: Date.now(), type: 'governor', ...e, confidence: r.confidence || null });
-        saved = await RokAuth.saveNow('governor');
-        await RokAuth.pushGov(e);
-      }                                          // Kill- und Verdienst-Rangliste
+      addHistory({ id: newId(), ts: Date.now(), type: 'governor', ...e, governor_id: gid ? +gid : null, confidence: r.confidence || null });
+      const saved = await RokAuth.saveNow('governor');                 // ID steht so auch im Scan (falls Spalte governor_id fehlt)
+      if (e.kill_points != null || e.highest_merit != null || e.energy != null) await RokAuth.pushGov(e);                                          // Kill- und Verdienst-Rangliste
       msg((saved.where === 'scans' ? '✓ Statthalter-Profil gespeichert' : saved.where === 'user_state' ? '✓ Gespeichert (Profil-Speicher – SQL-Update für public.scans fehlt)' : '✓ Lokal gespeichert, Cloud folgt') + gidErr, gidErr ? 'text-amber-300' : 'text-emerald-400');
       loadGameProfile();
     } catch (e2) { msg(e2.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : e2.message, 'text-red-300'); }
@@ -3219,7 +3387,7 @@ window.RokApp = () => {
   // ---- Charts-Fenster (ApexCharts): Reiter · Zeitraum · Area/Bar ----
   const PC_TABS = [
     { id: 'speedups', label: 'Speedups' }, { id: 'resources', label: 'Ressourcen' }, { id: 'ap', label: 'Aktionspunkte' },
-    { id: 'gems', label: 'Gems' }, { id: 'vip', label: 'VIP' }
+    { id: 'gems', label: 'Gems' }, { id: 'vip', label: 'VIP' }, { id: 'materials', label: 'Mats' }
   ];
   const PC_RANGES = [['14d', '14D', 14], ['1m', '1M', 30], ['3m', '3M', 91], ['1y', '1Y', 365], ['all', 'All', 0]];
   const PC_TYPES = [['area', 'Area'], ['bar', 'Bar']];
@@ -3254,8 +3422,15 @@ window.RokApp = () => {
     }
     if (tab === 'gems') return { main: { name: 'Gems', get: of('gems', e => e.gems) }, extra: [] };
     if (tab === 'speedups') return { days: true, main: { name: 'Speedups gesamt', get: of('speedups', e => e.total == null ? null : num(e.total) / 1440) },
-      extra: [['Training', 'training', '#f87171'], ['Heilung', 'healing', '#34d399'], ['Universal', 'universal', '#a78bfa']].map(([name, k, color]) => ({ name, color, get: sp(k) })) };
+      extra: [['Training', 'training', '#f87171'], ['Heilung', 'healing', '#34d399'], ['Universal', 'universal', '#a78bfa'], ['Forschung', 'research', '#38bdf8'], ['Bau', 'building', '#fb923c']].map(([name, k, color]) => ({ name, color, get: sp(k) })) };
     if (tab === 'ap') return { main: { name: 'Aktionspunkte', get: of('ap', e => e.total_ap) }, extra: [] };
+    if (tab === 'materials') {
+      const all = [{ k: 'total', name: 'Gesamt (Legendär)', color: '#facc15', get: of('materials', e => matSelTotal(e)) },
+        ...MATS.map(m => ({ k: m.k, name: m.label, color: m.c, get: of('materials', e => matLeg(e, m.k)) })),
+        { k: 'chest', name: 'Kisten', color: CHEST.c, get: of('materials', e => chestLeg(e)) }];
+      const [first, ...rest] = all;                                  // ein-/ausblenden über die Legende
+      return { dec: true, showExtra: true, main: first, mainColor: first.color, extra: rest };
+    }
     return { main: { name: 'VIP-Punkte', get: of('vip', e => e.after) }, extra: [] };
   }
 
@@ -3287,7 +3462,7 @@ window.RokApp = () => {
     // Schnell-Scan: öffnet das Dashboard direkt im Modus des gewählten Reiters (nur eigenes Profil)
     $('pcScan').classList.toggle('hidden', !pcData.P.own);
     $('pcScan').textContent = `📷 ${PC_TABS.find(t => t.id === ui.tab)?.label || ''} scannen`;
-    $('pcScan').onclick = () => goScan(ui.tab);
+    $('pcScan').onclick = () => goScan(ui.tab === 'materials' ? 'mats' : ui.tab);
     const def = pcDef(ui.tab), isBar = ui.type === 'bar';
     const span = (PC_RANGES.find(r => r[0] === ui.range) || PC_RANGES[1])[2];
     const from = span ? Date.now() - span * 86400000 : 0;
@@ -3306,14 +3481,14 @@ window.RokApp = () => {
     }
     empty.classList.add('hidden');
 
-    const round = (v) => v == null ? null : def.days ? Math.round(v * 100) / 100 : Math.round(v);
+    const round = (v) => v == null ? null : (def.days || def.dec) ? Math.round(v * 100) / 100 : Math.round(v);
     const pts = (get) => rows.map(e => ({ x: e.ts, y: round(get(e)) }));
     const mainData = pts(def.main.get);
     const series = [{ name: def.main.name, type: isBar ? 'bar' : 'area', data: mainData },
       ...def.extra.map(x => ({ name: x.name, type: isBar ? 'bar' : 'line', data: pts(x.get) }))];
 
     // Markierte Sprünge: die bis zu 4 größten Anstiege zwischen zwei Scans
-    const fmtDelta = (d) => '+' + (def.days ? d.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' T' : kfmt(d));
+    const fmtDelta = (d) => '+' + (def.days ? d.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' T' : def.dec ? fmtLeg(d) : kfmt(d));
     const jumps = mainData.slice(1).map((p, i) => ({ p, d: p.y - mainData[i].y })).filter(j => j.d > 0)
       .sort((a, b) => b.d - a.d).slice(0, 4);
     const points = jumps.map(({ p, d }) => ({
@@ -3322,7 +3497,7 @@ window.RokApp = () => {
       label: { text: fmtDelta(d), borderWidth: 0, offsetY: -6, style: { background: 'transparent', color: PC_CYAN, fontSize: '12px', fontWeight: 700, padding: { left: 0, right: 0, top: 0, bottom: 0 } } }
     }));
 
-    const valFmt = (v) => v == null ? '–' : def.days ? durText(v * 1440) : fmt(v);
+    const valFmt = (v) => v == null ? '–' : def.days ? durText(v * 1440) : def.dec ? fmtLeg(v) : fmt(v);
     pcChart = new ApexCharts($('pcChart'), {
       chart: {
         type: isBar ? 'bar' : 'area', height: 340, background: 'transparent', foreColor: '#94a3b8', fontFamily: 'Inter, system-ui, sans-serif',
@@ -3344,7 +3519,7 @@ window.RokApp = () => {
       xaxis: { type: 'datetime', labels: { datetimeUTC: false, format: 'dd MMM', style: { colors: '#94a3b8', fontSize: '12px' } },
                axisBorder: { show: false }, axisTicks: { show: false }, tooltip: { enabled: false } },
       yaxis: { min: isBar ? 0 : undefined, forceNiceScale: true, tickAmount: 4,
-               labels: { style: { colors: '#94a3b8', fontSize: '12px' }, formatter: (v) => v == null ? '' : def.days ? (Math.round(v * 10) / 10).toLocaleString('de-DE') + ' T' : kfmt(v) } },
+               labels: { style: { colors: '#94a3b8', fontSize: '12px' }, formatter: (v) => v == null ? '' : def.days ? (Math.round(v * 10) / 10).toLocaleString('de-DE') + ' T' : def.dec && Math.abs(v) < 1000 ? (Math.round(v * 10) / 10).toLocaleString('de-DE') : kfmt(v) } },
       legend: { show: def.extra.length > 0, position: 'top', horizontalAlign: 'center', labels: { colors: '#94a3b8' }, markers: { shape: 'circle' }, onItemClick: { toggleDataSeries: true } },
       tooltip: { theme: 'dark', shared: true, intersect: false, x: { format: 'dd. MMM yyyy, HH:mm' }, y: { formatter: valFmt } },
       annotations: { points }
@@ -3354,6 +3529,416 @@ window.RokApp = () => {
 
   // Sprache gewechselt → Diagramme neu zeichnen (Beschriftungen im Canvas/SVG)
   window.addEventListener('langchange', () => { renderHistory(); if (view === 'profile' && typeof drawPc === 'function') drawPc(); });
+
+  // ================= Materialien & Crafting-Planer (Multi-Set Gear-Planer) =================
+  // Speicherung: alle Keys "rok_scanner_gear_*" landen über LS.set automatisch in public.user_state.data (Cloud)
+  // und bleiben zusätzlich im localStorage (Fallback, offline). Keine neue Tabelle nötig.
+  const GEAR_SETS = 'rok_scanner_gear_sets', GEAR_CAT = 'rok_scanner_gear_catalog', GEAR_BP = 'rok_scanner_gear_blueprints', GEAR_OPT = 'rok_scanner_gear_opts';
+  const GEAR_SLOTS = [
+    { k: 'helm',   label: 'Helm',         icon: '⛑️', cat: 'helm' },
+    { k: 'chest',  label: 'Brust',        icon: '🛡️', cat: 'chest' },
+    { k: 'weapon', label: 'Waffe',        icon: '🗡️', cat: 'weapon' },
+    { k: 'gloves', label: 'Handschuhe',   icon: '🧤', cat: 'gloves' },
+    { k: 'legs',   label: 'Beine',        icon: '👖', cat: 'legs' },
+    { k: 'boots',  label: 'Stiefel',      icon: '🥾', cat: 'boots' },
+    { k: 'acc1',   label: 'Accessoire 1', icon: '💍', cat: 'accessory' },
+    { k: 'acc2',   label: 'Accessoire 2', icon: '📯', cat: 'accessory' }
+  ];
+  const GEAR_CATS = { helm: 'Helm', chest: 'Brust', weapon: 'Waffe', gloves: 'Handschuhe', legs: 'Beine', boots: 'Stiefel', accessory: 'Accessoire' };
+  // Episch = gleiche Anzahl lila Materialien → ¼ legendär (4:1)
+  const GEAR_RAR = { legendary: { label: 'Legendär', c: '#f97316', div: 1 }, epic: { label: 'Episch', c: '#c084fc', div: 4 } };
+  // PLATZHALTER-Kosten je Slot (legendäre Materialien) – im Katalog an die echten Spielwerte anpassen
+  const GEAR_DEF_MIX = { helm: { iron: 20, leather: 10 }, chest: { leather: 20, bone: 10 }, weapon: { iron: 25, ebony: 15 },
+    gloves: { leather: 15, ebony: 10 }, legs: { leather: 15, bone: 10 }, boots: { leather: 15, bone: 10 }, accessory: { ebony: 20, bone: 20 } };
+  const GEAR_DEF_GOLD = 1000000, GEAR_DEF_GOLD_EPIC = 500000;
+
+  function gearDefaultCatalog() {
+    const out = [];
+    const add = (id, name, cat, set, aliases) => { const m = GEAR_DEF_MIX[cat]; out.push({ id, name, cat, set, aliases,
+      leather: m.leather || 0, iron: m.iron || 0, ebony: m.ebony || 0, bone: m.bone || 0, gold: GEAR_DEF_GOLD, goldEpic: GEAR_DEF_GOLD_EPIC, verified: false }); };
+    [['ee', 'Ewiges Reich', ['ewiges reich', 'eternal empire']],
+     ['hw', 'Höllisches Ödland', ['höllisches ödland', 'hellish wasteland']],
+     ['db', 'Drachenatem', ['drachenatem', "dragon's breath", 'dragon breath']]]
+      .forEach(([p, set, al]) => ['helm', 'chest', 'weapon', 'gloves', 'legs', 'boots'].forEach(c => add(`${p}_${c}`, `${set} – ${GEAR_CATS[c]}`, c, set, al)));
+    [['kvk_inf', 'Infanterie', ['kvk infanterie', 'kvk infantry']], ['kvk_cav', 'Kavallerie', ['kvk kavallerie', 'kvk cavalry']], ['kvk_arc', 'Bogenschützen', ['kvk bogen', 'kvk archer']]]
+      .forEach(([id, t, al]) => add(id, `KvK-Waffe ${t}`, 'weapon', 'KvK-Waffen', al));
+    [['acc_doom', 'Ring der Verdammnis', ['ring der verdammnis', 'ring of doom']], ['acc_fury', 'Horn der Wut', ['horn der wut', 'horn of fury']],
+     ['acc_dagger', 'Verborgener Dolch', ['verborgener dolch', 'concealed dagger']], ['acc_other', 'Anderes Accessoire', []]]
+      .forEach(([id, n, al]) => add(id, n, 'accessory', 'Accessoires', al));
+    return out;
+  }
+  const gNum = (v) => Math.max(0, Math.round(+v || 0));
+  const gNorm = (s) => String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/['’`´]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  const gNormItem = (i) => ({ id: String(i.id), name: String(i.name || 'Item').slice(0, 60), cat: GEAR_CATS[i.cat] ? i.cat : 'helm',
+    set: String(i.set || 'Eigene Items').slice(0, 40), aliases: Array.isArray(i.aliases) ? i.aliases.map(String) : [],
+    leather: gNum(i.leather), iron: gNum(i.iron), ebony: gNum(i.ebony), bone: gNum(i.bone), gold: gNum(i.gold), goldEpic: gNum(i.goldEpic), verified: !!i.verified });
+  let gearCat = (() => { try { const c = JSON.parse(LS.get(GEAR_CAT, 'null')); if (Array.isArray(c) && c.length) return c.filter(i => i && i.id).map(gNormItem); } catch {} return gearDefaultCatalog(); })();
+  const saveGearCat = () => LS.set(GEAR_CAT, JSON.stringify(gearCat));
+  const gItem = (id) => id ? gearCat.find(i => i.id === id) || null : null;
+
+  // ---- Sets ----
+  const gEmptySlots = () => Object.fromEntries(GEAR_SLOTS.map(s => [s.k, { item: '', rarity: 'legendary' }]));
+  const newGearSet = (name) => ({ id: newId(), name, ist: gEmptySlots(), ziel: gEmptySlots(), dismantle: false, useChests: false, updated: Date.now() });
+  function gNormSet(s) {
+    const o = newGearSet(String(s?.name || 'Set').slice(0, 40));
+    if (s?.id) o.id = String(s.id);
+    ['ist', 'ziel'].forEach(side => GEAR_SLOTS.forEach(sl => { const v = s?.[side]?.[sl.k] || {}; o[side][sl.k] = { item: String(v.item || ''), rarity: v.rarity === 'epic' ? 'epic' : 'legendary' }; }));
+    o.dismantle = !!s?.dismantle; o.useChests = !!s?.useChests; o.updated = +s?.updated || Date.now();
+    return o;
+  }
+  let gear = { sets: [], active: null };
+  try { const g = JSON.parse(LS.get(GEAR_SETS, 'null')); if (g && Array.isArray(g.sets)) gear = { sets: g.sets.map(gNormSet), active: g.active }; } catch {}
+  if (!gear.sets.length) gear.sets.push(newGearSet('Infanterie Marsch 1'));
+  if (!gear.sets.some(s => s.id === gear.active)) gear.active = gear.sets[0].id;
+  const activeSet = () => gear.sets.find(s => s.id === gear.active) || gear.sets[0];
+  const saveGear = () => { activeSet().updated = Date.now(); LS.set(GEAR_SETS, JSON.stringify(gear)); };
+  let gearOpt = { rate: 50 };
+  try { const o = JSON.parse(LS.get(GEAR_OPT, '{}')); if (o && o.rate != null) gearOpt.rate = Math.min(100, gNum(o.rate)); } catch {}
+  let gearBp = new Set();
+  try { gearBp = new Set((JSON.parse(LS.get(GEAR_BP, '[]')) || []).map(String)); } catch {}
+  let gearFlags = {};   // Scan-Hinweise je Ist-Slot (nur in dieser Sitzung)
+
+  // ---- Berechnung ----
+  const gZero = () => ({ leather: 0, iron: 0, ebony: 0, bone: 0, gold: 0 });
+  function gearCost(v, factor = 1) {
+    const it = gItem(v?.item); if (!it) return null;
+    const epic = v.rarity === 'epic', c = gZero();
+    MATS.forEach(m => c[m.k] = it[m.k] / (epic ? 4 : 1) * factor);
+    c.gold = (epic ? it.goldEpic : it.gold) * factor;
+    return c;
+  }
+  const gAdd = (a, b) => { if (b) Object.keys(a).forEach(k => a[k] += b[k] || 0); return a; };
+  function gearCalc(set) {
+    const key = (v) => gItem(v.item) ? v.item + '|' + v.rarity : '';
+    const rows = GEAR_SLOTS.map(sl => ({ sl, a: set.ist[sl.k], z: set.ziel[sl.k], status: 'none', cost: null, back: null, used: false }));
+    // 1) gleiches Item + gleiche Seltenheit im gleichen Slot → 0 Kosten
+    rows.forEach(r => { if (key(r.z) && key(r.z) === key(r.a)) { r.status = 'same'; r.used = true; } });
+    // 2) Accessoires dürfen die Plätze tauschen
+    const accs = rows.filter(r => r.sl.cat === 'accessory');
+    accs.forEach(r => { if (r.status !== 'none' || !key(r.z)) return; const src = accs.find(o => !o.used && key(o.a) === key(r.z)); if (src) { src.used = true; r.status = 'swap'; } });
+    // 3) Rest muss geschmiedet werden
+    const need = gZero(), back = gZero(), bps = new Map();
+    rows.forEach(r => { if (r.status === 'none' && key(r.z)) { r.status = 'craft'; r.cost = gearCost(r.z); gAdd(need, r.cost); bps.set(r.z.item, true); } });
+    // 4) Zerlegen: altes Teil wird nicht weiterverwendet und sein Slot neu belegt
+    if (set.dismantle) rows.forEach(r => { if (!r.used && key(r.a) && key(r.z)) { r.back = gearCost(r.a, gearOpt.rate / 100); r.back.gold = 0; gAdd(back, r.back); } });
+    return { rows, need, back, bps };
+  }
+  const gLatest = (type) => history.filter(e => e.type === type).sort((a, b) => b.ts - a.ts)[0] || null;
+  function gearStock() {
+    const e = gLatest('materials'), r = gLatest('resources');
+    return { mats: e ? Object.fromEntries(MATS.map(m => [m.k, matLeg(e, m.k)])) : null, chests: e ? chestLeg(e) : 0, matTs: e?.ts,
+             gold: r && r.gold != null ? +r.gold : null, goldTs: r?.ts };
+  }
+  function gearBalance(calc, st, useChests) {
+    const lines = MATS.map(m => {
+      const gross = calc.need[m.k], stock = st.mats ? st.mats[m.k] : 0, back = calc.back[m.k];
+      return { m, gross, stock, back, chest: 0, deficit: Math.max(0, gross - stock - back), surplus: Math.max(0, stock + back - gross) };
+    });
+    if (useChests && st.chests > 0) {          // Wahl-Kisten auf die größten Lücken verteilen
+      let left = st.chests;
+      [...lines].sort((a, b) => b.deficit - a.deficit).forEach(l => { const t = Math.min(left, l.deficit); l.chest = t; l.deficit -= t; left -= t; });
+    }
+    const goldDef = st.gold == null ? null : Math.max(0, calc.need.gold - st.gold);
+    return { lines, goldDef };
+  }
+
+  // ---- Darstellung ----
+  const gq = (v) => (Math.ceil((v || 0) * 100 - 1e-6) / 100).toLocaleString('de-DE', { maximumFractionDigits: 2 });
+  const gCostText = (c) => !c ? '–' : [...MATS.filter(m => c[m.k] > 1e-4).map(m => `${m.icon} ${gq(c[m.k])}`), c.gold > 0 ? `🪙 ${short(c.gold)}` : ''].filter(Boolean).join(' · ') || '0';
+  const GBADGE = { amber: 'border-amber-400/50 text-amber-300', sky: 'border-sky-400/50 text-sky-300', emerald: 'border-emerald-400/50 text-emerald-300', gold: 'border-gold-500/50 text-gold-300', slate: 'border-ink-600 text-slate-400' };
+  const GSTATUS = { same: ['✓ identisch', 'emerald'], swap: ['⇄ Platz getauscht', 'emerald'], craft: ['⚒ craften', 'gold'] };
+
+  function gearSlotCard(side, sl, v, badge) {
+    const it = gItem(v.item), r = GEAR_RAR[v.rarity] || GEAR_RAR.legendary;
+    const sel = 'w-full min-w-0 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-gold-500 disabled:opacity-40';
+    const groups = {};
+    gearCat.filter(i => i.cat === sl.cat).forEach(i => (groups[i.set] = groups[i.set] || []).push(i));
+    const opts = '<option value="">– leer –</option>' + Object.entries(groups).map(([g, items]) => `<optgroup label="${esc(g)}">`
+      + items.map(i => `<option value="${esc(i.id)}"${i.id === v.item ? ' selected' : ''}>${esc(i.name)}</option>`).join('') + '</optgroup>').join('');
+    return `<div class="rounded-xl bg-ink-950/60 border p-3" style="border-color:${it ? r.c + '99' : 'rgba(46,58,85,.9)'}">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="w-9 h-9 shrink-0 rounded-lg grid place-items-center text-lg" style="background:${it ? r.c + '22' : '#161e2f'};border:1px solid ${it ? r.c + '66' : '#2e3a55'}">${sl.icon}</span>
+        <div class="min-w-0 flex-1">
+          <div class="text-[10px] uppercase tracking-widest text-slate-400"><span>${sl.label}</span>${it ? ` · <span style="color:${r.c}">${r.label}</span>` : ''}</div>
+          <div class="text-sm font-semibold truncate ${it ? 'text-white' : 'text-slate-500'}" title="${it ? esc(it.name) : ''}">${it ? esc(it.name) : 'leer'}</div>
+        </div>
+      </div>
+      ${badge ? `<div class="mb-2 inline-block max-w-full truncate text-[10px] px-2 py-0.5 rounded-full border ${GBADGE[badge[1]]}" title="${esc(badge[0])}">${esc(badge[0])}</div>` : ''}
+      <div class="grid grid-cols-[1fr_auto] gap-1.5">
+        <select data-side="${side}" data-slot="${sl.k}" data-f="item" class="${sel}" aria-label="${sl.label}">${opts}</select>
+        <select data-side="${side}" data-slot="${sl.k}" data-f="rarity" class="${sel}" ${it ? '' : 'disabled'} aria-label="Seltenheit">
+          <option value="legendary"${v.rarity !== 'epic' ? ' selected' : ''}>Legendär</option><option value="epic"${v.rarity === 'epic' ? ' selected' : ''}>Episch</option>
+        </select>
+      </div>
+    </div>`;
+  }
+
+  function renderGearMain() {
+    const set = activeSet();
+    $('gearSetSel').innerHTML = gear.sets.map(s => `<option value="${esc(s.id)}"${s.id === set.id ? ' selected' : ''}>${esc(s.name)}</option>`).join('');
+    $('gearDismantle').checked = set.dismantle; $('gearUseChests').checked = set.useChests;
+    $('gearDisRate').value = gearOpt.rate; $('gearDisRate').disabled = !set.dismantle;
+    const calc = gearCalc(set), st = gearStock(), bal = gearBalance(calc, st, set.useChests);
+    const rowOf = (k) => calc.rows.find(r => r.sl.k === k);
+
+    // Slots
+    $('gearIst').innerHTML = GEAR_SLOTS.map(sl => gearSlotCard('ist', sl, set.ist[sl.k],
+      gearFlags[sl.k] ? ['⚠ ' + gearFlags[sl.k], 'amber'] : rowOf(sl.k).back ? ['♻ wird zerlegt', 'sky'] : null)).join('');
+    $('gearZiel').innerHTML = GEAR_SLOTS.map(sl => gearSlotCard('ziel', sl, set.ziel[sl.k], GSTATUS[rowOf(sl.k).status] || null)).join('');
+
+    // Ergebnis-Dashboard
+    const crafts = calc.rows.filter(r => r.status === 'craft');
+    const totalLeg = MATS.reduce((a, m) => a + calc.need[m.k], 0);
+    const usedIds = new Set([...crafts.map(r => r.z.item), ...calc.rows.filter(r => r.back).map(r => r.a.item)]);
+    const placeholders = [...usedIds].map(gItem).filter(i => i && !i.verified);
+    const short_ = (n) => n == null ? '?' : short(n);
+    const missing = bal.lines.filter(l => l.deficit > 0.005 && (st.mats || l.back >= l.gross)).length + (bal.goldDef > 0 ? 1 : 0);
+    const verdict = !crafts.length ? ['✓ Keine Zusatzkosten – das Ziel-Set entspricht der Ist-Ausrüstung oder ist leer.', 'text-emerald-300']
+      : (!st.mats || st.gold == null) && !missing ? ['⚠ Bestand teilweise unbekannt – bitte Materialien und Ressourcen scannen.', 'text-amber-300']
+      : missing ? [`🔴 ${missing} von 5 Ressourcen reichen noch nicht.`, 'text-red-300'] : ['🟢 Alles vorhanden – das Set kann geschmiedet werden.', 'text-emerald-300'];
+    const mcard = (icon, label, color, rows, status, tone) => `<div class="panel rounded-2xl p-4 ${tone === 'red' ? 'ring-1 ring-red-500/50' : tone === 'green' ? 'ring-1 ring-emerald-500/40' : ''}">
+        <div class="flex items-center gap-3"><span class="w-10 h-10 shrink-0 rounded-xl grid place-items-center text-xl" style="background:${color}22;border:1px solid ${color}55">${icon}</span>
+          <div class="text-xs uppercase tracking-widest text-slate-400">${label}</div></div>
+        <div class="mt-3 space-y-1 text-xs">${rows.map(([k, v, cls]) => `<div class="flex justify-between gap-2"><span class="text-slate-400">${k}</span><span class="tabular-nums font-semibold ${cls || 'text-white'}">${v}</span></div>`).join('')}</div>
+        <div class="mt-3 text-sm font-semibold ${{ red: 'text-red-300', green: 'text-emerald-300', amber: 'text-amber-300' }[tone] || 'text-slate-500'}">${status}</div>
+      </div>`;
+    const matCards = bal.lines.map(l => {
+      const rows = [['Bedarf (legendär)', gq(l.gross)], ['Rucksack', st.mats ? gq(l.stock) : '?']];
+      if (l.back > 1e-4) rows.push(['+ Zerlegen', '+' + gq(l.back), 'text-sky-300']);
+      if (l.chest > 1e-4) rows.push(['+ aus Kisten', '+' + gq(l.chest), 'text-amber-300']);
+      if (l.gross < 0.005) return mcard(l.m.icon, l.m.label, l.m.c, rows, '⚪ Nicht benötigt', '');
+      if (!st.mats && l.back < l.gross) return mcard(l.m.icon, l.m.label, l.m.c, rows, '⚠ Bestand unbekannt', 'amber');
+      if (l.deficit > 0.005) return mcard(l.m.icon, l.m.label, l.m.c, rows, `🔴 Es fehlen noch ${gq(l.deficit)} legendäre ${l.m.label}`, 'red');
+      rows.push(['Überschuss', gq(l.surplus), 'text-emerald-300']);
+      return mcard(l.m.icon, l.m.label, l.m.c, rows, `🟢 Genug ${l.m.label} vorhanden`, 'green');
+    }).join('');
+    const g = calc.need.gold, goldRows = [['Bedarf', short(g)], ['Bestand', short_(st.gold)]];
+    const goldCard = g <= 0 ? mcard('🪙', 'Goldmünzen', '#fde047', goldRows, '⚪ Nicht benötigt', '')
+      : bal.goldDef == null ? mcard('🪙', 'Goldmünzen', '#fde047', goldRows, '⚠ Bestand unbekannt', 'amber')
+      : bal.goldDef > 0 ? mcard('🪙', 'Goldmünzen', '#fde047', goldRows, `🔴 Es fehlen noch ${short(bal.goldDef)} Goldmünzen`, 'red')
+      : mcard('🪙', 'Goldmünzen', '#fde047', goldRows, '🟢 Genug Goldmünzen vorhanden', 'green');
+    $('gearResult').innerHTML = `
+      <div class="panel rounded-2xl p-5 ring-1 ring-gold-500/30">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="text-xs uppercase tracking-widest text-slate-400">Gesamtbedarf</div>
+            <div class="font-display text-2xl gold-text" translate="no">${esc(set.name)}</div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center">
+            <div><div class="text-2xl font-extrabold text-gold-300 tabular-nums">${gq(totalLeg)}</div><div class="text-[11px] text-slate-400">legendäre Materialien</div></div>
+            <div><div class="text-2xl font-extrabold text-white tabular-nums">${short(g)}</div><div class="text-[11px] text-slate-400">Goldmünzen</div></div>
+            <div><div class="text-2xl font-extrabold text-white tabular-nums">${crafts.length}</div><div class="text-[11px] text-slate-400">Items zu craften</div></div>
+          </div>
+        </div>
+        <div class="mt-3 text-sm font-semibold ${verdict[1]}">${verdict[0]}</div>
+        <div class="mt-3 space-y-1 text-xs text-slate-400">
+          <div>${st.mats ? `📦 Rucksack-Bestand aus Material-Scan vom <b class="text-slate-200">${dateLabel(st.matTs)}</b>${st.chests > 0 ? ` · Kisten ≈ ${gq(st.chests)} legendär` : ''}`
+            : `⚠ Noch kein Material-Scan – Rucksack-Bestand unbekannt. <button data-goscan="mats" class="underline text-gold-300 hover:text-gold-400">Materialien scannen</button>`}</div>
+          <div>${st.gold != null ? `🪙 Goldmünzen aus Ressourcen-Scan vom <b class="text-slate-200">${dateLabel(st.goldTs)}</b>`
+            : `⚠ Kein Ressourcen-Scan – Goldmünzen-Bestand unbekannt. <button data-goscan="resources" class="underline text-gold-300 hover:text-gold-400">Ressourcen scannen</button>`}</div>
+        </div>
+        ${placeholders.length ? `<div class="mt-3 rounded-lg border border-amber-400/40 bg-amber-400/5 px-3 py-2 text-xs text-amber-200">⚠ ${placeholders.length} Item(s) nutzen noch Platzhalter-Kosten (${placeholders.map(i => esc(i.name)).join(', ')}). Bitte im Item-Katalog unten die echten Werte eintragen.</div>` : ''}
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">${matCards}${goldCard}</div>`;
+
+    // Slot-Vergleich
+    const nm = (v) => { const it = gItem(v.item); return it ? `${esc(it.name)} <span class="text-[10px] font-semibold" style="color:${GEAR_RAR[v.rarity].c}">${GEAR_RAR[v.rarity].label}</span>` : '<span class="text-slate-500">–</span>'; };
+    $('gearPlan').innerHTML = `<h3 class="font-display text-xl gold-text mb-3">Slot-Vergleich</h3>
+      <div class="overflow-x-auto"><table class="w-full text-sm">
+        <thead class="text-xs uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700">
+          <th class="py-2 pr-2 text-left font-medium">Slot</th><th class="py-2 px-2 text-left font-medium">Ist</th><th class="py-2 px-2 text-left font-medium">Ziel</th>
+          <th class="py-2 px-2 text-left font-medium">Status</th><th class="py-2 px-2 text-right font-medium">Kosten</th><th class="py-2 pl-2 text-right font-medium">Zerlegen</th></tr></thead>
+        <tbody>${calc.rows.map(r => { const s = GSTATUS[r.status] || [gItem(r.z.item) ? '' : 'kein Ziel', 'slate'];
+          return `<tr class="border-b border-ink-800">
+            <td class="py-2 pr-2 whitespace-nowrap text-slate-300">${r.sl.icon} ${r.sl.label}</td>
+            <td class="py-2 px-2">${nm(r.a)}</td><td class="py-2 px-2">${nm(r.z)}</td>
+            <td class="py-2 px-2 whitespace-nowrap">${s[0] ? `<span class="text-[11px] px-2 py-0.5 rounded-full border ${GBADGE[s[1]]}">${s[0]}</span>` : ''}</td>
+            <td class="py-2 px-2 text-right tabular-nums whitespace-nowrap text-xs">${r.cost ? gCostText(r.cost) : '–'}</td>
+            <td class="py-2 pl-2 text-right tabular-nums whitespace-nowrap text-xs text-sky-300">${r.back ? '+ ' + gCostText(r.back) : '–'}</td></tr>`; }).join('')}</tbody>
+      </table></div>`;
+
+    // Baupläne
+    const bps = [...calc.bps.keys()].map(gItem).filter(Boolean), own = bps.filter(i => gearBp.has(i.id)).length;
+    $('gearBp').innerHTML = `<div class="flex flex-wrap items-center justify-between gap-2 mb-3"><h3 class="font-display text-xl gold-text">Benötigte Baupläne</h3>
+        ${bps.length ? `<span class="text-xs ${own === bps.length ? 'text-emerald-300' : 'text-amber-300'}">${own} von ${bps.length} vorhanden</span>` : ''}</div>`
+      + (bps.length ? `<div class="grid sm:grid-cols-2 gap-2">${bps.map(i => {
+          const has = gearBp.has(i.id), rar = [...new Set(crafts.filter(r => r.z.item === i.id).map(r => GEAR_RAR[r.z.rarity].label))].join(' / ');
+          return `<label class="flex items-center gap-3 rounded-xl border px-3 py-2.5 cursor-pointer ${has ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-700 bg-ink-950/60'}">
+            <input type="checkbox" data-bp="${esc(i.id)}" ${has ? 'checked' : ''} class="w-4 h-4 accent-emerald-500">
+            <span class="text-lg">📜</span>
+            <span class="min-w-0 flex-1"><span class="block text-sm font-semibold text-white truncate">${esc(i.name)}</span><span class="block text-[11px] text-slate-400">${esc(i.set)} · ${rar}</span></span>
+            <span class="text-xs whitespace-nowrap ${has ? 'text-emerald-300' : 'text-red-300'}">${has ? '🟢 vorhanden' : '🔴 fehlt'}</span></label>`; }).join('')}</div>
+          <p class="mt-2 text-[11px] text-slate-500">Haken setzen, wenn du den Bauplan schon besitzt – gilt für alle Sets.</p>`
+        : '<p class="text-sm text-slate-500">Keine Baupläne nötig – im Ziel-Set muss nichts geschmiedet werden.</p>');
+  }
+
+  function renderGearCat() {
+    const inp = 'w-full bg-ink-950 border border-ink-700 rounded px-1.5 py-1 focus:outline-none focus:border-gold-500';
+    $('gearCatRows').innerHTML = gearCat.map(i => `<tr class="border-b border-ink-800" data-row="${esc(i.id)}">
+      <td class="py-1 pr-1"><div class="flex items-center gap-1">${i.verified ? '' : '<span class="gwarn text-amber-300" title="Platzhalter-Werte">⚠</span>'}<input data-cid="${esc(i.id)}" data-f="name" value="${esc(i.name)}" class="${inp} min-w-[170px]"></div></td>
+      <td class="py-1 px-1"><select data-cid="${esc(i.id)}" data-f="cat" class="${inp}">${Object.entries(GEAR_CATS).map(([k, l]) => `<option value="${k}"${k === i.cat ? ' selected' : ''}>${l}</option>`).join('')}</select></td>
+      <td class="py-1 px-1"><input data-cid="${esc(i.id)}" data-f="set" value="${esc(i.set)}" class="${inp} min-w-[120px]"></td>
+      ${['leather', 'iron', 'ebony', 'bone'].map(k => `<td class="py-1 px-1"><input data-cid="${esc(i.id)}" data-f="${k}" type="number" min="0" step="1" value="${i[k]}" class="${inp} w-16 text-right tabular-nums"></td>`).join('')}
+      ${['gold', 'goldEpic'].map(k => `<td class="py-1 px-1"><input data-cid="${esc(i.id)}" data-f="${k}" type="number" min="0" step="1000" value="${i[k]}" class="${inp} w-28 text-right tabular-nums"></td>`).join('')}
+      <td class="text-right"><button data-cdel="${esc(i.id)}" class="text-slate-500 hover:text-red-400 px-1" title="Item löschen">✕</button></td></tr>`).join('');
+  }
+  function renderGear() { renderGearMain(); renderGearCat(); }
+
+  // ---- Ereignisse: Slots ----
+  ['gearIst', 'gearZiel'].forEach(id => $(id).addEventListener('change', (ev) => {
+    const t = ev.target.closest('select[data-slot]'); if (!t) return;
+    const v = activeSet()[t.dataset.side][t.dataset.slot];
+    if (t.dataset.f === 'item') v.item = t.value; else v.rarity = t.value === 'epic' ? 'epic' : 'legendary';
+    if (t.dataset.side === 'ist') delete gearFlags[t.dataset.slot];
+    saveGear(); renderGearMain();
+  }));
+  $('gearCopyIst').onclick = () => {
+    const s = activeSet();
+    if (GEAR_SLOTS.some(sl => gItem(s.ziel[sl.k].item)) && !confirm('Ziel-Ausrüstung mit der Ist-Ausrüstung überschreiben?')) return;
+    GEAR_SLOTS.forEach(sl => s.ziel[sl.k] = { ...s.ist[sl.k] });
+    saveGear(); renderGearMain();
+  };
+  $('gearDismantle').onchange = () => { activeSet().dismantle = $('gearDismantle').checked; saveGear(); renderGearMain(); };
+  $('gearUseChests').onchange = () => { activeSet().useChests = $('gearUseChests').checked; saveGear(); renderGearMain(); };
+  $('gearDisRate').onchange = () => { gearOpt.rate = Math.min(100, gNum($('gearDisRate').value)); LS.set(GEAR_OPT, JSON.stringify(gearOpt)); renderGearMain(); };
+  $('gearResult').addEventListener('click', (ev) => { const b = ev.target.closest('[data-goscan]'); if (b) goScan(b.dataset.goscan); });
+  $('gearBp').addEventListener('change', (ev) => {
+    const c = ev.target.closest('[data-bp]'); if (!c) return;
+    if (c.checked) gearBp.add(c.dataset.bp); else gearBp.delete(c.dataset.bp);
+    LS.set(GEAR_BP, JSON.stringify([...gearBp])); renderGearMain();
+  });
+
+  // ---- Ereignisse: Set-Verwaltung ----
+  let gearFormMode = null;
+  const gearMsg = (t, ok = true) => flash($('gearMsg'), esc(t), ok);
+  function openGearForm(m) {
+    gearFormMode = m;
+    $('gearNameLabel').textContent = m === 'new' ? 'Name des neuen Sets' : 'Neuer Name für das Set';
+    $('gearNameInput').value = m === 'rename' ? activeSet().name : '';
+    $('gearNameForm').classList.remove('hidden'); $('gearNameInput').focus(); $('gearNameInput').select();
+  }
+  const closeGearForm = () => { gearFormMode = null; $('gearNameForm').classList.add('hidden'); };
+  $('gearNew').onclick = () => openGearForm('new');
+  $('gearRename').onclick = () => openGearForm('rename');
+  $('gearNameCancel').onclick = closeGearForm;
+  $('gearNameForm').onsubmit = (ev) => {
+    ev.preventDefault();
+    const name = $('gearNameInput').value.trim().replace(/\s+/g, ' ').slice(0, 40);
+    if (!name) return;
+    if (gear.sets.some(s => s.name.toLowerCase() === name.toLowerCase() && (gearFormMode === 'new' || s.id !== gear.active))) { gearMsg('Ein Set mit diesem Namen gibt es schon.', false); return; }
+    if (gearFormMode === 'new') { const s = newGearSet(name); gear.sets.push(s); gear.active = s.id; gearFlags = {}; gearMsg(`✓ Set „${name}“ erstellt`); }
+    else { activeSet().name = name; gearMsg(`✓ Set umbenannt in „${name}“`); }
+    closeGearForm(); saveGear(); renderGearMain();
+  };
+  $('gearSetSel').onchange = () => { gear.active = $('gearSetSel').value; gearFlags = {}; closeGearForm(); LS.set(GEAR_SETS, JSON.stringify(gear)); renderGearMain(); };
+  $('gearDelete').onclick = () => {
+    const s = activeSet();
+    if (!confirm(`Set „${s.name}“ wirklich löschen? Das kann nicht rückgängig gemacht werden.`)) return;
+    gear.sets = gear.sets.filter(x => x.id !== s.id);
+    if (!gear.sets.length) gear.sets.push(newGearSet('Neues Set'));
+    gear.active = gear.sets[0].id; gearFlags = {}; closeGearForm();
+    saveGear(); renderGearMain(); gearMsg(`🗑 Set „${s.name}“ gelöscht`);
+  };
+  $('gearSave').onclick = async () => {
+    saveGear(); $('gearSave').disabled = true;
+    try {
+      const r = await RokAuth.saveNow('gear');
+      gearMsg(r.ok ? '✓ Set gespeichert · in der Cloud (user_state)' : '✓ Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt');
+    } finally { $('gearSave').disabled = false; }
+  };
+
+  // ---- Ereignisse: Katalog ----
+  $('gearCatRows').addEventListener('change', (ev) => {
+    const t = ev.target.closest('[data-cid]'); if (!t) return;
+    const it = gItem(t.dataset.cid), f = t.dataset.f; if (!it) return;
+    if (f === 'name') it.name = t.value.trim().slice(0, 60) || 'Item';
+    else if (f === 'set') it.set = t.value.trim().slice(0, 40) || 'Eigene Items';
+    else if (f === 'cat') it.cat = GEAR_CATS[t.value] ? t.value : it.cat;
+    else { it[f] = gNum(t.value); t.value = it[f]; it.verified = true; t.closest('tr')?.querySelector('.gwarn')?.remove(); }
+    saveGearCat(); renderGearMain();
+  });
+  $('gearCatRows').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-cdel]'); if (!b) return;
+    const it = gItem(b.dataset.cdel); if (!it) return;
+    const used = gear.sets.some(s => GEAR_SLOTS.some(sl => s.ist[sl.k].item === it.id || s.ziel[sl.k].item === it.id));
+    if (!confirm(`Item „${it.name}“ löschen?` + (used ? '\n\nEs wird in mindestens einem Set verwendet – dieser Slot gilt danach als leer.' : ''))) return;
+    gearCat = gearCat.filter(i => i.id !== it.id); saveGearCat(); renderGear();
+  });
+  $('gearCatAdd').onclick = () => {
+    gearCat.push({ id: 'c_' + newId(), name: 'Neues Item', cat: 'helm', set: 'Eigene Items', aliases: [], leather: 0, iron: 0, ebony: 0, bone: 0, gold: 0, goldEpic: 0, verified: true });
+    saveGearCat(); renderGear();
+    $('gearCatBox').open = true;
+    const last = $('gearCatRows').querySelector('tr:last-child input'); if (last) { last.focus(); last.select(); }
+  };
+  $('gearCatReset').onclick = () => {
+    if (!confirm('Standard-Katalog wiederherstellen? Deine geänderten Kosten der Standard-Items gehen verloren, eigene Items bleiben erhalten.')) return;
+    gearCat = [...gearDefaultCatalog(), ...gearCat.filter(i => i.id.startsWith('c_'))]; saveGearCat(); renderGear();
+  };
+
+  // ---- KI-Scan der Ist-Ausrüstung (Modus "gear" in /api/scan) ----
+  function gearRarity(v) { const t = gNorm(v); if (!t) return null; return /legend|gold|orange/.test(t) ? 'legendary' : 'epic'; }
+  function gearMatch(cat, info) {
+    const text = gNorm([info.set, info.name].filter(Boolean).join(' '));
+    if (!text) return null;
+    let best = null, score = 0;
+    gearCat.filter(i => i.cat === cat).forEach(i => {
+      let s = gNorm(i.name) === gNorm(info.name) ? 100 : 0;
+      [i.name, i.set, ...i.aliases].forEach(a => { const n = gNorm(a); if (n.length > 3 && text.includes(n)) s = Math.max(s, 10 + n.length); });
+      if (s > score) { score = s; best = i; }
+    });
+    return best;
+  }
+  function applyGearScan(r) {
+    const src = r.slots || r.equipment || r, set = activeSet();
+    gearFlags = {}; let hit = 0, seen = 0;
+    GEAR_SLOTS.forEach(sl => {
+      let info = src[sl.k];
+      if (!info && sl.cat === 'accessory' && Array.isArray(src.accessories)) info = src.accessories[sl.k === 'acc1' ? 0 : 1];
+      if (!info || typeof info !== 'object' || !(info.name || info.set)) return;
+      seen++;
+      const it = gearMatch(sl.cat, info), rar = gearRarity(info.rarity);
+      if (it) {
+        set.ist[sl.k] = { item: it.id, rarity: rar || 'legendary' }; hit++;
+        if (rar === 'epic' && !/epi|lila|purple/.test(gNorm(info.rarity))) gearFlags[sl.k] = `Seltenheit „${info.rarity}“ → als Episch gesetzt`;
+      } else gearFlags[sl.k] = `nicht im Katalog: ${String(info.name || info.set).slice(0, 40)}`;
+    });
+    if (!seen) throw new Error('Keine Ausrüstung im Screenshot erkannt. Bitte die Slots von Hand wählen.');
+    saveGear(); renderGearMain();
+    return { hit, seen };
+  }
+  const gearScanMsg = (t, cls) => { const el = $('gearScanMsg'); el.textContent = t; el.className = 'mt-2 text-xs ' + cls; };
+  let gearScanning = false;
+  async function gearScan(fileList) {
+    const files = [...(fileList || [])].filter(f => f && f.type.startsWith('image/')).slice(0, 2);
+    if (!files.length || gearScanning) return;
+    gearScanning = true;
+    const imgs = [];
+    gearScanMsg('Claude liest deine Ausrüstung …', 'text-slate-300');
+    try {
+      for (const f of files) imgs.push(await prepareImage(f));
+      const res = await fetch('/api/scan', { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ mode: 'gear', images: imgs.map(i => ({ media_type: i.mediaType, data: i.base64 })) }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (res.status === 400 && /modus|mode/i.test(data?.error || '')) throw new Error('Der Scan-Server kennt den Ausrüstungs-Scan noch nicht – bitte den Modus „gear“ in api/scan.js ergänzen. Bis dahin die Slots von Hand wählen.');
+        if (res.status === 404) throw new Error('Server-Route /api/scan nicht gefunden. Die Seite muss über Vercel laufen (nicht als lokale Datei).');
+        if (res.status === 413) throw new Error('Die Bilder sind zu groß. Bitte weniger Screenshots auf einmal hochladen.');
+        throw new Error(data?.error || `Serverfehler ${res.status}`);
+      }
+      const r = parseJson(String(data.text || ''));
+      if (!r) throw new Error('Die Antwort konnte nicht ausgelesen werden. Bitte erneut versuchen.');
+      const { hit, seen } = applyGearScan(r);
+      gearScanMsg(`✓ ${hit} von ${seen} Slots erkannt` + (hit < seen ? ' – markierte Slots bitte von Hand wählen.' : '') + (r.confidence ? ` · Sicherheit: ${r.confidence}` : ''),
+        hit < seen ? 'text-amber-300' : 'text-emerald-400');
+    } catch (e) {
+      gearScanMsg(e.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : (e.message || String(e)), 'text-red-300');
+    } finally { imgs.forEach(i => { i.base64 = null; i.dataUrl = null; }); imgs.length = 0; gearScanning = false; }   // Bilder sofort verwerfen
+  }
+  const gDrop = $('gearDrop');
+  ['dragenter', 'dragover'].forEach(e => gDrop.addEventListener(e, ev => { ev.preventDefault(); gDrop.classList.add('drop-active'); }));
+  ['dragleave', 'drop'].forEach(e => gDrop.addEventListener(e, ev => { ev.preventDefault(); gDrop.classList.remove('drop-active'); }));
+  gDrop.addEventListener('drop', ev => gearScan(ev.dataTransfer.files));
+  $('gearFile').addEventListener('change', ev => { gearScan(ev.target.files); ev.target.value = ''; });
 
   // Init
   renderHeaderAvatar();
