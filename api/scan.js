@@ -3,13 +3,15 @@
 // Der API-Key kommt ausschließlich aus der Umgebungsvariable ANTHROPIC_API_KEY und verlässt nie den Server.
 
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5';
-const MODES = new Set(['resources', 'vip', 'gems']);
+const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap']);
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MAX_IMAGES = 5;
 const MAX_TOTAL_B64 = 4_300_000; // Vercel erlaubt max. 4,5 MB pro Anfrage
 
-// Der Prompt liegt auf dem Server: so kann die Route nicht als allgemeiner Claude-Proxy missbraucht werden.
-const PROMPT = (m) => `Du analysierst Screenshots aus dem Handyspiel "Rise of Kingdoms" (Sprache der Spieloberfläche kann Deutsch, Englisch o. a. sein).
+const INTRO = `Du analysierst Screenshots aus dem Handyspiel "Rise of Kingdoms" (Sprache der Spieloberfläche kann Deutsch, Englisch o. a. sein).`;
+
+// ---------- Ressourcen / VIP / Gems (unverändert) ----------
+const PROMPT_CLASSIC = (m) => `${INTRO}
 
 ${m === 'resources' ? 'MODUS: Ressourcen. Setze "type" auf "resources".' : m === 'vip' ? 'MODUS: VIP. Setze "type" auf "vip".' : 'MODUS: Edelsteine. Setze "type" auf "gems". Lies die Edelsteine (Gems): "gems_hand" = Edelsteine auf Hand (Anzeige oben/Konto), "gems_bag" = Summe der Edelstein-Items im Rucksack/Inventar (Wert × Anzahl je Kachel). Fehlt eins davon, null. "gems" = gems_hand + gems_bag. Abkürzungen wie 12.5K umrechnen.'}
 
@@ -51,6 +53,79 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
   "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
 }`;
 
+// ---------- Speedups (Übersicht "Beschleunigungstyp / Gesamtdauer") ----------
+const PROMPT_SPEEDUPS = `${INTRO}
+
+MODUS: Speedups (Beschleuniger). Alle Screenshots stammen vom Main-Account des Spielers.
+
+Der Screenshot zeigt normalerweise die Übersicht "Beschleunigungstyp" mit der Spalte "Gesamtdauer", z. B.:
+  Baubeschleunigung            162 d 2 h 44 m
+  Forschungsbeschleunigung     151 d 12 h 26 m
+  Ausbildungsbeschleunigung    201 d 17 h 50 m
+  Heilungsbeschleunigung       100 d 11 h 5 m
+  Beschleunigung               1.055 d 15 h 56 m
+
+Zuordnung (deutsch / englisch → Schlüssel):
+- "Baubeschleunigung" / "Building Speedup" → building
+- "Forschungsbeschleunigung" / "Research Speedup" → research
+- "Ausbildungsbeschleunigung" / "Training Speedup" → training
+- "Heilungsbeschleunigung" / "Healing Speedup" → healing
+- "Beschleunigung" ohne Zusatz / "Universal Speedup" / "Speedup" → universal
+
+Rechne jede Gesamtdauer in MINUTEN um (Tage × 1440 + Stunden × 60 + Minuten).
+- "d" = Tage (auch "T", "days"), "h" = Stunden (auch "Std"), "m" = Minuten (auch "min").
+- Punkt oder Komma in der Tageszahl ist ein Tausendertrennzeichen: "1.055 d" = 1055 Tage.
+- Beispiel: "162 d 2 h 44 m" = 162×1440 + 2×60 + 44 = 233444.
+Falls stattdessen einzelne Beschleuniger-Kacheln aus dem Inventar zu sehen sind (Dauer × Anzahl), summiere je Typ.
+Fehlt ein Typ, nutze null. Bei mehreren Screenshots denselben Wert nicht doppelt zählen.
+
+Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
+{
+  "type": "speedups",
+  "speedups": {
+    "building": number|null,
+    "research": number|null,
+    "training": number|null,
+    "healing": number|null,
+    "universal": number|null
+  },
+  "confidence": "hoch" | "mittel" | "niedrig",
+  "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
+}`;
+
+// ---------- AP (Aktionspunkte-Flaschen) ----------
+const PROMPT_AP = `${INTRO}
+
+MODUS: Aktionspunkte (AP). Alle Screenshots stammen vom Main-Account des Spielers.
+
+Gesucht ist die ANZAHL der grünen Aktionspunkte-Flaschen in genau 4 Größen: 50, 100, 500 und 1000 AP.
+Es gibt zwei mögliche Ansichten – beide auswerten:
+
+1) Inventar-Kacheln: Grüne Flasche mit Etikett. Die Größe steht OBEN auf der Kachel (z. B. "50", "100", "500", "1.000"),
+   die Anzahl steht UNTEN RECHTS (z. B. "4.657", "1.575", "5", "3"). Punkt/Komma in der Anzahl ist ein Tausendertrennzeichen: "4.657" = 4657.
+   Ignoriere alle anderen Kacheln (Schlüssel, Karten, Münzen, Äpfel, Beschleuniger usw.).
+
+2) Gegenstandsliste mit Text, z. B.:
+   "Stelle 50 Aktionspunkte wieder her. Du besitzt: 4.656"            → ap_50 = 4656
+   "Grundlegende Aktionspunkteerholung: Stelle 100 … Du besitzt: 1.575" → ap_100 = 1575
+   "Mittlere Aktionspunkteerholung: Stelle 500 … Du besitzt: 5"          → ap_500 = 5
+   "Erweiterte Aktionspunkteerholung: Stelle 1000 … Du besitzt: 3"       → ap_1000 = 3
+   (englisch: "Restores 50 AP … Owned: …")
+
+Ist eine Größe nicht zu sehen, nutze null. Bei mehreren Screenshots dieselbe Flasche nicht doppelt zählen –
+zeigen zwei Screenshots dieselbe Größe mit leicht unterschiedlicher Anzahl, nimm den Wert aus der Textliste ("Du besitzt").
+
+Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
+{
+  "type": "ap",
+  "ap": { "ap_50": number|null, "ap_100": number|null, "ap_500": number|null, "ap_1000": number|null },
+  "confidence": "hoch" | "mittel" | "niedrig",
+  "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
+}`;
+
+// Der Prompt liegt auf dem Server: so kann die Route nicht als allgemeiner Claude-Proxy missbraucht werden.
+const PROMPT = (m) => m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : PROMPT_CLASSIC(m);
+
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') {
@@ -67,8 +142,9 @@ module.exports = async (req, res) => {
   const mode = body?.mode;
   const images = Array.isArray(body?.images) ? body.images : [];
   if (!MODES.has(mode)) return res.status(400).json({ error: 'Ungültiger Modus.' });
-  if (!images.length) return res.status(400).json({ error: 'Kein Bild übermittelt.' });
+  if (!images.length) return res.status(400).json({ error: 'Keine Bilder übermittelt.' });
   if (images.length > MAX_IMAGES) return res.status(400).json({ error: `Maximal ${MAX_IMAGES} Bilder pro Analyse.` });
+
   let total = 0;
   for (const im of images) {
     if (!im || !TYPES.has(im.media_type) || typeof im.data !== 'string' || !/^[A-Za-z0-9+/=]+$/.test(im.data)) {
@@ -76,16 +152,12 @@ module.exports = async (req, res) => {
     }
     total += im.data.length;
   }
-  if (total > MAX_TOTAL_B64) return res.status(413).json({ error: 'Bilder zu groß.' });
+  if (total > MAX_TOTAL_B64) return res.status(413).json({ error: 'Die Bilder sind zusammen zu groß.' });
 
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-      },
+      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 2000,
@@ -100,20 +172,12 @@ module.exports = async (req, res) => {
     });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) {
-      // Keine Details zum Key an den Browser geben
-      const status = r.status === 429 ? 429 : r.status === 529 ? 503 : 502;
-      const msg = r.status === 401 ? 'Server-API-Key ungültig – bitte in Vercel prüfen.'
-        : r.status === 404 ? `Modell „${MODEL}“ nicht verfügbar – ANTHROPIC_MODEL in Vercel prüfen.`
-        : r.status === 429 ? 'Rate-Limit erreicht. Kurz warten und erneut versuchen.'
-        : r.status === 529 ? 'Claude ist gerade überlastet. Bitte gleich nochmal versuchen.'
-        : `Claude-API-Fehler (${r.status}).`;
-      console.error('Anthropic API error', r.status, data?.error?.message);
-      return res.status(status).json({ error: msg });
+      const status = (r.status === 429 || r.status === 529) ? 429 : 502;
+      return res.status(status).json({ error: data?.error?.message ? `Claude API: ${data.error.message}` : `Claude API Fehler ${r.status}` });
     }
     const text = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n');
     return res.status(200).json({ text });
   } catch (e) {
-    console.error('scan failed', e);
     return res.status(502).json({ error: 'Verbindung zur Claude API fehlgeschlagen.' });
   }
 };
