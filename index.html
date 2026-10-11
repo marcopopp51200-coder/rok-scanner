@@ -632,6 +632,7 @@ tailwind.config = {
               <div id="scMain" class="min-w-0 w-full lg:w-[320px] shrink-0">
                 <div id="scManual" class="w-full">
                   <div id="scCmds" class="flex justify-center items-end"></div>
+                  <div id="scCgBar" class="mt-2 flex justify-center"></div>
                   <div class="mt-4 mx-auto w-full max-w-[260px]"><div id="scGearBoard" class="relative w-full aspect-[1/2]"></div></div>
                 </div>
                 <div id="scShot" class="hidden"></div>
@@ -1069,7 +1070,7 @@ window.I18N = (() => {
         '✓ Im Account gespeichert · für andere Spieler sichtbar erst nach dem SQL-Update (Spalte showcase)': '✓ Saved in your account · visible to other players after the SQL update (column showcase)',
         'Bild direkt im Showcase gespeichert – für kürzere Ladezeiten das Storage-SQL ausführen (Bucket „showcase“).': 'Image stored directly in the showcase – run the storage SQL (bucket “showcase”) for faster loading.',
         'Download-Bibliothek konnte nicht geladen werden (Internet/Adblocker prüfen).': 'Download library could not be loaded (check internet/ad blocker).', 'Download fehlgeschlagen.': 'Download failed.',
-        'Füllung': 'Fill', 'Rand': 'Border', 'keine': 'none', 'kein': 'none', 'keiner': 'none', 'Deckkraft': 'Opacity', '↺ Standardwerte': '↺ Defaults', 'Symmetrisch angeordnet': 'Arranged symmetrically',
+        'Füllung': 'Fill', 'Rand': 'Border', 'keine': 'none', 'kein': 'none', 'keiner': 'none', 'Deckkraft': 'Opacity', '↺ Standardwerte': '↺ Defaults', '📐 Größe & Effekt': '📐 Size & effect', '🎨 Schrift': '🎨 Text', '▦ Füllung': '▦ Fill', '▢ Rahmen': '▢ Frame', '▢ Rand': '▢ Border', '👁 Ausblenden': '👁 Hide', 'Dein Text': 'Your text', 'Symmetrisch angeordnet': 'Arranged symmetrically',
         '⚠ Wirklich alles symmetrisch anordnen?\n\nAlle Sets, Rüstungen und Anzeigen dieses Showcase werden automatisch neu platziert – deine eigene Anordnung geht dabei verloren.': '⚠ Really arrange everything symmetrically?\n\nAll sets, armaments and displays of this showcase will be repositioned automatically – your own layout will be lost.',
         'Im Profil zeigen': 'Show in profile', 'Alle Showcases': 'All showcases', '🔒 Niemand – alles privat': '🔒 Nobody – all private', 'Privat': 'Private', 'Öffentlich': 'Public',
         'Nur für dich sichtbar': 'Only visible to you', 'Für andere sichtbar': 'Visible to others', 'Privat – nur für dich sichtbar': 'Private – only visible to you', 'Sichtbarkeit gespeichert': 'Visibility saved',
@@ -3941,7 +3942,7 @@ window.RokApp = () => {
   const CMD_BY_ID = Object.fromEntries(COMMANDERS.map(c => [c.id, c]));
   const cmdImg = (id, exp) => { const m = CMD_BY_ID[id]; return (m && m.ex && (exp || m.nb) ? '/icons/comanderexpertise/' : '/icons/comander/') + id + '.webp'; };
   // Ausrüstungs-Bilder in /icons/gear/ (Dateiname ohne .webp) – Grundlage für den Bild-Abgleich beim Screenshot-Scan
-  const GEAR_FILES = ["abyssal_visage_purple", "ancestral_mask_of_night", "ancient_stratagems_purple", "armband_of_the_hellish_wasteland", "ash_of_the_dawn", "boots_of_the_hellish_wasteland", "chausses_of_the_glorious_goddess", "claws_of_the_forest_guardian_purple", "cloth_gloves_grey", "cloud_racers_purple", "commanders_boots", "concealed_dagger", "crimson_ring_purple", "dark_lords_blessing_purple", "delanes_amulet_purple", "diadem_of_the_glorious_goddess", "dragons_breath_boots", "dragons_breath_bow", "dragons_breath_helm", "dragons_breath_plate", "dragons_breath_tassets", "dragons_breath_vambraces", "eternal_night", "fanatics_tassets_purple", "fierce_wolfs_helmet", "flame_treads_purple", "frost_treads_purple", "gauntlets_of_the_glorious_goddess", "gladiator_purple", "gold_helm_of_the_eternal_empire", "golden_age_purple", "greatest_glory", "greaves_of_the_eternal_empire", "greaves_of_the_glorious_goddess", "hammer_of_the_sun_and_moon", "harvester_boots_blue", "harvester_breeches_blue", "harvester_robes_blue", "harvesters_headscarf_blue", "heart_of_the_saint_purple", "heavy_armor_of_the_hellish_wasteland", "helm_of_the_conqueror", "heros_hilt", "hope_cloak", "horn_of_fury", "ians_choice", "immolating_plume", "isets_sufferance_purple", "karuaks_humility_purple", "karuaks_war_drums", "knights_oathsworn_bow_purple", "knights_steel_diadem_purple", "knights_triumphant_tassets_purple", "knights_valorous_cloak_purple", "knights_winter_sabatons_purple", "lance_of_the_hellish_wasteland", "lone_wolfs_leather_tassets", "mask_of_the_forest_guardian_purple", "moras_web", "mountain_crushers", "navars_control", "pendant_of_eternal_night", "peters_sickle_purple", "plate_of_the_glorious_goddess", "pride_of_the_khan", "quinns_soul_purple", "revival_gauntlets_purple", "revival_helm_purple", "revival_plate_purple", "ring_of_doom", "roaring_wolfs_claws", "robe_of_the_forest_guardian_purple", "sacred_dominion", "sacred_grips", "saddle_of_a_thousand_blessings", "scepter_of_the_forest_guardian_purple", "scepter_of_the_glorious_goddess", "scolas_lucky_coin", "seths_brutality_purple", "seths_call", "shadow_legions_retribution", "sharp_longsword_grey", "shield_of_the_eternal_empire", "shios_return", "silent_trial_purple", "sturdy_boots_of_the_eternal_empire", "tassets_of_the_hellish_wasteland", "tassets_of_the_war_god", "the_bards_pendant_purple", "the_milky_way", "timeless_amber", "twilight_epiphany", "vambraces_of_the_eternal_empire", "vengeance", "vigilant_wolfs_leather_armor", "wailing_wolfs_gauntlets", "war_helm_of_the_hellish_wasteland", "witchs_lineage_purple"];
+  const GEAR_FILES = ["abyssal_visage_purple", "ancestral_mask_of_night", "ancient_stratagems_purple", "armband_of_the_hellish_wasteland", "ash_of_the_dawn", "boots_of_the_hellish_wasteland", "chausses_of_the_glorious_goddess", "claws_of_the_forest_guardian_purple", "cloth_gloves_grey", "cloud_racers_purple", "commanders_boots", "concealed_dagger", "crimson_ring_purple", "dark_lords_blessing_purple", "delanes_amulet_purple", "diadem_of_the_glorious_goddess", "dragons_breath_boots", "dragons_breath_bow", "dragons_breath_helm", "dragons_breath_plate", "dragons_breath_tassets", "dragons_breath_vambraces", "eternal_night", "fanatics_tassets_purple", "fierce_wolfs_helmet", "flame_treads_purple", "frost_treads_purple", "gauntlets_of_the_glorious_goddess", "gladiator_purple", "gold_helm_of_the_eternal_empire", "golden_age_purple", "greatest_glory", "greaves_of_the_eternal_empire", "greaves_of_the_glorious_goddess", "hammer_of_the_sun_and_moon", "harvester_boots_blue", "harvester_breeches_blue", "harvester_robes_blue", "harvesters_headscarf_blue", "heart_of_the_saint_purple", "heavy_armor_of_the_hellish_wasteland", "helm_of_the_conqueror", "heros_hilt", "hope_cloak", "horn_of_fury", "ians_choice", "immolating_plume", "isets_sufferance_purple", "karuaks_humility_purple", "karuaks_war_drums", "knights_battleworn_gauntlets_purple", "knights_oathsworn_bow_purple", "knights_steel_diadem_purple", "knights_triumphant_tassets_purple", "knights_valorous_cloak_purple", "knights_winter_sabatons_purple", "lance_of_the_hellish_wasteland", "lone_wolfs_leather_tassets", "mask_of_the_forest_guardian_purple", "moras_web", "mountain_crushers", "navars_control", "pendant_of_eternal_night", "peters_sickle_purple", "plate_of_the_eternal_empire", "plate_of_the_glorious_goddess", "pride_of_the_khan", "quinns_soul_purple", "revival_gauntlets_purple", "revival_helm_purple", "revival_plate_purple", "ring_of_doom", "roaring_wolfs_claws", "robe_of_the_forest_guardian_purple", "sacred_dominion", "sacred_grips", "saddle_of_a_thousand_blessings", "sakura_fubuki_purple", "scepter_of_the_forest_guardian_purple", "scepter_of_the_glorious_goddess", "scolas_lucky_coin", "seths_brutality_purple", "seths_call", "shadow_legions_retribution", "sharp_longsword_grey", "shield_of_the_eternal_empire", "shios_return", "silent_trial_purple", "sturdy_boots_of_the_eternal_empire", "tassets_of_the_hellish_wasteland", "tassets_of_the_war_god", "the_bards_pendant_purple", "the_milky_way", "timeless_amber", "twilight_epiphany", "vambraces_of_the_eternal_empire", "vengeance", "vigilant_wolfs_leather_armor", "wailing_wolfs_gauntlets", "war_helm_of_the_hellish_wasteland", "witchs_lineage_purple"];
   const GEAR_FILE_SET = new Set(GEAR_FILES);
   const gearFileName = (f) => f.replace(/_(purple|blue|grey|green)$/, '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   const gearFileRar = (f) => /_purple$/.test(f) ? 'epic' : 'legendary';
@@ -4048,7 +4049,7 @@ window.RokApp = () => {
     const fo = w?.fillO == null || w?.fillO === '' ? NaN : +w.fillO;
     return { on: !!w?.on, x: scPos(w?.x, 100), y: scPos(w?.y, 200), s: scScale(w?.s), color: scColor(w?.color), shadow: w?.shadow !== false,
       fill: w?.fill === 'none' || (off && w?.fill == null) ? 'none' : scColor(w?.fill), fillO: Number.isFinite(fo) ? Math.min(100, Math.max(0, Math.round(fo))) : 75,
-      border: w?.border === 'none' || (off && w?.border == null) ? 'none' : scColor(w?.border), text: '' }; };
+      border: w?.border === 'none' || (off && w?.border == null) ? 'none' : scColor(w?.border), bw: Math.min(10, Math.max(0, Math.round(+w?.bw || 0))), text: '' }; };
   // eigene Texte im Showcase (ohne Box als Standard) · City-Skin: Katalog-Bild oder eigenes Bild
   const scTxNorm = (t) => ({ ...scElNorm({ ...t, on: true, fill: t?.fill ?? 'none', border: t?.border ?? 'none' }), id: String(t?.id || newId()), text: String(t?.text ?? 'Text').slice(0, 80) });
   const scSkinOk = (v) => typeof v === 'string' && v.length < 200 && /^\/icons\/city%20skins\/[A-Za-z0-9_.%()-]+\.(png|webp|jpe?g)$/i.test(v);   // nur RoK-Skins aus dem Katalog
@@ -4059,7 +4060,7 @@ window.RokApp = () => {
   const scArmHas = (a) => a.insc.some(i => i.t) || !!a.formation || SC_ARM_STATS.some(([k]) => a[k]);
   const scSetNorm = (x) => ({ id: String(x?.id || newId()), name: String(x?.name || '').trim().slice(0, 30), mode: x?.mode === 'shot' ? 'shot' : 'manual',
     shot: scImgOk(x?.shot) ? x.shot : '', cmd: [0, 1].map(i => scCmdNorm(x?.cmd?.[i])), gear: scGearNorm(x?.gear),
-    x: scPos(x?.x, 100), y: scPos(x?.y, 200), s: scScale(x?.s), arm: scArmNorm(x?.arm), priv: !!x?.priv });
+    x: scPos(x?.x, 100), y: scPos(x?.y, 200), s: scScale(x?.s), arm: scArmNorm(x?.arm), priv: !!x?.priv, cg: scInt(x?.cg, 0, 70, 30) });   // cg = Überlappung der Kommandanten in %
 
   // Standard-Anordnung ("Symmetrisch anordnen"):
   //   oben links Profilbild, rechts daneben Allianz-Tag (oben) und VIP (darunter), Name oben mittig,
@@ -4175,11 +4176,11 @@ window.RokApp = () => {
   const scSkillSquares = (skills, cls = 'w-7 h-7 text-xs') => skills.map((s, i) => `<span title="Skill ${i + 1}" class="${cls} rounded-md grid place-items-center font-bold tabular-nums border ${s >= 5 ? 'text-ink-950 border-gold-400' : 'text-slate-200 border-ink-600 bg-ink-900'}"${s >= 5 ? ' style="background:linear-gradient(180deg,#fde68a,#e0a91b)"' : ''}>${s}</span>`).join('');
 
   // ---- Kommandanten-Plätze: Primär groß vorne, Sekundär kleiner und leicht dahinter (wie im Spiel) ----
-  function scCmdsHtml(cmds) {
+  function scCmdsHtml(cmds, cg = 30) {
     const one = (i) => {
       const c = cmds[i], m = c && CMD_BY_ID[c.id], click = sc.own || !!m, main = i === 0;
       const named = !!m?.name;
-      return `<div class="relative flex flex-col items-center ${main ? 'z-10 w-36 sm:w-40' : 'z-0 w-28 sm:w-32 -ml-7 sm:-ml-8 translate-y-1'}">
+      return `<div class="relative flex flex-col items-center ${main ? 'z-10 w-36 sm:w-40' : 'z-0 w-28 sm:w-32 translate-y-1'}"${main ? '' : ` style="margin-left:-${(cg * 0.075).toFixed(2)}rem"`}>
         <div class="w-full mb-1 truncate text-center ${main ? 'pr-7 sm:pr-8' : 'pl-7 sm:pl-8'} ${named ? 'text-sm font-semibold text-white [text-shadow:0_1px_3px_#000]' : 'text-[10px] uppercase tracking-widest text-slate-400'}"${named ? ' translate="no"' : ''}>${esc(named ? m.name : SC_SLOTS[i])}</div>
         <button type="button" data-cmdslot="${i}" ${click ? '' : 'disabled'} title="${m ? (sc.own ? 'Kommandant ändern' : 'Kommandant ansehen') : 'Kommandant wählen'}"
             class="relative w-full aspect-square flex items-center justify-center group focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 rounded-xl ${click ? 'cursor-pointer' : 'cursor-default'}">
@@ -4309,7 +4310,7 @@ window.RokApp = () => {
       ${x.shot ? `<img src="${x.shot}" alt="" draggable="false" class="w-full rounded-md border border-gold-500/40 shadow-[0_4px_14px_rgba(0,0,0,.6)]">`
                : '<div class="w-full aspect-[4/3] rounded-md border border-dashed border-ink-600 grid place-items-center text-slate-500" style="font-size:max(9px,1.2cqw)">📷</div>'}</div>`;
     const cmd = (c, main) => { const m = c && CMD_BY_ID[c.id];
-      return `<div class="relative flex items-center justify-center" style="width:${main ? 6 : 5}cqw;aspect-ratio:1;z-index:${main ? 1 : 0};${main ? '' : 'margin-left:-.9cqw;transform:translateY(.3cqw)'}">
+      return `<div class="relative flex items-center justify-center" style="width:${main ? 6 : 5}cqw;aspect-ratio:1;z-index:${main ? 1 : 0};${main ? '' : `margin-left:-${(5 * x.cg / 100).toFixed(2)}cqw;transform:translateY(.3cqw)`}">
         ${m ? `<img src="${cmdImg(m.id, c.exp)}" alt="" draggable="false" class="w-full h-full object-contain drop-shadow-[0_3px_6px_rgba(0,0,0,.6)]">` : '<span class="ghex w-[78%] aspect-[166/192] bg-ink-600/70"></span>'}</div>`; };
     return `<div class="relative flex flex-col items-center rounded-lg ${sc.own && x.priv && !sc.exporting ? 'opacity-60' : ''} ${sel ? 'ring-2 ring-gold-400/80 bg-gold-500/10' : ''}" style="padding:.4cqw">${name}
       <div class="flex items-end justify-center">${cmd(x.cmd[0], true)}${cmd(x.cmd[1], false)}</div>
@@ -4317,7 +4318,7 @@ window.RokApp = () => {
     </div>`;
   }
   const SC_DEF_COLOR = { name: '#f5c542', tag: '#fde68a', kd: '#fde68a', vip: '#f5c542', power: '#ffffff', kp: '#ffffff', merit: '#ffffff' };
-  const scBoxSt = (w) => (w.fill === 'none' ? '' : `background:${scRgba(w.fill || '#07090f', w.fillO / 100)};`) + (w.border === 'none' ? '' : `border:1px solid ${w.border || 'rgba(224,169,27,.4)'};`);
+  const scBoxSt = (w) => (w.fill === 'none' ? '' : `background:${scRgba(w.fill || '#07090f', w.fillO / 100)};`) + (w.border === 'none' ? '' : `border:${w.bw || 1}px solid ${w.border || 'rgba(224,169,27,.4)'};`);
   function scTxHtml(o) {                                    // eigener Text
     const box = scBoxSt(o);
     return `<div class="rounded-lg font-bold whitespace-pre text-center" style="color:${o.color || '#ffffff'};${o.shadow ? 'filter:drop-shadow(0 2px 3px rgba(0,0,0,.85));' : ''}${box ? box + 'padding:.5cqw 1.2cqw;' : ''}font-size:max(11px,2.2cqw)">${esc(o.text) || '&nbsp;'}</div>`;
@@ -4327,14 +4328,14 @@ window.RokApp = () => {
     const boxSt = scBoxSt(w), box = 'rounded-lg', own = (auto) => auto;   // Werte kommen immer aus dem Profil
     if (k === 'skin') {
       const src = D().skin;
-      return src ? `<img src="${src}" alt="" draggable="false" class="block max-w-none" style="height:13cqw;width:auto;${w.border === 'none' ? '' : `border:2px solid ${w.border || 'rgba(245,197,66,.8)'};border-radius:1cqw;`}${w.fill === 'none' ? '' : `background:${scRgba(w.fill || '#07090f', w.fillO / 100)};border-radius:1cqw;`}${w.shadow ? 'filter:drop-shadow(0 6px 10px rgba(0,0,0,.6));' : ''}">`
+      return src ? `<img src="${src}" alt="" draggable="false" class="block max-w-none" style="height:13cqw;width:auto;border-radius:1cqw;${w.border === 'none' ? '' : `border:${w.bw || 2}px solid ${w.border || 'rgba(245,197,66,.8)'};`}${w.fill === 'none' ? '' : `background:${scRgba(w.fill || '#07090f', w.fillO / 100)};`}${w.shadow ? 'filter:drop-shadow(0 6px 10px rgba(0,0,0,.6));' : ''}">`
         : `<div class="rounded-lg border border-dashed border-gold-500/60 bg-ink-950/60 grid place-items-center text-center text-gold-300" style="width:9cqw;height:11cqw;font-size:max(9px,1.1cqw)">🏯<br>City-Skin</div>`;
     }
     if (k === 'avatar') {
       const av = st.avatar, letter = String(st.name || '?').charAt(0).toUpperCase();
       const inner = isImgAv(av) ? `<img src="${av}" alt="" draggable="false" class="w-full h-full object-cover">`
         : `<span class="w-full h-full grid place-items-center ${av ? 'bg-ink-800' : 'bg-gradient-to-br from-gold-400 to-gold-600 text-ink-950 font-bold'}" style="font-size:3.4cqw">${esc(av && av.length <= 8 ? av : letter)}</span>`;
-      return `<div class="overflow-hidden" style="width:7cqw;height:7cqw;border-radius:1.2cqw;${w.border === 'none' ? '' : `border:2px solid ${w.border || 'rgba(245,197,66,.8)'};`}${w.shadow ? 'box-shadow:0 0 14px rgba(245,197,66,.35),0 4px 10px rgba(0,0,0,.6);' : ''}">${inner}</div>`;
+      return `<div class="overflow-hidden" style="width:7cqw;height:7cqw;border-radius:1.2cqw;${w.border === 'none' ? '' : `border:${w.bw || 2}px solid ${w.border || 'rgba(245,197,66,.8)'};`}${w.shadow ? 'box-shadow:0 0 14px rgba(245,197,66,.35),0 4px 10px rgba(0,0,0,.6);' : ''}">${inner}</div>`;
     }
     const goldTxt = !w.color && (k === 'name' || k === 'vip');
     const col = w.color ? `color:${w.color};` : (goldTxt ? '' : `color:${SC_DEF_COLOR[k]};`);
@@ -4404,26 +4405,37 @@ window.RokApp = () => {
     const [t, k] = sc.sel.split(':'), d = D();
     const label = t === 'set' ? (d.sets[+k].name || `Set ${+k + 1}`) : t === 'arm' ? `⚔ Rüstung · ${d.sets[+k].name || 'Set ' + (+k + 1)}` : t === 'tx' ? '✏️ Eigener Text' : `${SC_ELS[k].icon} ${SC_ELS[k].label}`;
     const textual = t === 'tx' || (t === 'w' && k !== 'avatar' && k !== 'skin'), boxy = t === 'w' || t === 'tx', frame = t === 'w' && (k === 'avatar' || k === 'skin');
-    const btn = 'px-2.5 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300';
-    const sw = 'w-9 h-7 p-0 bg-transparent border border-ink-600 rounded cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
-    el.innerHTML = `<div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
-      <span class="font-semibold text-white" translate="no">${esc(label)}</span>
-      ${t === 'tx' ? `<label class="inline-flex items-center gap-2 w-full sm:w-auto">Text <input id="scPT" maxlength="80" value="${esc(o.text || '')}" placeholder="${t === 'tx' ? 'Dein Text' : 'leer = automatisch'}" class="min-w-[200px] flex-1 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-gold-500"></label>` : ''}
-      ${t === 'w' && k === 'skin' ? '<button type="button" id="scPSkin" class="px-2.5 py-1 rounded-lg border border-gold-500/60 text-gold-300 hover:border-gold-400">🏯 Skin wählen …</button>' : ''}
-      <label class="inline-flex items-center gap-2">Größe <input id="scPS" type="range" min="40" max="250" step="5" value="${Math.round(o.s * 100)}" class="w-36 accent-yellow-500"><span id="scPSv" class="tabular-nums w-11">${Math.round(o.s * 100)} %</span></label>
-      ${textual ? `<label class="inline-flex items-center gap-2">Schriftfarbe <input id="scPC" type="color" value="${o.color || (t === 'tx' ? '#ffffff' : SC_DEF_COLOR[k])}" class="w-9 h-7 p-0 bg-transparent border border-ink-600 rounded cursor-pointer"></label>
-        <button type="button" id="scPCr" class="${btn}">Standardfarbe</button>` : ''}
-      ${boxy ? `${!frame ? `<span class="inline-flex items-center gap-2">Füllung
-          <input id="scPF" type="color" value="${o.fill && o.fill !== 'none' ? o.fill : '#07090f'}" ${o.fill === 'none' ? 'disabled' : ''} class="${sw}">
-          <input id="scPFo" type="range" min="0" max="100" step="5" value="${o.fillO}" ${o.fill === 'none' ? 'disabled' : ''} title="Deckkraft" class="w-20 accent-yellow-500 disabled:opacity-40"><span id="scPFov" class="tabular-nums w-9 ${o.fill === 'none' ? 'opacity-40' : ''}">${o.fillO} %</span>
-          <label class="inline-flex items-center gap-1 cursor-pointer"><input id="scPFn" type="checkbox" ${o.fill === 'none' ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">keine</label></span>` : ''}
-        <span class="inline-flex items-center gap-2">${frame ? 'Rahmen' : 'Rand'}
-          <input id="scPR" type="color" value="${o.border && o.border !== 'none' ? o.border : '#e0a91b'}" ${o.border === 'none' ? 'disabled' : ''} class="${sw}">
-          <label class="inline-flex items-center gap-1 cursor-pointer"><input id="scPRn" type="checkbox" ${o.border === 'none' ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${frame ? 'keiner' : 'kein'}</label></span>
-        <label class="inline-flex items-center gap-1.5 cursor-pointer"><input id="scPSh" type="checkbox" ${o.shadow ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Schatten</label>
-        <button type="button" id="scPBr" class="${btn}">↺ Standardwerte</button>` : ''}
-      ${t === 'tx' ? `<button type="button" id="scPDel" class="ml-auto px-2.5 py-1 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10">🗑 Text löschen</button>`
-        : t !== 'set' ? `<button type="button" id="scPHide" class="${btn} ml-auto">Ausblenden</button>` : ''}
+    const fillable = boxy && k !== 'avatar', defBw = frame ? 2 : 1;
+    const btn = 'px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 transition';
+    const sw = 'w-9 h-8 p-0 bg-transparent border border-ink-600 rounded-md cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
+    const card = (title, body) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3">
+        <div class="text-[10px] uppercase tracking-widest text-slate-500 mb-2">${title}</div>
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-2">${body}</div></div>`;
+    const chk = (id, on, txt) => `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input id="${id}" type="checkbox" ${on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${txt}</label>`;
+    const cards = [
+      card('📐 Größe &amp; Effekt', `<input id="scPS" type="range" min="40" max="250" step="5" value="${Math.round(o.s * 100)}" class="flex-1 min-w-[110px] accent-yellow-500"><span id="scPSv" class="tabular-nums w-11 text-right">${Math.round(o.s * 100)} %</span>
+        ${boxy ? chk('scPSh', o.shadow, 'Schatten') : ''}`),
+      textual ? card('🎨 Schrift', `<input id="scPC" type="color" value="${o.color || (t === 'tx' ? '#ffffff' : SC_DEF_COLOR[k])}" class="${sw}">
+        <button type="button" id="scPCr" class="${btn}">Standardfarbe</button>`) : '',
+      fillable ? card('▦ Füllung', `<input id="scPF" type="color" value="${o.fill && o.fill !== 'none' ? o.fill : '#07090f'}" ${o.fill === 'none' ? 'disabled' : ''} class="${sw}">
+        <input id="scPFo" type="range" min="0" max="100" step="5" value="${o.fillO}" ${o.fill === 'none' ? 'disabled' : ''} title="Deckkraft" class="flex-1 min-w-[80px] accent-yellow-500 disabled:opacity-40"><span id="scPFov" class="tabular-nums w-9 text-right ${o.fill === 'none' ? 'opacity-40' : ''}">${o.fillO} %</span>
+        ${chk('scPFn', o.fill === 'none', 'keine')}`) : '',
+      boxy ? card(frame ? '▢ Rahmen' : '▢ Rand', `<input id="scPR" type="color" value="${o.border && o.border !== 'none' ? o.border : '#e0a91b'}" ${o.border === 'none' ? 'disabled' : ''} class="${sw}">
+        <input id="scPBw" type="range" min="1" max="10" step="1" value="${o.bw || defBw}" ${o.border === 'none' ? 'disabled' : ''} title="Stärke" class="flex-1 min-w-[80px] accent-yellow-500 disabled:opacity-40"><span id="scPBwv" class="tabular-nums w-10 text-right ${o.border === 'none' ? 'opacity-40' : ''}">${o.bw || defBw} px</span>
+        ${chk('scPRn', o.border === 'none', frame ? 'keiner' : 'kein')}`) : ''
+    ].filter(Boolean);
+    el.innerHTML = `<div class="space-y-3 text-xs">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="px-3 py-1.5 rounded-lg bg-gold-500/15 border border-gold-500/40 text-gold-200 font-semibold" translate="no">${esc(label)}</span>
+        ${t === 'w' && k === 'skin' ? '<button type="button" id="scPSkin" class="px-3 py-1.5 rounded-lg border border-gold-500/60 text-gold-300 hover:border-gold-400">🏯 Skin wählen …</button>' : ''}
+        <div class="ml-auto flex flex-wrap gap-2">
+          ${boxy ? `<button type="button" id="scPBr" class="${btn}">↺ Standardwerte</button>` : ''}
+          ${t === 'tx' ? '<button type="button" id="scPDel" class="px-3 py-1.5 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10">🗑 Text löschen</button>'
+            : t !== 'set' ? `<button type="button" id="scPHide" class="${btn}">👁 Ausblenden</button>` : ''}
+        </div>
+      </div>
+      ${t === 'tx' ? `<input id="scPT" maxlength="80" value="${esc(o.text || '')}" placeholder="Dein Text" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold-500">` : ''}
+      <div class="grid gap-2 sm:grid-cols-2 ${cards.length > 2 ? 'xl:grid-cols-4' : ''}">${cards.join('')}</div>
     </div>`;
   }
   function drawSetBar() {
@@ -4461,7 +4473,9 @@ window.RokApp = () => {
     $('scManual').classList.toggle('hidden', x.mode !== 'manual');
     $('scShot').classList.toggle('hidden', x.mode !== 'shot');
     if (x.mode === 'manual') {
-      $('scCmds').innerHTML = scCmdsHtml(x.cmd);
+      $('scCmds').innerHTML = scCmdsHtml(x.cmd, x.cg);
+      $('scCgBar').innerHTML = own && x.cmd[0] && x.cmd[1] ? `<label class="inline-flex items-center gap-2 text-xs text-slate-400" title="Abstand der beiden Kommandanten">↔ weiter
+        <input id="scCg" type="range" min="0" max="70" step="1" value="${x.cg}" class="w-32 accent-yellow-500">näher</label>` : '';
       $('scGearBoard').innerHTML = scGearBoard(x.gear);
       gearSel.sc = sc.gsel;
       $('scGearEdit').innerHTML = own && sc.gsel ? gearEditor('sc', { sc: x.gear }, { rows: GEAR_SLOTS.map(sl => ({ sl, status: 'none' })) }) : '';
@@ -4604,6 +4618,7 @@ window.RokApp = () => {
     else if (ev.target.id === 'scPF') { o.fill = scColor(ev.target.value); drawStage(); scSaveSoon(); }
     else if (ev.target.id === 'scPFo') { o.fillO = Math.min(100, Math.max(0, +ev.target.value || 0)); $('scPFov').textContent = o.fillO + ' %'; drawStage(); scSaveSoon(); }
     else if (ev.target.id === 'scPR') { o.border = scColor(ev.target.value); drawStage(); scSaveSoon(); }
+    else if (ev.target.id === 'scPBw') { o.bw = Math.min(10, Math.max(1, +ev.target.value || 1)); $('scPBwv').textContent = o.bw + ' px'; drawStage(); scSaveSoon(); }
     else if (ev.target.id === 'scPT') { o.text = ev.target.value.slice(0, 80); drawStage(); scSaveSoon(); }
   });
   $('scProps').addEventListener('change', (ev) => {
@@ -4618,7 +4633,7 @@ window.RokApp = () => {
     const o = scSelObj(); if (!o) return;
     if (ev.target.closest('#scPCr')) { o.color = ''; drawStage(); drawProps(); scSaveSoon(); }
     else if (ev.target.closest('#scPBr')) { const tx = sc.sel.startsWith('tx:');
-      Object.assign(o, { s: 1, color: '', shadow: true, fill: tx ? 'none' : '', fillO: 75, border: tx ? 'none' : '' }); drawStage(); drawProps(); scSaveSoon(); }
+      Object.assign(o, { s: 1, color: '', shadow: true, fill: tx ? 'none' : '', fillO: 75, border: tx ? 'none' : '', bw: 0 }); drawStage(); drawProps(); scSaveSoon(); }
     else if (ev.target.closest('#scPSkin')) scSkinPicker();
     else if (ev.target.closest('#scPDel')) { const d = D(); d.texts = d.texts.filter(x => x !== o); sc.sel = null; drawStage(); drawProps(); scSaveSoon(); }
     else if (ev.target.closest('#scPHide')) { o.on = false; sc.sel = null; drawStage(); drawEditBar(); drawArm(); scSaveSoon(); }
@@ -4946,6 +4961,11 @@ window.RokApp = () => {
     </div>`;
     openModal();
   }
+  $('scCgBar').addEventListener('input', (ev) => {          // Abstand der Kommandanten (Detail + Bühne)
+    if (ev.target.id !== 'scCg' || !sc.own) return;
+    const x = scSet(); x.cg = scInt(ev.target.value, 0, 70, 30);
+    $('scCmds').innerHTML = scCmdsHtml(x.cmd, x.cg); drawStage(); scSaveSoon();
+  });
   $('scCmds').addEventListener('click', (ev) => { const b = ev.target.closest('[data-cmdslot]'); if (b && !b.disabled) openCmd(+b.dataset.cmdslot); });
   $('cmdRar').onclick = (ev) => { const b = ev.target.closest('[data-cr]'); if (!b) return; cm.rar = b.dataset.cr; drawCmdPicker(); };
   $('cmdSearch').oninput = () => { cm.q = $('cmdSearch').value; drawCmdPicker(); };
@@ -5201,8 +5221,16 @@ window.RokApp = () => {
   const gRefine = (v) => { if (v === true || /^\s*(true|voll|full)\s*$/i.test(String(v))) return 100; const n = parseFloat(v) || 0; return REFINE.reduce((b, x) => Math.abs(x - n) < Math.abs(b - n) ? x : b, 0); };
   const gRefTxt = (v) => v >= 100 ? 'Voll' : v + '%';
   // Refine-Typ (Symbol unten rechts auf dem Item)
-  const REFTYPES = { archer: { label: 'Bogenschützen', img: '/icons/gear/refine_archer.webp' }, cavalry: { label: 'Kavallerie', img: '/icons/gear/refine_cavalry.webp' }, infantry: { label: 'Infanterie', img: '/icons/gear/refine_infantry.webp' } };
-  const gRefType = (v) => { const t = String(v || '').toLowerCase(); return /arch|bog|bow/.test(t) ? 'archer' : /cav|kav|horse|pferd/.test(t) ? 'cavalry' : 'infantry'; };
+  // Refine-Symbole in /icons/gear/ (Dateinamen wie in GitHub)
+  const REFTYPES = {
+    infantry:    { label: 'Infanterie',    img: '/icons/gear/Infantry%20(1).webp' },
+    cavalry:     { label: 'Kavallerie',    img: '/icons/gear/Cavalry.webp' },
+    archer:      { label: 'Bogenschützen', img: '/icons/gear/Archer.webp' },
+    engineering: { label: 'Belagerung',    img: '/icons/gear/Engineering.webp' },
+    integration: { label: 'Integration',   img: '/icons/gear/Integration.webp' },
+    leadership:  { label: 'Führung',       img: '/icons/gear/Leadership.webp' }
+  };
+  const gRefType = (v) => { const t = String(v || '').toLowerCase(); return /arch|bog|bow/.test(t) ? 'archer' : /cav|kav|horse|pferd/.test(t) ? 'cavalry' : /engin|siege|belager|gear|zahnrad/.test(t) ? 'engineering' : /integr|mix|gemischt/.test(t) ? 'integration' : /lead|führ|fuehr|flag|fahne/.test(t) ? 'leadership' : 'infantry'; };
   // Symbol: voll = farbig; teilweise = grau, von unten farbig gefüllt
   const gRefIcon = (v, cls) => `<span class="relative inline-block ${cls}" title="Refine ${REFTYPES[v.refType]?.label || ''} ${gRefTxt(v.refine)}">
       <img src="${REFTYPES[v.refType]?.img || REFTYPES.infantry.img}" alt="" class="absolute inset-0 w-full h-full ${v.refine >= 100 ? '' : 'grayscale brightness-75'}">
@@ -5335,7 +5363,7 @@ window.RokApp = () => {
           ${[0, 1, 2, 3, 4, 5].map(t => `<option value="${t}"${(v.tier || 0) === t ? ' selected' : ''}>T${t}</option>`).join('')}
         </select>
       </div>
-      <div class="mt-2 flex items-center gap-1.5 text-xs ${it ? '' : 'opacity-40'}">
+      <div class="mt-2 flex flex-wrap items-center gap-1.5 text-xs ${it ? '' : 'opacity-40'}">
         <span class="text-slate-400 mr-1">Refine-Typ</span>
         ${Object.entries(REFTYPES).map(([k, t]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refType" data-v="${k}" ${it ? '' : 'disabled'} title="${t.label}"
           class="flex items-center gap-1 px-1.5 py-1 rounded-lg border ${v.refType === k ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 bg-ink-950 text-slate-400 hover:text-gold-300'}">
