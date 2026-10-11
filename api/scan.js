@@ -224,8 +224,14 @@ Von oben nach unten:
 4. darunter, Mitte                 → "legs"   (Beinschutz)
 5. links darunter → "acc1" · rechts darunter → "acc2" (Accessoires)
 6. ganz unten, Mitte               → "boots"  (Stiefel)
-Unter jedem Feld steht eine römische Ziffer I, II, III, IV oder V – das ist das Tier des Items: als Zahl 1–5 in "tier" eintragen (I=1, II=2, III=3, IV=4, V=5; nicht lesbar → 1).
-Ignoriere das kleine rote Symbol.
+Unter jedem Feld kann eine römische Ziffer I, II, III, IV oder V stehen – das ist das Tier des Items: als Zahl in "tier" eintragen (I=1, II=2, III=3, IV=4, V=5; keine Ziffer → 0).
+REFINE: Unten rechts in jedem Feld sitzt ein kleines rotes Rauten-Symbol – das ist das Refine. Das weiße Motiv darin bestimmt den Typ ("refine_type"):
+Bogen = "archer", Pferdekopf = "cavalry", Schwert = "infantry" (kein Symbol → null).
+Sieh dir jedes dieser Symbole einzeln und genau an und trage "refine" als Zahl ein:
+- komplett ROT gefülltes Symbol → 100 (Refine voll / fertig)
+- Symbol nur teilweise rot gefüllt (Rest grau/dunkel) → Anteil der roten Füllung auf 25, 50 oder 75 runden
+- graues/dunkles Symbol ohne Rot → 0
+- kein Symbol sichtbar → 0
 
 Seltenheit = Farbe des Feldes: gold/orange = "legendary", lila = "epic", blau = "elite", grün = "advanced", grau = "normal".
 Leeres Feld (nur Umriss/Platzhalter) → null.
@@ -241,7 +247,7 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
 {
   "type": "gear",
   "slots": {
-    "helm":   {"item_id": string|null, "name": string|null, "description": string, "rarity": "legendary"|"epic"|"elite"|"advanced"|"normal", "tier": 1|2|3|4|5} | null,
+    "helm":   {"item_id": string|null, "name": string|null, "description": string, "rarity": "legendary"|"epic"|"elite"|"advanced"|"normal", "tier": 0|1|2|3|4|5, "refine": 0|25|50|75|100, "refine_type": "archer"|"cavalry"|"infantry"|null} | null,
     "chest":  ... | null,
     "weapon": ... | null,
     "gloves": ... | null,
