@@ -3962,11 +3962,14 @@ window.RokApp = () => {
   const GEAR_REF_CATS = ['helm', 'chest', 'weapon', 'gloves', 'legs', 'accessory', 'boots'];
   const GEAR_REF_LABEL = { helm: 'HELM → Feld helm', chest: 'BRUST / CHEST → Feld chest', weapon: 'WAFFE / WEAPON → Feld weapon', gloves: 'HANDSCHUHE / GLOVES → Feld gloves',
     legs: 'BEINE / LEGS → Feld legs', accessory: 'ACCESSOIRE → Felder acc1 + acc2', boots: 'STIEFEL / BOOTS → Feld boots' };
-  const gearRefOrder = () => GEAR_REF_CATS.flatMap(c => GEAR_FILES.filter(f => (GEAR_FILE_CAT[f] || 'accessory') === c));
+  const GEAR_RAR_ORDER = ['legendary', 'epic', 'elite', 'normal'];
+  const gearRefOrder = () => GEAR_REF_CATS.flatMap(c => GEAR_FILES.filter(f => (GEAR_FILE_CAT[f] || 'accessory') === c)
+    .sort((a, b) => GEAR_RAR_ORDER.indexOf(gearFileRar(a)) - GEAR_RAR_ORDER.indexOf(gearFileRar(b)) || a.localeCompare(b)));
+  const REF_BG = { legendary: ['#ffc845', '#e0700a'], epic: ['#c58cff', '#6a1fb0'], elite: ['#8ec5ff', '#1d4ed8'], normal: ['#cbd5e1', '#64748b'] };
   function refSheet(kind) {
     if (refCache[kind]) return refCache[kind];
     return (refCache[kind] = (async () => {
-      const gearK = kind === 'gear';
+      const gearK = kind === 'gear' || kind === 'gear2', part2 = kind === 'gear2';   // Ausrüstung auf 2 Tafeln, damit die Bilder groß genug bleiben
       const load = (src) => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
       let cv, ctx, note = '', count = 0, yEnd = 0;
       if (gearK) {
@@ -3974,8 +3977,9 @@ window.RokApp = () => {
         const order = gearRefOrder(), cols = 12, cell = 104, lab = 14, head = 26;
         const imgs = await Promise.all(order.map(f => load(`/icons/gear/${f}.webp`)));
         if (!imgs.some(Boolean)) { delete refCache[kind]; return null; }
-        const groups = GEAR_REF_CATS.map(c => [c, order.map((f, n) => [f, n]).filter(([f]) => (GEAR_FILE_CAT[f] || 'accessory') === c)]).filter(([, l]) => l.length);
-        const H = groups.reduce((h, [, l]) => h + head + Math.ceil(l.length / cols) * (cell + lab), 0) + 160;
+        const cats = part2 ? ['legs', 'accessory', 'boots'] : ['helm', 'chest', 'weapon', 'gloves'];
+        const groups = GEAR_REF_CATS.filter(c => cats.includes(c)).map(c => [c, order.map((f, n) => [f, n]).filter(([f]) => (GEAR_FILE_CAT[f] || 'accessory') === c)]).filter(([, l]) => l.length);
+        const H = groups.reduce((h, [, l]) => h + head + Math.ceil(l.length / cols) * (cell + lab), 0) + (part2 ? 160 : 0);
         cv = document.createElement('canvas'); cv.width = cols * cell; cv.height = H;
         ctx = cv.getContext('2d'); ctx.fillStyle = '#1b2233'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.textBaseline = 'top';
         let y = 0; const parts = [];
@@ -3987,7 +3991,9 @@ window.RokApp = () => {
           l.forEach(([f, n], k) => {
             const x = (k % cols) * cell, yy = y + Math.floor(k / cols) * (cell + lab);
             ctx.strokeStyle = '#3a4560'; ctx.strokeRect(x + .5, yy + .5, cell - 1, cell + lab - 1);
-            if (imgs[n]) ctx.drawImage(imgs[n], x + 6, yy + 6, cell - 12, cell - 12);
+            const bg = REF_BG[gearFileRar(f)], g = ctx.createLinearGradient(0, yy + 4, 0, yy + cell - 4); g.addColorStop(0, bg[0]); g.addColorStop(1, bg[1]);
+            ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x + cell / 2, yy + 3); ctx.lineTo(x + cell - 3, yy + cell / 2); ctx.lineTo(x + cell / 2, yy + cell - 3); ctx.lineTo(x + 3, yy + cell / 2); ctx.closePath(); ctx.fill();
+            if (imgs[n]) ctx.drawImage(imgs[n], x + 14, yy + 14, cell - 28, cell - 28);
             ctx.fillStyle = '#000'; ctx.fillRect(x + 1, yy + 1, 32, 18);
             ctx.fillStyle = '#ffe066'; ctx.font = 'bold 15px sans-serif'; ctx.fillText(String(n + 1), x + 3, yy + 3);
             ctx.fillStyle = '#e2e8f0'; ctx.font = '10px sans-serif'; ctx.fillText(gearFileName(f), x + 3, yy + cell + 1, cell - 6);
@@ -4012,8 +4018,8 @@ window.RokApp = () => {
         });
         count = list.length;
       }
-      const refImgs = gearK ? await Promise.all(Object.values(REFTYPES).map(t => load(t.img))) : [];   // Legende: Refine voll vs. nicht voll
-      if (gearK) {
+      const refImgs = part2 ? await Promise.all(Object.values(REFTYPES).map(t => load(t.img))) : [];   // Legende: Refine voll vs. nicht voll
+      if (part2) {
         const y0 = yEnd + 8, keys = Object.keys(REFTYPES);
         ctx.fillStyle = '#ffffff'; ctx.font = 'bold 15px sans-serif';
         ctx.fillText('REFINE-LEGENDE  (Symbol unten rechts im Feld)', 8, y0);
@@ -5104,7 +5110,7 @@ window.RokApp = () => {
       if (gearDbState === 'idle' || !gearCat.length) await loadGearDb();
       for (const f of files) imgs.push(await prepareImage(f));
       const res = await fetch('/api/scan', { method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ mode: 'gear', images: imgs.map(i => ({ media_type: i.mediaType, data: i.base64 })), refs: await scanRefs(['gear', 'commanders']) }) });
+        body: JSON.stringify({ mode: 'gear', images: imgs.map(i => ({ media_type: i.mediaType, data: i.base64 })), refs: await scanRefs(['gear', 'gear2', 'commanders']) }) });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (res.status === 400 && /modus|mode/i.test(data?.error || '')) throw new Error('Der Scan-Server kennt den Ausrüstungs-Scan noch nicht – bitte den Modus „gear“ in api/scan.js ergänzen. Bis dahin die Slots von Hand wählen.');
@@ -5119,6 +5125,7 @@ window.RokApp = () => {
         const info = src[sl.k]; if (!info || typeof info !== 'object') return;
         seen++;
         const byRef = gearByRef(sl.cat, info);
+        if (byRef?.reject) return;                                // lieber leer lassen als ein Item in der falschen Farbe
         let it = byRef && !byRef.file ? byRef : (info.item_id ? gItem(String(info.item_id)) : null);
         if (it && it.cat !== sl.cat && !it.lib) it = null;
         if (!it && !byRef) it = gearMatch(sl.cat, info);
@@ -5450,7 +5457,7 @@ window.RokApp = () => {
     }
     const neu = list.filter(f => !GEAR_FILE_CAT[f]); if (!neu.length) return;
     neu.forEach(f => { GEAR_FILE_CAT[f] = gearGuessCat(f); });
-    GEAR_FILES = Object.keys(GEAR_FILE_CAT).sort(); GEAR_FILE_SET = new Set(GEAR_FILES); delete refCache.gear;
+    GEAR_FILES = Object.keys(GEAR_FILE_CAT).sort(); GEAR_FILE_SET = new Set(GEAR_FILES); delete refCache.gear; delete refCache.gear2;
     rebuildGearCat();
   })();
   const saveGearCustom = () => LS.set(GEAR_CUSTOM, JSON.stringify(gearCustom));
@@ -5857,9 +5864,12 @@ window.RokApp = () => {
   function gearRarity(v) { const t = gNorm(v); if (!t) return null; return /legend|gold|orange/.test(t) ? 'legendary' : /elite|blau|blue/.test(t) ? 'elite' : /normal|grau|grey|gray|grun|green|advanced/.test(t) ? 'normal' : 'epic'; }
   function gearByRef(cat, info) {                            // Nummer von der Referenztafel → Katalog-Item (oder nur Bild + Name)
     const order = gearRefOrder(), slotCat = cat;
-    const cands = [info?.ref, info?.ref2].map(r => order[refNum(r, order.length) - 1]).filter(Boolean);
+    const cands = [info?.ref, info?.ref2, info?.ref3].map(r => order[refNum(r, order.length) - 1]).filter(Boolean);
     if (!cands.length) return null;
-    const f = cands.find(x => (GEAR_FILE_CAT[x] || 'accessory') === slotCat) || cands[0];   // Treffer aus dem falschen Typ wird durch die zweite Wahl ersetzt
+    // Feldfarbe = Seltenheit: ein oranges (legendäres) Feld kann nie ein lila Item sein – und umgekehrt
+    const rar = gearRarity(info?.rarity), catOk = (x) => (GEAR_FILE_CAT[x] || 'accessory') === slotCat, rarOk = (x) => !rar || gearFileRar(x) === rar;
+    const f = cands.find(x => catOk(x) && rarOk(x)) || (rar ? null : cands.find(catOk) || cands[0]);
+    if (!f) return { reject: true, why: `Farbe/Typ passt nicht (${rar === 'legendary' ? 'orange' : rar === 'epic' ? 'lila' : rar})` };
     const it = gearCat.find(i => i.cat === cat && gearIconStem(i.icon) === f) || gearCat.find(i => gearIconStem(i.icon) === f);
     return it || { file: f };
   }
@@ -5882,6 +5892,7 @@ window.RokApp = () => {
       if (!info || typeof info !== 'object') return;
       seen++;
       const byRef = gearByRef(sl.cat, info);
+      if (byRef?.reject) { set.ist[sl.k] = { item: '', rarity: gearRarity(info.rarity) || 'legendary', tier: 0, refine: 0, refType: 'infantry' }; gearFlags[sl.k] = byRef.why + ' – bitte von Hand wählen'; return; }
       let it = byRef && !byRef.file ? byRef : (info.item_id ? gItem(String(info.item_id)) : null);
       if (it && it.cat !== sl.cat && !it.lib) it = null;
       if (!it && !byRef) it = gearMatch(sl.cat, info);
@@ -5911,7 +5922,7 @@ window.RokApp = () => {
     try {
       for (const f of files) imgs.push(await prepareImage(f));
       const res = await fetch('/api/scan', { method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ mode: 'gear', images: imgs.map(i => ({ media_type: i.mediaType, data: i.base64 })), refs: await scanRefs(['gear']) }) });
+        body: JSON.stringify({ mode: 'gear', images: imgs.map(i => ({ media_type: i.mediaType, data: i.base64 })), refs: await scanRefs(['gear', 'gear2']) }) });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (res.status === 400 && /modus|mode/i.test(data?.error || '')) throw new Error('Der Scan-Server kennt den Ausrüstungs-Scan noch nicht – bitte die neue api/scan.js einspielen. Bis dahin die Slots von Hand wählen.');
