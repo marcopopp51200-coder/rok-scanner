@@ -533,11 +533,21 @@ tailwind.config = {
                      class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-gold-500">
               <div class="text-[11px] text-slate-500 mt-1">Wird beim „📷 Statthalter-Profil scannen“ automatisch ausgelesen.</div>
             </div>
-            <div class="mt-3 flex items-end gap-3">
-              <div class="flex-1 min-w-0">
+            <div class="mt-3 grid grid-cols-[6rem_7rem_minmax(0,1fr)] gap-3">
+              <div class="min-w-0">
                 <label for="profTag" class="text-xs text-slate-400">Allianz-Tag</label>
                 <input id="profTag" maxlength="6" placeholder="z. B. ABC1"
                        class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-gold-500">
+              </div>
+              <div class="min-w-0">
+                <label for="profKd" class="text-xs text-slate-400">Königreich</label>
+                <input id="profKd" inputmode="numeric" maxlength="5" placeholder="z. B. 1234" translate="no"
+                       class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-gold-500">
+              </div>
+              <div class="min-w-0">
+                <label for="profAlly" class="text-xs text-slate-400">Allianz-Name</label>
+                <input id="profAlly" maxlength="40" placeholder="z. B. Saints of 79" translate="no"
+                       class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold-500">
               </div>
             </div>
           </div>
@@ -596,6 +606,7 @@ tailwind.config = {
               <label class="inline-flex items-center gap-1.5 cursor-pointer"><input id="scGridOn" type="checkbox" class="w-4 h-4 accent-yellow-500">▦ Raster</label>
               <label class="inline-flex items-center gap-1.5">Höhe <select id="scHeight" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-gold-500"></select></label>
               <button id="scAuto" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⊞ Symmetrisch anordnen</button>
+              <button id="scAddText" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">✏️ + Text</button>
               <button id="scDone" type="button" class="ml-auto text-xs px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">✓ Fertig</button>
             </div>
             <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-300"><span class="text-slate-500">Im Showcase anzeigen:</span><span id="scWidgetOpts" class="contents"></span></div>
@@ -1058,7 +1069,7 @@ window.I18N = (() => {
         '✓ Im Account gespeichert · für andere Spieler sichtbar erst nach dem SQL-Update (Spalte showcase)': '✓ Saved in your account · visible to other players after the SQL update (column showcase)',
         'Bild direkt im Showcase gespeichert – für kürzere Ladezeiten das Storage-SQL ausführen (Bucket „showcase“).': 'Image stored directly in the showcase – run the storage SQL (bucket “showcase”) for faster loading.',
         'Download-Bibliothek konnte nicht geladen werden (Internet/Adblocker prüfen).': 'Download library could not be loaded (check internet/ad blocker).', 'Download fehlgeschlagen.': 'Download failed.',
-        'Füllung': 'Fill', 'Rand': 'Border', 'keine': 'none', 'kein': 'none', 'keiner': 'none', 'Deckkraft': 'Opacity', 'Box zurücksetzen': 'Reset box', 'Rahmen zurücksetzen': 'Reset frame', 'Symmetrisch angeordnet': 'Arranged symmetrically',
+        'Füllung': 'Fill', 'Rand': 'Border', 'keine': 'none', 'kein': 'none', 'keiner': 'none', 'Deckkraft': 'Opacity', '↺ Standardwerte': '↺ Defaults', 'Symmetrisch angeordnet': 'Arranged symmetrically',
         '⚠ Wirklich alles symmetrisch anordnen?\n\nAlle Sets, Rüstungen und Anzeigen dieses Showcase werden automatisch neu platziert – deine eigene Anordnung geht dabei verloren.': '⚠ Really arrange everything symmetrically?\n\nAll sets, armaments and displays of this showcase will be repositioned automatically – your own layout will be lost.',
         'Im Profil zeigen': 'Show in profile', 'Alle Showcases': 'All showcases', '🔒 Niemand – alles privat': '🔒 Nobody – all private', 'Privat': 'Private', 'Öffentlich': 'Public',
         'Nur für dich sichtbar': 'Only visible to you', 'Für andere sichtbar': 'Visible to others', 'Privat – nur für dich sichtbar': 'Private – only visible to you', 'Sichtbarkeit gespeichert': 'Visibility saved',
@@ -1071,6 +1082,12 @@ window.I18N = (() => {
         'Bitte bestätigen': 'Please confirm', 'Bestätigen': 'Confirm', 'Hinweis': 'Notice', 'Eingabe': 'Input', 'OK': 'OK',
         'Name des neuen Showcase:': 'Name of the new showcase:', 'Neuer Name für den Showcase:': 'New name for the showcase:',
         'Lese ID und Allianz-Tag …': 'Reading ID and alliance tag …',
+        'Königreich': 'Kingdom', 'Allianz-Name': 'Alliance name', 'Allianz': 'Alliance', 'City-Skin': 'City skin', 'City-Skin wählen': 'Choose city skin', 'Eigenes Bild': 'Own image', 'Skin entfernen': 'Remove skin',
+        'Skin wählen …': 'Choose skin …', 'Eigener Text': 'Custom text', 'Text': 'Text', 'Dein Text': 'Your text', 'leer = automatisch': 'empty = automatic', 'Text löschen': 'Delete text', '+ Text': '+ Text',
+        'Weitere Skins kommen dazu, sobald sie hinterlegt sind.': 'More skins will be added once they are available.', 'Lade Bild hoch …': 'Uploading image …',
+        'City-Skin gespeichert': 'City skin saved', 'City-Skin entfernt': 'City skin removed', 'Maximal 12 eigene Texte pro Showcase.': 'Maximum 12 custom texts per showcase.',
+        'z. B. 1234': 'e.g. 1234', 'z. B. Saints of 79': 'e.g. Saints of 79',
+        '✓ Gespeichert · Königreich/Allianz-Name sind für andere erst nach dem SQL-Update sichtbar': '✓ Saved · kingdom/alliance name are visible to others after the SQL update',
         'Showcase': 'Showcase', 'Kommandanten scannen': 'Scan commanders', '+ Von Hand': '+ Manually', 'Aufklappen / zuklappen': 'Expand / collapse',
         'Erweckt': 'Awakened', 'Sterne': 'Stars', 'Skills': 'Skills', 'Level': 'Level', 'Name': 'Name', 'Speichern': 'Save', 'Bearbeiten': 'Edit', 'Löschen': 'Delete',
         'Claude liest deine Kommandanten …': 'Claude is reading your commanders …', '✓ Showcase gespeichert': '✓ Showcase saved', 'Keine Kommandanten im Screenshot erkannt.': 'No commanders detected in the screenshot.',
@@ -1084,7 +1101,7 @@ window.I18N = (() => {
       patterns: [
         [/^„(.+)“ aus dem Showcase löschen\?$/, 'Delete “$1” from the showcase?'],
         [/^(Infanterie|Kavallerie|Bogenschützen|Belagerung|Alle Truppen) (Angriff|Verteidigung|Leben|Marschgeschw\.)$/, (m, t, k) => ({ 'Infanterie': 'Infantry', 'Kavallerie': 'Cavalry', 'Bogenschützen': 'Archer', 'Belagerung': 'Siege', 'Alle Truppen': 'All Troop' })[t] + ' ' + ({ 'Angriff': 'Attack', 'Verteidigung': 'Defense', 'Leben': 'Health', 'Marschgeschw.': 'March Speed' })[k]],
-        [/^(\d)\/7 Sets$/, '$1/7 sets'], [/^Nur „(.+)“$/, 'Only “$1”'], [/^Rüstung · (.+)$/, 'Armaments · $1'],
+        [/^(\d)\/7 Sets$/, '$1/7 sets'], [/^Königreich (.+)$/, 'Kingdom $1'], [/^Nur „(.+)“$/, 'Only “$1”'], [/^Rüstung · (.+)$/, 'Armaments · $1'],
         [/^Showcase „(.+)“ wirklich löschen\? Das kann nicht rückgängig gemacht werden\.$/, 'Really delete showcase “$1”? This cannot be undone.'],
         [/^Kommandant wählen · (Primär|Sekundär)$/, (m, k) => 'Choose commander · ' + (k === 'Primär' ? 'Primary' : 'Secondary')],
         [/^✓ Ausrüstung aus „(.+)“ übernommen$/, '✓ Equipment copied from “$1”'],
@@ -1684,7 +1701,7 @@ window.RokAuth = (() => {
     lbKills = data?.kill_points != null ? +data.kill_points : null;
     lbMerit = data?.highest_merit != null ? +data.highest_merit : null;
     lbEnergy = data?.energy != null ? +data.energy : null;
-    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', is_private: !!data?.is_private, governor_id: data?.governor_id || '', showcase: data?.showcase || null };
+    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', is_private: !!data?.is_private, governor_id: data?.governor_id || '', showcase: data?.showcase || null, kingdom: data?.kingdom || '', alliance_name: data?.alliance_name || '' };
   }
   // Aktuellen VIP-Stand melden. force = neuer Scan (immer aktualisieren), sonst nur bei geänderter Punktzahl.
   // Kill-Punkte aus dem Statthalter-Scan in die Rangliste schreiben (Spalte kill_points)
@@ -1749,13 +1766,22 @@ window.RokAuth = (() => {
   async function saveMeta(meta, points) {
     const row = { user_id: user.id, username: profile.name.slice(0, 40), alliance_tag: meta.alliance_tag || null, avatar: meta.avatar || null };
     if (lbLast == null) { row.vip_points = Math.max(0, Math.round(points || 0)); row.vip_level = 0; row.updated_at = new Date().toISOString(); }
-    const { error } = await sb.from('leaderboard').upsert(row);
+    const extra = {};
+    if ('kingdom' in meta) extra.kingdom = String(meta.kingdom || '').replace(/\D/g, '').slice(0, 5) || null;
+    if ('alliance_name' in meta) extra.alliance_name = String(meta.alliance_name || '').trim().slice(0, 40) || null;
+    let { error } = await sb.from('leaderboard').upsert({ ...row, ...extra });
+    let extraSaved = true;
+    if (error && Object.keys(extra).length && /kingdom|alliance_name|column|schema/i.test(error.message || '')) {
+      missingCols.add('kingdom'); extraSaved = false;
+      ({ error } = await sb.from('leaderboard').upsert(row));            // Spalten fehlen noch → wenigstens Tag + Bild
+    }
     if (error) {
       if (/alliance_tag|avatar|column/i.test(error.message || '')) throw new Error('Allianz-Tag/Profilbild: bitte zuerst profile.sql in Supabase ausführen.');
       throw new Error(germanError(error));
     }
-    ownMeta = { ...ownMeta, alliance_tag: row.alliance_tag || '', avatar: row.avatar || '' };
+    ownMeta = { ...ownMeta, alliance_tag: row.alliance_tag || '', avatar: row.avatar || '', ...(extraSaved ? { kingdom: extra.kingdom ?? ownMeta.kingdom ?? '', alliance_name: extra.alliance_name ?? ownMeta.alliance_name ?? '' } : {}) };
     if (lbLast == null) lbLast = row.vip_points;
+    return { extraSaved };
   }
   // City-Skin in public.leaderboard.city_skin (für andere sichtbar). false = Spalte fehlt noch.
   async function saveSkin(skin, points) {
@@ -3510,7 +3536,8 @@ window.RokApp = () => {
   function renderGameProfile(P) {
     lastProfileP = P;
     const { own, row, entries } = P;
-    const meta = own ? { ...RokAuth.ownMeta(), city_skin: ownSkin() } : { alliance_tag: row.alliance_tag || '', avatar: row.avatar || '', city_skin: safeSkin(row.city_skin), governor_id: row.governor_id || '' };
+    const meta = own ? { ...RokAuth.ownMeta(), ...profExtra(), city_skin: ownSkin() }
+      : { alliance_tag: row.alliance_tag || '', avatar: row.avatar || '', city_skin: safeSkin(row.city_skin), governor_id: row.governor_id || '', kingdom: row.kingdom || '', alliance_name: row.alliance_name || '' };
     const vipEntries = entries.filter(e => e.type === 'vip');
     const speedEntries = entries.filter(e => e.type === 'speedups' && e.total != null);
     // VIP-Punkte inkl. Gegenstände (wie in der Rangliste)
@@ -3535,6 +3562,8 @@ window.RokApp = () => {
           <div class="flex flex-wrap items-baseline gap-x-3">
             <h2 class="font-display text-3xl gold-text" translate="no">${esc(row.username)}</h2>
             ${meta.alliance_tag ? `<span class="text-lg font-semibold text-slate-300">[${esc(meta.alliance_tag)}]</span>` : (own ? '<span class="text-xs text-slate-500">kein Allianz-Tag</span>' : '')}
+            ${meta.alliance_name ? `<span class="text-sm text-slate-400" translate="no">${esc(meta.alliance_name)}</span>` : ''}
+            ${meta.kingdom ? `<span class="px-2 py-0.5 rounded-md bg-ink-950 border border-gold-500/30 text-gold-300 text-xs font-semibold tabular-nums" translate="no">🏰 #${esc(meta.kingdom)}</span>` : ''}
           </div>
           <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
             ${lvl != null ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold text-ink-950 bg-gradient-to-br from-gold-300 to-gold-600 shadow-[0_0_16px_rgba(245,197,66,.35)]">👑 ${vipName(lvl)}</span>` : '<span class="text-slate-500">Noch kein VIP-Stand</span>'}
@@ -3579,6 +3608,8 @@ window.RokApp = () => {
     $('profScanSpeed').classList.toggle('hidden', !own);
     if (own) {
       $('profTag').value = meta.alliance_tag || '';
+      $('profKd').value = meta.kingdom || '';
+      $('profAlly').value = meta.alliance_name || '';
       $('profGovId').value = meta.governor_id || '';
       let chosen = meta.avatar || '', skin = meta.city_skin || '', customAv = isImgAv(meta.avatar) ? meta.avatar : '';
       $('profAvatarFile').onchange = async (ev) => {
@@ -3609,7 +3640,7 @@ window.RokApp = () => {
     $('profSpeedPanel').classList.toggle('hidden', hideBody);
     $('profChartsPanel').classList.toggle('hidden', hideBody);
     $('profShowcase').classList.toggle('hidden', hideBody);
-    if (!hideBody) renderShowcase(own, row, { name: row.username, avatar: meta.avatar, tag: meta.alliance_tag || '', vip: lvl, power: gov?.energy ?? null, kp: gov?.kill_points ?? null, merit: gov?.highest_merit ?? null });
+    if (!hideBody) renderShowcase(own, row, { name: row.username, avatar: meta.avatar, tag: meta.alliance_tag || '', ally: meta.alliance_name || '', kd: meta.kingdom || '', vip: lvl, power: gov?.energy ?? null, kp: gov?.kill_points ?? null, merit: gov?.highest_merit ?? null });
     if (own) {
       const sw = $('profPrivate');
       sw.setAttribute('aria-checked', String(!!P.isPrivate));
@@ -3629,14 +3660,23 @@ window.RokApp = () => {
     renderProfileCharts(entries, P);
   }
 
+  const PROF_EXTRA = 'rok_scanner_prof_extra';
+  const profExtra = () => { let x = {}; try { x = JSON.parse(LS.get(PROF_EXTRA, '{}')) || {}; } catch {} const om = RokAuth.ownMeta();
+    return { kingdom: String(om.kingdom || x.kingdom || ''), alliance_name: String(om.alliance_name || x.alliance_name || '') }; };
+  const saveProfExtra = (kingdom, alliance_name) => LS.set(PROF_EXTRA, JSON.stringify({ kingdom, alliance_name }));
   async function saveOwnProfile(getAvatar) {
     const msg = (t, ok) => { $('profMsg').textContent = t; $('profMsg').className = 'text-sm ' + (ok ? 'text-emerald-400' : 'text-red-300'); };
     $('profSave').disabled = true; msg('Speichere …', true);
     try {
       // Allianz-Tag + Profilbild
-      const meta = { alliance_tag: $('profTag').value.trim().toUpperCase().slice(0, 6), avatar: getAvatar() };
-      const old = RokAuth.ownMeta();
-      if (meta.alliance_tag !== (old.alliance_tag || '') || meta.avatar !== (old.avatar || '')) { await RokAuth.saveMeta(meta, vipNumbers().after); renderHeaderAvatar(); }
+      const meta = { alliance_tag: $('profTag').value.trim().toUpperCase().slice(0, 6), avatar: getAvatar(),
+                     kingdom: $('profKd').value.replace(/\D/g, '').slice(0, 5), alliance_name: $('profAlly').value.trim().slice(0, 40) };
+      const old = { ...RokAuth.ownMeta(), ...profExtra() };
+      saveProfExtra(meta.kingdom, meta.alliance_name);
+      if (meta.alliance_tag !== (old.alliance_tag || '') || meta.avatar !== (old.avatar || '') || meta.kingdom !== old.kingdom || meta.alliance_name !== old.alliance_name) {
+        const r = await RokAuth.saveMeta(meta, vipNumbers().after); renderHeaderAvatar();
+        if (r && !r.extraSaved) { msg('✓ Gespeichert · Königreich/Allianz-Name sind für andere erst nach dem SQL-Update sichtbar', true); $('profMsg').className = 'text-sm text-amber-300'; setTimeout(() => { if (view === 'profile') loadGameProfile(); }, 900); return; }
+      }
       const gid = $('profGovId').value.replace(/\D/g, '').slice(0, 12);
       let warn = '';
       if (gid !== (old.governor_id || '')) { try { await RokAuth.saveGovId(gid); } catch (x) { warn = x.message; } }
@@ -3681,6 +3721,8 @@ window.RokApp = () => {
     const allianceLine = lines.find(l => /B.?ndnis|Bundnis|Alliance|Allianz/i.test(l)) || '';
     const tm = (allianceLine || text).match(/[\[(|{]\s*([A-Za-z0-9]{1,6})\s*[\])|}]/);
     out.tag = tm && !/^ID$/i.test(tm[1]) ? tm[1].toUpperCase() : '';
+    const tagLine = lines.find(l => /\[\s*[A-Za-z0-9]{1,6}\s*\]/.test(l)) || '';
+    out.ally = tagLine.replace(/^.*?\]\s*/, '').replace(/[^\p{L}\p{N} .'&-]/gu, '').trim().slice(0, 40);
     // Werte: zuerst über die Beschriftung, sonst in fester Reihenfolge unter dem Bündnis (Energie, Kill-Punkte, …, Höchster Verdienst)
     const NUM = /(\d{1,3}(?:[.,]\d{3})+)/g;
     const byLabel = (re) => { const l = lines.find(x => re.test(x)); const m = l && l.match(NUM); return m ? govBig(m[m.length - 1]) : null; };
@@ -3713,6 +3755,7 @@ window.RokApp = () => {
       const e = { kill_points: govBig(r.kill_points ?? r.killpoints), highest_merit: govBig(r.highest_merit ?? r.highestMerit), energy: govBig(r.energy ?? r.power) };
       let gid = String(r.governor_id ?? r.governorId ?? r.id ?? '').replace(/\D/g, '').slice(0, 12);
       if (!gid) { const m = raw.match(/ID\s*[:：]?\s*(\d{5,12})/i); if (m) gid = m[1]; }
+      let ally = String(r.alliance_name ?? r.allianceName ?? (String(r.alliance ?? '').includes(']') ? String(r.alliance).replace(/^\s*\[[^\]]*\]\s*/, '') : '')).trim().slice(0, 40);
       let tag = govTag(r.alliance_tag ?? r.allianceTag ?? r.tag) || govTag(r.alliance ?? r.alliance_name ?? r.buendnis) || govTag((raw.match(/\[\s*[A-Za-z0-9]{1,6}\s*\]/) || [])[0]);
       // Fehlt etwas: Texterkennung direkt im Browser (Bild bleibt dabei auf dem Gerät)
       if (!gid || !tag || (e.kill_points == null && e.highest_merit == null && e.energy == null)) {
@@ -3721,16 +3764,20 @@ window.RokApp = () => {
           const o = await govOcr(img.dataUrl);
           if (!gid && o.id) gid = o.id.slice(0, 12);
           if (!tag && o.tag) tag = o.tag;
+          if (!ally && o.ally) ally = o.ally;
           ['kill_points', 'highest_merit', 'energy'].forEach(k => { if (e[k] == null && o[k] != null) e[k] = o[k]; });
         } catch (x) { console.warn('Texterkennung (Statthalter) fehlgeschlagen', x); }
       }
       if (e.kill_points == null && e.highest_merit == null && e.energy == null && !gid && !tag) throw new Error(serverErr || 'Keine Werte im Screenshot erkannt.');
       let gidErr = '';
       if (gid) { $('profGovId').value = gid; if (gid !== (RokAuth.ownMeta().governor_id || '')) { try { await RokAuth.saveGovId(gid); } catch (x) { gidErr += ' · ' + x.message; } } }
-      if (tag) {
-        $('profTag').value = tag;
-        if (tag !== (RokAuth.ownMeta().alliance_tag || '')) {
-          try { await RokAuth.saveMeta({ alliance_tag: tag, avatar: RokAuth.ownMeta().avatar || '' }, vipNumbers().after); } catch (x) { gidErr += ' · ' + x.message; }
+      if (tag || ally) {
+        const om = { ...RokAuth.ownMeta(), ...profExtra() };
+        if (tag) $('profTag').value = tag;
+        if (ally) $('profAlly').value = ally;
+        if ((tag && tag !== (om.alliance_tag || '')) || (ally && ally !== om.alliance_name)) {
+          saveProfExtra(om.kingdom, ally || om.alliance_name);
+          try { await RokAuth.saveMeta({ alliance_tag: tag || om.alliance_tag || '', avatar: om.avatar || '', kingdom: om.kingdom, alliance_name: ally || om.alliance_name }, vipNumbers().after); } catch (x) { gidErr += ' · ' + x.message; }
         }
       }
       const found = [gid && `ID ${gid}`, tag && `[${tag}]`].filter(Boolean).join(' · ');
@@ -3827,8 +3874,10 @@ window.RokApp = () => {
   const SC_ELS = {
     avatar: { label: 'Profilbild',  icon: '🖼', w: 8 },
     name:   { label: 'Name',        icon: '✒️', w: 22 },
-    tag:    { label: 'Allianz-Tag', icon: '🏰', w: 10 },
+    tag:    { label: 'Allianz-Tag', icon: '🏷', w: 10 },
+    kd:     { label: 'Königreich',  icon: '🏰', w: 13 },
     vip:    { label: 'VIP',         icon: '👑', w: 11 },
+    skin:   { label: 'City-Skin',   icon: '🏯', w: 8 },
     power:  { label: 'Energie',     icon: '⚡', w: 16 },
     kp:     { label: 'Kill-Punkte', icon: '⚔️', w: 16 },
     merit:  { label: 'Verdienst',   icon: '🏅', w: 16 }
@@ -3850,7 +3899,10 @@ window.RokApp = () => {
     const fo = w?.fillO == null || w?.fillO === '' ? NaN : +w.fillO;
     return { on: !!w?.on, x: scPos(w?.x, 100), y: scPos(w?.y, 200), s: scScale(w?.s), color: scColor(w?.color), shadow: w?.shadow !== false,
       fill: w?.fill === 'none' || (off && w?.fill == null) ? 'none' : scColor(w?.fill), fillO: Number.isFinite(fo) ? Math.min(100, Math.max(0, Math.round(fo))) : 75,
-      border: w?.border === 'none' || (off && w?.border == null) ? 'none' : scColor(w?.border) }; };
+      border: w?.border === 'none' || (off && w?.border == null) ? 'none' : scColor(w?.border), text: String(w?.text || '').slice(0, 80) }; };
+  // eigene Texte im Showcase (ohne Box als Standard) · City-Skin: Katalog-Bild oder eigenes Bild
+  const scTxNorm = (t) => ({ ...scElNorm({ ...t, on: true, fill: t?.fill ?? 'none', border: t?.border ?? 'none' }), id: String(t?.id || newId()), text: String(t?.text ?? 'Text').slice(0, 80) });
+  const scSkinOk = (v) => typeof v === 'string' && /^\/icons\/skins\/[A-Za-z0-9_-]+\.webp$/.test(v);   // nur RoK-Skins aus dem Katalog
   const scRgba = (h, a) => `rgba(${parseInt(h.slice(1, 3), 16)},${parseInt(h.slice(3, 5), 16)},${parseInt(h.slice(5, 7), 16)},${a})`;
   const scArmNorm = (a) => ({ on: !!a?.on, x: scPos(a?.x, 100), y: scPos(a?.y, 200), s: scScale(a?.s), formation: String(a?.formation || '').slice(0, 30),
     insc: (Array.isArray(a?.insc) ? a.insc : []).slice(0, 8).map(i => ({ t: String(i?.t || '').slice(0, 24), c: SC_INSC[i?.c] ? i.c : 'gold' })),
@@ -3867,15 +3919,18 @@ window.RokApp = () => {
   const scArmH = (a) => a.on && scArmHas(a) ? a.insc.filter(i => i.t).length * 2.65 + (a.formation ? 1.6 : 0) + SC_ARM_STATS.filter(([k]) => a[k]).length * 1.45 + 0.5 : 0;
   function scLayoutPos(d, Hforce) {
     const E = d.els, on = (k) => E[k].on, wp = {}, sp = [], ap = [], snapX = (v) => 50 + scGridSnap(v - 50);
-    // Kopfzeile
-    const av = 7 * E.avatar.s, head = on('avatar') || on('name') || on('tag') || on('vip');
+    // Kopfzeile: links Profilbild + Tag/VIP, Mitte Name + Königreich darunter, rechts City-Skin
+    const av = 7 * E.avatar.s, skH = 13 * E.skin.s, skW = 8 * E.skin.s;
+    const head = ['avatar', 'name', 'tag', 'vip', 'kd', 'skin'].some(on);
     if (on('avatar')) wp.avatar = { x: scGridSnap(1.5 + av / 2), y: scGridSnap(1.5 + av / 2) };
     const sx = on('avatar') ? 1.5 + av + 1.5 : 1.5, both = on('tag') && on('vip');
     if (on('tag')) wp.tag = { x: scGridSnap(sx + 4.5 * E.tag.s), y: scGridSnap(both ? 3.6 : 5.2) };
     if (on('vip')) wp.vip = { x: scGridSnap(sx + 5.5 * E.vip.s), y: scGridSnap(both ? 8.3 : 5.2) };
     if (on('name')) wp.name = { x: 50, y: scGridSnap(5.2) };
-    const top0 = head ? Math.max(on('avatar') ? 1.5 + av : 0, 10.5) + 2 : 2;
-    // Sets in einer Reihe, Rüstung darunter – Größe passt sich der Anzahl an
+    if (on('kd')) wp.kd = { x: 50, y: scGridSnap(on('name') ? 9.6 : 5.2) };
+    if (on('skin')) wp.skin = { x: 100 - scGridSnap(1.5 + skW / 2), y: scGridSnap(1.5 + skH / 2) };
+    const top0 = head ? Math.max(on('avatar') ? 1.5 + av : 0, on('skin') ? 1.5 + skH : 0, on('kd') && on('name') ? 11.5 : 10.5) + 2 : 2;
+    // Sets in einer Reihe, Rüstung darunter – passt sich Anzahl UND der gewählten Höhe an (Höhe bleibt, wie sie ist)
     const n = d.sets.length, col = n ? 100 / n : 100;
     let maxSet = 0, maxArm = 0;
     const dims = d.sets.map(x => {
@@ -3884,13 +3939,14 @@ window.RokApp = () => {
       maxSet = Math.max(maxSet, hs); maxArm = Math.max(maxArm, ha);
       return { s, as, hs, ha };
     });
-    const stats = ['power', 'kp', 'merit'].filter(on);
-    const need = top0 + maxSet + (maxArm ? 1.5 + maxArm : 0) + (stats.length ? 10 : 2);
-    const H = Hforce || Math.max(scH(d), need);
+    const stats = ['power', 'kp', 'merit'].filter(on), bottom = stats.length ? 10 : 2;
+    const block = maxSet + (maxArm ? 1.5 + maxArm : 0), need = top0 + block + bottom;
+    const H = Hforce || scH(d), avail = Math.max(6, H - top0 - bottom);
+    const f = block > avail ? Math.max(0.25, avail / block) : 1, y0 = top0 + Math.max(0, (avail - block * f) / 2);
     dims.forEach((m, i) => {
       const x = snapX((i + 0.5) * col);
-      sp.push({ x, y: scGridSnap(top0 + m.hs / 2), s: m.s });
-      ap.push({ x, y: scGridSnap(top0 + maxSet + 1.5 + m.ha / 2), s: m.as });
+      sp.push({ x, y: scGridSnap(y0 + m.hs * f / 2), s: Math.round(m.s * f * 100) / 100 });
+      ap.push({ x, y: scGridSnap(y0 + (maxSet + 1.5) * f + m.ha * f / 2), s: Math.round(m.as * f * 100) / 100 });
     });
     // Werte unten nebeneinander
     const gap = 2, tot = stats.reduce((a, k) => a + 16 * E[k].s, 0) + gap * Math.max(0, stats.length - 1);
@@ -3899,11 +3955,7 @@ window.RokApp = () => {
     return { wp, sp, ap, need };
   }
   function scAutoLayout(d, onlyMissing) {
-    let L = scLayoutPos(d);
-    if (!onlyMissing) {
-      d.h = Object.keys(SC_HEIGHTS).find(k => SC_HEIGHTS[k].h >= L.need) || 'xxl';
-      L = scLayoutPos(d, scH(d));
-    }
+    const L = scLayoutPos(d, scH(d));                        // gewählte Höhe bleibt – Sets/Rüstungen werden bei Bedarf kleiner
     const pick = (o, p) => onlyMissing ? { x: p.x, y: p.y } : p;
     d.sets.forEach((x, i) => {
       if (!onlyMissing || x.x == null || x.y == null) Object.assign(x, pick(x, L.sp[i]));
@@ -3917,7 +3969,8 @@ window.RokApp = () => {
     const old = d?.widgets || {};                                                                            // Format v2
     const o = { id: String(d?.id || newId()), title: String(d?.title || `Showcase ${i + 1}`).trim().slice(0, 30) || `Showcase ${i + 1}`,
       sets: sets.slice(0, SC_MAX).map(scSetNorm), bg: scBgNorm(d?.bg), h: SC_HEIGHTS[d?.h] ? d.h : 'normal', grid: d?.grid !== false,
-      els: Object.fromEntries(Object.keys(SC_ELS).map(k => [k, scElNorm(d?.els?.[k] || old[k])])) };
+      els: Object.fromEntries(Object.keys(SC_ELS).map(k => [k, scElNorm(k === 'kd' && d?.els?.ally?.on && !d?.els?.kd?.on ? { ...d.els.ally, text: '' } : (d?.els?.[k] || old[k]))])),   // altes Allianz-Feld → Königreich
+      texts: (Array.isArray(d?.texts) ? d.texts : []).slice(0, 12).map(scTxNorm), skin: scSkinOk(d?.skin) ? d.skin : '' };
     scAutoLayout(o, true);
     return o;
   }
@@ -4114,11 +4167,20 @@ window.RokApp = () => {
       <div class="relative" style="width:10cqw;aspect-ratio:1/2;margin-top:.5cqw">${scGearBoard(x.gear, true)}</div>
     </div>`;
   }
-  const SC_DEF_COLOR = { name: '#f5c542', tag: '#fde68a', vip: '#f5c542', power: '#ffffff', kp: '#ffffff', merit: '#ffffff' };
+  const SC_DEF_COLOR = { name: '#f5c542', tag: '#fde68a', kd: '#fde68a', vip: '#f5c542', power: '#ffffff', kp: '#ffffff', merit: '#ffffff' };
+  const scBoxSt = (w) => (w.fill === 'none' ? '' : `background:${scRgba(w.fill || '#07090f', w.fillO / 100)};`) + (w.border === 'none' ? '' : `border:1px solid ${w.border || 'rgba(224,169,27,.4)'};`);
+  function scTxHtml(o) {                                    // eigener Text
+    const box = scBoxSt(o);
+    return `<div class="rounded-lg font-bold whitespace-pre text-center" style="color:${o.color || '#ffffff'};${o.shadow ? 'filter:drop-shadow(0 2px 3px rgba(0,0,0,.85));' : ''}${box ? box + 'padding:.5cqw 1.2cqw;' : ''}font-size:max(11px,2.2cqw)">${esc(o.text) || '&nbsp;'}</div>`;
+  }
   function scWidget(k, w) {
     const st = sc.stats, W = SC_ELS[k], shadow = w.shadow ? 'filter:drop-shadow(0 2px 3px rgba(0,0,0,.85));' : '';
-    const boxSt = (w.fill === 'none' ? '' : `background:${scRgba(w.fill || '#07090f', w.fillO / 100)};`) + (w.border === 'none' ? '' : `border:1px solid ${w.border || 'rgba(224,169,27,.4)'};`);
-    const box = 'rounded-lg';
+    const boxSt = scBoxSt(w), box = 'rounded-lg', own = (auto) => w.text ? esc(w.text) : auto;   // eigener Text ersetzt den automatischen
+    if (k === 'skin') {
+      const src = D().skin;
+      return src ? `<img src="${src}" alt="" draggable="false" class="block max-w-none" style="height:13cqw;width:auto;${w.border === 'none' ? '' : `border:2px solid ${w.border || 'rgba(245,197,66,.8)'};border-radius:1cqw;`}${w.fill === 'none' ? '' : `background:${scRgba(w.fill || '#07090f', w.fillO / 100)};border-radius:1cqw;`}${w.shadow ? 'filter:drop-shadow(0 6px 10px rgba(0,0,0,.6));' : ''}">`
+        : `<div class="rounded-lg border border-dashed border-gold-500/60 bg-ink-950/60 grid place-items-center text-center text-gold-300" style="width:9cqw;height:11cqw;font-size:max(9px,1.1cqw)">🏯<br>City-Skin</div>`;
+    }
     if (k === 'avatar') {
       const av = st.avatar, letter = String(st.name || '?').charAt(0).toUpperCase();
       const inner = isImgAv(av) ? `<img src="${av}" alt="" draggable="false" class="w-full h-full object-cover">`
@@ -4128,13 +4190,14 @@ window.RokApp = () => {
     const goldTxt = !w.color && (k === 'name' || k === 'vip');
     const col = w.color ? `color:${w.color};` : (goldTxt ? '' : `color:${SC_DEF_COLOR[k]};`);
     const pad = boxSt ? boxSt + 'padding:.5cqw 1.2cqw;' : '';
-    if (k === 'name') return `<div class="${box} font-display font-extrabold whitespace-nowrap ${goldTxt ? 'gold-text' : ''}" style="${col}${shadow}${pad}font-size:max(12px,3cqw)" translate="no">${esc(st.name || '')}</div>`;
-    if (k === 'tag') return `<div class="${box} font-bold whitespace-nowrap" style="${col}${shadow}${pad}font-size:max(11px,2.2cqw)" translate="no">[${esc(st.tag || '–')}]</div>`;
-    if (k === 'vip') return `<div class="${box} font-display font-extrabold whitespace-nowrap ${goldTxt ? 'gold-text' : ''}" style="${col}${shadow}${pad}font-size:max(11px,2.3cqw)">👑 ${st.vip != null ? vipName(st.vip) : 'VIP –'}</div>`;
+    if (k === 'name') return `<div class="${box} font-display font-extrabold whitespace-nowrap ${goldTxt ? 'gold-text' : ''}" style="${col}${shadow}${pad}font-size:max(12px,3cqw)" translate="no">${own(esc(st.name || ''))}</div>`;
+    if (k === 'tag') return `<div class="${box} font-bold whitespace-nowrap" style="${col}${shadow}${pad}font-size:max(11px,2.2cqw)" translate="no">${own(`[${esc(st.tag || '–')}]`)}</div>`;
+    if (k === 'kd') return `<div class="${box} font-bold whitespace-nowrap" style="${col}${shadow}${pad}font-size:max(11px,2.1cqw)">${own(`🏰 Königreich ${esc(st.kd || '–')}`)}</div>`;
+    if (k === 'vip') return `<div class="${box} font-display font-extrabold whitespace-nowrap ${goldTxt ? 'gold-text' : ''}" style="${col}${shadow}${pad}font-size:max(11px,2.3cqw)">${own(`👑 ${st.vip != null ? vipName(st.vip) : 'VIP –'}`)}</div>`;
     const v = st[k];
     return `<div class="${box} text-center" style="width:${W.w}cqw;${boxSt}${shadow}padding:.6cqw 1cqw">
       <div class="uppercase tracking-widest whitespace-nowrap overflow-hidden text-ellipsis ${w.color ? '' : 'text-slate-400'}" style="${w.color ? `color:${w.color};opacity:.8;` : ''}font-size:max(7px,.95cqw)">${W.icon} ${W.label}</div>
-      <div class="font-extrabold tabular-nums whitespace-nowrap" style="${col}font-size:max(10px,2cqw)">${v != null ? short(v) : '–'}</div></div>`;
+      <div class="font-extrabold tabular-nums whitespace-nowrap" style="${col}font-size:max(10px,2cqw)">${own(v != null ? short(v) : '–')}</div></div>`;
   }
   function drawStage() {
     const d = D(), st = $('scStage');
@@ -4146,7 +4209,8 @@ window.RokApp = () => {
     const pos = (o) => `left:${o.x}cqw;top:${o.y}cqw;transform:translate(-50%,-50%) scale(${o.s})`;
     $('scEls').innerHTML = d.sets.map((x, i) => `<div data-el="set:${i}" class="absolute${ed('set:' + i)}${!sc.edit && d.sets.length > 1 ? ' cursor-pointer' : ''}" style="${pos(x)};${i === sc.si && !sc.exporting ? 'z-index:5;' : ''}width:${x.mode === 'shot' ? SC_SHOT_W : SC_SET_W}cqw" title="${esc(x.name || 'Set ' + (i + 1))}">${scMiniSet(x, i)}</div>`).join('')
       + d.sets.map((x, i) => x.arm.on && scArmHas(x.arm) ? `<div data-el="arm:${i}" class="absolute${ed('arm:' + i)}" style="${pos(x.arm)}">${scArmHtml(x.arm, n => n + 'cqw')}</div>` : '').join('')
-      + Object.entries(d.els).filter(([, w]) => w.on).map(([k, w]) => `<div data-el="w:${k}" class="absolute${ed('w:' + k)}" style="${pos(w)}">${scWidget(k, w)}</div>`).join('');
+      + Object.entries(d.els).filter(([, w]) => w.on).map(([k, w]) => `<div data-el="w:${k}" class="absolute${ed('w:' + k)}" style="${pos(w)}">${scWidget(k, w)}</div>`).join('')
+      + (d.texts || []).map(t => `<div data-el="tx:${t.id}" class="absolute${ed('tx:' + t.id)}" style="${pos(t)}">${scTxHtml(t)}</div>`).join('');
   }
   function drawListBar() {
     const doc = sc.doc, many = doc.list.length > 1, b = 'text-xs px-3 py-1.5 rounded-lg border';
@@ -4181,30 +4245,35 @@ window.RokApp = () => {
     const [t, k] = key.split(':'), d = D();
     if (t === 'set') return d.sets[+k] || null;
     if (t === 'arm') return d.sets[+k]?.arm || null;
+    if (t === 'tx') return (d.texts || []).find(x => x.id === k) || null;
     return d.els[k] || null;
   }
   function drawProps() {
     const o = scSelObj(), el = $('scProps');
     if (!o) { el.innerHTML = '<span class="text-xs text-slate-500">Element auf der Bühne antippen, um Größe, Schriftfarbe und Hintergrund einzustellen.</span>'; return; }
     const [t, k] = sc.sel.split(':'), d = D();
-    const label = t === 'set' ? (d.sets[+k].name || `Set ${+k + 1}`) : t === 'arm' ? `⚔ Rüstung · ${d.sets[+k].name || 'Set ' + (+k + 1)}` : `${SC_ELS[k].icon} ${SC_ELS[k].label}`;
+    const label = t === 'set' ? (d.sets[+k].name || `Set ${+k + 1}`) : t === 'arm' ? `⚔ Rüstung · ${d.sets[+k].name || 'Set ' + (+k + 1)}` : t === 'tx' ? '✏️ Eigener Text' : `${SC_ELS[k].icon} ${SC_ELS[k].label}`;
+    const textual = t === 'tx' || (t === 'w' && k !== 'avatar' && k !== 'skin'), boxy = t === 'w' || t === 'tx', frame = t === 'w' && (k === 'avatar' || k === 'skin');
     const btn = 'px-2.5 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300';
     const sw = 'w-9 h-7 p-0 bg-transparent border border-ink-600 rounded cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
     el.innerHTML = `<div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
       <span class="font-semibold text-white" translate="no">${esc(label)}</span>
+      ${textual ? `<label class="inline-flex items-center gap-2 w-full sm:w-auto">Text <input id="scPT" maxlength="80" value="${esc(o.text || '')}" placeholder="${t === 'tx' ? 'Dein Text' : 'leer = automatisch'}" class="min-w-[200px] flex-1 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-gold-500"></label>` : ''}
+      ${t === 'w' && k === 'skin' ? '<button type="button" id="scPSkin" class="px-2.5 py-1 rounded-lg border border-gold-500/60 text-gold-300 hover:border-gold-400">🏯 Skin wählen …</button>' : ''}
       <label class="inline-flex items-center gap-2">Größe <input id="scPS" type="range" min="40" max="250" step="5" value="${Math.round(o.s * 100)}" class="w-36 accent-yellow-500"><span id="scPSv" class="tabular-nums w-11">${Math.round(o.s * 100)} %</span></label>
-      ${t === 'w' && k !== 'avatar' ? `<label class="inline-flex items-center gap-2">Schriftfarbe <input id="scPC" type="color" value="${o.color || SC_DEF_COLOR[k]}" class="w-9 h-7 p-0 bg-transparent border border-ink-600 rounded cursor-pointer"></label>
+      ${textual ? `<label class="inline-flex items-center gap-2">Schriftfarbe <input id="scPC" type="color" value="${o.color || (t === 'tx' ? '#ffffff' : SC_DEF_COLOR[k])}" class="w-9 h-7 p-0 bg-transparent border border-ink-600 rounded cursor-pointer"></label>
         <button type="button" id="scPCr" class="${btn}">Standardfarbe</button>` : ''}
-      ${t === 'w' ? `${k !== 'avatar' ? `<span class="inline-flex items-center gap-2">Füllung
+      ${boxy ? `${!frame ? `<span class="inline-flex items-center gap-2">Füllung
           <input id="scPF" type="color" value="${o.fill && o.fill !== 'none' ? o.fill : '#07090f'}" ${o.fill === 'none' ? 'disabled' : ''} class="${sw}">
           <input id="scPFo" type="range" min="0" max="100" step="5" value="${o.fillO}" ${o.fill === 'none' ? 'disabled' : ''} title="Deckkraft" class="w-20 accent-yellow-500 disabled:opacity-40"><span id="scPFov" class="tabular-nums w-9 ${o.fill === 'none' ? 'opacity-40' : ''}">${o.fillO} %</span>
           <label class="inline-flex items-center gap-1 cursor-pointer"><input id="scPFn" type="checkbox" ${o.fill === 'none' ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">keine</label></span>` : ''}
-        <span class="inline-flex items-center gap-2">${k === 'avatar' ? 'Rahmen' : 'Rand'}
+        <span class="inline-flex items-center gap-2">${frame ? 'Rahmen' : 'Rand'}
           <input id="scPR" type="color" value="${o.border && o.border !== 'none' ? o.border : '#e0a91b'}" ${o.border === 'none' ? 'disabled' : ''} class="${sw}">
-          <label class="inline-flex items-center gap-1 cursor-pointer"><input id="scPRn" type="checkbox" ${o.border === 'none' ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${k === 'avatar' ? 'keiner' : 'kein'}</label></span>
+          <label class="inline-flex items-center gap-1 cursor-pointer"><input id="scPRn" type="checkbox" ${o.border === 'none' ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${frame ? 'keiner' : 'kein'}</label></span>
         <label class="inline-flex items-center gap-1.5 cursor-pointer"><input id="scPSh" type="checkbox" ${o.shadow ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Schatten</label>
-        <button type="button" id="scPBr" class="${btn}">${k === 'avatar' ? 'Rahmen zurücksetzen' : 'Box zurücksetzen'}</button>` : ''}
-      ${t !== 'set' ? `<button type="button" id="scPHide" class="${btn} ml-auto">Ausblenden</button>` : ''}
+        <button type="button" id="scPBr" class="${btn}">↺ Standardwerte</button>` : ''}
+      ${t === 'tx' ? `<button type="button" id="scPDel" class="ml-auto px-2.5 py-1 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10">🗑 Text löschen</button>`
+        : t !== 'set' ? `<button type="button" id="scPHide" class="${btn} ml-auto">Ausblenden</button>` : ''}
     </div>`;
   }
   function drawSetBar() {
@@ -4385,6 +4454,7 @@ window.RokApp = () => {
     else if (ev.target.id === 'scPF') { o.fill = scColor(ev.target.value); drawStage(); scSaveSoon(); }
     else if (ev.target.id === 'scPFo') { o.fillO = Math.min(100, Math.max(0, +ev.target.value || 0)); $('scPFov').textContent = o.fillO + ' %'; drawStage(); scSaveSoon(); }
     else if (ev.target.id === 'scPR') { o.border = scColor(ev.target.value); drawStage(); scSaveSoon(); }
+    else if (ev.target.id === 'scPT') { o.text = ev.target.value.slice(0, 80); drawStage(); scSaveSoon(); }
   });
   $('scProps').addEventListener('change', (ev) => {
     const o = scSelObj(); if (!o) return;
@@ -4397,7 +4467,10 @@ window.RokApp = () => {
   $('scProps').addEventListener('click', (ev) => {
     const o = scSelObj(); if (!o) return;
     if (ev.target.closest('#scPCr')) { o.color = ''; drawStage(); drawProps(); scSaveSoon(); }
-    else if (ev.target.closest('#scPBr')) { o.fill = ''; o.fillO = 75; o.border = ''; drawStage(); drawProps(); scSaveSoon(); }
+    else if (ev.target.closest('#scPBr')) { const tx = sc.sel.startsWith('tx:');
+      Object.assign(o, { s: 1, color: '', shadow: true, fill: tx ? 'none' : '', fillO: 75, border: tx ? 'none' : '' }); drawStage(); drawProps(); scSaveSoon(); }
+    else if (ev.target.closest('#scPSkin')) scSkinPicker();
+    else if (ev.target.closest('#scPDel')) { const d = D(); d.texts = d.texts.filter(x => x !== o); sc.sel = null; drawStage(); drawProps(); scSaveSoon(); }
     else if (ev.target.closest('#scPHide')) { o.on = false; sc.sel = null; drawStage(); drawEditBar(); drawArm(); scSaveSoon(); }
   });
   $('scEditBtn').onclick = () => {
@@ -4416,14 +4489,59 @@ window.RokApp = () => {
   $('scWidgetOpts').addEventListener('change', (ev) => {
     const t = ev.target.closest('[data-w]'); if (!t) return;
     const d = D(), w = d.els[t.dataset.w]; w.on = t.checked;
+    if (w.on && t.dataset.w === 'skin' && !d.skin) setTimeout(scSkinPicker, 50);
     if (w.on && (w.x == null || w.y == null)) scAutoLayout(d, true);
     if (w.on) sc.sel = 'w:' + t.dataset.w; else if (sc.sel === 'w:' + t.dataset.w) sc.sel = null;
     drawStage(); drawProps(); scSaveSoon();
   });
+  $('scAddText').onclick = () => {
+    const d = D(); if ((d.texts || []).length >= 12) { UI.alert('Maximal 12 eigene Texte pro Showcase.'); return; }
+    const t = scTxNorm({ text: 'Dein Text' }); t.x = 50; t.y = scGridSnap(scH(d) / 2);
+    d.texts.push(t); sc.sel = 'tx:' + t.id; drawStage(); drawProps(); scSaveSoon();
+    setTimeout(() => { const i = $('scPT'); if (i) { i.focus(); i.select(); } }, 30);
+  };
   $('scAuto').onclick = async () => {
     if (!(await UI.confirm('⚠ Wirklich alles symmetrisch anordnen?\n\nAlle Sets, Rüstungen und Anzeigen dieses Showcase werden automatisch neu platziert – deine eigene Anordnung geht dabei verloren.'))) return;
     scAutoLayout(D(), false); drawShowcase(); scSave('✓ Symmetrisch angeordnet');
   };
+
+  // ---- City-Skin auswählen ----
+  // Katalog: Bilder liegen unter /icons/skins/<id>.webp – weitere einfach hier ergänzen (name optional)
+  const CITY_SKINS = [
+    { id: 'skin_01', name: '' }
+  ];
+  const skinImg = (id) => `/icons/skins/${id}.webp`;
+  function scSkinPicker() {
+    if (!sc.own) return;
+    const d = D(), root = document.createElement('div');
+    root.className = 'fixed inset-0 z-[85] overflow-y-auto bg-ink-950/85 backdrop-blur-sm ui-fade';
+    root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true');
+    root.innerHTML = `<div data-bd class="min-h-full grid place-items-center p-4"><div class="panel !bg-ink-900 w-full max-w-3xl rounded-2xl p-5 ui-pop">
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <h3 class="font-display text-xl gold-text">City-Skin wählen</h3>
+          <button type="button" data-x class="w-9 h-9 shrink-0 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300" title="Schließen">✕</button>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-[60vh] overflow-y-auto pr-1">
+          ${CITY_SKINS.map(c => `<button type="button" data-skin="${c.id}" class="rounded-xl p-2 border flex flex-col items-center transition ${d.skin === skinImg(c.id) ? 'border-gold-400 bg-gold-500/15' : 'border-ink-700 hover:border-gold-500/60 hover:bg-ink-800'}">
+              <img src="${skinImg(c.id)}" alt="${esc(c.name)}" loading="lazy" class="h-28 w-full object-contain">
+              ${c.name ? `<span class="mt-1 text-[11px] text-slate-300 truncate max-w-full" translate="no">${esc(c.name)}</span>` : ''}</button>`).join('')}
+        </div>
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
+          <span data-info class="text-[11px] text-slate-500">Weitere Skins kommen dazu, sobald sie hinterlegt sind.</span>
+          ${d.skin ? '<button type="button" data-rm class="text-xs px-3 py-2 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10">Skin entfernen</button>' : ''}
+        </div>
+      </div></div>`;
+    const close = () => { document.removeEventListener('keydown', onKey, true); root.remove(); document.body.style.overflow = ''; };
+    const onKey = (ev) => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); close(); } };
+    const apply = (src) => { d.skin = src; if (src) d.els.skin.on = true; close(); drawStage(); drawEditBar(); scSave(src ? '✓ City-Skin gespeichert' : '✓ City-Skin entfernt'); };
+    root.addEventListener('click', (ev) => {
+      if (ev.target.matches('[data-bd]') || ev.target.closest('[data-x]')) return close();
+      const b = ev.target.closest('[data-skin]'); if (b) return apply(skinImg(b.dataset.skin));
+      if (ev.target.closest('[data-rm]')) apply('');
+    });
+    document.addEventListener('keydown', onKey, true);
+    document.body.appendChild(root); document.body.style.overflow = 'hidden';
+  }
 
   // ---- Mehrere Showcases ----
   $('scListBar').addEventListener('change', (ev) => {
