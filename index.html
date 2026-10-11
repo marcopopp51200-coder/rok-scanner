@@ -3961,9 +3961,12 @@ window.RokApp = () => {
       const gearK = kind === 'gear';
       const list = gearK ? GEAR_FILES.map(f => ({ src: `/icons/gear/${f}.webp`, label: '' })) : COMMANDERS.map(c => ({ src: cmdImg(c.id), label: c.name }));
       const cols = gearK ? 12 : 14, cell = gearK ? 96 : 90, lab = gearK ? 0 : 15, rows = Math.ceil(list.length / cols);
-      const imgs = await Promise.all(list.map(x => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = x.src; })));
+      const load = (src) => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
+      const imgs = await Promise.all(list.map(x => load(x.src)));
+      const refImgs = gearK ? await Promise.all(Object.values(REFTYPES).map(t => load(t.img))) : [];   // Legende: Refine voll vs. nicht voll
       if (!imgs.some(Boolean)) { delete refCache[kind]; return null; }
-      const cv = document.createElement('canvas'); cv.width = cols * cell; cv.height = rows * (cell + lab);
+      const legH = gearK ? 150 : 0;
+      const cv = document.createElement('canvas'); cv.width = cols * cell; cv.height = rows * (cell + lab) + legH;
       const ctx = cv.getContext('2d'); ctx.fillStyle = '#1b2233'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.textBaseline = 'top';
       imgs.forEach((im, i) => {
         const x = (i % cols) * cell, y = Math.floor(i / cols) * (cell + lab);
@@ -3973,6 +3976,17 @@ window.RokApp = () => {
         ctx.fillStyle = '#ffe066'; ctx.font = 'bold 15px sans-serif'; ctx.fillText(String(i + 1), x + 3, y + 3);
         if (lab) { ctx.fillStyle = '#ffffff'; ctx.font = '11px sans-serif'; ctx.fillText(list[i].label, x + 3, y + cell + 1, cell - 6); }
       });
+      if (gearK) {
+        const y0 = rows * cell + 8, keys = Object.keys(REFTYPES);
+        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 15px sans-serif';
+        ctx.fillText('REFINE-LEGENDE  (Symbol unten rechts im Feld)', 8, y0);
+        [['VOLL = 100 (komplett rot gefüllt)', ''], ['NICHT VOLL (grau / nur teilweise rot)', 'grayscale(1) brightness(.75)']].forEach(([txt, flt], row) => {
+          const y = y0 + 24 + row * 60;
+          ctx.fillStyle = row ? '#cbd5e1' : '#fca5a5'; ctx.font = 'bold 13px sans-serif'; ctx.fillText(txt, 8, y + 18);
+          refImgs.forEach((im, i) => { if (!im) return; ctx.filter = flt || 'none'; ctx.drawImage(im, 330 + i * 120, y, 48, 48); ctx.filter = 'none';
+            ctx.fillStyle = '#94a3b8'; ctx.font = '11px sans-serif'; ctx.fillText(keys[i], 382 + i * 120, y + 18); });
+        });
+      }
       const url = cv.toDataURL('image/jpeg', 0.82);
       return { kind, media_type: 'image/jpeg', data: url.split(',')[1], count: list.length };
     })());
@@ -4193,13 +4207,16 @@ window.RokApp = () => {
     return one(0) + one(1);
   }
   // ---- Ausrüstung (Rauten wie im Spiel) ----
+  // Fertig refined (100 %): dicker, leuchtend goldener Rahmen um die Raute
+  const GOLD_RIM = 'linear-gradient(135deg,#fff7c2 0%,#ffd84a 28%,#c98a06 52%,#ffe27a 74%,#fff3b0 100%)';
+  const gFull = (it, v) => !!it && v.refine >= 100;
   function scGearBoard(g, mini = false) {
     if (mini) return GEAR_SLOTS.map(sl => {
       const v = g[sl.k], it = scItem(v), f = it ? GFILL[v.rarity] : null;
       return `<div class="gdia absolute pointer-events-none" style="left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%">
-        <span class="gdia absolute inset-0" style="background:${f ? f[0] : 'rgba(46,58,85,.85)'}"></span>
-        <span class="gdia absolute inset-[1.5px]" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : 'rgba(17,23,37,.85)'}"></span>
-        ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[62%] aspect-square object-contain">` : ''}
+        <span class="gdia absolute inset-0" style="background:${gFull(it, v) ? GOLD_RIM : f ? f[0] : 'rgba(46,58,85,.85)'}"></span>
+        <span class="gdia absolute ${gFull(it, v) ? 'inset-[3px]' : 'inset-[1.5px]'}" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : 'rgba(17,23,37,.85)'}"></span>
+        ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] aspect-square object-contain">` : ''}
         ${it && v.tier > 0 ? `<span class="absolute bottom-[4%] left-1/2 -translate-x-1/2 px-[.25cqw] rounded bg-ink-950/85 font-extrabold text-gold-300" style="font-size:max(6px,.75cqw);line-height:1.2">${ROMAN[v.tier - 1]}</span>` : ''}
       </div>`;
     }).join('');
@@ -4207,10 +4224,10 @@ window.RokApp = () => {
       const v = g[sl.k], it = scItem(v), f = it ? GFILL[v.rarity] : null, active = sc.own && sc.gsel === sl.k;
       return `<button type="button" data-sctile="${sl.k}" ${sc.own ? '' : 'tabindex="-1"'} title="${esc(sl.label + (it ? ': ' + it.name : ''))}"
           class="gdia absolute focus:outline-none ${sc.own ? '' : 'cursor-default'}" style="left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%">
-        <span class="gdia absolute inset-0" style="background:${active ? '#ffffff' : f ? f[0] : '#2e3a55'}"></span>
-        <span class="gdia absolute inset-[3px]" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : '#111725'}"></span>
+        <span class="gdia absolute inset-0" style="background:${active ? '#ffffff' : gFull(it, v) ? GOLD_RIM : f ? f[0] : '#2e3a55'}"></span>
+        <span class="gdia absolute ${gFull(it, v) ? 'inset-[7px]' : 'inset-[3px]'}" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : '#111725'}"></span>
         <span class="relative z-10 h-full w-full flex flex-col items-center justify-center text-center px-[17%] pt-[4%] pointer-events-none">
-          ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="w-[112%] max-w-none aspect-square object-contain [filter:drop-shadow(0_2px_3px_rgba(0,0,0,.45))]">`
+          ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="w-[84%] aspect-square object-contain [filter:drop-shadow(0_2px_3px_rgba(0,0,0,.45))]">`
             : `<span class="text-xl sm:text-2xl leading-none ${it ? '' : 'opacity-40'}">${sl.icon}</span>`}
           ${it?.icon ? '' : `<span class="mt-1 text-[9px] sm:text-[10px] font-bold leading-tight line-clamp-2 ${it ? 'text-white [text-shadow:0_1px_2px_#000]' : 'text-slate-500'}">${it ? esc(it.name) : sl.label}</span>`}
         </span>
@@ -4894,7 +4911,7 @@ window.RokApp = () => {
         let it = byRef && !byRef.file ? byRef : (info.item_id ? gItem(String(info.item_id)) : null);
         if (it && it.cat !== sl.cat) it = null;
         if (!it && !byRef) it = gearMatch(sl.cat, info);
-        const base = { tier: gTier(info.tier), refine: gRefine(info.refine), refType: gRefType(info.refine_type) };
+        const base = { tier: gTier(info.tier), refine: gScanRefine(info), refType: gRefType(info.refine_type) };
         if (it) { const v = { item: it.id, rarity: gearRarity(info.rarity) || it.rarity, ...base }; scSnap(v, it); scSet().gear[sl.k] = v; hit++; }
         else if (byRef?.file) {                                  // Bild erkannt, aber (noch) nicht in gear_items → Bild + Name direkt übernehmen
           scSet().gear[sl.k] = { item: '', name: gearFileName(byRef.file), icon: `/icons/gear/${byRef.file}.webp`, rarity: gearRarity(info.rarity) || gearFileRar(byRef.file), ...base }; hit++;
@@ -5219,6 +5236,12 @@ window.RokApp = () => {
   const REFINE = [0, 25, 50, 75, 100];
   // Refine-Fortschritt: 0 | 25 | 50 | 75 | 100 (= voll, rotes Symbol). Alte Sets: true → 100
   const gRefine = (v) => { if (v === true || /^\s*(true|voll|full)\s*$/i.test(String(v))) return 100; const n = parseFloat(v) || 0; return REFINE.reduce((b, x) => Math.abs(x - n) < Math.abs(b - n) ? x : b, 0); };
+  const gScanRefine = (info) => {                         // "refine_full" vom Scan hat Vorrang vor der Prozentschätzung
+    const r = gRefine(info?.refine);
+    if (info?.refine_full === true) return 100;
+    if (info?.refine_full === false) return r >= 100 ? 75 : r;
+    return r;
+  };
   const gRefTxt = (v) => v >= 100 ? 'Voll' : v + '%';
   // Refine-Typ (Symbol unten rechts auf dem Item)
   // Refine-Symbole in /icons/gear/ (Dateinamen wie in GitHub)
@@ -5324,10 +5347,10 @@ window.RokApp = () => {
         : gearFlags[sl.k] ? ['⚠', '#fcd34d'] : r.back ? ['♻', '#7dd3fc'] : null;
       return `<button type="button" data-tile="${sl.k}" data-side="${side}" title="${esc(sl.label + (it ? ': ' + it.name : ''))}"
           class="gdia absolute focus:outline-none" style="left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%">
-        <span class="gdia absolute inset-0" style="background:${active ? '#ffffff' : f ? f[0] : '#2e3a55'}"></span>
-        <span class="gdia absolute inset-[3px]" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : '#111725'}"></span>
+        <span class="gdia absolute inset-0" style="background:${active ? '#ffffff' : gFull(it, v) ? GOLD_RIM : f ? f[0] : '#2e3a55'}"></span>
+        <span class="gdia absolute ${gFull(it, v) ? 'inset-[7px]' : 'inset-[3px]'}" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : '#111725'}"></span>
         <span class="relative z-10 h-full w-full flex flex-col items-center justify-center text-center px-[17%] pt-[4%] pointer-events-none">
-          ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="w-[112%] max-w-none aspect-square object-contain [filter:drop-shadow(0_2px_3px_rgba(0,0,0,.45))]">`
+          ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="w-[84%] aspect-square object-contain [filter:drop-shadow(0_2px_3px_rgba(0,0,0,.45))]">`
             : `<span class="text-xl sm:text-2xl leading-none ${it ? '' : 'opacity-40'}">${sl.icon}</span>`}
           ${it?.icon ? '' : `<span class="mt-1 text-[9px] sm:text-[10px] font-bold leading-tight line-clamp-2 ${it ? 'text-white [text-shadow:0_1px_2px_#000]' : 'text-slate-500'}">${it ? esc(it.name) : sl.label}</span>`}
           ${badge ? `<span class="absolute top-[13%] left-1/2 -translate-x-1/2 text-sm font-extrabold leading-none [text-shadow:0_1px_2px_#000]" style="color:${badge[1]}">${badge[0]}</span>` : ''}
@@ -5602,7 +5625,7 @@ window.RokApp = () => {
       if (!it && byRef?.file) info = { ...info, name: gearFileName(byRef.file) };
       const rar = gearRarity(info.rarity);
       if (it) {
-        set.ist[sl.k] = { item: it.id, rarity: rar || it.rarity, tier: gTier(info.tier), refine: gRefine(info.refine), refType: gRefType(info.refine_type) }; hit++;
+        set.ist[sl.k] = { item: it.id, rarity: rar || it.rarity, tier: gTier(info.tier), refine: gScanRefine(info), refType: gRefType(info.refine_type) }; hit++;
         if (rar === 'epic' && !/epi|lila|purple/.test(gNorm(info.rarity))) gearFlags[sl.k] = `Seltenheit „${info.rarity}“ → als Episch gesetzt`;
       } else {
         set.ist[sl.k] = { item: '', rarity: rar || 'legendary', tier: 0, refine: 0, refType: 'infantry' };
