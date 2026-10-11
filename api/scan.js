@@ -227,8 +227,12 @@ Von oben nach unten:
 6. ganz unten, Mitte               → "boots"  (Stiefel)
 Unter jedem Feld kann eine römische Ziffer I, II, III, IV oder V stehen – das ist das Tier des Items: als Zahl in "tier" eintragen (I=1, II=2, III=3, IV=4, V=5; keine Ziffer → 0).
 REFINE: Unten rechts in jedem Feld sitzt ein kleines rotes Rauten-Symbol – das ist das Refine. Das weiße Motiv darin bestimmt den Typ ("refine_type"):
-Bogen = "archer", Pferdekopf = "cavalry", Schwert = "infantry" (kein Symbol → null).
-Sieh dir jedes dieser Symbole einzeln und genau an und trage "refine" als Zahl ein:
+Bogen = "archer", Pferdekopf = "cavalry", Schwert = "infantry", Zahnrad = "engineering", Schwert in einem Sockel/Stein = "integration", Fahne = "leadership" (kein Symbol → null).
+Sieh dir jedes dieser Symbole einzeln und genau an (vergrößert betrachten!) und entscheide zuerst "refine_full":
+- true  = das GANZE Symbol ist kräftig rot gefüllt, kein grauer/dunkler Anteil (Refine fertig)
+- false = das Symbol ist grau/dunkel oder nur teilweise rot (unten rot, oben grau) oder es gibt kein Symbol
+Im Zweifel genau hinsehen: Ein fertiges Refine ist überall gleich rot wie die Beispiele in der Zeile "VOLL" der Refine-Legende (falls mitgeschickt).
+Trage danach "refine" als Zahl ein:
 - komplett ROT gefülltes Symbol → 100 (Refine voll / fertig)
 - Symbol nur teilweise rot gefüllt (Rest grau/dunkel) → Anteil der roten Füllung auf 25, 50 oder 75 runden
 - graues/dunkles Symbol ohne Rot → 0
@@ -248,7 +252,7 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
 {
   "type": "gear",
   "slots": {
-    "helm":   {"ref": number|null, "item_id": string|null, "name": string|null, "description": string, "rarity": "legendary"|"epic"|"elite"|"advanced"|"normal", "tier": 0|1|2|3|4|5, "refine": 0|25|50|75|100, "refine_type": "archer"|"cavalry"|"infantry"|null} | null,
+    "helm":   {"ref": number|null, "item_id": string|null, "name": string|null, "description": string, "rarity": "legendary"|"epic"|"elite"|"advanced"|"normal", "tier": 0|1|2|3|4|5, "refine": 0|25|50|75|100, "refine_full": boolean, "refine_type": "archer"|"cavalry"|"infantry"|"engineering"|"integration"|"leadership"|null} | null,
     "chest":  ... | null,
     "weapon": ... | null,
     "gloves": ... | null,
@@ -266,7 +270,8 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
 const REF_TEXT = {
   gear: (n) => `REFERENZTAFEL AUSRÜSTUNG (nicht auswerten, nur zum Vergleichen): ${n} nummerierte Kacheln, die gelbe Zahl oben links ist die Nummer (1–${n}).
 Vergleiche jedes Feld des Screenshots genau mit diesen Kacheln (Form, Farben, Motiv – die Seltenheitsfarbe des Feldes beim Vergleich ignorieren)
-und trage die Nummer des identischen Symbols als "ref" ein. Ohne sicheren Treffer: "ref": null.`,
+und trage die Nummer des identischen Symbols als "ref" ein. Ohne sicheren Treffer: "ref": null.
+Ganz unten auf der Tafel steht eine REFINE-LEGENDE: obere Reihe = fertig refined (komplett rot), untere Reihe = nicht fertig (grau). Nutze sie für "refine_full".`,
   commanders: (n) => `REFERENZTAFEL KOMMANDANTEN (nicht auswerten, nur zum Vergleichen): ${n} Porträts, gelbe Nummer oben links, Name darunter.
 Sind im Screenshot Kommandanten zu sehen (Porträt, Ganzkörperbild oder Name), trage sie in "commanders" ein – zuerst den Hauptkommandanten (Primär), dann den Sekundären:
 "ref" = Nummer des passenden Porträts, "name" = gelesener Name (sonst null), "expertise" = true, wenn der Kommandant erkennbar Expertise hat (alle Fähigkeiten auf Stufe 5 / Expertise-Rahmen), sonst false.
