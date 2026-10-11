@@ -1686,6 +1686,18 @@ window.RokAuth = (() => {
 </script>
 
 <script>
+// Icons: fehlt ein Bild unter /icons/gear/… oder /icons/…, wird einmal der jeweils andere Ort versucht
+document.addEventListener('error', (ev) => {
+  const img = ev.target;
+  if (!(img instanceof HTMLImageElement) || img.dataset.iconFb) return;
+  let u; try { u = new URL(img.src, location.href); } catch { return; }
+  if (u.origin !== location.origin) return;
+  const m = u.pathname.match(/^\/icons\/(gear\/)?([^/]+)$/);
+  if (!m) return;
+  img.dataset.iconFb = '1';
+  img.src = (m[1] ? '/icons/' : '/icons/gear/') + m[2];
+}, true);
+
 window.RokApp = () => {
   // ---------- Storage helpers ----------
   // ---------- Profil ----------
@@ -3493,15 +3505,15 @@ window.RokApp = () => {
     finally { if (img) { img.base64 = null; img.dataUrl = null; } }   // Bild sofort verwerfen
   };
   // ================= Showcase: 2 Kommandanten + Ausrüstung =================
-  // Kommandanten-Katalog – Bilder liegen unter /icons/commanders/<id>.webp.
+  // Kommandanten-Katalog – Bilder liegen unter /icons/commander/<id>.webp.
   // Namen bei "name" eintragen: sie erscheinen dann im Showcase und machen das Suchfeld im Fenster sichtbar.
   const COMMANDERS = [
-    { id: 'leg_01', r: 'legendary', name: 'Casimir III' }, { id: 'leg_02', r: 'legendary', name: 'Pepin III' }, { id: 'leg_03', r: 'legendary', name: 'Achilles' }, { id: 'leg_04', r: 'legendary', name: 'Hector' },
-    { id: 'leg_05', r: 'legendary', name: 'David IV' }, { id: 'leg_06', r: 'legendary', name: 'Gang Gamchan' }, { id: 'leg_07', r: 'legendary', name: 'Sun Tzu' }, { id: 'leg_08', r: 'legendary', name: 'Ivar' },
-    { id: 'leg_09', r: 'legendary', name: 'Alp Arslan' }, { id: 'leg_10', r: 'legendary', name: 'Hayam Wuruk' }, { id: 'leg_11', r: 'legendary', name: 'Vercingetorix' }, { id: 'leg_12', r: 'legendary', name: 'Elizabeth I' },
-    { id: 'leg_13', r: 'legendary', name: 'Pelagius' }, { id: 'leg_14', r: 'legendary', name: 'Ivan IV' }, { id: 'leg_15', r: 'legendary', name: 'William Marshal' }, { id: 'leg_16', r: 'legendary', name: 'Yahya ibn Khalid' },
-    { id: 'epi_01', r: 'epic', name: 'Sun Tzu' }, { id: 'epi_02', r: 'epic', name: 'Herrmann' }, { id: 'epi_03', r: 'epic', name: 'Kusunoki Masashige' }, { id: 'epi_04', r: 'epic', name: 'Scipio Africanus' },
-    { id: 'epi_05', r: 'epic', name: 'Joan of Arc' }, { id: 'epi_06', r: 'epic', name: 'Eulji Mundeok' }, { id: 'epi_07', r: 'epic', name: 'Boudica' }, { id: 'epi_08', r: 'epic', name: 'Pelagius' },
+    { id: 'leg_01', r: 'legendary', name: '' }, { id: 'leg_02', r: 'legendary', name: '' }, { id: 'leg_03', r: 'legendary', name: '' }, { id: 'leg_04', r: 'legendary', name: '' },
+    { id: 'leg_05', r: 'legendary', name: '' }, { id: 'leg_06', r: 'legendary', name: '' }, { id: 'leg_07', r: 'legendary', name: '' }, { id: 'leg_08', r: 'legendary', name: '' },
+    { id: 'leg_09', r: 'legendary', name: '' }, { id: 'leg_10', r: 'legendary', name: '' }, { id: 'leg_11', r: 'legendary', name: '' }, { id: 'leg_12', r: 'legendary', name: '' },
+    { id: 'leg_13', r: 'legendary', name: '' }, { id: 'leg_14', r: 'legendary', name: '' }, { id: 'leg_15', r: 'legendary', name: '' }, { id: 'leg_16', r: 'legendary', name: '' },
+    { id: 'epi_01', r: 'epic', name: '' }, { id: 'epi_02', r: 'epic', name: '' }, { id: 'epi_03', r: 'epic', name: '' }, { id: 'epi_04', r: 'epic', name: '' },
+    { id: 'epi_05', r: 'epic', name: '' }, { id: 'epi_06', r: 'epic', name: '' }, { id: 'epi_07', r: 'epic', name: '' }, { id: 'epi_08', r: 'epic', name: '' },
     { id: 'epi_09', r: 'epic', name: '' }, { id: 'epi_10', r: 'epic', name: '' }, { id: 'epi_11', r: 'epic', name: '' }, { id: 'epi_12', r: 'epic', name: '' },
     { id: 'epi_13', r: 'epic', name: '' }, { id: 'epi_14', r: 'epic', name: '' }, { id: 'epi_15', r: 'epic', name: '' }, { id: 'epi_16', r: 'epic', name: '' },
     { id: 'epi_17', r: 'epic', name: '' }, { id: 'epi_18', r: 'epic', name: '' }, { id: 'epi_19', r: 'epic', name: '' }, { id: 'epi_20', r: 'epic', name: '' },
@@ -3534,7 +3546,7 @@ window.RokApp = () => {
     { id: 'leg_110', r: 'legendary', name: '' }, { id: 'leg_111', r: 'legendary', name: '' }, { id: 'leg_112', r: 'legendary', name: '' }
   ];
   const CMD_BY_ID = Object.fromEntries(COMMANDERS.map(c => [c.id, c]));
-  const cmdImg = (id) => `/icons/commanders/${id}.webp`;
+  const cmdImg = (id) => `/icons/commander/${id}.webp`;
   // Daten: { cmd: [ {id, level, skills:[4], awakened} | null, … ], gear: { helm: {item, name, icon, rarity, tier, refine, refType}, … }, updated }
   // Eigene Daten: lokal (rok_scanner_showcase → user_state) + leaderboard.showcase (für andere sichtbar)
   const SC_KEY = 'rok_scanner_showcase';
@@ -3981,7 +3993,7 @@ window.RokApp = () => {
     set: String(i.set || '').slice(0, 40), rarity: i.rarity === 'epic' ? 'epic' : 'legendary',
     leather: gNum(i.leather), iron: gNum(i.iron), ebony: gNum(i.ebony), bone: gNum(i.bone), db: !!i.db,
     tiers: gNormTiers(i.tiers),
-    icon: typeof i.icon === 'string' && i.icon.length < 200000 && (/^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(i.icon) || /^\/icons\/[A-Za-z0-9_.-]+\.(webp|png|jpe?g)$/.test(i.icon)) ? i.icon : '' });
+    icon: typeof i.icon === 'string' && i.icon.length < 200000 && (/^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(i.icon) || (/^\/icons\/[A-Za-z0-9_./-]+\.(webp|png|jpe?g)$/.test(i.icon) && !i.icon.includes('..'))) ? i.icon : '' });
   const gFromDb = (r) => gNormItem({ id: r.id, name: r.name, cat: r.slot, set: r.set_name || '', rarity: r.rarity,
     leather: r.cost_leather, iron: r.cost_iron, ebony: r.cost_ebony, bone: r.cost_bone, icon: r.icon, tiers: r.tier_costs, db: true });
 
@@ -4017,7 +4029,7 @@ window.RokApp = () => {
   const gRefine = (v) => { if (v === true || /^\s*(true|voll|full)\s*$/i.test(String(v))) return 100; const n = parseFloat(v) || 0; return REFINE.reduce((b, x) => Math.abs(x - n) < Math.abs(b - n) ? x : b, 0); };
   const gRefTxt = (v) => v >= 100 ? 'Voll' : v + '%';
   // Refine-Typ (Symbol unten rechts auf dem Item)
-  const REFTYPES = { archer: { label: 'Bogenschützen', img: '/icons/refine_archer.webp' }, cavalry: { label: 'Kavallerie', img: '/icons/refine_cavalry.webp' }, infantry: { label: 'Infanterie', img: '/icons/refine_infantry.webp' } };
+  const REFTYPES = { archer: { label: 'Bogenschützen', img: '/icons/gear/refine_archer.webp' }, cavalry: { label: 'Kavallerie', img: '/icons/gear/refine_cavalry.webp' }, infantry: { label: 'Infanterie', img: '/icons/gear/refine_infantry.webp' } };
   const gRefType = (v) => { const t = String(v || '').toLowerCase(); return /arch|bog|bow/.test(t) ? 'archer' : /cav|kav|horse|pferd/.test(t) ? 'cavalry' : 'infantry'; };
   // Symbol: voll = farbig; teilweise = grau, von unten farbig gefüllt
   const gRefIcon = (v, cls) => `<span class="relative inline-block ${cls}" title="Refine ${REFTYPES[v.refType]?.label || ''} ${gRefTxt(v.refine)}">
