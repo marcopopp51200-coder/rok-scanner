@@ -584,6 +584,7 @@ tailwind.config = {
           <div class="flex flex-wrap items-center gap-2">
             <span id="scSync" class="text-[11px] text-slate-500"></span>
             <button id="scDl" type="button" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⬇ Download</button>
+            <button id="scImgOnly" type="button" aria-pressed="false" title="Nur das Showcase-Bild anzeigen, ohne Sets und Details darunter" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 aria-pressed:border-gold-400 aria-pressed:bg-gold-500/15 aria-pressed:text-gold-200">🖼 Nur Bild</button>
             <div id="scTools" class="hidden flex flex-wrap gap-2">
               <button id="scEditBtn" type="button" aria-pressed="false" class="text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400 aria-pressed:bg-gold-500 aria-pressed:text-ink-950 aria-pressed:font-semibold">✎ Bearbeiten</button>
               <button id="scBgBtn" type="button" aria-expanded="false" aria-controls="scBgPick" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">🖼 Hintergrund</button>
@@ -4051,7 +4052,7 @@ window.RokApp = () => {
     merit:  { label: 'Verdienst',   icon: '🏅', w: 16 }
   };
   const SC_TROOPS = { infantry: 'Infanterie', cavalry: 'Kavallerie', archer: 'Bogenschützen', siege: 'Belagerung', all: 'Alle Truppen' };
-  const SC_ARM_STATS = [['atk', 'Angriff'], ['def', 'Verteidigung'], ['hp', 'Leben'], ['spd', 'Marschgeschw.']];
+  const SC_ARM_STATS = [['atk', 'Angriff'], ['def', 'Verteidigung'], ['hp', 'Leben'], ['spd', 'Marschgeschw.'], ['dmg', 'Gesamtschaden']];   // dmg = „All Damage“ (gilt für alle Truppen)
   const SC_INSC = {
     gold: { label: 'Gold',  bg: 'linear-gradient(180deg,#fde68a,#f8b62c 55%,#e58a0e)', fg: '#7a2e08', bd: '#fff3c4' },
     blue: { label: 'Blau',  bg: 'linear-gradient(180deg,#e0e7ff,#aab6fb 55%,#7f8ef0)', fg: '#1f2f80', bd: '#f0f3ff' },
@@ -4091,6 +4092,22 @@ window.RokApp = () => {
       { id: 'edict_tiger', type: 'scroll',     name: 'Tiger Tally Edict',            gold: 'Dominate',    blue: 'Bludgeon' },
       { id: 'rite_nine', type: 'instrument',   name: 'Rite of the Nine Cauldrons',   gold: 'Demolisher',  blue: 'Raider' },
       { id: 'horn_tiger', type: 'instrument',  name: 'Tiger Tally Horn',             gold: 'Cleaver',     blue: 'Charge' }
+    ],
+    Delta: [
+      { id: 'leonine_rampant', type: 'flag',       name: 'Leonine Rampant',   gold: 'Steelskin',        blue: 'Determined' },
+      { id: 'leonine_crest', type: 'emblem',       name: 'Leonine Crest',     gold: 'Flurry',           blue: 'Relentless' },
+      { id: 'leonine_chronicle', type: 'scroll',   name: 'Leonine Chronicle', gold: 'Thrasher',         blue: 'Pummeler' },
+      { id: 'leonine_pibroch', type: 'instrument', name: 'Leonine Pibroch',   gold: 'Butterfly Effect', blue: 'Causative' }
+    ],
+    Wedge: [
+      { id: 'herald_ensign', type: 'flag',          name: "Herald's Ensign",        gold: 'Maneuver Warfare',  blue: 'Ballista' },
+      { id: 'pantheon_banner', type: 'flag',        name: 'Banner of the Pantheon', gold: 'Balanced',          blue: 'Defiant' },
+      { id: 'herald_mark', type: 'emblem',          name: "Herald's Mark",          gold: 'Horseback Archery', blue: 'Divine Strength' },
+      { id: 'pantheon_honors', type: 'emblem',      name: 'Honors of the Pantheon', gold: 'Intrepid',          blue: 'Focus Fire' },
+      { id: 'herald_message', type: 'scroll',       name: "Herald's Message",       gold: 'Advantageous',      blue: 'Fury' },
+      { id: 'olympia_epics', type: 'scroll',        name: 'Epics of Olympia',       gold: 'Hunter',            blue: 'Crazed' },
+      { id: 'herald_instrument', type: 'instrument', name: "Herald's Instrument",   gold: 'Indomitable',       blue: 'Soar' },
+      { id: 'olympia_chorus', type: 'instrument',   name: "Olympia's Chorusmaster", gold: 'Unstoppable',       blue: 'Boiling Blood' }
     ]
   };
   const ARM_BY_ID = Object.fromEntries(Object.values(ARM_FORMATIONS).flat().map(x => [x.id, x]));
@@ -4363,7 +4380,7 @@ window.RokApp = () => {
       return `<div style="background:${c.bd};padding:${L(0.17)};clip-path:polygon(8% 0,92% 0,100% 50%,92% 100%,8% 100%,0 50%)">
         <div class="grid place-items-center font-extrabold whitespace-nowrap" style="width:${L(9.6)};height:${L(2.15)};font-size:max(8px,${L(1.15)});color:${c.fg};background:${c.bg};clip-path:polygon(8% 0,92% 0,100% 50%,92% 100%,8% 100%,0 50%)">${esc(i.t || '–')}</div></div>`; };
     const stats = SC_ARM_STATS.filter(([k]) => a[k]).map(([k, l]) => `<div class="flex items-center whitespace-nowrap" style="gap:.35em;font-size:max(8px,${L(1.05)})">${SC_SWORD}
-        <span class="text-slate-100 [text-shadow:0_1px_2px_#000]">${SC_TROOPS[a.troop]} ${l}</span><span class="font-bold text-emerald-400 [text-shadow:0_1px_2px_#000]">${scPct(a[k])}</span></div>`).join('');
+        <span class="text-slate-100 [text-shadow:0_1px_2px_#000]">${k === 'dmg' ? l : `${SC_TROOPS[a.troop]} ${l}`}</span><span class="font-bold text-emerald-400 [text-shadow:0_1px_2px_#000]">${scPct(a[k])}</span></div>`).join('');
     return `<div class="flex flex-col items-center" style="gap:${L(0.3)}">
       ${scInscSort(a.insc.filter(i => i.t).slice()).map(pill).join('')}
       ${a.formation ? `<div class="flex items-center text-slate-300 [text-shadow:0_1px_2px_#000]" style="gap:.35em;font-size:max(8px,${L(1.05)});margin-top:${L(0.25)}">${SC_RING}${esc(a.formation)}</div>` : ''}
@@ -4520,6 +4537,10 @@ window.RokApp = () => {
     $('scDetailBody').className = own ? 'grid lg:grid-cols-[320px_minmax(0,1fr)] gap-6 lg:gap-8 items-start' : 'flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-12';
     $('scMain').className = own ? 'min-w-0 w-full' : 'min-w-0 w-full lg:w-[320px] shrink-0';
     $('scSide').className = own ? 'min-w-0 w-full space-y-4' : 'min-w-0 space-y-4';
+    // Rüstungs-Vorschau: im eigenen Profil unter dem Gear (links), bei anderen rechts neben dem Gear
+    const armBox = $('scArmSide'), armHome = own ? $('scManual') : $('scSide');
+    if (armBox.parentElement !== armHome) { if (own) armHome.appendChild(armBox); else armHome.insertBefore(armBox, armHome.firstChild); }
+    armBox.style.marginTop = own ? '1.5rem' : '';
     $('scGearTools').classList.toggle('hidden', !(own && x.mode === 'manual'));
     $('scGearBtns').innerHTML = own && x.mode === 'manual' ? `<label for="scFile" id="scScanLbl" class="cursor-pointer text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Ausrüstung scannen</label>
       ${scCopyOptions(x)}` : '';
@@ -4622,8 +4643,19 @@ window.RokApp = () => {
     if (!sc.own) { $('scBgPick').classList.add('hidden'); $('scSync').textContent = ''; }
     else if (!$('scBgPick').classList.contains('hidden')) drawBgPick();
     drawListBar(); drawStage(); drawEditBar(); drawSetBar(); drawDetail();
-    scApplyOpen();
+    scApplyImgOnly(); scApplyOpen();
   }
+  // „Nur Bild“: Sets-Leiste und Details unter der Bühne ausblenden (pro Betrachter gemerkt)
+  let scImgOnly = (() => { try { return localStorage.getItem('rok_showcase_imgonly') === '1'; } catch { return false; } })();
+  function scApplyImgOnly() {
+    const btn = $('scImgOnly'); btn.setAttribute('aria-pressed', String(scImgOnly)); btn.textContent = scImgOnly ? '☰ Details zeigen' : '🖼 Nur Bild';
+    if (scImgOnly) { $('scSetBar').classList.add('hidden'); $('scDetail').classList.add('hidden'); }
+  }
+  $('scImgOnly').onclick = () => {
+    scImgOnly = !scImgOnly; try { localStorage.setItem('rok_showcase_imgonly', scImgOnly ? '1' : '0'); } catch {}
+    if (!scOpen) { scOpen = true; try { localStorage.setItem('rok_showcase_open', '1'); } catch {} }
+    drawShowcase();
+  };
 
   // ---- Sicher speichern: lokal → user_state (Cloud) und leaderboard.showcase (für andere sichtbar), mit automatischer Wiederholung ----
   let scDirty = false, scT = null, scRetryT = null, scSaving = false, scColWarned = false;
@@ -4893,11 +4925,15 @@ window.RokApp = () => {
         if (seen.has(t.toLowerCase())) return; seen.add(t.toLowerCase()); list.push({ t, c });
       });
       if (list.length) a.insc = scInscSort(list.slice(0, 12));
-      const fm = String(r.formation || '').trim(); if (fm) a.formation = /pincer|zange/i.test(fm) ? 'Pincer' : fm.slice(0, 30);
+      const fm = String(r.formation || '').trim();
+      const fKnown = Object.keys(ARM_FORMATIONS).find(f => f.toLowerCase() === fm.toLowerCase()) || (/zange/i.test(fm) ? 'Pincer' : '');
+      const fGuess = Object.entries(ARM_FORMATIONS).map(([f, l]) => [f, l.filter(x => list.some(i => i.t === x.gold || i.t === x.blue)).length]).sort((x, y) => y[1] - x[1])[0];
+      if (fKnown) a.formation = fKnown; else if (fGuess && fGuess[1]) a.formation = fGuess[0]; else if (fm) a.formation = fm.slice(0, 30);
       const tr = String(r.troop || '').toLowerCase();
       a.troop = /cav|kav/.test(tr) ? 'cavalry' : /arch|bog/.test(tr) ? 'archer' : /siege|belag/.test(tr) ? 'siege' : /all|alle/.test(tr) ? 'all' : /inf/.test(tr) ? 'infantry' : a.troop;
-      [['atk', 'attack'], ['def', 'defense'], ['hp', 'health'], ['spd', 'march_speed']].forEach(([k, rk]) => { const v = scNum1(r[rk]); if (v != null) a[k] = v; });
-      if (!list.length && ![r.attack, r.defense, r.health, r.march_speed].some(v => v != null)) throw new Error('Keine Rüstung im Screenshot erkannt.');
+      const ST = [['atk', 'attack'], ['def', 'defense'], ['hp', 'health'], ['spd', 'march_speed'], ['dmg', 'all_damage']];
+      if (ST.some(([, rk]) => scNum1(r[rk]) != null)) ST.forEach(([k, rk]) => { a[k] = scNum1(r[rk]); });   // neue Werte ersetzen die alten komplett
+      if (!list.length && ![r.attack, r.defense, r.health, r.march_speed, r.all_damage].some(v => v != null)) throw new Error('Keine Rüstung im Screenshot erkannt.');
       if (!a.on) { a.on = true; if (a.x == null || a.y == null) scAutoLayout(D(), true); }
       drawArm(); drawStage();
       await scSave(`✓ Rüstung erkannt: ${list.length} Inschriften` + (r.confidence ? ` · Sicherheit: ${r.confidence}` : ''));
