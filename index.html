@@ -3793,48 +3793,197 @@ window.RokApp = () => {
     finally { if (img) { img.base64 = null; img.dataUrl = null; } }   // Bild sofort verwerfen
   };
   // ================= Showcase: mehrere Showcases, je bis zu 7 Sets frei auf einer Bühne =================
-  // Kommandanten-Katalog – Bilder liegen unter /icons/commander/<id>.webp.
-  // Namen bei "name" eintragen: sie erscheinen dann im Showcase und machen das Suchfeld im Fenster sichtbar.
+  // Kommandanten-Katalog – Bilder: /icons/comander/<id>.webp · mit Expertise: /icons/comanderexpertise/<id>.webp
+  // ex: 1 = Expertise-Bild vorhanden · nb: 1 = es gibt nur das Expertise-Bild · Namen dürfen frei geändert werden
   const COMMANDERS = [
-    { id: 'leg_01', r: 'legendary', name: '' }, { id: 'leg_02', r: 'legendary', name: '' }, { id: 'leg_03', r: 'legendary', name: '' }, { id: 'leg_04', r: 'legendary', name: '' },
-    { id: 'leg_05', r: 'legendary', name: '' }, { id: 'leg_06', r: 'legendary', name: '' }, { id: 'leg_07', r: 'legendary', name: '' }, { id: 'leg_08', r: 'legendary', name: '' },
-    { id: 'leg_09', r: 'legendary', name: '' }, { id: 'leg_10', r: 'legendary', name: '' }, { id: 'leg_11', r: 'legendary', name: '' }, { id: 'leg_12', r: 'legendary', name: '' },
-    { id: 'leg_13', r: 'legendary', name: '' }, { id: 'leg_14', r: 'legendary', name: '' }, { id: 'leg_15', r: 'legendary', name: '' }, { id: 'leg_16', r: 'legendary', name: '' },
-    { id: 'epi_01', r: 'epic', name: '' }, { id: 'epi_02', r: 'epic', name: '' }, { id: 'epi_03', r: 'epic', name: '' }, { id: 'epi_04', r: 'epic', name: '' },
-    { id: 'epi_05', r: 'epic', name: '' }, { id: 'epi_06', r: 'epic', name: '' }, { id: 'epi_07', r: 'epic', name: '' }, { id: 'epi_08', r: 'epic', name: '' },
-    { id: 'epi_09', r: 'epic', name: '' }, { id: 'epi_10', r: 'epic', name: '' }, { id: 'epi_11', r: 'epic', name: '' }, { id: 'epi_12', r: 'epic', name: '' },
-    { id: 'epi_13', r: 'epic', name: '' }, { id: 'epi_14', r: 'epic', name: '' }, { id: 'epi_15', r: 'epic', name: '' }, { id: 'epi_16', r: 'epic', name: '' },
-    { id: 'epi_17', r: 'epic', name: '' }, { id: 'epi_18', r: 'epic', name: '' }, { id: 'epi_19', r: 'epic', name: '' }, { id: 'epi_20', r: 'epic', name: '' },
-    { id: 'epi_21', r: 'epic', name: '' }, { id: 'epi_22', r: 'epic', name: '' }, { id: 'eli_01', r: 'elite', name: '' }, { id: 'eli_02', r: 'elite', name: '' },
-    { id: 'eli_03', r: 'elite', name: '' }, { id: 'eli_04', r: 'elite', name: '' }, { id: 'eli_05', r: 'elite', name: '' }, { id: 'adv_01', r: 'advanced', name: '' },
-    { id: 'adv_02', r: 'advanced', name: '' }, { id: 'adv_03', r: 'advanced', name: '' }, { id: 'adv_04', r: 'advanced', name: '' }, { id: 'leg_17', r: 'legendary', name: '' },
-    { id: 'leg_18', r: 'legendary', name: '' }, { id: 'leg_19', r: 'legendary', name: '' }, { id: 'leg_20', r: 'legendary', name: '' }, { id: 'leg_21', r: 'legendary', name: '' },
-    { id: 'leg_22', r: 'legendary', name: '' }, { id: 'leg_23', r: 'legendary', name: '' }, { id: 'leg_24', r: 'legendary', name: '' }, { id: 'leg_25', r: 'legendary', name: '' },
-    { id: 'leg_26', r: 'legendary', name: '' }, { id: 'leg_27', r: 'legendary', name: '' }, { id: 'leg_28', r: 'legendary', name: '' }, { id: 'leg_29', r: 'legendary', name: '' },
-    { id: 'leg_30', r: 'legendary', name: '' }, { id: 'leg_31', r: 'legendary', name: '' }, { id: 'leg_32', r: 'legendary', name: '' }, { id: 'leg_33', r: 'legendary', name: '' },
-    { id: 'leg_34', r: 'legendary', name: '' }, { id: 'leg_35', r: 'legendary', name: '' }, { id: 'leg_36', r: 'legendary', name: '' }, { id: 'leg_37', r: 'legendary', name: '' },
-    { id: 'leg_38', r: 'legendary', name: '' }, { id: 'leg_39', r: 'legendary', name: '' }, { id: 'leg_40', r: 'legendary', name: '' }, { id: 'leg_41', r: 'legendary', name: '' },
-    { id: 'leg_42', r: 'legendary', name: '' }, { id: 'leg_43', r: 'legendary', name: '' }, { id: 'leg_44', r: 'legendary', name: '' }, { id: 'leg_45', r: 'legendary', name: '' },
-    { id: 'leg_46', r: 'legendary', name: '' }, { id: 'leg_47', r: 'legendary', name: '' }, { id: 'leg_48', r: 'legendary', name: '' }, { id: 'leg_49', r: 'legendary', name: '' },
-    { id: 'leg_50', r: 'legendary', name: '' }, { id: 'leg_51', r: 'legendary', name: '' }, { id: 'leg_52', r: 'legendary', name: '' }, { id: 'leg_53', r: 'legendary', name: '' },
-    { id: 'leg_54', r: 'legendary', name: '' }, { id: 'leg_55', r: 'legendary', name: '' }, { id: 'leg_56', r: 'legendary', name: '' }, { id: 'leg_57', r: 'legendary', name: '' },
-    { id: 'leg_58', r: 'legendary', name: '' }, { id: 'leg_59', r: 'legendary', name: '' }, { id: 'leg_60', r: 'legendary', name: '' }, { id: 'leg_61', r: 'legendary', name: '' },
-    { id: 'leg_62', r: 'legendary', name: '' }, { id: 'leg_63', r: 'legendary', name: '' }, { id: 'leg_64', r: 'legendary', name: '' }, { id: 'leg_65', r: 'legendary', name: '' },
-    { id: 'leg_66', r: 'legendary', name: '' }, { id: 'leg_67', r: 'legendary', name: '' }, { id: 'leg_68', r: 'legendary', name: '' }, { id: 'leg_69', r: 'legendary', name: '' },
-    { id: 'leg_70', r: 'legendary', name: '' }, { id: 'leg_71', r: 'legendary', name: '' }, { id: 'leg_72', r: 'legendary', name: '' }, { id: 'leg_73', r: 'legendary', name: '' },
-    { id: 'leg_74', r: 'legendary', name: '' }, { id: 'leg_75', r: 'legendary', name: '' }, { id: 'leg_76', r: 'legendary', name: '' }, { id: 'leg_77', r: 'legendary', name: '' },
-    { id: 'leg_78', r: 'legendary', name: '' }, { id: 'leg_79', r: 'legendary', name: '' }, { id: 'leg_80', r: 'legendary', name: '' }, { id: 'leg_81', r: 'legendary', name: '' },
-    { id: 'leg_82', r: 'legendary', name: '' }, { id: 'leg_83', r: 'legendary', name: '' }, { id: 'leg_84', r: 'legendary', name: '' }, { id: 'leg_85', r: 'legendary', name: '' },
-    { id: 'leg_86', r: 'legendary', name: '' }, { id: 'leg_87', r: 'legendary', name: '' }, { id: 'leg_88', r: 'legendary', name: '' }, { id: 'leg_89', r: 'legendary', name: '' },
-    { id: 'leg_90', r: 'legendary', name: '' }, { id: 'leg_91', r: 'legendary', name: '' }, { id: 'leg_92', r: 'legendary', name: '' }, { id: 'leg_93', r: 'legendary', name: '' },
-    { id: 'leg_94', r: 'legendary', name: '' }, { id: 'leg_95', r: 'legendary', name: '' }, { id: 'leg_96', r: 'legendary', name: '' }, { id: 'leg_97', r: 'legendary', name: '' },
-    { id: 'leg_98', r: 'legendary', name: '' }, { id: 'leg_99', r: 'legendary', name: '' }, { id: 'leg_100', r: 'legendary', name: '' }, { id: 'leg_101', r: 'legendary', name: '' },
-    { id: 'leg_102', r: 'legendary', name: '' }, { id: 'leg_103', r: 'legendary', name: '' }, { id: 'leg_104', r: 'legendary', name: '' }, { id: 'leg_105', r: 'legendary', name: '' },
-    { id: 'leg_106', r: 'legendary', name: '' }, { id: 'leg_107', r: 'legendary', name: '' }, { id: 'leg_108', r: 'legendary', name: '' }, { id: 'leg_109', r: 'legendary', name: '' },
-    { id: 'leg_110', r: 'legendary', name: '' }, { id: 'leg_111', r: 'legendary', name: '' }, { id: 'leg_112', r: 'legendary', name: '' }
+    { id: 'achilles', r: 'legendary', name: 'Achilles', ex: 1 },
+    { id: 'afonso', r: 'legendary', name: 'Afonso I.', ex: 1 },
+    { id: 'alex', r: 'legendary', name: 'Alexander der Große', ex: 1 },
+    { id: 'nevsky', r: 'legendary', name: 'Alexander Newski', ex: 1 },
+    { id: 'alp', r: 'legendary', name: 'Alp Arslan', ex: 1 },
+    { id: 'amani', r: 'legendary', name: 'Amanitore', ex: 1 },
+    { id: 'archimedes', r: 'legendary', name: 'Archimedes', ex: 1 },
+    { id: 'art', r: 'legendary', name: 'Artemisia I.', ex: 1 },
+    { id: 'arthur', r: 'legendary', name: 'Arthur Pendragon', ex: 1 },
+    { id: 'ash', r: 'legendary', name: 'Assurbanipal', ex: 1 },
+    { id: 'attila', r: 'legendary', name: 'Attila', ex: 1 },
+    { id: 'babur', r: 'legendary', name: 'Babur', ex: 1 },
+    { id: 'bq', r: 'legendary', name: 'Bai Qi', ex: 1 },
+    { id: 'beli', r: 'legendary', name: 'Belisarius', ex: 1 },
+    { id: 'bert', r: 'legendary', name: 'Bertrand du Guesclin', ex: 1 },
+    { id: 'bjorn', r: 'legendary', name: 'Björn Eisenseite', ex: 1 },
+    { id: 'boudica', r: 'legendary', name: 'Boudica', ex: 1 },
+    { id: 'cc', r: 'legendary', name: 'Cao Cao', ex: 1 },
+    { id: 'chandra', r: 'legendary', name: 'Chandragupta Maurya', ex: 1 },
+    { id: 'cj', r: 'legendary', name: 'Cheok Jun-gyeong', ex: 1 },
+    { id: 'cy', r: 'legendary', name: 'Cy', ex: 1 },
+    { id: 'david', r: 'legendary', name: 'David IV.', ex: 1 },
+    { id: 'dido', r: 'legendary', name: 'Dido', ex: 1 },
+    { id: 'khan', r: 'legendary', name: 'Dschingis Khan', ex: 1 },
+    { id: 'edward', r: 'legendary', name: 'Edward von Woodstock', ex: 1 },
+    { id: 'cid', r: 'legendary', name: 'El Cid', ex: 1 },
+    { id: 'eleanor', r: 'legendary', name: 'Eleonore von Aquitanien', ex: 1 },
+    { id: 'elizabeth', r: 'legendary', name: 'Elisabeth I.', ex: 1 },
+    { id: 'eulji', r: 'legendary', name: 'Eulji Mundeok', nb: 1, ex: 1 },
+    { id: 'flav', r: 'legendary', name: 'Flavius Aetius', ex: 1 },
+    { id: 'fred', r: 'legendary', name: 'Friedrich I.', ex: 1 },
+    { id: 'gajah', r: 'legendary', name: 'Gajah Mada', ex: 1 },
+    { id: 'gamchan', r: 'legendary', name: 'Gang Gam-chan', ex: 1 },
+    { id: 'gilga', r: 'legendary', name: 'Gilgamesch', ex: 1 },
+    { id: 'gonzalo', r: 'legendary', name: 'Gonzalo de Córdoba', ex: 1 },
+    { id: 'gorgo', r: 'legendary', name: 'Gorgo', ex: 1 },
+    { id: 'guan', r: 'legendary', name: 'Guan Yu', ex: 1 },
+    { id: 'barca', r: 'legendary', name: 'Hannibal Barca', ex: 1 },
+    { id: 'harald', r: 'legendary', name: 'Harald Hardrada', ex: 1 },
+    { id: 'hayam', r: 'legendary', name: 'Hayam Wuruk', ex: 1 },
+    { id: 'henry', r: 'legendary', name: 'Heinrich V.', ex: 1 },
+    { id: 'hector', r: 'legendary', name: 'Hektor', ex: 1 },
+    { id: 'hera', r: 'legendary', name: 'Herakleios', ex: 1 },
+    { id: 'hermann', r: 'legendary', name: 'Hermann', ex: 1 },
+    { id: 'honda', r: 'legendary', name: 'Honda Tadakatsu', ex: 1 },
+    { id: 'huo', r: 'legendary', name: 'Huo Qubing', ex: 1 },
+    { id: 'ishida', r: 'legendary', name: 'Ishida Mitsunari', ex: 1 },
+    { id: 'ivar', r: 'legendary', name: 'Ivar', ex: 1 },
+    { id: 'ivan', r: 'legendary', name: 'Iwan III.', ex: 1 },
+    { id: 'jad', r: 'legendary', name: 'Jadwiga', ex: 1 },
+    { id: 'jan', r: 'legendary', name: 'Jan Žižka', ex: 1 },
+    { id: 'joan', r: 'legendary', name: 'Jeanne d’Arc', ex: 1 },
+    { id: 'john', r: 'legendary', name: 'Johann Hunyadi', ex: 1 },
+    { id: 'caesar', r: 'legendary', name: 'Julius Caesar', ex: 1 },
+    { id: 'justinian', r: 'legendary', name: 'Justinian I.', ex: 1 },
+    { id: 'charlemagne', r: 'legendary', name: 'Karl der Große', ex: 1 },
+    { id: 'cm', r: 'legendary', name: 'Karl Martell', ex: 1 },
+    { id: 'casimir', r: 'legendary', name: 'Kasimir III.', ex: 1 },
+    { id: 'cleo', r: 'legendary', name: 'Kleopatra VII.', ex: 1 },
+    { id: 'const', r: 'legendary', name: 'Konstantin der Große', ex: 1 },
+    { id: 'cyrus', r: 'legendary', name: 'Kyros der Große', ex: 1 },
+    { id: 'lapu', r: 'legendary', name: 'Lapu-Lapu', ex: 1 },
+    { id: 'leo', r: 'legendary', name: 'Leonidas', ex: 1 },
+    { id: 'liu', r: 'legendary', name: 'Liu Che', ex: 1 },
+    { id: 'lohar', r: 'legendary', name: 'Lohar', ex: 1 },
+    { id: 'lubu', r: 'legendary', name: 'Lü Bu', ex: 1 },
+    { id: 'margaret', r: 'legendary', name: 'Margarete I.', ex: 1 },
+    { id: 'mary', r: 'legendary', name: 'Maria I.', ex: 1 },
+    { id: 'matthias', r: 'legendary', name: 'Matthias Corvinus', ex: 1 },
+    { id: 'mehmed', r: 'legendary', name: 'Mehmed II.', ex: 1 },
+    { id: 'mina', r: 'legendary', name: 'Minamoto no Yoshitsune', ex: 1 },
+    { id: 'mocte', r: 'legendary', name: 'Moctezuma I.', ex: 1 },
+    { id: 'mulan', r: 'legendary', name: 'Mulan', ex: 1 },
+    { id: 'nebu', r: 'legendary', name: 'Nebukadnezar II.', ex: 1 },
+    { id: 'osman', r: 'legendary', name: 'Osman I.', ex: 1 },
+    { id: 'pakal', r: 'legendary', name: 'Pakal der Große', ex: 1 },
+    { id: 'philip', r: 'legendary', name: 'Philipp II.', ex: 1 },
+    { id: 'pepin', r: 'legendary', name: 'Pippin der Jüngere', ex: 1 },
+    { id: 'pyrrhus', r: 'legendary', name: 'Pyrrhus', ex: 1 },
+    { id: 'qin', r: 'legendary', name: 'Qin Shi Huang', ex: 1 },
+    { id: 'ragnarold', r: 'legendary', name: 'Ragnar (alt)', ex: 1 },
+    { id: 'ragnar', r: 'legendary', name: 'Ragnar Lodbrok', ex: 1 },
+    { id: 'ramesses', r: 'legendary', name: 'Ramses II.', ex: 1 },
+    { id: 'richard', r: 'legendary', name: 'Richard I.', ex: 1 },
+    { id: 'saladin', r: 'legendary', name: 'Saladin', ex: 1 },
+    { id: 'sargon', r: 'legendary', name: 'Sargon der Große', ex: 1 },
+    { id: 'sa', r: 'legendary', name: 'Sa', ex: 1 },
+    { id: 'scipio', r: 'legendary', name: 'Scipio Africanus', ex: 1 },
+    { id: 'seondeok', r: 'legendary', name: 'Seondeok', ex: 1 },
+    { id: 'shajar', r: 'legendary', name: 'Shajar al-Durr', ex: 1 },
+    { id: 'shapur', r: 'legendary', name: 'Shapur I.', ex: 1 },
+    { id: 'siyaj', r: 'legendary', name: 'Siyaj Chan', ex: 1 },
+    { id: 'stephen', r: 'legendary', name: 'Stephan I.', ex: 1 },
+    { id: 'subutai', r: 'legendary', name: 'Subutai', ex: 1 },
+    { id: 'sun', r: 'legendary', name: 'Sun Tzu', ex: 1 },
+    { id: 'suleiman', r: 'legendary', name: 'Süleyman I.', ex: 1 },
+    { id: 'takeda', r: 'legendary', name: 'Takeda Shingen', ex: 1 },
+    { id: 'tariq', r: 'legendary', name: 'Tariq ibn Ziyad', ex: 1 },
+    { id: 'theo', r: 'legendary', name: 'Theodora', ex: 1 },
+    { id: 'thutmose', r: 'legendary', name: 'Thutmosis III.', ex: 1 },
+    { id: 'toku', r: 'legendary', name: 'Tokugawa Ieyasu', ex: 1 },
+    { id: 'tomy', r: 'legendary', name: 'Tomyris', ex: 1 },
+    { id: 'trajan', r: 'legendary', name: 'Trajan', ex: 1 },
+    { id: 'verci', r: 'legendary', name: 'Vercingetorix', ex: 1 },
+    { id: 'william', r: 'legendary', name: 'Wilhelm I.', ex: 1 },
+    { id: 'marshal', r: 'legendary', name: 'William Marshal', ex: 1 },
+    { id: 'wallace', r: 'legendary', name: 'William Wallace', ex: 1 },
+    { id: 'wu', r: 'legendary', name: 'Wu Zetian', ex: 1 },
+    { id: 'xy', r: 'legendary', name: 'Xiang Yu', ex: 1 },
+    { id: 'ysg', r: 'legendary', name: 'Yi Seong-gye', ex: 1 },
+    { id: 'yss', r: 'legendary', name: 'Yi Sun-sin', ex: 1 },
+    { id: 'zeno', r: 'legendary', name: 'Zenobia', ex: 1 },
+    { id: 'zl', r: 'legendary', name: 'Zhuge Liang', ex: 1 },
+    { id: 'aethel', r: 'legendary', name: 'Æthelflæd', ex: 1 },
+    { id: 'baibars', r: 'epic', name: 'Baibars', ex: 1 },
+    { id: 'beliepic', r: 'epic', name: 'Belisarius (Episch)', ex: 1 },
+    { id: 'boudicaepic', r: 'epic', name: 'Boudica (Episch)', ex: 1 },
+    { id: 'diaochan', r: 'epic', name: 'Diaochan', ex: 1 },
+    { id: 'hermannepic', r: 'epic', name: 'Hermann (Episch)', ex: 1 },
+    { id: 'imhotep', r: 'epic', name: 'Imhotep', ex: 1 },
+    { id: 'joanepic', r: 'epic', name: 'Jeanne d’Arc (Episch)', ex: 1 },
+    { id: 'catherine', r: 'epic', name: 'Katharina', ex: 1 },
+    { id: 'keira', r: 'epic', name: 'Keira', ex: 1 },
+    { id: 'kuso', r: 'epic', name: 'Kusunoki Masashige', ex: 1 },
+    { id: 'wak', r: 'epic', name: 'Lady Six Sky', ex: 1 },
+    { id: 'matilda', r: 'epic', name: 'Mathilde von Flandern', ex: 1 },
+    { id: 'narses', r: 'epic', name: 'Narses', ex: 1 },
+    { id: 'pelagius', r: 'epic', name: 'Pelagius', ex: 1 },
+    { id: 'pericles', r: 'epic', name: 'Perikles', ex: 1 },
+    { id: 'scipioepic', r: 'epic', name: 'Scipio (Episch)', ex: 1 },
+    { id: 'sunepic', r: 'epic', name: 'Sun Tzu (Episch)', ex: 1 },
+    { id: 'tamar', r: 'epic', name: 'Tamar', ex: 1 },
+    { id: 'constance', r: 'elite', name: 'Constance' },
+    { id: 'gaius', r: 'elite', name: 'Gaius Marius' },
+    { id: 'lancelot', r: 'elite', name: 'Lancelot' },
+    { id: 'tomoe', r: 'elite', name: 'Tomoe Gozen' },
+    { id: 'sarka', r: 'elite', name: 'Šárka' },
+    { id: 'dragonlancer', r: 'advanced', name: 'Drachenlanzer' },
+    { id: 'markswoman', r: 'advanced', name: 'Schützin' },
+    { id: 'citykeeper', r: 'advanced', name: 'Stadtwächter' },
+    { id: 'centurion', r: 'advanced', name: 'Zenturio' }
   ];
   const CMD_BY_ID = Object.fromEntries(COMMANDERS.map(c => [c.id, c]));
-  const cmdImg = (id) => `/icons/commander/${id}.webp`;
+  const cmdImg = (id, exp) => { const m = CMD_BY_ID[id]; return (m && m.ex && (exp || m.nb) ? '/icons/comanderexpertise/' : '/icons/comander/') + id + '.webp'; };
+  // Ausrüstungs-Bilder in /icons/gear/ (Dateiname ohne .webp) – Grundlage für den Bild-Abgleich beim Screenshot-Scan
+  const GEAR_FILES = ["abyssal_visage_purple", "ancestral_mask_of_night", "ancient_stratagems_purple", "armband_of_the_hellish_wasteland", "ash_of_the_dawn", "boots_of_the_hellish_wasteland", "chausses_of_the_glorious_goddess", "claws_of_the_forest_guardian_purple", "cloth_gloves_grey", "cloud_racers_purple", "commanders_boots", "concealed_dagger", "crimson_ring_purple", "dark_lords_blessing_purple", "delanes_amulet_purple", "diadem_of_the_glorious_goddess", "dragons_breath_boots", "dragons_breath_bow", "dragons_breath_helm", "dragons_breath_plate", "dragons_breath_tassets", "dragons_breath_vambraces", "eternal_night", "fanatics_tassets_purple", "fierce_wolfs_helmet", "flame_treads_purple", "frost_treads_purple", "gauntlets_of_the_glorious_goddess", "gladiator_purple", "gold_helm_of_the_eternal_empire", "golden_age_purple", "greatest_glory", "greaves_of_the_eternal_empire", "greaves_of_the_glorious_goddess", "hammer_of_the_sun_and_moon", "harvester_boots_blue", "harvester_breeches_blue", "harvester_robes_blue", "harvesters_headscarf_blue", "heart_of_the_saint_purple", "heavy_armor_of_the_hellish_wasteland", "helm_of_the_conqueror", "heros_hilt", "hope_cloak", "horn_of_fury", "ians_choice", "immolating_plume", "isets_sufferance_purple", "karuaks_humility_purple", "karuaks_war_drums", "knights_oathsworn_bow_purple", "knights_steel_diadem_purple", "knights_triumphant_tassets_purple", "knights_valorous_cloak_purple", "knights_winter_sabatons_purple", "lance_of_the_hellish_wasteland", "lone_wolfs_leather_tassets", "mask_of_the_forest_guardian_purple", "moras_web", "mountain_crushers", "navars_control", "pendant_of_eternal_night", "peters_sickle_purple", "plate_of_the_glorious_goddess", "pride_of_the_khan", "quinns_soul_purple", "revival_gauntlets_purple", "revival_helm_purple", "revival_plate_purple", "ring_of_doom", "roaring_wolfs_claws", "robe_of_the_forest_guardian_purple", "sacred_dominion", "sacred_grips", "saddle_of_a_thousand_blessings", "scepter_of_the_forest_guardian_purple", "scepter_of_the_glorious_goddess", "scolas_lucky_coin", "seths_brutality_purple", "seths_call", "shadow_legions_retribution", "sharp_longsword_grey", "shield_of_the_eternal_empire", "shios_return", "silent_trial_purple", "sturdy_boots_of_the_eternal_empire", "tassets_of_the_hellish_wasteland", "tassets_of_the_war_god", "the_bards_pendant_purple", "the_milky_way", "timeless_amber", "twilight_epiphany", "vambraces_of_the_eternal_empire", "vengeance", "vigilant_wolfs_leather_armor", "wailing_wolfs_gauntlets", "war_helm_of_the_hellish_wasteland", "witchs_lineage_purple"];
+  const GEAR_FILE_SET = new Set(GEAR_FILES);
+  const gearFileName = (f) => f.replace(/_(purple|blue|grey|green)$/, '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  const gearFileRar = (f) => /_purple$/.test(f) ? 'epic' : 'legendary';
+  const gearIconStem = (icon) => { const m = String(icon || '').match(/^\/icons\/(?:gear\/)?([A-Za-z0-9_-]+)\.(?:webp|png|jpe?g)$/); return m ? m[1] : ''; };
+  function gearIconFor(icon, name, rarity) {            // passendes Bild aus /icons/gear/ (auch wenn in gear_items kein oder ein alter Pfad steht)
+    const st = gearIconStem(icon); if (st && GEAR_FILE_SET.has(st)) return `/icons/gear/${st}.webp`;
+    const slug = String(name || '').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/['’`´]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    const hit = [rarity === 'epic' ? slug + '_purple' : '', slug, slug + '_purple'].find(x => x && GEAR_FILE_SET.has(x));
+    return hit ? `/icons/gear/${hit}.webp` : (icon || '');
+  }
+  // ---- Referenztafeln für den Screenshot-Abgleich: alle Bilder nummeriert auf einem Blatt, Claude vergleicht damit ----
+  const refCache = {};
+  function refSheet(kind) {
+    if (refCache[kind]) return refCache[kind];
+    return (refCache[kind] = (async () => {
+      const gearK = kind === 'gear';
+      const list = gearK ? GEAR_FILES.map(f => ({ src: `/icons/gear/${f}.webp`, label: '' })) : COMMANDERS.map(c => ({ src: cmdImg(c.id), label: c.name }));
+      const cols = gearK ? 12 : 14, cell = gearK ? 96 : 90, lab = gearK ? 0 : 15, rows = Math.ceil(list.length / cols);
+      const imgs = await Promise.all(list.map(x => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = x.src; })));
+      if (!imgs.some(Boolean)) { delete refCache[kind]; return null; }
+      const cv = document.createElement('canvas'); cv.width = cols * cell; cv.height = rows * (cell + lab);
+      const ctx = cv.getContext('2d'); ctx.fillStyle = '#1b2233'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.textBaseline = 'top';
+      imgs.forEach((im, i) => {
+        const x = (i % cols) * cell, y = Math.floor(i / cols) * (cell + lab);
+        ctx.strokeStyle = '#3a4560'; ctx.strokeRect(x + .5, y + .5, cell - 1, cell + lab - 1);
+        if (im) ctx.drawImage(im, x + 6, y + 6, cell - 12, cell - 12);
+        ctx.fillStyle = '#000'; ctx.fillRect(x + 1, y + 1, 30, 18);
+        ctx.fillStyle = '#ffe066'; ctx.font = 'bold 15px sans-serif'; ctx.fillText(String(i + 1), x + 3, y + 3);
+        if (lab) { ctx.fillStyle = '#ffffff'; ctx.font = '11px sans-serif'; ctx.fillText(list[i].label, x + 3, y + cell + 1, cell - 6); }
+      });
+      const url = cv.toDataURL('image/jpeg', 0.82);
+      return { kind, media_type: 'image/jpeg', data: url.split(',')[1], count: list.length };
+    })());
+  }
+  async function scanRefs(kinds) { const out = []; for (const k of kinds) { try { const r = await refSheet(k); if (r) out.push(r); } catch {} } return out; }
+  const refNum = (v, n) => { const x = Math.round(+v); return Number.isFinite(x) && x >= 1 && x <= n ? x : 0; };
+  function cmdFromScan(c) {                                // { ref, name, expertise } → Kommandant aus dem Katalog
+    if (!c || typeof c !== 'object') return null;
+    let m = COMMANDERS[refNum(c.ref, COMMANDERS.length) - 1] || null;
+    if (!m && c.name) { const k = scKey(c.name); m = COMMANDERS.find(x => scKey(x.name) === k) || COMMANDERS.find(x => k.length > 3 && scKey(x.name).includes(k)) || null; }
+    return m ? scCmdNorm({ id: m.id, exp: !!c.expertise }) : null;
+  }
   const SC_RAR = {
     legendary: { label: 'Legendär',        c: '#f5c542' },
     epic:      { label: 'Episch',          c: '#c084fc' },
@@ -3845,7 +3994,7 @@ window.RokApp = () => {
   const scSkills = (v) => { let a = Array.isArray(v) ? v : (String(v ?? '').match(/\d/g) || []); a = a.slice(0, 4).map(x => scInt(x, 0, 5, 1)); while (a.length < 4) a.push(1); return a; };
   const scKey = (n) => String(n || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '');
   const scIconOk = (v) => typeof v === 'string' && /^\/icons\/[A-Za-z0-9_./-]+\.(webp|png|jpe?g)$/.test(v) ? v : '';
-  const scCmdNorm = (c) => c && CMD_BY_ID[c.id] ? { id: c.id, level: scInt(c.level, 1, 60, 60), skills: scSkills(c.skills), awakened: !!c.awakened } : null;
+  const scCmdNorm = (c) => c && CMD_BY_ID[c.id] ? { id: c.id, exp: !!(CMD_BY_ID[c.id].ex && (c.exp || CMD_BY_ID[c.id].nb)), level: scInt(c.level, 1, 60, 60), skills: scSkills(c.skills), awakened: !!c.awakened } : null;
   const scGearNorm = (g) => Object.fromEntries(GEAR_SLOTS.map(sl => { const v = g?.[sl.k] || {};
     return [sl.k, { item: String(v.item || ''), name: String(v.name || '').slice(0, 60), icon: scIconOk(v.icon), rarity: v.rarity === 'epic' ? 'epic' : 'legendary',
       tier: gTier(v.tier), refine: gRefine(v.refine), refType: gRefType(v.refType) }]; }));
@@ -3899,10 +4048,10 @@ window.RokApp = () => {
     const fo = w?.fillO == null || w?.fillO === '' ? NaN : +w.fillO;
     return { on: !!w?.on, x: scPos(w?.x, 100), y: scPos(w?.y, 200), s: scScale(w?.s), color: scColor(w?.color), shadow: w?.shadow !== false,
       fill: w?.fill === 'none' || (off && w?.fill == null) ? 'none' : scColor(w?.fill), fillO: Number.isFinite(fo) ? Math.min(100, Math.max(0, Math.round(fo))) : 75,
-      border: w?.border === 'none' || (off && w?.border == null) ? 'none' : scColor(w?.border), text: String(w?.text || '').slice(0, 80) }; };
+      border: w?.border === 'none' || (off && w?.border == null) ? 'none' : scColor(w?.border), text: '' }; };
   // eigene Texte im Showcase (ohne Box als Standard) · City-Skin: Katalog-Bild oder eigenes Bild
   const scTxNorm = (t) => ({ ...scElNorm({ ...t, on: true, fill: t?.fill ?? 'none', border: t?.border ?? 'none' }), id: String(t?.id || newId()), text: String(t?.text ?? 'Text').slice(0, 80) });
-  const scSkinOk = (v) => typeof v === 'string' && /^\/icons\/skins\/[A-Za-z0-9_-]+\.webp$/.test(v);   // nur RoK-Skins aus dem Katalog
+  const scSkinOk = (v) => typeof v === 'string' && v.length < 200 && /^\/icons\/city%20skins\/[A-Za-z0-9_.%()-]+\.(png|webp|jpe?g)$/i.test(v);   // nur RoK-Skins aus dem Katalog
   const scRgba = (h, a) => `rgba(${parseInt(h.slice(1, 3), 16)},${parseInt(h.slice(3, 5), 16)},${parseInt(h.slice(5, 7), 16)},${a})`;
   const scArmNorm = (a) => ({ on: !!a?.on, x: scPos(a?.x, 100), y: scPos(a?.y, 200), s: scScale(a?.s), formation: String(a?.formation || '').slice(0, 30),
     insc: (Array.isArray(a?.insc) ? a.insc : []).slice(0, 8).map(i => ({ t: String(i?.t || '').slice(0, 24), c: SC_INSC[i?.c] ? i.c : 'gold' })),
@@ -3970,7 +4119,7 @@ window.RokApp = () => {
     const o = { id: String(d?.id || newId()), title: String(d?.title || `Showcase ${i + 1}`).trim().slice(0, 30) || `Showcase ${i + 1}`,
       sets: sets.slice(0, SC_MAX).map(scSetNorm), bg: scBgNorm(d?.bg), h: SC_HEIGHTS[d?.h] ? d.h : 'normal', grid: d?.grid !== false,
       els: Object.fromEntries(Object.keys(SC_ELS).map(k => [k, scElNorm(k === 'kd' && d?.els?.ally?.on && !d?.els?.kd?.on ? { ...d.els.ally, text: '' } : (d?.els?.[k] || old[k]))])),   // altes Allianz-Feld → Königreich
-      texts: (Array.isArray(d?.texts) ? d.texts : []).slice(0, 12).map(scTxNorm), skin: scSkinOk(d?.skin) ? d.skin : '' };
+      texts: (Array.isArray(d?.texts) ? d.texts : []).slice(0, 12).map(scTxNorm), skin: d?.skin === '/icons/skins/skin_01.webp' ? '/icons/city%20skins/Hawa%20Mahal.png' : scSkinOk(d?.skin) ? d.skin : '' };
     scAutoLayout(o, true);
     return o;
   }
@@ -4033,9 +4182,9 @@ window.RokApp = () => {
       return `<div class="relative flex flex-col items-center ${main ? 'z-10 w-36 sm:w-40' : 'z-0 w-28 sm:w-32 -ml-7 sm:-ml-8 translate-y-1'}">
         <div class="w-full mb-1 truncate text-center ${main ? 'pr-7 sm:pr-8' : 'pl-7 sm:pl-8'} ${named ? 'text-sm font-semibold text-white [text-shadow:0_1px_3px_#000]' : 'text-[10px] uppercase tracking-widest text-slate-400'}"${named ? ' translate="no"' : ''}>${esc(named ? m.name : SC_SLOTS[i])}</div>
         <button type="button" data-cmdslot="${i}" ${click ? '' : 'disabled'} title="${m ? (sc.own ? 'Kommandant ändern' : 'Kommandant ansehen') : 'Kommandant wählen'}"
-            class="relative w-full aspect-[140/195] flex items-end justify-center group focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 rounded-xl ${click ? 'cursor-pointer' : 'cursor-default'}">
-          ${m ? `<img src="${cmdImg(m.id)}" alt="${esc(m.name)}" class="w-full h-full object-contain object-bottom drop-shadow-[0_6px_14px_rgba(0,0,0,.6)] transition-transform group-hover:scale-[1.04]">`
-            : `<span class="ghex w-[86%] aspect-[166/192] mb-[3%] grid place-items-center transition ${sc.own ? 'bg-gold-500/50 group-hover:bg-gold-400' : 'bg-ink-600'}">
+            class="relative w-full aspect-square flex items-center justify-center group focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 rounded-xl ${click ? 'cursor-pointer' : 'cursor-default'}">
+          ${m ? `<img src="${cmdImg(m.id, c.exp)}" alt="${esc(m.name)}" class="w-full h-full object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,.6)] transition-transform group-hover:scale-[1.04]">`
+            : `<span class="ghex w-[78%] aspect-[166/192] grid place-items-center transition ${sc.own ? 'bg-gold-500/50 group-hover:bg-gold-400' : 'bg-ink-600'}">
                  <span class="ghex w-[calc(100%-6px)] h-[calc(100%-6px)] grid place-items-center bg-ink-950 text-4xl font-light ${sc.own ? 'text-gold-400/80 group-hover:text-gold-300' : 'text-ink-600'}">${sc.own ? '+' : ''}</span></span>`}
         </button>
       </div>`;
@@ -4160,8 +4309,8 @@ window.RokApp = () => {
       ${x.shot ? `<img src="${x.shot}" alt="" draggable="false" class="w-full rounded-md border border-gold-500/40 shadow-[0_4px_14px_rgba(0,0,0,.6)]">`
                : '<div class="w-full aspect-[4/3] rounded-md border border-dashed border-ink-600 grid place-items-center text-slate-500" style="font-size:max(9px,1.2cqw)">📷</div>'}</div>`;
     const cmd = (c, main) => { const m = c && CMD_BY_ID[c.id];
-      return `<div class="relative flex items-end justify-center" style="width:${main ? 6.4 : 5.2}cqw;aspect-ratio:140/195;z-index:${main ? 1 : 0};${main ? '' : 'margin-left:-1.2cqw;transform:translateY(.25cqw)'}">
-        ${m ? `<img src="${cmdImg(m.id)}" alt="" draggable="false" class="w-full h-full object-contain object-bottom drop-shadow-[0_3px_6px_rgba(0,0,0,.6)]">` : '<span class="ghex w-[86%] aspect-[166/192] mb-[3%] bg-ink-600/70"></span>'}</div>`; };
+      return `<div class="relative flex items-center justify-center" style="width:${main ? 6 : 5}cqw;aspect-ratio:1;z-index:${main ? 1 : 0};${main ? '' : 'margin-left:-.9cqw;transform:translateY(.3cqw)'}">
+        ${m ? `<img src="${cmdImg(m.id, c.exp)}" alt="" draggable="false" class="w-full h-full object-contain drop-shadow-[0_3px_6px_rgba(0,0,0,.6)]">` : '<span class="ghex w-[78%] aspect-[166/192] bg-ink-600/70"></span>'}</div>`; };
     return `<div class="relative flex flex-col items-center rounded-lg ${sc.own && x.priv && !sc.exporting ? 'opacity-60' : ''} ${sel ? 'ring-2 ring-gold-400/80 bg-gold-500/10' : ''}" style="padding:.4cqw">${name}
       <div class="flex items-end justify-center">${cmd(x.cmd[0], true)}${cmd(x.cmd[1], false)}</div>
       <div class="relative" style="width:10cqw;aspect-ratio:1/2;margin-top:.5cqw">${scGearBoard(x.gear, true)}</div>
@@ -4175,7 +4324,7 @@ window.RokApp = () => {
   }
   function scWidget(k, w) {
     const st = sc.stats, W = SC_ELS[k], shadow = w.shadow ? 'filter:drop-shadow(0 2px 3px rgba(0,0,0,.85));' : '';
-    const boxSt = scBoxSt(w), box = 'rounded-lg', own = (auto) => w.text ? esc(w.text) : auto;   // eigener Text ersetzt den automatischen
+    const boxSt = scBoxSt(w), box = 'rounded-lg', own = (auto) => auto;   // Werte kommen immer aus dem Profil
     if (k === 'skin') {
       const src = D().skin;
       return src ? `<img src="${src}" alt="" draggable="false" class="block max-w-none" style="height:13cqw;width:auto;${w.border === 'none' ? '' : `border:2px solid ${w.border || 'rgba(245,197,66,.8)'};border-radius:1cqw;`}${w.fill === 'none' ? '' : `background:${scRgba(w.fill || '#07090f', w.fillO / 100)};border-radius:1cqw;`}${w.shadow ? 'filter:drop-shadow(0 6px 10px rgba(0,0,0,.6));' : ''}">`
@@ -4190,10 +4339,11 @@ window.RokApp = () => {
     const goldTxt = !w.color && (k === 'name' || k === 'vip');
     const col = w.color ? `color:${w.color};` : (goldTxt ? '' : `color:${SC_DEF_COLOR[k]};`);
     const pad = boxSt ? boxSt + 'padding:.5cqw 1.2cqw;' : '';
-    if (k === 'name') return `<div class="${box} font-display font-extrabold whitespace-nowrap ${goldTxt ? 'gold-text' : ''}" style="${col}${shadow}${pad}font-size:max(12px,3cqw)" translate="no">${own(esc(st.name || ''))}</div>`;
+    const gold = (t) => goldTxt ? `<span class="gold-text">${t}</span>` : t;
+    if (k === 'name') return `<div class="${box} font-display font-extrabold whitespace-nowrap" style="${col}${shadow}${pad}font-size:max(12px,3cqw)" translate="no">${gold(esc(st.name || ''))}</div>`;
     if (k === 'tag') return `<div class="${box} font-bold whitespace-nowrap" style="${col}${shadow}${pad}font-size:max(11px,2.2cqw)" translate="no">${own(`[${esc(st.tag || '–')}]`)}</div>`;
     if (k === 'kd') return `<div class="${box} font-bold whitespace-nowrap" style="${col}${shadow}${pad}font-size:max(11px,2.1cqw)">${own(`🏰 Königreich ${esc(st.kd || '–')}`)}</div>`;
-    if (k === 'vip') return `<div class="${box} font-display font-extrabold whitespace-nowrap ${goldTxt ? 'gold-text' : ''}" style="${col}${shadow}${pad}font-size:max(11px,2.3cqw)">${own(`👑 ${st.vip != null ? vipName(st.vip) : 'VIP –'}`)}</div>`;
+    if (k === 'vip') return `<div class="${box} font-display font-extrabold whitespace-nowrap" style="${col}${shadow}${pad}font-size:max(11px,2.3cqw)">👑 ${gold(st.vip != null ? vipName(st.vip) : 'VIP –')}</div>`;
     const v = st[k];
     return `<div class="${box} text-center" style="width:${W.w}cqw;${boxSt}${shadow}padding:.6cqw 1cqw">
       <div class="uppercase tracking-widest whitespace-nowrap overflow-hidden text-ellipsis ${w.color ? '' : 'text-slate-400'}" style="${w.color ? `color:${w.color};opacity:.8;` : ''}font-size:max(7px,.95cqw)">${W.icon} ${W.label}</div>
@@ -4258,7 +4408,7 @@ window.RokApp = () => {
     const sw = 'w-9 h-7 p-0 bg-transparent border border-ink-600 rounded cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
     el.innerHTML = `<div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
       <span class="font-semibold text-white" translate="no">${esc(label)}</span>
-      ${textual ? `<label class="inline-flex items-center gap-2 w-full sm:w-auto">Text <input id="scPT" maxlength="80" value="${esc(o.text || '')}" placeholder="${t === 'tx' ? 'Dein Text' : 'leer = automatisch'}" class="min-w-[200px] flex-1 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-gold-500"></label>` : ''}
+      ${t === 'tx' ? `<label class="inline-flex items-center gap-2 w-full sm:w-auto">Text <input id="scPT" maxlength="80" value="${esc(o.text || '')}" placeholder="${t === 'tx' ? 'Dein Text' : 'leer = automatisch'}" class="min-w-[200px] flex-1 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-gold-500"></label>` : ''}
       ${t === 'w' && k === 'skin' ? '<button type="button" id="scPSkin" class="px-2.5 py-1 rounded-lg border border-gold-500/60 text-gold-300 hover:border-gold-400">🏯 Skin wählen …</button>' : ''}
       <label class="inline-flex items-center gap-2">Größe <input id="scPS" type="range" min="40" max="250" step="5" value="${Math.round(o.s * 100)}" class="w-36 accent-yellow-500"><span id="scPSv" class="tabular-nums w-11">${Math.round(o.s * 100)} %</span></label>
       ${textual ? `<label class="inline-flex items-center gap-2">Schriftfarbe <input id="scPC" type="color" value="${o.color || (t === 'tx' ? '#ffffff' : SC_DEF_COLOR[k])}" class="w-9 h-7 p-0 bg-transparent border border-ink-600 rounded cursor-pointer"></label>
@@ -4507,10 +4657,12 @@ window.RokApp = () => {
 
   // ---- City-Skin auswählen ----
   // Katalog: Bilder liegen unter /icons/skins/<id>.webp – weitere einfach hier ergänzen (name optional)
+  // Dateiname genau wie in GitHub unter icons/city skins/ (Groß-/Kleinschreibung beachten)
   const CITY_SKINS = [
-    { id: 'skin_01', name: '' }
+    { id: 'Hawa Mahal.png', name: 'Hawa Mahal' }
   ];
-  const skinImg = (id) => `/icons/skins/${id}.webp`;
+  const SKIN_DIR = '/icons/city%20skins/';
+  const skinImg = (id) => SKIN_DIR + encodeURIComponent(id);
   function scSkinPicker() {
     if (!sc.own) return;
     const d = D(), root = document.createElement('div');
@@ -4703,13 +4855,13 @@ window.RokApp = () => {
     if (!files.length || sc.busy) return;
     sc.busy = true; scOpen = true; scApplyOpen();
     $('scScanLbl')?.classList.add('opacity-50', 'pointer-events-none');
-    scMsg('Claude liest deine Ausrüstung …', 'busy');
+    scMsg('Claude liest Ausrüstung und Kommandanten und gleicht sie mit deinen Bildern ab …', 'busy');
     const imgs = [];
     try {
       if (gearDbState === 'idle' || !gearCat.length) await loadGearDb();
       for (const f of files) imgs.push(await prepareImage(f));
       const res = await fetch('/api/scan', { method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ mode: 'gear', images: imgs.map(i => ({ media_type: i.mediaType, data: i.base64 })) }) });
+        body: JSON.stringify({ mode: 'gear', images: imgs.map(i => ({ media_type: i.mediaType, data: i.base64 })), refs: await scanRefs(['gear', 'commanders']) }) });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (res.status === 400 && /modus|mode/i.test(data?.error || '')) throw new Error('Der Scan-Server kennt den Ausrüstungs-Scan noch nicht – bitte den Modus „gear“ in api/scan.js ergänzen. Bis dahin die Slots von Hand wählen.');
@@ -4723,16 +4875,21 @@ window.RokApp = () => {
       GEAR_SLOTS.forEach(sl => {
         const info = src[sl.k]; if (!info || typeof info !== 'object') return;
         seen++;
-        let it = info.item_id ? gItem(String(info.item_id)) : null;
+        const byRef = gearByRef(sl.cat, info);
+        let it = byRef && !byRef.file ? byRef : (info.item_id ? gItem(String(info.item_id)) : null);
         if (it && it.cat !== sl.cat) it = null;
-        if (!it) it = gearMatch(sl.cat, info);
-        if (!it) return;
-        const v = { item: it.id, rarity: gearRarity(info.rarity) || it.rarity, tier: gTier(info.tier), refine: gRefine(info.refine), refType: gRefType(info.refine_type) };
-        scSnap(v, it); scSet().gear[sl.k] = v; hit++;
+        if (!it && !byRef) it = gearMatch(sl.cat, info);
+        const base = { tier: gTier(info.tier), refine: gRefine(info.refine), refType: gRefType(info.refine_type) };
+        if (it) { const v = { item: it.id, rarity: gearRarity(info.rarity) || it.rarity, ...base }; scSnap(v, it); scSet().gear[sl.k] = v; hit++; }
+        else if (byRef?.file) {                                  // Bild erkannt, aber (noch) nicht in gear_items → Bild + Name direkt übernehmen
+          scSet().gear[sl.k] = { item: '', name: gearFileName(byRef.file), icon: `/icons/gear/${byRef.file}.webp`, rarity: gearRarity(info.rarity) || gearFileRar(byRef.file), ...base }; hit++;
+        }
       });
-      if (!seen) throw new Error('Keine Ausrüstung im Screenshot erkannt. Bitte die Slots von Hand wählen.');
+      const cmds = (Array.isArray(r.commanders) ? r.commanders : []).map(cmdFromScan).filter(Boolean).slice(0, 2);
+      cmds.forEach((c, i) => { scSet().cmd[i] = c; });
+      if (!seen && !cmds.length) throw new Error('Keine Ausrüstung im Screenshot erkannt. Bitte die Slots von Hand wählen.');
       drawShowcase();
-      await scSave(`✓ ${hit} von ${seen} Slots erkannt`);
+      await scSave(`✓ ${hit} von ${seen} Slots erkannt` + (cmds.length ? ` · Kommandant${cmds.length > 1 ? 'en' : ''}: ${cmds.map(c => CMD_BY_ID[c.id].name + (c.exp ? ' ⭐' : '')).join(' & ')}` : ''));
     } catch (e) {
       scMsg(e.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : (e.message || String(e)), 'err');
     } finally {
@@ -4748,7 +4905,7 @@ window.RokApp = () => {
   function openCmd(i) {
     const cur = scSet().cmd[i];
     if (!sc.own) { if (cur) showCmdView(cur); return; }
-    cm = { slot: i, rar: cm.rar || 'all', q: '', sel: cur?.id || null, level: cur?.level ?? 60, skills: cur ? [...cur.skills] : [5, 5, 5, 5], awakened: !!cur?.awakened };
+    cm = { slot: i, rar: cm.rar || 'all', q: '', sel: cur?.id || null, exp: cur ? !!cur.exp : !!cm.exp, level: cur?.level ?? 60, skills: cur ? [...cur.skills] : [5, 5, 5, 5], awakened: !!cur?.awakened };
     if (cm.sel && cm.rar !== 'all' && CMD_BY_ID[cm.sel].r !== cm.rar) cm.rar = 'all';
     $('cmdTitle').textContent = `Kommandant wählen · ${SC_SLOTS[i]}`;
     $('cmdPick').classList.remove('hidden'); $('cmdView').classList.add('hidden');
@@ -4765,7 +4922,7 @@ window.RokApp = () => {
       const used = c.id === other, on = c.id === cm.sel;
       return `<button type="button" data-cid="${c.id}" aria-pressed="${on}" ${used ? 'disabled' : ''} title="${esc(c.name)}${used ? ' – schon im anderen Slot' : ''}"
           class="relative rounded-xl p-1 transition ${on ? 'bg-gold-500/25 ring-2 ring-gold-400' : 'hover:bg-ink-800'} ${used ? 'opacity-30 cursor-not-allowed' : ''}">
-        <img src="${cmdImg(c.id)}" alt="${esc(c.name)}" loading="lazy" class="w-full aspect-[140/195] object-contain object-bottom">
+        <img src="${cmdImg(c.id, cm.exp)}" alt="${esc(c.name)}" loading="lazy" class="w-full aspect-square object-contain">
         ${c.name ? `<span class="block mt-0.5 text-[10px] text-slate-300 truncate" translate="no">${esc(c.name)}</span>` : ''}
       </button>`; }).join('') : '<div class="col-span-full py-8 text-center text-sm text-slate-500">Keine Kommandanten gefunden.</div>';
     drawCmdForm();
@@ -4773,6 +4930,7 @@ window.RokApp = () => {
   function drawCmdForm() {
     $('cmdForm').innerHTML = `<div class="flex flex-wrap items-center justify-between gap-2">
       <span class="text-xs text-slate-500">Kommandant antippen zum Übernehmen</span>
+      <label class="inline-flex items-center gap-2 text-sm cursor-pointer"><input id="cmExp" type="checkbox" ${cm.exp ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">⭐ Expertise</label>
       ${scSet().cmd[cm.slot] ? '<button type="button" id="cmClear" class="px-3 py-2 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10 text-sm">Slot leeren</button>' : ''}
     </div>`;
   }
@@ -4781,7 +4939,8 @@ window.RokApp = () => {
     $('cmdTitle').textContent = m.name || 'Kommandant';
     $('cmdPick').classList.add('hidden'); $('cmdView').classList.remove('hidden');
     $('cmdView').innerHTML = `<div class="flex flex-col items-center gap-3 py-2">
-      <img src="${cmdImg(m.id)}" alt="" class="w-48 aspect-[140/195] object-contain object-bottom drop-shadow-[0_8px_20px_rgba(0,0,0,.6)]">
+      <img src="${cmdImg(m.id, c.exp)}" alt="" class="w-48 aspect-square object-contain drop-shadow-[0_8px_20px_rgba(0,0,0,.6)]">
+      ${c.exp ? '<div class="text-xs font-semibold text-gold-300">⭐ Expertise</div>' : ''}
       ${m.name ? `<div class="font-display text-2xl gold-text" translate="no">${esc(m.name)}</div>` : ''}
       <div class="text-sm font-semibold" style="color:${r.c}">${r.label}</div>
     </div>`;
@@ -4799,8 +4958,14 @@ window.RokApp = () => {
   };
   $('cmdGrid').addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-cid]'); if (!b || b.disabled || !sc.own) return;
-    scSet().cmd[cm.slot] = scCmdNorm({ ...(scSet().cmd[cm.slot] || {}), id: b.dataset.cid });
+    scSet().cmd[cm.slot] = scCmdNorm({ ...(scSet().cmd[cm.slot] || {}), id: b.dataset.cid, exp: cm.exp });
     closeModal(); drawShowcase(); scSave('✓ Kommandant gespeichert');
+  });
+  $('cmdForm').addEventListener('change', (ev) => {        // Expertise an/aus: Bilder im Fenster wechseln, gewählter Kommandant wird sofort angepasst
+    if (ev.target.id !== 'cmExp') return;
+    cm.exp = ev.target.checked;
+    const cur = scSet().cmd[cm.slot]; if (cur && sc.own) { scSet().cmd[cm.slot] = scCmdNorm({ ...cur, exp: cm.exp }); drawShowcase(); scSaveSoon(); }
+    const top = $('cmdGrid').scrollTop; drawCmdPicker(); $('cmdGrid').scrollTop = top;
   });
   $('cmdForm').addEventListener('input', (ev) => {
     const t = ev.target;
@@ -5002,10 +5167,10 @@ window.RokApp = () => {
     tiers: gNormTiers(i.tiers),
     icon: typeof i.icon === 'string' && i.icon.length < 200000 && (/^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(i.icon) || (/^\/icons\/[A-Za-z0-9_./-]+\.(webp|png|jpe?g)$/.test(i.icon) && !i.icon.includes('..'))) ? i.icon : '' });
   const gFromDb = (r) => gNormItem({ id: r.id, name: r.name, cat: r.slot, set: r.set_name || '', rarity: r.rarity,
-    leather: r.cost_leather, iron: r.cost_iron, ebony: r.cost_ebony, bone: r.cost_bone, icon: r.icon, tiers: r.tier_costs, db: true });
+    leather: r.cost_leather, iron: r.cost_iron, ebony: r.cost_ebony, bone: r.cost_bone, icon: gearIconFor(r.icon, r.name, r.rarity), tiers: r.tier_costs, db: true });
 
   // ---- Katalog: Supabase + eigene Items ----
-  let gearDb = (() => { try { const c = JSON.parse(localStorage.getItem(GEAR_CACHE) || '[]'); return Array.isArray(c) ? c.map(i => gNormItem({ ...i, db: true })) : []; } catch { return []; } })();
+  let gearDb = (() => { try { const c = JSON.parse(localStorage.getItem(GEAR_CACHE) || '[]'); return Array.isArray(c) ? c.map(i => gNormItem({ ...i, icon: gearIconFor(i.icon, i.name, i.rarity), db: true })) : []; } catch { return []; } })();
   let gearCustom = (() => {
     try { const c = JSON.parse(LS.get(GEAR_CUSTOM, 'null')); if (Array.isArray(c)) return c.map(gNormItem); } catch {}
     try { const old = JSON.parse(LS.get('rok_scanner_gear_catalog', '[]')); if (Array.isArray(old)) return old.filter(i => String(i?.id).startsWith('c_')).map(gNormItem); } catch {}   // eigene Items der Vorversion
@@ -5379,6 +5544,11 @@ window.RokApp = () => {
 
   // ---- KI-Scan der Ist-Ausrüstung (Modus "gear" in /api/scan, Katalog kommt dort aus gear_items) ----
   function gearRarity(v) { const t = gNorm(v); if (!t) return null; return /legend|gold|orange/.test(t) ? 'legendary' : 'epic'; }
+  function gearByRef(cat, info) {                            // Nummer von der Referenztafel → Katalog-Item (oder nur Bild + Name)
+    const f = GEAR_FILES[refNum(info?.ref, GEAR_FILES.length) - 1]; if (!f) return null;
+    const it = gearCat.find(i => i.cat === cat && gearIconStem(i.icon) === f) || gearCat.find(i => gearIconStem(i.icon) === f);
+    return it || { file: f };
+  }
   function gearMatch(cat, info) {
     const text = gNorm([info.name, info.description].filter(Boolean).join(' '));
     if (!text) return null;
@@ -5394,12 +5564,14 @@ window.RokApp = () => {
     const src = r.slots || r.equipment || r, set = activeSet();
     gearFlags = {}; let hit = 0, seen = 0;
     GEAR_SLOTS.forEach(sl => {
-      const info = src[sl.k];
+      let info = src[sl.k];
       if (!info || typeof info !== 'object') return;
       seen++;
-      let it = info.item_id ? gItem(String(info.item_id)) : null;
+      const byRef = gearByRef(sl.cat, info);
+      let it = byRef && !byRef.file ? byRef : (info.item_id ? gItem(String(info.item_id)) : null);
       if (it && it.cat !== sl.cat) it = null;
-      if (!it) it = gearMatch(sl.cat, info);
+      if (!it && !byRef) it = gearMatch(sl.cat, info);
+      if (!it && byRef?.file) info = { ...info, name: gearFileName(byRef.file) };
       const rar = gearRarity(info.rarity);
       if (it) {
         set.ist[sl.k] = { item: it.id, rarity: rar || it.rarity, tier: gTier(info.tier), refine: gRefine(info.refine), refType: gRefType(info.refine_type) }; hit++;
@@ -5426,7 +5598,7 @@ window.RokApp = () => {
     try {
       for (const f of files) imgs.push(await prepareImage(f));
       const res = await fetch('/api/scan', { method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ mode: 'gear', images: imgs.map(i => ({ media_type: i.mediaType, data: i.base64 })) }) });
+        body: JSON.stringify({ mode: 'gear', images: imgs.map(i => ({ media_type: i.mediaType, data: i.base64 })), refs: await scanRefs(['gear']) }) });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (res.status === 400 && /modus|mode/i.test(data?.error || '')) throw new Error('Der Scan-Server kennt den Ausrüstungs-Scan noch nicht – bitte die neue api/scan.js einspielen. Bis dahin die Slots von Hand wählen.');
