@@ -279,7 +279,7 @@ Keine Kommandanten zu sehen: "commanders": [].`
 };
 
 // ---------- Rüstung (Armaments) ----------
-const ARM_NAMES = ['Airtight', 'Hardheaded', 'Bulwark', 'Bolstered', 'Thundering', 'Rattling', 'Tidebreaker', 'Vigor', 'Toppler', 'Imploder', 'Dominate', 'Bludgeon', 'Demolisher', 'Raider', 'Cleaver', 'Charge',
+const ARM_NAMES = ['Airtight', 'Hardheaded', 'Bulwark', 'Bolstered', 'Thundering', 'Rattling', 'Tidebreaker', 'Vigor', 'Toppler', 'Imploder', 'Dominate', 'Bludgeon', 'Demolisher', 'Raider', 'Cleaver', 'Charge', 'Steelskin', 'Determined', 'Flurry', 'Relentless', 'Thrasher', 'Pummeler', 'Butterfly Effect', 'Causative', 'Maneuver Warfare', 'Ballista', 'Balanced', 'Defiant', 'Horseback Archery', 'Divine Strength', 'Intrepid', 'Focus Fire', 'Advantageous', 'Fury', 'Hunter', 'Crazed', 'Indomitable', 'Soar', 'Unstoppable', 'Boiling Blood',
   'Spiked', 'Metallics', 'Vitality', 'Galloping', 'Cleanser', 'Striker', 'Rebuff', 'Brawler', 'Warflames', 'Eclipsed', 'Brave', 'Strategic', 'Desperado', 'Cohesive', 'Pursuer', 'Assertive', 'Wary', 'Siegework', 'Sentries', 'Ballistics',
   'Infamy', 'Shielded', 'Hardy', 'Haste', 'Pacifier', 'Militant', 'Resistant', 'Daring', 'Elite', 'Evasive', 'Smite', 'Enduring', 'Artisan', 'Rapacious', 'Guardians', 'Counterer', 'Deflecter', 'Watchmen', 'Lineshot',
   'Warcry', 'Well Clad', 'Robust', 'Swift', 'Payback', 'Onslaught', 'Retaliator', 'Enraged', 'Valiant', 'Iron Wall', 'Bellicose', 'Pulverize', 'Breaker', 'Furious', 'Ward', 'Phalanx', 'Hurried', 'Tremors', 'Calm', 'Loosed',
@@ -290,13 +290,14 @@ MODUS: Rüstung (Armaments). Der Screenshot zeigt meist "Armament Info" / "Rüst
   [Bulwark] [Toppler] [Charge]
   [Rattling]
   Infantry Attack +7.7% · Infantry Defense +9.5% · Infantry Health +9% · March Speed (Infantry) +2.1%
+  oder: Cavalry Attack +9.4% · Cavalry Defense +8.9% · Cavalry Health +5.7% · All Damage +1.6%
 
 1. "inscriptions": JEDES Schild in Lesereihenfolge (links → rechts, oben → unten), keins auslassen:
-   - "text" = Aufschrift genau wie im Bild (abgeschnittene Namen mit "…" zu einem dieser bekannten Namen ergänzen: ${ARM_NAMES.join(', ')})
+   - "text" = Aufschrift genau wie im Bild (abgeschnittene Namen mit "…" zu einem dieser bekannten Namen ergänzen, sonst genau so lassen, wie sie zu sehen sind: ${ARM_NAMES.join(', ')})
    - "color" = Farbe des Schildes: "gold" (gelb/orange), "blue" (blau/lila), "gray" (weiß/hellgrau)
-2. "formation" = Name der Formation, falls sichtbar (z. B. "Pincer"), sonst null.
+2. "formation" = Name der Formation, falls sichtbar (z. B. "Pincer", "Delta", "Wedge"), sonst null.
 3. "troop" = Truppenart der Werte: "infantry" (Infanterie), "cavalry" (Kavallerie), "archer" (Bogenschützen), "siege" (Belagerung), "all" (alle Truppen).
-4. Werte als Zahl in Prozent (ohne %-Zeichen, Komma = Dezimaltrenner): "attack" = Angriff/Attack, "defense" = Verteidigung/Defense, "health" = Leben/Health, "march_speed" = Marschgeschwindigkeit/March Speed. Fehlt ein Wert: null.
+4. Werte als Zahl in Prozent (ohne %-Zeichen, Komma = Dezimaltrenner): "attack" = Angriff/Attack, "defense" = Verteidigung/Defense, "health" = Leben/Health, "march_speed" = Marschgeschwindigkeit/March Speed, "all_damage" = "All Damage"/Gesamtschaden (Stern-Symbol). Fehlt ein Wert: null.
 
 Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
 {
@@ -304,7 +305,7 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
   "inscriptions": [{"text": string, "color": "gold"|"blue"|"gray"}],
   "formation": string|null,
   "troop": "infantry"|"cavalry"|"archer"|"siege"|"all"|null,
-  "attack": number|null, "defense": number|null, "health": number|null, "march_speed": number|null,
+  "attack": number|null, "defense": number|null, "health": number|null, "march_speed": number|null, "all_damage": number|null,
   "confidence": "hoch" | "mittel" | "niedrig",
   "notes": "kurzer Hinweis auf Deutsch"
 }`;
