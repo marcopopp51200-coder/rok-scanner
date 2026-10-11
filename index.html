@@ -123,9 +123,9 @@ tailwind.config = {
         <div class="mt-1 h-px w-full bg-gradient-to-r from-gold-400/90 via-gold-300/30 to-transparent"></div>
       </div>
     </div>
-    <nav id="mainNav" class="hidden self-start sm:self-end sm:translate-y-6 grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist" aria-label="Bereiche">
+    <nav id="mainNav" class="hidden self-start sm:self-end sm:translate-y-6 grid-cols-1 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist" aria-label="Bereiche">
       <button class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-view="rank" aria-pressed="false" role="tab">🏆 Rangliste</button>
-      <button class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-view="craft" aria-pressed="false" role="tab">⚒️ Craft</button>
+      <button id="craftTab" class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition hidden" data-view="craft" aria-pressed="false" role="tab">⚒️ Craft</button>
     </nav>
     <div id="userBox" class="hidden relative self-start sm:self-auto">
       <button id="userMenuBtn" aria-haspopup="menu" aria-expanded="false"
@@ -923,7 +923,7 @@ window.I18N = (() => {
         'Für diesen Slot gibt es noch keine Items im Katalog.': 'There are no catalog items for this slot yet.',
         'Ist-Ausrüstung scannen, Wunsch-Set wählen – der Planer rechnet aus, welche Materialien dir noch fehlen.': 'Scan your current gear, pick a target set – the planner shows which materials you are still missing.',
         'Bestand unbekannt – bitte zuerst deine Materialien scannen.': 'Stock unknown – please scan your materials first.',
-        'Tier erhöhen': 'Raise tier', 'Refine fehlt': 'Refine missing', 'Refine fehlt noch': 'Refine still missing', 'Tier': 'Tier',
+        'Refine-Typ': 'Refine type', 'Bogenschützen': 'Archers', 'Kavallerie': 'Cavalry', 'Infanterie': 'Infantry', 'Tier erhöhen': 'Raise tier', 'Refine fehlt': 'Refine missing', 'Refine fehlt noch': 'Refine still missing', 'Tier': 'Tier',
         'Set gespeichert · in der Cloud (user_state)': 'Set saved · in the cloud (user_state)', 'Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': 'Saved locally · cloud unreachable, will sync automatically'
       },
       patterns: [
@@ -1582,6 +1582,15 @@ window.RokAuth = (() => {
     if (lbLast == null) lbLast = 0;
   }
 
+  // Freischaltung einzelner Bereiche (Tabelle public.feature_access – jeder sieht nur seine eigenen Zeilen)
+  async function hasFeature(name) {
+    if (!sb || !user) return false;
+    try {
+      const { data, error } = await sb.from('feature_access').select('feature').eq('user_id', user.id).eq('feature', name).maybeSingle();
+      return !error && !!data;
+    } catch { return false; }
+  }
+
   // Item-Katalog des Crafting-Planers (Tabelle public.gear_items, für alle lesbar)
   async function loadGearItems() {
     const q = (cols) => sb.from('gear_items').select(cols).order('slot').order('name');
@@ -1592,7 +1601,7 @@ window.RokAuth = (() => {
     return r.data || [];
   }
 
-  return { loadGearItems, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
+  return { hasFeature, loadGearItems, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
            pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
 })();
 </script>
@@ -2951,7 +2960,9 @@ window.RokApp = () => {
   let lastMainView = 'rank';
   // Verlauf der Seiten für die Zurück-Buttons (Startseite = Rangliste)
   let shownView = null, navStack = [], navBack = false;
+  let craftAllowed = false;   // Spoilerschutz: Craft nur für freigeschaltete Accounts
   function applyView() {
+    if (view === 'craft' && !craftAllowed) view = 'rank';
     if (view !== shownView) { if (shownView && !navBack) navStack.push(shownView); shownView = view; }
     navBack = false;
     $('scanBackBar').classList.toggle('hidden', view !== 'scanner');
@@ -3607,14 +3618,26 @@ window.RokApp = () => {
   }
 
   // ---- Sets ----
-  const gEmptySlots = () => Object.fromEntries(GEAR_SLOTS.map(s => [s.k, { item: '', rarity: 'legendary', tier: 0, refine: false }]));
+  const gEmptySlots = () => Object.fromEntries(GEAR_SLOTS.map(s => [s.k, { item: '', rarity: 'legendary', tier: 0, refine: 0, refType: 'infantry' }]));
   const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
+  const REFINE = [0, 25, 50, 75, 100];
+  // Refine-Fortschritt: 0 | 25 | 50 | 75 | 100 (= voll, rotes Symbol). Alte Sets: true → 100
+  const gRefine = (v) => { if (v === true || /^\s*(true|voll|full)\s*$/i.test(String(v))) return 100; const n = parseFloat(v) || 0; return REFINE.reduce((b, x) => Math.abs(x - n) < Math.abs(b - n) ? x : b, 0); };
+  const gRefTxt = (v) => v >= 100 ? 'Voll' : v + '%';
+  // Refine-Typ (Symbol unten rechts auf dem Item)
+  const REFTYPES = { archer: { label: 'Bogenschützen', img: '/icons/refine_archer.webp' }, cavalry: { label: 'Kavallerie', img: '/icons/refine_cavalry.webp' }, infantry: { label: 'Infanterie', img: '/icons/refine_infantry.webp' } };
+  const gRefType = (v) => { const t = String(v || '').toLowerCase(); return /arch|bog|bow/.test(t) ? 'archer' : /cav|kav|horse|pferd/.test(t) ? 'cavalry' : 'infantry'; };
+  // Symbol: voll = farbig; teilweise = grau, von unten farbig gefüllt
+  const gRefIcon = (v, cls) => `<span class="relative inline-block ${cls}" title="Refine ${REFTYPES[v.refType]?.label || ''} ${gRefTxt(v.refine)}">
+      <img src="${REFTYPES[v.refType]?.img || REFTYPES.infantry.img}" alt="" class="absolute inset-0 w-full h-full ${v.refine >= 100 ? '' : 'grayscale brightness-75'}">
+      ${v.refine > 0 && v.refine < 100 ? `<img src="${REFTYPES[v.refType]?.img || REFTYPES.infantry.img}" alt="" class="absolute inset-0 w-full h-full" style="clip-path:inset(${100 - v.refine}% 0 0 0)">` : ''}
+    </span>`;
   const gTier = (v) => { if (typeof v === 'string' && /^\s*[ivx]+\s*$/i.test(v)) return Math.min(5, ROMAN.indexOf(v.trim().toUpperCase()) + 1); const n = Math.round(+v); return Number.isFinite(n) ? Math.min(5, Math.max(0, n)) : 0; };
   const newGearSet = (name) => ({ id: newId(), name, ist: gEmptySlots(), ziel: gEmptySlots(), dismantle: false, useChests: false, updated: Date.now() });
   function gNormSet(s) {
     const o = newGearSet(String(s?.name || 'Set').slice(0, 40));
     if (s?.id) o.id = String(s.id);
-    ['ist', 'ziel'].forEach(side => GEAR_SLOTS.forEach(sl => { const v = s?.[side]?.[sl.k] || {}; o[side][sl.k] = { item: String(v.item || ''), rarity: v.rarity === 'epic' ? 'epic' : 'legendary', tier: gTier(v.tier), refine: !!v.refine }; }));
+    ['ist', 'ziel'].forEach(side => GEAR_SLOTS.forEach(sl => { const v = s?.[side]?.[sl.k] || {}; o[side][sl.k] = { item: String(v.item || ''), rarity: v.rarity === 'epic' ? 'epic' : 'legendary', tier: gTier(v.tier), refine: gRefine(v.refine), refType: gRefType(v.refType) }; }));
     o.dismantle = !!s?.dismantle; o.useChests = !!s?.useChests; o.updated = +s?.updated || Date.now();
     return o;
   }
@@ -3655,7 +3678,7 @@ window.RokApp = () => {
       if (r.status === 'none') { r.status = 'craft'; gAdd(cost, gearCost(r.z)); }
       r.tierFrom = r.from ? (r.from.tier || 0) : 0; r.tierTo = r.z.tier || 0;
       for (let t = r.tierFrom + 1; t <= r.tierTo; t++) { const c = it.tiers?.[t]; if (c) MATS.forEach(m => cost[m.k] += (c[m.k] || 0) / d); else r.tierMissing.push(t); }
-      r.needRefine = !!r.z.refine && !(r.from && r.from.refine);
+      r.refFrom = r.from && (r.from.refType || 'infantry') === (r.z.refType || 'infantry') ? (r.from.refine || 0) : 0; r.refTo = r.z.refine || 0; r.needRefine = r.refTo > r.refFrom;
       if (r.status !== 'craft') r.status = r.tierTo > r.tierFrom ? 'tierup' : r.needRefine ? 'refine' : r.status === 'keepswap' ? 'swap' : 'same';
       r.cost = MATS.some(m => cost[m.k] > 1e-9) ? cost : null;
       gAdd(need, r.cost);
@@ -3684,7 +3707,8 @@ window.RokApp = () => {
   const gq = (v) => (Math.ceil((v || 0) * 100 - 1e-6) / 100).toLocaleString('de-DE', { maximumFractionDigits: 2 });
   const gCostText = (c) => !c ? '–' : MATS.filter(m => c[m.k] > 1e-4).map(m => `${m.icon} ${gq(c[m.k])}`).join(' · ') || '0';
   const GBADGE = { red: 'border-red-400/50 text-red-300', amber: 'border-amber-400/50 text-amber-300', sky: 'border-sky-400/50 text-sky-300', emerald: 'border-emerald-400/50 text-emerald-300', gold: 'border-gold-500/50 text-gold-300', slate: 'border-ink-600 text-slate-400' };
-  const GSTATUS = { same: ['✓ identisch', 'emerald'], swap: ['⇄ Platz getauscht', 'emerald'], tierup: ['⬆ Tier erhöhen', 'sky'], refine: ['✦ Refine fehlt', 'red'], craft: ['⚒ craften', 'gold'] };
+  const GSTATUS = { same: ['✓ identisch', 'emerald'], swap: ['⇄ Platz getauscht', 'emerald'], tierup: ['⬆ Tier erhöhen', 'sky'], refine: ['⚔ Refine', 'red'], craft: ['⚒ craften', 'gold'] };
+  const gRefStep = (r) => r.needRefine ? `Refine ${REFTYPES[r.z.refType]?.label || ''} ${gRefTxt(r.refFrom)} → ${gRefTxt(r.refTo)}` : '';
   const gTierTxt = (r) => r.tierTo > r.tierFrom ? `T${r.tierFrom} → T${r.tierTo}` + (r.tierMissing.length ? ` (Kosten für ${r.tierMissing.map(t => 'T' + t).join(', ')} fehlen)` : '') : '';
 
   // Rauten-Brett (8 Slots wie im Spiel)
@@ -3705,7 +3729,8 @@ window.RokApp = () => {
           ${badge ? `<span class="absolute top-[13%] left-1/2 -translate-x-1/2 text-sm font-extrabold leading-none [text-shadow:0_1px_2px_#000]" style="color:${badge[1]}">${badge[0]}</span>` : ''}
         </span>
         ${it && v.tier > 0 ? `<span class="absolute z-10 bottom-[3%] left-1/2 -translate-x-1/2 px-1.5 rounded-md bg-ink-950/85 border border-gold-400/70 text-[10px] font-extrabold text-gold-300 leading-4 pointer-events-none">${ROMAN[v.tier - 1]}</span>` : ''}
-        ${it && v.refine ? `<span class="absolute z-10 right-[25%] bottom-[25%] w-[17%] aspect-square grid place-items-center rounded-[22%] bg-red-600 border border-white/80 text-white text-[10px] leading-none shadow pointer-events-none" title="Refine">⚔</span>` : ''}
+        ${it && v.refine > 0 ? `<span class="absolute z-10 right-[22%] bottom-[22%] w-[21%] aspect-square pointer-events-none [filter:drop-shadow(0_1px_2px_rgba(0,0,0,.6))]">${gRefIcon(v, 'w-full h-full')}</span>
+          ${v.refine < 100 ? `<span class="absolute z-10 right-[11%] bottom-[15%] text-[9px] font-extrabold text-white [text-shadow:0_1px_2px_#000] pointer-events-none">${v.refine}%</span>` : ''}` : ''}
       </button>`;
     }).join('');
   }
@@ -3714,9 +3739,9 @@ window.RokApp = () => {
     const sl = GEAR_SLOTS.find(s => s.k === gearSel[side]) || GEAR_SLOTS[0], v = set[side][sl.k], it = gItem(v.item);
     const r = calc.rows.find(x => x.sl.k === sl.k);
     const note = side === 'ist' ? (gearFlags[sl.k] ? ['⚠ ' + gearFlags[sl.k], 'amber'] : r.back ? ['♻ wird zerlegt: + ' + gCostText(r.back), 'sky'] : null)
-      : r.status === 'craft' ? ['⚒ craften: ' + gCostText(r.cost) + (gTierTxt(r) ? ' · inkl. ' + gTierTxt(r) : '') + (r.needRefine ? ' · + Refine' : ''), 'gold']
-      : r.status === 'tierup' ? ['⬆ ' + gTierTxt(r) + (r.cost ? ': ' + gCostText(r.cost) : '') + (r.needRefine ? ' · + Refine' : ''), 'sky']
-      : r.status === 'refine' ? ['✦ Refine fehlt noch', 'red'] : GSTATUS[r.status] || null;
+      : r.status === 'craft' ? ['⚒ craften: ' + gCostText(r.cost) + (gTierTxt(r) ? ' · inkl. ' + gTierTxt(r) : '') + (r.needRefine ? ' · + ' + gRefStep(r) : ''), 'gold']
+      : r.status === 'tierup' ? ['⬆ ' + gTierTxt(r) + (r.cost ? ': ' + gCostText(r.cost) : '') + (r.needRefine ? ' · + ' + gRefStep(r) : ''), 'sky']
+      : r.status === 'refine' ? ['⚔ ' + gRefStep(r), 'red'] : GSTATUS[r.status] || null;
     const sel = 'w-full min-w-0 bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-gold-500 disabled:opacity-40';
     const groups = {};
     gearCat.filter(i => i.cat === sl.cat).forEach(i => { const g = i.db ? (i.set || 'Katalog') : 'Eigene Items'; (groups[g] = groups[g] || []).push(i); });
@@ -3726,7 +3751,7 @@ window.RokApp = () => {
     return `<div class="rounded-xl border border-ink-700 bg-ink-950/60 p-3">
       <div class="flex items-center justify-between gap-2 mb-2">
         <span class="flex items-center gap-2 text-xs uppercase tracking-widest text-slate-400">${it?.icon ? `<img src="${it.icon}" alt="" class="w-8 h-8 object-contain">` : sl.icon} <span>${sl.label}</span></span>
-        ${it ? `<span class="text-[11px] font-semibold text-gold-300">T${v.tier || 0}${v.refine ? ' · <span class="text-red-300">Refine</span>' : ''}</span>` : ''}
+        ${it ? `<span class="text-[11px] font-semibold text-gold-300">T${v.tier || 0}${v.refine ? ` · <span class="text-red-300">Refine ${REFTYPES[v.refType].label} ${gRefTxt(v.refine)}</span>` : ''}</span>` : ''}
       </div>
       <div class="grid grid-cols-[1fr_auto] gap-1.5">
         <select data-side="${side}" data-slot="${sl.k}" data-f="item" class="${sel}" aria-label="${sl.label}">${opts}</select>
@@ -3734,10 +3759,19 @@ window.RokApp = () => {
           ${[0, 1, 2, 3, 4, 5].map(t => `<option value="${t}"${(v.tier || 0) === t ? ' selected' : ''}>T${t}</option>`).join('')}
         </select>
       </div>
-      <label class="mt-2 inline-flex items-center gap-2 text-sm ${it ? 'cursor-pointer' : 'opacity-40'}">
-        <input type="checkbox" data-side="${side}" data-slot="${sl.k}" data-f="refine" ${v.refine ? 'checked' : ''} ${it ? '' : 'disabled'} class="w-4 h-4 accent-red-500">
-        <span class="inline-grid place-items-center w-5 h-5 rounded bg-red-600 border border-white/70 text-white text-[11px]">⚔</span>Refine
-      </label>
+      <div class="mt-2 flex items-center gap-1.5 text-xs ${it ? '' : 'opacity-40'}">
+        <span class="text-slate-400 mr-1">Refine-Typ</span>
+        ${Object.entries(REFTYPES).map(([k, t]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refType" data-v="${k}" ${it ? '' : 'disabled'} title="${t.label}"
+          class="flex items-center gap-1 px-1.5 py-1 rounded-lg border ${v.refType === k ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 bg-ink-950 text-slate-400 hover:text-gold-300'}">
+          <img src="${t.img}" alt="" class="w-5 h-5 ${v.refType === k ? '' : 'grayscale opacity-70'}"><span class="hidden sm:inline">${t.label}</span></button>`).join('')}
+      </div>
+      <div class="mt-2 flex items-center gap-2 text-sm ${it ? '' : 'opacity-40'}">
+        ${gRefIcon({ ...v, refine: v.refine || 100 }, 'w-6 h-6 shrink-0')}Refine
+        <div class="flex flex-1 rounded-lg border border-ink-600 overflow-hidden" role="group" aria-label="Refine">
+          ${REFINE.map(x => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refine" data-v="${x}" ${it ? '' : 'disabled'}
+            class="flex-1 px-1 py-1.5 text-xs font-semibold border-l first:border-l-0 border-ink-600 ${(v.refine || 0) === x ? (x >= 100 ? 'bg-red-600 text-white' : 'bg-gold-500 text-ink-950') : 'bg-ink-950 text-slate-300 hover:text-gold-300'}">${x >= 100 ? 'Voll' : x + '%'}</button>`).join('')}
+        </div>
+      </div>
       ${none ? '<div class="mt-2 text-[11px] text-slate-500">Für diesen Slot gibt es noch keine Items im Katalog.</div>' : ''}
       ${note ? `<div class="mt-2 inline-block max-w-full text-[11px] px-2 py-0.5 rounded-full border ${GBADGE[note[1]]}">${esc(note[0])}</div>` : ''}
     </div>`;
@@ -3798,7 +3832,7 @@ window.RokApp = () => {
       <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">${cards}</div>`;
 
     // Slot-Vergleich
-    const nm = (v) => { const it = gItem(v.item); return it ? `${esc(it.name)} <span class="text-[10px] font-semibold text-gold-300">T${v.tier || 0}</span>${v.refine ? ' <span class="text-[10px] font-semibold text-red-300">✦ Refine</span>' : ''}` : '<span class="text-slate-500">–</span>'; };
+    const nm = (v) => { const it = gItem(v.item); return it ? `${esc(it.name)} <span class="text-[10px] font-semibold text-gold-300">T${v.tier || 0}</span>${v.refine ? ` <span class="inline-flex items-center gap-0.5 text-[10px] font-semibold text-red-300"><img src="${REFTYPES[v.refType].img}" alt="" class="w-3.5 h-3.5">${gRefTxt(v.refine)}</span>` : ''}` : '<span class="text-slate-500">–</span>'; };
     $('gearPlan').innerHTML = `<h3 class="font-display text-xl gold-text mb-3">Slot-Vergleich</h3>
       <div class="overflow-x-auto"><table class="w-full text-sm">
         <thead class="text-xs uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700">
@@ -3808,7 +3842,7 @@ window.RokApp = () => {
           return `<tr class="border-b border-ink-800">
             <td class="py-2 pr-2 whitespace-nowrap text-slate-300">${r.sl.icon} ${r.sl.label}</td>
             <td class="py-2 px-2">${nm(r.a)}</td><td class="py-2 px-2">${nm(r.z)}</td>
-            <td class="py-2 px-2 whitespace-nowrap">${s[0] ? `<span class="text-[11px] px-2 py-0.5 rounded-full border ${GBADGE[s[1]]}">${s[0]}</span>` : ''}${gTierTxt(r) ? `<div class="mt-1 text-[10px] text-sky-300">${gTierTxt(r)}</div>` : ''}</td>
+            <td class="py-2 px-2 whitespace-nowrap">${s[0] ? `<span class="text-[11px] px-2 py-0.5 rounded-full border ${GBADGE[s[1]]}">${s[0]}</span>` : ''}${gTierTxt(r) ? `<div class="mt-1 text-[10px] text-sky-300">${gTierTxt(r)}</div>` : ''}${gRefStep(r) ? `<div class="mt-1 text-[10px] text-red-300">${gRefStep(r)}</div>` : ''}</td>
             <td class="py-2 px-2 text-right tabular-nums whitespace-nowrap text-xs">${r.cost ? gCostText(r.cost) : '–'}</td>
             <td class="py-2 pl-2 text-right tabular-nums whitespace-nowrap text-xs text-sky-300">${r.back ? '+ ' + gCostText(r.back) : '–'}</td></tr>`; }).join('')}</tbody>
       </table></div>`;
@@ -3843,15 +3877,20 @@ window.RokApp = () => {
     const t = ev.target.closest('[data-tile]'); if (!t) return;
     gearSel[t.dataset.side] = t.dataset.tile; renderGearMain();
   }));
-  ['gearIstEdit', 'gearZielEdit'].forEach(id => $(id).addEventListener('change', (ev) => {
-    const t = ev.target.closest('[data-slot]'); if (!t) return;
+  const gearEdit = (ev) => {
+    const t = ev.target.closest('[data-slot]'); if (!t || t.disabled) return;
+    const isBtn = t.dataset.f === 'refine' || t.dataset.f === 'refType';
+    if (ev.type === 'click' && !isBtn) return;     // Klick nur für die Refine-Buttons
+    if (ev.type === 'change' && isBtn) return;
     const v = activeSet()[t.dataset.side][t.dataset.slot];
-    if (t.dataset.f === 'item') { v.item = t.value; const it = gItem(t.value); if (it) v.rarity = it.rarity; v.tier = 0; v.refine = false; }
-    else if (t.dataset.f === 'refine') v.refine = t.checked;
+    if (t.dataset.f === 'item') { v.item = t.value; const it = gItem(t.value); if (it) v.rarity = it.rarity; v.tier = 0; v.refine = 0; v.refType = v.refType || 'infantry'; }
+    else if (t.dataset.f === 'refine') v.refine = gRefine(t.dataset.v);
+    else if (t.dataset.f === 'refType') v.refType = gRefType(t.dataset.v);
     else v.tier = gTier(t.value);
     if (t.dataset.side === 'ist') delete gearFlags[t.dataset.slot];
     saveGear(); renderGearMain();
-  }));
+  };
+  ['gearIstEdit', 'gearZielEdit'].forEach(id => { $(id).addEventListener('change', gearEdit); $(id).addEventListener('click', gearEdit); });
   $('gearCopyIst').onclick = () => {
     const s = activeSet();
     if (GEAR_SLOTS.some(sl => gItem(s.ziel[sl.k].item)) && !confirm('Ziel-Ausrüstung mit der Ist-Ausrüstung überschreiben?')) return;
@@ -3952,10 +3991,10 @@ window.RokApp = () => {
       if (!it) it = gearMatch(sl.cat, info);
       const rar = gearRarity(info.rarity);
       if (it) {
-        set.ist[sl.k] = { item: it.id, rarity: rar || it.rarity, tier: gTier(info.tier), refine: info.refine === true || info.refine === 'true' }; hit++;
+        set.ist[sl.k] = { item: it.id, rarity: rar || it.rarity, tier: gTier(info.tier), refine: gRefine(info.refine), refType: gRefType(info.refine_type) }; hit++;
         if (rar === 'epic' && !/epi|lila|purple/.test(gNorm(info.rarity))) gearFlags[sl.k] = `Seltenheit „${info.rarity}“ → als Episch gesetzt`;
       } else {
-        set.ist[sl.k] = { item: '', rarity: rar || 'legendary', tier: 0, refine: false };
+        set.ist[sl.k] = { item: '', rarity: rar || 'legendary', tier: 0, refine: 0, refType: 'infantry' };
         gearFlags[sl.k] = 'nicht im Katalog: ' + String(info.name || info.description || 'unbekanntes Item').slice(0, 60);
       }
     });
@@ -4002,6 +4041,11 @@ window.RokApp = () => {
   // Init
   renderHeaderAvatar();
   $('mainNav').classList.replace('hidden', 'grid');
+  RokAuth.hasFeature('craft').then(ok => {
+    craftAllowed = ok;
+    $('craftTab').classList.toggle('hidden', !ok);
+    $('mainNav').classList.toggle('grid-cols-2', ok); $('mainNav').classList.toggle('grid-cols-1', !ok);
+  });
   syncTabs();
   renderHistory();
   $('vipInputs').classList.toggle('hidden', mode === 'resources');
