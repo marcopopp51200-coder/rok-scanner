@@ -561,7 +561,7 @@ tailwind.config = {
         </div>
       </div>
 
-      <!-- Showcase (aufklappbar): 2 Kommandanten + Ausrüstung -->
+      <!-- Showcase (aufklappbar): mehrere Showcases mit je bis zu 7 Sets -->
       <div id="profShowcase" class="panel rounded-2xl overflow-hidden">
         <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
           <button id="scToggle" type="button" aria-expanded="true" aria-controls="scBody" class="flex items-center gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 rounded-lg" title="Aufklappen / zuklappen">
@@ -569,18 +569,62 @@ tailwind.config = {
             <h3 class="font-display text-xl gold-text">Showcase</h3>
             <span id="scCount" class="text-xs text-slate-500"></span>
           </button>
-          <div id="scTools" class="hidden flex flex-wrap gap-2">
-            <label for="scFile" id="scScanLbl" class="cursor-pointer text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Ausrüstung scannen</label>
-            <input id="scFile" type="file" accept="image/*" multiple class="hidden">
-            <button id="scFromCraft" type="button" class="hidden text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⇢ Aus Craft-Set übernehmen</button>
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="scSync" class="text-[11px] text-slate-500"></span>
+            <button id="scDl" type="button" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⬇ Download</button>
+            <div id="scTools" class="hidden flex flex-wrap gap-2">
+              <button id="scEditBtn" type="button" aria-pressed="false" class="text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400 aria-pressed:bg-gold-500 aria-pressed:text-ink-950 aria-pressed:font-semibold">✎ Bearbeiten</button>
+              <button id="scBgBtn" type="button" aria-expanded="false" aria-controls="scBgPick" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">🖼 Hintergrund</button>
+            </div>
           </div>
         </div>
         <div id="scBody" class="px-5 pb-6">
+          <div id="scListBar" class="mb-3 flex flex-wrap items-center gap-2"></div>
           <div id="scMsg" class="hidden mb-3 text-xs"></div>
-          <div id="scCmds" class="flex justify-center items-start gap-8 sm:gap-16"></div>
-          <div class="mt-5 mx-auto w-full max-w-[260px]"><div id="scGearBoard" class="relative w-full aspect-[1/2]"></div></div>
-          <div id="scGearEdit" class="mt-4 mx-auto w-full max-w-md"></div>
-          <p id="scHint" class="hidden mt-3 text-center text-[11px] text-slate-500">Kommandanten-Platz antippen zum Auswählen · Ausrüstungs-Slot antippen zum Bearbeiten · Screenshots werden nach dem Auslesen verworfen.</p>
+          <!-- Hintergrund wählen (nur eigenes Profil) -->
+          <div id="scBgPick" class="hidden mb-3 rounded-xl border border-ink-700 bg-ink-950/60 p-3">
+            <div class="flex flex-wrap items-center gap-2" id="scBgList"></div>
+            <input id="scBgFile" type="file" accept="image/*" class="hidden">
+            <p class="mt-2 text-[11px] text-slate-500">Eigenes Bild wird verkleinert gespeichert und ist für alle sichtbar, die deinen Showcase sehen.</p>
+          </div>
+          <!-- Bearbeitungsmodus -->
+          <div id="scEditBar" class="hidden mb-3 rounded-xl border border-gold-500/40 bg-ink-950/70 p-3 text-sm">
+            <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <span class="font-semibold text-gold-300">✎ Bearbeitungsmodus</span>
+              <label class="inline-flex items-center gap-1.5 cursor-pointer"><input id="scGridOn" type="checkbox" class="w-4 h-4 accent-yellow-500">▦ Raster</label>
+              <label class="inline-flex items-center gap-1.5">Höhe <select id="scHeight" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-gold-500"></select></label>
+              <button id="scAuto" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⊞ Symmetrisch anordnen</button>
+              <button id="scDone" type="button" class="ml-auto text-xs px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">✓ Fertig</button>
+            </div>
+            <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-300"><span class="text-slate-500">Im Showcase anzeigen:</span><span id="scWidgetOpts" class="contents"></span></div>
+            <div id="scProps" class="mt-3 pt-3 border-t border-ink-700"></div>
+            <p class="mt-2 text-[11px] text-slate-500">Elemente mit Maus oder Finger verschieben, antippen zum Einstellen. Mit Raster rasten sie symmetrisch ein – die goldenen Linien markieren die Mitte.</p>
+          </div>
+          <!-- Bühne: alle Sets + Anzeigen frei platziert (wird beim Download als Bild gespeichert) -->
+          <div id="scStage" class="relative rounded-2xl overflow-hidden border border-ink-700 select-none" style="container-type:inline-size;aspect-ratio:100/75">
+            <div id="scStageBg" class="absolute inset-0 bg-cover bg-center"></div>
+            <div id="scStageShade" class="hidden absolute inset-0 bg-gradient-to-b from-ink-950/35 via-ink-950/5 to-ink-950/60"></div>
+            <div id="scGridOv" class="hidden absolute inset-0 pointer-events-none" style="background-image:linear-gradient(to right, rgba(245,197,66,.14) 1px, transparent 1px),linear-gradient(to bottom, rgba(245,197,66,.14) 1px, transparent 1px);background-size:calc(100cqw / 24) calc(100cqw / 24)">
+              <div class="absolute inset-y-0 left-1/2 w-px bg-gold-400/60"></div>
+              <div class="absolute inset-x-0 top-1/2 h-px bg-gold-400/40"></div>
+            </div>
+            <div id="scEls" class="absolute inset-0"></div>
+          </div>
+          <!-- Sets: Auswahl + Bearbeiten des gewählten Sets -->
+          <div id="scSetBar" class="mt-4 flex flex-wrap items-center gap-2"></div>
+          <div id="scDetail" class="mt-3 rounded-2xl border border-ink-700 bg-ink-950/40 p-4">
+            <div id="scDetailHead"></div>
+            <div id="scManual">
+              <div id="scCmds" class="flex justify-center items-end"></div>
+              <div class="mt-4 mx-auto w-full max-w-[260px]"><div id="scGearBoard" class="relative w-full aspect-[1/2]"></div></div>
+              <div id="scGearEdit" class="mt-4 mx-auto w-full max-w-md"></div>
+            </div>
+            <div id="scShot" class="hidden"></div>
+            <div id="scArm"></div>
+          </div>
+          <input id="scFile" type="file" accept="image/*" multiple class="hidden">
+          <input id="scShotFile" type="file" accept="image/*" class="hidden">
+          <p id="scHint" class="hidden mt-3 text-center text-[11px] text-slate-500">„✎ Bearbeiten“ zum Anordnen · Set antippen zum Anzeigen · Kommandant oder Ausrüstung antippen zum Ändern · Screenshots werden nach dem Auslesen verworfen.</p>
         </div>
       </div>
 
@@ -973,7 +1017,29 @@ window.I18N = (() => {
         'Name suchen …': 'Search name …', 'Keine Kommandanten gefunden.': 'No commanders found.', 'Slot leeren': 'Clear slot', 'Schließen': 'Close',
         'Kommandant ansehen': 'View commander', 'Kommandant ändern': 'Change commander', 'Kommandant gespeichert': 'Commander saved', 'Slot geleert': 'Slot cleared',
         'Ausrüstung scannen': 'Scan equipment', 'Aus Craft-Set übernehmen': 'Copy from craft set',
-        'Kommandanten-Platz antippen zum Auswählen · Ausrüstungs-Slot antippen zum Bearbeiten · Screenshots werden nach dem Auslesen verworfen.': 'Tap a commander slot to choose · tap an equipment slot to edit · screenshots are discarded after reading.',
+        '„✎ Bearbeiten“ zum Anordnen · Set antippen zum Anzeigen · Kommandant oder Ausrüstung antippen zum Ändern · Screenshots werden nach dem Auslesen verworfen.': 'Tap a commander slot to choose · tap an equipment slot to edit · screenshots are discarded after reading.',
+        'Hintergrund': 'Background', 'Standard': 'Default', 'Nacht': 'Night', 'Blut': 'Blood', 'Wald': 'Forest', 'Königlich': 'Royal', 'Wüste': 'Desert', 'Eigenes': 'Custom', 'Bild': 'Image',
+        'Eigenes Bild hochladen': 'Upload your own image', 'Hintergrund gespeichert': 'Background saved', 'Kommandant antippen zum Übernehmen': 'Tap a commander to apply',
+        'Eigenes Bild wird verkleinert gespeichert und ist für alle sichtbar, die deinen Showcase sehen.': 'Your own image is stored downsized and is visible to everyone who sees your showcase.',
+        'Bearbeiten': 'Edit', 'Fertig': 'Done', 'Bearbeitungsmodus': 'Edit mode', 'Raster': 'Grid', 'Höhe': 'Height', 'Kompakt': 'Compact', 'Hoch': 'Tall', 'Sehr hoch': 'Very tall',
+        'Symmetrisch anordnen': 'Arrange symmetrically', 'Im Showcase anzeigen:': 'Show in showcase:', 'Profilbild': 'Profile picture', 'Set löschen': 'Delete set', '+ Set': '+ Set',
+        'Set hinzugefügt': 'Set added', 'Set gelöscht': 'Set deleted', 'Name des Sets (optional), z. B. Infanterie Marsch': 'Set name (optional), e.g. Infantry march',
+        'Sets und Anzeigen mit Maus oder Finger verschieben. Mit Raster rasten sie symmetrisch ein – die goldenen Linien markieren die Mitte.': 'Drag sets and displays with mouse or finger. With the grid they snap symmetrically – the golden lines mark the centre.',
+        '„✎ Bearbeiten“ zum Anordnen · Set antippen zum Anzeigen · Kommandant oder Ausrüstung antippen zum Ändern · Screenshots werden nach dem Auslesen verworfen.': '“✎ Edit” to arrange · tap a set to show it · tap a commander or equipment to change it · screenshots are discarded after reading.',
+        'Download': 'Download', 'Neuer Showcase': 'New showcase', 'Umbenennen': 'Rename', 'Showcase löschen': 'Delete showcase', 'Name': 'Name', 'Allianz-Tag': 'Alliance tag', 'VIP': 'VIP',
+        'Größe': 'Size', 'Schriftfarbe': 'Text colour', 'Standardfarbe': 'Default colour', 'Hintergrund-Box': 'Background box', 'Rahmen': 'Frame', 'Schatten': 'Shadow', 'Ausblenden': 'Hide', 'Extra hoch': 'Extra tall',
+        'Element auf der Bühne antippen, um Größe, Schriftfarbe und Hintergrund einzustellen.': 'Tap an element on the stage to set size, text colour and background.',
+        'Elemente mit Maus oder Finger verschieben, antippen zum Einstellen. Mit Raster rasten sie symmetrisch ein – die goldenen Linien markieren die Mitte.': 'Drag elements with mouse or finger, tap to adjust. With the grid they snap symmetrically – the golden lines mark the centre.',
+        'Manuell': 'Manual', 'Screenshot': 'Screenshot', 'Screenshot für dieses Set auswählen': 'Choose a screenshot for this set', 'Anderen Screenshot wählen': 'Choose another screenshot', 'Entfernen': 'Remove',
+        'z. B. die Marsch-Ansicht aus dem Spiel · wird verkleinert gespeichert': 'e.g. the march view from the game · stored downsized', 'Kein Screenshot.': 'No screenshot.',
+        'Rüstung (Armaments)': 'Armaments', 'Auf der Bühne anzeigen': 'Show on stage', 'Inschriften': 'Inscriptions', '+ Inschrift': '+ Inscription', 'Formation': 'Formation', 'Truppe': 'Troop', 'Vorschau': 'Preview',
+        'Infanterie': 'Infantry', 'Kavallerie': 'Cavalry', 'Bogenschützen': 'Archers', 'Belagerung': 'Siege', 'Alle Truppen': 'All troops', 'Angriff %': 'Attack %', 'Verteidigung %': 'Defense %', 'Leben %': 'Health %', 'Marschgeschw. %': 'March speed %',
+        'Gold': 'Gold', 'Blau': 'Blue', 'Grau': 'Grey', 'Lade Hintergrund hoch …': 'Uploading background …', 'Lade Screenshot hoch …': 'Uploading screenshot …',
+        'Screenshot gespeichert': 'Screenshot saved', 'Screenshot entfernt': 'Screenshot removed', 'Showcase erstellt': 'Showcase created', 'Umbenannt': 'Renamed', 'Showcase gelöscht': 'Showcase deleted',
+        '☁ in der Cloud gespeichert': '☁ saved to cloud', '☁ im Account gespeichert': '☁ saved in your account', 'Screenshot von diesem Set entfernen?': 'Remove the screenshot from this set?',
+        '✓ Im Account gespeichert · für andere Spieler sichtbar erst nach dem SQL-Update (Spalte showcase)': '✓ Saved in your account · visible to other players after the SQL update (column showcase)',
+        'Bild direkt im Showcase gespeichert – für kürzere Ladezeiten das Storage-SQL ausführen (Bucket „showcase“).': 'Image stored directly in the showcase – run the storage SQL (bucket “showcase”) for faster loading.',
+        'Download-Bibliothek konnte nicht geladen werden (Internet/Adblocker prüfen).': 'Download library could not be loaded (check internet/ad blocker).', 'Download fehlgeschlagen.': 'Download failed.',
         'Showcase': 'Showcase', 'Kommandanten scannen': 'Scan commanders', '+ Von Hand': '+ Manually', 'Aufklappen / zuklappen': 'Expand / collapse',
         'Erweckt': 'Awakened', 'Sterne': 'Stars', 'Skills': 'Skills', 'Level': 'Level', 'Name': 'Name', 'Speichern': 'Save', 'Bearbeiten': 'Edit', 'Löschen': 'Delete',
         'Claude liest deine Kommandanten …': 'Claude is reading your commanders …', '✓ Showcase gespeichert': '✓ Showcase saved', 'Keine Kommandanten im Screenshot erkannt.': 'No commanders detected in the screenshot.',
@@ -985,7 +1051,10 @@ window.I18N = (() => {
         'Set gespeichert · in der Cloud (user_state)': 'Set saved · in the cloud (user_state)', 'Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': 'Saved locally · cloud unreachable, will sync automatically'
       },
       patterns: [
-        [/^(\d)\/2 Kommandanten · (\d)\/8 Ausrüstung$/, '$1/2 commanders · $2/8 equipment'],
+        [/^„(.+)“ aus dem Showcase löschen\?$/, 'Delete “$1” from the showcase?'],
+        [/^(Infanterie|Kavallerie|Bogenschützen|Belagerung|Alle Truppen) (Angriff|Verteidigung|Leben|Marschgeschw\.)$/, (m, t, k) => ({ 'Infanterie': 'Infantry', 'Kavallerie': 'Cavalry', 'Bogenschützen': 'Archer', 'Belagerung': 'Siege', 'Alle Truppen': 'All Troop' })[t] + ' ' + ({ 'Angriff': 'Attack', 'Verteidigung': 'Defense', 'Leben': 'Health', 'Marschgeschw.': 'March Speed' })[k]],
+        [/^(\d)\/7 Sets$/, '$1/7 sets'], [/^Rüstung · (.+)$/, 'Armaments · $1'],
+        [/^Showcase „(.+)“ wirklich löschen\? Das kann nicht rückgängig gemacht werden\.$/, 'Really delete showcase “$1”? This cannot be undone.'],
         [/^Kommandant wählen · (Primär|Sekundär)$/, (m, k) => 'Choose commander · ' + (k === 'Primär' ? 'Primary' : 'Secondary')],
         [/^✓ Ausrüstung aus „(.+)“ übernommen$/, '✓ Equipment copied from “$1”'],
         [/^Showcase-Ausrüstung mit der Ist-Ausrüstung aus „(.+)“ überschreiben\?$/, 'Overwrite the showcase equipment with the current equipment from “$1”?'],
@@ -1661,6 +1730,16 @@ window.RokAuth = (() => {
     return true;
   }
 
+  // Showcase-Bilder in Supabase-Storage (öffentlicher Bucket "showcase", Ordner = eigene User-ID)
+  const IMG_BASE = SUPABASE_URL + '/storage/v1/object/public/showcase/';
+  async function uploadImage(blob, key) {
+    if (!sb || !user) throw new Error('Nicht eingeloggt.');
+    const path = `${user.id}/${String(key).replace(/[^A-Za-z0-9_-]+/g, '_')}.jpg`;
+    const { error } = await sb.storage.from('showcase').upload(path, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' });
+    if (error) throw error;
+    return IMG_BASE + path + '?v=' + Date.now();
+  }
+
   // Freischaltung einzelner Bereiche (Tabelle public.feature_access – jeder sieht nur seine eigenen Zeilen)
   async function hasFeature(name) {
     if (!sb || !user) return false;
@@ -1680,7 +1759,7 @@ window.RokAuth = (() => {
     return r.data || [];
   }
 
-  return { hasFeature, loadGearItems, saveShowcase, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
+  return { hasFeature, loadGearItems, saveShowcase, uploadImage, imgBase: () => IMG_BASE, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
            pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
 })();
 </script>
@@ -3439,7 +3518,7 @@ window.RokApp = () => {
     $('profSpeedPanel').classList.toggle('hidden', hideBody);
     $('profChartsPanel').classList.toggle('hidden', hideBody);
     $('profShowcase').classList.toggle('hidden', hideBody);
-    if (!hideBody) renderShowcase(own, row);
+    if (!hideBody) renderShowcase(own, row, { name: row.username, avatar: meta.avatar, tag: meta.alliance_tag || '', vip: lvl, power: gov?.energy ?? null, kp: gov?.kill_points ?? null, merit: gov?.highest_merit ?? null });
     if (own) {
       const sw = $('profPrivate');
       sw.setAttribute('aria-checked', String(!!P.isPrivate));
@@ -3504,7 +3583,7 @@ window.RokApp = () => {
     } catch (e2) { msg(e2.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : e2.message, 'text-red-300'); }
     finally { if (img) { img.base64 = null; img.dataUrl = null; } }   // Bild sofort verwerfen
   };
-  // ================= Showcase: 2 Kommandanten + Ausrüstung =================
+  // ================= Showcase: mehrere Showcases, je bis zu 7 Sets frei auf einer Bühne =================
   // Kommandanten-Katalog – Bilder liegen unter /icons/commander/<id>.webp.
   // Namen bei "name" eintragen: sie erscheinen dann im Showcase und machen das Suchfeld im Fenster sichtbar.
   const COMMANDERS = [
@@ -3547,10 +3626,6 @@ window.RokApp = () => {
   ];
   const CMD_BY_ID = Object.fromEntries(COMMANDERS.map(c => [c.id, c]));
   const cmdImg = (id) => `/icons/commander/${id}.webp`;
-  // Daten: { cmd: [ {id, level, skills:[4], awakened} | null, … ], gear: { helm: {item, name, icon, rarity, tier, refine, refType}, … }, updated }
-  // Eigene Daten: lokal (rok_scanner_showcase → user_state) + leaderboard.showcase (für andere sichtbar)
-  const SC_KEY = 'rok_scanner_showcase';
-  const SC_SLOTS = ['Primär', 'Sekundär'];
   const SC_RAR = {
     legendary: { label: 'Legendär',        c: '#f5c542' },
     epic:      { label: 'Episch',          c: '#c084fc' },
@@ -3565,21 +3640,128 @@ window.RokApp = () => {
   const scGearNorm = (g) => Object.fromEntries(GEAR_SLOTS.map(sl => { const v = g?.[sl.k] || {};
     return [sl.k, { item: String(v.item || ''), name: String(v.name || '').slice(0, 60), icon: scIconOk(v.icon), rarity: v.rarity === 'epic' ? 'epic' : 'legendary',
       tier: gTier(v.tier), refine: gRefine(v.refine), refType: gRefType(v.refType) }]; }));
-  const scNorm = (d) => ({ cmd: [0, 1].map(i => scCmdNorm(d?.cmd?.[i])), gear: scGearNorm(d?.gear), updated: +d?.updated || 0 });
+  // Hintergründe: Vorlagen (Farbverläufe) oder ein eigenes, verkleinertes Bild (JPEG als data-URL)
+  const SC_BGS = {
+    none:   { label: 'Standard',  css: '' },
+    gold:   { label: 'Gold',      css: 'radial-gradient(120% 85% at 50% 0%, rgba(245,197,66,.42), transparent 62%), linear-gradient(180deg,#3a2706,#0c1019)' },
+    night:  { label: 'Nacht',     css: 'radial-gradient(110% 80% at 50% 0%, rgba(56,189,248,.32), transparent 60%), linear-gradient(180deg,#0b1d3a,#07090f)' },
+    blood:  { label: 'Blut',      css: 'radial-gradient(110% 80% at 50% 0%, rgba(239,68,68,.40), transparent 60%), linear-gradient(180deg,#330c0c,#07090f)' },
+    forest: { label: 'Wald',      css: 'radial-gradient(110% 80% at 50% 0%, rgba(74,222,128,.30), transparent 60%), linear-gradient(180deg,#0c2a17,#07090f)' },
+    royal:  { label: 'Königlich', css: 'radial-gradient(110% 80% at 50% 0%, rgba(192,132,252,.38), transparent 60%), linear-gradient(180deg,#26103d,#07090f)' },
+    desert: { label: 'Wüste',     css: 'radial-gradient(120% 85% at 50% 0%, rgba(251,191,36,.30), transparent 60%), linear-gradient(180deg,#5a3a17,#1a1208)' }
+  };
+  // Datenmodell (Spalte leaderboard.showcase + Kopie im user_state):
+  // { v: 3, active, list: [ { id, title, bg, h, grid, els: { avatar|name|tag|vip|power|kp|merit: {on,x,y,s,color,box,shadow} },
+  //   sets: [ { id, name, mode: 'manual'|'shot', shot, cmd:[2], gear:{…}, x, y, s, arm: { on, x, y, s, formation, insc:[{t,c}], troop, atk, def, hp, spd } } ] } ], updated }
+  // Bilder (Hintergrund, Set-Screenshots) liegen im Supabase-Storage (Bucket "showcase"), sonst als verkleinertes JPEG direkt im Showcase.
+  const SC_KEY = 'rok_scanner_showcase';
+  const SC_SLOTS = ['Primär', 'Sekundär'];
+  const SC_MAX = 7, SC_MAX_LIST = 5, SC_SET_W = 13, SC_SHOT_W = 17, SC_STEP = 100 / 48;   // Raster: 24 Spalten, Einrasten in halben Zellen
+  const SC_IMG_BASE = RokAuth.imgBase();
+  const scImgOk = (v) => typeof v === 'string' && ((v.length < 400 && v.startsWith(SC_IMG_BASE) && /^[A-Za-z0-9/_.:?=&-]+$/.test(v))
+    || (v.length < 520000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(v)));
+  const scBgNorm = (b) => b?.type === 'img' && scImgOk(b.src) ? { type: 'img', src: b.src } : { type: 'preset', id: SC_BGS[b?.id] ? b.id : 'none' };
+  const SC_HEIGHTS = { compact: { label: 'Kompakt', h: 60 }, normal: { label: 'Normal', h: 75 }, tall: { label: 'Hoch', h: 95 }, xl: { label: 'Sehr hoch', h: 120 }, xxl: { label: 'Extra hoch', h: 150 } };
+  const SC_ELS = {
+    avatar: { label: 'Profilbild',  icon: '🖼', w: 8 },
+    name:   { label: 'Name',        icon: '✒️', w: 22 },
+    tag:    { label: 'Allianz-Tag', icon: '🏰', w: 10 },
+    vip:    { label: 'VIP',         icon: '👑', w: 11 },
+    power:  { label: 'Energie',     icon: '⚡', w: 16 },
+    kp:     { label: 'Kill-Punkte', icon: '⚔️', w: 16 },
+    merit:  { label: 'Verdienst',   icon: '🏅', w: 16 }
+  };
+  const SC_TROOPS = { infantry: 'Infanterie', cavalry: 'Kavallerie', archer: 'Bogenschützen', siege: 'Belagerung', all: 'Alle Truppen' };
+  const SC_ARM_STATS = [['atk', 'Angriff'], ['def', 'Verteidigung'], ['hp', 'Leben'], ['spd', 'Marschgeschw.']];
+  const SC_INSC = {
+    gold: { label: 'Gold',  bg: 'linear-gradient(180deg,#fde68a,#f8b62c 55%,#e58a0e)', fg: '#7a2e08', bd: '#fff3c4' },
+    blue: { label: 'Blau',  bg: 'linear-gradient(180deg,#e0e7ff,#aab6fb 55%,#7f8ef0)', fg: '#1f2f80', bd: '#f0f3ff' },
+    gray: { label: 'Grau',  bg: 'linear-gradient(180deg,#f1f5f9,#cbd5e1 55%,#94a3b8)', fg: '#1f2937', bd: '#f8fafc' }
+  };
+  const scH = (d) => SC_HEIGHTS[d.h].h;
+  const scGridSnap = (v) => Math.sign(v) * Math.round(Math.abs(v) / SC_STEP) * SC_STEP;   // symmetrisch zur Mitte
+  const scPos = (v, max) => { if (v == null || v === '') return null; const n = +v; return Number.isFinite(n) ? Math.min(max, Math.max(0, n)) : null; };
+  const scScale = (v) => { const n = +v; return Number.isFinite(n) && n > 0 ? Math.min(2.5, Math.max(0.4, n)) : 1; };
+  const scColor = (v) => /^#[0-9a-f]{6}$/i.test(v || '') ? v.toLowerCase() : '';
+  const scNum1 = (v) => { if (v == null || v === '') return null; const n = Math.round(parseFloat(String(v).replace(',', '.')) * 10) / 10; return Number.isFinite(n) ? Math.min(999, Math.max(-999, n)) : null; };
+  const scElNorm = (w) => ({ on: !!w?.on, x: scPos(w?.x, 100), y: scPos(w?.y, 200), s: scScale(w?.s), color: scColor(w?.color), box: w?.box !== false, shadow: w?.shadow !== false });
+  const scArmNorm = (a) => ({ on: !!a?.on, x: scPos(a?.x, 100), y: scPos(a?.y, 200), s: scScale(a?.s), formation: String(a?.formation || '').slice(0, 30),
+    insc: (Array.isArray(a?.insc) ? a.insc : []).slice(0, 8).map(i => ({ t: String(i?.t || '').slice(0, 24), c: SC_INSC[i?.c] ? i.c : 'gold' })),
+    troop: SC_TROOPS[a?.troop] ? a.troop : 'infantry', ...Object.fromEntries(SC_ARM_STATS.map(([k]) => [k, scNum1(a?.[k])])) });
+  const scArmHas = (a) => a.insc.some(i => i.t) || !!a.formation || SC_ARM_STATS.some(([k]) => a[k]);
+  const scSetNorm = (x) => ({ id: String(x?.id || newId()), name: String(x?.name || '').trim().slice(0, 30), mode: x?.mode === 'shot' ? 'shot' : 'manual',
+    shot: scImgOk(x?.shot) ? x.shot : '', cmd: [0, 1].map(i => scCmdNorm(x?.cmd?.[i])), gear: scGearNorm(x?.gear),
+    x: scPos(x?.x, 100), y: scPos(x?.y, 200), s: scScale(x?.s), arm: scArmNorm(x?.arm) });
+
+  // Standard-Anordnung: Anzeigen oben mittig (bei Bedarf 2 Reihen), Sets darunter, Rüstung rechts neben dem Set – symmetrisch zur Mitte
+  function scLayoutPos(d) {
+    const on = Object.keys(SC_ELS).filter(k => d.els[k].on), gap = 2, wp = {}, rows = [[]];
+    const ww = (k) => SC_ELS[k].w * d.els[k].s;
+    let rw = 0;
+    on.forEach(k => { if (rows[rows.length - 1].length && rw + ww(k) > 94) { rows.push([]); rw = 0; } rows[rows.length - 1].push(k); rw += ww(k) + gap; });
+    let y = 6.25;
+    if (on.length) rows.forEach(r => {
+      const tot = r.reduce((a, k) => a + ww(k), 0) + gap * (r.length - 1); let x = -tot / 2;
+      r.forEach(k => { wp[k] = { x: 50 + scGridSnap(x + ww(k) / 2), y: scGridSnap(y) }; x += ww(k) + gap; });
+      y += 7.5;
+    });
+    const n = d.sets.length, armOn = d.sets.some(x => x.arm.on), per = armOn ? 2 : 4, nRows = Math.ceil(n / per), y0 = on.length ? y : 1.5;
+    const need = y0 + nRows * 34, sp = [], ap = [];
+    const H = Math.max(scH(d), need);
+    const rowH = (H - y0) / nRows;
+    for (let r = 0, i = 0; r < nRows; r++) {
+      const c = Math.ceil((n - i) / (nRows - r)), step = armOn ? 36 : Math.min(100 / (c + 1), 22);
+      for (let k = 0; k < c; k++, i++) {
+        const gx = scGridSnap((k - (c - 1) / 2) * step), gy = scGridSnap(y0 + rowH * (r + 0.5));
+        sp.push({ x: 50 + gx - (armOn ? scGridSnap(8.3) : 0), y: gy });
+        ap.push({ x: 50 + gx + scGridSnap(10.4), y: gy });
+      }
+    }
+    return { wp, sp, ap, need };
+  }
+  function scAutoLayout(d, onlyMissing) {
+    const { wp, sp, ap, need } = scLayoutPos(d);
+    if (!onlyMissing && need > scH(d)) d.h = Object.keys(SC_HEIGHTS).find(k => SC_HEIGHTS[k].h >= need) || 'xxl';
+    d.sets.forEach((x, i) => {
+      if (!onlyMissing || x.x == null || x.y == null) Object.assign(x, sp[i]);
+      if (!onlyMissing || x.arm.x == null || x.arm.y == null) Object.assign(x.arm, ap[i]);
+    });
+    Object.entries(wp).forEach(([k, p]) => { const w = d.els[k]; if (!onlyMissing || w.x == null || w.y == null) Object.assign(w, p); });
+  }
+  function scNorm(d, i = 0) {
+    let sets = Array.isArray(d?.sets) ? d.sets : (d?.cmd || d?.gear ? [{ cmd: d.cmd, gear: d.gear }] : []);   // ganz altes Format = 1 Set
+    if (!sets.length) sets = [{}];
+    const old = d?.widgets || {};                                                                            // Format v2
+    const o = { id: String(d?.id || newId()), title: String(d?.title || `Showcase ${i + 1}`).trim().slice(0, 30) || `Showcase ${i + 1}`,
+      sets: sets.slice(0, SC_MAX).map(scSetNorm), bg: scBgNorm(d?.bg), h: SC_HEIGHTS[d?.h] ? d.h : 'normal', grid: d?.grid !== false,
+      els: Object.fromEntries(Object.keys(SC_ELS).map(k => [k, scElNorm(d?.els?.[k] || old[k])])) };
+    scAutoLayout(o, true);
+    return o;
+  }
+  function scDocNorm(raw) {
+    let list = Array.isArray(raw?.list) ? raw.list : (raw && (raw.sets || raw.cmd || raw.gear) ? [raw] : []);
+    if (!list.length) list = [{}];
+    list = list.slice(0, SC_MAX_LIST).map((x, i) => scNorm(x, i));
+    return { v: 3, list, active: list.some(x => x.id === raw?.active) ? raw.active : list[0].id, updated: +raw?.updated || 0 };
+  }
   // Item für die Anzeige: aus dem Katalog, sonst aus der gespeicherten Kopie (Name/Icon) – wichtig für fremde Profile
   const scItem = (v) => gItem(v?.item) || (v?.name ? { name: v.name, icon: v.icon, rarity: v.rarity } : null);
   const scSnap = (v, it) => { v.name = it ? it.name : ''; v.icon = it ? scIconOk(it.icon) : ''; };
-
   function ownShowcase() {
     let loc = null; try { loc = JSON.parse(LS.get(SC_KEY, 'null')); } catch {}
     const cloud = RokAuth.ownMeta().showcase;
-    const a = loc ? scNorm(loc) : null, b = cloud ? scNorm(cloud) : null;
-    return (a && (!b || a.updated >= b.updated)) ? a : (b || scNorm(null));
+    const a = loc ? scDocNorm(loc) : null, b = cloud ? scDocNorm(cloud) : null;
+    return (a && (!b || a.updated >= b.updated)) ? a : (b || scDocNorm(null));
   }
-  let sc = { own: false, data: null, gsel: null, busy: false };
+  let sc = { own: false, doc: null, si: 0, gsel: null, sel: null, busy: false, edit: false, exporting: false, stats: {} };
+  const D = () => sc.doc.list.find(x => x.id === sc.doc.active) || sc.doc.list[0];
+  const scSet = () => { const d = D(); return d.sets[Math.min(sc.si, d.sets.length - 1)]; };
   let scOpen = (() => { try { return localStorage.getItem('rok_showcase_open') !== '0'; } catch { return true; } })();
-  function renderShowcase(own, row) {
-    sc = { ...sc, own, data: own ? ownShowcase() : scNorm(row?.showcase), gsel: own && sc.own ? sc.gsel : null };
+  function renderShowcase(own, row, stats) {
+    const keep = own && sc.own && sc.doc;                    // eigenes Profil neu gezeichnet → laufende Bearbeitung behalten
+    sc = { ...sc, own, stats: stats || {}, doc: keep ? sc.doc : (own ? ownShowcase() : scDocNorm(row?.showcase)),
+           si: keep ? sc.si : 0, gsel: keep ? sc.gsel : null, sel: keep ? sc.sel : null, edit: keep ? sc.edit : false };
+    if (sc.si >= D().sets.length) sc.si = 0;
     drawShowcase();
     if (gearDbState === 'idle') loadGearDb().then(() => { if (view === 'profile') drawShowcase(); });
   }
@@ -3596,26 +3778,34 @@ window.RokApp = () => {
   }
   const scSkillSquares = (skills, cls = 'w-7 h-7 text-xs') => skills.map((s, i) => `<span title="Skill ${i + 1}" class="${cls} rounded-md grid place-items-center font-bold tabular-nums border ${s >= 5 ? 'text-ink-950 border-gold-400' : 'text-slate-200 border-ink-600 bg-ink-900'}"${s >= 5 ? ' style="background:linear-gradient(180deg,#fde68a,#e0a91b)"' : ''}>${s}</span>`).join('');
 
-  // ---- Kommandanten-Plätze ----
-  function scCmdSlot(c, i) {
-    const m = c && CMD_BY_ID[c.id], click = sc.own || !!m;
-    return `<div class="flex flex-col items-center w-28 sm:w-32">
-      <div class="text-[10px] uppercase tracking-widest text-slate-400 mb-1.5">${SC_SLOTS[i]}</div>
-      <button type="button" data-cmdslot="${i}" ${click ? '' : 'disabled'} title="${m ? (sc.own ? 'Kommandant ändern' : 'Kommandant ansehen') : 'Kommandant wählen'}"
-          class="relative w-full aspect-[140/195] flex items-end justify-center group focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 rounded-xl ${click ? 'cursor-pointer' : 'cursor-default'}">
-        ${m ? `<img src="${cmdImg(m.id)}" alt="${esc(m.name)}" class="w-full h-full object-contain object-bottom drop-shadow-[0_6px_14px_rgba(0,0,0,.55)] transition-transform group-hover:scale-[1.04]">
-               ${c.awakened ? '<span class="absolute top-1 right-0 text-lg" title="Erweckt">✨</span>' : ''}`
-          : `<span class="ghex w-[86%] aspect-[166/192] mb-[3%] grid place-items-center transition ${sc.own ? 'bg-gold-500/50 group-hover:bg-gold-400' : 'bg-ink-600'}">
-               <span class="ghex w-[calc(100%-6px)] h-[calc(100%-6px)] grid place-items-center bg-ink-950 text-4xl font-light ${sc.own ? 'text-gold-400/80 group-hover:text-gold-300' : 'text-ink-600'}">${sc.own ? '+' : ''}</span></span>`}
-      </button>
-      ${m ? `<div class="mt-1.5 text-center">
-          ${m.name ? `<div class="text-sm font-semibold text-white truncate max-w-[8rem]" translate="no">${esc(m.name)}</div>` : ''}
-          <div class="text-xs tabular-nums"><span class="font-bold text-gold-300">Lv. ${c.level}</span> <span class="font-semibold ${c.skills.every(s => s >= 5) ? 'text-gold-300' : 'text-slate-400'}">${c.skills.join('-')}</span></div></div>`
-        : `<div class="mt-1.5 text-xs text-slate-500">${sc.own ? 'Antippen zum Wählen' : 'leer'}</div>`}
-    </div>`;
+  // ---- Kommandanten-Plätze: Primär groß vorne, Sekundär kleiner und leicht dahinter (wie im Spiel) ----
+  function scCmdsHtml(cmds) {
+    const one = (i) => {
+      const c = cmds[i], m = c && CMD_BY_ID[c.id], click = sc.own || !!m, main = i === 0;
+      const named = !!m?.name;
+      return `<div class="relative flex flex-col items-center ${main ? 'z-10 w-36 sm:w-40' : 'z-0 w-28 sm:w-32 -ml-7 sm:-ml-8 translate-y-1'}">
+        <div class="w-full mb-1 truncate text-center ${main ? 'pr-7 sm:pr-8' : 'pl-7 sm:pl-8'} ${named ? 'text-sm font-semibold text-white [text-shadow:0_1px_3px_#000]' : 'text-[10px] uppercase tracking-widest text-slate-400'}"${named ? ' translate="no"' : ''}>${esc(named ? m.name : SC_SLOTS[i])}</div>
+        <button type="button" data-cmdslot="${i}" ${click ? '' : 'disabled'} title="${m ? (sc.own ? 'Kommandant ändern' : 'Kommandant ansehen') : 'Kommandant wählen'}"
+            class="relative w-full aspect-[140/195] flex items-end justify-center group focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 rounded-xl ${click ? 'cursor-pointer' : 'cursor-default'}">
+          ${m ? `<img src="${cmdImg(m.id)}" alt="${esc(m.name)}" class="w-full h-full object-contain object-bottom drop-shadow-[0_6px_14px_rgba(0,0,0,.6)] transition-transform group-hover:scale-[1.04]">`
+            : `<span class="ghex w-[86%] aspect-[166/192] mb-[3%] grid place-items-center transition ${sc.own ? 'bg-gold-500/50 group-hover:bg-gold-400' : 'bg-ink-600'}">
+                 <span class="ghex w-[calc(100%-6px)] h-[calc(100%-6px)] grid place-items-center bg-ink-950 text-4xl font-light ${sc.own ? 'text-gold-400/80 group-hover:text-gold-300' : 'text-ink-600'}">${sc.own ? '+' : ''}</span></span>`}
+        </button>
+      </div>`;
+    };
+    return one(0) + one(1);
   }
   // ---- Ausrüstung (Rauten wie im Spiel) ----
-  function scGearBoard(g) {
+  function scGearBoard(g, mini = false) {
+    if (mini) return GEAR_SLOTS.map(sl => {
+      const v = g[sl.k], it = scItem(v), f = it ? GFILL[v.rarity] : null;
+      return `<div class="gdia absolute pointer-events-none" style="left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%">
+        <span class="gdia absolute inset-0" style="background:${f ? f[0] : 'rgba(46,58,85,.85)'}"></span>
+        <span class="gdia absolute inset-[1.5px]" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : 'rgba(17,23,37,.85)'}"></span>
+        ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[62%] aspect-square object-contain">` : ''}
+        ${it && v.tier > 0 ? `<span class="absolute bottom-[4%] left-1/2 -translate-x-1/2 px-[.25cqw] rounded bg-ink-950/85 font-extrabold text-gold-300" style="font-size:max(6px,.75cqw);line-height:1.2">${ROMAN[v.tier - 1]}</span>` : ''}
+      </div>`;
+    }).join('');
     return GEAR_SLOTS.map(sl => {
       const v = g[sl.k], it = scItem(v), f = it ? GFILL[v.rarity] : null, active = sc.own && sc.gsel === sl.k;
       return `<button type="button" data-sctile="${sl.k}" ${sc.own ? '' : 'tabindex="-1"'} title="${esc(sl.label + (it ? ': ' + it.name : ''))}"
@@ -3633,30 +3823,480 @@ window.RokApp = () => {
       </button>`;
     }).join('');
   }
+  // ---- Bilder speichern (Supabase-Storage, sonst verkleinert direkt im Showcase) ----
+  function scCompress(file, maxW, maxH, maxLen) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader(); r.onerror = reject;
+      r.onload = () => {
+        const img = new Image(); img.onerror = () => reject(new Error('Bild konnte nicht gelesen werden.'));
+        img.onload = () => {
+          const k = Math.min(1, maxW / img.width, maxH / img.height), c = document.createElement('canvas');
+          c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          let q = 0.84, out = c.toDataURL('image/jpeg', q);
+          while (out.length > maxLen && q > 0.35) { q -= 0.08; out = c.toDataURL('image/jpeg', q); }
+          fetch(out).then(x => x.blob()).then(blob => resolve({ dataUrl: out, blob })).catch(reject);
+        };
+        img.src = r.result;
+      };
+      r.readAsDataURL(file);
+    });
+  }
+  let scStorageWarned = false;
+  async function scStoreImage(file, key, maxW, maxH) {
+    const { dataUrl, blob } = await scCompress(file, maxW, maxH, 330000);
+    try { return await RokAuth.uploadImage(blob, key); }
+    catch (e) {
+      console.warn('Supabase-Storage nicht verfügbar – Bild wird direkt im Showcase gespeichert', e);
+      if (!scStorageWarned) { scStorageWarned = true; setTimeout(() => scMsg('Bild direkt im Showcase gespeichert – für kürzere Ladezeiten das Storage-SQL ausführen (Bucket „showcase“).', 'warn'), 1500); }
+      return dataUrl;
+    }
+  }
+
+  // ---- Hintergrund ----
+  function scApplyBg() {
+    const b = D().bg, el = $('scStageBg');
+    el.style.backgroundImage = b.type === 'img' ? `url("${b.src}")` : (SC_BGS[b.id]?.css || '');
+    $('scStageShade').classList.toggle('hidden', b.type !== 'img');
+    $('scStage').classList.toggle('bg-ink-950/40', b.type !== 'img' && b.id === 'none');
+  }
+  function drawBgPick() {
+    const b = D().bg, sw = 'relative w-16 h-10 rounded-lg overflow-hidden border-2 transition';
+    $('scBgList').innerHTML = Object.entries(SC_BGS).map(([k, v]) => {
+      const on = b.type === 'preset' && b.id === k;
+      return `<button type="button" data-bg="${k}" aria-pressed="${on}" title="${v.label}" class="${sw} ${on ? 'border-gold-400' : 'border-ink-600 hover:border-gold-500/60'}"
+          style="background:${v.css || '#0c1019'}"><span class="absolute inset-x-0 bottom-0 text-[9px] font-semibold text-white bg-black/45 leading-4">${v.label}</span></button>`;
+    }).join('') + `<label for="scBgFile" title="Eigenes Bild hochladen" class="cursor-pointer ${sw} ${b.type === 'img' ? 'border-gold-400' : 'border-dashed border-gold-500/60 hover:border-gold-400'} grid place-items-center bg-ink-900 text-[10px] text-gold-300 font-semibold"
+        ${b.type === 'img' ? `style="background:url('${b.src}') center/cover"` : ''}>${b.type === 'img' ? '<span class="absolute inset-x-0 bottom-0 text-[9px] text-white bg-black/45 leading-4 text-center">Eigenes</span>' : '📷 Bild'}</label>`;
+  }
+  $('scBgBtn').onclick = () => {
+    const open = $('scBgPick').classList.toggle('hidden') === false;
+    $('scBgBtn').setAttribute('aria-expanded', String(open));
+    if (open) { scOpen = true; scApplyOpen(); drawBgPick(); }
+  };
+  $('scBgList').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-bg]'); if (!b || !sc.own) return;
+    D().bg = { type: 'preset', id: b.dataset.bg }; scApplyBg(); drawBgPick(); scSave('✓ Hintergrund gespeichert');
+  });
+  $('scBgFile').onchange = async (ev) => {
+    const f = ev.target.files?.[0]; ev.target.value = '';
+    if (!f || !f.type.startsWith('image/') || !sc.own) return;
+    scMsg('Lade Hintergrund hoch …', 'busy');
+    try {
+      const d = D(), src = await scStoreImage(f, `${d.id}_bg`, 1600, 1200);
+      d.bg = { type: 'img', src }; scApplyBg(); drawBgPick(); scSave('✓ Hintergrund gespeichert');
+    } catch (e) { scMsg(e.message || 'Bild konnte nicht gelesen werden.', 'err'); }
+  };
+
+  // ---- Bühne ----
+  const SC_SWORD = '<svg viewBox="0 0 24 24" style="width:1em;height:1em;flex:none" fill="#5aa9f5"><path d="M21 3v3.2l-9.6 9.6-3.2-3.2L17.8 3H21zM7.5 13.3l3.2 3.2-1.4 1.4-1-1-2.6 2.6.9.9-1.4 1.4-3.2-3.2 1.4-1.4.9.9 2.6-2.6-1-1z"/></svg>';
+  const SC_RING = '<svg viewBox="0 0 24 24" style="width:1.25em;height:1.25em;flex:none" fill="#facc15">' + [210, 240, 270, 300, 330, 0, 30, 60, 90, 120, 150].map(a => { const r = a * Math.PI / 180; return `<circle cx="${(12 + 8 * Math.cos(r)).toFixed(2)}" cy="${(12 + 8 * Math.sin(r)).toFixed(2)}" r="1.9"/>`; }).join('') + '</svg>';
+  const scPct = (v) => (v > 0 ? '+' : '') + v.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + '%';
+  // Rüstung wie im Spiel: Inschriften als Schilder, Formation, Werte (L = Längen-Einheit: Bühne in cqw, Vorschau in px)
+  function scArmHtml(a, L) {
+    const pill = (i) => { const c = SC_INSC[i.c];
+      return `<div style="background:${c.bd};padding:${L(0.17)};clip-path:polygon(8% 0,92% 0,100% 50%,92% 100%,8% 100%,0 50%)">
+        <div class="grid place-items-center font-extrabold whitespace-nowrap" style="width:${L(9.6)};height:${L(2.15)};font-size:max(8px,${L(1.15)});color:${c.fg};background:${c.bg};clip-path:polygon(8% 0,92% 0,100% 50%,92% 100%,8% 100%,0 50%)">${esc(i.t || '–')}</div></div>`; };
+    const stats = SC_ARM_STATS.filter(([k]) => a[k]).map(([k, l]) => `<div class="flex items-center whitespace-nowrap" style="gap:.35em;font-size:max(8px,${L(1.05)})">${SC_SWORD}
+        <span class="text-slate-100 [text-shadow:0_1px_2px_#000]">${SC_TROOPS[a.troop]} ${l}</span><span class="font-bold text-emerald-400 [text-shadow:0_1px_2px_#000]">${scPct(a[k])}</span></div>`).join('');
+    return `<div class="flex flex-col items-center" style="gap:${L(0.3)}">
+      ${a.insc.filter(i => i.t).map(pill).join('')}
+      ${a.formation ? `<div class="flex items-center text-slate-300 [text-shadow:0_1px_2px_#000]" style="gap:.35em;font-size:max(8px,${L(1.05)});margin-top:${L(0.25)}">${SC_RING}${esc(a.formation)}</div>` : ''}
+      ${stats ? `<div class="flex flex-col items-start" style="gap:${L(0.12)}">${stats}</div>` : ''}
+    </div>`;
+  }
+  function scMiniSet(x, i) {
+    const sel = !sc.edit && !sc.exporting && D().sets.length > 1 && i === sc.si;
+    const name = x.name ? `<div class="w-full truncate text-center font-semibold text-white [text-shadow:0_1px_3px_#000]" style="font-size:max(9px,1.15cqw)" translate="no">${esc(x.name)}</div>` : '';
+    if (x.mode === 'shot') return `<div class="flex flex-col items-center rounded-lg ${sel ? 'ring-2 ring-gold-400/80 bg-gold-500/10' : ''}" style="padding:.4cqw">${name}
+      ${x.shot ? `<img src="${x.shot}" alt="" draggable="false" class="w-full rounded-md border border-gold-500/40 shadow-[0_4px_14px_rgba(0,0,0,.6)]">`
+               : '<div class="w-full aspect-[4/3] rounded-md border border-dashed border-ink-600 grid place-items-center text-slate-500" style="font-size:max(9px,1.2cqw)">📷</div>'}</div>`;
+    const cmd = (c, main) => { const m = c && CMD_BY_ID[c.id];
+      return `<div class="relative flex items-end justify-center" style="width:${main ? 6.4 : 5.2}cqw;aspect-ratio:140/195;z-index:${main ? 1 : 0};${main ? '' : 'margin-left:-1.2cqw;transform:translateY(.25cqw)'}">
+        ${m ? `<img src="${cmdImg(m.id)}" alt="" draggable="false" class="w-full h-full object-contain object-bottom drop-shadow-[0_3px_6px_rgba(0,0,0,.6)]">` : '<span class="ghex w-[86%] aspect-[166/192] mb-[3%] bg-ink-600/70"></span>'}</div>`; };
+    return `<div class="flex flex-col items-center rounded-lg ${sel ? 'ring-2 ring-gold-400/80 bg-gold-500/10' : ''}" style="padding:.4cqw">${name}
+      <div class="flex items-end justify-center">${cmd(x.cmd[0], true)}${cmd(x.cmd[1], false)}</div>
+      <div class="relative" style="width:10cqw;aspect-ratio:1/2;margin-top:.5cqw">${scGearBoard(x.gear, true)}</div>
+    </div>`;
+  }
+  const SC_DEF_COLOR = { name: '#f5c542', tag: '#fde68a', vip: '#f5c542', power: '#ffffff', kp: '#ffffff', merit: '#ffffff' };
+  function scWidget(k, w) {
+    const st = sc.stats, W = SC_ELS[k], shadow = w.shadow ? 'filter:drop-shadow(0 2px 3px rgba(0,0,0,.85));' : '';
+    const box = w.box ? 'rounded-lg border border-gold-500/40 bg-ink-950/75' : '';
+    if (k === 'avatar') {
+      const av = st.avatar, letter = String(st.name || '?').charAt(0).toUpperCase();
+      const inner = isImgAv(av) ? `<img src="${av}" alt="" draggable="false" class="w-full h-full object-cover">`
+        : `<span class="w-full h-full grid place-items-center ${av ? 'bg-ink-800' : 'bg-gradient-to-br from-gold-400 to-gold-600 text-ink-950 font-bold'}" style="font-size:3.4cqw">${esc(av && av.length <= 8 ? av : letter)}</span>`;
+      return `<div class="overflow-hidden ${w.box ? 'border-2 border-gold-400/80' : ''}" style="width:7cqw;height:7cqw;border-radius:1.2cqw;${w.shadow ? 'box-shadow:0 0 14px rgba(245,197,66,.35),0 4px 10px rgba(0,0,0,.6);' : ''}">${inner}</div>`;
+    }
+    const goldTxt = !w.color && (k === 'name' || k === 'vip');
+    const col = w.color ? `color:${w.color};` : (goldTxt ? '' : `color:${SC_DEF_COLOR[k]};`);
+    const pad = w.box ? 'padding:.5cqw 1.2cqw;' : '';
+    if (k === 'name') return `<div class="${box} font-display font-extrabold whitespace-nowrap ${goldTxt ? 'gold-text' : ''}" style="${col}${shadow}${pad}font-size:max(12px,3cqw)" translate="no">${esc(st.name || '')}</div>`;
+    if (k === 'tag') return `<div class="${box} font-bold whitespace-nowrap" style="${col}${shadow}${pad}font-size:max(11px,2.2cqw)" translate="no">[${esc(st.tag || '–')}]</div>`;
+    if (k === 'vip') return `<div class="${box} font-display font-extrabold whitespace-nowrap ${goldTxt ? 'gold-text' : ''}" style="${col}${shadow}${pad}font-size:max(11px,2.3cqw)">👑 ${st.vip != null ? vipName(st.vip) : 'VIP –'}</div>`;
+    const v = st[k];
+    return `<div class="${box} text-center" style="width:${W.w}cqw;${shadow}padding:.6cqw 1cqw">
+      <div class="uppercase tracking-widest whitespace-nowrap overflow-hidden text-ellipsis ${w.color ? '' : 'text-slate-400'}" style="${w.color ? `color:${w.color};opacity:.8;` : ''}font-size:max(7px,.95cqw)">${W.icon} ${W.label}</div>
+      <div class="font-extrabold tabular-nums whitespace-nowrap" style="${col}font-size:max(10px,2cqw)">${v != null ? short(v) : '–'}</div></div>`;
+  }
+  function drawStage() {
+    const d = D(), st = $('scStage');
+    st.style.aspectRatio = `100 / ${scH(d)}`;
+    scApplyBg();
+    $('scGridOv').classList.toggle('hidden', !(sc.edit && d.grid));
+    ['ring-2', 'ring-gold-500/60'].forEach(k => st.classList.toggle(k, sc.edit));
+    const ed = (key) => sc.edit ? ` cursor-move touch-none rounded-md ${sc.sel === key ? 'outline outline-2 outline-gold-300' : 'outline-dashed outline-1 outline-gold-400/70 hover:outline-2'}` : '';
+    const pos = (o) => `left:${o.x}cqw;top:${o.y}cqw;transform:translate(-50%,-50%) scale(${o.s})`;
+    $('scEls').innerHTML = d.sets.map((x, i) => `<div data-el="set:${i}" class="absolute${ed('set:' + i)}${!sc.edit && d.sets.length > 1 ? ' cursor-pointer' : ''}" style="${pos(x)};width:${x.mode === 'shot' ? SC_SHOT_W : SC_SET_W}cqw" title="${esc(x.name || 'Set ' + (i + 1))}">${scMiniSet(x, i)}</div>`).join('')
+      + d.sets.map((x, i) => x.arm.on && scArmHas(x.arm) ? `<div data-el="arm:${i}" class="absolute${ed('arm:' + i)}" style="${pos(x.arm)}">${scArmHtml(x.arm, n => n + 'cqw')}</div>` : '').join('')
+      + Object.entries(d.els).filter(([, w]) => w.on).map(([k, w]) => `<div data-el="w:${k}" class="absolute${ed('w:' + k)}" style="${pos(w)}">${scWidget(k, w)}</div>`).join('');
+  }
+  function drawListBar() {
+    const doc = sc.doc, many = doc.list.length > 1, b = 'text-xs px-3 py-1.5 rounded-lg border';
+    $('scListBar').classList.toggle('hidden', !sc.own && !many);
+    $('scListBar').innerHTML = doc.list.map(x => `<button type="button" data-scl="${esc(x.id)}" aria-pressed="${x.id === doc.active}" class="seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold border border-ink-700 transition" translate="no">${esc(x.title)}</button>`).join('')
+      + (sc.own ? (doc.list.length < SC_MAX_LIST ? `<button type="button" id="scNewList" class="${b} border-dashed border-gold-500/60 text-gold-300 hover:border-gold-400">+ Neuer Showcase</button>` : '')
+        + `<button type="button" id="scRenList" class="${b} border-ink-600 hover:border-gold-500/60 hover:text-gold-300">✎ Umbenennen</button>`
+        + (many ? `<button type="button" id="scDelList" class="${b} ml-auto border-red-500/40 text-red-300 hover:bg-red-500/10">🗑 Showcase löschen</button>` : '') : '');
+  }
+  function drawEditBar() {
+    const d = D(), on = sc.own && sc.edit;
+    $('scEditBar').classList.toggle('hidden', !on);
+    if (!on) return;
+    $('scGridOn').checked = d.grid;
+    $('scHeight').innerHTML = Object.entries(SC_HEIGHTS).map(([k, v]) => `<option value="${k}"${k === d.h ? ' selected' : ''}>${v.label}</option>`).join('');
+    $('scWidgetOpts').innerHTML = Object.entries(SC_ELS).map(([k, w]) =>
+      `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-w="${k}" ${d.els[k].on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${w.icon} ${w.label}</label>`).join('');
+    drawProps();
+  }
+  function scSelObj(key = sc.sel) {
+    if (!key) return null;
+    const [t, k] = key.split(':'), d = D();
+    if (t === 'set') return d.sets[+k] || null;
+    if (t === 'arm') return d.sets[+k]?.arm || null;
+    return d.els[k] || null;
+  }
+  function drawProps() {
+    const o = scSelObj(), el = $('scProps');
+    if (!o) { el.innerHTML = '<span class="text-xs text-slate-500">Element auf der Bühne antippen, um Größe, Schriftfarbe und Hintergrund einzustellen.</span>'; return; }
+    const [t, k] = sc.sel.split(':'), d = D();
+    const label = t === 'set' ? (d.sets[+k].name || `Set ${+k + 1}`) : t === 'arm' ? `⚔ Rüstung · ${d.sets[+k].name || 'Set ' + (+k + 1)}` : `${SC_ELS[k].icon} ${SC_ELS[k].label}`;
+    const btn = 'px-2.5 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300';
+    el.innerHTML = `<div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
+      <span class="font-semibold text-white" translate="no">${esc(label)}</span>
+      <label class="inline-flex items-center gap-2">Größe <input id="scPS" type="range" min="40" max="250" step="5" value="${Math.round(o.s * 100)}" class="w-36 accent-yellow-500"><span id="scPSv" class="tabular-nums w-11">${Math.round(o.s * 100)} %</span></label>
+      ${t === 'w' && k !== 'avatar' ? `<label class="inline-flex items-center gap-2">Schriftfarbe <input id="scPC" type="color" value="${o.color || SC_DEF_COLOR[k]}" class="w-9 h-7 p-0 bg-transparent border border-ink-600 rounded cursor-pointer"></label>
+        <button type="button" id="scPCr" class="${btn}">Standardfarbe</button>` : ''}
+      ${t === 'w' ? `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input id="scPB" type="checkbox" ${o.box ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${k === 'avatar' ? 'Rahmen' : 'Hintergrund-Box'}</label>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer"><input id="scPSh" type="checkbox" ${o.shadow ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Schatten</label>` : ''}
+      ${t !== 'set' ? `<button type="button" id="scPHide" class="${btn} ml-auto">Ausblenden</button>` : ''}
+    </div>`;
+  }
+  function drawSetBar() {
+    const d = D(), many = d.sets.length > 1;
+    $('scSetBar').classList.toggle('hidden', !sc.own && !many);
+    $('scSetBar').innerHTML = d.sets.map((x, i) => `<button type="button" data-si="${i}" aria-pressed="${i === sc.si}" class="seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold border border-ink-700 transition" translate="no">${esc(x.name || 'Set ' + (i + 1))}</button>`).join('')
+      + (sc.own && d.sets.length < SC_MAX ? '<button type="button" id="scAddSet" class="text-xs px-3 py-1.5 rounded-lg border border-dashed border-gold-500/60 text-gold-300 hover:border-gold-400">+ Set</button>' : '')
+      + (sc.own ? `<span class="text-[11px] text-slate-500">${d.sets.length}/${SC_MAX}</span>` : '')
+      + (sc.own && many ? '<button type="button" id="scDelSet" class="ml-auto text-xs px-3 py-1.5 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10">🗑 Set löschen</button>' : '');
+  }
+  function drawDetail() {
+    const x = scSet(), own = sc.own, segB = 'seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition';
+    $('scDetailHead').innerHTML = own ? `
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <input id="scSetName" maxlength="30" value="${esc(x.name)}" placeholder="Name des Sets (optional), z. B. Infanterie Marsch" class="flex-1 min-w-[200px] bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold-500">
+        <div class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group" aria-label="Darstellung">
+          <button type="button" data-scmode="manual" aria-pressed="${x.mode === 'manual'}" class="${segB}">✎ Manuell</button>
+          <button type="button" data-scmode="shot" aria-pressed="${x.mode === 'shot'}" class="${segB}">📷 Screenshot</button>
+        </div>
+      </div>
+      ${x.mode === 'manual' ? `<div class="flex flex-wrap justify-center gap-2 mb-3">
+        <label for="scFile" id="scScanLbl" class="cursor-pointer text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Ausrüstung scannen</label>
+        ${craftAllowed ? '<button type="button" id="scFromCraft" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⇢ Aus Craft-Set übernehmen</button>' : ''}</div>` : ''}`
+      : (x.name ? `<div class="mb-2 text-center font-display text-lg gold-text" translate="no">${esc(x.name)}</div>` : '');
+    $('scManual').classList.toggle('hidden', x.mode !== 'manual');
+    $('scShot').classList.toggle('hidden', x.mode !== 'shot');
+    if (x.mode === 'manual') {
+      $('scCmds').innerHTML = scCmdsHtml(x.cmd);
+      $('scGearBoard').innerHTML = scGearBoard(x.gear);
+      gearSel.sc = sc.gsel;
+      $('scGearEdit').innerHTML = own && sc.gsel ? gearEditor('sc', { sc: x.gear }, { rows: GEAR_SLOTS.map(sl => ({ sl, status: 'none' })) }) : '';
+    } else {
+      $('scShot').innerHTML = x.shot ? `<div class="flex flex-col items-center gap-3">
+          <img src="${x.shot}" alt="" class="max-w-full max-h-[70vh] rounded-xl border border-gold-500/40 shadow-[0_8px_24px_rgba(0,0,0,.6)]">
+          ${own ? `<div class="flex gap-2"><label for="scShotFile" class="cursor-pointer text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Anderen Screenshot wählen</label>
+            <button type="button" id="scShotDel" class="text-xs px-3 py-2 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10">✕ Entfernen</button></div>` : ''}</div>`
+        : (own ? `<label for="scShotFile" class="block cursor-pointer rounded-xl border-2 border-dashed border-ink-600 hover:border-gold-500/60 bg-ink-950/60 p-8 text-center">
+            <div class="text-3xl mb-1">📷</div><div class="font-semibold">Screenshot für dieses Set auswählen</div>
+            <div class="text-xs text-slate-400 mt-1">z. B. die Marsch-Ansicht aus dem Spiel · wird verkleinert gespeichert</div></label>`
+          : '<div class="py-6 text-center text-sm text-slate-500">Kein Screenshot.</div>');
+    }
+    drawArm();
+  }
+  let scArmOpen = false;
+  function drawArm() {
+    const a = scSet().arm, P = (n) => n * 9 + 'px';
+    if (!sc.own) { $('scArm').innerHTML = scArmHas(a) ? `<div class="mt-5 flex justify-center">${scArmHtml(a, P)}</div>` : ''; return; }
+    const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
+    $('scArm').innerHTML = `<details id="scArmBox" class="mt-4 rounded-xl border border-ink-700 bg-ink-950/50 p-3" ${scArmOpen ? 'open' : ''}>
+      <summary class="cursor-pointer font-semibold text-gold-300">⚔ Rüstung (Armaments)</summary>
+      <div class="mt-3 grid lg:grid-cols-[1fr_auto] gap-4">
+        <div class="space-y-3 text-xs">
+          <label class="inline-flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" data-arm="on" ${a.on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Auf der Bühne anzeigen</label>
+          <div><div class="text-slate-400 mb-1">Inschriften</div>
+            <div class="space-y-1.5">${a.insc.map((i, n) => `<div class="flex gap-1.5">
+              <input data-insc="${n}" data-f="t" value="${esc(i.t)}" maxlength="24" placeholder="z. B. Toppler" class="flex-1 min-w-0 ${inp}">
+              <select data-insc="${n}" data-f="c" class="${inp}">${Object.entries(SC_INSC).map(([k, c]) => `<option value="${k}"${k === i.c ? ' selected' : ''}>${c.label}</option>`).join('')}</select>
+              <button type="button" data-inscdel="${n}" class="px-2 text-slate-500 hover:text-red-400" title="Entfernen">✕</button></div>`).join('')}</div>
+            ${a.insc.length < 8 ? '<button type="button" id="scInscAdd" class="mt-1.5 text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">+ Inschrift</button>' : ''}
+          </div>
+          <label class="block"><span class="text-slate-400">Formation</span><input data-arm="formation" list="scFormations" value="${esc(a.formation)}" maxlength="30" placeholder="z. B. Pincer" class="mt-1 w-full ${inp}"></label>
+          <div class="flex flex-wrap items-end gap-2">
+            <label><span class="text-slate-400">Truppe</span><select data-arm="troop" class="mt-1 block ${inp}">${Object.entries(SC_TROOPS).map(([k, l]) => `<option value="${k}"${k === a.troop ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
+            ${SC_ARM_STATS.map(([k, l]) => `<label><span class="text-slate-400">${l} %</span><input data-arm="${k}" type="number" step="0.1" value="${a[k] ?? ''}" class="mt-1 block w-24 ${inp} text-right tabular-nums"></label>`).join('')}
+          </div>
+        </div>
+        <div id="scArmPrev" class="rounded-xl bg-ink-900/80 border border-ink-700 p-4 grid place-items-center min-w-[240px] min-h-[120px]">${scArmHas(a) ? scArmHtml(a, P) : '<span class="text-xs text-slate-500">Vorschau</span>'}</div>
+      </div>
+      <datalist id="scFormations">${['Pincer', 'Wedge', 'Hollow Square', 'Arch', 'Delta', 'Echelon', 'Line'].map(f => `<option value="${f}">`).join('')}</datalist>
+    </details>`;
+  }
   function drawShowcase() {
-    if (!sc.data) return;
-    const d = sc.data;
+    if (!sc.doc) return;
+    const d = D();
     $('scTools').classList.toggle('hidden', !sc.own);
-    $('scFromCraft').classList.toggle('hidden', !(sc.own && craftAllowed));
     $('scHint').classList.toggle('hidden', !sc.own);
-    $('scCount').textContent = `${d.cmd.filter(Boolean).length}/2 Kommandanten · ${GEAR_SLOTS.filter(sl => scItem(d.gear[sl.k])).length}/8 Ausrüstung`;
-    $('scCmds').innerHTML = [0, 1].map(i => scCmdSlot(d.cmd[i], i)).join('');
-    $('scGearBoard').innerHTML = scGearBoard(d.gear);
-    gearSel.sc = sc.gsel;
-    $('scGearEdit').innerHTML = sc.own && sc.gsel ? gearEditor('sc', { sc: d.gear }, { rows: GEAR_SLOTS.map(sl => ({ sl, status: 'none' })) }) : '';
+    $('scEditBtn').textContent = sc.edit ? '✓ Fertig' : '✎ Bearbeiten';
+    $('scEditBtn').setAttribute('aria-pressed', String(sc.edit));
+    $('scCount').textContent = `${d.sets.length}/${SC_MAX} Sets`;
+    if (!sc.own) { $('scBgPick').classList.add('hidden'); $('scSync').textContent = ''; }
+    else if (!$('scBgPick').classList.contains('hidden')) drawBgPick();
+    drawListBar(); drawStage(); drawEditBar(); drawSetBar(); drawDetail();
     scApplyOpen();
   }
-  async function scSave(okText, quiet) {
-    sc.data.updated = Date.now();
-    LS.set(SC_KEY, JSON.stringify(sc.data));
-    try {
-      const ok = await RokAuth.saveShowcase(sc.data);
-      if (!ok) scMsg('✓ Lokal gespeichert · für andere Spieler sichtbar erst nach dem SQL-Update (Spalte showcase)', 'warn');
-      else if (!quiet) scMsg(okText || '✓ Showcase gespeichert', 'ok');
-    } catch (e) { scMsg(e.message || String(e), 'err'); }
+
+  // ---- Sicher speichern: lokal → user_state (Cloud) und leaderboard.showcase (für andere sichtbar), mit automatischer Wiederholung ----
+  let scDirty = false, scT = null, scRetryT = null, scSaving = false, scColWarned = false;
+  function scSync(state, text) {
+    const el = $('scSync'); if (!sc.own) { el.textContent = ''; return; }
+    el.textContent = text;
+    el.className = 'text-[11px] ' + ({ ok: 'text-emerald-400', busy: 'text-slate-400', warn: 'text-amber-300', err: 'text-red-300' }[state] || 'text-slate-500');
   }
-  let scT = null;
-  const scSaveSoon = () => { clearTimeout(scT); scT = setTimeout(() => scSave(null, true), 700); };
+  async function scSave(okText, quiet) {
+    if (!sc.own || !sc.doc) return;
+    clearTimeout(scT); clearTimeout(scRetryT);
+    sc.doc.updated = Date.now(); scDirty = true;
+    LS.set(SC_KEY, JSON.stringify(sc.doc));                // Kopie im Account (user_state) – wird automatisch hochgeladen
+    if (scSaving) { scT = setTimeout(() => scSave(okText, quiet), 700); return; }
+    scSaving = true; scSync('busy', '☁ speichert …');
+    try {
+      const ok = await RokAuth.saveShowcase(sc.doc);
+      await RokAuth.flushNow();
+      scDirty = false;
+      if (ok) { scSync('ok', '☁ in der Cloud gespeichert'); if (!quiet) scMsg(okText || '✓ Showcase gespeichert', 'ok'); }
+      else {
+        scSync('warn', '☁ im Account gespeichert');
+        if (!scColWarned) { scColWarned = true; scMsg('✓ Im Account gespeichert · für andere Spieler sichtbar erst nach dem SQL-Update (Spalte showcase)', 'warn'); }
+        else if (!quiet) scMsg(okText || '✓ Showcase gespeichert', 'ok');
+      }
+    } catch (e) {
+      scSync('err', '⚠ nicht gespeichert – neuer Versuch …');
+      if (!quiet) scMsg(e.message || String(e), 'err');
+      scRetryT = setTimeout(() => scSave(null, true), 10000);
+    } finally { scSaving = false; }
+  }
+  const scSaveSoon = () => { if (!sc.own) return; scDirty = true; scSync('busy', '☁ ungespeichert …'); clearTimeout(scT); scT = setTimeout(() => scSave(null, true), 600); };
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && scDirty) scSave(null, true); });
+  window.addEventListener('pagehide', () => { if (scDirty) scSave(null, true); });
+  window.addEventListener('beforeunload', (e) => { if (scDirty) { scSave(null, true); e.preventDefault(); e.returnValue = ''; } });
+
+  // ---- Bearbeitungsmodus: auswählen, ziehen (Raster), Größe/Farbe ----
+  let scDrag = null;
+  $('scEls').addEventListener('pointerdown', (ev) => {
+    if (!sc.edit || !sc.own) return;
+    const el = ev.target.closest('[data-el]');
+    if (!el) { if (sc.sel) { sc.sel = null; drawStage(); drawProps(); } return; }
+    ev.preventDefault();
+    const key = el.dataset.el, obj = scSelObj(key); if (!obj) return;
+    sc.sel = key;
+    scDrag = { el, obj, f: 100 / $('scStage').getBoundingClientRect().width, sx: ev.clientX, sy: ev.clientY, ox: obj.x, oy: obj.y, moved: false };
+    try { el.setPointerCapture(ev.pointerId); } catch {} el.style.zIndex = 30;
+  });
+  $('scEls').addEventListener('pointermove', (ev) => {
+    if (!scDrag) return;
+    let x = scDrag.ox + (ev.clientX - scDrag.sx) * scDrag.f, y = scDrag.oy + (ev.clientY - scDrag.sy) * scDrag.f;
+    if (D().grid) { x = 50 + scGridSnap(x - 50); y = scGridSnap(y); }
+    x = Math.min(100, Math.max(0, x)); y = Math.min(scH(D()), Math.max(0, y));
+    if (x === scDrag.obj.x && y === scDrag.obj.y) return;
+    scDrag.obj.x = x; scDrag.obj.y = y; scDrag.moved = true;
+    scDrag.el.style.left = x + 'cqw'; scDrag.el.style.top = y + 'cqw';
+  });
+  const scEndDrag = () => { if (!scDrag) return; const moved = scDrag.moved; scDrag = null; drawStage(); drawProps(); if (moved) scSaveSoon(); };
+  $('scEls').addEventListener('pointerup', scEndDrag);
+  $('scEls').addEventListener('pointercancel', scEndDrag);
+  $('scEls').addEventListener('click', (ev) => {                 // außerhalb des Bearbeitungsmodus: Set antippen = unten anzeigen
+    if (sc.edit) return;
+    const el = ev.target.closest('[data-el^="set:"]'); if (!el) return;
+    const i = +el.dataset.el.split(':')[1]; if (i === sc.si && D().sets.length < 2) return;
+    sc.si = i; sc.gsel = null; drawShowcase();
+    $('scDetail').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+  $('scProps').addEventListener('input', (ev) => {
+    const o = scSelObj(); if (!o) return;
+    if (ev.target.id === 'scPS') {
+      o.s = scScale(+ev.target.value / 100); $('scPSv').textContent = Math.round(o.s * 100) + ' %';
+      const el = $('scEls').querySelector(`[data-el="${sc.sel}"]`); if (el) el.style.transform = `translate(-50%,-50%) scale(${o.s})`;
+      scSaveSoon();
+    } else if (ev.target.id === 'scPC') { o.color = scColor(ev.target.value); drawStage(); scSaveSoon(); }
+  });
+  $('scProps').addEventListener('change', (ev) => {
+    const o = scSelObj(); if (!o) return;
+    if (ev.target.id === 'scPB') o.box = ev.target.checked;
+    else if (ev.target.id === 'scPSh') o.shadow = ev.target.checked;
+    else return;
+    drawStage(); scSaveSoon();
+  });
+  $('scProps').addEventListener('click', (ev) => {
+    const o = scSelObj(); if (!o) return;
+    if (ev.target.closest('#scPCr')) { o.color = ''; drawStage(); drawProps(); scSaveSoon(); }
+    else if (ev.target.closest('#scPHide')) { o.on = false; sc.sel = null; drawStage(); drawEditBar(); drawArm(); scSaveSoon(); }
+  });
+  $('scEditBtn').onclick = () => {
+    sc.edit = !sc.edit; sc.gsel = null; sc.sel = null;
+    if (sc.edit) scOpen = true; else scSave('✓ Showcase gespeichert');
+    drawShowcase();
+    if (sc.edit) $('scEditBar').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+  $('scDone').onclick = () => { sc.edit = false; sc.sel = null; drawShowcase(); scSave('✓ Showcase gespeichert'); };
+  $('scGridOn').onchange = () => { D().grid = $('scGridOn').checked; drawStage(); scSaveSoon(); };
+  $('scHeight').onchange = () => {
+    const d = D(); d.h = $('scHeight').value; const H = scH(d);
+    [...d.sets, ...d.sets.map(x => x.arm), ...Object.values(d.els)].forEach(o => { if (o.y != null) o.y = Math.min(o.y, H); });
+    drawStage(); scSaveSoon();
+  };
+  $('scWidgetOpts').addEventListener('change', (ev) => {
+    const t = ev.target.closest('[data-w]'); if (!t) return;
+    const d = D(), w = d.els[t.dataset.w]; w.on = t.checked;
+    if (w.on && (w.x == null || w.y == null)) scAutoLayout(d, true);
+    if (w.on) sc.sel = 'w:' + t.dataset.w; else if (sc.sel === 'w:' + t.dataset.w) sc.sel = null;
+    drawStage(); drawProps(); scSaveSoon();
+  });
+  $('scAuto').onclick = () => { scAutoLayout(D(), false); drawShowcase(); scSaveSoon(); };
+
+  // ---- Mehrere Showcases ----
+  $('scListBar').addEventListener('click', (ev) => {
+    const doc = sc.doc, b = ev.target.closest('[data-scl]');
+    if (b) { doc.active = b.dataset.scl; sc.si = 0; sc.gsel = null; sc.sel = null; drawShowcase(); if (sc.own) scSaveSoon(); return; }
+    if (!sc.own) return;
+    if (ev.target.closest('#scNewList')) {
+      if (doc.list.length >= SC_MAX_LIST) return;
+      const t = prompt('Name des neuen Showcase:', `Showcase ${doc.list.length + 1}`); if (t == null) return;
+      const x = scNorm({ title: t.trim() || `Showcase ${doc.list.length + 1}` }, doc.list.length);
+      doc.list.push(x); doc.active = x.id; sc.si = 0; sc.gsel = null; sc.sel = null;
+      drawShowcase(); scSave('✓ Showcase erstellt');
+    } else if (ev.target.closest('#scRenList')) {
+      const d = D(), t = prompt('Neuer Name für den Showcase:', d.title); if (t == null || !t.trim()) return;
+      d.title = t.trim().slice(0, 30); drawListBar(); scSave('✓ Umbenannt');
+    } else if (ev.target.closest('#scDelList')) {
+      const d = D(); if (doc.list.length < 2 || !confirm(`Showcase „${d.title}“ wirklich löschen? Das kann nicht rückgängig gemacht werden.`)) return;
+      doc.list = doc.list.filter(x => x.id !== d.id); doc.active = doc.list[0].id; sc.si = 0; sc.gsel = null; sc.sel = null;
+      drawShowcase(); scSave('🗑 Showcase gelöscht');
+    }
+  });
+
+  // ---- Sets ----
+  $('scSetBar').addEventListener('click', (ev) => {
+    const d = D(), b = ev.target.closest('[data-si]');
+    if (b) { sc.si = +b.dataset.si; sc.gsel = null; drawShowcase(); return; }
+    if (ev.target.closest('#scAddSet')) {
+      if (d.sets.length >= SC_MAX) return;
+      const x = scSetNorm({}); d.sets.push(x);
+      const lp = scLayoutPos(d); Object.assign(x, lp.sp[d.sets.length - 1]); Object.assign(x.arm, lp.ap[d.sets.length - 1]);
+      sc.si = d.sets.length - 1; sc.gsel = null; drawShowcase(); scSave('✓ Set hinzugefügt');
+      return;
+    }
+    if (ev.target.closest('#scDelSet')) {
+      const x = scSet();
+      if (!confirm(`„${x.name || 'Set ' + (sc.si + 1)}“ aus dem Showcase löschen?`)) return;
+      d.sets.splice(sc.si, 1); sc.si = Math.max(0, sc.si - 1); sc.gsel = null; sc.sel = null;
+      drawShowcase(); scSave('🗑 Set gelöscht');
+    }
+  });
+  $('scDetailHead').addEventListener('input', (ev) => {
+    if (ev.target.id !== 'scSetName') return;
+    scSet().name = ev.target.value.slice(0, 30); drawStage(); drawSetBar(); scSaveSoon();
+  });
+  $('scDetailHead').addEventListener('click', (ev) => {
+    const m = ev.target.closest('[data-scmode]');
+    if (m) { scSet().mode = m.dataset.scmode; sc.gsel = null; drawStage(); drawDetail(); scSaveSoon(); return; }
+    if (ev.target.closest('#scFromCraft')) scFromCraft();
+  });
+  $('scShot').addEventListener('click', (ev) => {
+    if (!ev.target.closest('#scShotDel')) return;
+    if (!confirm('Screenshot von diesem Set entfernen?')) return;
+    scSet().shot = ''; drawStage(); drawDetail(); scSave('✓ Screenshot entfernt');
+  });
+  $('scShotFile').onchange = async (ev) => {
+    const f = ev.target.files?.[0]; ev.target.value = '';
+    if (!f || !f.type.startsWith('image/') || !sc.own) return;
+    const x = scSet(), d = D();
+    scMsg('Lade Screenshot hoch …', 'busy');
+    try { x.shot = await scStoreImage(f, `${d.id}_${x.id}_shot`, 1100, 1100); x.mode = 'shot'; drawStage(); drawDetail(); scSave('✓ Screenshot gespeichert'); }
+    catch (e) { scMsg(e.message || 'Bild konnte nicht gelesen werden.', 'err'); }
+  };
+  // ---- Rüstung ----
+  $('scArm').addEventListener('toggle', (ev) => { if (ev.target.id === 'scArmBox') scArmOpen = ev.target.open; }, true);
+  $('scArm').addEventListener('input', (ev) => {
+    const t = ev.target, a = scSet().arm;
+    if (t.dataset.insc != null && t.dataset.f === 't') a.insc[+t.dataset.insc].t = t.value.slice(0, 24);
+    else if (t.dataset.arm === 'formation') a.formation = t.value.slice(0, 30);
+    else if (SC_ARM_STATS.some(([k]) => k === t.dataset.arm)) a[t.dataset.arm] = scNum1(t.value);
+    else return;
+    $('scArmPrev').innerHTML = scArmHas(a) ? scArmHtml(a, n => n * 9 + 'px') : '<span class="text-xs text-slate-500">Vorschau</span>';
+    drawStage(); scSaveSoon();
+  });
+  $('scArm').addEventListener('change', (ev) => {
+    const t = ev.target, a = scSet().arm, d = D();
+    if (t.dataset.arm === 'on') { a.on = t.checked; if (a.on && (a.x == null || a.y == null)) scAutoLayout(d, true); }
+    else if (t.dataset.arm === 'troop') a.troop = SC_TROOPS[t.value] ? t.value : 'infantry';
+    else if (t.dataset.insc != null && t.dataset.f === 'c') a.insc[+t.dataset.insc].c = SC_INSC[t.value] ? t.value : 'gold';
+    else return;
+    drawStage(); drawArm(); scSaveSoon();
+  });
+  $('scArm').addEventListener('click', (ev) => {
+    const a = scSet().arm, del = ev.target.closest('[data-inscdel]');
+    if (ev.target.closest('#scInscAdd')) { if (a.insc.length < 8) a.insc.push({ t: '', c: 'gold' }); drawArm(); $('scArm').querySelector(`[data-insc="${a.insc.length - 1}"][data-f="t"]`)?.focus(); }
+    else if (del) { a.insc.splice(+del.dataset.inscdel, 1); drawArm(); drawStage(); scSaveSoon(); }
+  });
+
+  // ---- Download: nur die Bühne als PNG ----
+  let scH2I = null;
+  const scLoadH2I = () => scH2I || (scH2I = new Promise((resolve, reject) => {
+    if (window.htmlToImage) return resolve(window.htmlToImage);
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js';
+    s.onload = () => window.htmlToImage ? resolve(window.htmlToImage) : reject(new Error('Download-Bibliothek konnte nicht geladen werden.'));
+    s.onerror = () => { scH2I = null; reject(new Error('Download-Bibliothek konnte nicht geladen werden (Internet/Adblocker prüfen).')); };
+    document.head.appendChild(s);
+  }));
+  $('scDl').onclick = async () => {
+    const btn = $('scDl'), wasEdit = sc.edit;
+    btn.disabled = true; btn.classList.add('opacity-50');
+    scOpen = true; scApplyOpen();
+    try {
+      const h2i = await scLoadH2I();
+      sc.edit = false; sc.exporting = true; drawStage();
+      await new Promise(r => setTimeout(r, 120));
+      const node = $('scStage'), opt = { pixelRatio: 2, backgroundColor: '#07090f', cacheBust: true };
+      let url;
+      try { url = await h2i.toPng(node, opt); } catch { url = await h2i.toPng(node, { ...opt, skipFonts: true }); }
+      const a = document.createElement('a');
+      a.href = url; a.download = `showcase-${(D().title || 'showcase').replace(/[^\wäöüÄÖÜß-]+/g, '_')}.png`;
+      document.body.appendChild(a); a.click(); a.remove();
+    } catch (e) { scMsg(e.message || 'Download fehlgeschlagen.', 'err'); }
+    finally { sc.exporting = false; sc.edit = wasEdit; drawStage(); btn.disabled = false; btn.classList.remove('opacity-50'); }
+  };
 
   // ---- Ausrüstung bearbeiten ----
   $('scGearBoard').addEventListener('click', (ev) => {
@@ -3668,7 +4308,7 @@ window.RokApp = () => {
     const isBtn = t.dataset.f === 'refine' || t.dataset.f === 'refType';
     if (ev.type === 'click' && !isBtn) return;
     if (ev.type === 'change' && isBtn) return;
-    const v = sc.data.gear[t.dataset.slot];
+    const v = scSet().gear[t.dataset.slot];
     if (t.dataset.f === 'item') { v.item = t.value; const it = gItem(t.value); v.rarity = it ? it.rarity : 'legendary'; scSnap(v, it); v.tier = 0; v.refine = 0; }
     else if (t.dataset.f === 'refine') v.refine = gRefine(t.dataset.v);
     else if (t.dataset.f === 'refType') v.refType = gRefType(t.dataset.v);
@@ -3677,19 +4317,19 @@ window.RokApp = () => {
   };
   $('scGearEdit').addEventListener('change', scGearEdit);
   $('scGearEdit').addEventListener('click', scGearEdit);
-  $('scFromCraft').onclick = () => {
+  function scFromCraft() {
     const s = activeSet();
-    if (GEAR_SLOTS.some(sl => scItem(sc.data.gear[sl.k])) && !confirm(`Showcase-Ausrüstung mit der Ist-Ausrüstung aus „${s.name}“ überschreiben?`)) return;
-    GEAR_SLOTS.forEach(sl => { const v = { ...s.ist[sl.k] }; scSnap(v, gItem(v.item)); sc.data.gear[sl.k] = v; });
+    if (GEAR_SLOTS.some(sl => scItem(scSet().gear[sl.k])) && !confirm(`Showcase-Ausrüstung mit der Ist-Ausrüstung aus „${s.name}“ überschreiben?`)) return;
+    GEAR_SLOTS.forEach(sl => { const v = { ...s.ist[sl.k] }; scSnap(v, gItem(v.item)); scSet().gear[sl.k] = v; });
     drawShowcase(); scSave(`✓ Ausrüstung aus „${s.name}“ übernommen`);
-  };
+  }
   // Screenshot der Ausrüstung → /api/scan (Modus "gear", wie im Crafting-Planer)
   $('scFile').onchange = async (ev) => {
     const files = [...(ev.target.files || [])].filter(f => f && f.type.startsWith('image/')).slice(0, 2);
     ev.target.value = '';
     if (!files.length || sc.busy) return;
     sc.busy = true; scOpen = true; scApplyOpen();
-    $('scScanLbl').classList.add('opacity-50', 'pointer-events-none');
+    $('scScanLbl')?.classList.add('opacity-50', 'pointer-events-none');
     scMsg('Claude liest deine Ausrüstung …', 'busy');
     const imgs = [];
     try {
@@ -3715,7 +4355,7 @@ window.RokApp = () => {
         if (!it) it = gearMatch(sl.cat, info);
         if (!it) return;
         const v = { item: it.id, rarity: gearRarity(info.rarity) || it.rarity, tier: gTier(info.tier), refine: gRefine(info.refine), refType: gRefType(info.refine_type) };
-        scSnap(v, it); sc.data.gear[sl.k] = v; hit++;
+        scSnap(v, it); scSet().gear[sl.k] = v; hit++;
       });
       if (!seen) throw new Error('Keine Ausrüstung im Screenshot erkannt. Bitte die Slots von Hand wählen.');
       drawShowcase();
@@ -3724,7 +4364,7 @@ window.RokApp = () => {
       scMsg(e.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : (e.message || String(e)), 'err');
     } finally {
       imgs.forEach(i => { i.base64 = null; i.dataUrl = null; }); imgs.length = 0;   // Bilder sofort verwerfen
-      sc.busy = false; $('scScanLbl').classList.remove('opacity-50', 'pointer-events-none');
+      sc.busy = false; $('scScanLbl')?.classList.remove('opacity-50', 'pointer-events-none');
     }
   };
 
@@ -3733,7 +4373,7 @@ window.RokApp = () => {
   const openModal = () => { $('cmdModal').classList.remove('hidden'); document.body.style.overflow = 'hidden'; };
   const closeModal = () => { $('cmdModal').classList.add('hidden'); document.body.style.overflow = ''; };
   function openCmd(i) {
-    const cur = sc.data.cmd[i];
+    const cur = scSet().cmd[i];
     if (!sc.own) { if (cur) showCmdView(cur); return; }
     cm = { slot: i, rar: cm.rar || 'all', q: '', sel: cur?.id || null, level: cur?.level ?? 60, skills: cur ? [...cur.skills] : [5, 5, 5, 5], awakened: !!cur?.awakened };
     if (cm.sel && cm.rar !== 'all' && CMD_BY_ID[cm.sel].r !== cm.rar) cm.rar = 'all';
@@ -3746,7 +4386,7 @@ window.RokApp = () => {
   function drawCmdPicker() {
     $('cmdRar').innerHTML = [['all', 'Alle'], ...Object.entries(SC_RAR).map(([k, r]) => [k, r.label])].map(([k, l]) =>
       `<button type="button" data-cr="${k}" aria-pressed="${cm.rar === k}" class="seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition">${l}</button>`).join('');
-    const other = sc.data.cmd[1 - cm.slot]?.id, q = scKey(cm.q);
+    const other = scSet().cmd[1 - cm.slot]?.id, q = scKey(cm.q);
     const list = COMMANDERS.filter(c => (cm.rar === 'all' || c.r === cm.rar) && (!q || scKey(c.name).includes(q)));
     $('cmdGrid').innerHTML = list.length ? list.map(c => {
       const used = c.id === other, on = c.id === cm.sel;
@@ -3758,30 +4398,20 @@ window.RokApp = () => {
     drawCmdForm();
   }
   function drawCmdForm() {
-    const m = cm.sel && CMD_BY_ID[cm.sel], inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-gold-500';
-    const opt = (sel) => [0, 1, 2, 3, 4, 5].map(v => `<option value="${v}"${v === sel ? ' selected' : ''}>${v}</option>`).join('');
-    $('cmdForm').innerHTML = `<div class="flex flex-wrap items-end gap-4">
-      <div class="w-14 shrink-0">${m ? `<img src="${cmdImg(m.id)}" alt="" class="w-full aspect-[140/195] object-contain object-bottom">`
-        : '<div class="w-full aspect-[140/195] rounded-lg border border-dashed border-ink-600 grid place-items-center text-slate-600">?</div>'}</div>
-      <label class="text-xs text-slate-400">Level<input id="cmLevel" type="number" min="1" max="60" value="${cm.level}" class="mt-1 block w-20 ${inp} text-right tabular-nums"></label>
-      <div class="text-xs text-slate-400">Skills<div class="mt-1 flex gap-1.5">${cm.skills.map((s, i) => `<select data-cms="${i}" aria-label="Skill ${i + 1}" class="${inp}">${opt(s)}</select>`).join('')}</div></div>
-      <label class="inline-flex items-center gap-2 pb-2 cursor-pointer text-sm"><input id="cmAwake" type="checkbox" ${cm.awakened ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">✨ Erweckt</label>
-      <div class="ml-auto flex flex-wrap gap-2">
-        ${sc.data.cmd[cm.slot] ? '<button type="button" id="cmClear" class="px-3 py-2 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10 text-sm">Slot leeren</button>' : ''}
-        <button type="button" id="cmApply" ${m ? '' : 'disabled'} class="px-5 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed">Übernehmen</button>
-      </div></div>`;
+    $('cmdForm').innerHTML = `<div class="flex flex-wrap items-center justify-between gap-2">
+      <span class="text-xs text-slate-500">Kommandant antippen zum Übernehmen</span>
+      ${scSet().cmd[cm.slot] ? '<button type="button" id="cmClear" class="px-3 py-2 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10 text-sm">Slot leeren</button>' : ''}
+    </div>`;
   }
   function showCmdView(c) {
     const m = CMD_BY_ID[c.id], r = SC_RAR[m.r];
     $('cmdTitle').textContent = m.name || 'Kommandant';
     $('cmdPick').classList.add('hidden'); $('cmdView').classList.remove('hidden');
-    $('cmdView').innerHTML = `<div class="flex flex-wrap items-center justify-center sm:justify-start gap-6">
-      <img src="${cmdImg(m.id)}" alt="" class="w-40 aspect-[140/195] object-contain object-bottom drop-shadow-[0_8px_20px_rgba(0,0,0,.6)]">
-      <div class="space-y-3">
-        <div class="text-sm font-semibold" style="color:${r.c}">${r.label}${c.awakened ? ' · ✨ Erweckt' : ''}</div>
-        <div class="text-3xl font-extrabold text-white tabular-nums">Lv. ${c.level}</div>
-        <div class="flex gap-1.5">${scSkillSquares(c.skills, 'w-9 h-9 text-sm')}</div>
-      </div></div>`;
+    $('cmdView').innerHTML = `<div class="flex flex-col items-center gap-3 py-2">
+      <img src="${cmdImg(m.id)}" alt="" class="w-48 aspect-[140/195] object-contain object-bottom drop-shadow-[0_8px_20px_rgba(0,0,0,.6)]">
+      ${m.name ? `<div class="font-display text-2xl gold-text" translate="no">${esc(m.name)}</div>` : ''}
+      <div class="text-sm font-semibold" style="color:${r.c}">${r.label}</div>
+    </div>`;
     openModal();
   }
   $('scCmds').addEventListener('click', (ev) => { const b = ev.target.closest('[data-cmdslot]'); if (b && !b.disabled) openCmd(+b.dataset.cmdslot); });
@@ -3794,8 +4424,11 @@ window.RokApp = () => {
       x.setAttribute('aria-pressed', String(on)); ['bg-gold-500/25', 'ring-2', 'ring-gold-400'].forEach(k => x.classList.toggle(k, on)); x.classList.toggle('hover:bg-ink-800', !on); });
     drawCmdForm(); return b;
   };
-  $('cmdGrid').addEventListener('click', cmdPickOne);
-  $('cmdGrid').addEventListener('dblclick', (ev) => { if (cmdPickOne(ev)) $('cmApply')?.click(); });   // Doppelklick = sofort übernehmen
+  $('cmdGrid').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-cid]'); if (!b || b.disabled || !sc.own) return;
+    scSet().cmd[cm.slot] = scCmdNorm({ ...(scSet().cmd[cm.slot] || {}), id: b.dataset.cid });
+    closeModal(); drawShowcase(); scSave('✓ Kommandant gespeichert');
+  });
   $('cmdForm').addEventListener('input', (ev) => {
     const t = ev.target;
     if (t.id === 'cmLevel') cm.level = scInt(t.value, 1, 60, 60);
@@ -3805,15 +4438,16 @@ window.RokApp = () => {
   $('cmdForm').addEventListener('click', (ev) => {
     if (ev.target.closest('#cmApply')) {
       if (!cm.sel) return;
-      sc.data.cmd[cm.slot] = scCmdNorm({ id: cm.sel, level: cm.level, skills: cm.skills, awakened: cm.awakened });
+      scSet().cmd[cm.slot] = scCmdNorm({ id: cm.sel, level: cm.level, skills: cm.skills, awakened: cm.awakened });
       closeModal(); drawShowcase(); scSave('✓ Kommandant gespeichert');
     } else if (ev.target.closest('#cmClear')) {
-      sc.data.cmd[cm.slot] = null; closeModal(); drawShowcase(); scSave('✓ Slot geleert');
+      scSet().cmd[cm.slot] = null; closeModal(); drawShowcase(); scSave('✓ Slot geleert');
     }
   });
   $('cmdClose').onclick = closeModal;
   $('cmdBackdrop').addEventListener('click', (ev) => { if (ev.target === ev.currentTarget) closeModal(); });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !$('cmdModal').classList.contains('hidden')) closeModal(); });
+
 
   // Zum Scanner & Dashboard im passenden Modus springen
   function goScan(m) { view = 'scanner'; applyView(); mode = m; LS.set(MODE_KEY, mode); applyMode(); $('dropzone').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
