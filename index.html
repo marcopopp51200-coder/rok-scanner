@@ -649,6 +649,7 @@ tailwind.config = {
                 </div>
                 <div id="scArmSide" class="hidden"></div>
                 <div id="scArm"></div>
+                <input id="scArmFile" type="file" accept="image/*" class="hidden">
               </div>
             </div>
           </div>
@@ -3943,11 +3944,11 @@ window.RokApp = () => {
   const cmdImg = (id, exp) => { const m = CMD_BY_ID[id]; return (m && m.ex && (exp || m.nb) ? '/icons/comanderexpertise/' : '/icons/comander/') + id + '.webp'; };
   // Ausrüstungs-Bilder in /icons/gear/ (Dateiname ohne .webp) – Grundlage für den Bild-Abgleich beim Screenshot-Scan
   // Typ (Slot) je Bild in /icons/gear/ – für die Auswahl von Hand und als Katalog-Ersatz, solange ein Item nicht in gear_items steht
-  const GEAR_FILE_CAT = {"abyssal_visage_purple":"helm","ancestral_mask_of_night":"helm","ancient_stratagems_purple":"accessory","armband_of_the_hellish_wasteland":"gloves","ash_of_the_dawn":"legs","boots_of_the_hellish_wasteland":"boots","chausses_of_the_glorious_goddess":"legs","claws_of_the_forest_guardian_purple":"gloves","cloth_gloves_grey":"gloves","cloud_racers_purple":"boots","commanders_boots":"boots","concealed_dagger":"accessory","crimson_ring_purple":"accessory","dark_lords_blessing_purple":"chest","delanes_amulet_purple":"accessory","diadem_of_the_glorious_goddess":"helm","dragons_breath_boots":"boots","dragons_breath_bow":"weapon","dragons_breath_helm":"helm","dragons_breath_plate":"chest","dragons_breath_tassets":"legs","dragons_breath_vambraces":"gloves","eternal_night":"legs","fanatics_tassets_purple":"legs","fierce_wolfs_helmet":"helm","flame_treads_purple":"boots","frost_treads_purple":"boots","gauntlets_of_the_glorious_goddess":"gloves","gladiator_purple":"legs","gold_helm_of_the_eternal_empire":"helm","golden_age_purple":"weapon","greatest_glory":"accessory","greaves_of_the_eternal_empire":"legs","greaves_of_the_glorious_goddess":"legs","hammer_of_the_sun_and_moon":"weapon","harvester_boots_blue":"boots","harvester_breeches_blue":"legs","harvester_robes_blue":"chest","harvesters_headscarf_blue":"helm","heart_of_the_saint_purple":"weapon","heavy_armor_of_the_hellish_wasteland":"chest","helm_of_the_conqueror":"helm","heros_hilt":"weapon","hope_cloak":"chest","horn_of_fury":"accessory","ians_choice":"gloves","immolating_plume":"helm","isets_sufferance_purple":"gloves","karuaks_humility_purple":"legs","karuaks_war_drums":"accessory","knights_battleworn_gauntlets_purple":"gloves","knights_oathsworn_bow_purple":"weapon","knights_steel_diadem_purple":"helm","knights_triumphant_tassets_purple":"legs","knights_valorous_cloak_purple":"chest","knights_winter_sabatons_purple":"boots","lance_of_the_hellish_wasteland":"weapon","lone_wolfs_leather_tassets":"legs","mask_of_the_forest_guardian_purple":"helm","moras_web":"accessory","mountain_crushers":"boots","navars_control":"gloves","pendant_of_eternal_night":"accessory","peters_sickle_purple":"weapon","plate_of_the_eternal_empire":"chest","plate_of_the_glorious_goddess":"chest","pride_of_the_khan":"helm","quinns_soul_purple":"chest","revival_gauntlets_purple":"gloves","revival_helm_purple":"helm","revival_plate_purple":"chest","ring_of_doom":"accessory","roaring_wolfs_claws":"gloves","robe_of_the_forest_guardian_purple":"chest","sacred_dominion":"weapon","sacred_grips":"gloves","saddle_of_a_thousand_blessings":"accessory","sakura_fubuki_purple":"weapon","scepter_of_the_forest_guardian_purple":"weapon","scepter_of_the_glorious_goddess":"weapon","scolas_lucky_coin":"accessory","seths_brutality_purple":"gloves","seths_call":"accessory","shadow_legions_retribution":"chest","sharp_longsword_grey":"weapon","shield_of_the_eternal_empire":"weapon","shios_return":"boots","silent_trial_purple":"accessory","sturdy_boots_of_the_eternal_empire":"boots","tassets_of_the_hellish_wasteland":"legs","tassets_of_the_war_god":"legs","the_bards_pendant_purple":"accessory","the_milky_way":"chest","timeless_amber":"accessory","twilight_epiphany":"weapon","vambraces_of_the_eternal_empire":"gloves","vengeance":"accessory","vigilant_wolfs_leather_armor":"chest","wailing_wolfs_gauntlets":"gloves","war_helm_of_the_hellish_wasteland":"helm","witchs_lineage_purple":"helm"};
-  const GEAR_FILES = Object.keys(GEAR_FILE_CAT).sort();
-  const GEAR_FILE_SET = new Set(GEAR_FILES);
+  const GEAR_FILE_CAT = {"abyssal_visage_purple":"helm","ancestral_mask_of_night":"helm","ancient_stratagems_purple":"accessory","armband_of_the_hellish_wasteland":"gloves","ash_of_the_dawn":"legs","boots_of_the_hellish_wasteland":"boots","call_of_the_loyal_blue":"accessory","chausses_of_the_glorious_goddess":"legs","claws_of_the_forest_guardian_purple":"gloves","cloth_gloves_grey":"gloves","cloud_racers_purple":"boots","commanders_boots":"boots","concealed_dagger":"accessory","crimson_ring_purple":"accessory","dark_lords_blessing_purple":"chest","delanes_amulet_purple":"accessory","diadem_of_the_glorious_goddess":"helm","dragons_breath_boots":"boots","dragons_breath_bow":"weapon","dragons_breath_helm":"helm","dragons_breath_plate":"chest","dragons_breath_tassets":"legs","dragons_breath_vambraces":"gloves","eternal_night":"legs","fanatics_tassets_purple":"legs","fierce_wolfs_helmet":"helm","flame_treads_purple":"boots","frost_treads_purple":"boots","gauntlets_of_the_glorious_goddess":"gloves","gladiator_purple":"legs","gold_helm_of_the_eternal_empire":"helm","golden_age_purple":"weapon","greatest_glory":"accessory","greaves_of_the_eternal_empire":"legs","greaves_of_the_glorious_goddess":"legs","hammer_of_the_sun_and_moon":"weapon","harvester_boots_blue":"boots","harvester_breeches_blue":"legs","harvester_robes_blue":"chest","harvesters_headscarf_blue":"helm","heart_of_the_saint_purple":"weapon","heavy_armor_of_the_hellish_wasteland":"chest","helm_of_the_conqueror":"helm","heros_hilt":"weapon","hope_cloak":"chest","horn_of_fury":"accessory","ians_choice":"gloves","immolating_plume":"helm","isets_sufferance_purple":"gloves","karuaks_humility_purple":"legs","karuaks_war_drums":"accessory","knights_battleworn_gauntlets_purple":"gloves","knights_oathsworn_bow_purple":"weapon","knights_steel_diadem_purple":"helm","knights_triumphant_tassets_purple":"legs","knights_valorous_cloak_purple":"chest","knights_winter_sabatons_purple":"boots","lance_of_the_hellish_wasteland":"weapon","lohars_bone_necklace_blue":"accessory","lone_wolfs_leather_tassets":"legs","mask_of_the_forest_guardian_purple":"helm","moras_web":"accessory","mountain_crushers":"boots","navars_control":"gloves","pendant_of_eternal_night":"accessory","peters_sickle_purple":"weapon","plate_of_the_eternal_empire":"chest","plate_of_the_glorious_goddess":"chest","pride_of_the_khan":"helm","quinns_soul_purple":"chest","revival_gauntlets_purple":"gloves","revival_helm_purple":"helm","revival_plate_purple":"chest","ring_of_doom":"accessory","roaring_wolfs_claws":"gloves","robe_of_the_forest_guardian_purple":"chest","sacred_dominion":"weapon","sacred_grips":"gloves","saddle_of_a_thousand_blessings":"accessory","sakura_fubuki_purple":"weapon","savage_totem_blue":"accessory","scepter_of_the_forest_guardian_purple":"weapon","scepter_of_the_glorious_goddess":"weapon","scolas_lucky_coin":"accessory","seths_brutality_purple":"gloves","seths_call":"accessory","shadow_legions_retribution":"chest","sharp_longsword_grey":"weapon","shield_of_the_eternal_empire":"weapon","shios_return":"boots","silent_trial_purple":"accessory","sturdy_boots_of_the_eternal_empire":"boots","tassets_of_the_hellish_wasteland":"legs","tassets_of_the_war_god":"legs","the_bards_pendant_purple":"accessory","the_milky_way":"chest","timeless_amber":"accessory","twilight_epiphany":"weapon","vambraces_of_the_eternal_empire":"gloves","vengeance":"accessory","vigilant_wolfs_leather_armor":"chest","wailing_wolfs_gauntlets":"gloves","war_helm_of_the_hellish_wasteland":"helm","wind_scars_purple":"accessory","witchs_lineage_purple":"helm"};
+  let GEAR_FILES = Object.keys(GEAR_FILE_CAT).sort();
+  let GEAR_FILE_SET = new Set(GEAR_FILES);
   const gearFileName = (f) => f.replace(/_(purple|blue|grey|green)$/, '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-  const gearFileRar = (f) => /_purple$/.test(f) ? 'epic' : 'legendary';
+  const gearFileRar = (f) => /_purple$/.test(f) ? 'epic' : /_blue$/.test(f) ? 'elite' : /_(grey|gray|green)$/.test(f) ? 'normal' : 'legendary';
   const gearIconStem = (icon) => { const m = String(icon || '').match(/^\/icons\/(?:gear\/)?([A-Za-z0-9_-]+)\.(?:webp|png|jpe?g)$/); return m ? m[1] : ''; };
   function gearIconFor(icon, name, rarity) {            // passendes Bild aus /icons/gear/ (auch wenn in gear_items kein oder ein alter Pfad steht)
     const st = gearIconStem(icon); if (st && GEAR_FILE_SET.has(st)) return `/icons/gear/${st}.webp`;
@@ -4010,10 +4011,11 @@ window.RokApp = () => {
   const scInt = (v, lo, hi, d) => { if (v == null || v === '') return d; const n = Math.round(+String(v).replace(/[^\d.-]/g, '')); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
   const scSkills = (v) => { let a = Array.isArray(v) ? v : (String(v ?? '').match(/\d/g) || []); a = a.slice(0, 4).map(x => scInt(x, 0, 5, 1)); while (a.length < 4) a.push(1); return a; };
   const scKey = (n) => String(n || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '');
+  const gRar = (v) => ['legendary', 'epic', 'elite', 'normal'].includes(v) ? v : 'legendary';
   const scIconOk = (v) => typeof v === 'string' && /^\/icons\/[A-Za-z0-9_./-]+\.(webp|png|jpe?g)$/.test(v) ? v : '';
   const scCmdNorm = (c) => c && CMD_BY_ID[c.id] ? { id: c.id, exp: !!(CMD_BY_ID[c.id].ex && (c.exp || CMD_BY_ID[c.id].nb)), level: scInt(c.level, 1, 60, 60), skills: scSkills(c.skills), awakened: !!c.awakened } : null;
   const scGearNorm = (g) => Object.fromEntries(GEAR_SLOTS.map(sl => { const v = g?.[sl.k] || {};
-    return [sl.k, { item: String(v.item || ''), name: String(v.name || '').slice(0, 60), icon: scIconOk(v.icon), rarity: v.rarity === 'epic' ? 'epic' : 'legendary',
+    return [sl.k, { item: String(v.item || ''), name: String(v.name || '').slice(0, 60), icon: scIconOk(v.icon), rarity: gRar(v.rarity),
       tier: gTier(v.tier), refine: gRefine(v.refine), refType: gRefType(v.refType) }]; }));
   // Hintergründe: Vorlagen (Farbverläufe) oder ein eigenes, verkleinertes Bild (JPEG als data-URL)
   const SC_BGS = {
@@ -4070,13 +4072,45 @@ window.RokApp = () => {
   const scTxNorm = (t) => ({ ...scElNorm({ ...t, on: true, fill: t?.fill ?? 'none', border: t?.border ?? 'none' }), id: String(t?.id || newId()), text: String(t?.text ?? 'Text').slice(0, 80) });
   const scSkinOk = (v) => typeof v === 'string' && v.length < 200 && /^\/icons\/city%20skins\/[A-Za-z0-9_.%()-]+\.(png|webp|jpe?g)$/i.test(v);   // nur RoK-Skins aus dem Katalog
   const scRgba = (h, a) => `rgba(${parseInt(h.slice(1, 3), 16)},${parseInt(h.slice(3, 5), 16)},${parseInt(h.slice(5, 7), 16)},${a})`;
+
+  // ---- Rüstungs-Daten (Armaments): Inschriften je Typ + Rüstungen je Formation (gold = besondere, blau = seltene, grau = normale Inschrift) ----
+  const ARM_TYPES = { flag: { label: 'Flagge', icon: '🚩' }, emblem: { label: 'Emblem', icon: '🛡' }, scroll: { label: 'Schriftrolle', icon: '📜' }, instrument: { label: 'Instrument', icon: '📯' } };
+  const ARM_POOL = {
+    flag: ['Spiked', 'Metallics', 'Vitality', 'Galloping', 'Cleanser', 'Striker', 'Rebuff', 'Brawler', 'Warflames', 'Eclipsed', 'Brave', 'Strategic', 'Desperado', 'Cohesive', 'Pursuer', 'Assertive', 'Wary', 'Siegework', 'Sentries', 'Ballistics'],
+    emblem: ['Infamy', 'Shielded', 'Hardy', 'Haste', 'Pacifier', 'Militant', 'Resistant', 'Daring', 'Elite', 'Evasive', 'Smite', 'Enduring', 'Artisan', 'Rapacious', 'Guardians', 'Counterer', 'Deflecter', 'Watchmen', 'Lineshot'],
+    scroll: ['Warcry', 'Well Clad', 'Robust', 'Swift', 'Payback', 'Onslaught', 'Retaliator', 'Enraged', 'Valiant', 'Iron Wall', 'Bellicose', 'Pulverize', 'Breaker', 'Furious', 'Ward', 'Phalanx', 'Hurried', 'Tremors', 'Calm', 'Loosed'],
+    instrument: ['Brutal', 'Armored', 'Fit', 'Fine Horse', 'Annexer', 'Warhunger', 'Alert', 'Devious', 'Fearsome', 'Evasive', 'Requital', 'Respite', 'Guarded', 'Embattled', 'Vengeful', 'Patronage', 'Primed', 'Uplifting', 'Spirited', 'Bluster']
+  };
+  const ARM_FORMATIONS = {
+    Pincer: [
+      { id: 'banner_nine', type: 'flag',       name: 'Banner of the Nine Cauldrons', gold: 'Airtight',    blue: 'Hardheaded' },
+      { id: 'banner_tiger', type: 'flag',      name: 'Tiger Tally Banner',           gold: 'Bulwark',     blue: 'Bolstered' },
+      { id: 'seal_nine', type: 'emblem',       name: 'Seal of the Nine Cauldrons',   gold: 'Thundering',  blue: 'Rattling' },
+      { id: 'seal_tiger', type: 'emblem',      name: 'Tiger Tally Seal',             gold: 'Tidebreaker', blue: 'Vigor' },
+      { id: 'annals_nine', type: 'scroll',     name: 'Annals of the Nine Cauldrons', gold: 'Toppler',     blue: 'Imploder' },
+      { id: 'edict_tiger', type: 'scroll',     name: 'Tiger Tally Edict',            gold: 'Dominate',    blue: 'Bludgeon' },
+      { id: 'rite_nine', type: 'instrument',   name: 'Rite of the Nine Cauldrons',   gold: 'Demolisher',  blue: 'Raider' },
+      { id: 'horn_tiger', type: 'instrument',  name: 'Tiger Tally Horn',             gold: 'Cleaver',     blue: 'Charge' }
+    ]
+  };
+  const ARM_BY_ID = Object.fromEntries(Object.values(ARM_FORMATIONS).flat().map(x => [x.id, x]));
+  const ARM_ORDER = { gold: 0, blue: 1, gray: 2 };
+  const scInscKey = (t) => String(t || '').toLowerCase().replace(/[^a-z]/g, '');
+  const ARM_KNOWN = (() => { const m = {};
+    Object.values(ARM_POOL).flat().forEach(t => { m[scInscKey(t)] = { t, c: 'gray' }; });
+    Object.values(ARM_FORMATIONS).flat().forEach(x => { m[scInscKey(x.gold)] = { t: x.gold, c: 'gold' }; m[scInscKey(x.blue)] = { t: x.blue, c: 'blue' }; });
+    return m; })();
+  const scInscKnown = (t) => { const k = scInscKey(t); if (!k) return null;      // auch abgeschnittene Namen ("Retaliato…")
+    return ARM_KNOWN[k] || (k.length >= 4 ? Object.entries(ARM_KNOWN).find(([n]) => n.startsWith(k))?.[1] : null) || null; };
+  const scInscSort = (l) => l.sort((x, y) => (ARM_ORDER[x.c] ?? 3) - (ARM_ORDER[y.c] ?? 3));
   const scArmNorm = (a) => ({ on: !!a?.on, x: scPos(a?.x, 100), y: scPos(a?.y, 200), s: scScale(a?.s), formation: String(a?.formation || '').slice(0, 30),
-    insc: (Array.isArray(a?.insc) ? a.insc : []).slice(0, 8).map(i => ({ t: String(i?.t || '').slice(0, 24), c: SC_INSC[i?.c] ? i.c : 'gold' })),
+    insc: (Array.isArray(a?.insc) ? a.insc : []).slice(0, 12).map(i => ({ t: String(i?.t || '').slice(0, 24), c: SC_INSC[i?.c] ? i.c : 'gold' })),
+    arms: Object.fromEntries(Object.keys(ARM_TYPES).map(k => [k, ARM_BY_ID[a?.arms?.[k]]?.type === k ? a.arms[k] : ''])),
     troop: SC_TROOPS[a?.troop] ? a.troop : 'infantry', ...Object.fromEntries(SC_ARM_STATS.map(([k]) => [k, scNum1(a?.[k])])) });
   const scArmHas = (a) => a.insc.some(i => i.t) || !!a.formation || SC_ARM_STATS.some(([k]) => a[k]);
-  const scSetNorm = (x) => ({ id: String(x?.id || newId()), name: String(x?.name || '').trim().slice(0, 30), mode: x?.mode === 'shot' ? 'shot' : 'manual',
+  const scSetNorm = (x) => ({ id: String(x?.id || newId()), name: String(x?.name || '').trim().slice(0, 30), mode: 'manual',
     shot: scImgOk(x?.shot) ? x.shot : '', cmd: [0, 1].map(i => scCmdNorm(x?.cmd?.[i])), gear: scGearNorm(x?.gear),
-    x: scPos(x?.x, 100), y: scPos(x?.y, 200), s: scScale(x?.s), arm: scArmNorm(x?.arm), priv: !!x?.priv, cg: scInt(x?.cg, 0, 70, 30) });   // cg = Überlappung der Kommandanten in %
+    x: scPos(x?.x, 100), y: scPos(x?.y, 200), s: scScale(x?.s), arm: scArmNorm(x?.arm), priv: false, cg: scInt(x?.cg, 0, 70, 32) });   // cg = Überlappung der Kommandanten in %
 
   // Standard-Anordnung ("Symmetrisch anordnen"):
   //   oben links Profilbild, rechts daneben Allianz-Tag (oben) und VIP (darunter), Name oben mittig,
@@ -4146,13 +4180,12 @@ window.RokApp = () => {
     let list = Array.isArray(raw?.list) ? raw.list : (raw && (raw.sets || raw.cmd || raw.gear) ? [raw] : []);
     if (!list.length) list = [{}];
     list = list.slice(0, SC_MAX_LIST).map((x, i) => scNorm(x, i, pub));
-    const show = raw?.show === 'none' || list.some(x => x.id === raw?.show) ? raw.show : 'all';
+    const show = 'all';                                       // Showcases sind immer für alle sichtbar
     return { v: 3, pub, show, list, active: list.some(x => x.id === raw?.active) ? raw.active : list[0].id, updated: +raw?.updated || 0 };
   }
   // Was andere sehen dürfen: nur gewählte Showcases, ohne private Sets. null = gar nichts.
-  function scPublicDoc(doc) {
-    if (doc.show === 'none') return null;
-    const list = doc.list.filter(x => doc.show === 'all' || x.id === doc.show).map(x => ({ ...x, sets: x.sets.filter(s => !s.priv) }));
+  function scPublicDoc(doc) {                               // alle Showcases und alle Sets sind öffentlich
+    const list = doc.list.map(x => ({ ...x, sets: x.sets.map(s => ({ ...s, priv: false })) }));
     if (!list.length) return null;
     return { v: 3, pub: true, list, active: list.some(x => x.id === doc.active) ? doc.active : list[0].id, updated: doc.updated };
   }
@@ -4165,6 +4198,7 @@ window.RokApp = () => {
     const a = loc ? scDocNorm(loc) : null, b = cloud ? scDocNorm(cloud) : null;
     return (a && (!b || b.pub || a.updated >= b.updated)) ? a : (b ? { ...b, pub: false } : scDocNorm(null));   // die öffentliche Fassung nie der vollständigen vorziehen
   }
+  let scRepub = false;
   let sc = { own: false, doc: null, si: 0, gsel: null, sel: null, busy: false, edit: false, exporting: false, stats: {} };
   const D = () => sc.doc.list.find(x => x.id === sc.doc.active) || sc.doc.list[0];
   const scSet = () => { const d = D(); return d.sets.length ? d.sets[Math.min(sc.si, d.sets.length - 1)] : null; };
@@ -4176,6 +4210,7 @@ window.RokApp = () => {
            si: keep ? sc.si : 0, gsel: keep ? sc.gsel : null, sel: keep ? sc.sel : null, edit: keep ? sc.edit : false };
     if (sc.si >= D().sets.length) sc.si = 0;
     drawShowcase();
+    if (own && !keep && !scRepub) { scRepub = true; setTimeout(() => scSave(null, true), 1500); }   // öffentliche Fassung einmal neu hochladen (frühere Privat-Einstellungen aufheben)
     if (gearDbState === 'idle') loadGearDb().then(() => { if (view === 'profile') drawShowcase(); });
   }
   function scApplyOpen() {
@@ -4192,7 +4227,8 @@ window.RokApp = () => {
   const scSkillSquares = (skills, cls = 'w-7 h-7 text-xs') => skills.map((s, i) => `<span title="Skill ${i + 1}" class="${cls} rounded-md grid place-items-center font-bold tabular-nums border ${s >= 5 ? 'text-ink-950 border-gold-400' : 'text-slate-200 border-ink-600 bg-ink-900'}"${s >= 5 ? ' style="background:linear-gradient(180deg,#fde68a,#e0a91b)"' : ''}>${s}</span>`).join('');
 
   // ---- Kommandanten-Plätze: Primär groß vorne, Sekundär kleiner und leicht dahinter (wie im Spiel) ----
-  function scCmdsHtml(cmds, cg = 30) {
+  const SC_CG = [8, 20, 32, 44, 56];                        // Abstand-Stufen 1 (weit) … 5 (eng) = Überlappung in %
+  function scCmdsHtml(cmds, cg = 32) {
     const one = (i) => {
       const c = cmds[i], m = c && CMD_BY_ID[c.id], click = sc.own || !!m, main = i === 0;
       const named = !!m?.name;
@@ -4210,24 +4246,37 @@ window.RokApp = () => {
   }
   // ---- Ausrüstung (Rauten wie im Spiel) ----
   // Fertig refined (100 %): dicker, leuchtend goldener Rahmen um die Raute
-  const GOLD_RIM = 'linear-gradient(135deg,#fff7c2 0%,#ffd84a 28%,#c98a06 52%,#ffe27a 74%,#fff3b0 100%)';
+  // Glitzer-Punkte (statisch) liegen genau auf den Kanten der Raute
+  const GOLD_SPARK = [[50, 4.5], [62, 16], [80, 33], [95.5, 50], [86, 62], [68, 79], [50, 95.5], [38, 85], [21, 67], [4.5, 50], [14, 38], [32, 21], [74, 27], [26, 73]]
+    .map(([x, y], i) => `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,${i % 3 ? .95 : 1}) 0, rgba(255,255,255,.9) ${i % 2 ? 1 : 1.5}%, rgba(255,246,200,.45) ${i % 2 ? 2.2 : 3}%, transparent ${i % 2 ? 3 : 4.2}%)`).join(',');
+  const GOLD_RIM = GOLD_SPARK + ',conic-gradient(from 20deg at 50% 50%,#fff6c8,#ffd23f 9%,#b87808 18%,#ffe98a 27%,#fffbe0 33%,#e3a512 42%,#8f5a03 50%,#ffd84a 58%,#fff3b0 66%,#c98a06 75%,#ffe27a 84%,#9c6304 92%,#fff6c8)';
+  // Flächen: kräftiger Verlauf mit Lichtkante oben (Legendär orange, Episch lila, Elite blau, Normal grau)
+  const GFACE = {
+    legendary: 'radial-gradient(120% 95% at 50% 16%, #fff0b8 0%, #ffc845 24%, #f7961a 52%, #cf640b 80%, #8a3a04 100%)',
+    epic:      'radial-gradient(120% 95% at 50% 16%, #f6eaff 0%, #cf9bff 26%, #9d45f0 55%, #6a1fb0 82%, #3d0f6b 100%)',
+    elite:     'radial-gradient(120% 95% at 50% 16%, #e6f1ff 0%, #8ec5ff 26%, #3b82f6 55%, #1d4ed8 82%, #112a6b 100%)',
+    normal:    'radial-gradient(120% 95% at 50% 16%, #f8fafc 0%, #cbd5e1 28%, #94a3b8 58%, #64748b 85%, #334155 100%)'
+  };
+  const gFace = (r) => 'linear-gradient(160deg, rgba(255,255,255,.32) 0%, rgba(255,255,255,.08) 30%, rgba(255,255,255,0) 46%),'
+    + 'radial-gradient(70% 55% at 50% 100%, rgba(0,0,0,.28), transparent 70%),' + (GFACE[r] || GFACE.legendary);
   const gFull = (it, v) => !!it && v.refine >= 100;
   function scGearBoard(g, mini = false) {
     if (mini) return GEAR_SLOTS.map(sl => {
-      const v = g[sl.k], it = scItem(v), f = it ? GFILL[v.rarity] : null;
+      const v = g[sl.k], it = scItem(v), rr = gItem(v.item)?.rarity || v.rarity, f = it ? GFILL[rr] || GFILL.legendary : null;
       return `<div class="gdia absolute pointer-events-none" style="left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%">
         <span class="gdia absolute inset-0" style="background:${gFull(it, v) ? GOLD_RIM : f ? f[0] : 'rgba(46,58,85,.85)'}"></span>
-        <span class="gdia absolute ${gFull(it, v) ? 'inset-[3px]' : 'inset-[1.5px]'}" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : 'rgba(17,23,37,.85)'}"></span>
+        <span class="gdia absolute ${gFull(it, v) ? 'inset-[3px]' : 'inset-[1.5px]'}" style="background:${f ? gFace(rr) : 'rgba(17,23,37,.85)'}"></span>
         ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] aspect-square object-contain">` : ''}
         ${it && v.tier > 0 ? `<span class="absolute bottom-[4%] left-1/2 -translate-x-1/2 px-[.25cqw] rounded bg-ink-950/85 font-extrabold text-gold-300" style="font-size:max(6px,.75cqw);line-height:1.2">${ROMAN[v.tier - 1]}</span>` : ''}
       </div>`;
     }).join('');
     return GEAR_SLOTS.map(sl => {
-      const v = g[sl.k], it = scItem(v), f = it ? GFILL[v.rarity] : null, active = sc.own && sc.gsel === sl.k;
+      const v = g[sl.k], it = scItem(v), rr = gItem(v.item)?.rarity || v.rarity, f = it ? GFILL[rr] || GFILL.legendary : null, active = sc.own && sc.gsel === sl.k;
       return `<button type="button" data-sctile="${sl.k}" ${sc.own ? '' : 'tabindex="-1"'} title="${esc(sl.label + (it ? ': ' + it.name : ''))}"
           class="gdia absolute focus:outline-none ${sc.own ? '' : 'cursor-default'}" style="left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%">
         <span class="gdia absolute inset-0" style="background:${active ? '#ffffff' : gFull(it, v) ? GOLD_RIM : f ? f[0] : '#2e3a55'}"></span>
-        <span class="gdia absolute ${gFull(it, v) ? 'inset-[7px]' : 'inset-[3px]'}" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : '#111725'}"></span>
+        ${gFull(it, v) ? '<span class="gdia absolute inset-[10px]" style="background:linear-gradient(180deg,#5a3200,#2e1900)"></span>' : ''}
+        <span class="gdia absolute ${gFull(it, v) ? 'inset-[12px]' : 'inset-[3px]'}" style="background:${f ? gFace(rr) : '#111725'}"></span>
         <span class="relative z-10 h-full w-full flex flex-col items-center justify-center text-center px-[17%] pt-[4%] pointer-events-none">
           ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="w-[84%] aspect-square object-contain [filter:drop-shadow(0_2px_3px_rgba(0,0,0,.45))]">`
             : `<span class="text-xl sm:text-2xl leading-none ${it ? '' : 'opacity-40'}">${sl.icon}</span>`}
@@ -4316,7 +4365,7 @@ window.RokApp = () => {
     const stats = SC_ARM_STATS.filter(([k]) => a[k]).map(([k, l]) => `<div class="flex items-center whitespace-nowrap" style="gap:.35em;font-size:max(8px,${L(1.05)})">${SC_SWORD}
         <span class="text-slate-100 [text-shadow:0_1px_2px_#000]">${SC_TROOPS[a.troop]} ${l}</span><span class="font-bold text-emerald-400 [text-shadow:0_1px_2px_#000]">${scPct(a[k])}</span></div>`).join('');
     return `<div class="flex flex-col items-center" style="gap:${L(0.3)}">
-      ${a.insc.filter(i => i.t).map(pill).join('')}
+      ${scInscSort(a.insc.filter(i => i.t).slice()).map(pill).join('')}
       ${a.formation ? `<div class="flex items-center text-slate-300 [text-shadow:0_1px_2px_#000]" style="gap:.35em;font-size:max(8px,${L(1.05)});margin-top:${L(0.25)}">${SC_RING}${esc(a.formation)}</div>` : ''}
       ${stats ? `<div class="flex flex-col items-start" style="gap:${L(0.12)}">${stats}</div>` : ''}
     </div>`;
@@ -4389,16 +4438,8 @@ window.RokApp = () => {
       + (sc.own ? (doc.list.length < SC_MAX_LIST ? `<button type="button" id="scNewList" class="${b} border-dashed border-gold-500/60 text-gold-300 hover:border-gold-400">+ Neuer Showcase</button>` : '')
         + `<button type="button" id="scRenList" class="${b} border-ink-600 hover:border-gold-500/60 hover:text-gold-300">✎ Umbenennen</button>`
         + (many ? `<button type="button" id="scDelList" class="${b} border-red-500/40 text-red-300 hover:bg-red-500/10">🗑 Showcase löschen</button>` : '')
-        + `<label class="ml-auto inline-flex items-center gap-2 text-xs text-slate-300">👁 Im Profil zeigen
-            <select id="scShow" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-gold-500">
-              <option value="all"${doc.show === 'all' ? ' selected' : ''}>Alle Showcases</option>
-              ${doc.list.map(x => `<option value="${esc(x.id)}"${doc.show === x.id ? ' selected' : ''}>Nur „${esc(x.title)}“</option>`).join('')}
-              <option value="none"${doc.show === 'none' ? ' selected' : ''}>🔒 Niemand – alles privat</option>
-            </select></label>` : '');
-    if (sc.own) $('scListBar').insertAdjacentHTML('beforeend', `<div class="w-full text-[11px] ${doc.show === 'none' ? 'text-amber-300' : 'text-slate-500'}">${
-      doc.show === 'none' ? '🔒 Dein Showcase ist privat – andere Spieler sehen ihn nicht.'
-      : doc.show === 'all' ? '👁 Andere sehen alle Showcases – außer Sets, die auf 🔒 privat stehen.'
-      : '👁 Andere sehen nur den ausgewählten Showcase – außer Sets, die auf 🔒 privat stehen.'}</div>`);
+        : '');
+    if (sc.own) $('scListBar').insertAdjacentHTML('beforeend', '<div class="w-full text-[11px] text-slate-500">👁 Andere Spieler sehen alle deine Showcases in deinem Profil.</div>');
   }
   function drawEditBar() {
     const d = D(), on = sc.own && sc.edit;
@@ -4472,12 +4513,6 @@ window.RokApp = () => {
     $('scDetailHead').innerHTML = own ? `
       <div class="flex flex-wrap items-center gap-2 mb-3">
         <input id="scSetName" maxlength="30" value="${esc(x.name)}" placeholder="Name des Sets (optional), z. B. Infanterie Marsch" class="flex-1 min-w-[200px] bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold-500">
-        <div class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group" aria-label="Darstellung">
-          <button type="button" data-scmode="manual" aria-pressed="${x.mode === 'manual'}" class="${segB}">✎ Manuell</button>
-          <button type="button" data-scmode="shot" aria-pressed="${x.mode === 'shot'}" class="${segB}">📷 Screenshot</button>
-        </div>
-        <button type="button" id="scPriv" aria-pressed="${x.priv}" title="${x.priv ? 'Nur für dich sichtbar' : 'Für andere sichtbar'}"
-          class="text-xs px-3 py-2 rounded-lg border transition ${x.priv ? 'border-amber-400/70 bg-amber-500/15 text-amber-200' : 'border-ink-600 hover:border-gold-500/60 hover:text-gold-300'}">${x.priv ? '🔒 Privat' : '🔓 Öffentlich'}</button>
       </div>
 `
       : (x.name ? `<div class="mb-2 text-center font-display text-lg gold-text" translate="no">${esc(x.name)}</div>` : '');
@@ -4487,14 +4522,19 @@ window.RokApp = () => {
     $('scSide').className = own ? 'min-w-0 w-full space-y-4' : 'min-w-0 space-y-4';
     $('scGearTools').classList.toggle('hidden', !(own && x.mode === 'manual'));
     $('scGearBtns').innerHTML = own && x.mode === 'manual' ? `<label for="scFile" id="scScanLbl" class="cursor-pointer text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Ausrüstung scannen</label>
-      ${craftAllowed ? '<button type="button" id="scFromCraft" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⇢ Aus Craft-Set übernehmen</button>' : ''}` : '';
+      ${scCopyOptions(x)}` : '';
     $('scGearHint').classList.toggle('hidden', !!sc.gsel);
     $('scManual').classList.toggle('hidden', x.mode !== 'manual');
     $('scShot').classList.toggle('hidden', x.mode !== 'shot');
     if (x.mode === 'manual') {
       $('scCmds').innerHTML = scCmdsHtml(x.cmd, x.cg);
-      $('scCgBar').innerHTML = own && x.cmd[0] && x.cmd[1] ? `<label class="inline-flex items-center gap-2 text-xs text-slate-400" title="Abstand der beiden Kommandanten">↔ weiter
-        <input id="scCg" type="range" min="0" max="70" step="1" value="${x.cg}" class="w-32 accent-yellow-500">näher</label>` : '';
+      const cgStep = SC_CG.reduce((b, v, i) => Math.abs(v - x.cg) < Math.abs(SC_CG[b] - x.cg) ? i : b, 0);
+      $('scCgBar').innerHTML = own && x.cmd[0] && x.cmd[1] ? `<div class="flex flex-wrap items-center justify-center gap-1.5 text-xs text-slate-400">
+        <span title="Abstand der beiden Kommandanten">↔ Abstand</span>
+        ${SC_CG.map((v, i) => `<button type="button" data-cg="${i}" aria-pressed="${i === cgStep}" title="Stufe ${i + 1}${i === 0 ? ' (weit)' : i === SC_CG.length - 1 ? ' (eng)' : ''}"
+          class="w-7 h-7 rounded-lg font-bold border ${i === cgStep ? 'border-gold-400 bg-gold-500/20 text-gold-200' : 'border-ink-600 hover:border-gold-500/60 hover:text-gold-300'}">${i + 1}</button>`).join('')}
+        ${D().sets.length > 1 ? '<button type="button" id="scCgAll" class="ml-1 px-2.5 h-7 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">für alle Sets</button>' : ''}
+      </div>` : '';
       $('scGearBoard').innerHTML = scGearBoard(x.gear);
       gearSel.sc = sc.gsel;
       $('scGearEdit').innerHTML = own && sc.gsel ? gearEditor('sc', { sc: x.gear }, { rows: GEAR_SLOTS.map(sl => ({ sl, status: 'none' })) }) : '';
@@ -4519,6 +4559,35 @@ window.RokApp = () => {
       ${sc.own ? '<div class="mb-3 text-[11px] uppercase tracking-widest text-slate-500">Vorschau Rüstung</div>' : ''}
       <div class="flex justify-center">${scArmHtml(a, n => n * 9 + 'px')}</div></div>` : '';
   }
+  // Formation → je Typ eine Rüstung wählen → Inschriften antippen (Farbe kommt automatisch)
+  function scArmPickHtml(a) {
+    const form = ARM_FORMATIONS[a.formation] ? a.formation : '';
+    const arms = form ? ARM_FORMATIONS[form] : Object.values(ARM_FORMATIONS).flat();
+    const has = new Set(a.insc.map(i => i.t.toLowerCase()));
+    const chip = (t, c, title) => { const st = SC_INSC[c], on = has.has(t.toLowerCase());
+      return `<button type="button" data-ins="${esc(t)}" data-c="${c}" aria-pressed="${on}" title="${esc(title || (on ? 'Entfernen' : 'Hinzufügen'))}"
+        class="px-2.5 py-1 rounded-md text-[11px] font-extrabold border transition ${on ? 'ring-2 ring-gold-400 scale-[1.03]' : 'opacity-55 hover:opacity-100'}"
+        style="background:${st.bg};color:${st.fg};border-color:${st.bd}">${on ? '✓ ' : ''}${esc(t)}</button>`; };
+    const row = (lbl, html) => html ? `<div class="flex flex-wrap items-center gap-1.5"><span class="w-12 shrink-0 text-[10px] uppercase tracking-widest text-slate-500">${lbl}</span>${html}</div>` : '';
+    const own = a.insc.filter(i => !scInscKnown(i.t));
+    return `<div class="rounded-lg border border-ink-700 bg-ink-950/40 p-3 space-y-3">
+      <label class="flex items-center gap-2"><span class="text-slate-400">Formation</span>
+        <select data-arm="formsel" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500">
+          <option value="">– keine –</option>${Object.keys(ARM_FORMATIONS).map(f => `<option value="${f}"${f === form ? ' selected' : ''}>${f}</option>`).join('')}
+          ${a.formation && !form ? `<option value="${esc(a.formation)}" selected>${esc(a.formation)}</option>` : ''}
+        </select>
+        <span class="ml-auto text-[11px] text-slate-500">${a.insc.length}/12 gewählt</span></label>
+      ${Object.entries(ARM_TYPES).map(([k, ty]) => {
+        const list = arms.filter(x => x.type === k);
+        return `<div class="rounded-lg border border-ink-700 p-2.5 space-y-1.5">
+          <div class="font-semibold text-slate-200">${ty.icon} ${ty.label}</div>
+          ${row('Gold', list.map(x => chip(x.gold, 'gold', x.name)).join(''))}
+          ${row('Blau', list.map(x => chip(x.blue, 'blue', x.name)).join(''))}
+          ${row('Weiß', ARM_POOL[k].map(t => chip(t, 'gray')).join(''))}
+        </div>`; }).join('')}
+      ${own.length ? `<div class="flex flex-wrap items-center gap-1.5"><span class="text-[10px] uppercase tracking-widest text-slate-500">Sonstige</span>${own.map(i => chip(i.t, i.c)).join('')}</div>` : ''}
+    </div>`;
+  }
   function drawArm() {
     const a = scSet().arm;
     drawArmSide();
@@ -4528,23 +4597,18 @@ window.RokApp = () => {
       <summary class="cursor-pointer font-semibold text-gold-300">⚔ Rüstung (Armaments)</summary>
       <div class="mt-3">
         <div class="space-y-3 text-xs">
-          <p class="text-[11px] text-slate-500">Die Vorschau steht direkt darüber.</p>
-          <label class="inline-flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" data-arm="on" ${a.on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Auf der Bühne anzeigen</label>
-          <div><div class="text-slate-400 mb-1">Inschriften</div>
-            <div class="space-y-1.5">${a.insc.map((i, n) => `<div class="flex gap-1.5">
-              <input data-insc="${n}" data-f="t" value="${esc(i.t)}" maxlength="24" placeholder="z. B. Toppler" class="flex-1 min-w-0 ${inp}">
-              <select data-insc="${n}" data-f="c" class="${inp}">${Object.entries(SC_INSC).map(([k, c]) => `<option value="${k}"${k === i.c ? ' selected' : ''}>${c.label}</option>`).join('')}</select>
-              <button type="button" data-inscdel="${n}" class="px-2 text-slate-500 hover:text-red-400" title="Entfernen">✕</button></div>`).join('')}</div>
-            ${a.insc.length < 8 ? '<button type="button" id="scInscAdd" class="mt-1.5 text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">+ Inschrift</button>' : ''}
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="text-[11px] text-slate-500">Die Vorschau steht direkt darüber. Alles lässt sich nach dem Scan von Hand ändern.</p>
+            <label for="scArmFile" id="scArmScanLbl" class="cursor-pointer text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Rüstung scannen</label>
           </div>
-          <label class="block"><span class="text-slate-400">Formation</span><input data-arm="formation" list="scFormations" value="${esc(a.formation)}" maxlength="30" placeholder="z. B. Pincer" class="mt-1 w-full ${inp}"></label>
+          <label class="inline-flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" data-arm="on" ${a.on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Auf der Bühne anzeigen</label>
+          ${scArmPickHtml(a)}
           <div class="flex flex-wrap items-end gap-2">
             <label><span class="text-slate-400">Truppe</span><select data-arm="troop" class="mt-1 block ${inp}">${Object.entries(SC_TROOPS).map(([k, l]) => `<option value="${k}"${k === a.troop ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
             ${SC_ARM_STATS.map(([k, l]) => `<label><span class="text-slate-400">${l} %</span><input data-arm="${k}" type="number" step="0.1" value="${a[k] ?? ''}" class="mt-1 block w-24 ${inp} text-right tabular-nums"></label>`).join('')}
           </div>
         </div>
       </div>
-      <datalist id="scFormations">${['Pincer', 'Wedge', 'Hollow Square', 'Arch', 'Delta', 'Echelon', 'Line'].map(f => `<option value="${f}">`).join('')}</datalist>
     </details>`;
   }
   function drawShowcase() {
@@ -4804,6 +4868,43 @@ window.RokApp = () => {
     try { x.shot = await scStoreImage(f, `${d.id}_${x.id}_shot`, 1100, 1100); x.mode = 'shot'; drawStage(); drawDetail(); scSave('✓ Screenshot gespeichert'); }
     catch (e) { scMsg(e.message || 'Bild konnte nicht gelesen werden.', 'err'); }
   };
+  // ---- Rüstung per Screenshot ("Armament Info": Inschriften + Werte) → /api/scan Modus "armament" ----
+  $('scArmFile').addEventListener('change', async (ev) => {
+    const f = [...(ev.target.files || [])].find(x => x.type.startsWith('image/')); ev.target.value = '';
+    if (!f || !sc.own || sc.busy) return;
+    sc.busy = true; scMsg('Claude liest deine Rüstung …', 'busy');
+    let img = null;
+    try {
+      img = await prepareImage(f);
+      const res = await fetch('/api/scan', { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ mode: 'armament', images: [{ media_type: img.mediaType, data: img.base64 }] }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (res.status === 400 && /modus|mode/i.test(data?.error || '')) throw new Error('Der Scan-Server kennt den Rüstungs-Scan noch nicht – bitte die neue api/scan.js hochladen.');
+        if (res.status === 404) throw new Error('Server-Route /api/scan nicht gefunden. Die Seite muss über Vercel laufen (nicht als lokale Datei).');
+        throw new Error(data?.error || `Serverfehler ${res.status}`);
+      }
+      const r = parseJson(String(data.text || ''));
+      if (!r) throw new Error('Die Antwort konnte nicht ausgelesen werden. Bitte erneut versuchen.');
+      const a = scSet().arm, seen = new Set(), list = [];
+      (Array.isArray(r.inscriptions) ? r.inscriptions : []).forEach(i => {
+        const raw = String(i?.text ?? i?.name ?? '').trim(); if (!raw) return;
+        const k = scInscKnown(raw), t = k ? k.t : raw.slice(0, 24), c = k ? k.c : (/gold|gelb|orange/i.test(i?.color) ? 'gold' : /blu|blau|lila|purple/i.test(i?.color) ? 'blue' : 'gray');
+        if (seen.has(t.toLowerCase())) return; seen.add(t.toLowerCase()); list.push({ t, c });
+      });
+      if (list.length) a.insc = scInscSort(list.slice(0, 12));
+      const fm = String(r.formation || '').trim(); if (fm) a.formation = /pincer|zange/i.test(fm) ? 'Pincer' : fm.slice(0, 30);
+      const tr = String(r.troop || '').toLowerCase();
+      a.troop = /cav|kav/.test(tr) ? 'cavalry' : /arch|bog/.test(tr) ? 'archer' : /siege|belag/.test(tr) ? 'siege' : /all|alle/.test(tr) ? 'all' : /inf/.test(tr) ? 'infantry' : a.troop;
+      [['atk', 'attack'], ['def', 'defense'], ['hp', 'health'], ['spd', 'march_speed']].forEach(([k, rk]) => { const v = scNum1(r[rk]); if (v != null) a[k] = v; });
+      if (!list.length && ![r.attack, r.defense, r.health, r.march_speed].some(v => v != null)) throw new Error('Keine Rüstung im Screenshot erkannt.');
+      if (!a.on) { a.on = true; if (a.x == null || a.y == null) scAutoLayout(D(), true); }
+      drawArm(); drawStage();
+      await scSave(`✓ Rüstung erkannt: ${list.length} Inschriften` + (r.confidence ? ` · Sicherheit: ${r.confidence}` : ''));
+    } catch (e) {
+      scMsg(e.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : (e.message || String(e)), 'err');
+    } finally { if (img) { img.base64 = null; img.dataUrl = null; } sc.busy = false; }
+  });
   // ---- Rüstung ----
   $('scArm').addEventListener('toggle', (ev) => { if (ev.target.id === 'scArmBox') scArmOpen = ev.target.open; }, true);
   $('scArm').addEventListener('input', (ev) => {
@@ -4820,12 +4921,26 @@ window.RokApp = () => {
     if (t.dataset.arm === 'on') { a.on = t.checked; if (a.on && (a.x == null || a.y == null)) scAutoLayout(d, true); }
     else if (t.dataset.arm === 'troop') a.troop = SC_TROOPS[t.value] ? t.value : 'infantry';
     else if (t.dataset.insc != null && t.dataset.f === 'c') a.insc[+t.dataset.insc].c = SC_INSC[t.value] ? t.value : 'gold';
+    else if (t.dataset.arm === 'formsel') { a.formation = t.value; if (t.value && !a.on) { a.on = true; if (a.x == null || a.y == null) scAutoLayout(d, true); } }
+    else if (t.dataset.armpick) {                             // andere Rüstung gewählt → deren gold/blaue Inschrift aus der Liste nehmen
+      const old = ARM_BY_ID[a.arms[t.dataset.armpick]];
+      if (old) a.insc = a.insc.filter(i => i.t !== old.gold && i.t !== old.blue);
+      a.arms[t.dataset.armpick] = t.value;
+    }
     else return;
     drawStage(); drawArm(); scSaveSoon();
   });
   $('scArm').addEventListener('click', (ev) => {
-    const a = scSet().arm, del = ev.target.closest('[data-inscdel]');
-    if (ev.target.closest('#scInscAdd')) { if (a.insc.length < 8) a.insc.push({ t: '', c: 'gold' }); drawArm(); $('scArm').querySelector(`[data-insc="${a.insc.length - 1}"][data-f="t"]`)?.focus(); }
+    const a = scSet().arm, del = ev.target.closest('[data-inscdel]'), chip = ev.target.closest('[data-ins]');
+    if (chip) {                                               // Inschrift an/aus – sortiert gold, blau, grau
+      const t = chip.dataset.ins, i = a.insc.findIndex(x => x.t.toLowerCase() === t.toLowerCase());
+      if (i >= 0) a.insc.splice(i, 1);
+      else if (a.insc.length >= 12) { scMsg('Maximal 12 Inschriften.', 'warn'); return; }
+      else { a.insc.push({ t, c: chip.dataset.c }); scInscSort(a.insc); }
+      if (!a.on) { a.on = true; if (a.x == null || a.y == null) scAutoLayout(D(), true); }
+      drawArm(); drawStage(); scSaveSoon(); return;
+    }
+    if (ev.target.closest('#scInscAdd')) { if (a.insc.length < 12) a.insc.push({ t: '', c: 'gold' }); drawArm(); $('scArm').querySelector(`[data-insc="${a.insc.length - 1}"][data-f="t"]`)?.focus(); }
     else if (del) { a.insc.splice(+del.dataset.inscdel, 1); drawArm(); drawStage(); scSaveSoon(); }
   });
 
@@ -4877,6 +4992,27 @@ window.RokApp = () => {
   };
   $('scGearEdit').addEventListener('change', scGearEdit);
   $('scGearEdit').addEventListener('click', scGearEdit);
+  // ---- Inhalt eines anderen Sets übernehmen (Kommandanten, Ausrüstung, Rüstung, Abstand) ----
+  function scCopyOptions(cur) {
+    const groups = sc.doc.list.map(l => [l, l.sets.map((s, i) => [s, i]).filter(([s]) => s !== cur)]).filter(([, a]) => a.length);
+    if (!groups.length) return '';
+    const many = sc.doc.list.length > 1;
+    return `<select id="scCopyFrom" class="text-xs px-3 py-2 rounded-lg border border-ink-600 bg-ink-950 hover:border-gold-500/60 focus:outline-none focus:border-gold-500" title="Inhalt eines anderen Sets übernehmen">
+      <option value="">⇢ Aus Set übernehmen …</option>
+      ${groups.map(([l, a]) => `${many ? `<optgroup label="${esc(l.title)}">` : ''}${a.map(([s, i]) => `<option value="${esc(l.id)}|${esc(s.id)}">${esc(s.name || 'Set ' + (i + 1))}</option>`).join('')}${many ? '</optgroup>' : ''}`).join('')}
+    </select>`;
+  }
+  async function scCopyFrom(val) {
+    const [lid, sid] = String(val).split('|'), src = sc.doc.list.find(l => l.id === lid)?.sets.find(s => s.id === sid), x = scSet();
+    const srcName = src ? (src.name || 'Set ' + (sc.doc.list.find(l => l.id === lid).sets.indexOf(src) + 1)) : '';
+    if (!src || !x || src === x) return;
+    const filled = x.cmd.some(Boolean) || GEAR_SLOTS.some(sl => scItem(x.gear[sl.k]));
+    if (filled && !(await UI.confirm(`Kommandanten und Ausrüstung von „${x.name || 'diesem Set'}“ mit „${srcName}“ überschreiben?`))) { drawDetail(); return; }
+    const c = JSON.parse(JSON.stringify(src));
+    Object.assign(x, { cmd: c.cmd, gear: c.gear, arm: { ...c.arm, x: x.arm.x, y: x.arm.y, s: x.arm.s }, cg: c.cg });
+    sc.gsel = null; drawShowcase(); scSave(`✓ Übernommen aus „${srcName}“`);
+  }
+  $('scGearTools').addEventListener('change', (ev) => { if (ev.target.id === 'scCopyFrom' && ev.target.value) scCopyFrom(ev.target.value); });
   async function scFromCraft() {
     const s = activeSet();
     if (GEAR_SLOTS.some(sl => scItem(scSet().gear[sl.k])) && !(await UI.confirm(`Showcase-Ausrüstung mit der Ist-Ausrüstung aus „${s.name}“ überschreiben?`))) return;
@@ -4915,7 +5051,7 @@ window.RokApp = () => {
         if (it && it.cat !== sl.cat && !it.lib) it = null;
         if (!it && !byRef) it = gearMatch(sl.cat, info);
         const base = { tier: gTier(info.tier), refine: gScanRefine(info), refType: gRefType(info.refine_type) };
-        if (it) { const v = { item: it.id, rarity: gearRarity(info.rarity) || it.rarity, ...base }; scSnap(v, it); scSet().gear[sl.k] = v; hit++; }
+        if (it) { const v = { item: it.id, rarity: it.rarity || gearRarity(info.rarity) || 'legendary', ...base }; scSnap(v, it); scSet().gear[sl.k] = v; hit++; }
         else if (byRef?.file) {                                  // Bild erkannt, aber (noch) nicht in gear_items → Bild + Name direkt übernehmen
           scSet().gear[sl.k] = { item: '', name: gearFileName(byRef.file), icon: `/icons/gear/${byRef.file}.webp`, rarity: gearRarity(info.rarity) || gearFileRar(byRef.file), ...base }; hit++;
         }
@@ -4981,10 +5117,11 @@ window.RokApp = () => {
     </div>`;
     openModal();
   }
-  $('scCgBar').addEventListener('input', (ev) => {          // Abstand der Kommandanten (Detail + Bühne)
-    if (ev.target.id !== 'scCg' || !sc.own) return;
-    const x = scSet(); x.cg = scInt(ev.target.value, 0, 70, 30);
-    $('scCmds').innerHTML = scCmdsHtml(x.cmd, x.cg); drawStage(); scSaveSoon();
+  $('scCgBar').addEventListener('click', (ev) => {          // Abstand der Kommandanten in 5 Stufen (Detail + Bühne)
+    if (!sc.own) return;
+    const x = scSet(), b = ev.target.closest('[data-cg]');
+    if (b) { x.cg = SC_CG[+b.dataset.cg]; drawShowcase(); scSaveSoon(); return; }
+    if (ev.target.closest('#scCgAll')) { D().sets.forEach(s => { s.cg = x.cg; }); drawShowcase(); scSave(`✓ Abstand Stufe ${SC_CG.indexOf(x.cg) + 1} für alle Sets übernommen`); }
   });
   $('scCmds').addEventListener('click', (ev) => { const b = ev.target.closest('[data-cmdslot]'); if (b && !b.disabled) openCmd(+b.dataset.cmdslot); });
   $('cmdRar').onclick = (ev) => { const b = ev.target.closest('[data-cr]'); if (!b) return; cm.rar = b.dataset.cr; drawCmdPicker(); };
@@ -5194,15 +5331,15 @@ window.RokApp = () => {
   ];
   const GEAR_CATS = { helm: 'Helm', chest: 'Brust', weapon: 'Waffe', gloves: 'Handschuhe', legs: 'Beine', boots: 'Stiefel', accessory: 'Accessoire' };
   // Episch = gleiche Anzahl lila Materialien → ¼ legendär (4:1)
-  const GEAR_RAR = { legendary: { label: 'Legendär', c: '#f97316', div: 1 }, epic: { label: 'Episch', c: '#c084fc', div: 4 } };
-  const GFILL = { legendary: ['#fde68a', '#f59e0b', '#9a5b07'], epic: ['#e9d5ff', '#a855f7', '#581c87'] };
+  const GEAR_RAR = { legendary: { label: 'Legendär', c: '#f97316', div: 1 }, epic: { label: 'Episch', c: '#c084fc', div: 4 }, elite: { label: 'Elite', c: '#60a5fa', div: 16 }, normal: { label: 'Normal', c: '#94a3b8', div: 64 } };
+  const GFILL = { legendary: ['#fde68a', '#f59e0b', '#9a5b07'], epic: ['#e9d5ff', '#a855f7', '#581c87'], elite: ['#dbeafe', '#3b82f6', '#1e3a8a'], normal: ['#e2e8f0', '#94a3b8', '#475569'] };
 
   const gNum = (v) => Math.max(0, Math.round(+v || 0));
   const gNorm = (s) => String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/['’`´]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
   // Tier-Kosten je Stufe: { "2": { leather: 5, iron: 25 } } = Kosten für den Schritt T1 → T2
   const gNormTiers = (t) => { const o = {}; if (t && typeof t === 'object') for (let n = 1; n <= 5; n++) { const c = t[n] ?? t[String(n)]; if (c && typeof c === 'object') o[n] = { leather: gNum(c.leather), iron: gNum(c.iron), ebony: gNum(c.ebony), bone: gNum(c.bone) }; } return o; };
   const gNormItem = (i) => ({ id: String(i.id), name: String(i.name || 'Item').slice(0, 60), cat: GEAR_CATS[i.cat] ? i.cat : 'helm',
-    set: String(i.set || '').slice(0, 40), rarity: i.rarity === 'epic' ? 'epic' : 'legendary',
+    set: String(i.set || '').slice(0, 40), rarity: gRar(i.rarity),
     leather: gNum(i.leather), iron: gNum(i.iron), ebony: gNum(i.ebony), bone: gNum(i.bone), db: !!i.db,
     tiers: gNormTiers(i.tiers),
     icon: typeof i.icon === 'string' && i.icon.length < 200000 && (/^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(i.icon) || (/^\/icons\/[A-Za-z0-9_./-]+\.(webp|png|jpe?g)$/.test(i.icon) && !i.icon.includes('..'))) ? i.icon : '' });
@@ -5223,6 +5360,27 @@ window.RokApp = () => {
     GEAR_FILES.filter(f => !have.has(f)).forEach(f => gearCat.push({ ...gNormItem({ id: 'lib_' + f, name: gearFileName(f), cat: GEAR_FILE_CAT[f], rarity: gearFileRar(f), icon: `/icons/gear/${f}.webp` }), lib: true }));
   };
   rebuildGearCat();
+  // Neue Bilder in icons/gear/ automatisch erkennen (GitHub-Ordnerliste, 6 h zwischengespeichert) – Typ wird am Namen geraten
+  const gearGuessCat = (f) => ([['helm', /helm|visage|mask|diadem|headscarf|plume|crown|hat|hood/], ['chest', /plate|armor|armour|robe|cloak|mail|vest/],
+    ['gloves', /glove|gauntlet|vambrace|armband|grips|claws|bracer/], ['legs', /tasset|breeches|chausses|greaves|leggings|pants/],
+    ['boots', /boots|treads|sabatons|racers|crushers|shoes|sandals/], ['weapon', /bow|sword|blade|hilt|lance|spear|hammer|axe|scepter|staff|shield|crossbow|mace/]]
+    .find(([, rx]) => rx.test(f)) || ['accessory'])[0];
+  (async function syncGearFiles() {
+    let list = null;
+    try { const c = JSON.parse(localStorage.getItem('rok_gear_files') || 'null'); if (c && Date.now() - c.t < 6 * 3600e3 && Array.isArray(c.list)) list = c.list; } catch {}
+    if (!list) {
+      try {
+        const r = await fetch('https://api.github.com/repos/marcopopp51200-coder/rok-scanner/contents/icons/gear', { headers: { accept: 'application/vnd.github+json' } });
+        if (!r.ok) return;
+        list = (await r.json()).map(x => String(x?.name || '')).filter(n => /^[a-z0-9_]+\.webp$/.test(n)).map(n => n.slice(0, -5));
+        try { localStorage.setItem('rok_gear_files', JSON.stringify({ t: Date.now(), list })); } catch {}
+      } catch { return; }
+    }
+    const neu = list.filter(f => !GEAR_FILE_CAT[f]); if (!neu.length) return;
+    neu.forEach(f => { GEAR_FILE_CAT[f] = gearGuessCat(f); });
+    GEAR_FILES = Object.keys(GEAR_FILE_CAT).sort(); GEAR_FILE_SET = new Set(GEAR_FILES); delete refCache.gear;
+    rebuildGearCat();
+  })();
   const saveGearCustom = () => LS.set(GEAR_CUSTOM, JSON.stringify(gearCustom));
   const gItem = (id) => id ? gearCat.find(i => i.id === id) || null : null;
   let gearDbState = 'idle', gearDbErr = '';
@@ -5271,7 +5429,7 @@ window.RokApp = () => {
   function gNormSet(s) {
     const o = newGearSet(String(s?.name || 'Set').slice(0, 40));
     if (s?.id) o.id = String(s.id);
-    ['ist', 'ziel'].forEach(side => GEAR_SLOTS.forEach(sl => { const v = s?.[side]?.[sl.k] || {}; o[side][sl.k] = { item: String(v.item || ''), rarity: v.rarity === 'epic' ? 'epic' : 'legendary', tier: gTier(v.tier), refine: gRefine(v.refine), refType: gRefType(v.refType) }; }));
+    ['ist', 'ziel'].forEach(side => GEAR_SLOTS.forEach(sl => { const v = s?.[side]?.[sl.k] || {}; o[side][sl.k] = { item: String(v.item || ''), rarity: gRar(v.rarity), tier: gTier(v.tier), refine: gRefine(v.refine), refType: gRefType(v.refType) }; }));
     o.dismantle = !!s?.dismantle; o.useChests = !!s?.useChests; o.updated = +s?.updated || Date.now();
     return o;
   }
@@ -5348,14 +5506,15 @@ window.RokApp = () => {
   // Rauten-Brett (8 Slots wie im Spiel)
   function gearBoard(side, set, calc) {
     return GEAR_SLOTS.map(sl => {
-      const v = set[side][sl.k], it = gItem(v.item), f = it ? GFILL[v.rarity] : null, r = calc.rows.find(x => x.sl.k === sl.k);
+      const v = set[side][sl.k], it = gItem(v.item), rr = it?.rarity || v.rarity, f = it ? GFILL[rr] || GFILL.legendary : null, r = calc.rows.find(x => x.sl.k === sl.k);
       const active = gearSel[side] === sl.k;
       const badge = side === 'ziel' ? { same: ['✓', '#34d399'], swap: ['⇄', '#34d399'], tierup: ['⬆', '#7dd3fc'], refine: ['✦', '#fca5a5'], craft: ['⚒', '#fde68a'] }[r.status]
         : gearFlags[sl.k] ? ['⚠', '#fcd34d'] : r.back ? ['♻', '#7dd3fc'] : null;
       return `<button type="button" data-tile="${sl.k}" data-side="${side}" title="${esc(sl.label + (it ? ': ' + it.name : ''))}"
           class="gdia absolute focus:outline-none" style="left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%">
         <span class="gdia absolute inset-0" style="background:${active ? '#ffffff' : gFull(it, v) ? GOLD_RIM : f ? f[0] : '#2e3a55'}"></span>
-        <span class="gdia absolute ${gFull(it, v) ? 'inset-[7px]' : 'inset-[3px]'}" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : '#111725'}"></span>
+        ${gFull(it, v) ? '<span class="gdia absolute inset-[10px]" style="background:linear-gradient(180deg,#5a3200,#2e1900)"></span>' : ''}
+        <span class="gdia absolute ${gFull(it, v) ? 'inset-[12px]' : 'inset-[3px]'}" style="background:${f ? gFace(rr) : '#111725'}"></span>
         <span class="relative z-10 h-full w-full flex flex-col items-center justify-center text-center px-[17%] pt-[4%] pointer-events-none">
           ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="w-[84%] aspect-square object-contain [filter:drop-shadow(0_2px_3px_rgba(0,0,0,.45))]">`
             : `<span class="text-xl sm:text-2xl leading-none ${it ? '' : 'opacity-40'}">${sl.icon}</span>`}
@@ -5373,9 +5532,9 @@ window.RokApp = () => {
   const gearPickTab = {}, gearPickOpen = {};
   function gearPickerHtml(side, sl, v) {
     const key = side + ':' + sl.k, tab = gearPickTab[key] || sl.cat, open = gearPickOpen[key] || !gItem(v.item);
-    const items = gearCat.filter(i => i.cat === tab && i.icon).sort((a, b) => (a.rarity === b.rarity ? 0 : a.rarity === 'legendary' ? -1 : 1) || a.name.localeCompare(b.name));
+    const RO = Object.keys(GEAR_RAR), items = gearCat.filter(i => i.cat === tab && i.icon).sort((a, b) => RO.indexOf(a.rarity) - RO.indexOf(b.rarity) || a.name.localeCompare(b.name));
     const byRar = Object.entries(GEAR_RAR).map(([r, info]) => [info, items.filter(i => i.rarity === r)]).filter(([, l]) => l.length);
-    const tile = (i) => { const on = i.id === v.item, f = GFILL[i.rarity];
+    const tile = (i) => { const on = i.id === v.item, f = GFILL[i.rarity] || GFILL.legendary;
       return `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="item" data-v="${esc(i.id)}" title="${esc(i.name)}"
         class="relative aspect-square rounded-lg p-1 border transition ${on ? 'border-gold-400 ring-2 ring-gold-400/60' : 'border-ink-700 hover:border-gold-500/60'}" style="background:radial-gradient(circle at 50% 40%, ${f[1]}55, ${f[2]}44)">
         <img src="${i.icon}" alt="" loading="lazy" class="w-full h-full object-contain"></button>`; };
@@ -5632,7 +5791,7 @@ window.RokApp = () => {
   $('gearCatReload').onclick = () => loadGearDb();
 
   // ---- KI-Scan der Ist-Ausrüstung (Modus "gear" in /api/scan, Katalog kommt dort aus gear_items) ----
-  function gearRarity(v) { const t = gNorm(v); if (!t) return null; return /legend|gold|orange/.test(t) ? 'legendary' : 'epic'; }
+  function gearRarity(v) { const t = gNorm(v); if (!t) return null; return /legend|gold|orange/.test(t) ? 'legendary' : /elite|blau|blue/.test(t) ? 'elite' : /normal|grau|grey|gray|grun|green|advanced/.test(t) ? 'normal' : 'epic'; }
   function gearByRef(cat, info) {                            // Nummer von der Referenztafel → Katalog-Item (oder nur Bild + Name)
     const f = GEAR_FILES[refNum(info?.ref, GEAR_FILES.length) - 1]; if (!f) return null;
     const it = gearCat.find(i => i.cat === cat && gearIconStem(i.icon) === f) || gearCat.find(i => gearIconStem(i.icon) === f);
@@ -5663,8 +5822,7 @@ window.RokApp = () => {
       if (!it && byRef?.file) info = { ...info, name: gearFileName(byRef.file) };
       const rar = gearRarity(info.rarity);
       if (it) {
-        set.ist[sl.k] = { item: it.id, rarity: rar || it.rarity, tier: gTier(info.tier), refine: gScanRefine(info), refType: gRefType(info.refine_type) }; hit++;
-        if (rar === 'epic' && !/epi|lila|purple/.test(gNorm(info.rarity))) gearFlags[sl.k] = `Seltenheit „${info.rarity}“ → als Episch gesetzt`;
+        set.ist[sl.k] = { item: it.id, rarity: it.rarity || rar || 'legendary', tier: gTier(info.tier), refine: gScanRefine(info), refType: gRefType(info.refine_type) }; hit++;
       } else {
         set.ist[sl.k] = { item: '', rarity: rar || 'legendary', tier: 0, refine: 0, refType: 'infantry' };
         gearFlags[sl.k] = 'nicht im Katalog: ' + String(info.name || info.description || 'unbekanntes Item').slice(0, 60);
