@@ -4284,6 +4284,7 @@ window.RokApp = () => {
         <span class="gdia absolute inset-0" style="background:${gFull(it, v) ? GOLD_RIM : f ? f[0] : 'rgba(46,58,85,.85)'}"></span>
         <span class="gdia absolute ${gFull(it, v) ? 'inset-[3px]' : 'inset-[1.5px]'}" style="background:${f ? gFace(rr) : 'rgba(17,23,37,.85)'}"></span>
         ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] aspect-square object-contain">` : ''}
+        ${it && v.refine > 0 ? `<span class="absolute right-[33%] bottom-[11%] w-[18%] aspect-square [filter:drop-shadow(0_1px_1px_rgba(0,0,0,.6))]">${gRefIcon(v, 'w-full h-full')}</span>` : ''}
         ${it && v.tier > 0 ? `<span class="absolute bottom-[4%] left-1/2 -translate-x-1/2 px-[.25cqw] rounded bg-ink-950/85 font-extrabold text-gold-300" style="font-size:max(6px,.75cqw);line-height:1.2">${ROMAN[v.tier - 1]}</span>` : ''}
       </div>`;
     }).join('');
@@ -4300,8 +4301,8 @@ window.RokApp = () => {
           ${it?.icon ? '' : `<span class="mt-1 text-[9px] sm:text-[10px] font-bold leading-tight line-clamp-2 ${it ? 'text-white [text-shadow:0_1px_2px_#000]' : 'text-slate-500'}">${it ? esc(it.name) : sl.label}</span>`}
         </span>
         ${it && v.tier > 0 ? `<span class="absolute z-10 bottom-[3%] left-1/2 -translate-x-1/2 px-1.5 rounded-md bg-ink-950/85 border border-gold-400/70 text-[10px] font-extrabold text-gold-300 leading-4 pointer-events-none">${ROMAN[v.tier - 1]}</span>` : ''}
-        ${it && v.refine > 0 ? `<span class="absolute z-10 right-[22%] bottom-[22%] w-[21%] aspect-square pointer-events-none [filter:drop-shadow(0_1px_2px_rgba(0,0,0,.6))]">${gRefIcon(v, 'w-full h-full')}</span>
-          ${v.refine < 100 ? `<span class="absolute z-10 right-[11%] bottom-[15%] text-[9px] font-extrabold text-white [text-shadow:0_1px_2px_#000] pointer-events-none">${v.refine}%</span>` : ''}` : ''}
+        ${it && v.refine > 0 ? `<span class="absolute z-10 right-[33%] bottom-[11%] w-[18%] aspect-square pointer-events-none [filter:drop-shadow(0_1px_2px_rgba(0,0,0,.6))]">${gRefIcon(v, 'w-full h-full')}</span>
+          ${v.refine < 100 ? `<span class="absolute z-10 right-[21%] bottom-[16%] text-[9px] font-extrabold text-white [text-shadow:0_1px_2px_#000] pointer-events-none">${v.refine}%</span>` : ''}` : ''}
       </button>`;
     }).join('');
   }
@@ -5558,8 +5559,8 @@ window.RokApp = () => {
           ${badge ? `<span class="absolute top-[13%] left-1/2 -translate-x-1/2 text-sm font-extrabold leading-none [text-shadow:0_1px_2px_#000]" style="color:${badge[1]}">${badge[0]}</span>` : ''}
         </span>
         ${it && v.tier > 0 ? `<span class="absolute z-10 bottom-[3%] left-1/2 -translate-x-1/2 px-1.5 rounded-md bg-ink-950/85 border border-gold-400/70 text-[10px] font-extrabold text-gold-300 leading-4 pointer-events-none">${ROMAN[v.tier - 1]}</span>` : ''}
-        ${it && v.refine > 0 ? `<span class="absolute z-10 right-[22%] bottom-[22%] w-[21%] aspect-square pointer-events-none [filter:drop-shadow(0_1px_2px_rgba(0,0,0,.6))]">${gRefIcon(v, 'w-full h-full')}</span>
-          ${v.refine < 100 ? `<span class="absolute z-10 right-[11%] bottom-[15%] text-[9px] font-extrabold text-white [text-shadow:0_1px_2px_#000] pointer-events-none">${v.refine}%</span>` : ''}` : ''}
+        ${it && v.refine > 0 ? `<span class="absolute z-10 right-[33%] bottom-[11%] w-[18%] aspect-square pointer-events-none [filter:drop-shadow(0_1px_2px_rgba(0,0,0,.6))]">${gRefIcon(v, 'w-full h-full')}</span>
+          ${v.refine < 100 ? `<span class="absolute z-10 right-[21%] bottom-[16%] text-[9px] font-extrabold text-white [text-shadow:0_1px_2px_#000] pointer-events-none">${v.refine}%</span>` : ''}` : ''}
       </button>`;
     }).join('');
   }
