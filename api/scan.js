@@ -7,7 +7,7 @@ const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor',
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MAX_IMAGES = 5;
 const MAX_TOTAL_B64 = 4_300_000; // Vercel erlaubt max. 4,5 MB pro Anfrage
-const REF_KINDS = new Set(['gear', 'commanders']);   // Referenztafeln aus dem Browser (nummerierte Bilder aus /icons/…)
+const REF_KINDS = new Set(['gear', 'gear2', 'commanders']);   // Referenztafeln aus dem Browser (nummerierte Bilder aus /icons/…)
 
 const INTRO = `Du analysierst Screenshots aus dem Handyspiel "Rise of Kingdoms" (Sprache der Spieloberfläche kann Deutsch, Englisch o. a. sein).`;
 
@@ -252,7 +252,7 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
 {
   "type": "gear",
   "slots": {
-    "helm":   {"ref": number|null, "ref2": number|null, "item_id": string|null, "name": string|null, "description": string, "rarity": "legendary"|"epic"|"elite"|"advanced"|"normal", "tier": 0|1|2|3|4|5, "refine": 0|25|50|75|100, "refine_full": boolean, "refine_type": "archer"|"cavalry"|"infantry"|"engineering"|"integration"|"leadership"|null} | null,
+    "helm":   {"ref": number|null, "ref2": number|null, "ref3": number|null, "item_id": string|null, "name": string|null, "description": string, "rarity": "legendary"|"epic"|"elite"|"advanced"|"normal", "tier": 0|1|2|3|4|5, "refine": 0|25|50|75|100, "refine_full": boolean, "refine_type": "archer"|"cavalry"|"infantry"|"engineering"|"integration"|"leadership"|null} | null,
     "chest":  ... | null,
     "weapon": ... | null,
     "gloves": ... | null,
@@ -272,9 +272,14 @@ const REF_TEXT = {
 in ABSCHNITTE nach Slot-Typ eingeteilt${note ? ' – ' + note : ''}.
 REGELN für "ref":
 - Für jedes Feld NUR Kacheln aus dem passenden Abschnitt verwenden: helm → HELM, chest → BRUST, weapon → WAFFE, gloves → HANDSCHUHE, legs → BEINE, acc1/acc2 → ACCESSOIRE, boots → STIEFEL.
-- Vergleiche Form, Umriss, Farben und Details (z. B. bei Bögen/Armbrüsten: Form des Bogens, Farbe von Griff, Sehne und Verzierung; bei Helmen: Federn, Hörner, Visier). Die Seltenheitsfarbe des Feldes beim Vergleich ignorieren.
-- "ref" = Nummer des identischen Symbols, "ref2" = Nummer des zweitähnlichsten Symbols aus demselben Abschnitt (Ausweichlösung). Ohne sicheren Treffer: "ref": null.
+- FARBE ZUERST: Jede Kachel liegt auf einer Raute in der Seltenheitsfarbe (orange = legendär, lila = episch, blau = elite, grau = normal) – genau wie die Felder im Screenshot.
+  Bestimme zuerst die Farbe des Feldes im Screenshot und wähle danach NUR Kacheln mit derselben Hintergrundfarbe. Ein oranges Feld ist NIE ein lila Item und umgekehrt.
+  Trage die Feldfarbe auch in "rarity" ein (orange → "legendary", lila → "epic", blau → "elite", grau → "normal").
+- Danach vergleiche Form, Umriss, Farben und Details (z. B. bei Bögen/Armbrüsten: Form des Bogens, Farbe von Griff, Sehne und Verzierung; bei Helmen: Federn, Hörner, Visier). Die Seltenheitsfarbe des Feldes beim Vergleich ignorieren.
+- Ringe, Amulette und Brustteile sehen sich oft ähnlich: achte auf Edelsteinfarbe, Form der Fassung, Farbe von Stoff/Metall und Verzierungen.
+- "ref" = Nummer des identischen Symbols, "ref2" und "ref3" = zweit- und drittähnlichstes Symbol aus demselben Abschnitt UND derselben Farbe (Ausweichlösung). Ohne sicheren Treffer: "ref": null.
 Ganz unten auf der Tafel steht eine REFINE-LEGENDE: obere Reihe = fertig refined (komplett rot), untere Reihe = nicht fertig (grau). Nutze sie für "refine_full".`,
+  gear2: (n, note) => `REFERENZTAFEL AUSRÜSTUNG – TEIL 2 (Fortsetzung, gleiche Nummerierung und gleiche Regeln)${note ? ': ' + note : ''}.`,
   commanders: (n) => `REFERENZTAFEL KOMMANDANTEN (nicht auswerten, nur zum Vergleichen): ${n} Porträts, gelbe Nummer oben links, Name darunter.
 Sind im Screenshot Kommandanten zu sehen (Porträt, Ganzkörperbild oder Name), trage sie in "commanders" ein – zuerst den Hauptkommandanten (Primär), dann den Sekundären:
 "ref" = Nummer des passenden Porträts, "name" = gelesener Name (sonst null), "expertise" = true, wenn der Kommandant erkennbar Expertise hat (alle Fähigkeiten auf Stufe 5 / Expertise-Rahmen), sonst false.
@@ -343,7 +348,7 @@ module.exports = async (req, res) => {
     total += im.data.length;
   }
   // optionale Referenztafeln (nur beim Ausrüstungs-Scan)
-  const refs = mode === 'gear' && Array.isArray(body?.refs) ? body.refs.slice(0, 2) : [];
+  const refs = mode === 'gear' && Array.isArray(body?.refs) ? body.refs.slice(0, 3) : [];
   for (const rf of refs) {
     if (!rf || !REF_KINDS.has(rf.kind) || rf.media_type !== 'image/jpeg' || typeof rf.data !== 'string' || !/^[A-Za-z0-9+/=]+$/.test(rf.data)) {
       return res.status(400).json({ error: 'Ungültige Referenztafel.' });
