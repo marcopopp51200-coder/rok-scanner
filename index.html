@@ -608,6 +608,7 @@ tailwind.config = {
               <label class="inline-flex items-center gap-1.5">Höhe <select id="scHeight" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-gold-500"></select></label>
               <button id="scAuto" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⊞ Symmetrisch anordnen</button>
               <button id="scAddText" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">✏️ + Text</button>
+              <button id="scAddSkin" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">🏯 + City-Skin</button>
               <button id="scDone" type="button" class="ml-auto text-xs px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">✓ Fertig</button>
             </div>
             <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-300"><span class="text-slate-500">Im Showcase anzeigen:</span><span id="scWidgetOpts" class="contents"></span></div>
@@ -4073,7 +4074,7 @@ window.RokApp = () => {
   // Bilder (Hintergrund, Set-Screenshots) liegen im Supabase-Storage (Bucket "showcase"), sonst als verkleinertes JPEG direkt im Showcase.
   const SC_KEY = 'rok_scanner_showcase';
   const SC_SLOTS = ['Primär', 'Sekundär'];
-  const SC_MAX = 7, SC_MAX_LIST = 5, SC_SET_W = 13, SC_SHOT_W = 17, SC_STEP = 100 / 48;   // Raster: 24 Spalten, Einrasten in halben Zellen
+  const SC_MAX = 7, SC_MAX_LIST = 5, SC_SET_W = 13, SC_SHOT_W = 17, SC_STEP = 100 / 96;   // Raster: 24 Spalten, Einrasten in Viertel-Zellen (feiner)
   const SC_IMG_BASE = RokAuth.imgBase();
   const scImgOk = (v) => typeof v === 'string' && ((v.length < 400 && v.startsWith(SC_IMG_BASE) && /^[A-Za-z0-9/_.:?=&-]+$/.test(v))
     || (v.length < 520000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(v)));
@@ -4173,6 +4174,13 @@ window.RokApp = () => {
   //   alle Sets in einer Reihe mit ihrer Rüstung direkt darunter, Energie / Kill-Punkte / Verdienst unten nebeneinander.
   const scSetH = (x) => x.mode === 'shot' ? (x.name ? 15 : 13.5) : (x.name ? 31.5 : 30);
   const scArmH = (a) => a.on && scArmHas(a) ? a.insc.filter(i => i.t).length * 2.65 + (a.formation ? 1.6 : 0) + SC_ARM_STATS.filter(([k]) => a[k]).length * 1.45 + 0.5 : 0;
+  const scSlotOf = (i) => { const m = (SC_MAX - 1) / 2; return i === 0 ? m : i % 2 ? m + (i + 1) / 2 : m - i / 2; };
+  // Rüstung direkt unter ihr Set, gleich breit wie das Set
+  function scArmUnder(x) {
+    const as = Math.round(Math.min(1.2, Math.max(0.4, x.s * SC_SET_W / 20)) * 100) / 100;
+    x.arm.x = x.x; x.arm.s = as;
+    x.arm.y = scGridSnap(x.y + scSetH(x) * x.s / 2 + 1.2 * x.s + scArmH({ ...x.arm, on: true }) * as / 2);
+  }
   function scLayoutPos(d, Hforce) {
     const E = d.els, on = (k) => E[k].on, wp = {}, sp = [], ap = [], snapX = (v) => 50 + scGridSnap(v - 50);
     // Kopfzeile: links Profilbild + Tag/VIP, Mitte Name + Königreich darunter, rechts City-Skin
@@ -4183,11 +4191,12 @@ window.RokApp = () => {
     if (on('tag')) wp.tag = { x: scGridSnap(sx + 4.5 * E.tag.s), y: scGridSnap(both ? 3.6 : 5.2) };
     if (on('vip')) wp.vip = { x: scGridSnap(sx + 5.5 * E.vip.s), y: scGridSnap(both ? 8.3 : 5.2) };
     if (on('name')) wp.name = { x: 50, y: scGridSnap(5.2) };
-    if (on('kd')) wp.kd = { x: 50, y: scGridSnap(on('name') ? 9.6 : 5.2) };
+    const kdY = on('avatar') ? 1.5 + av + 3.2 : 5.2;
+    if (on('kd')) wp.kd = { x: scGridSnap(1.5 + 8.5 * E.kd.s), y: scGridSnap(kdY) };   // Königreich links unter dem Profilbild
     if (on('skin')) wp.skin = { x: 100 - scGridSnap(1.5 + skW / 2), y: scGridSnap(1.5 + skH / 2) };
-    const top0 = head ? Math.max(on('avatar') ? 1.5 + av : 0, on('skin') ? 1.5 + skH : 0, on('kd') && on('name') ? 11.5 : 10.5) + 2 : 2;
-    // Sets in einer Reihe, Rüstung darunter – passt sich Anzahl UND der gewählten Höhe an (Höhe bleibt, wie sie ist)
-    const n = d.sets.length, col = n ? 100 / n : 100;
+    const top0 = head ? Math.max(on('avatar') ? 1.5 + av : 0, on('skin') ? 1.5 + skH : 0, on('kd') ? kdY + 2.6 : 0, 10.5) + 2 : 2;
+    // Sets: 7 feste Plätze nebeneinander, das 1. Set in der Mitte, dann abwechselnd rechts / links (Reihenfolge 7 5 3 1 2 4 6)
+    const col = 100 / SC_MAX;
     let maxSet = 0, maxArm = 0;
     const dims = d.sets.map(x => {
       const s = Math.min(1, (col - 1.5) / (x.mode === 'shot' ? SC_SHOT_W : SC_SET_W)), as = Math.min(1, (col - 1.5) / 20);
@@ -4195,12 +4204,12 @@ window.RokApp = () => {
       maxSet = Math.max(maxSet, hs); maxArm = Math.max(maxArm, ha);
       return { s, as, hs, ha };
     });
-    const stats = ['power', 'kp', 'merit'].filter(on), bottom = stats.length ? 10 : 2;
+    const stats = ['kp', 'power', 'merit'].filter(on), bottom = stats.length ? 10 : 2;
     const block = maxSet + (maxArm ? 1.5 + maxArm : 0), need = top0 + block + bottom;
     const H = Hforce || scH(d), avail = Math.max(6, H - top0 - bottom);
     const f = block > avail ? Math.max(0.25, avail / block) : 1, y0 = top0 + Math.max(0, (avail - block * f) / 2);
     dims.forEach((m, i) => {
-      const x = snapX((i + 0.5) * col);
+      const x = snapX((scSlotOf(i) + 0.5) * col);
       sp.push({ x, y: scGridSnap(y0 + m.hs * f / 2), s: Math.round(m.s * f * 100) / 100 });
       ap.push({ x, y: scGridSnap(y0 + (maxSet + 1.5) * f + m.ha * f / 2), s: Math.round(m.as * f * 100) / 100 });
     });
@@ -4215,7 +4224,7 @@ window.RokApp = () => {
     const pick = (o, p) => onlyMissing ? { x: p.x, y: p.y } : p;
     d.sets.forEach((x, i) => {
       if (!onlyMissing || x.x == null || x.y == null) Object.assign(x, pick(x, L.sp[i]));
-      if (!onlyMissing || x.arm.x == null || x.arm.y == null) Object.assign(x.arm, onlyMissing && x.x != null ? { x: Math.min(97, x.x + scGridSnap(18.75)), y: x.y } : pick(x.arm, L.ap[i]));
+      if (!onlyMissing || x.arm.x == null || x.arm.y == null) { if (onlyMissing) scArmUnder(x); else Object.assign(x.arm, L.ap[i]); }
     });
     Object.entries(L.wp).forEach(([k, p]) => { const w = d.els[k]; if (!onlyMissing || w.x == null || w.y == null) Object.assign(w, p); });
   }
@@ -4226,7 +4235,8 @@ window.RokApp = () => {
     const o = { id: String(d?.id || newId()), title: String(d?.title || `Showcase ${i + 1}`).trim().slice(0, 30) || `Showcase ${i + 1}`,
       sets: sets.slice(0, SC_MAX).map(scSetNorm), bg: scBgNorm(d?.bg), h: SC_HEIGHTS[d?.h] ? d.h : 'normal', grid: d?.grid !== false,
       els: Object.fromEntries(Object.keys(SC_ELS).map(k => [k, scElNorm(k === 'kd' && d?.els?.ally?.on && !d?.els?.kd?.on ? { ...d.els.ally, text: '' } : (d?.els?.[k] || old[k]))])),   // altes Allianz-Feld → Königreich
-      texts: (Array.isArray(d?.texts) ? d.texts : []).slice(0, 12).map(scTxNorm), skin: d?.skin === '/icons/skins/skin_01.webp' ? '/icons/city%20skins/Hawa%20Mahal.png' : scSkinOk(d?.skin) ? d.skin : '' };
+      texts: (Array.isArray(d?.texts) ? d.texts : []).slice(0, 12).map(scTxNorm),
+      xskins: (Array.isArray(d?.xskins) ? d.xskins : []).filter(x => scSkinOk(x?.src)).slice(0, 6).map(x => ({ ...scElNorm({ ...x, on: true }), id: String(x.id || newId()), src: x.src })), skin: d?.skin === '/icons/skins/skin_01.webp' ? '/icons/city%20skins/Hawa%20Mahal.png' : scSkinOk(d?.skin) ? d.skin : '' };
     scAutoLayout(o, true);
     return o;
   }
@@ -4413,13 +4423,17 @@ window.RokApp = () => {
   // ---- Bühne ----
   const SC_SWORD = '<svg viewBox="0 0 24 24" style="width:1em;height:1em;flex:none" fill="#5aa9f5"><path d="M21 3v3.2l-9.6 9.6-3.2-3.2L17.8 3H21zM7.5 13.3l3.2 3.2-1.4 1.4-1-1-2.6 2.6.9.9-1.4 1.4-3.2-3.2 1.4-1.4.9.9 2.6-2.6-1-1z"/></svg>';
   const SC_RING = '<svg viewBox="0 0 24 24" style="width:1.25em;height:1.25em;flex:none" fill="#facc15">' + [210, 240, 270, 300, 330, 0, 30, 60, 90, 120, 150].map(a => { const r = a * Math.PI / 180; return `<circle cx="${(12 + 8 * Math.cos(r)).toFixed(2)}" cy="${(12 + 8 * Math.sin(r)).toFixed(2)}" r="1.9"/>`; }).join('') + '</svg>';
+  // Symbole vor den Rüstungs-Werten (Dateien in /icons/gear/): blau Infanterie, grün Kavallerie, rot Bogenschützen, orange Gesamtschaden
+  const ARM_STAT_ICON = { infantry: '/icons/gear/infantry.webp', cavalry: '/icons/gear/cavalry%20(1).webp', archer: '/icons/gear/archer%20(1).webp', dmg: '/icons/gear/damage.webp' };
+  const scStatIcon = (troop, k) => { const src = k === 'dmg' ? ARM_STAT_ICON.dmg : ARM_STAT_ICON[troop];
+    return src ? `<img src="${src}" alt="" draggable="false" style="width:1.15em;height:1.15em;object-fit:contain;flex:none">` : SC_SWORD; };
   const scPct = (v) => (v > 0 ? '+' : '') + v.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + '%';
   // Rüstung wie im Spiel: Inschriften als Schilder, Formation, Werte (L = Längen-Einheit: Bühne in cqw, Vorschau in px)
   function scArmHtml(a, L) {
     const pill = (i) => { const c = SC_INSC[i.c];
       return `<div style="background:${c.bd};padding:${L(0.17)};clip-path:polygon(8% 0,92% 0,100% 50%,92% 100%,8% 100%,0 50%)">
         <div class="grid place-items-center font-extrabold whitespace-nowrap" style="width:${L(9.6)};height:${L(2.15)};font-size:max(8px,${L(1.15)});color:${c.fg};background:${c.bg};clip-path:polygon(8% 0,92% 0,100% 50%,92% 100%,8% 100%,0 50%)">${esc(i.t || '–')}</div></div>`; };
-    const stats = SC_ARM_STATS.filter(([k]) => a[k]).map(([k, l]) => `<div class="flex items-center whitespace-nowrap" style="gap:.35em;font-size:max(8px,${L(1.05)})">${SC_SWORD}
+    const stats = SC_ARM_STATS.filter(([k]) => a[k]).map(([k, l]) => `<div class="flex items-center whitespace-nowrap" style="gap:.35em;font-size:max(8px,${L(1.05)})">${scStatIcon(a.troop, k)}
         <span class="text-slate-100 [text-shadow:0_1px_2px_#000]">${k === 'dmg' ? l : `${SC_TROOPS[a.troop]} ${l}`}</span><span class="font-bold text-emerald-400 [text-shadow:0_1px_2px_#000]">${scPct(a[k])}</span></div>`).join('');
     return `<div class="flex flex-col items-center" style="gap:${L(0.3)}">
       ${scInscSort(a.insc.filter(i => i.t).slice()).map(pill).join('')}
@@ -4448,6 +4462,7 @@ window.RokApp = () => {
     const box = scBoxSt(o);
     return `<div class="rounded-lg font-bold whitespace-pre text-center" style="color:${o.color || '#ffffff'};${o.shadow ? 'filter:drop-shadow(0 2px 3px rgba(0,0,0,.85));' : ''}${box ? box + 'padding:.5cqw 1.2cqw;' : ''}font-size:max(11px,2.2cqw)">${esc(o.text) || '&nbsp;'}</div>`;
   }
+  const scSkinHtml = (src, w) => `<img src="${src}" alt="" draggable="false" class="block max-w-none" style="height:13cqw;width:auto;border-radius:1cqw;${w.border === 'none' ? '' : `border:${w.bw || 2}px solid ${w.border || 'rgba(245,197,66,.8)'};`}${w.fill === 'none' ? '' : `background:${scRgba(w.fill || '#07090f', w.fillO / 100)};`}${w.shadow ? 'filter:drop-shadow(0 6px 10px rgba(0,0,0,.6));' : ''}">`;
   function scWidget(k, w) {
     const st = sc.stats, W = SC_ELS[k], shadow = w.shadow ? 'filter:drop-shadow(0 2px 3px rgba(0,0,0,.85));' : '';
     const boxSt = scBoxSt(w), box = 'rounded-lg', own = (auto) => auto;   // Werte kommen immer aus dem Profil
@@ -4486,7 +4501,8 @@ window.RokApp = () => {
     $('scEls').innerHTML = d.sets.map((x, i) => `<div data-el="set:${i}" class="absolute${ed('set:' + i)}${!sc.edit && d.sets.length > 1 ? ' cursor-pointer' : ''}" style="${pos(x)};${i === sc.si && !sc.exporting ? 'z-index:5;' : ''}width:${x.mode === 'shot' ? SC_SHOT_W : SC_SET_W}cqw" title="${esc(x.name || 'Set ' + (i + 1))}">${scMiniSet(x, i)}</div>`).join('')
       + d.sets.map((x, i) => x.arm.on && scArmHas(x.arm) ? `<div data-el="arm:${i}" class="absolute${ed('arm:' + i)}" style="${pos(x.arm)}">${scArmHtml(x.arm, n => n + 'cqw')}</div>` : '').join('')
       + Object.entries(d.els).filter(([, w]) => w.on).map(([k, w]) => `<div data-el="w:${k}" class="absolute${ed('w:' + k)}" style="${pos(w)}">${scWidget(k, w)}</div>`).join('')
-      + (d.texts || []).map(t => `<div data-el="tx:${t.id}" class="absolute${ed('tx:' + t.id)}" style="${pos(t)}">${scTxHtml(t)}</div>`).join('');
+      + (d.texts || []).map(t => `<div data-el="tx:${t.id}" class="absolute${ed('tx:' + t.id)}" style="${pos(t)}">${scTxHtml(t)}</div>`).join('')
+      + (d.xskins || []).map(x => `<div data-el="xs:${x.id}" class="absolute${ed('xs:' + x.id)}" style="${pos(x)}">${scSkinHtml(x.src, x)}</div>`).join('');
   }
   function drawListBar() {
     const doc = sc.doc, many = doc.list.length > 1, b = 'text-xs px-3 py-1.5 rounded-lg border';
@@ -4514,14 +4530,15 @@ window.RokApp = () => {
     if (t === 'set') return d.sets[+k] || null;
     if (t === 'arm') return d.sets[+k]?.arm || null;
     if (t === 'tx') return (d.texts || []).find(x => x.id === k) || null;
+    if (t === 'xs') return (d.xskins || []).find(x => x.id === k) || null;
     return d.els[k] || null;
   }
   function drawProps() {
     const o = scSelObj(), el = $('scProps');
     if (!o) { el.innerHTML = '<span class="text-xs text-slate-500">Element auf der Bühne antippen, um Größe, Schriftfarbe und Hintergrund einzustellen.</span>'; return; }
     const [t, k] = sc.sel.split(':'), d = D();
-    const label = t === 'set' ? (d.sets[+k].name || `Set ${+k + 1}`) : t === 'arm' ? `⚔ Rüstung · ${d.sets[+k].name || 'Set ' + (+k + 1)}` : t === 'tx' ? '✏️ Eigener Text' : `${SC_ELS[k].icon} ${SC_ELS[k].label}`;
-    const textual = t === 'tx' || (t === 'w' && k !== 'avatar' && k !== 'skin'), boxy = t === 'w' || t === 'tx', frame = t === 'w' && (k === 'avatar' || k === 'skin');
+    const label = t === 'set' ? (d.sets[+k].name || `Set ${+k + 1}`) : t === 'arm' ? `⚔ Rüstung · ${d.sets[+k].name || 'Set ' + (+k + 1)}` : t === 'tx' ? '✏️ Eigener Text' : t === 'xs' ? '🏯 Weiterer City-Skin' : `${SC_ELS[k].icon} ${SC_ELS[k].label}`;
+    const textual = t === 'tx' || (t === 'w' && k !== 'avatar' && k !== 'skin'), boxy = t === 'w' || t === 'tx' || t === 'xs', frame = t === 'xs' || (t === 'w' && (k === 'avatar' || k === 'skin'));
     const fillable = boxy && k !== 'avatar', defBw = frame ? 2 : 1;
     const btn = 'px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 transition';
     const sw = 'w-9 h-8 p-0 bg-transparent border border-ink-600 rounded-md cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
@@ -4544,10 +4561,10 @@ window.RokApp = () => {
     el.innerHTML = `<div class="space-y-3 text-xs">
       <div class="flex flex-wrap items-center gap-2">
         <span class="px-3 py-1.5 rounded-lg bg-gold-500/15 border border-gold-500/40 text-gold-200 font-semibold" translate="no">${esc(label)}</span>
-        ${t === 'w' && k === 'skin' ? '<button type="button" id="scPSkin" class="px-3 py-1.5 rounded-lg border border-gold-500/60 text-gold-300 hover:border-gold-400">🏯 Skin wählen …</button>' : ''}
+        ${(t === 'w' && k === 'skin') || t === 'xs' ? '<button type="button" id="scPSkin" class="px-3 py-1.5 rounded-lg border border-gold-500/60 text-gold-300 hover:border-gold-400">🏯 Skin wählen …</button><button type="button" id="scPSkinAdd" class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">＋ Weiteren Skin</button>' : ''}
         <div class="ml-auto flex flex-wrap gap-2">
           ${boxy ? `<button type="button" id="scPBr" class="${btn}">↺ Standardwerte</button>` : ''}
-          ${t === 'tx' ? '<button type="button" id="scPDel" class="px-3 py-1.5 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10">🗑 Text löschen</button>'
+          ${t === 'tx' || t === 'xs' ? `<button type="button" id="scPDel" class="px-3 py-1.5 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10">🗑 ${t === 'xs' ? 'Skin entfernen' : 'Text löschen'}</button>`
             : t !== 'set' ? `<button type="button" id="scPHide" class="${btn}">👁 Ausblenden</button>` : ''}
         </div>
       </div>
@@ -4789,8 +4806,9 @@ window.RokApp = () => {
     if (ev.target.closest('#scPCr')) { o.color = ''; drawStage(); drawProps(); scSaveSoon(); }
     else if (ev.target.closest('#scPBr')) { const tx = sc.sel.startsWith('tx:');
       Object.assign(o, { s: 1, color: '', shadow: true, fill: tx ? 'none' : '', fillO: 75, border: tx ? 'none' : '', bw: 0 }); drawStage(); drawProps(); scSaveSoon(); }
-    else if (ev.target.closest('#scPSkin')) scSkinPicker();
-    else if (ev.target.closest('#scPDel')) { const d = D(); d.texts = d.texts.filter(x => x !== o); sc.sel = null; drawStage(); drawProps(); scSaveSoon(); }
+    else if (ev.target.closest('#scPSkinAdd')) scSkinPicker('add');
+    else if (ev.target.closest('#scPSkin')) scSkinPicker(sc.sel.startsWith('xs:') ? sc.sel.slice(3) : undefined);
+    else if (ev.target.closest('#scPDel')) { const d = D(); d.texts = d.texts.filter(x => x !== o); d.xskins = (d.xskins || []).filter(x => x !== o); sc.sel = null; drawStage(); drawProps(); scSaveSoon(); }
     else if (ev.target.closest('#scPHide')) { o.on = false; sc.sel = null; drawStage(); drawEditBar(); drawArm(); scSaveSoon(); }
   });
   $('scEditBtn').onclick = () => {
@@ -4810,10 +4828,16 @@ window.RokApp = () => {
     const t = ev.target.closest('[data-w]'); if (!t) return;
     const d = D(), w = d.els[t.dataset.w]; w.on = t.checked;
     if (w.on && t.dataset.w === 'skin' && !d.skin) setTimeout(scSkinPicker, 50);
-    if (w.on && (w.x == null || w.y == null)) scAutoLayout(d, true);
+    if (w.on) {                                               // an den Standard-Platz – zusammengehörige Anzeigen (Kopfzeile links, Werte unten) gleich mit ausrichten
+      const L = scLayoutPos(d, scH(d)), k = t.dataset.w;
+      const grp = [['avatar', 'tag', 'vip', 'kd'], ['kp', 'power', 'merit']].find(g => g.includes(k)) || [k];
+      grp.forEach(g => { if (d.els[g].on && L.wp[g]) Object.assign(d.els[g], L.wp[g]); });
+      if (!L.wp[k] && (w.x == null || w.y == null)) scAutoLayout(d, true);
+    }
     if (w.on) sc.sel = 'w:' + t.dataset.w; else if (sc.sel === 'w:' + t.dataset.w) sc.sel = null;
     drawStage(); drawProps(); scSaveSoon();
   });
+  $('scAddSkin').onclick = () => scSkinPicker('add');
   $('scAddText').onclick = () => {
     const d = D(); if ((d.texts || []).length >= 12) { UI.alert('Maximal 12 eigene Texte pro Showcase.'); return; }
     const t = scTxNorm({ text: 'Dein Text' }); t.x = 50; t.y = scGridSnap(scH(d) / 2);
@@ -4833,9 +4857,13 @@ window.RokApp = () => {
   ];
   const SKIN_DIR = '/icons/city%20skins/';
   const skinImg = (id) => SKIN_DIR + encodeURIComponent(id);
-  function scSkinPicker() {
+  function scSkinPicker(target) {
     if (!sc.own) return;
     const d = D(), root = document.createElement('div');
+    d.xskins = d.xskins || [];
+    if (target === 'add' && d.xskins.length >= 6) { UI.alert('Maximal 6 weitere City-Skins.'); return; }
+    if (target === 'add' && !d.skin) target = undefined;                 // erster Skin = Haupt-Skin
+    const xs = target && target !== 'add' ? d.xskins.find(x => x.id === target) : null, cur = xs ? xs.src : target === 'add' ? '' : d.skin;
     root.className = 'fixed inset-0 z-[85] overflow-y-auto bg-ink-950/85 backdrop-blur-sm ui-fade';
     root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true');
     root.innerHTML = `<div data-bd class="min-h-full grid place-items-center p-4"><div class="panel !bg-ink-900 w-full max-w-3xl rounded-2xl p-5 ui-pop">
@@ -4844,18 +4872,27 @@ window.RokApp = () => {
           <button type="button" data-x class="w-9 h-9 shrink-0 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300" title="Schließen">✕</button>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-[60vh] overflow-y-auto pr-1">
-          ${CITY_SKINS.map(c => `<button type="button" data-skin="${c.id}" class="rounded-xl p-2 border flex flex-col items-center transition ${d.skin === skinImg(c.id) ? 'border-gold-400 bg-gold-500/15' : 'border-ink-700 hover:border-gold-500/60 hover:bg-ink-800'}">
+          ${CITY_SKINS.map(c => `<button type="button" data-skin="${c.id}" class="rounded-xl p-2 border flex flex-col items-center transition ${cur === skinImg(c.id) ? 'border-gold-400 bg-gold-500/15' : 'border-ink-700 hover:border-gold-500/60 hover:bg-ink-800'}">
               <img src="${skinImg(c.id)}" alt="${esc(c.name)}" loading="lazy" class="h-28 w-full object-contain">
               ${c.name ? `<span class="mt-1 text-[11px] text-slate-300 truncate max-w-full" translate="no">${esc(c.name)}</span>` : ''}</button>`).join('')}
         </div>
         <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
           <span data-info class="text-[11px] text-slate-500">Weitere Skins kommen dazu, sobald sie hinterlegt sind.</span>
-          ${d.skin ? '<button type="button" data-rm class="text-xs px-3 py-2 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10">Skin entfernen</button>' : ''}
+          ${cur ? '<button type="button" data-rm class="text-xs px-3 py-2 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10">Skin entfernen</button>' : ''}
         </div>
       </div></div>`;
     const close = () => { document.removeEventListener('keydown', onKey, true); root.remove(); document.body.style.overflow = ''; };
     const onKey = (ev) => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); close(); } };
-    const apply = (src) => { d.skin = src; if (src) d.els.skin.on = true; close(); drawStage(); drawEditBar(); scSave(src ? '✓ City-Skin gespeichert' : '✓ City-Skin entfernt'); };
+    const apply = (src) => {
+      if (target === 'add') {                                     // neuer Skin links neben den bisherigen
+        if (src) { const all = [d.els.skin.on && d.skin ? d.els.skin : null, ...d.xskins].filter(o => o && o.x != null);
+          const left = all.length ? all.reduce((m, o) => o.x < m.x ? o : m) : { x: 100 - 6, y: 9, s: 1 };
+          const n = { ...scElNorm({ on: true }), id: newId(), src, s: left.s || 1, x: Math.max(4, scGridSnap(left.x - 10 * (left.s || 1))), y: left.y };
+          d.xskins.push(n); sc.sel = 'xs:' + n.id; }
+      } else if (xs) { if (src) xs.src = src; else { d.xskins = d.xskins.filter(x => x !== xs); sc.sel = null; } }
+      else { d.skin = src; if (src) d.els.skin.on = true; }
+      close(); drawStage(); drawEditBar(); scSave(src ? '✓ City-Skin gespeichert' : '✓ City-Skin entfernt');
+    };
     root.addEventListener('click', (ev) => {
       if (ev.target.matches('[data-bd]') || ev.target.closest('[data-x]')) return close();
       const b = ev.target.closest('[data-skin]'); if (b) return apply(skinImg(b.dataset.skin));
@@ -4897,10 +4934,12 @@ window.RokApp = () => {
     if (b) { sc.si = +b.dataset.si; sc.gsel = null; drawShowcase(); return; }
     if (ev.target.closest('#scAddSet')) {
       if (d.sets.length >= SC_MAX) return;
-      // neues Set erscheint mittig auf der Bühne (Rüstung rechts daneben), ausgewählt und im Vordergrund
+      // neues Set kommt auf den nächsten festen Platz (Mitte, rechts, links, …) – Rüstung direkt darunter
       const x = scSetNorm({}); d.sets.push(x);
-      x.x = 50; x.y = scGridSnap(scH(d) / 2);
-      x.arm.x = Math.min(97, 50 + scGridSnap(18.75)); x.arm.y = x.y;
+      const L = scLayoutPos(d, scH(d)), i = d.sets.length - 1, first = d.sets[0];
+      Object.assign(x, L.sp[i]);
+      if (i > 0 && first.y != null) { x.y = first.y; x.s = first.s; }   // gleiche Reihe und Größe wie das erste Set
+      scArmUnder(x);
       sc.si = d.sets.length - 1; sc.gsel = null; if (sc.edit) sc.sel = 'set:' + sc.si;
       drawShowcase(); scSave('✓ Set hinzugefügt');
       $('scStage').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -4974,7 +5013,7 @@ window.RokApp = () => {
       const ST = [['atk', 'attack'], ['def', 'defense'], ['hp', 'health'], ['spd', 'march_speed'], ['dmg', 'all_damage']];
       if (ST.some(([, rk]) => scNum1(r[rk]) != null)) ST.forEach(([k, rk]) => { a[k] = scNum1(r[rk]); });   // neue Werte ersetzen die alten komplett
       if (!list.length && ![r.attack, r.defense, r.health, r.march_speed, r.all_damage].some(v => v != null)) throw new Error('Keine Rüstung im Screenshot erkannt.');
-      if (!a.on) { a.on = true; if (a.x == null || a.y == null) scAutoLayout(D(), true); }
+      if (!a.on) { a.on = true; scArmUnder(scSet()); }
       drawArm(); drawStage();
       await scSave(`✓ Rüstung erkannt: ${list.length} Inschriften` + (r.confidence ? ` · Sicherheit: ${r.confidence}` : ''));
     } catch (e) {
@@ -4994,10 +5033,10 @@ window.RokApp = () => {
   });
   $('scArm').addEventListener('change', (ev) => {
     const t = ev.target, a = scSet().arm, d = D();
-    if (t.dataset.arm === 'on') { a.on = t.checked; if (a.on && (a.x == null || a.y == null)) scAutoLayout(d, true); }
+    if (t.dataset.arm === 'on') { a.on = t.checked; if (a.on) scArmUnder(scSet()); }
     else if (t.dataset.arm === 'troop') a.troop = SC_TROOPS[t.value] ? t.value : 'infantry';
     else if (t.dataset.insc != null && t.dataset.f === 'c') a.insc[+t.dataset.insc].c = SC_INSC[t.value] ? t.value : 'gold';
-    else if (t.dataset.arm === 'formsel') { a.formation = t.value; if (t.value && !a.on) { a.on = true; if (a.x == null || a.y == null) scAutoLayout(d, true); } }
+    else if (t.dataset.arm === 'formsel') { a.formation = t.value; if (t.value && !a.on) { a.on = true; scArmUnder(scSet()); } }
     else if (t.dataset.armpick) {                             // andere Rüstung gewählt → deren gold/blaue Inschrift aus der Liste nehmen
       const old = ARM_BY_ID[a.arms[t.dataset.armpick]];
       if (old) a.insc = a.insc.filter(i => i.t !== old.gold && i.t !== old.blue);
@@ -5013,7 +5052,7 @@ window.RokApp = () => {
       if (i >= 0) a.insc.splice(i, 1);
       else if (a.insc.length >= 12) { scMsg('Maximal 12 Inschriften.', 'warn'); return; }
       else { a.insc.push({ t, c: chip.dataset.c }); scInscSort(a.insc); }
-      if (!a.on) { a.on = true; if (a.x == null || a.y == null) scAutoLayout(D(), true); }
+      if (!a.on) { a.on = true; scArmUnder(scSet()); }
       drawArm(); drawStage(); scSaveSoon(); return;
     }
     if (ev.target.closest('#scInscAdd')) { if (a.insc.length < 12) a.insc.push({ t: '', c: 'gold' }); drawArm(); $('scArm').querySelector(`[data-insc="${a.insc.length - 1}"][data-f="t"]`)?.focus(); }
@@ -5455,7 +5494,8 @@ window.RokApp = () => {
         try { localStorage.setItem('rok_gear_files', JSON.stringify({ t: Date.now(), list })); } catch {}
       } catch { return; }
     }
-    const neu = list.filter(f => !GEAR_FILE_CAT[f]); if (!neu.length) return;
+    const NOT_GEAR = new Set(['infantry', 'cavalry', 'archer', 'siege', 'damage', 'attack', 'defense', 'health', 'speed']);
+    const neu = list.filter(f => !GEAR_FILE_CAT[f] && !NOT_GEAR.has(f)); if (!neu.length) return;
     neu.forEach(f => { GEAR_FILE_CAT[f] = gearGuessCat(f); });
     GEAR_FILES = Object.keys(GEAR_FILE_CAT).sort(); GEAR_FILE_SET = new Set(GEAR_FILES); delete refCache.gear; delete refCache.gear2;
     rebuildGearCat();
