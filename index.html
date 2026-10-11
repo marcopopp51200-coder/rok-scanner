@@ -3959,32 +3959,65 @@ window.RokApp = () => {
   }
   // ---- Referenztafeln für den Screenshot-Abgleich: alle Bilder nummeriert auf einem Blatt, Claude vergleicht damit ----
   const refCache = {};
+  const GEAR_REF_CATS = ['helm', 'chest', 'weapon', 'gloves', 'legs', 'accessory', 'boots'];
+  const GEAR_REF_LABEL = { helm: 'HELM → Feld helm', chest: 'BRUST / CHEST → Feld chest', weapon: 'WAFFE / WEAPON → Feld weapon', gloves: 'HANDSCHUHE / GLOVES → Feld gloves',
+    legs: 'BEINE / LEGS → Feld legs', accessory: 'ACCESSOIRE → Felder acc1 + acc2', boots: 'STIEFEL / BOOTS → Feld boots' };
+  const gearRefOrder = () => GEAR_REF_CATS.flatMap(c => GEAR_FILES.filter(f => (GEAR_FILE_CAT[f] || 'accessory') === c));
   function refSheet(kind) {
     if (refCache[kind]) return refCache[kind];
     return (refCache[kind] = (async () => {
       const gearK = kind === 'gear';
-      const list = gearK ? GEAR_FILES.map(f => ({ src: `/icons/gear/${f}.webp`, label: '' })) : COMMANDERS.map(c => ({ src: cmdImg(c.id), label: c.name }));
-      const cols = gearK ? 12 : 14, cell = gearK ? 96 : 90, lab = gearK ? 0 : 15, rows = Math.ceil(list.length / cols);
       const load = (src) => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
-      const imgs = await Promise.all(list.map(x => load(x.src)));
-      const refImgs = gearK ? await Promise.all(Object.values(REFTYPES).map(t => load(t.img))) : [];   // Legende: Refine voll vs. nicht voll
-      if (!imgs.some(Boolean)) { delete refCache[kind]; return null; }
-      const legH = gearK ? 150 : 0;
-      const cv = document.createElement('canvas'); cv.width = cols * cell; cv.height = rows * (cell + lab) + legH;
-      const ctx = cv.getContext('2d'); ctx.fillStyle = '#1b2233'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.textBaseline = 'top';
-      imgs.forEach((im, i) => {
-        const x = (i % cols) * cell, y = Math.floor(i / cols) * (cell + lab);
-        ctx.strokeStyle = '#3a4560'; ctx.strokeRect(x + .5, y + .5, cell - 1, cell + lab - 1);
-        if (im) ctx.drawImage(im, x + 6, y + 6, cell - 12, cell - 12);
-        ctx.fillStyle = '#000'; ctx.fillRect(x + 1, y + 1, 30, 18);
-        ctx.fillStyle = '#ffe066'; ctx.font = 'bold 15px sans-serif'; ctx.fillText(String(i + 1), x + 3, y + 3);
-        if (lab) { ctx.fillStyle = '#ffffff'; ctx.font = '11px sans-serif'; ctx.fillText(list[i].label, x + 3, y + cell + 1, cell - 6); }
-      });
+      let cv, ctx, note = '', count = 0, yEnd = 0;
       if (gearK) {
-        const y0 = rows * cell + 8, keys = Object.keys(REFTYPES);
+        // Ausrüstung: Abschnitte je Slot-Typ, große Kacheln mit Nummer und Name – so kann Claude nur innerhalb des passenden Typs wählen
+        const order = gearRefOrder(), cols = 12, cell = 104, lab = 14, head = 26;
+        const imgs = await Promise.all(order.map(f => load(`/icons/gear/${f}.webp`)));
+        if (!imgs.some(Boolean)) { delete refCache[kind]; return null; }
+        const groups = GEAR_REF_CATS.map(c => [c, order.map((f, n) => [f, n]).filter(([f]) => (GEAR_FILE_CAT[f] || 'accessory') === c)]).filter(([, l]) => l.length);
+        const H = groups.reduce((h, [, l]) => h + head + Math.ceil(l.length / cols) * (cell + lab), 0) + 160;
+        cv = document.createElement('canvas'); cv.width = cols * cell; cv.height = H;
+        ctx = cv.getContext('2d'); ctx.fillStyle = '#1b2233'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.textBaseline = 'top';
+        let y = 0; const parts = [];
+        groups.forEach(([c, l]) => {
+          ctx.fillStyle = '#0d1220'; ctx.fillRect(0, y, cv.width, head);
+          ctx.fillStyle = '#7dd3fc'; ctx.font = 'bold 16px sans-serif'; ctx.fillText(`${GEAR_REF_LABEL[c]}   (Nr. ${l[0][1] + 1}–${l[l.length - 1][1] + 1})`, 8, y + 5);
+          parts.push(`${c}: Nr. ${l[0][1] + 1}–${l[l.length - 1][1] + 1}`);
+          y += head;
+          l.forEach(([f, n], k) => {
+            const x = (k % cols) * cell, yy = y + Math.floor(k / cols) * (cell + lab);
+            ctx.strokeStyle = '#3a4560'; ctx.strokeRect(x + .5, yy + .5, cell - 1, cell + lab - 1);
+            if (imgs[n]) ctx.drawImage(imgs[n], x + 6, yy + 6, cell - 12, cell - 12);
+            ctx.fillStyle = '#000'; ctx.fillRect(x + 1, yy + 1, 32, 18);
+            ctx.fillStyle = '#ffe066'; ctx.font = 'bold 15px sans-serif'; ctx.fillText(String(n + 1), x + 3, yy + 3);
+            ctx.fillStyle = '#e2e8f0'; ctx.font = '10px sans-serif'; ctx.fillText(gearFileName(f), x + 3, yy + cell + 1, cell - 6);
+          });
+          y += Math.ceil(l.length / cols) * (cell + lab);
+        });
+        note = parts.join('; '); count = order.length; yEnd = y;
+      } else {
+        const list = COMMANDERS.map(c => ({ src: cmdImg(c.id), label: c.name }));
+        const cols = 14, cell = 90, lab = 15, rows = Math.ceil(list.length / cols);
+        const imgs = await Promise.all(list.map(x => load(x.src)));
+        if (!imgs.some(Boolean)) { delete refCache[kind]; return null; }
+        cv = document.createElement('canvas'); cv.width = cols * cell; cv.height = rows * (cell + lab);
+        ctx = cv.getContext('2d'); ctx.fillStyle = '#1b2233'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.textBaseline = 'top';
+        imgs.forEach((im, i) => {
+          const x = (i % cols) * cell, y = Math.floor(i / cols) * (cell + lab);
+          ctx.strokeStyle = '#3a4560'; ctx.strokeRect(x + .5, y + .5, cell - 1, cell + lab - 1);
+          if (im) ctx.drawImage(im, x + 6, y + 6, cell - 12, cell - 12);
+          ctx.fillStyle = '#000'; ctx.fillRect(x + 1, y + 1, 30, 18);
+          ctx.fillStyle = '#ffe066'; ctx.font = 'bold 15px sans-serif'; ctx.fillText(String(i + 1), x + 3, y + 3);
+          ctx.fillStyle = '#ffffff'; ctx.font = '11px sans-serif'; ctx.fillText(list[i].label, x + 3, y + cell + 1, cell - 6);
+        });
+        count = list.length;
+      }
+      const refImgs = gearK ? await Promise.all(Object.values(REFTYPES).map(t => load(t.img))) : [];   // Legende: Refine voll vs. nicht voll
+      if (gearK) {
+        const y0 = yEnd + 8, keys = Object.keys(REFTYPES);
         ctx.fillStyle = '#ffffff'; ctx.font = 'bold 15px sans-serif';
         ctx.fillText('REFINE-LEGENDE  (Symbol unten rechts im Feld)', 8, y0);
-        [['VOLL = 100 (komplett rot gefüllt)', ''], ['NICHT VOLL (grau / nur teilweise rot)', 'grayscale(1) brightness(.75)']].forEach(([txt, flt], row) => {
+        [['FERTIG = refine_full true (komplett rot)', ''], ['NICHT FERTIG = false (grau / teilweise rot)', 'grayscale(1) brightness(.75)']].forEach(([txt, flt], row) => {
           const y = y0 + 24 + row * 60;
           ctx.fillStyle = row ? '#cbd5e1' : '#fca5a5'; ctx.font = 'bold 13px sans-serif'; ctx.fillText(txt, 8, y + 18);
           refImgs.forEach((im, i) => { if (!im) return; ctx.filter = flt || 'none'; ctx.drawImage(im, 330 + i * 120, y, 48, 48); ctx.filter = 'none';
@@ -3992,7 +4025,7 @@ window.RokApp = () => {
         });
       }
       const url = cv.toDataURL('image/jpeg', 0.82);
-      return { kind, media_type: 'image/jpeg', data: url.split(',')[1], count: list.length };
+      return { kind, media_type: 'image/jpeg', data: url.split(',')[1], count, note };
     })());
   }
   async function scanRefs(kinds) { const out = []; for (const k of kinds) { try { const r = await refSheet(k); if (r) out.push(r); } catch {} } return out; }
@@ -5021,7 +5054,9 @@ window.RokApp = () => {
     if (ev.type === 'change' && isBtn) return;
     if (gearPickEvent(t)) { drawShowcase(); return; }
     const v = scSet().gear[t.dataset.slot];
-    if (t.dataset.f === 'item') { v.item = t.dataset.v ?? t.value; const it = gItem(t.value); v.rarity = it ? it.rarity : 'legendary'; scSnap(v, it); v.tier = 0; v.refine = 0; }
+    if (t.dataset.f === 'clear') { v.item = ''; scSnap(v, null); v.tier = 0; v.refine = 0; }
+    else if (t.dataset.f === 'refset') { if (t.dataset.v) { v.refType = gRefType(t.dataset.v); v.refine = 100; } else v.refine = 0; }
+    else if (t.dataset.f === 'item') { v.item = t.dataset.v ?? t.value; const it = gItem(t.value); v.rarity = it ? it.rarity : 'legendary'; scSnap(v, it); v.tier = 0; v.refine = 0; }
     else if (t.dataset.f === 'refine') v.refine = gRefine(t.dataset.v);
     else if (t.dataset.f === 'refType') v.refType = gRefType(t.dataset.v);
     else v.tier = gTier(t.value);
@@ -5437,12 +5472,11 @@ window.RokApp = () => {
   const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
   const REFINE = [0, 25, 50, 75, 100];
   // Refine-Fortschritt: 0 | 25 | 50 | 75 | 100 (= voll, rotes Symbol). Alte Sets: true → 100
-  const gRefine = (v) => { if (v === true || /^\s*(true|voll|full)\s*$/i.test(String(v))) return 100; const n = parseFloat(v) || 0; return REFINE.reduce((b, x) => Math.abs(x - n) < Math.abs(b - n) ? x : b, 0); };
+  const gRefine = (v) => (v === true || /^\s*(true|voll|full)\s*$/i.test(String(v)) || (parseFloat(v) || 0) >= 100) ? 100 : 0;   // nur fertig (100) oder keins (0) – nichts Halbes
   const gScanRefine = (info) => {                         // "refine_full" vom Scan hat Vorrang vor der Prozentschätzung
-    const r = gRefine(info?.refine);
     if (info?.refine_full === true) return 100;
-    if (info?.refine_full === false) return r >= 100 ? 75 : r;
-    return r;
+    if (info?.refine_full === false) return 0;
+    return gRefine(info?.refine);
   };
   const gRefTxt = (v) => v >= 100 ? 'Voll' : v + '%';
   // Refine-Typ (Symbol unten rechts auf dem Item)
@@ -5575,8 +5609,8 @@ window.RokApp = () => {
       return `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="item" data-v="${esc(i.id)}" title="${esc(i.name)}"
         class="relative aspect-square rounded-lg p-1 border transition ${on ? 'border-gold-400 ring-2 ring-gold-400/60' : 'border-ink-700 hover:border-gold-500/60'}" style="background:radial-gradient(circle at 50% 40%, ${f[1]}55, ${f[2]}44)">
         <img src="${i.icon}" alt="" loading="lazy" class="w-full h-full object-contain"></button>`; };
-    return `<details class="mt-2 rounded-lg border border-ink-700 bg-ink-950/40" data-gpick="${key}" ${open ? 'open' : ''}>
-      <summary class="cursor-pointer select-none px-3 py-2 text-xs font-semibold text-gold-300">🖼 Item aus Bildern wählen</summary>
+    return `<div class="mt-3 rounded-lg border border-ink-700 bg-ink-950/40" data-gpick="${key}">
+      <div class="px-3 pt-2 pb-2 text-xs font-semibold text-gold-300">🖼 Item wählen</div>
       <div class="px-3 pb-3">
         <div class="flex flex-wrap gap-1 mb-2">${Object.entries(GEAR_CATS).map(([k, l]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="gtab" data-v="${k}"
           class="px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${k === tab ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-700 text-slate-400 hover:text-gold-300'}">${l}${k === sl.cat ? ' ★' : ''}</button>`).join('')}</div>
@@ -5586,7 +5620,7 @@ window.RokApp = () => {
             : '<div class="py-4 text-center text-xs text-slate-500">Keine Bilder für diesen Typ.</div>'}
         </div>
         ${tab !== sl.cat ? '<div class="mt-2 text-[11px] text-amber-300">Hinweis: anderer Typ als dieser Slot – nur wählen, wenn das Item falsch einsortiert ist.</div>' : ''}
-      </div></details>`;
+      </div></div>`;
   }
   function gearPickEvent(t) {                                // true = Ereignis war ein Reiter-Wechsel (nichts speichern)
     const key = t.dataset.side + ':' + t.dataset.slot;
@@ -5601,38 +5635,28 @@ window.RokApp = () => {
       : r.status === 'craft' ? ['⚒ craften: ' + gCostText(r.cost) + (gTierTxt(r) ? ' · inkl. ' + gTierTxt(r) : '') + (r.needRefine ? ' · + ' + gRefStep(r) : ''), 'gold']
       : r.status === 'tierup' ? ['⬆ ' + gTierTxt(r) + (r.cost ? ': ' + gCostText(r.cost) : '') + (r.needRefine ? ' · + ' + gRefStep(r) : ''), 'sky']
       : r.status === 'refine' ? ['⚔ ' + gRefStep(r), 'red'] : GSTATUS[r.status] || null;
-    const sel = 'w-full min-w-0 bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-gold-500 disabled:opacity-40';
-    const groups = {};
-    gearCat.filter(i => i.cat === sl.cat || i.id === v.item).forEach(i => { const g = i.lib ? 'Aus Bildern (ohne Crafting-Kosten)' : i.db ? (i.set || 'Katalog') : 'Eigene Items'; (groups[g] = groups[g] || []).push(i); });
-    const opts = '<option value="">– leer –</option>' + Object.entries(groups).map(([g, items]) => `<optgroup label="${esc(g)}">`
-      + items.map(i => `<option value="${esc(i.id)}"${i.id === v.item ? ' selected' : ''}>${esc(i.name)}</option>`).join('') + '</optgroup>').join('');
-    const none = !Object.keys(groups).length;
+    const sel = 'min-w-0 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500 disabled:opacity-40';
+    const rb = (on) => `flex items-center gap-1 px-2 py-1 rounded-lg border ${on ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 bg-ink-950 text-slate-400 hover:text-gold-300'}`;
+    const hasRef = it && v.refine >= 100;
     return `<div class="rounded-xl border border-ink-700 bg-ink-950/60 p-3">
-      <div class="flex items-center justify-between gap-2 mb-2">
-        <span class="flex items-center gap-2 text-xs uppercase tracking-widest text-slate-400">${it?.icon ? `<img src="${it.icon}" alt="" class="w-8 h-8 object-contain">` : sl.icon} <span>${sl.label}</span></span>
-        ${it ? `<span class="text-[11px] font-semibold text-gold-300">T${v.tier || 0}${v.refine ? ` · <span class="text-red-300">Refine ${REFTYPES[v.refType].label} ${gRefTxt(v.refine)}</span>` : ''}</span>` : ''}
-      </div>
-      <div class="grid grid-cols-[1fr_auto] gap-1.5">
-        <select data-side="${side}" data-slot="${sl.k}" data-f="item" class="${sel}" aria-label="${sl.label}">${opts}</select>
+      <div class="flex flex-wrap items-center gap-2 mb-2">
+        ${it?.icon ? `<img src="${it.icon}" alt="" class="w-9 h-9 object-contain">` : `<span class="text-xl">${sl.icon}</span>`}
+        <div class="min-w-0 flex-1">
+          <div class="text-[10px] uppercase tracking-widest text-slate-500">${sl.label}</div>
+          <div class="text-sm font-semibold truncate ${it ? 'text-white' : 'text-slate-500'}" translate="no">${it ? esc(it.name) : '– leer – unten ein Bild antippen'}</div>
+        </div>
         <select data-side="${side}" data-slot="${sl.k}" data-f="tier" class="${sel}" ${it ? '' : 'disabled'} aria-label="Tier">
           ${[0, 1, 2, 3, 4, 5].map(t => `<option value="${t}"${(v.tier || 0) === t ? ' selected' : ''}>T${t}</option>`).join('')}
         </select>
+        ${it ? `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="clear" title="Slot leeren" class="px-2 py-1.5 rounded-lg border border-ink-600 text-slate-400 hover:border-red-500/50 hover:text-red-300 text-xs">✕</button>` : ''}
+      </div>
+      <div class="flex flex-wrap items-center gap-1.5 text-xs ${it ? '' : 'opacity-40'}">
+        <span class="text-slate-400 mr-1">Refine</span>
+        <button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refset" data-v="" ${it ? '' : 'disabled'} class="${rb(!hasRef)}">Kein</button>
+        ${Object.entries(REFTYPES).map(([k, t]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refset" data-v="${k}" ${it ? '' : 'disabled'} title="${t.label}" class="${rb(hasRef && v.refType === k)}">
+          <img src="${t.img}" alt="" class="w-5 h-5 ${hasRef && v.refType === k ? '' : 'grayscale opacity-70'}"><span class="hidden sm:inline">${t.label}</span></button>`).join('')}
       </div>
       ${gearPickerHtml(side, sl, v)}
-      <div class="mt-2 flex flex-wrap items-center gap-1.5 text-xs ${it ? '' : 'opacity-40'}">
-        <span class="text-slate-400 mr-1">Refine-Typ</span>
-        ${Object.entries(REFTYPES).map(([k, t]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refType" data-v="${k}" ${it ? '' : 'disabled'} title="${t.label}"
-          class="flex items-center gap-1 px-1.5 py-1 rounded-lg border ${v.refType === k ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 bg-ink-950 text-slate-400 hover:text-gold-300'}">
-          <img src="${t.img}" alt="" class="w-5 h-5 ${v.refType === k ? '' : 'grayscale opacity-70'}"><span class="hidden sm:inline">${t.label}</span></button>`).join('')}
-      </div>
-      <div class="mt-2 flex items-center gap-2 text-sm ${it ? '' : 'opacity-40'}">
-        ${gRefIcon({ ...v, refine: v.refine || 100 }, 'w-6 h-6 shrink-0')}Refine
-        <div class="flex flex-1 rounded-lg border border-ink-600 overflow-hidden" role="group" aria-label="Refine">
-          ${REFINE.map(x => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refine" data-v="${x}" ${it ? '' : 'disabled'}
-            class="flex-1 px-1 py-1.5 text-xs font-semibold border-l first:border-l-0 border-ink-600 ${(v.refine || 0) === x ? (x >= 100 ? 'bg-red-600 text-white' : 'bg-gold-500 text-ink-950') : 'bg-ink-950 text-slate-300 hover:text-gold-300'}">${x >= 100 ? 'Voll' : x + '%'}</button>`).join('')}
-        </div>
-      </div>
-      ${none ? '<div class="mt-2 text-[11px] text-slate-500">Für diesen Slot gibt es noch keine Items im Katalog.</div>' : ''}
       ${note ? `<div class="mt-2 inline-block max-w-full text-[11px] px-2 py-0.5 rounded-full border ${GBADGE[note[1]]}">${esc(note[0])}</div>` : ''}
     </div>`;
   }
@@ -5744,7 +5768,9 @@ window.RokApp = () => {
     if (ev.type === 'change' && isBtn) return;
     if (gearPickEvent(t)) { renderGearMain(); return; }
     const v = activeSet()[t.dataset.side][t.dataset.slot];
-    if (t.dataset.f === 'item') { v.item = t.dataset.v ?? t.value; const it = gItem(t.value); if (it) v.rarity = it.rarity; v.tier = 0; v.refine = 0; v.refType = v.refType || 'infantry'; }
+    if (t.dataset.f === 'clear') { v.item = ''; v.tier = 0; v.refine = 0; }
+    else if (t.dataset.f === 'refset') { if (t.dataset.v) { v.refType = gRefType(t.dataset.v); v.refine = 100; } else v.refine = 0; }
+    else if (t.dataset.f === 'item') { v.item = t.dataset.v ?? t.value; const it = gItem(t.value); if (it) v.rarity = it.rarity; v.tier = 0; v.refine = 0; v.refType = v.refType || 'infantry'; }
     else if (t.dataset.f === 'refine') v.refine = gRefine(t.dataset.v);
     else if (t.dataset.f === 'refType') v.refType = gRefType(t.dataset.v);
     else v.tier = gTier(t.value);
@@ -5830,7 +5856,10 @@ window.RokApp = () => {
   // ---- KI-Scan der Ist-Ausrüstung (Modus "gear" in /api/scan, Katalog kommt dort aus gear_items) ----
   function gearRarity(v) { const t = gNorm(v); if (!t) return null; return /legend|gold|orange/.test(t) ? 'legendary' : /elite|blau|blue/.test(t) ? 'elite' : /normal|grau|grey|gray|grun|green|advanced/.test(t) ? 'normal' : 'epic'; }
   function gearByRef(cat, info) {                            // Nummer von der Referenztafel → Katalog-Item (oder nur Bild + Name)
-    const f = GEAR_FILES[refNum(info?.ref, GEAR_FILES.length) - 1]; if (!f) return null;
+    const order = gearRefOrder(), slotCat = cat;
+    const cands = [info?.ref, info?.ref2].map(r => order[refNum(r, order.length) - 1]).filter(Boolean);
+    if (!cands.length) return null;
+    const f = cands.find(x => (GEAR_FILE_CAT[x] || 'accessory') === slotCat) || cands[0];   // Treffer aus dem falschen Typ wird durch die zweite Wahl ersetzt
     const it = gearCat.find(i => i.cat === cat && gearIconStem(i.icon) === f) || gearCat.find(i => gearIconStem(i.icon) === f);
     return it || { file: f };
   }
