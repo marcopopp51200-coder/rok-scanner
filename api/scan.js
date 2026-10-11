@@ -7,6 +7,7 @@ const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor',
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MAX_IMAGES = 5;
 const MAX_TOTAL_B64 = 4_300_000; // Vercel erlaubt max. 4,5 MB pro Anfrage
+const REF_KINDS = new Set(['gear', 'commanders']);   // Referenztafeln aus dem Browser (nummerierte Bilder aus /icons/…)
 
 const INTRO = `Du analysierst Screenshots aus dem Handyspiel "Rise of Kingdoms" (Sprache der Spieloberfläche kann Deutsch, Englisch o. a. sein).`;
 
@@ -247,7 +248,7 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
 {
   "type": "gear",
   "slots": {
-    "helm":   {"item_id": string|null, "name": string|null, "description": string, "rarity": "legendary"|"epic"|"elite"|"advanced"|"normal", "tier": 0|1|2|3|4|5, "refine": 0|25|50|75|100, "refine_type": "archer"|"cavalry"|"infantry"|null} | null,
+    "helm":   {"ref": number|null, "item_id": string|null, "name": string|null, "description": string, "rarity": "legendary"|"epic"|"elite"|"advanced"|"normal", "tier": 0|1|2|3|4|5, "refine": 0|25|50|75|100, "refine_type": "archer"|"cavalry"|"infantry"|null} | null,
     "chest":  ... | null,
     "weapon": ... | null,
     "gloves": ... | null,
@@ -256,9 +257,21 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
     "acc2":   ... | null,
     "boots":  ... | null
   },
+  "commanders": [{"ref": number|null, "name": string|null, "expertise": boolean}],
   "confidence": "hoch" | "mittel" | "niedrig",
   "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Zuordnungen"
 }`;
+
+// ---------- Referenztafeln (Bild-Abgleich) ----------
+const REF_TEXT = {
+  gear: (n) => `REFERENZTAFEL AUSRÜSTUNG (nicht auswerten, nur zum Vergleichen): ${n} nummerierte Kacheln, die gelbe Zahl oben links ist die Nummer (1–${n}).
+Vergleiche jedes Feld des Screenshots genau mit diesen Kacheln (Form, Farben, Motiv – die Seltenheitsfarbe des Feldes beim Vergleich ignorieren)
+und trage die Nummer des identischen Symbols als "ref" ein. Ohne sicheren Treffer: "ref": null.`,
+  commanders: (n) => `REFERENZTAFEL KOMMANDANTEN (nicht auswerten, nur zum Vergleichen): ${n} Porträts, gelbe Nummer oben links, Name darunter.
+Sind im Screenshot Kommandanten zu sehen (Porträt, Ganzkörperbild oder Name), trage sie in "commanders" ein – zuerst den Hauptkommandanten (Primär), dann den Sekundären:
+"ref" = Nummer des passenden Porträts, "name" = gelesener Name (sonst null), "expertise" = true, wenn der Kommandant erkennbar Expertise hat (alle Fähigkeiten auf Stufe 5 / Expertise-Rahmen), sonst false.
+Keine Kommandanten zu sehen: "commanders": [].`
+};
 
 // Der Prompt liegt auf dem Server: so kann die Route nicht als allgemeiner Claude-Proxy missbraucht werden.
 const PROMPT = (m) => m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : PROMPT_CLASSIC(m);
@@ -289,6 +302,15 @@ module.exports = async (req, res) => {
     }
     total += im.data.length;
   }
+  // optionale Referenztafeln (nur beim Ausrüstungs-Scan)
+  const refs = mode === 'gear' && Array.isArray(body?.refs) ? body.refs.slice(0, 2) : [];
+  for (const rf of refs) {
+    if (!rf || !REF_KINDS.has(rf.kind) || rf.media_type !== 'image/jpeg' || typeof rf.data !== 'string' || !/^[A-Za-z0-9+/=]+$/.test(rf.data)) {
+      return res.status(400).json({ error: 'Ungültige Referenztafel.' });
+    }
+    rf.count = Math.max(1, Math.min(400, Math.round(+rf.count) || 1));
+    total += rf.data.length;
+  }
   if (total > MAX_TOTAL_B64) return res.status(413).json({ error: 'Die Bilder sind zusammen zu groß.' });
 
   const promptText = mode === 'gear' ? PROMPT_GEAR(await gearCatalog()) : PROMPT(mode);
@@ -304,7 +326,8 @@ module.exports = async (req, res) => {
           role: 'user',
           content: [
             ...images.map(im => ({ type: 'image', source: { type: 'base64', media_type: im.media_type, data: im.data } })),
-            { type: 'text', text: promptText }
+            ...refs.flatMap(rf => [{ type: 'text', text: REF_TEXT[rf.kind](rf.count) }, { type: 'image', source: { type: 'base64', media_type: rf.media_type, data: rf.data } }]),
+            { type: 'text', text: refs.length ? promptText + '\n\nDie Referenztafeln oben sind KEINE Screenshots des Spielers – nur zum Vergleichen verwenden. Ohne Kommandanten-Tafel: "commanders": [].' : promptText }
           ]
         }]
       })
