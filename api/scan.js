@@ -252,7 +252,7 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
 {
   "type": "gear",
   "slots": {
-    "helm":   {"ref": number|null, "item_id": string|null, "name": string|null, "description": string, "rarity": "legendary"|"epic"|"elite"|"advanced"|"normal", "tier": 0|1|2|3|4|5, "refine": 0|25|50|75|100, "refine_full": boolean, "refine_type": "archer"|"cavalry"|"infantry"|"engineering"|"integration"|"leadership"|null} | null,
+    "helm":   {"ref": number|null, "ref2": number|null, "item_id": string|null, "name": string|null, "description": string, "rarity": "legendary"|"epic"|"elite"|"advanced"|"normal", "tier": 0|1|2|3|4|5, "refine": 0|25|50|75|100, "refine_full": boolean, "refine_type": "archer"|"cavalry"|"infantry"|"engineering"|"integration"|"leadership"|null} | null,
     "chest":  ... | null,
     "weapon": ... | null,
     "gloves": ... | null,
@@ -268,9 +268,12 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
 
 // ---------- Referenztafeln (Bild-Abgleich) ----------
 const REF_TEXT = {
-  gear: (n) => `REFERENZTAFEL AUSRÜSTUNG (nicht auswerten, nur zum Vergleichen): ${n} nummerierte Kacheln, die gelbe Zahl oben links ist die Nummer (1–${n}).
-Vergleiche jedes Feld des Screenshots genau mit diesen Kacheln (Form, Farben, Motiv – die Seltenheitsfarbe des Feldes beim Vergleich ignorieren)
-und trage die Nummer des identischen Symbols als "ref" ein. Ohne sicheren Treffer: "ref": null.
+  gear: (n, note) => `REFERENZTAFEL AUSRÜSTUNG (nicht auswerten, nur zum Vergleichen): ${n} nummerierte Kacheln (gelbe Zahl oben links, Name darunter),
+in ABSCHNITTE nach Slot-Typ eingeteilt${note ? ' – ' + note : ''}.
+REGELN für "ref":
+- Für jedes Feld NUR Kacheln aus dem passenden Abschnitt verwenden: helm → HELM, chest → BRUST, weapon → WAFFE, gloves → HANDSCHUHE, legs → BEINE, acc1/acc2 → ACCESSOIRE, boots → STIEFEL.
+- Vergleiche Form, Umriss, Farben und Details (z. B. bei Bögen/Armbrüsten: Form des Bogens, Farbe von Griff, Sehne und Verzierung; bei Helmen: Federn, Hörner, Visier). Die Seltenheitsfarbe des Feldes beim Vergleich ignorieren.
+- "ref" = Nummer des identischen Symbols, "ref2" = Nummer des zweitähnlichsten Symbols aus demselben Abschnitt (Ausweichlösung). Ohne sicheren Treffer: "ref": null.
 Ganz unten auf der Tafel steht eine REFINE-LEGENDE: obere Reihe = fertig refined (komplett rot), untere Reihe = nicht fertig (grau). Nutze sie für "refine_full".`,
   commanders: (n) => `REFERENZTAFEL KOMMANDANTEN (nicht auswerten, nur zum Vergleichen): ${n} Porträts, gelbe Nummer oben links, Name darunter.
 Sind im Screenshot Kommandanten zu sehen (Porträt, Ganzkörperbild oder Name), trage sie in "commanders" ein – zuerst den Hauptkommandanten (Primär), dann den Sekundären:
@@ -346,6 +349,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Ungültige Referenztafel.' });
     }
     rf.count = Math.max(1, Math.min(400, Math.round(+rf.count) || 1));
+    rf.note = typeof rf.note === 'string' ? rf.note.replace(/[^\w .:;–-]/g, '').slice(0, 400) : '';
     total += rf.data.length;
   }
   if (total > MAX_TOTAL_B64) return res.status(413).json({ error: 'Die Bilder sind zusammen zu groß.' });
@@ -363,7 +367,7 @@ module.exports = async (req, res) => {
           role: 'user',
           content: [
             ...images.map(im => ({ type: 'image', source: { type: 'base64', media_type: im.media_type, data: im.data } })),
-            ...refs.flatMap(rf => [{ type: 'text', text: REF_TEXT[rf.kind](rf.count) }, { type: 'image', source: { type: 'base64', media_type: rf.media_type, data: rf.data } }]),
+            ...refs.flatMap(rf => [{ type: 'text', text: REF_TEXT[rf.kind](rf.count, rf.note) }, { type: 'image', source: { type: 'base64', media_type: rf.media_type, data: rf.data } }]),
             { type: 'text', text: refs.length ? promptText + '\n\nDie Referenztafeln oben sind KEINE Screenshots des Spielers – nur zum Vergleichen verwenden. Ohne Kommandanten-Tafel: "commanders": [].' : promptText }
           ]
         }]
