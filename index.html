@@ -3942,10 +3942,12 @@ window.RokApp = () => {
   const CMD_BY_ID = Object.fromEntries(COMMANDERS.map(c => [c.id, c]));
   const cmdImg = (id, exp) => { const m = CMD_BY_ID[id]; return (m && m.ex && (exp || m.nb) ? '/icons/comanderexpertise/' : '/icons/comander/') + id + '.webp'; };
   // Ausrüstungs-Bilder in /icons/gear/ (Dateiname ohne .webp) – Grundlage für den Bild-Abgleich beim Screenshot-Scan
-  const GEAR_FILES = ["abyssal_visage_purple", "ancestral_mask_of_night", "ancient_stratagems_purple", "armband_of_the_hellish_wasteland", "ash_of_the_dawn", "boots_of_the_hellish_wasteland", "chausses_of_the_glorious_goddess", "claws_of_the_forest_guardian_purple", "cloth_gloves_grey", "cloud_racers_purple", "commanders_boots", "concealed_dagger", "crimson_ring_purple", "dark_lords_blessing_purple", "delanes_amulet_purple", "diadem_of_the_glorious_goddess", "dragons_breath_boots", "dragons_breath_bow", "dragons_breath_helm", "dragons_breath_plate", "dragons_breath_tassets", "dragons_breath_vambraces", "eternal_night", "fanatics_tassets_purple", "fierce_wolfs_helmet", "flame_treads_purple", "frost_treads_purple", "gauntlets_of_the_glorious_goddess", "gladiator_purple", "gold_helm_of_the_eternal_empire", "golden_age_purple", "greatest_glory", "greaves_of_the_eternal_empire", "greaves_of_the_glorious_goddess", "hammer_of_the_sun_and_moon", "harvester_boots_blue", "harvester_breeches_blue", "harvester_robes_blue", "harvesters_headscarf_blue", "heart_of_the_saint_purple", "heavy_armor_of_the_hellish_wasteland", "helm_of_the_conqueror", "heros_hilt", "hope_cloak", "horn_of_fury", "ians_choice", "immolating_plume", "isets_sufferance_purple", "karuaks_humility_purple", "karuaks_war_drums", "knights_battleworn_gauntlets_purple", "knights_oathsworn_bow_purple", "knights_steel_diadem_purple", "knights_triumphant_tassets_purple", "knights_valorous_cloak_purple", "knights_winter_sabatons_purple", "lance_of_the_hellish_wasteland", "lone_wolfs_leather_tassets", "mask_of_the_forest_guardian_purple", "moras_web", "mountain_crushers", "navars_control", "pendant_of_eternal_night", "peters_sickle_purple", "plate_of_the_eternal_empire", "plate_of_the_glorious_goddess", "pride_of_the_khan", "quinns_soul_purple", "revival_gauntlets_purple", "revival_helm_purple", "revival_plate_purple", "ring_of_doom", "roaring_wolfs_claws", "robe_of_the_forest_guardian_purple", "sacred_dominion", "sacred_grips", "saddle_of_a_thousand_blessings", "sakura_fubuki_purple", "scepter_of_the_forest_guardian_purple", "scepter_of_the_glorious_goddess", "scolas_lucky_coin", "seths_brutality_purple", "seths_call", "shadow_legions_retribution", "sharp_longsword_grey", "shield_of_the_eternal_empire", "shios_return", "silent_trial_purple", "sturdy_boots_of_the_eternal_empire", "tassets_of_the_hellish_wasteland", "tassets_of_the_war_god", "the_bards_pendant_purple", "the_milky_way", "timeless_amber", "twilight_epiphany", "vambraces_of_the_eternal_empire", "vengeance", "vigilant_wolfs_leather_armor", "wailing_wolfs_gauntlets", "war_helm_of_the_hellish_wasteland", "witchs_lineage_purple"];
-  const GEAR_FILE_SET = new Set(GEAR_FILES);
+  // Typ (Slot) je Bild in /icons/gear/ – für die Auswahl von Hand und als Katalog-Ersatz, solange ein Item nicht in gear_items steht
+  const GEAR_FILE_CAT = {"abyssal_visage_purple":"helm","ancestral_mask_of_night":"helm","ancient_stratagems_purple":"accessory","armband_of_the_hellish_wasteland":"gloves","ash_of_the_dawn":"legs","boots_of_the_hellish_wasteland":"boots","call_of_the_loyal_blue":"accessory","chausses_of_the_glorious_goddess":"legs","claws_of_the_forest_guardian_purple":"gloves","cloth_gloves_grey":"gloves","cloud_racers_purple":"boots","commanders_boots":"boots","concealed_dagger":"accessory","crimson_ring_purple":"accessory","dark_lords_blessing_purple":"chest","delanes_amulet_purple":"accessory","diadem_of_the_glorious_goddess":"helm","dragons_breath_boots":"boots","dragons_breath_bow":"weapon","dragons_breath_helm":"helm","dragons_breath_plate":"chest","dragons_breath_tassets":"legs","dragons_breath_vambraces":"gloves","eternal_night":"legs","fanatics_tassets_purple":"legs","fierce_wolfs_helmet":"helm","flame_treads_purple":"boots","frost_treads_purple":"boots","gauntlets_of_the_glorious_goddess":"gloves","gladiator_purple":"legs","gold_helm_of_the_eternal_empire":"helm","golden_age_purple":"weapon","greatest_glory":"accessory","greaves_of_the_eternal_empire":"legs","greaves_of_the_glorious_goddess":"legs","hammer_of_the_sun_and_moon":"weapon","harvester_boots_blue":"boots","harvester_breeches_blue":"legs","harvester_robes_blue":"chest","harvesters_headscarf_blue":"helm","heart_of_the_saint_purple":"weapon","heavy_armor_of_the_hellish_wasteland":"chest","helm_of_the_conqueror":"helm","heros_hilt":"weapon","hope_cloak":"chest","horn_of_fury":"accessory","ians_choice":"gloves","immolating_plume":"helm","isets_sufferance_purple":"gloves","karuaks_humility_purple":"legs","karuaks_war_drums":"accessory","knights_battleworn_gauntlets_purple":"gloves","knights_oathsworn_bow_purple":"weapon","knights_steel_diadem_purple":"helm","knights_triumphant_tassets_purple":"legs","knights_valorous_cloak_purple":"chest","knights_winter_sabatons_purple":"boots","lance_of_the_hellish_wasteland":"weapon","lohars_bone_necklace_blue":"accessory","lone_wolfs_leather_tassets":"legs","mask_of_the_forest_guardian_purple":"helm","moras_web":"accessory","mountain_crushers":"boots","navars_control":"gloves","pendant_of_eternal_night":"accessory","peters_sickle_purple":"weapon","plate_of_the_eternal_empire":"chest","plate_of_the_glorious_goddess":"chest","pride_of_the_khan":"helm","quinns_soul_purple":"chest","revival_gauntlets_purple":"gloves","revival_helm_purple":"helm","revival_plate_purple":"chest","ring_of_doom":"accessory","roaring_wolfs_claws":"gloves","robe_of_the_forest_guardian_purple":"chest","sacred_dominion":"weapon","sacred_grips":"gloves","saddle_of_a_thousand_blessings":"accessory","sakura_fubuki_purple":"weapon","savage_totem_blue":"accessory","scepter_of_the_forest_guardian_purple":"weapon","scepter_of_the_glorious_goddess":"weapon","scolas_lucky_coin":"accessory","seths_brutality_purple":"gloves","seths_call":"accessory","shadow_legions_retribution":"chest","sharp_longsword_grey":"weapon","shield_of_the_eternal_empire":"weapon","shios_return":"boots","silent_trial_purple":"accessory","sturdy_boots_of_the_eternal_empire":"boots","tassets_of_the_hellish_wasteland":"legs","tassets_of_the_war_god":"legs","the_bards_pendant_purple":"accessory","the_milky_way":"chest","timeless_amber":"accessory","twilight_epiphany":"weapon","vambraces_of_the_eternal_empire":"gloves","vengeance":"accessory","vigilant_wolfs_leather_armor":"chest","wailing_wolfs_gauntlets":"gloves","war_helm_of_the_hellish_wasteland":"helm","wind_scars_purple":"accessory","witchs_lineage_purple":"helm"};
+  let GEAR_FILES = Object.keys(GEAR_FILE_CAT).sort();
+  let GEAR_FILE_SET = new Set(GEAR_FILES);
   const gearFileName = (f) => f.replace(/_(purple|blue|grey|green)$/, '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-  const gearFileRar = (f) => /_purple$/.test(f) ? 'epic' : 'legendary';
+  const gearFileRar = (f) => /_purple$/.test(f) ? 'epic' : /_blue$/.test(f) ? 'elite' : /_(grey|gray|green)$/.test(f) ? 'normal' : 'legendary';
   const gearIconStem = (icon) => { const m = String(icon || '').match(/^\/icons\/(?:gear\/)?([A-Za-z0-9_-]+)\.(?:webp|png|jpe?g)$/); return m ? m[1] : ''; };
   function gearIconFor(icon, name, rarity) {            // passendes Bild aus /icons/gear/ (auch wenn in gear_items kein oder ein alter Pfad steht)
     const st = gearIconStem(icon); if (st && GEAR_FILE_SET.has(st)) return `/icons/gear/${st}.webp`;
@@ -4008,10 +4010,11 @@ window.RokApp = () => {
   const scInt = (v, lo, hi, d) => { if (v == null || v === '') return d; const n = Math.round(+String(v).replace(/[^\d.-]/g, '')); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
   const scSkills = (v) => { let a = Array.isArray(v) ? v : (String(v ?? '').match(/\d/g) || []); a = a.slice(0, 4).map(x => scInt(x, 0, 5, 1)); while (a.length < 4) a.push(1); return a; };
   const scKey = (n) => String(n || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '');
+  const gRar = (v) => ['legendary', 'epic', 'elite', 'normal'].includes(v) ? v : 'legendary';
   const scIconOk = (v) => typeof v === 'string' && /^\/icons\/[A-Za-z0-9_./-]+\.(webp|png|jpe?g)$/.test(v) ? v : '';
   const scCmdNorm = (c) => c && CMD_BY_ID[c.id] ? { id: c.id, exp: !!(CMD_BY_ID[c.id].ex && (c.exp || CMD_BY_ID[c.id].nb)), level: scInt(c.level, 1, 60, 60), skills: scSkills(c.skills), awakened: !!c.awakened } : null;
   const scGearNorm = (g) => Object.fromEntries(GEAR_SLOTS.map(sl => { const v = g?.[sl.k] || {};
-    return [sl.k, { item: String(v.item || ''), name: String(v.name || '').slice(0, 60), icon: scIconOk(v.icon), rarity: v.rarity === 'epic' ? 'epic' : 'legendary',
+    return [sl.k, { item: String(v.item || ''), name: String(v.name || '').slice(0, 60), icon: scIconOk(v.icon), rarity: gRar(v.rarity),
       tier: gTier(v.tier), refine: gRefine(v.refine), refType: gRefType(v.refType) }]; }));
   // Hintergründe: Vorlagen (Farbverläufe) oder ein eigenes, verkleinertes Bild (JPEG als data-URL)
   const SC_BGS = {
@@ -4074,7 +4077,7 @@ window.RokApp = () => {
   const scArmHas = (a) => a.insc.some(i => i.t) || !!a.formation || SC_ARM_STATS.some(([k]) => a[k]);
   const scSetNorm = (x) => ({ id: String(x?.id || newId()), name: String(x?.name || '').trim().slice(0, 30), mode: x?.mode === 'shot' ? 'shot' : 'manual',
     shot: scImgOk(x?.shot) ? x.shot : '', cmd: [0, 1].map(i => scCmdNorm(x?.cmd?.[i])), gear: scGearNorm(x?.gear),
-    x: scPos(x?.x, 100), y: scPos(x?.y, 200), s: scScale(x?.s), arm: scArmNorm(x?.arm), priv: !!x?.priv, cg: scInt(x?.cg, 0, 70, 30) });   // cg = Überlappung der Kommandanten in %
+    x: scPos(x?.x, 100), y: scPos(x?.y, 200), s: scScale(x?.s), arm: scArmNorm(x?.arm), priv: !!x?.priv, cg: scInt(x?.cg, 0, 70, 32) });   // cg = Überlappung der Kommandanten in %
 
   // Standard-Anordnung ("Symmetrisch anordnen"):
   //   oben links Profilbild, rechts daneben Allianz-Tag (oben) und VIP (darunter), Name oben mittig,
@@ -4190,7 +4193,8 @@ window.RokApp = () => {
   const scSkillSquares = (skills, cls = 'w-7 h-7 text-xs') => skills.map((s, i) => `<span title="Skill ${i + 1}" class="${cls} rounded-md grid place-items-center font-bold tabular-nums border ${s >= 5 ? 'text-ink-950 border-gold-400' : 'text-slate-200 border-ink-600 bg-ink-900'}"${s >= 5 ? ' style="background:linear-gradient(180deg,#fde68a,#e0a91b)"' : ''}>${s}</span>`).join('');
 
   // ---- Kommandanten-Plätze: Primär groß vorne, Sekundär kleiner und leicht dahinter (wie im Spiel) ----
-  function scCmdsHtml(cmds, cg = 30) {
+  const SC_CG = [8, 20, 32, 44, 56];                        // Abstand-Stufen 1 (weit) … 5 (eng) = Überlappung in %
+  function scCmdsHtml(cmds, cg = 32) {
     const one = (i) => {
       const c = cmds[i], m = c && CMD_BY_ID[c.id], click = sc.own || !!m, main = i === 0;
       const named = !!m?.name;
@@ -4208,14 +4212,26 @@ window.RokApp = () => {
   }
   // ---- Ausrüstung (Rauten wie im Spiel) ----
   // Fertig refined (100 %): dicker, leuchtend goldener Rahmen um die Raute
-  const GOLD_RIM = 'linear-gradient(135deg,#fff7c2 0%,#ffd84a 28%,#c98a06 52%,#ffe27a 74%,#fff3b0 100%)';
+  // Glitzer-Punkte (statisch) liegen genau auf den Kanten der Raute
+  const GOLD_SPARK = [[50, 4.5], [62, 16], [80, 33], [95.5, 50], [86, 62], [68, 79], [50, 95.5], [38, 85], [21, 67], [4.5, 50], [14, 38], [32, 21], [74, 27], [26, 73]]
+    .map(([x, y], i) => `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,${i % 3 ? .95 : 1}) 0, rgba(255,255,255,.9) ${i % 2 ? 1 : 1.5}%, rgba(255,246,200,.45) ${i % 2 ? 2.2 : 3}%, transparent ${i % 2 ? 3 : 4.2}%)`).join(',');
+  const GOLD_RIM = GOLD_SPARK + ',conic-gradient(from 20deg at 50% 50%,#fff6c8,#ffd23f 9%,#b87808 18%,#ffe98a 27%,#fffbe0 33%,#e3a512 42%,#8f5a03 50%,#ffd84a 58%,#fff3b0 66%,#c98a06 75%,#ffe27a 84%,#9c6304 92%,#fff6c8)';
+  // Flächen: kräftiger Verlauf mit Lichtkante oben (Legendär orange, Episch lila, Elite blau, Normal grau)
+  const GFACE = {
+    legendary: 'radial-gradient(120% 95% at 50% 16%, #fff0b8 0%, #ffc845 24%, #f7961a 52%, #cf640b 80%, #8a3a04 100%)',
+    epic:      'radial-gradient(120% 95% at 50% 16%, #f6eaff 0%, #cf9bff 26%, #9d45f0 55%, #6a1fb0 82%, #3d0f6b 100%)',
+    elite:     'radial-gradient(120% 95% at 50% 16%, #e6f1ff 0%, #8ec5ff 26%, #3b82f6 55%, #1d4ed8 82%, #112a6b 100%)',
+    normal:    'radial-gradient(120% 95% at 50% 16%, #f8fafc 0%, #cbd5e1 28%, #94a3b8 58%, #64748b 85%, #334155 100%)'
+  };
+  const gFace = (r) => 'linear-gradient(160deg, rgba(255,255,255,.32) 0%, rgba(255,255,255,.08) 30%, rgba(255,255,255,0) 46%),'
+    + 'radial-gradient(70% 55% at 50% 100%, rgba(0,0,0,.28), transparent 70%),' + (GFACE[r] || GFACE.legendary);
   const gFull = (it, v) => !!it && v.refine >= 100;
   function scGearBoard(g, mini = false) {
     if (mini) return GEAR_SLOTS.map(sl => {
       const v = g[sl.k], it = scItem(v), f = it ? GFILL[v.rarity] : null;
       return `<div class="gdia absolute pointer-events-none" style="left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%">
         <span class="gdia absolute inset-0" style="background:${gFull(it, v) ? GOLD_RIM : f ? f[0] : 'rgba(46,58,85,.85)'}"></span>
-        <span class="gdia absolute ${gFull(it, v) ? 'inset-[3px]' : 'inset-[1.5px]'}" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : 'rgba(17,23,37,.85)'}"></span>
+        <span class="gdia absolute ${gFull(it, v) ? 'inset-[3px]' : 'inset-[1.5px]'}" style="background:${f ? gFace(v.rarity) : 'rgba(17,23,37,.85)'}"></span>
         ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] aspect-square object-contain">` : ''}
         ${it && v.tier > 0 ? `<span class="absolute bottom-[4%] left-1/2 -translate-x-1/2 px-[.25cqw] rounded bg-ink-950/85 font-extrabold text-gold-300" style="font-size:max(6px,.75cqw);line-height:1.2">${ROMAN[v.tier - 1]}</span>` : ''}
       </div>`;
@@ -4225,7 +4241,8 @@ window.RokApp = () => {
       return `<button type="button" data-sctile="${sl.k}" ${sc.own ? '' : 'tabindex="-1"'} title="${esc(sl.label + (it ? ': ' + it.name : ''))}"
           class="gdia absolute focus:outline-none ${sc.own ? '' : 'cursor-default'}" style="left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%">
         <span class="gdia absolute inset-0" style="background:${active ? '#ffffff' : gFull(it, v) ? GOLD_RIM : f ? f[0] : '#2e3a55'}"></span>
-        <span class="gdia absolute ${gFull(it, v) ? 'inset-[7px]' : 'inset-[3px]'}" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : '#111725'}"></span>
+        ${gFull(it, v) ? '<span class="gdia absolute inset-[10px]" style="background:linear-gradient(180deg,#5a3200,#2e1900)"></span>' : ''}
+        <span class="gdia absolute ${gFull(it, v) ? 'inset-[12px]' : 'inset-[3px]'}" style="background:${f ? gFace(v.rarity) : '#111725'}"></span>
         <span class="relative z-10 h-full w-full flex flex-col items-center justify-center text-center px-[17%] pt-[4%] pointer-events-none">
           ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="w-[84%] aspect-square object-contain [filter:drop-shadow(0_2px_3px_rgba(0,0,0,.45))]">`
             : `<span class="text-xl sm:text-2xl leading-none ${it ? '' : 'opacity-40'}">${sl.icon}</span>`}
@@ -4491,8 +4508,13 @@ window.RokApp = () => {
     $('scShot').classList.toggle('hidden', x.mode !== 'shot');
     if (x.mode === 'manual') {
       $('scCmds').innerHTML = scCmdsHtml(x.cmd, x.cg);
-      $('scCgBar').innerHTML = own && x.cmd[0] && x.cmd[1] ? `<label class="inline-flex items-center gap-2 text-xs text-slate-400" title="Abstand der beiden Kommandanten">↔ weiter
-        <input id="scCg" type="range" min="0" max="70" step="1" value="${x.cg}" class="w-32 accent-yellow-500">näher</label>` : '';
+      const cgStep = SC_CG.reduce((b, v, i) => Math.abs(v - x.cg) < Math.abs(SC_CG[b] - x.cg) ? i : b, 0);
+      $('scCgBar').innerHTML = own && x.cmd[0] && x.cmd[1] ? `<div class="flex flex-wrap items-center justify-center gap-1.5 text-xs text-slate-400">
+        <span title="Abstand der beiden Kommandanten">↔ Abstand</span>
+        ${SC_CG.map((v, i) => `<button type="button" data-cg="${i}" aria-pressed="${i === cgStep}" title="Stufe ${i + 1}${i === 0 ? ' (weit)' : i === SC_CG.length - 1 ? ' (eng)' : ''}"
+          class="w-7 h-7 rounded-lg font-bold border ${i === cgStep ? 'border-gold-400 bg-gold-500/20 text-gold-200' : 'border-ink-600 hover:border-gold-500/60 hover:text-gold-300'}">${i + 1}</button>`).join('')}
+        ${D().sets.length > 1 ? '<button type="button" id="scCgAll" class="ml-1 px-2.5 h-7 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">für alle Sets</button>' : ''}
+      </div>` : '';
       $('scGearBoard').innerHTML = scGearBoard(x.gear);
       gearSel.sc = sc.gsel;
       $('scGearEdit').innerHTML = own && sc.gsel ? gearEditor('sc', { sc: x.gear }, { rows: GEAR_SLOTS.map(sl => ({ sl, status: 'none' })) }) : '';
@@ -4862,11 +4884,12 @@ window.RokApp = () => {
   });
   const scGearEdit = (ev) => {
     const t = ev.target.closest('[data-slot]'); if (!t || t.disabled || !sc.own) return;
-    const isBtn = t.dataset.f === 'refine' || t.dataset.f === 'refType';
+    const isBtn = t.tagName === 'BUTTON';
     if (ev.type === 'click' && !isBtn) return;
     if (ev.type === 'change' && isBtn) return;
+    if (gearPickEvent(t)) { drawShowcase(); return; }
     const v = scSet().gear[t.dataset.slot];
-    if (t.dataset.f === 'item') { v.item = t.value; const it = gItem(t.value); v.rarity = it ? it.rarity : 'legendary'; scSnap(v, it); v.tier = 0; v.refine = 0; }
+    if (t.dataset.f === 'item') { v.item = t.dataset.v ?? t.value; const it = gItem(t.value); v.rarity = it ? it.rarity : 'legendary'; scSnap(v, it); v.tier = 0; v.refine = 0; }
     else if (t.dataset.f === 'refine') v.refine = gRefine(t.dataset.v);
     else if (t.dataset.f === 'refType') v.refType = gRefType(t.dataset.v);
     else v.tier = gTier(t.value);
@@ -4909,7 +4932,7 @@ window.RokApp = () => {
         seen++;
         const byRef = gearByRef(sl.cat, info);
         let it = byRef && !byRef.file ? byRef : (info.item_id ? gItem(String(info.item_id)) : null);
-        if (it && it.cat !== sl.cat) it = null;
+        if (it && it.cat !== sl.cat && !it.lib) it = null;
         if (!it && !byRef) it = gearMatch(sl.cat, info);
         const base = { tier: gTier(info.tier), refine: gScanRefine(info), refType: gRefType(info.refine_type) };
         if (it) { const v = { item: it.id, rarity: gearRarity(info.rarity) || it.rarity, ...base }; scSnap(v, it); scSet().gear[sl.k] = v; hit++; }
@@ -4978,10 +5001,11 @@ window.RokApp = () => {
     </div>`;
     openModal();
   }
-  $('scCgBar').addEventListener('input', (ev) => {          // Abstand der Kommandanten (Detail + Bühne)
-    if (ev.target.id !== 'scCg' || !sc.own) return;
-    const x = scSet(); x.cg = scInt(ev.target.value, 0, 70, 30);
-    $('scCmds').innerHTML = scCmdsHtml(x.cmd, x.cg); drawStage(); scSaveSoon();
+  $('scCgBar').addEventListener('click', (ev) => {          // Abstand der Kommandanten in 5 Stufen (Detail + Bühne)
+    if (!sc.own) return;
+    const x = scSet(), b = ev.target.closest('[data-cg]');
+    if (b) { x.cg = SC_CG[+b.dataset.cg]; drawShowcase(); scSaveSoon(); return; }
+    if (ev.target.closest('#scCgAll')) { D().sets.forEach(s => { s.cg = x.cg; }); drawShowcase(); scSave(`✓ Abstand Stufe ${SC_CG.indexOf(x.cg) + 1} für alle Sets übernommen`); }
   });
   $('scCmds').addEventListener('click', (ev) => { const b = ev.target.closest('[data-cmdslot]'); if (b && !b.disabled) openCmd(+b.dataset.cmdslot); });
   $('cmdRar').onclick = (ev) => { const b = ev.target.closest('[data-cr]'); if (!b) return; cm.rar = b.dataset.cr; drawCmdPicker(); };
@@ -5191,15 +5215,15 @@ window.RokApp = () => {
   ];
   const GEAR_CATS = { helm: 'Helm', chest: 'Brust', weapon: 'Waffe', gloves: 'Handschuhe', legs: 'Beine', boots: 'Stiefel', accessory: 'Accessoire' };
   // Episch = gleiche Anzahl lila Materialien → ¼ legendär (4:1)
-  const GEAR_RAR = { legendary: { label: 'Legendär', c: '#f97316', div: 1 }, epic: { label: 'Episch', c: '#c084fc', div: 4 } };
-  const GFILL = { legendary: ['#fde68a', '#f59e0b', '#9a5b07'], epic: ['#e9d5ff', '#a855f7', '#581c87'] };
+  const GEAR_RAR = { legendary: { label: 'Legendär', c: '#f97316', div: 1 }, epic: { label: 'Episch', c: '#c084fc', div: 4 }, elite: { label: 'Elite', c: '#60a5fa', div: 16 }, normal: { label: 'Normal', c: '#94a3b8', div: 64 } };
+  const GFILL = { legendary: ['#fde68a', '#f59e0b', '#9a5b07'], epic: ['#e9d5ff', '#a855f7', '#581c87'], elite: ['#dbeafe', '#3b82f6', '#1e3a8a'], normal: ['#e2e8f0', '#94a3b8', '#475569'] };
 
   const gNum = (v) => Math.max(0, Math.round(+v || 0));
   const gNorm = (s) => String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/['’`´]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
   // Tier-Kosten je Stufe: { "2": { leather: 5, iron: 25 } } = Kosten für den Schritt T1 → T2
   const gNormTiers = (t) => { const o = {}; if (t && typeof t === 'object') for (let n = 1; n <= 5; n++) { const c = t[n] ?? t[String(n)]; if (c && typeof c === 'object') o[n] = { leather: gNum(c.leather), iron: gNum(c.iron), ebony: gNum(c.ebony), bone: gNum(c.bone) }; } return o; };
   const gNormItem = (i) => ({ id: String(i.id), name: String(i.name || 'Item').slice(0, 60), cat: GEAR_CATS[i.cat] ? i.cat : 'helm',
-    set: String(i.set || '').slice(0, 40), rarity: i.rarity === 'epic' ? 'epic' : 'legendary',
+    set: String(i.set || '').slice(0, 40), rarity: gRar(i.rarity),
     leather: gNum(i.leather), iron: gNum(i.iron), ebony: gNum(i.ebony), bone: gNum(i.bone), db: !!i.db,
     tiers: gNormTiers(i.tiers),
     icon: typeof i.icon === 'string' && i.icon.length < 200000 && (/^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(i.icon) || (/^\/icons\/[A-Za-z0-9_./-]+\.(webp|png|jpe?g)$/.test(i.icon) && !i.icon.includes('..'))) ? i.icon : '' });
@@ -5214,8 +5238,33 @@ window.RokApp = () => {
     return [];
   })();
   let gearCat = [];
-  const rebuildGearCat = () => { gearCat = [...gearDb, ...gearCustom.map(i => ({ ...i, db: false }))]; };
+  const rebuildGearCat = () => {
+    gearCat = [...gearDb, ...gearCustom.map(i => ({ ...i, db: false }))];
+    const have = new Set(gearCat.map(i => gearIconStem(i.icon)).filter(Boolean));   // Bilder ohne Katalog-Eintrag als eigene Items (ohne Kosten)
+    GEAR_FILES.filter(f => !have.has(f)).forEach(f => gearCat.push({ ...gNormItem({ id: 'lib_' + f, name: gearFileName(f), cat: GEAR_FILE_CAT[f], rarity: gearFileRar(f), icon: `/icons/gear/${f}.webp` }), lib: true }));
+  };
   rebuildGearCat();
+  // Neue Bilder in icons/gear/ automatisch erkennen (GitHub-Ordnerliste, 6 h zwischengespeichert) – Typ wird am Namen geraten
+  const gearGuessCat = (f) => ([['helm', /helm|visage|mask|diadem|headscarf|plume|crown|hat|hood/], ['chest', /plate|armor|armour|robe|cloak|mail|vest/],
+    ['gloves', /glove|gauntlet|vambrace|armband|grips|claws|bracer/], ['legs', /tasset|breeches|chausses|greaves|leggings|pants/],
+    ['boots', /boots|treads|sabatons|racers|crushers|shoes|sandals/], ['weapon', /bow|sword|blade|hilt|lance|spear|hammer|axe|scepter|staff|shield|crossbow|mace/]]
+    .find(([, rx]) => rx.test(f)) || ['accessory'])[0];
+  (async function syncGearFiles() {
+    let list = null;
+    try { const c = JSON.parse(localStorage.getItem('rok_gear_files') || 'null'); if (c && Date.now() - c.t < 6 * 3600e3 && Array.isArray(c.list)) list = c.list; } catch {}
+    if (!list) {
+      try {
+        const r = await fetch('https://api.github.com/repos/marcopopp51200-coder/rok-scanner/contents/icons/gear', { headers: { accept: 'application/vnd.github+json' } });
+        if (!r.ok) return;
+        list = (await r.json()).map(x => String(x?.name || '')).filter(n => /^[a-z0-9_]+\.webp$/.test(n)).map(n => n.slice(0, -5));
+        try { localStorage.setItem('rok_gear_files', JSON.stringify({ t: Date.now(), list })); } catch {}
+      } catch { return; }
+    }
+    const neu = list.filter(f => !GEAR_FILE_CAT[f]); if (!neu.length) return;
+    neu.forEach(f => { GEAR_FILE_CAT[f] = gearGuessCat(f); });
+    GEAR_FILES = Object.keys(GEAR_FILE_CAT).sort(); GEAR_FILE_SET = new Set(GEAR_FILES); delete refCache.gear;
+    rebuildGearCat();
+  })();
   const saveGearCustom = () => LS.set(GEAR_CUSTOM, JSON.stringify(gearCustom));
   const gItem = (id) => id ? gearCat.find(i => i.id === id) || null : null;
   let gearDbState = 'idle', gearDbErr = '';
@@ -5264,7 +5313,7 @@ window.RokApp = () => {
   function gNormSet(s) {
     const o = newGearSet(String(s?.name || 'Set').slice(0, 40));
     if (s?.id) o.id = String(s.id);
-    ['ist', 'ziel'].forEach(side => GEAR_SLOTS.forEach(sl => { const v = s?.[side]?.[sl.k] || {}; o[side][sl.k] = { item: String(v.item || ''), rarity: v.rarity === 'epic' ? 'epic' : 'legendary', tier: gTier(v.tier), refine: gRefine(v.refine), refType: gRefType(v.refType) }; }));
+    ['ist', 'ziel'].forEach(side => GEAR_SLOTS.forEach(sl => { const v = s?.[side]?.[sl.k] || {}; o[side][sl.k] = { item: String(v.item || ''), rarity: gRar(v.rarity), tier: gTier(v.tier), refine: gRefine(v.refine), refType: gRefType(v.refType) }; }));
     o.dismantle = !!s?.dismantle; o.useChests = !!s?.useChests; o.updated = +s?.updated || Date.now();
     return o;
   }
@@ -5348,7 +5397,8 @@ window.RokApp = () => {
       return `<button type="button" data-tile="${sl.k}" data-side="${side}" title="${esc(sl.label + (it ? ': ' + it.name : ''))}"
           class="gdia absolute focus:outline-none" style="left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%">
         <span class="gdia absolute inset-0" style="background:${active ? '#ffffff' : gFull(it, v) ? GOLD_RIM : f ? f[0] : '#2e3a55'}"></span>
-        <span class="gdia absolute ${gFull(it, v) ? 'inset-[7px]' : 'inset-[3px]'}" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : '#111725'}"></span>
+        ${gFull(it, v) ? '<span class="gdia absolute inset-[10px]" style="background:linear-gradient(180deg,#5a3200,#2e1900)"></span>' : ''}
+        <span class="gdia absolute ${gFull(it, v) ? 'inset-[12px]' : 'inset-[3px]'}" style="background:${f ? gFace(v.rarity) : '#111725'}"></span>
         <span class="relative z-10 h-full w-full flex flex-col items-center justify-center text-center px-[17%] pt-[4%] pointer-events-none">
           ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="w-[84%] aspect-square object-contain [filter:drop-shadow(0_2px_3px_rgba(0,0,0,.45))]">`
             : `<span class="text-xl sm:text-2xl leading-none ${it ? '' : 'opacity-40'}">${sl.icon}</span>`}
@@ -5362,6 +5412,35 @@ window.RokApp = () => {
     }).join('');
   }
   // Bearbeiten des angetippten Slots
+  // ---- Item von Hand aus den Bildern wählen: Reiter je Typ, sortiert nach Seltenheit und Name ----
+  const gearPickTab = {}, gearPickOpen = {};
+  function gearPickerHtml(side, sl, v) {
+    const key = side + ':' + sl.k, tab = gearPickTab[key] || sl.cat, open = gearPickOpen[key] || !gItem(v.item);
+    const RO = Object.keys(GEAR_RAR), items = gearCat.filter(i => i.cat === tab && i.icon).sort((a, b) => RO.indexOf(a.rarity) - RO.indexOf(b.rarity) || a.name.localeCompare(b.name));
+    const byRar = Object.entries(GEAR_RAR).map(([r, info]) => [info, items.filter(i => i.rarity === r)]).filter(([, l]) => l.length);
+    const tile = (i) => { const on = i.id === v.item, f = GFILL[i.rarity] || GFILL.legendary;
+      return `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="item" data-v="${esc(i.id)}" title="${esc(i.name)}"
+        class="relative aspect-square rounded-lg p-1 border transition ${on ? 'border-gold-400 ring-2 ring-gold-400/60' : 'border-ink-700 hover:border-gold-500/60'}" style="background:radial-gradient(circle at 50% 40%, ${f[1]}55, ${f[2]}44)">
+        <img src="${i.icon}" alt="" loading="lazy" class="w-full h-full object-contain"></button>`; };
+    return `<details class="mt-2 rounded-lg border border-ink-700 bg-ink-950/40" data-gpick="${key}" ${open ? 'open' : ''}>
+      <summary class="cursor-pointer select-none px-3 py-2 text-xs font-semibold text-gold-300">🖼 Item aus Bildern wählen</summary>
+      <div class="px-3 pb-3">
+        <div class="flex flex-wrap gap-1 mb-2">${Object.entries(GEAR_CATS).map(([k, l]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="gtab" data-v="${k}"
+          class="px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${k === tab ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-700 text-slate-400 hover:text-gold-300'}">${l}${k === sl.cat ? ' ★' : ''}</button>`).join('')}</div>
+        <div class="max-h-72 overflow-y-auto pr-1 space-y-2">
+          ${byRar.length ? byRar.map(([info, l]) => `<div><div class="text-[10px] uppercase tracking-widest mb-1" style="color:${info.c}">${info.label} · ${l.length}</div>
+            <div class="grid grid-cols-6 sm:grid-cols-8 gap-1.5">${l.map(tile).join('')}</div></div>`).join('')
+            : '<div class="py-4 text-center text-xs text-slate-500">Keine Bilder für diesen Typ.</div>'}
+        </div>
+        ${tab !== sl.cat ? '<div class="mt-2 text-[11px] text-amber-300">Hinweis: anderer Typ als dieser Slot – nur wählen, wenn das Item falsch einsortiert ist.</div>' : ''}
+      </div></details>`;
+  }
+  function gearPickEvent(t) {                                // true = Ereignis war ein Reiter-Wechsel (nichts speichern)
+    const key = t.dataset.side + ':' + t.dataset.slot;
+    if (t.dataset.f === 'gtab') { gearPickTab[key] = t.dataset.v; gearPickOpen[key] = true; return true; }
+    if (t.dataset.f === 'item' && t.dataset.v != null) delete gearPickOpen[key];
+    return false;
+  }
   function gearEditor(side, set, calc) {
     const sl = GEAR_SLOTS.find(s => s.k === gearSel[side]) || GEAR_SLOTS[0], v = set[side][sl.k], it = gItem(v.item);
     const r = calc.rows.find(x => x.sl.k === sl.k);
@@ -5371,7 +5450,7 @@ window.RokApp = () => {
       : r.status === 'refine' ? ['⚔ ' + gRefStep(r), 'red'] : GSTATUS[r.status] || null;
     const sel = 'w-full min-w-0 bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-gold-500 disabled:opacity-40';
     const groups = {};
-    gearCat.filter(i => i.cat === sl.cat).forEach(i => { const g = i.db ? (i.set || 'Katalog') : 'Eigene Items'; (groups[g] = groups[g] || []).push(i); });
+    gearCat.filter(i => i.cat === sl.cat || i.id === v.item).forEach(i => { const g = i.lib ? 'Aus Bildern (ohne Crafting-Kosten)' : i.db ? (i.set || 'Katalog') : 'Eigene Items'; (groups[g] = groups[g] || []).push(i); });
     const opts = '<option value="">– leer –</option>' + Object.entries(groups).map(([g, items]) => `<optgroup label="${esc(g)}">`
       + items.map(i => `<option value="${esc(i.id)}"${i.id === v.item ? ' selected' : ''}>${esc(i.name)}</option>`).join('') + '</optgroup>').join('');
     const none = !Object.keys(groups).length;
@@ -5386,6 +5465,7 @@ window.RokApp = () => {
           ${[0, 1, 2, 3, 4, 5].map(t => `<option value="${t}"${(v.tier || 0) === t ? ' selected' : ''}>T${t}</option>`).join('')}
         </select>
       </div>
+      ${gearPickerHtml(side, sl, v)}
       <div class="mt-2 flex flex-wrap items-center gap-1.5 text-xs ${it ? '' : 'opacity-40'}">
         <span class="text-slate-400 mr-1">Refine-Typ</span>
         ${Object.entries(REFTYPES).map(([k, t]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refType" data-v="${k}" ${it ? '' : 'disabled'} title="${t.label}"
@@ -5491,7 +5571,7 @@ window.RokApp = () => {
         <td class="py-1 px-1 whitespace-nowrap ${i.db ? 'text-emerald-300' : 'text-gold-300'}">${i.db ? '☁ Supabase' : '✎ eigenes'}</td>
         ${['leather', 'iron', 'ebony', 'bone'].map(k => `<td class="py-1 px-1"><input data-cid="${esc(i.id)}" data-f="${k}" type="number" min="0" step="1" value="${i[k]}" ${ro} class="${inp} w-16 text-right tabular-nums"></td>`).join('')}
         <td class="text-right">${i.db ? '' : `<button data-cdel="${esc(i.id)}" class="text-slate-500 hover:text-red-400 px-1" title="Item löschen">✕</button>`}</td></tr>`; };
-    $('gearCatRows').innerHTML = gearCat.length ? gearCat.map(row).join('')
+    $('gearCatRows').innerHTML = gearCat.some(i => !i.lib) ? gearCat.filter(i => !i.lib).map(row).join('')
       : '<tr><td colspan="8" class="py-4 text-center text-slate-500">Noch keine Items – Tabelle gear_items in Supabase füllen oder „+ Eigenes Item“.</td></tr>';
   }
   function renderGear() {
@@ -5506,11 +5586,12 @@ window.RokApp = () => {
   }));
   const gearEdit = (ev) => {
     const t = ev.target.closest('[data-slot]'); if (!t || t.disabled) return;
-    const isBtn = t.dataset.f === 'refine' || t.dataset.f === 'refType';
-    if (ev.type === 'click' && !isBtn) return;     // Klick nur für die Refine-Buttons
+    const isBtn = t.tagName === 'BUTTON';
+    if (ev.type === 'click' && !isBtn) return;     // Klick nur für Buttons (Refine, Bild-Auswahl)
     if (ev.type === 'change' && isBtn) return;
+    if (gearPickEvent(t)) { renderGearMain(); return; }
     const v = activeSet()[t.dataset.side][t.dataset.slot];
-    if (t.dataset.f === 'item') { v.item = t.value; const it = gItem(t.value); if (it) v.rarity = it.rarity; v.tier = 0; v.refine = 0; v.refType = v.refType || 'infantry'; }
+    if (t.dataset.f === 'item') { v.item = t.dataset.v ?? t.value; const it = gItem(t.value); if (it) v.rarity = it.rarity; v.tier = 0; v.refine = 0; v.refType = v.refType || 'infantry'; }
     else if (t.dataset.f === 'refine') v.refine = gRefine(t.dataset.v);
     else if (t.dataset.f === 'refType') v.refType = gRefType(t.dataset.v);
     else v.tier = gTier(t.value);
@@ -5594,7 +5675,7 @@ window.RokApp = () => {
   $('gearCatReload').onclick = () => loadGearDb();
 
   // ---- KI-Scan der Ist-Ausrüstung (Modus "gear" in /api/scan, Katalog kommt dort aus gear_items) ----
-  function gearRarity(v) { const t = gNorm(v); if (!t) return null; return /legend|gold|orange/.test(t) ? 'legendary' : 'epic'; }
+  function gearRarity(v) { const t = gNorm(v); if (!t) return null; return /legend|gold|orange/.test(t) ? 'legendary' : /elite|blau|blue/.test(t) ? 'elite' : /normal|grau|grey|gray|grun|green|advanced/.test(t) ? 'normal' : 'epic'; }
   function gearByRef(cat, info) {                            // Nummer von der Referenztafel → Katalog-Item (oder nur Bild + Name)
     const f = GEAR_FILES[refNum(info?.ref, GEAR_FILES.length) - 1]; if (!f) return null;
     const it = gearCat.find(i => i.cat === cat && gearIconStem(i.icon) === f) || gearCat.find(i => gearIconStem(i.icon) === f);
@@ -5620,7 +5701,7 @@ window.RokApp = () => {
       seen++;
       const byRef = gearByRef(sl.cat, info);
       let it = byRef && !byRef.file ? byRef : (info.item_id ? gItem(String(info.item_id)) : null);
-      if (it && it.cat !== sl.cat) it = null;
+      if (it && it.cat !== sl.cat && !it.lib) it = null;
       if (!it && !byRef) it = gearMatch(sl.cat, info);
       if (!it && byRef?.file) info = { ...info, name: gearFileName(byRef.file) };
       const rar = gearRarity(info.rarity);
