@@ -3,7 +3,7 @@
 // Der API-Key kommt ausschließlich aus der Umgebungsvariable ANTHROPIC_API_KEY und verlässt nie den Server.
 
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5';
-const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'mats', 'gear']);
+const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'mats', 'gear', 'armament']);
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MAX_IMAGES = 5;
 const MAX_TOTAL_B64 = 4_300_000; // Vercel erlaubt max. 4,5 MB pro Anfrage
@@ -278,8 +278,39 @@ Sind im Screenshot Kommandanten zu sehen (Porträt, Ganzkörperbild oder Name), 
 Keine Kommandanten zu sehen: "commanders": [].`
 };
 
+// ---------- Rüstung (Armaments) ----------
+const ARM_NAMES = ['Airtight', 'Hardheaded', 'Bulwark', 'Bolstered', 'Thundering', 'Rattling', 'Tidebreaker', 'Vigor', 'Toppler', 'Imploder', 'Dominate', 'Bludgeon', 'Demolisher', 'Raider', 'Cleaver', 'Charge',
+  'Spiked', 'Metallics', 'Vitality', 'Galloping', 'Cleanser', 'Striker', 'Rebuff', 'Brawler', 'Warflames', 'Eclipsed', 'Brave', 'Strategic', 'Desperado', 'Cohesive', 'Pursuer', 'Assertive', 'Wary', 'Siegework', 'Sentries', 'Ballistics',
+  'Infamy', 'Shielded', 'Hardy', 'Haste', 'Pacifier', 'Militant', 'Resistant', 'Daring', 'Elite', 'Evasive', 'Smite', 'Enduring', 'Artisan', 'Rapacious', 'Guardians', 'Counterer', 'Deflecter', 'Watchmen', 'Lineshot',
+  'Warcry', 'Well Clad', 'Robust', 'Swift', 'Payback', 'Onslaught', 'Retaliator', 'Enraged', 'Valiant', 'Iron Wall', 'Bellicose', 'Pulverize', 'Breaker', 'Furious', 'Ward', 'Phalanx', 'Hurried', 'Tremors', 'Calm', 'Loosed',
+  'Brutal', 'Armored', 'Fit', 'Fine Horse', 'Annexer', 'Warhunger', 'Alert', 'Devious', 'Fearsome', 'Requital', 'Respite', 'Guarded', 'Embattled', 'Vengeful', 'Patronage', 'Primed', 'Uplifting', 'Spirited', 'Bluster'];
+const PROMPT_ARMAMENT = `${INTRO}
+
+MODUS: Rüstung (Armaments). Der Screenshot zeigt meist "Armament Info" / "Rüstungsinfo": oben Inschriften als sechseckige Schilder, darunter Werte, z. B.
+  [Bulwark] [Toppler] [Charge]
+  [Rattling]
+  Infantry Attack +7.7% · Infantry Defense +9.5% · Infantry Health +9% · March Speed (Infantry) +2.1%
+
+1. "inscriptions": JEDES Schild in Lesereihenfolge (links → rechts, oben → unten), keins auslassen:
+   - "text" = Aufschrift genau wie im Bild (abgeschnittene Namen mit "…" zu einem dieser bekannten Namen ergänzen: ${ARM_NAMES.join(', ')})
+   - "color" = Farbe des Schildes: "gold" (gelb/orange), "blue" (blau/lila), "gray" (weiß/hellgrau)
+2. "formation" = Name der Formation, falls sichtbar (z. B. "Pincer"), sonst null.
+3. "troop" = Truppenart der Werte: "infantry" (Infanterie), "cavalry" (Kavallerie), "archer" (Bogenschützen), "siege" (Belagerung), "all" (alle Truppen).
+4. Werte als Zahl in Prozent (ohne %-Zeichen, Komma = Dezimaltrenner): "attack" = Angriff/Attack, "defense" = Verteidigung/Defense, "health" = Leben/Health, "march_speed" = Marschgeschwindigkeit/March Speed. Fehlt ein Wert: null.
+
+Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
+{
+  "type": "armament",
+  "inscriptions": [{"text": string, "color": "gold"|"blue"|"gray"}],
+  "formation": string|null,
+  "troop": "infantry"|"cavalry"|"archer"|"siege"|"all"|null,
+  "attack": number|null, "defense": number|null, "health": number|null, "march_speed": number|null,
+  "confidence": "hoch" | "mittel" | "niedrig",
+  "notes": "kurzer Hinweis auf Deutsch"
+}`;
+
 // Der Prompt liegt auf dem Server: so kann die Route nicht als allgemeiner Claude-Proxy missbraucht werden.
-const PROMPT = (m) => m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : PROMPT_CLASSIC(m);
+const PROMPT = (m) => m === 'armament' ? PROMPT_ARMAMENT : m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : PROMPT_CLASSIC(m);
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
