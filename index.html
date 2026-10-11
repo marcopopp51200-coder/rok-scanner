@@ -38,6 +38,7 @@ tailwind.config = {
   .spin { animation: spin 1s linear infinite } @keyframes spin { to { transform: rotate(360deg) } }
   input[type=number]::-webkit-inner-spin-button { opacity: .4 }
   .gdia { clip-path: polygon(50% 1.5%, 98.5% 50%, 50% 98.5%, 1.5% 50%); }
+  .ghex { clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
   .seg-btn[aria-pressed="true"] { background: linear-gradient(180deg,#f5c542,#b7830f); color:#07090f; box-shadow: 0 0 18px rgba(245,197,66,.35); }
 </style>
 </head>
@@ -514,27 +515,27 @@ tailwind.config = {
       <div id="profHead" class="panel rounded-2xl p-6"></div>
 
       <!-- Bearbeiten (nur eigenes Profil) -->
-      <div id="profEdit" class="hidden panel rounded-2xl p-6">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div id="profEdit" class="hidden panel rounded-2xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
           <h3 class="font-display text-xl gold-text">Profil bearbeiten</h3>
           <div class="flex flex-wrap gap-2">
             <label for="profGovFile" id="profScanGov" class="cursor-pointer text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Statthalter-Profil scannen</label>
             <input id="profGovFile" type="file" accept="image/*" class="hidden">
           </div>
         </div>
-        <div class="grid md:grid-cols-2 gap-6">
+        <div class="grid md:grid-cols-2 gap-5">
           <div>
             <div>
               <label for="profGovId" class="text-xs text-slate-400">Governor ID</label>
               <input id="profGovId" inputmode="numeric" maxlength="12" placeholder="z. B. 12345678" translate="no"
-                     class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm tabular-nums focus:outline-none focus:border-gold-500">
+                     class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-gold-500">
               <div class="text-[11px] text-slate-500 mt-1">Wird beim „📷 Statthalter-Profil scannen“ automatisch ausgelesen.</div>
             </div>
-            <div class="mt-4 flex items-end gap-3">
+            <div class="mt-3 flex items-end gap-3">
               <div class="flex-1 min-w-0">
                 <label for="profTag" class="text-xs text-slate-400">Allianz-Tag</label>
                 <input id="profTag" maxlength="6" placeholder="z. B. ABC1"
-                       class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2.5 text-sm uppercase focus:outline-none focus:border-gold-500">
+                       class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-gold-500">
               </div>
             </div>
           </div>
@@ -542,7 +543,7 @@ tailwind.config = {
             <div class="text-xs text-slate-400">Profilbild <span class="text-slate-500">– eigenes Bild hochladen oder Symbol wählen</span></div>
             <input id="profAvatarFile" type="file" accept="image/*" class="hidden">
             <div id="profAvatars" class="mt-1 flex flex-wrap gap-1.5"></div>
-            <div class="mt-4 flex items-center justify-between gap-3 rounded-xl border border-ink-700 bg-ink-950/50 px-4 py-3">
+            <div class="mt-3 flex items-center justify-between gap-3 rounded-xl border border-ink-700 bg-ink-950/50 px-3 py-2.5">
               <div>
                 <div class="text-sm font-semibold text-white">🔒 Profil privat</div>
                 <div class="text-xs text-slate-400">Andere sehen dann nur noch den oberen Bereich (Name, Allianz-Tag, VIP, Kill-Punkte, Verdienst, Energie) – Speedups und Verlauf bleiben verborgen.</div>
@@ -554,9 +555,53 @@ tailwind.config = {
             </div>
           </div>
         </div>
-        <div class="mt-4 flex flex-wrap items-center gap-3">
-          <button id="profSave" class="px-5 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Profil speichern</button>
+        <div class="mt-3 flex flex-wrap items-center gap-3">
+          <button id="profSave" class="px-5 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Profil speichern</button>
           <span id="profMsg" class="text-sm"></span>
+        </div>
+      </div>
+
+      <!-- Showcase (aufklappbar): 2 Kommandanten + Ausrüstung -->
+      <div id="profShowcase" class="panel rounded-2xl overflow-hidden">
+        <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+          <button id="scToggle" type="button" aria-expanded="true" aria-controls="scBody" class="flex items-center gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 rounded-lg" title="Aufklappen / zuklappen">
+            <svg id="scChevron" class="w-5 h-5 text-gold-400 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+            <h3 class="font-display text-xl gold-text">Showcase</h3>
+            <span id="scCount" class="text-xs text-slate-500"></span>
+          </button>
+          <div id="scTools" class="hidden flex flex-wrap gap-2">
+            <label for="scFile" id="scScanLbl" class="cursor-pointer text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Ausrüstung scannen</label>
+            <input id="scFile" type="file" accept="image/*" multiple class="hidden">
+            <button id="scFromCraft" type="button" class="hidden text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⇢ Aus Craft-Set übernehmen</button>
+          </div>
+        </div>
+        <div id="scBody" class="px-5 pb-6">
+          <div id="scMsg" class="hidden mb-3 text-xs"></div>
+          <div id="scCmds" class="flex justify-center items-start gap-8 sm:gap-16"></div>
+          <div class="mt-5 mx-auto w-full max-w-[260px]"><div id="scGearBoard" class="relative w-full aspect-[1/2]"></div></div>
+          <div id="scGearEdit" class="mt-4 mx-auto w-full max-w-md"></div>
+          <p id="scHint" class="hidden mt-3 text-center text-[11px] text-slate-500">Kommandanten-Platz antippen zum Auswählen · Ausrüstungs-Slot antippen zum Bearbeiten · Screenshots werden nach dem Auslesen verworfen.</p>
+        </div>
+      </div>
+
+      <!-- Kommandanten-Fenster -->
+      <div id="cmdModal" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-ink-950/85 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="cmdTitle">
+        <div id="cmdBackdrop" class="min-h-full grid place-items-center p-4">
+          <div class="panel !bg-ink-900 w-full max-w-4xl rounded-2xl p-5">
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <h3 id="cmdTitle" class="font-display text-xl gold-text">Kommandant wählen</h3>
+              <button id="cmdClose" type="button" class="w-9 h-9 shrink-0 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300" title="Schließen">✕</button>
+            </div>
+            <div id="cmdPick">
+              <div class="flex flex-wrap items-center gap-2 mb-3">
+                <div id="cmdRar" class="flex flex-wrap gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group" aria-label="Seltenheit"></div>
+                <input id="cmdSearch" type="search" placeholder="Name suchen …" class="hidden flex-1 min-w-[160px] bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold-500">
+              </div>
+              <div id="cmdGrid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 max-h-[48vh] overflow-y-auto pr-1"></div>
+              <div id="cmdForm" class="mt-4 pt-4 border-t border-ink-700"></div>
+            </div>
+            <div id="cmdView" class="hidden"></div>
+          </div>
         </div>
       </div>
 
@@ -924,9 +969,28 @@ window.I18N = (() => {
         'Ist-Ausrüstung scannen, Wunsch-Set wählen – der Planer rechnet aus, welche Materialien dir noch fehlen.': 'Scan your current gear, pick a target set – the planner shows which materials you are still missing.',
         'Bestand unbekannt – bitte zuerst deine Materialien scannen.': 'Stock unknown – please scan your materials first.',
         'Refine-Typ': 'Refine type', 'Bogenschützen': 'Archers', 'Kavallerie': 'Cavalry', 'Infanterie': 'Infantry', 'Tier erhöhen': 'Raise tier', 'Refine fehlt': 'Refine missing', 'Refine fehlt noch': 'Refine still missing', 'Tier': 'Tier',
+        'Kommandant wählen': 'Choose commander', 'Primär': 'Primary', 'Sekundär': 'Secondary', 'Antippen zum Wählen': 'Tap to choose', 'Alle': 'All',
+        'Name suchen …': 'Search name …', 'Keine Kommandanten gefunden.': 'No commanders found.', 'Slot leeren': 'Clear slot', 'Schließen': 'Close',
+        'Kommandant ansehen': 'View commander', 'Kommandant ändern': 'Change commander', 'Kommandant gespeichert': 'Commander saved', 'Slot geleert': 'Slot cleared',
+        'Ausrüstung scannen': 'Scan equipment', 'Aus Craft-Set übernehmen': 'Copy from craft set',
+        'Kommandanten-Platz antippen zum Auswählen · Ausrüstungs-Slot antippen zum Bearbeiten · Screenshots werden nach dem Auslesen verworfen.': 'Tap a commander slot to choose · tap an equipment slot to edit · screenshots are discarded after reading.',
+        'Showcase': 'Showcase', 'Kommandanten scannen': 'Scan commanders', '+ Von Hand': '+ Manually', 'Aufklappen / zuklappen': 'Expand / collapse',
+        'Erweckt': 'Awakened', 'Sterne': 'Stars', 'Skills': 'Skills', 'Level': 'Level', 'Name': 'Name', 'Speichern': 'Save', 'Bearbeiten': 'Edit', 'Löschen': 'Delete',
+        'Claude liest deine Kommandanten …': 'Claude is reading your commanders …', '✓ Showcase gespeichert': '✓ Showcase saved', 'Keine Kommandanten im Screenshot erkannt.': 'No commanders detected in the screenshot.',
+        'Dieser Spieler hat noch keinen Showcase.': 'This player has no showcase yet.',
+        'Noch kein Showcase – lade Screenshots deiner Kommandanten hoch („📷 Kommandanten scannen“) oder trag sie von Hand ein.': 'No showcase yet – upload screenshots of your commanders (“📷 Scan commanders”) or add them manually.',
+        '✓ Lokal gespeichert · für andere Spieler sichtbar erst nach dem SQL-Update (Spalte showcase)': '✓ Saved locally · visible to other players after the SQL update (column showcase)',
+        'Der Scan-Server kennt den Showcase-Scan noch nicht – bitte den Modus „showcase“ in api/scan.js ergänzen. Bis dahin Kommandanten über „+ Von Hand“ eintragen.': 'The scan server does not know the showcase scan yet – please add the “showcase” mode to api/scan.js. Until then add commanders with “+ Manually”.',
+        'Bis zu 5 Screenshots deiner Kommandanten-Ansicht · Bilder werden nach dem Auslesen sofort verworfen · gleiche Kommandanten werden aktualisiert statt doppelt angelegt.': 'Up to 5 screenshots of your commander view · images are discarded right after reading · existing commanders are updated instead of duplicated.',
         'Set gespeichert · in der Cloud (user_state)': 'Set saved · in the cloud (user_state)', 'Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': 'Saved locally · cloud unreachable, will sync automatically'
       },
       patterns: [
+        [/^(\d)\/2 Kommandanten · (\d)\/8 Ausrüstung$/, '$1/2 commanders · $2/8 equipment'],
+        [/^Kommandant wählen · (Primär|Sekundär)$/, (m, k) => 'Choose commander · ' + (k === 'Primär' ? 'Primary' : 'Secondary')],
+        [/^✓ Ausrüstung aus „(.+)“ übernommen$/, '✓ Equipment copied from “$1”'],
+        [/^Showcase-Ausrüstung mit der Ist-Ausrüstung aus „(.+)“ überschreiben\?$/, 'Overwrite the showcase equipment with the current equipment from “$1”?'],
+        [/^(\d+) Kommandanten$/, '$1 commanders'], [/^(\d+) Kommandanten ausgewertet \((\d+) neu, (\d+) aktualisiert\)$/, '$1 commanders analyzed ($2 new, $3 updated)'],
+        [/^„(.+)“ aus dem Showcase entfernen\?$/, 'Remove “$1” from the showcase?'], [/^Entfernt$/, 'Removed'],
         [/^⚠ In Supabase fehlt die Spalte$/, '⚠ Supabase is missing the column'], [/^– Werte werden vorerst aus den Scans gelesen und nicht dauerhaft in der Rangliste gespeichert\.$/, '– values are read from the scans for now and not stored in the leaderboard.'],
         [/^(.+) scannen$/, (m, l) => 'Scan ' + L(l)],
         [/^Fortschritt zu (VIP \d+|SVIP)$/, 'Progress to $1'], [/^([\d,.]+) % von (VIP \d+|SVIP) bis (VIP \d+|SVIP)$/, '$1 % from $2 to $3'], [/^bis (VIP \d+|SVIP)$/, 'to $1'],
@@ -1460,7 +1524,7 @@ window.RokAuth = (() => {
     lbKills = data?.kill_points != null ? +data.kill_points : null;
     lbMerit = data?.highest_merit != null ? +data.highest_merit : null;
     lbEnergy = data?.energy != null ? +data.energy : null;
-    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', is_private: !!data?.is_private, governor_id: data?.governor_id || '' };
+    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', is_private: !!data?.is_private, governor_id: data?.governor_id || '', showcase: data?.showcase || null };
   }
   // Aktuellen VIP-Stand melden. force = neuer Scan (immer aktualisieren), sonst nur bei geänderter Punktzahl.
   // Kill-Punkte aus dem Statthalter-Scan in die Rangliste schreiben (Spalte kill_points)
@@ -1582,6 +1646,21 @@ window.RokAuth = (() => {
     if (lbLast == null) lbLast = 0;
   }
 
+  // Showcase (Spalte leaderboard.showcase, jsonb – für andere Spieler lesbar). false = Spalte fehlt noch.
+  async function saveShowcase(sc) {
+    if (!user) return false;
+    const row = { user_id: user.id, username: profile.name.slice(0, 40), showcase: sc };
+    if (lbLast == null) { row.vip_points = 0; row.vip_level = 0; row.updated_at = new Date().toISOString(); }
+    const { error } = await sb.from('leaderboard').upsert(row);
+    if (error) {
+      if (/showcase|column|schema/i.test(error.message || '')) { missingCols.add('showcase'); return false; }
+      throw new Error(germanError(error));
+    }
+    ownMeta = { ...ownMeta, showcase: sc };
+    if (lbLast == null) lbLast = 0;
+    return true;
+  }
+
   // Freischaltung einzelner Bereiche (Tabelle public.feature_access – jeder sieht nur seine eigenen Zeilen)
   async function hasFeature(name) {
     if (!sb || !user) return false;
@@ -1601,7 +1680,7 @@ window.RokAuth = (() => {
     return r.data || [];
   }
 
-  return { hasFeature, loadGearItems, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
+  return { hasFeature, loadGearItems, saveShowcase, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
            pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
 })();
 </script>
@@ -3125,7 +3204,7 @@ window.RokApp = () => {
   }
 
   // ================= Game Profil =================
-  const AVATARS = ['', '👑', '⚔️', '🛡️', '🐉', '🦁', '🐺', '🏹', '🔥', '⭐', '🌙', '💎'];
+  const AVATARS = ['', '👑', '⚔️', '🛡️', '🏹', '⭐', '💎'];
   const isImgAv = (av) => typeof av === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(av);
   function avatarHtml(name, av, cls = 'w-8 h-8 text-sm') {
     if (isImgAv(av)) return `<span class="${cls} shrink-0 inline-block rounded-xl overflow-hidden border border-gold-500/50 bg-ink-800"><img src="${av}" alt="" class="w-full h-full object-cover object-center"></span>`;
@@ -3332,9 +3411,9 @@ window.RokApp = () => {
       const drawAv = () => {
         const own = isImgAv(chosen) ? chosen : (isImgAv(customAv) ? customAv : '');
         $('profAvatars').innerHTML =
-          `<label for="profAvatarFile" title="Eigenes Bild hochladen" class="cursor-pointer w-10 h-10 rounded-xl grid place-items-center border border-dashed border-gold-500/60 bg-ink-950 text-lg hover:border-gold-400">📷</label>` +
-          (own ? `<button data-av="custom" title="Eigenes Bild" class="rounded-xl ${chosen === own ? 'ring-2 ring-gold-400' : 'opacity-70 hover:opacity-100'}">${avatarHtml(row.username, own, 'w-10 h-10')}</button>` : '') +
-          AVATARS.map(a => `<button data-av="${a}" title="${a ? a : 'Anfangsbuchstabe'}" class="rounded-xl ${a === chosen ? 'ring-2 ring-gold-400' : 'opacity-70 hover:opacity-100'}">${avatarHtml(row.username, a, 'w-10 h-10 text-lg')}</button>`).join('');
+          `<label for="profAvatarFile" title="Eigenes Bild hochladen" class="cursor-pointer w-9 h-9 rounded-xl grid place-items-center border border-dashed border-gold-500/60 bg-ink-950 text-lg hover:border-gold-400">📷</label>` +
+          (own ? `<button data-av="custom" title="Eigenes Bild" class="rounded-xl ${chosen === own ? 'ring-2 ring-gold-400' : 'opacity-70 hover:opacity-100'}">${avatarHtml(row.username, own, 'w-9 h-9')}</button>` : '') +
+          AVATARS.map(a => `<button data-av="${a}" title="${a ? a : 'Anfangsbuchstabe'}" class="rounded-xl ${a === chosen ? 'ring-2 ring-gold-400' : 'opacity-70 hover:opacity-100'}">${avatarHtml(row.username, a, 'w-9 h-9 text-base')}</button>`).join('');
         $('profAvatars').querySelectorAll('[data-av]').forEach(b => b.onclick = () => { chosen = b.dataset.av === 'custom' ? own : b.dataset.av; drawAv(); });
       };
       drawAv();
@@ -3347,6 +3426,8 @@ window.RokApp = () => {
     $('profPrivNote').classList.toggle('hidden', !hideBody);
     $('profSpeedPanel').classList.toggle('hidden', hideBody);
     $('profChartsPanel').classList.toggle('hidden', hideBody);
+    $('profShowcase').classList.toggle('hidden', hideBody);
+    if (!hideBody) renderShowcase(own, row);
     if (own) {
       const sw = $('profPrivate');
       sw.setAttribute('aria-checked', String(!!P.isPrivate));
@@ -3411,6 +3492,317 @@ window.RokApp = () => {
     } catch (e2) { msg(e2.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : e2.message, 'text-red-300'); }
     finally { if (img) { img.base64 = null; img.dataUrl = null; } }   // Bild sofort verwerfen
   };
+  // ================= Showcase: 2 Kommandanten + Ausrüstung =================
+  // Kommandanten-Katalog – Bilder liegen unter /icons/commanders/<id>.webp.
+  // Namen bei "name" eintragen: sie erscheinen dann im Showcase und machen das Suchfeld im Fenster sichtbar.
+  const COMMANDERS = [
+    { id: 'leg_01', r: 'legendary', name: 'Casimir III' }, { id: 'leg_02', r: 'legendary', name: 'Pepin III' }, { id: 'leg_03', r: 'legendary', name: 'Achilles' }, { id: 'leg_04', r: 'legendary', name: 'Hector' },
+    { id: 'leg_05', r: 'legendary', name: 'David IV' }, { id: 'leg_06', r: 'legendary', name: 'Gang Gamchan' }, { id: 'leg_07', r: 'legendary', name: 'Sun Tzu' }, { id: 'leg_08', r: 'legendary', name: 'Ivar' },
+    { id: 'leg_09', r: 'legendary', name: 'Alp Arslan' }, { id: 'leg_10', r: 'legendary', name: 'Hayam Wuruk' }, { id: 'leg_11', r: 'legendary', name: 'Vercingetorix' }, { id: 'leg_12', r: 'legendary', name: 'Elizabeth I' },
+    { id: 'leg_13', r: 'legendary', name: 'Pelagius' }, { id: 'leg_14', r: 'legendary', name: 'Ivan IV' }, { id: 'leg_15', r: 'legendary', name: 'William Marshal' }, { id: 'leg_16', r: 'legendary', name: 'Yahya ibn Khalid' },
+    { id: 'epi_01', r: 'epic', name: 'Sun Tzu' }, { id: 'epi_02', r: 'epic', name: 'Herrmann' }, { id: 'epi_03', r: 'epic', name: 'Kusunoki Masashige' }, { id: 'epi_04', r: 'epic', name: 'Scipio Africanus' },
+    { id: 'epi_05', r: 'epic', name: 'Joan of Arc' }, { id: 'epi_06', r: 'epic', name: 'Eulji Mundeok' }, { id: 'epi_07', r: 'epic', name: 'Boudica' }, { id: 'epi_08', r: 'epic', name: 'Pelagius' },
+    { id: 'epi_09', r: 'epic', name: '' }, { id: 'epi_10', r: 'epic', name: '' }, { id: 'epi_11', r: 'epic', name: '' }, { id: 'epi_12', r: 'epic', name: '' },
+    { id: 'epi_13', r: 'epic', name: '' }, { id: 'epi_14', r: 'epic', name: '' }, { id: 'epi_15', r: 'epic', name: '' }, { id: 'epi_16', r: 'epic', name: '' },
+    { id: 'epi_17', r: 'epic', name: '' }, { id: 'epi_18', r: 'epic', name: '' }, { id: 'epi_19', r: 'epic', name: '' }, { id: 'epi_20', r: 'epic', name: '' },
+    { id: 'epi_21', r: 'epic', name: '' }, { id: 'epi_22', r: 'epic', name: '' }, { id: 'eli_01', r: 'elite', name: '' }, { id: 'eli_02', r: 'elite', name: '' },
+    { id: 'eli_03', r: 'elite', name: '' }, { id: 'eli_04', r: 'elite', name: '' }, { id: 'eli_05', r: 'elite', name: '' }, { id: 'adv_01', r: 'advanced', name: '' },
+    { id: 'adv_02', r: 'advanced', name: '' }, { id: 'adv_03', r: 'advanced', name: '' }, { id: 'adv_04', r: 'advanced', name: '' }, { id: 'leg_17', r: 'legendary', name: '' },
+    { id: 'leg_18', r: 'legendary', name: '' }, { id: 'leg_19', r: 'legendary', name: '' }, { id: 'leg_20', r: 'legendary', name: '' }, { id: 'leg_21', r: 'legendary', name: '' },
+    { id: 'leg_22', r: 'legendary', name: '' }, { id: 'leg_23', r: 'legendary', name: '' }, { id: 'leg_24', r: 'legendary', name: '' }, { id: 'leg_25', r: 'legendary', name: '' },
+    { id: 'leg_26', r: 'legendary', name: '' }, { id: 'leg_27', r: 'legendary', name: '' }, { id: 'leg_28', r: 'legendary', name: '' }, { id: 'leg_29', r: 'legendary', name: '' },
+    { id: 'leg_30', r: 'legendary', name: '' }, { id: 'leg_31', r: 'legendary', name: '' }, { id: 'leg_32', r: 'legendary', name: '' }, { id: 'leg_33', r: 'legendary', name: '' },
+    { id: 'leg_34', r: 'legendary', name: '' }, { id: 'leg_35', r: 'legendary', name: '' }, { id: 'leg_36', r: 'legendary', name: '' }, { id: 'leg_37', r: 'legendary', name: '' },
+    { id: 'leg_38', r: 'legendary', name: '' }, { id: 'leg_39', r: 'legendary', name: '' }, { id: 'leg_40', r: 'legendary', name: '' }, { id: 'leg_41', r: 'legendary', name: '' },
+    { id: 'leg_42', r: 'legendary', name: '' }, { id: 'leg_43', r: 'legendary', name: '' }, { id: 'leg_44', r: 'legendary', name: '' }, { id: 'leg_45', r: 'legendary', name: '' },
+    { id: 'leg_46', r: 'legendary', name: '' }, { id: 'leg_47', r: 'legendary', name: '' }, { id: 'leg_48', r: 'legendary', name: '' }, { id: 'leg_49', r: 'legendary', name: '' },
+    { id: 'leg_50', r: 'legendary', name: '' }, { id: 'leg_51', r: 'legendary', name: '' }, { id: 'leg_52', r: 'legendary', name: '' }, { id: 'leg_53', r: 'legendary', name: '' },
+    { id: 'leg_54', r: 'legendary', name: '' }, { id: 'leg_55', r: 'legendary', name: '' }, { id: 'leg_56', r: 'legendary', name: '' }, { id: 'leg_57', r: 'legendary', name: '' },
+    { id: 'leg_58', r: 'legendary', name: '' }, { id: 'leg_59', r: 'legendary', name: '' }, { id: 'leg_60', r: 'legendary', name: '' }, { id: 'leg_61', r: 'legendary', name: '' },
+    { id: 'leg_62', r: 'legendary', name: '' }, { id: 'leg_63', r: 'legendary', name: '' }, { id: 'leg_64', r: 'legendary', name: '' }, { id: 'leg_65', r: 'legendary', name: '' },
+    { id: 'leg_66', r: 'legendary', name: '' }, { id: 'leg_67', r: 'legendary', name: '' }, { id: 'leg_68', r: 'legendary', name: '' }, { id: 'leg_69', r: 'legendary', name: '' },
+    { id: 'leg_70', r: 'legendary', name: '' }, { id: 'leg_71', r: 'legendary', name: '' }, { id: 'leg_72', r: 'legendary', name: '' }, { id: 'leg_73', r: 'legendary', name: '' },
+    { id: 'leg_74', r: 'legendary', name: '' }, { id: 'leg_75', r: 'legendary', name: '' }, { id: 'leg_76', r: 'legendary', name: '' }, { id: 'leg_77', r: 'legendary', name: '' },
+    { id: 'leg_78', r: 'legendary', name: '' }, { id: 'leg_79', r: 'legendary', name: '' }, { id: 'leg_80', r: 'legendary', name: '' }, { id: 'leg_81', r: 'legendary', name: '' },
+    { id: 'leg_82', r: 'legendary', name: '' }, { id: 'leg_83', r: 'legendary', name: '' }, { id: 'leg_84', r: 'legendary', name: '' }, { id: 'leg_85', r: 'legendary', name: '' },
+    { id: 'leg_86', r: 'legendary', name: '' }, { id: 'leg_87', r: 'legendary', name: '' }, { id: 'leg_88', r: 'legendary', name: '' }, { id: 'leg_89', r: 'legendary', name: '' },
+    { id: 'leg_90', r: 'legendary', name: '' }, { id: 'leg_91', r: 'legendary', name: '' }, { id: 'leg_92', r: 'legendary', name: '' }, { id: 'leg_93', r: 'legendary', name: '' },
+    { id: 'leg_94', r: 'legendary', name: '' }, { id: 'leg_95', r: 'legendary', name: '' }, { id: 'leg_96', r: 'legendary', name: '' }, { id: 'leg_97', r: 'legendary', name: '' },
+    { id: 'leg_98', r: 'legendary', name: '' }, { id: 'leg_99', r: 'legendary', name: '' }, { id: 'leg_100', r: 'legendary', name: '' }, { id: 'leg_101', r: 'legendary', name: '' },
+    { id: 'leg_102', r: 'legendary', name: '' }, { id: 'leg_103', r: 'legendary', name: '' }, { id: 'leg_104', r: 'legendary', name: '' }, { id: 'leg_105', r: 'legendary', name: '' },
+    { id: 'leg_106', r: 'legendary', name: '' }, { id: 'leg_107', r: 'legendary', name: '' }, { id: 'leg_108', r: 'legendary', name: '' }, { id: 'leg_109', r: 'legendary', name: '' },
+    { id: 'leg_110', r: 'legendary', name: '' }, { id: 'leg_111', r: 'legendary', name: '' }, { id: 'leg_112', r: 'legendary', name: '' }
+  ];
+  const CMD_BY_ID = Object.fromEntries(COMMANDERS.map(c => [c.id, c]));
+  const cmdImg = (id) => `/icons/commanders/${id}.webp`;
+  // Daten: { cmd: [ {id, level, skills:[4], awakened} | null, … ], gear: { helm: {item, name, icon, rarity, tier, refine, refType}, … }, updated }
+  // Eigene Daten: lokal (rok_scanner_showcase → user_state) + leaderboard.showcase (für andere sichtbar)
+  const SC_KEY = 'rok_scanner_showcase';
+  const SC_SLOTS = ['Primär', 'Sekundär'];
+  const SC_RAR = {
+    legendary: { label: 'Legendär',        c: '#f5c542' },
+    epic:      { label: 'Episch',          c: '#c084fc' },
+    elite:     { label: 'Elite',           c: '#60a5fa' },
+    advanced:  { label: 'Fortgeschritten', c: '#4ade80' }
+  };
+  const scInt = (v, lo, hi, d) => { if (v == null || v === '') return d; const n = Math.round(+String(v).replace(/[^\d.-]/g, '')); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
+  const scSkills = (v) => { let a = Array.isArray(v) ? v : (String(v ?? '').match(/\d/g) || []); a = a.slice(0, 4).map(x => scInt(x, 0, 5, 1)); while (a.length < 4) a.push(1); return a; };
+  const scKey = (n) => String(n || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '');
+  const scIconOk = (v) => typeof v === 'string' && /^\/icons\/[A-Za-z0-9_./-]+\.(webp|png|jpe?g)$/.test(v) ? v : '';
+  const scCmdNorm = (c) => c && CMD_BY_ID[c.id] ? { id: c.id, level: scInt(c.level, 1, 60, 60), skills: scSkills(c.skills), awakened: !!c.awakened } : null;
+  const scGearNorm = (g) => Object.fromEntries(GEAR_SLOTS.map(sl => { const v = g?.[sl.k] || {};
+    return [sl.k, { item: String(v.item || ''), name: String(v.name || '').slice(0, 60), icon: scIconOk(v.icon), rarity: v.rarity === 'epic' ? 'epic' : 'legendary',
+      tier: gTier(v.tier), refine: gRefine(v.refine), refType: gRefType(v.refType) }]; }));
+  const scNorm = (d) => ({ cmd: [0, 1].map(i => scCmdNorm(d?.cmd?.[i])), gear: scGearNorm(d?.gear), updated: +d?.updated || 0 });
+  // Item für die Anzeige: aus dem Katalog, sonst aus der gespeicherten Kopie (Name/Icon) – wichtig für fremde Profile
+  const scItem = (v) => gItem(v?.item) || (v?.name ? { name: v.name, icon: v.icon, rarity: v.rarity } : null);
+  const scSnap = (v, it) => { v.name = it ? it.name : ''; v.icon = it ? scIconOk(it.icon) : ''; };
+
+  function ownShowcase() {
+    let loc = null; try { loc = JSON.parse(LS.get(SC_KEY, 'null')); } catch {}
+    const cloud = RokAuth.ownMeta().showcase;
+    const a = loc ? scNorm(loc) : null, b = cloud ? scNorm(cloud) : null;
+    return (a && (!b || a.updated >= b.updated)) ? a : (b || scNorm(null));
+  }
+  let sc = { own: false, data: null, gsel: null, busy: false };
+  let scOpen = (() => { try { return localStorage.getItem('rok_showcase_open') !== '0'; } catch { return true; } })();
+  function renderShowcase(own, row) {
+    sc = { ...sc, own, data: own ? ownShowcase() : scNorm(row?.showcase), gsel: own && sc.own ? sc.gsel : null };
+    drawShowcase();
+    if (gearDbState === 'idle') loadGearDb().then(() => { if (view === 'profile') drawShowcase(); });
+  }
+  function scApplyOpen() {
+    $('scBody').classList.toggle('hidden', !scOpen);
+    $('scToggle').setAttribute('aria-expanded', String(scOpen));
+    $('scChevron').classList.toggle('-rotate-90', !scOpen);
+  }
+  $('scToggle').onclick = () => { scOpen = !scOpen; try { localStorage.setItem('rok_showcase_open', scOpen ? '1' : '0'); } catch {} scApplyOpen(); };
+  function scMsg(t, tone) {
+    const el = $('scMsg'); el.textContent = t;
+    el.className = 'mb-3 text-xs ' + ({ ok: 'text-emerald-400', warn: 'text-amber-300', err: 'text-red-300', busy: 'text-slate-300' }[tone] || 'text-slate-300');
+    clearTimeout(el._t); if (tone !== 'busy') el._t = setTimeout(() => el.classList.add('hidden'), 8000);
+  }
+  const scSkillSquares = (skills, cls = 'w-7 h-7 text-xs') => skills.map((s, i) => `<span title="Skill ${i + 1}" class="${cls} rounded-md grid place-items-center font-bold tabular-nums border ${s >= 5 ? 'text-ink-950 border-gold-400' : 'text-slate-200 border-ink-600 bg-ink-900'}"${s >= 5 ? ' style="background:linear-gradient(180deg,#fde68a,#e0a91b)"' : ''}>${s}</span>`).join('');
+
+  // ---- Kommandanten-Plätze ----
+  function scCmdSlot(c, i) {
+    const m = c && CMD_BY_ID[c.id], click = sc.own || !!m;
+    return `<div class="flex flex-col items-center w-28 sm:w-32">
+      <div class="text-[10px] uppercase tracking-widest text-slate-400 mb-1.5">${SC_SLOTS[i]}</div>
+      <button type="button" data-cmdslot="${i}" ${click ? '' : 'disabled'} title="${m ? (sc.own ? 'Kommandant ändern' : 'Kommandant ansehen') : 'Kommandant wählen'}"
+          class="relative w-full aspect-[140/195] flex items-end justify-center group focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 rounded-xl ${click ? 'cursor-pointer' : 'cursor-default'}">
+        ${m ? `<img src="${cmdImg(m.id)}" alt="${esc(m.name)}" class="w-full h-full object-contain object-bottom drop-shadow-[0_6px_14px_rgba(0,0,0,.55)] transition-transform group-hover:scale-[1.04]">
+               ${c.awakened ? '<span class="absolute top-1 right-0 text-lg" title="Erweckt">✨</span>' : ''}`
+          : `<span class="ghex w-[86%] aspect-[166/192] mb-[3%] grid place-items-center transition ${sc.own ? 'bg-gold-500/50 group-hover:bg-gold-400' : 'bg-ink-600'}">
+               <span class="ghex w-[calc(100%-6px)] h-[calc(100%-6px)] grid place-items-center bg-ink-950 text-4xl font-light ${sc.own ? 'text-gold-400/80 group-hover:text-gold-300' : 'text-ink-600'}">${sc.own ? '+' : ''}</span></span>`}
+      </button>
+      ${m ? `<div class="mt-1.5 text-center">
+          ${m.name ? `<div class="text-sm font-semibold text-white truncate max-w-[8rem]" translate="no">${esc(m.name)}</div>` : ''}
+          <div class="text-xs tabular-nums"><span class="font-bold text-gold-300">Lv. ${c.level}</span> <span class="font-semibold ${c.skills.every(s => s >= 5) ? 'text-gold-300' : 'text-slate-400'}">${c.skills.join('-')}</span></div></div>`
+        : `<div class="mt-1.5 text-xs text-slate-500">${sc.own ? 'Antippen zum Wählen' : 'leer'}</div>`}
+    </div>`;
+  }
+  // ---- Ausrüstung (Rauten wie im Spiel) ----
+  function scGearBoard(g) {
+    return GEAR_SLOTS.map(sl => {
+      const v = g[sl.k], it = scItem(v), f = it ? GFILL[v.rarity] : null, active = sc.own && sc.gsel === sl.k;
+      return `<button type="button" data-sctile="${sl.k}" ${sc.own ? '' : 'tabindex="-1"'} title="${esc(sl.label + (it ? ': ' + it.name : ''))}"
+          class="gdia absolute focus:outline-none ${sc.own ? '' : 'cursor-default'}" style="left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%">
+        <span class="gdia absolute inset-0" style="background:${active ? '#ffffff' : f ? f[0] : '#2e3a55'}"></span>
+        <span class="gdia absolute inset-[3px]" style="background:${f ? `radial-gradient(circle at 50% 38%, ${f[1]}, ${f[2]})` : '#111725'}"></span>
+        <span class="relative z-10 h-full w-full flex flex-col items-center justify-center text-center px-[17%] pt-[4%] pointer-events-none">
+          ${it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="w-[112%] max-w-none aspect-square object-contain [filter:drop-shadow(0_2px_3px_rgba(0,0,0,.45))]">`
+            : `<span class="text-xl sm:text-2xl leading-none ${it ? '' : 'opacity-40'}">${sl.icon}</span>`}
+          ${it?.icon ? '' : `<span class="mt-1 text-[9px] sm:text-[10px] font-bold leading-tight line-clamp-2 ${it ? 'text-white [text-shadow:0_1px_2px_#000]' : 'text-slate-500'}">${it ? esc(it.name) : sl.label}</span>`}
+        </span>
+        ${it && v.tier > 0 ? `<span class="absolute z-10 bottom-[3%] left-1/2 -translate-x-1/2 px-1.5 rounded-md bg-ink-950/85 border border-gold-400/70 text-[10px] font-extrabold text-gold-300 leading-4 pointer-events-none">${ROMAN[v.tier - 1]}</span>` : ''}
+        ${it && v.refine > 0 ? `<span class="absolute z-10 right-[22%] bottom-[22%] w-[21%] aspect-square pointer-events-none [filter:drop-shadow(0_1px_2px_rgba(0,0,0,.6))]">${gRefIcon(v, 'w-full h-full')}</span>
+          ${v.refine < 100 ? `<span class="absolute z-10 right-[11%] bottom-[15%] text-[9px] font-extrabold text-white [text-shadow:0_1px_2px_#000] pointer-events-none">${v.refine}%</span>` : ''}` : ''}
+      </button>`;
+    }).join('');
+  }
+  function drawShowcase() {
+    if (!sc.data) return;
+    const d = sc.data;
+    $('scTools').classList.toggle('hidden', !sc.own);
+    $('scFromCraft').classList.toggle('hidden', !(sc.own && craftAllowed));
+    $('scHint').classList.toggle('hidden', !sc.own);
+    $('scCount').textContent = `${d.cmd.filter(Boolean).length}/2 Kommandanten · ${GEAR_SLOTS.filter(sl => scItem(d.gear[sl.k])).length}/8 Ausrüstung`;
+    $('scCmds').innerHTML = [0, 1].map(i => scCmdSlot(d.cmd[i], i)).join('');
+    $('scGearBoard').innerHTML = scGearBoard(d.gear);
+    gearSel.sc = sc.gsel;
+    $('scGearEdit').innerHTML = sc.own && sc.gsel ? gearEditor('sc', { sc: d.gear }, { rows: GEAR_SLOTS.map(sl => ({ sl, status: 'none' })) }) : '';
+    scApplyOpen();
+  }
+  async function scSave(okText, quiet) {
+    sc.data.updated = Date.now();
+    LS.set(SC_KEY, JSON.stringify(sc.data));
+    try {
+      const ok = await RokAuth.saveShowcase(sc.data);
+      if (!ok) scMsg('✓ Lokal gespeichert · für andere Spieler sichtbar erst nach dem SQL-Update (Spalte showcase)', 'warn');
+      else if (!quiet) scMsg(okText || '✓ Showcase gespeichert', 'ok');
+    } catch (e) { scMsg(e.message || String(e), 'err'); }
+  }
+  let scT = null;
+  const scSaveSoon = () => { clearTimeout(scT); scT = setTimeout(() => scSave(null, true), 700); };
+
+  // ---- Ausrüstung bearbeiten ----
+  $('scGearBoard').addEventListener('click', (ev) => {
+    const t = ev.target.closest('[data-sctile]'); if (!t || !sc.own) return;
+    sc.gsel = sc.gsel === t.dataset.sctile ? null : t.dataset.sctile; drawShowcase();
+  });
+  const scGearEdit = (ev) => {
+    const t = ev.target.closest('[data-slot]'); if (!t || t.disabled || !sc.own) return;
+    const isBtn = t.dataset.f === 'refine' || t.dataset.f === 'refType';
+    if (ev.type === 'click' && !isBtn) return;
+    if (ev.type === 'change' && isBtn) return;
+    const v = sc.data.gear[t.dataset.slot];
+    if (t.dataset.f === 'item') { v.item = t.value; const it = gItem(t.value); v.rarity = it ? it.rarity : 'legendary'; scSnap(v, it); v.tier = 0; v.refine = 0; }
+    else if (t.dataset.f === 'refine') v.refine = gRefine(t.dataset.v);
+    else if (t.dataset.f === 'refType') v.refType = gRefType(t.dataset.v);
+    else v.tier = gTier(t.value);
+    drawShowcase(); scSaveSoon();
+  };
+  $('scGearEdit').addEventListener('change', scGearEdit);
+  $('scGearEdit').addEventListener('click', scGearEdit);
+  $('scFromCraft').onclick = () => {
+    const s = activeSet();
+    if (GEAR_SLOTS.some(sl => scItem(sc.data.gear[sl.k])) && !confirm(`Showcase-Ausrüstung mit der Ist-Ausrüstung aus „${s.name}“ überschreiben?`)) return;
+    GEAR_SLOTS.forEach(sl => { const v = { ...s.ist[sl.k] }; scSnap(v, gItem(v.item)); sc.data.gear[sl.k] = v; });
+    drawShowcase(); scSave(`✓ Ausrüstung aus „${s.name}“ übernommen`);
+  };
+  // Screenshot der Ausrüstung → /api/scan (Modus "gear", wie im Crafting-Planer)
+  $('scFile').onchange = async (ev) => {
+    const files = [...(ev.target.files || [])].filter(f => f && f.type.startsWith('image/')).slice(0, 2);
+    ev.target.value = '';
+    if (!files.length || sc.busy) return;
+    sc.busy = true; scOpen = true; scApplyOpen();
+    $('scScanLbl').classList.add('opacity-50', 'pointer-events-none');
+    scMsg('Claude liest deine Ausrüstung …', 'busy');
+    const imgs = [];
+    try {
+      if (gearDbState === 'idle' || !gearCat.length) await loadGearDb();
+      for (const f of files) imgs.push(await prepareImage(f));
+      const res = await fetch('/api/scan', { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ mode: 'gear', images: imgs.map(i => ({ media_type: i.mediaType, data: i.base64 })) }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (res.status === 400 && /modus|mode/i.test(data?.error || '')) throw new Error('Der Scan-Server kennt den Ausrüstungs-Scan noch nicht – bitte den Modus „gear“ in api/scan.js ergänzen. Bis dahin die Slots von Hand wählen.');
+        if (res.status === 404) throw new Error('Server-Route /api/scan nicht gefunden. Die Seite muss über Vercel laufen (nicht als lokale Datei).');
+        if (res.status === 413) throw new Error('Die Bilder sind zu groß. Bitte weniger Screenshots auf einmal hochladen.');
+        throw new Error(data?.error || `Serverfehler ${res.status}`);
+      }
+      const r = parseJson(String(data.text || ''));
+      if (!r) throw new Error('Die Antwort konnte nicht ausgelesen werden. Bitte erneut versuchen.');
+      const src = r.slots || r.equipment || r; let hit = 0, seen = 0;
+      GEAR_SLOTS.forEach(sl => {
+        const info = src[sl.k]; if (!info || typeof info !== 'object') return;
+        seen++;
+        let it = info.item_id ? gItem(String(info.item_id)) : null;
+        if (it && it.cat !== sl.cat) it = null;
+        if (!it) it = gearMatch(sl.cat, info);
+        if (!it) return;
+        const v = { item: it.id, rarity: gearRarity(info.rarity) || it.rarity, tier: gTier(info.tier), refine: gRefine(info.refine), refType: gRefType(info.refine_type) };
+        scSnap(v, it); sc.data.gear[sl.k] = v; hit++;
+      });
+      if (!seen) throw new Error('Keine Ausrüstung im Screenshot erkannt. Bitte die Slots von Hand wählen.');
+      drawShowcase();
+      await scSave(`✓ ${hit} von ${seen} Slots erkannt`);
+    } catch (e) {
+      scMsg(e.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : (e.message || String(e)), 'err');
+    } finally {
+      imgs.forEach(i => { i.base64 = null; i.dataUrl = null; }); imgs.length = 0;   // Bilder sofort verwerfen
+      sc.busy = false; $('scScanLbl').classList.remove('opacity-50', 'pointer-events-none');
+    }
+  };
+
+  // ---- Kommandanten-Fenster ----
+  let cm = { slot: 0, rar: 'all', q: '', sel: null, level: 60, skills: [5, 5, 5, 5], awakened: false };
+  const openModal = () => { $('cmdModal').classList.remove('hidden'); document.body.style.overflow = 'hidden'; };
+  const closeModal = () => { $('cmdModal').classList.add('hidden'); document.body.style.overflow = ''; };
+  function openCmd(i) {
+    const cur = sc.data.cmd[i];
+    if (!sc.own) { if (cur) showCmdView(cur); return; }
+    cm = { slot: i, rar: cm.rar || 'all', q: '', sel: cur?.id || null, level: cur?.level ?? 60, skills: cur ? [...cur.skills] : [5, 5, 5, 5], awakened: !!cur?.awakened };
+    if (cm.sel && cm.rar !== 'all' && CMD_BY_ID[cm.sel].r !== cm.rar) cm.rar = 'all';
+    $('cmdTitle').textContent = `Kommandant wählen · ${SC_SLOTS[i]}`;
+    $('cmdPick').classList.remove('hidden'); $('cmdView').classList.add('hidden');
+    $('cmdSearch').value = ''; $('cmdSearch').classList.toggle('hidden', !COMMANDERS.some(c => c.name));
+    drawCmdPicker(); openModal();
+    $('cmdGrid').querySelector('[aria-pressed="true"]')?.scrollIntoView({ block: 'nearest' });
+  }
+  function drawCmdPicker() {
+    $('cmdRar').innerHTML = [['all', 'Alle'], ...Object.entries(SC_RAR).map(([k, r]) => [k, r.label])].map(([k, l]) =>
+      `<button type="button" data-cr="${k}" aria-pressed="${cm.rar === k}" class="seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition">${l}</button>`).join('');
+    const other = sc.data.cmd[1 - cm.slot]?.id, q = scKey(cm.q);
+    const list = COMMANDERS.filter(c => (cm.rar === 'all' || c.r === cm.rar) && (!q || scKey(c.name).includes(q)));
+    $('cmdGrid').innerHTML = list.length ? list.map(c => {
+      const used = c.id === other, on = c.id === cm.sel;
+      return `<button type="button" data-cid="${c.id}" aria-pressed="${on}" ${used ? 'disabled' : ''} title="${esc(c.name)}${used ? ' – schon im anderen Slot' : ''}"
+          class="relative rounded-xl p-1 transition ${on ? 'bg-gold-500/25 ring-2 ring-gold-400' : 'hover:bg-ink-800'} ${used ? 'opacity-30 cursor-not-allowed' : ''}">
+        <img src="${cmdImg(c.id)}" alt="${esc(c.name)}" loading="lazy" class="w-full aspect-[140/195] object-contain object-bottom">
+        ${c.name ? `<span class="block mt-0.5 text-[10px] text-slate-300 truncate" translate="no">${esc(c.name)}</span>` : ''}
+      </button>`; }).join('') : '<div class="col-span-full py-8 text-center text-sm text-slate-500">Keine Kommandanten gefunden.</div>';
+    drawCmdForm();
+  }
+  function drawCmdForm() {
+    const m = cm.sel && CMD_BY_ID[cm.sel], inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-gold-500';
+    const opt = (sel) => [0, 1, 2, 3, 4, 5].map(v => `<option value="${v}"${v === sel ? ' selected' : ''}>${v}</option>`).join('');
+    $('cmdForm').innerHTML = `<div class="flex flex-wrap items-end gap-4">
+      <div class="w-14 shrink-0">${m ? `<img src="${cmdImg(m.id)}" alt="" class="w-full aspect-[140/195] object-contain object-bottom">`
+        : '<div class="w-full aspect-[140/195] rounded-lg border border-dashed border-ink-600 grid place-items-center text-slate-600">?</div>'}</div>
+      <label class="text-xs text-slate-400">Level<input id="cmLevel" type="number" min="1" max="60" value="${cm.level}" class="mt-1 block w-20 ${inp} text-right tabular-nums"></label>
+      <div class="text-xs text-slate-400">Skills<div class="mt-1 flex gap-1.5">${cm.skills.map((s, i) => `<select data-cms="${i}" aria-label="Skill ${i + 1}" class="${inp}">${opt(s)}</select>`).join('')}</div></div>
+      <label class="inline-flex items-center gap-2 pb-2 cursor-pointer text-sm"><input id="cmAwake" type="checkbox" ${cm.awakened ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">✨ Erweckt</label>
+      <div class="ml-auto flex flex-wrap gap-2">
+        ${sc.data.cmd[cm.slot] ? '<button type="button" id="cmClear" class="px-3 py-2 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10 text-sm">Slot leeren</button>' : ''}
+        <button type="button" id="cmApply" ${m ? '' : 'disabled'} class="px-5 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed">Übernehmen</button>
+      </div></div>`;
+  }
+  function showCmdView(c) {
+    const m = CMD_BY_ID[c.id], r = SC_RAR[m.r];
+    $('cmdTitle').textContent = m.name || 'Kommandant';
+    $('cmdPick').classList.add('hidden'); $('cmdView').classList.remove('hidden');
+    $('cmdView').innerHTML = `<div class="flex flex-wrap items-center justify-center sm:justify-start gap-6">
+      <img src="${cmdImg(m.id)}" alt="" class="w-40 aspect-[140/195] object-contain object-bottom drop-shadow-[0_8px_20px_rgba(0,0,0,.6)]">
+      <div class="space-y-3">
+        <div class="text-sm font-semibold" style="color:${r.c}">${r.label}${c.awakened ? ' · ✨ Erweckt' : ''}</div>
+        <div class="text-3xl font-extrabold text-white tabular-nums">Lv. ${c.level}</div>
+        <div class="flex gap-1.5">${scSkillSquares(c.skills, 'w-9 h-9 text-sm')}</div>
+      </div></div>`;
+    openModal();
+  }
+  $('scCmds').addEventListener('click', (ev) => { const b = ev.target.closest('[data-cmdslot]'); if (b && !b.disabled) openCmd(+b.dataset.cmdslot); });
+  $('cmdRar').onclick = (ev) => { const b = ev.target.closest('[data-cr]'); if (!b) return; cm.rar = b.dataset.cr; drawCmdPicker(); };
+  $('cmdSearch').oninput = () => { cm.q = $('cmdSearch').value; drawCmdPicker(); };
+  const cmdPickOne = (ev) => {
+    const b = ev.target.closest('[data-cid]'); if (!b || b.disabled) return null;
+    cm.sel = b.dataset.cid;
+    $('cmdGrid').querySelectorAll('[data-cid]').forEach(x => { const on = x.dataset.cid === cm.sel;
+      x.setAttribute('aria-pressed', String(on)); ['bg-gold-500/25', 'ring-2', 'ring-gold-400'].forEach(k => x.classList.toggle(k, on)); x.classList.toggle('hover:bg-ink-800', !on); });
+    drawCmdForm(); return b;
+  };
+  $('cmdGrid').addEventListener('click', cmdPickOne);
+  $('cmdGrid').addEventListener('dblclick', (ev) => { if (cmdPickOne(ev)) $('cmApply')?.click(); });   // Doppelklick = sofort übernehmen
+  $('cmdForm').addEventListener('input', (ev) => {
+    const t = ev.target;
+    if (t.id === 'cmLevel') cm.level = scInt(t.value, 1, 60, 60);
+    else if (t.dataset.cms != null) cm.skills[+t.dataset.cms] = scInt(t.value, 0, 5, 1);
+    else if (t.id === 'cmAwake') cm.awakened = t.checked;
+  });
+  $('cmdForm').addEventListener('click', (ev) => {
+    if (ev.target.closest('#cmApply')) {
+      if (!cm.sel) return;
+      sc.data.cmd[cm.slot] = scCmdNorm({ id: cm.sel, level: cm.level, skills: cm.skills, awakened: cm.awakened });
+      closeModal(); drawShowcase(); scSave('✓ Kommandant gespeichert');
+    } else if (ev.target.closest('#cmClear')) {
+      sc.data.cmd[cm.slot] = null; closeModal(); drawShowcase(); scSave('✓ Slot geleert');
+    }
+  });
+  $('cmdClose').onclick = closeModal;
+  $('cmdBackdrop').addEventListener('click', (ev) => { if (ev.target === ev.currentTarget) closeModal(); });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !$('cmdModal').classList.contains('hidden')) closeModal(); });
+
   // Zum Scanner & Dashboard im passenden Modus springen
   function goScan(m) { view = 'scanner'; applyView(); mode = m; LS.set(MODE_KEY, mode); applyMode(); $('dropzone').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
   $('profScanSpeed').onclick = () => goScan('speedups');
