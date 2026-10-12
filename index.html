@@ -611,7 +611,8 @@ tailwind.config = {
               <span class="font-semibold text-gold-300">✎ Bearbeitungsmodus</span>
               <label class="inline-flex items-center gap-1.5 cursor-pointer"><input id="scGridOn" type="checkbox" class="w-4 h-4 accent-yellow-500">▦ Raster</label>
               <label class="inline-flex items-center gap-1.5 cursor-pointer" title="Sets und Rüstungen gemeinsam verschieben und vergrößern (gleiche Höhe und Größe)"><input id="scSync2" type="checkbox" class="w-4 h-4 accent-yellow-500">🔗 Sync</label>
-              <select id="scSyncA" title="Sets und Rüstungen ausrichten an" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-gold-500"><option value="top">⬆ Oben</option><option value="center">↕ Mitte</option><option value="bottom">⬇ Unten</option></select>
+              <select id="scSyncA" title="Sets und Rüstungen ausrichten an" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-gold-500"><option value="top">⬆ Oben</option><option value="center">↕ Mitte</option><option value="bottom">⬇ Unten</option><option value="none">– nur Größe</option></select>
+              <label class="inline-flex items-center gap-1.5 cursor-pointer" title="Türkise Hilfslinien beim Ziehen"><input id="scGuidesOn" type="checkbox" class="w-4 h-4 accent-yellow-500">┆ Hilfslinien</label>
               <label class="inline-flex items-center gap-1.5">Rasterfarbe <select id="scGridC" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-gold-500"></select></label>
               <label class="inline-flex items-center gap-1.5">Höhe <select id="scHeight" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-gold-500"></select></label>
               <button id="scAuto" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⊞ Symmetrisch anordnen</button>
@@ -702,7 +703,12 @@ tailwind.config = {
       <div id="profSpeedPanel" class="panel rounded-2xl p-6">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div class="flex flex-wrap items-center gap-3">
-            <h3 class="font-display text-xl gold-text">Speedups</h3>
+            <h3 id="profSpeedTitle" class="font-display text-xl gold-text">Speedups</h3>
+            <div id="profSpeedMode" class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group" aria-label="Anzeige">
+              <button type="button" data-pm="speed" class="seg-btn rounded-lg px-3 py-1 text-xs font-semibold transition">⏱ Speedups</button>
+              <button type="button" data-pm="ap" class="seg-btn rounded-lg px-3 py-1 text-xs font-semibold transition">🧪 AP</button>
+              <button type="button" data-pm="gems" class="seg-btn rounded-lg px-3 py-1 text-xs font-semibold transition">💎 Gems</button>
+            </div>
             <button id="profScanSpeed" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">📷 Speedups scannen</button>
           </div>
           <span id="profSpeedStamp" class="text-xs text-slate-500"></span>
@@ -1082,7 +1088,7 @@ window.I18N = (() => {
         '✓ Im Account gespeichert · für andere Spieler sichtbar erst nach dem SQL-Update (Spalte showcase)': '✓ Saved in your account · visible to other players after the SQL update (column showcase)',
         'Bild direkt im Showcase gespeichert – für kürzere Ladezeiten das Storage-SQL ausführen (Bucket „showcase“).': 'Image stored directly in the showcase – run the storage SQL (bucket “showcase”) for faster loading.',
         'Download-Bibliothek konnte nicht geladen werden (Internet/Adblocker prüfen).': 'Download library could not be loaded (check internet/ad blocker).', 'Download fehlgeschlagen.': 'Download failed.',
-        'Füllung': 'Fill', 'Rand': 'Border', 'keine': 'none', 'kein': 'none', 'keiner': 'none', 'Deckkraft': 'Opacity', '↺ Standardwerte': '↺ Defaults', 'Skin suchen …': 'Search skin …', '+ 🛡 Garnison': '+ 🛡 Garrison', '+ 🚩 Rally': '+ 🚩 Rally', '🛡 Garnison': '🛡 Garrison', "Garnison": "Garrison", "Rally": "Rally", "Aktualisieren": "Refresh", "Aus der Cloud neu laden und Überlappungen oben/unten auflösen": "Reload from the cloud and fix overlaps at top/bottom", "Oben": "Top", "Mitte": "Middle", "Unten": "Bottom", "Sets und Rüstungen ausrichten an": "Align sets and armaments at", "Rüstung anzeigen": "Show armament", "Nur Kommandanten": "Commanders only", "Symbol": "Icon", "🏰 anzeigen": "Show 🏰", "👑 anzeigen": "Show 👑", "✓ Showcase aktualisiert": "✓ Showcase refreshed", "Sets und Rüstungen gemeinsam verschieben und vergrößern (gleiche Höhe und Größe)": "Move and resize sets and armaments together (same height and size)", "Rasterfarbe": "Grid colour", "Schwarz": "Black", "Orange": "Orange", "Drehung": "Rotation", "Helligkeit": "Brightness", "Kontrast": "Contrast", "Zurücksetzen": "Reset", "Nur Kommandanten (Garnison)": "Commanders only (garrison)", "Leere Slots ausblenden": "Hide empty slots", "Nur Bild": "Image only", "Details zeigen": "Show details", "Nur das Showcase-Bild anzeigen, ohne Sets und Details darunter": "Show only the showcase image, without sets and details below", "+ City-Skin": "+ City skin", "Ausrüstung": "Equipment", "Scannen": "Scan", "Screenshot auch per Drag & Drop auf dieses Feld · max. 2 Bilder · werden nach dem Auslesen verworfen": "Screenshot also via drag & drop onto this field · max. 2 images · discarded after reading", "Materialkosten je Item (Anzahl). In legendärer Qualität sind es legendäre Materialien, in epischer die gleiche Anzahl lila Materialien (= ¼ legendär).": "Material cost per item (amount). In legendary quality these are legendary materials, in epic the same amount of purple materials (= ¼ legendary).", "kein Allianz-Tag": "no alliance tag", "Noch kein VIP-Stand": "No VIP level yet", "+ Neuer Showcase": "+ New showcase", "Andere Spieler sehen alle deine Showcases in deinem Profil.": "Other players see all your showcases in your profile.", "Die Vorschau steht direkt darüber. Alles lässt sich nach dem Scan von Hand ändern.": "The preview is right above. Everything can be changed by hand after the scan.", "– keine –": "– none –", "Flagge": "Flag", "Schriftrolle": "Scroll", "Weiß": "White", "Blau": "Blue", "Gesamtschaden %": "All damage %", "Gesamtschaden": "All Damage", "Kein": "None", "Führung": "Leadership", "Item wählen": "Choose item", "Legendär": "Legendary", "Episch": "Epic", "Noch kein Material-Scan – Rucksack-Bestand unbekannt.": "No material scan yet – backpack inventory unknown.", "Noch keine Items – Tabelle gear_items in Supabase füllen oder „+ Eigenes Item“.": "No items yet – fill table gear_items in Supabase or use “+ Own item”.", "Hinzufügen": "Add", "Entfernen": "Remove", "Weiteren Skin": "Add another skin", "Stärke": "Width", "Expertise": "Expertise", "Aus Set übernehmen …": "Copy from set …", "Inhalt eines anderen Sets übernehmen": "Copy the content of another set", "Rüstung scannen": "Scan armament", "Rüstung (Armaments)": "Armaments", "Vorschau Rüstung": "Armament preview", "Auf der Bühne anzeigen": "Show on stage", "Abstand": "Spacing", "für alle Sets": "for all sets", "Slot leeren": "Clear slot", "– leer – unten ein Bild antippen": "– empty – tap an image below", "Größe & Effekt": "Size & effect", "Schrift": "Text", "Füllung": "Fill", "Rahmen": "Frame", "Rand": "Border", "Ausblenden": "Hide", "Standardwerte": "↺ Defaults", "Text löschen": "Delete text", "Skin entfernen": "Remove skin", "Skin wählen …": "Choose skin …", "Weiterer City-Skin": "Additional city skin", "Eigener Text": "Custom text", "Sonstige": "Other", "Formation wählen, um Rüstungen und Inschriften aus der Liste anzutippen.": "Choose a formation to tap armaments and inscriptions from the list.", "Claude liest deine Rüstung …": "Claude is reading your armament …", "Claude liest Ausrüstung und Kommandanten und gleicht sie mit deinen Bildern ab …": "Claude is reading equipment and commanders and matching them with your images …", "Keine Rüstung im Screenshot erkannt.": "No armament detected in the screenshot.", "Maximal 12 Inschriften.": "Maximum 12 inscriptions.", "Maximal 6 weitere City-Skins.": "Maximum 6 additional city skins.", "Keine Bilder für diesen Typ.": "No images for this type.", "Hinweis: anderer Typ als dieser Slot – nur wählen, wenn das Item falsch einsortiert ist.": "Note: different type than this slot – only choose if the item is sorted wrongly.", "Andere Spieler sehen alle deine Showcases in deinem Profil": "Other players see all your showcases in your profile", "Alexander der Große": "Alexander the Great", "Alexander Newski": "Alexander Nevsky", "Assurbanipal": "Ashurbanipal", "Björn Eisenseite": "Björn Ironside", "Dschingis Khan": "Genghis Khan", "Edward von Woodstock": "Edward of Woodstock", "Eleonore von Aquitanien": "Eleanor of Aquitaine", "Elisabeth I.": "Elizabeth I", "Friedrich I.": "Frederick I", "Gilgamesch": "Gilgamesh", "Heinrich V.": "Henry V", "Hektor": "Hector", "Herakleios": "Heraclius", "Iwan III.": "Ivan III", "Jeanne d’Arc": "Joan of Arc", "Jeanne d’Arc (Episch)": "Joan of Arc (Epic)", "Johann Hunyadi": "John Hunyadi", "Karl der Große": "Charlemagne", "Karl Martell": "Charles Martel", "Kasimir III.": "Casimir III", "Kleopatra VII.": "Cleopatra VII", "Konstantin der Große": "Constantine the Great", "Kyros der Große": "Cyrus the Great", "Margarete I.": "Margaret I", "Maria I.": "Mary I", "Mehmed II.": "Mehmed II", "Moctezuma I.": "Montezuma I", "Nebukadnezar II.": "Nebuchadnezzar II", "Osman I.": "Osman I", "Pakal der Große": "Pakal the Great", "Philipp II.": "Philip II", "Pippin der Jüngere": "Pepin the Short", "Ramses II.": "Ramesses II", "Richard I.": "Richard I", "Sargon der Große": "Sargon the Great", "Shapur I.": "Shapur I", "Stephan I.": "Stephen I", "Süleyman I.": "Suleiman I", "Thutmosis III.": "Thutmose III", "Wilhelm I.": "William I", "Katharina": "Catherine", "Mathilde von Flandern": "Matilda of Flanders", "Perikles": "Pericles", "Drachenlanzer": "Dragon Lancer", "Schützin": "Markswoman", "Stadtwächter": "City Keeper", "Zenturio": "Centurion", "Afonso I.": "Afonso I", "Artemisia I.": "Artemisia I", "David IV.": "David IV", "Justinian I.": "Justinian I", "Belisarius (Episch)": "Belisarius (Epic)", "Boudica (Episch)": "Boudica (Epic)", "Hermann (Episch)": "Hermann (Epic)", "Scipio (Episch)": "Scipio (Epic)", "Sun Tzu (Episch)": "Sun Tzu (Epic)", "Ragnar (alt)": "Ragnar (old)", "Kommandant": "Commander", '📐 Größe & Effekt': '📐 Size & effect', '🎨 Schrift': '🎨 Text', '▦ Füllung': '▦ Fill', '▢ Rahmen': '▢ Frame', '▢ Rand': '▢ Border', '👁 Ausblenden': '👁 Hide', 'Dein Text': 'Your text', 'Symmetrisch angeordnet': 'Arranged symmetrically',
+        'Füllung': 'Fill', 'Rand': 'Border', 'keine': 'none', 'kein': 'none', 'keiner': 'none', 'Deckkraft': 'Opacity', '↺ Standardwerte': '↺ Defaults', '– nur Größe': '– size only', "Rund": "Round", "Rahmen wählen …": "Choose frame …", "Rahmen wählen": "Choose frame", "Rahmen suchen …": "Search frame …", "kein Rahmen": "no frame", "Gear anzeigen": "Show gear", "nur Größe": "size only", "Hilfslinien": "Guides", "Türkise Hilfslinien beim Ziehen": "Cyan guide lines while dragging", "Duplizieren": "Duplicate", "Im Profil zeigen": "Show in profile", "Alle Showcases": "All showcases", "Aktionspunkte": "Action points", "Gesamt-AP": "Total AP", "Flaschen": "Bottles", "Gems gesamt": "Total gems", "Auf der Hand": "On hand", "Im Rucksack": "In backpack", "Anzeige": "Display", "✓ Showcase kopiert": "✓ Showcase copied", "✓ Rahmen gespeichert": "✓ Frame saved", "✓ Rahmen entfernt": "✓ Frame removed", "Garnison": "Garrison", "Profilbild": "Profile picture", 'Skin suchen …': 'Search skin …', '+ 🛡 Garnison': '+ 🛡 Garrison', '+ 🚩 Rally': '+ 🚩 Rally', '🛡 Garnison': '🛡 Garrison', "Garnison": "Garrison", "Rally": "Rally", "Aktualisieren": "Refresh", "Aus der Cloud neu laden und Überlappungen oben/unten auflösen": "Reload from the cloud and fix overlaps at top/bottom", "Oben": "Top", "Mitte": "Middle", "Unten": "Bottom", "Sets und Rüstungen ausrichten an": "Align sets and armaments at", "Rüstung anzeigen": "Show armament", "Nur Kommandanten": "Commanders only", "Symbol": "Icon", "🏰 anzeigen": "Show 🏰", "👑 anzeigen": "Show 👑", "✓ Showcase aktualisiert": "✓ Showcase refreshed", "Sets und Rüstungen gemeinsam verschieben und vergrößern (gleiche Höhe und Größe)": "Move and resize sets and armaments together (same height and size)", "Rasterfarbe": "Grid colour", "Schwarz": "Black", "Orange": "Orange", "Drehung": "Rotation", "Helligkeit": "Brightness", "Kontrast": "Contrast", "Zurücksetzen": "Reset", "Nur Kommandanten (Garnison)": "Commanders only (garrison)", "Leere Slots ausblenden": "Hide empty slots", "Nur Bild": "Image only", "Details zeigen": "Show details", "Nur das Showcase-Bild anzeigen, ohne Sets und Details darunter": "Show only the showcase image, without sets and details below", "+ City-Skin": "+ City skin", "Ausrüstung": "Equipment", "Scannen": "Scan", "Screenshot auch per Drag & Drop auf dieses Feld · max. 2 Bilder · werden nach dem Auslesen verworfen": "Screenshot also via drag & drop onto this field · max. 2 images · discarded after reading", "Materialkosten je Item (Anzahl). In legendärer Qualität sind es legendäre Materialien, in epischer die gleiche Anzahl lila Materialien (= ¼ legendär).": "Material cost per item (amount). In legendary quality these are legendary materials, in epic the same amount of purple materials (= ¼ legendary).", "kein Allianz-Tag": "no alliance tag", "Noch kein VIP-Stand": "No VIP level yet", "+ Neuer Showcase": "+ New showcase", "Andere Spieler sehen alle deine Showcases in deinem Profil.": "Other players see all your showcases in your profile.", "Die Vorschau steht direkt darüber. Alles lässt sich nach dem Scan von Hand ändern.": "The preview is right above. Everything can be changed by hand after the scan.", "– keine –": "– none –", "Flagge": "Flag", "Schriftrolle": "Scroll", "Weiß": "White", "Blau": "Blue", "Gesamtschaden %": "All damage %", "Gesamtschaden": "All Damage", "Kein": "None", "Führung": "Leadership", "Item wählen": "Choose item", "Legendär": "Legendary", "Episch": "Epic", "Noch kein Material-Scan – Rucksack-Bestand unbekannt.": "No material scan yet – backpack inventory unknown.", "Noch keine Items – Tabelle gear_items in Supabase füllen oder „+ Eigenes Item“.": "No items yet – fill table gear_items in Supabase or use “+ Own item”.", "Hinzufügen": "Add", "Entfernen": "Remove", "Weiteren Skin": "Add another skin", "Stärke": "Width", "Expertise": "Expertise", "Aus Set übernehmen …": "Copy from set …", "Inhalt eines anderen Sets übernehmen": "Copy the content of another set", "Rüstung scannen": "Scan armament", "Rüstung (Armaments)": "Armaments", "Vorschau Rüstung": "Armament preview", "Auf der Bühne anzeigen": "Show on stage", "Abstand": "Spacing", "für alle Sets": "for all sets", "Slot leeren": "Clear slot", "– leer – unten ein Bild antippen": "– empty – tap an image below", "Größe & Effekt": "Size & effect", "Schrift": "Text", "Füllung": "Fill", "Rahmen": "Frame", "Rand": "Border", "Ausblenden": "Hide", "Standardwerte": "↺ Defaults", "Text löschen": "Delete text", "Skin entfernen": "Remove skin", "Skin wählen …": "Choose skin …", "Weiterer City-Skin": "Additional city skin", "Eigener Text": "Custom text", "Sonstige": "Other", "Formation wählen, um Rüstungen und Inschriften aus der Liste anzutippen.": "Choose a formation to tap armaments and inscriptions from the list.", "Claude liest deine Rüstung …": "Claude is reading your armament …", "Claude liest Ausrüstung und Kommandanten und gleicht sie mit deinen Bildern ab …": "Claude is reading equipment and commanders and matching them with your images …", "Keine Rüstung im Screenshot erkannt.": "No armament detected in the screenshot.", "Maximal 12 Inschriften.": "Maximum 12 inscriptions.", "Maximal 6 weitere City-Skins.": "Maximum 6 additional city skins.", "Keine Bilder für diesen Typ.": "No images for this type.", "Hinweis: anderer Typ als dieser Slot – nur wählen, wenn das Item falsch einsortiert ist.": "Note: different type than this slot – only choose if the item is sorted wrongly.", "Andere Spieler sehen alle deine Showcases in deinem Profil": "Other players see all your showcases in your profile", "Alexander der Große": "Alexander the Great", "Alexander Newski": "Alexander Nevsky", "Assurbanipal": "Ashurbanipal", "Björn Eisenseite": "Björn Ironside", "Dschingis Khan": "Genghis Khan", "Edward von Woodstock": "Edward of Woodstock", "Eleonore von Aquitanien": "Eleanor of Aquitaine", "Elisabeth I.": "Elizabeth I", "Friedrich I.": "Frederick I", "Gilgamesch": "Gilgamesh", "Heinrich V.": "Henry V", "Hektor": "Hector", "Herakleios": "Heraclius", "Iwan III.": "Ivan III", "Jeanne d’Arc": "Joan of Arc", "Jeanne d’Arc (Episch)": "Joan of Arc (Epic)", "Johann Hunyadi": "John Hunyadi", "Karl der Große": "Charlemagne", "Karl Martell": "Charles Martel", "Kasimir III.": "Casimir III", "Kleopatra VII.": "Cleopatra VII", "Konstantin der Große": "Constantine the Great", "Kyros der Große": "Cyrus the Great", "Margarete I.": "Margaret I", "Maria I.": "Mary I", "Mehmed II.": "Mehmed II", "Moctezuma I.": "Montezuma I", "Nebukadnezar II.": "Nebuchadnezzar II", "Osman I.": "Osman I", "Pakal der Große": "Pakal the Great", "Philipp II.": "Philip II", "Pippin der Jüngere": "Pepin the Short", "Ramses II.": "Ramesses II", "Richard I.": "Richard I", "Sargon der Große": "Sargon the Great", "Shapur I.": "Shapur I", "Stephan I.": "Stephen I", "Süleyman I.": "Suleiman I", "Thutmosis III.": "Thutmose III", "Wilhelm I.": "William I", "Katharina": "Catherine", "Mathilde von Flandern": "Matilda of Flanders", "Perikles": "Pericles", "Drachenlanzer": "Dragon Lancer", "Schützin": "Markswoman", "Stadtwächter": "City Keeper", "Zenturio": "Centurion", "Afonso I.": "Afonso I", "Artemisia I.": "Artemisia I", "David IV.": "David IV", "Justinian I.": "Justinian I", "Belisarius (Episch)": "Belisarius (Epic)", "Boudica (Episch)": "Boudica (Epic)", "Hermann (Episch)": "Hermann (Epic)", "Scipio (Episch)": "Scipio (Epic)", "Sun Tzu (Episch)": "Sun Tzu (Epic)", "Ragnar (alt)": "Ragnar (old)", "Kommandant": "Commander", '📐 Größe & Effekt': '📐 Size & effect', '🎨 Schrift': '🎨 Text', '▦ Füllung': '▦ Fill', '▢ Rahmen': '▢ Frame', '▢ Rand': '▢ Border', '👁 Ausblenden': '👁 Hide', 'Dein Text': 'Your text', 'Symmetrisch angeordnet': 'Arranged symmetrically',
         '⚠ Wirklich alles symmetrisch anordnen?\n\nAlle Sets, Rüstungen und Anzeigen dieses Showcase werden automatisch neu platziert – deine eigene Anordnung geht dabei verloren.': '⚠ Really arrange everything symmetrically?\n\nAll sets, armaments and displays of this showcase will be repositioned automatically – your own layout will be lost.',
         'Im Profil zeigen': 'Show in profile', 'Alle Showcases': 'All showcases', '🔒 Niemand – alles privat': '🔒 Nobody – all private', 'Privat': 'Private', 'Öffentlich': 'Public',
         'Nur für dich sichtbar': 'Only visible to you', 'Für andere sichtbar': 'Visible to others', 'Privat – nur für dich sichtbar': 'Private – only visible to you', 'Sichtbarkeit gespeichert': 'Visibility saved',
@@ -1112,6 +1118,8 @@ window.I18N = (() => {
         'Set gespeichert · in der Cloud (user_state)': 'Set saved · in the cloud (user_state)', 'Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': 'Saved locally · cloud unreachable, will sync automatically'
       },
       patterns: [
+        [/^Nur „(.+)“$/, 'Only “$1”'],
+        [/^(🛡 Garnison|🚩 Rally) (\d)$/, (m, k, n) => k.replace('Garnison', 'Garrison') + ' ' + n],
         [/^✓ (🛡 Garnison|🚩 Rally) hinzugefügt$/, (m, k) => '✓ ' + k.replace('Garnison', 'Garrison') + ' added'],
         [/^(\d+)\/12 gewählt$/, '$1/12 selected'],
         [/^(Helm|Brust|Waffe|Handschuhe|Beine|Stiefel|Accessoire) ★$/, (m, k) => ({ Helm: 'Helmet', Brust: 'Chest', Waffe: 'Weapon', Handschuhe: 'Gloves', Beine: 'Legs', Stiefel: 'Boots', Accessoire: 'Accessory' })[k] + ' ★'],
@@ -3615,7 +3623,29 @@ window.RokApp = () => {
         </div>
       </div>` : ''}`;
 
-    // ---- Speedups ----
+    // ---- Speedups / AP / Gems (Umschalter oben im Feld, wird pro Gerät gemerkt) ----
+    const pm = (() => { try { return localStorage.getItem('rok_prof_panel') || 'speed'; } catch { return 'speed'; } })();
+    $('profSpeedMode').querySelectorAll('[data-pm]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pm === pm)));
+    $('profSpeedTitle').textContent = pm === 'ap' ? 'Aktionspunkte' : pm === 'gems' ? 'Gems' : 'Speedups';
+    $('profScanSpeed').classList.toggle('hidden', !own || pm !== 'speed');
+    if (pm !== 'speed') {
+      const last = (t, f) => { const l = entries.filter(e => e.type === t && f(e)); return l[l.length - 1] || null; };
+      const tile = (icon, label, val, sub) => `<div class="rounded-xl bg-ink-950/60 border border-ink-700 p-4">
+        <div class="flex items-center gap-2 text-xs uppercase tracking-widest text-slate-400"><span class="text-lg">${icon}</span>${label}</div>
+        <div class="text-2xl font-extrabold text-white tabular-nums mt-1">${val}</div>${sub ? `<div class="text-xs text-slate-400">${sub}</div>` : ''}</div>`;
+      if (pm === 'ap') {
+        const e = last('ap', x => x.total_ap != null || x.ap_50 != null);
+        $('profSpeed').innerHTML = tile('🧪', 'Gesamt-AP', e ? fmt(e.total_ap ?? (50 * (e.ap_50 || 0) + 100 * (e.ap_100 || 0) + 500 * (e.ap_500 || 0) + 1000 * (e.ap_1000 || 0))) : '–', e ? '' : 'keine Daten')
+          + tile('🍶', '50 / 100 AP', e ? `${fmt(e.ap_50 || 0)} / ${fmt(e.ap_100 || 0)}` : '–', 'Flaschen')
+          + tile('🏺', '500 / 1000 AP', e ? `${fmt(e.ap_500 || 0)} / ${fmt(e.ap_1000 || 0)}` : '–', 'Flaschen');
+        $('profSpeedMinor').innerHTML = ''; $('profSpeedStamp').textContent = e?.ts ? `Stand: ${dateLabel(e.ts)}` : '';
+      } else {
+        const e = last('gems', x => x.gems != null);
+        $('profSpeed').innerHTML = tile('💎', 'Gems gesamt', e ? fmt(e.gems) : '–', e ? '' : 'keine Daten')
+          + tile('👛', 'Auf der Hand', e && e.gemsHand != null ? fmt(e.gemsHand) : '–', '') + tile('🎒', 'Im Rucksack', e && e.gemsBag != null ? fmt(e.gemsBag) : '–', '');
+        $('profSpeedMinor').innerHTML = ''; $('profSpeedStamp').textContent = e?.ts ? `Stand: ${dateLabel(e.ts)}` : '';
+      }
+    } else {
     const main = [['universal', 'Universal'], ['training', 'Training'], ['healing', 'Heilung']];
     $('profSpeed').innerHTML = main.map(([k, label]) => {
       const c = SPEED.find(x => x.k === k), m = sp?.[k] || 0;
@@ -3627,6 +3657,7 @@ window.RokApp = () => {
     }).join('');
     $('profSpeedMinor').innerHTML = sp ? ['research', 'building'].map(k => { const c = SPEED.find(x => x.k === k); return `<span>${c.icon} ${c.label}: <b class="text-slate-200">${durText(sp[k] || 0)}</b></span>`; }).join('') : '';
     $('profSpeedStamp').textContent = spTs ? `Stand: ${dateLabel(spTs)}` : '';
+    }
 
     // ---- Bearbeiten ----
     $('profEdit').classList.toggle('hidden', !own);
@@ -4101,7 +4132,9 @@ window.RokApp = () => {
   const SC_IMG_BASE = RokAuth.imgBase();
   const scImgOk = (v) => typeof v === 'string' && ((v.length < 400 && v.startsWith(SC_IMG_BASE) && /^[A-Za-z0-9/_.:?=&-]+$/.test(v))
     || (v.length < 520000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(v)));
-  const scBgNorm = (b) => b?.type === 'img' && scImgOk(b.src) ? { type: 'img', src: b.src } : { type: 'preset', id: SC_BGS[b?.id] ? b.id : 'none' };
+  const SC_PICS = ["burning-harbor-standoff.webp", "dolphin-coral-reef (1).webp", "frontier-camp-brawl.webp", "hillside-cavalry-charge.webp", "jungle-temple-guardians.webp", "pharaoh-triumph-parade.webp", "sky-whale-frozen-lake.webp", "smoldering-castle-siege.webp", "spartan-battle-fury.webp", "spartan-desert-charge.webp", "sun-moon-stained-glass.webp", "supporter-amethyst-aurora.webp", "violet-lightning-tree.webp", "war-table-braziers.webp", "warriors-face-off.webp"];   // Vorlagen in /icons/showcase picture/
+  const scPicUrl = (id) => '/icons/showcase%20picture/' + encodeURIComponent(id);
+  const scBgNorm = (b) => b?.type === 'lib' && /^[a-z0-9() _.-]{1,80}\.(webp|png|jpe?g)$/i.test(b.id || '') ? { type: 'lib', id: b.id } : b?.type === 'img' && scImgOk(b.src) ? { type: 'img', src: b.src } : { type: 'preset', id: SC_BGS[b?.id] ? b.id : 'none' };
   const SC_HEIGHTS = { compact: { label: 'Kompakt', h: 60 }, normal: { label: 'Normal', h: 75 }, tall: { label: 'Hoch', h: 95 }, xl: { label: 'Sehr hoch', h: 120 }, xxl: { label: 'Extra hoch', h: 150 } };
   const SC_ELS = {
     avatar: { label: 'Profilbild',  icon: '🖼', w: 8 },
@@ -4129,12 +4162,12 @@ window.RokApp = () => {
   const scScale = (v) => { const n = +v; return Number.isFinite(n) && n > 0 ? Math.min(2.5, Math.max(0.4, n)) : 1; };
   const scColor = (v) => /^#[0-9a-f]{6}$/i.test(v || '') ? v.toLowerCase() : '';
   const scNum1 = (v) => { if (v == null || v === '') return null; const n = Math.round(parseFloat(String(v).replace(',', '.')) * 10) / 10; return Number.isFinite(n) ? Math.min(999, Math.max(-999, n)) : null; };
-  const scRot = (v) => { const n = Math.round(+v || 0) % 360; return n < 0 ? n + 360 : n; };   // Drehung 0–359°
+  const scRot = (v) => { let n = Math.round(+v || 0) % 360; if (n > 180) n -= 360; if (n < -180) n += 360; return n; };   // Drehung −180 … +180°
   const scElNorm = (w) => { const off = w?.box === false;                 // altes "box: false" = ohne Füllung und Rand
     const fo = w?.fillO == null || w?.fillO === '' ? NaN : +w.fillO;
     return { on: !!w?.on, x: scPos(w?.x, 100), y: scPos(w?.y, 200), s: scScale(w?.s), color: scColor(w?.color), shadow: w?.shadow !== false,
       fill: w?.fill === 'none' || (off && w?.fill == null) ? 'none' : scColor(w?.fill), fillO: Number.isFinite(fo) ? Math.min(100, Math.max(0, Math.round(fo))) : 75,
-      border: w?.border === 'none' || (off && w?.border == null) ? 'none' : scColor(w?.border), bw: Math.min(10, Math.max(0, Math.round(+w?.bw || 0))), r: scRot(w?.r), ni: !!w?.ni, text: '' }; };   // ni = ohne Symbol (Königreich / VIP)
+      border: w?.border === 'none' || (off && w?.border == null) ? 'none' : scColor(w?.border), bw: Math.min(10, Math.max(0, Math.round(+w?.bw || 0))), r: scRot(w?.r), ni: !!w?.ni, round: !!w?.round, frame: typeof w?.frame === 'string' && /^[a-z0-9() _-]{1,60}$/i.test(w.frame) ? w.frame : '', text: '' }; };   // ni = ohne Symbol (Königreich / VIP)
   // eigene Texte im Showcase (ohne Box als Standard) · City-Skin: Katalog-Bild oder eigenes Bild
   const scTxNorm = (t) => ({ ...scElNorm({ ...t, on: true, fill: t?.fill ?? 'none', border: t?.border ?? 'none' }), id: String(t?.id || newId()), text: String(t?.text ?? 'Text').slice(0, 80) });
   const scSkinOk = (v) => typeof v === 'string' && v.length < 200 && /^\/icons\/city%20skins\/[A-Za-z0-9_.%()-]+\.(png|webp|jpe?g)$/i.test(v);   // nur RoK-Skins aus dem Katalog
@@ -4194,14 +4227,15 @@ window.RokApp = () => {
   const scSetNorm = (x) => ({ id: String(x?.id || newId()), name: String(x?.name || '').trim().slice(0, 30), mode: 'manual',
     shot: scImgOk(x?.shot) ? x.shot : '', cmd: [0, 1].map(i => scCmdNorm(x?.cmd?.[i])), gear: scGearNorm(x?.gear),
     x: scPos(x?.x, 100), y: scPos(x?.y, 200), s: scScale(x?.s), r: scRot(x?.r), arm: scArmNorm(x?.arm), priv: false, cg: scInt(x?.cg, 0, 70, 32),
-    heads: !!x?.heads, hideEmpty: !!x?.hideEmpty, kind: ['garrison', 'rally'].includes(x?.kind) ? x.kind : '' });   // kind: Garnison / Rally (nur 2 Kommandanten)   // heads = nur Kommandanten (Garnison) · hideEmpty = leere Slots ausblenden   // cg = Überlappung der Kommandanten in %
+    heads: !!x?.heads, hideEmpty: !!x?.hideEmpty, gearOn: !!x?.gearOn, kind: ['garrison', 'rally'].includes(x?.kind) ? x.kind : '' });   // kind: Garnison / Rally (nur 2 Kommandanten)   // heads = nur Kommandanten (Garnison) · hideEmpty = leere Slots ausblenden   // cg = Überlappung der Kommandanten in %
 
   // Standard-Anordnung ("Symmetrisch anordnen"):
   //   oben links Profilbild, rechts daneben Allianz-Tag (oben) und VIP (darunter), Name oben mittig,
   //   alle Sets in einer Reihe mit ihrer Rüstung direkt darunter, Energie / Kill-Punkte / Verdienst unten nebeneinander.
-  const scSetCells = (x) => x.kind ? 4 : x.heads ? 3 : 9;
+  const scSetCells = (x) => x.kind ? (x.gearOn ? 10 : 4) : x.heads ? 3 : 9;
   const scNormal = (d) => d.sets.map((x, i) => [x, i]).filter(([x]) => !x.kind);   // normale Sets (ohne Garnison/Rally)
-  const SC_KIND = { garrison: '🛡 Garnison', rally: '🚩 Rally' };                       // Höhe eines Sets in Kästchen (Breite immer 4)
+  const SC_KIND = { garrison: '🛡 Garnison', rally: '🚩 Rally' }, SC_KIND_MAX = 3;
+  const scKindNo = (d, x) => d.sets.filter(y => y.kind === x.kind).indexOf(x);   // 0, 1, 2                       // Höhe eines Sets in Kästchen (Breite immer 4)
   const scSetH = (x) => scSetCells(x) * SC_G;
   const scArmH = (a) => a.on && scArmHas(a) ? a.insc.filter(i => i.t).length * 2.7 + (a.formation ? 1.5 : 0) + SC_ARM_STATS.filter(([k]) => a[k]).length * 1.25 + 0.5 : 0;
   // Sets einer Reihe von links nach rechts: … 5 3 1 2 4 6 … – die Gruppe wird immer um die Mittellinie zentriert
@@ -4237,6 +4271,10 @@ window.RokApp = () => {
     (d.xskins || []).forEach(x => scSnapObj('xs:' + x.id, x));
   }
   // Rüstung direkt unter ihr Set, gleich breit wie das Set (4 Kästchen)
+  function scArmShow(x) {                                   // Rüstung einblenden → gleich groß wie das Set, direkt darunter
+    x.arm.on = true; x.arm.s = x.s; x.arm.r = 0; drawStage(); scArmUnder(x); drawStage();
+    const d = D(); if (d.sync && !x.kind) scSyncAlign(d, x);
+  }
   function scArmUnder(x) {
     x.arm.x = x.x; x.arm.s = x.s;
     const i = sc.doc ? D().sets.indexOf(x) : -1, sb = i >= 0 ? scBox('set:' + i, x) : null, ab = i >= 0 ? scBox('arm:' + i, x.arm) : null;
@@ -4265,7 +4303,7 @@ window.RokApp = () => {
     const rowH = (r) => { const l = NS.slice(r * SC_COLS, (r + 1) * SC_COLS).map(([x]) => x); return l.length ? Math.max(...l.map(x => scSetH(x) + (x.arm.on && scArmHas(x.arm) ? G + scArmH(x.arm) : 0))) : 0; };
     const block = Array.from({ length: rows }, (_, r) => rowH(r)).reduce((a, b) => a + b, 0) + (rows - 1) * G;
     const f = block > avail ? Math.max(0.3, Math.floor(avail / block * 4) / 4) : 1;
-    let y = top0;
+    let y = scLine(top0 + Math.max(0, (avail - block * f) / 2), 0);   // Sets mittig zwischen Kopfzeile und Werten
     for (let r = 0; r < rows; r++) {
       const l = NS.slice(r * SC_COLS, (r + 1) * SC_COLS);
       l.forEach(([x, i], k) => {
@@ -4278,14 +4316,17 @@ window.RokApp = () => {
     // Werte unten nebeneinander (je 5×2 Kästchen, 1 Kästchen Abstand), Mitte = Mittellinie
     const tot = stats.length * 5 + Math.max(0, stats.length - 1);
     stats.forEach((k, i) => { wp[k] = { x: 50 + (i * 6 + 2.5 - tot / 2) * G, y: H - G - G }; });
-    d.sets.forEach((x, i) => { if (x.kind) { sp[i] = { x: x.kind === 'garrison' ? 3 * G : 100 - 3 * G, y: H - G - 2 * G, s: 1 }; ap[i] = { ...sp[i] }; } });
+    d.sets.forEach((x, i) => { if (x.kind) { const k = scKindNo(d, x), h = scSetH(x);   // Garnison unten links, Rally unten rechts – nebeneinander
+      const below = d.sets.filter(y => y.kind === x.kind).slice(0, k).reduce((a, y) => a + scSetH(y) + G, 0);   // weitere übereinander nach oben
+      sp[i] = { x: x.kind === 'garrison' ? 3 * G : 100 - 3 * G, y: H - G - below - h / 2, s: 1 }; ap[i] = { ...sp[i] }; } });
     return { wp, sp, ap, anch, need: top0 + block + bottom };
   }
-  function scRecenter(d) {                                 // Sets jeder Reihe um die Mitte zentrieren – Rüstung wandert mit
+  function scRecenter(d, keep) {                           // Sets jeder Reihe gleichmäßig verteilen – um die Mitte bzw. um das gezogene Set
     const NS = scNormal(d).map(([x]) => x);
     for (let r = 0; r * SC_COLS < NS.length; r++) {
       const l = NS.slice(r * SC_COLS, (r + 1) * SC_COLS);
-      l.forEach((x, k) => { const nx = 50 + (scRowX(l.length, k) - 50) * (x.s || 1); if (x.arm.x != null && Math.abs(x.arm.x - x.x) < 0.5) x.arm.x = nx; x.x = nx; });
+      const off = keep && l.includes(keep) ? keep.x - (50 + (scRowX(l.length, l.indexOf(keep)) - 50) * (keep.s || 1)) : 0;
+      l.forEach((x, k) => { const nx = 50 + off + (scRowX(l.length, k) - 50) * (x.s || 1); if (x.arm.x != null && Math.abs(x.arm.x - x.x) < 0.5) x.arm.x = nx; x.x = nx; });
     }
   }
   function scAutoLayout(d, onlyMissing) {
@@ -4325,8 +4366,10 @@ window.RokApp = () => {
     const NS = scNormal(d), ri = NS.findIndex(([x]) => x === ref); if (ri < 0) return;
     const row = NS.filter((_, k) => Math.floor(k / SC_COLS) === Math.floor(ri / SC_COLS));
     const A = d.syncA || 'top', pick = (b) => A === 'top' ? b.t : A === 'bottom' ? b.b : b.cy, put = (o, b, v) => { o.y = A === 'top' ? v + b.h / 2 : A === 'bottom' ? v - b.h / 2 : v; };
+    const sizeChanged = row.some(([x]) => x.s !== ref.s);
     row.forEach(([x]) => { x.s = ref.s; if (x.arm.on && ref.arm.on) x.arm.s = ref.arm.s; });
-    scRecenter(d); drawStage();
+    if (sizeChanged) scRecenter(d, ref);                     // nur bei Größenänderung neu verteilen – Verschieben nach links/rechts bleibt
+    drawStage(); if (A === 'none') return;
     const rb = scBox('set:' + d.sets.indexOf(ref), ref); if (!rb) return;
     row.forEach(([x, i]) => { const b = scBox('set:' + i, x); if (b) put(x, b, pick(rb)); });
     drawStage();
@@ -4371,8 +4414,8 @@ window.RokApp = () => {
     if (!sets.length && !allowEmpty) sets = [{}];
     const old = d?.widgets || {};                                                                            // Format v2
     const o = { id: String(d?.id || newId()), title: String(d?.title || `Showcase ${i + 1}`).trim().slice(0, 30) || `Showcase ${i + 1}`,
-      sets: sets.slice(0, 17).map(scSetNorm).filter((x, i, a) => !x.kind || a.findIndex(y => y.kind === x.kind) === i), bg: scBgNorm(d?.bg), h: SC_HEIGHTS[d?.h] ? d.h : 'normal', grid: d?.grid !== false,
-      gridC: SC_GRID_C[d?.gridC] ? d.gridC : 'gold', sync: d?.sync !== false, syncA: ['top', 'center', 'bottom'].includes(d?.syncA) ? d.syncA : 'top', bgB: scInt(d?.bgB, 20, 160, 100), bgC: scInt(d?.bgC, 40, 200, 100),
+      sets: sets.slice(0, 21).map(scSetNorm).filter((x, i, a) => !x.kind || a.slice(0, i).filter(y => y.kind === x.kind).length < SC_KIND_MAX), bg: scBgNorm(d?.bg), h: SC_HEIGHTS[d?.h] ? d.h : 'normal', grid: d?.grid !== false,
+      gridC: SC_GRID_C[d?.gridC] ? d.gridC : 'gold', sync: d?.sync !== false, syncA: ['top', 'center', 'bottom', 'none'].includes(d?.syncA) ? d.syncA : 'top', guides: d?.guides !== false, bgB: scInt(d?.bgB, 20, 160, 100), bgC: scInt(d?.bgC, 40, 200, 100),
       els: Object.fromEntries(Object.keys(SC_ELS).map(k => [k, scElNorm(k === 'kd' && d?.els?.ally?.on && !d?.els?.kd?.on ? { ...d.els.ally, text: '' } : (d?.els?.[k] || old[k]))])),   // altes Allianz-Feld → Königreich
       texts: (Array.isArray(d?.texts) ? d.texts : []).slice(0, 12).map(scTxNorm),
       xskins: (Array.isArray(d?.xskins) ? d.xskins : []).filter(x => scSkinOk(x?.src)).slice(0, 6).map(x => ({ ...scElNorm({ ...x, on: true }), id: String(x.id || newId()), src: x.src })), skin: d?.skin === '/icons/skins/skin_01.webp' ? '/icons/city%20skins/Hawa%20Mahal.png' : scSkinOk(d?.skin) ? d.skin : '' };
@@ -4385,12 +4428,12 @@ window.RokApp = () => {
     let list = Array.isArray(raw?.list) ? raw.list : (raw && (raw.sets || raw.cmd || raw.gear) ? [raw] : []);
     if (!list.length) list = [{}];
     list = list.slice(0, SC_MAX_LIST).map((x, i) => scNorm(x, i, pub));
-    const show = 'all';                                       // Showcases sind immer für alle sichtbar
+    const show = list.some(x => x.id === raw?.show) ? raw.show : 'all';   // welcher Showcase im Profil gezeigt wird (alle oder einer)
     return { v: 3, pub, show, list, active: list.some(x => x.id === raw?.active) ? raw.active : list[0].id, updated: +raw?.updated || 0 };
   }
   // Was andere sehen dürfen: nur gewählte Showcases, ohne private Sets. null = gar nichts.
   function scPublicDoc(doc) {                               // alle Showcases und alle Sets sind öffentlich
-    const list = doc.list.map(x => ({ ...x, sets: x.sets.map(s => ({ ...s, priv: false })) }));
+    const list = doc.list.filter(x => doc.show === 'all' || !doc.show || x.id === doc.show).map(x => ({ ...x, sets: x.sets.map(s => ({ ...s, priv: false })) }));
     if (!list.length) return null;
     return { v: 3, pub: true, list, active: list.some(x => x.id === doc.active) ? doc.active : list[0].id, updated: doc.updated };
   }
@@ -4535,9 +4578,9 @@ window.RokApp = () => {
   $('scBgR').addEventListener('click', () => { if (!sc.own) return; const d = D(); d.bgB = 100; d.bgC = 100; drawBgPick(); scApplyBg(); scSaveSoon(); });
   function scApplyBg() {
     const d = D(), b = d.bg, el = $('scStageBg');
-    el.style.backgroundImage = b.type === 'img' ? `url("${b.src}")` : (SC_BGS[b.id]?.css || '');
+    el.style.backgroundImage = b.type === 'img' ? `url("${b.src}")` : b.type === 'lib' ? `url("${scPicUrl(b.id)}")` : (SC_BGS[b.id]?.css || '');
     el.style.filter = (d.bgB ?? 100) !== 100 || (d.bgC ?? 100) !== 100 ? `brightness(${d.bgB ?? 100}%) contrast(${d.bgC ?? 100}%)` : '';
-    $('scStageShade').classList.toggle('hidden', b.type !== 'img');
+    $('scStageShade').classList.toggle('hidden', b.type !== 'img' && b.type !== 'lib');
     $('scStage').classList.toggle('bg-ink-950/40', b.type !== 'img' && b.id === 'none');
   }
   function drawBgPick() {
@@ -4547,15 +4590,27 @@ window.RokApp = () => {
       const on = b.type === 'preset' && b.id === k;
       return `<button type="button" data-bg="${k}" aria-pressed="${on}" title="${v.label}" class="${sw} ${on ? 'border-gold-400' : 'border-ink-600 hover:border-gold-500/60'}"
           style="background:${v.css || '#0c1019'}"><span class="absolute inset-x-0 bottom-0 text-[9px] font-semibold text-white bg-black/45 leading-4">${v.label}</span></button>`;
-    }).join('') + `<label for="scBgFile" title="Eigenes Bild hochladen" class="cursor-pointer ${sw} ${b.type === 'img' ? 'border-gold-400' : 'border-dashed border-gold-500/60 hover:border-gold-400'} grid place-items-center bg-ink-900 text-[10px] text-gold-300 font-semibold"
+    }).join('') + SC_PICS.map(id => { const on = b.type === 'lib' && b.id === id;
+      return `<button type="button" data-bgpic="${esc(id)}" aria-pressed="${on}" title="${esc(id.replace(/\.\w+$/, '').replace(/[-_]+/g, ' '))}" class="${sw} ${on ? 'border-gold-400' : 'border-ink-600 hover:border-gold-500/60'}" style="background:url('${scPicUrl(id)}') center/cover"></button>`; }).join('')
+      + `<label for="scBgFile" title="Eigenes Bild hochladen" class="cursor-pointer ${sw} ${b.type === 'img' ? 'border-gold-400' : 'border-dashed border-gold-500/60 hover:border-gold-400'} grid place-items-center bg-ink-900 text-[10px] text-gold-300 font-semibold"
         ${b.type === 'img' ? `style="background:url('${b.src}') center/cover"` : ''}>${b.type === 'img' ? '<span class="absolute inset-x-0 bottom-0 text-[9px] text-white bg-black/45 leading-4 text-center">Eigenes</span>' : '📷 Bild'}</label>`;
   }
+  (async function syncPics() {
+    let list = null;
+    try { const c = JSON.parse(localStorage.getItem('rok_pic_files') || 'null'); if (c && Date.now() - c.t < 3600e3 && Array.isArray(c.list)) list = c.list; } catch {}
+    if (!list) { try { const r = await fetch('https://api.github.com/repos/marcopopp51200-coder/rok-scanner/contents/icons/showcase%20picture', { headers: { accept: 'application/vnd.github+json' } });
+      if (!r.ok) return; list = (await r.json()).map(x => String(x?.name || '')).filter(n => /\.(webp|png|jpe?g)$/i.test(n));
+      try { localStorage.setItem('rok_pic_files', JSON.stringify({ t: Date.now(), list })); } catch {} } catch { return; } }
+    list.forEach(f => { if (!SC_PICS.includes(f)) SC_PICS.push(f); });
+  })();
   $('scBgBtn').onclick = () => {
     const open = $('scBgPick').classList.toggle('hidden') === false;
     $('scBgBtn').setAttribute('aria-expanded', String(open));
     if (open) { scOpen = true; scApplyOpen(); drawBgPick(); }
   };
   $('scBgList').addEventListener('click', (ev) => {
+    const pic = ev.target.closest('[data-bgpic]');
+    if (pic && sc.own) { D().bg = { type: 'lib', id: pic.dataset.bgpic }; scApplyBg(); drawBgPick(); scSave('✓ Hintergrund gespeichert'); return; }
     const b = ev.target.closest('[data-bg]'); if (!b || !sc.own) return;
     D().bg = { type: 'preset', id: b.dataset.bg }; scApplyBg(); drawBgPick(); scSave('✓ Hintergrund gespeichert');
   });
@@ -4625,7 +4680,7 @@ window.RokApp = () => {
       ${cn(0) || cn(1) ? `<div class="flex flex-col items-center text-center leading-tight [text-shadow:0_1px_3px_#000]" style="margin-top:.35cqw">
         ${cn(0) ? `<div class="font-bold text-white whitespace-nowrap" style="font-size:max(7px,1.05cqw)">${esc(cn(0))}</div>` : ''}
         ${cn(1) ? `<div class="text-slate-300 whitespace-nowrap" style="font-size:max(6px,.88cqw)">${esc(cn(1))}</div>` : ''}</div>` : ''}
-      ${x.heads || x.kind ? '' : `<div class="relative" style="width:${2.9 * G}cqw;aspect-ratio:1/2;margin-top:.4cqw">${scGearBoard(x.gear, true, hide)}</div>`}
+      ${x.heads || (x.kind && !x.gearOn) ? '' : `<div class="relative" style="width:${2.9 * G}cqw;aspect-ratio:1/2;margin-top:.4cqw">${scGearBoard(x.gear, true, hide)}</div>`}
     </div>`;
   }
   const SC_DEF_COLOR = { name: '#f5c542', tag: '#fde68a', kd: '#fde68a', vip: '#f5c542', power: '#ffffff', kp: '#ffffff', merit: '#ffffff' };
@@ -4634,7 +4689,22 @@ window.RokApp = () => {
     const box = scBoxSt(o);
     return `<div class="rounded-lg font-bold whitespace-pre text-center" style="color:${o.color || '#ffffff'};${o.shadow ? 'filter:drop-shadow(0 2px 3px rgba(0,0,0,.85));' : ''}${box ? box + 'padding:.5cqw 1.2cqw;' : ''}font-size:max(11px,2.2cqw)">${esc(o.text) || '&nbsp;'}</div>`;
   }
+  // Avatar-Rahmen aus /icons/avatar/ – je Rahmen: Mitte x, Mitte y, Radius des Lochs (in % der Bildbreite)
+  const AV_FRAMES = {"a-heros-ways":[50.0,50.7,18],"ace-in-the-hole":[49.7,52.3,18],"aegean-origins":[50.0,50.3,22.3],"all-out-rumble":[52.7,45.0,22.3],"amun-ra-the-supreme":[50.0,45.0,21.0],"ancient-city-fireworks":[49.7,48.0,19.3],"ancient-torc":[48.3,48.3,20.9],"angkor-dreams":[50.3,50,21.7],"anniversary-letter":[48.0,46.3,21.7],"asgard":[52.3,51.7,18],"autumnal-bounty":[51.0,50.3,18],"autumnal-splendor":[53.3,52.3,18.7],"avatar-of-bast":[49.7,55.7,19.6],"babylonian-gardens":[44.7,51.3,18.9],"banquet-regalia":[50.0,55.7,18.6],"barbarian-incursion":[48.3,51.0,20.3],"beneath-a-starry-night":[48.7,44.7,18],"beneath-autumns-eternal-moon":[52.7,48.7,19.7],"birthday-bash":[51.7,50,19.0],"black-falcon":[50,47.7,18],"blazing-star":[45.0,50.0,18],"bon-voyage":[55.0,45.7,19.0],"briar-rose":[50.3,50,18],"brilliant-dome":[50.0,50.0,18.7],"bronze-face":[50.0,51.7,18],"bronze-lotus":[45.3,51.7,19.0],"bucolic-poetry":[51.7,50.3,20.7],"bunny-bash":[50,52.3,21.3],"bunny-blessed":[50,50,18],"bunny-bonnet":[47.3,53.0,18],"capitoline-wolf":[50,47.3,23.3],"celestial-sea":[52.3,49.7,18],"champions-wreath (2)":[49.7,50,19.0],"champions-wreath":[49.7,50,19.0],"city-of-angels":[50.0,48.3,18],"cloud-palace":[50.3,46.3,18.7],"cloudpiercing-plumes":[47.0,47.3,18],"clouds-rise-like-dragons":[51.7,52.0,20.0],"colossus-of-rhodes":[44.7,53.3,18.3],"cranes-cry":[51.3,50,18],"d-y-nt":[54.3,52.3,19.7],"deer-friends":[44.3,51.7,18],"desert-eagle":[48.3,44.7,21.7],"dionysian-crown":[51.0,51.0,18],"divine-favor":[50.7,49.0,21.0],"divine-laurels":[49.7,50,18],"dome-carvings":[49.7,50.0,23.7],"down-am-main-street":[53.0,48.7,18],"dragon-boat-drumroll":[50,45.7,21.0],"dragon-dance":[49.0,52.3,19.9],"drifting-down-a-river-of-stars":[50.3,50.0,22.0],"dust-devil":[49.0,50.7,18.3],"easter-egg":[55.3,46.7,18],"egyptian-blue":[50.3,46.0,24.0],"eight-golden-blossoms":[55.7,49.3,18],"emerging-phantoms":[50.3,49.7,21.3],"enchanted-pumpkin":[53.0,53.7,18],"endless-melody":[48.7,50,22.5],"entrancing-witch":[46.7,47.7,20.3],"eventide-witch":[50.3,48.3,18],"ever-changing-world":[48.3,54.0,18],"eye-incarnadine":[51.3,53.0,18.9],"eye-of-power":[46.7,49.0,20.7],"face-changer":[50.7,54.0,19.9],"fall-of-troy":[44.7,55.0,18],"fearless-charger":[49.7,51.3,23.3],"festival-of-spring":[50.3,53.0,18],"fireworks-festival":[48.3,49.7,18],"flames-of-apollo":[50.0,48.3,20.0],"flames-of-rebirth":[49.7,51.7,21.3],"flames-of-xibalba":[47.7,50,18],"fleur-de-lys":[45.7,45.0,20.7],"floral-aurora":[48.3,52.3,19.3],"flowers-and-scriptures":[49.3,49.3,20.3],"founder":[49.7,49.7,27.0],"fragrant-waters":[53.0,47.3,20.3],"frightful-night":[48.0,47.0,19.9],"frostborn-legend":[49.0,52.3,20.0],"frozen-treats":[51.7,45.3,18],"gae-gyeongbok":[50.3,48.7,18],"garden-grove":[55.0,47.7,18],"gate-of-all-nations":[48.7,52.7,19.3],"gemmed-crown":[49.7,50,24.6],"gilded-ruyi-scepter":[45.3,51.0,19.0],"gilded-wings":[50,46.3,20.0],"glittering-sparkles":[47.3,50,19.3],"gobbled-up":[50.7,51.0,18],"goddess-of-joy":[52.3,49.0,20.7],"golden-anubis":[50.3,50,19.0],"golden-dragon":[50.7,46.3,18],"golden-eye-of-ra":[50,52.3,22.0],"golden-laurels":[50.3,44.7,23.3],"golden-pyramidions":[49.7,45.0,19.3],"golden-sunbird":[50.3,50.3,20.0],"golden-war-helm":[50.7,54.7,21.3],"golden-window-art":[50.0,51.3,22.7],"goldwood-frame":[47.7,50.0,23.0],"governor-of-the-year-2024":[49.7,52.3,19.7],"governors-gambit":[49.7,46.7,19.3],"grand-ball":[46.7,50,23.3],"guqin-melody":[49.7,47.0,19.7],"happy-chorus":[51.3,47.7,18],"harmonic-radiance":[50,49.7,18],"harvest-wreath":[52.7,49.0,21.3],"heart-of-the-north":[51.3,50,20.3],"high-sea-legend":[50.7,51.7,18],"horn-of-victory":[48.7,46.0,22.7],"immortal-legacy":[49.3,53.0,19.0],"imperial-impression":[47.3,48.3,20.7],"imperial-terrace":[48.0,50,21.7],"imperium-sine-fine":[50.0,51.3,18.7],"ink-of-eons":[53.3,45.3,20.9],"ink-wine-and-song":[54.7,44.3,18],"iridescent-ice":[51.3,51.3,19.3],"janggu-in-the-wind":[45.0,47.0,21.6],"journey-together":[54.0,49.0,18.7],"judgement-of-maat":[50.7,47.3,20.0],"karakus-treasure":[46.0,53.0,19.0],"key-of-kingship":[50.7,50.0,18],"killer-kunoichi":[47.7,50,18],"knife-of-khnum":[53.3,49.7,19.0],"lampshadow-evening":[54.7,51.3,20.0],"legendary-arms":[47.0,48.7,21.7],"legendary-dancer":[50.3,55.3,21.0],"leonine-crown":[50.3,55.7,18],"living-infinite":[55.0,47.7,19.3],"lotus-lake":[46.0,45.0,18.9],"lotus-of-life":[49.3,49.7,20.3],"love-after-dusk":[52.7,44.7,18.6],"loveliest-of-trees":[52.0,49.0,19.0],"luck-of-the-lion":[52.7,45.7,19.7],"lucky-koilligraphy":[47.3,47.0,18.7],"lunar-longing":[46.3,49.3,18],"lyrical-lilies":[53.3,50,21.0],"magpie-branches":[50.7,46.0,18],"maritime-tidings":[50.7,46.0,18.7],"mark-of-shu":[47.0,50.0,19.9],"matadors-regalia":[46.7,44.7,20.9],"mayan-secrets":[49.7,52.0,20.0],"meow-moneymaker":[52.7,52.7,19.7],"metropolis-melodies":[48.3,50,20.3],"moment-of-celebration":[50,47.0,21.6],"moonlit-teatime":[52.3,48.0,21.3],"moonstone-crown":[46.3,45.0,18],"morning-mist":[49.7,52.7,21.3],"mycenaean-pottery":[53.0,44.3,18],"nautical-compass":[51.7,49.3,20.7],"nehebkaus-ward":[50.3,52.7,18.6],"neon-memories":[49.0,47.3,18],"nilotic-memories":[49.3,50.7,19.3],"oer-the-fields":[47.7,48.0,19.6],"olympia":[48.3,50,19.0],"onward-and-upward":[49.0,50.0,18],"origarland":[46.0,50,20.0],"out-with-the-old":[51.7,53.3,18],"p-s-i-love-you":[49.3,49.3,22.3],"paper-dragon":[49.7,48.3,20.0],"paths-of-the-stars":[50.7,47.7,23.3],"pavilion-serenity":[52.7,44.7,19.6],"pawsome-protection":[50.0,53.7,20.6],"pearl-of-the-far-east":[48.7,50.0,18],"pesky-pumpkin":[47.0,54.3,18],"phantasmagoria":[49.7,50,19.0],"porcelain-pusher":[50,48.3,19.7],"prismatic-kaleidoscope":[48.3,46.3,22.0],"quill-pals":[50,50.3,18.6],"quinquennial-crown":[50.0,47.0,18],"ramadan-mubarak":[49.7,52.0,20.7],"remnants-of-time":[50.7,51.3,20.3],"resonant-dawn":[50,49.7,18],"rheinische-sinfonie":[51.7,51.7,20.3],"rhythm-of-bamboo":[49.3,47.7,25.0],"riddle-of-the-desert":[50,54.3,18.3],"rising-phoenix":[50.3,51.0,19.7],"rites-of-kings":[50,48.7,21.3],"rose-petals":[46.7,44.3,20.3],"royal-respite (1)":[53.3,50,19.3],"royal-respite":[53.3,50,19.3],"sacred-garden":[48.7,52.7,19.3],"sakura-fantasy":[47.7,46.3,23.3],"samurai-headgear":[49.3,50,18],"sanguine-favor":[46.3,45.3,18],"santa-claus":[50,47.0,18],"scent-of-sakura":[49.7,49.3,18.7],"scroll-of-the-stars":[52.0,49.0,22.3],"sea-of-distant-dreams":[51.7,46.3,18.9],"sea-scion":[51.3,50.7,18.3],"seaside-rendezvous":[51.3,45.3,18.6],"senet-or":[54.0,49.3,19.7],"sharkpunk":[53.0,50,18],"sharp-bites":[53.7,50,18],"silver-anubis":[50.3,55.0,18],"silver-eye-of-ra":[52.3,51.7,23.0],"skyward-spires":[49.3,48.0,18],"solar-barque":[49.7,49.3,21.0],"sphinx":[49.7,53.0,18],"spirit-of-the-age":[49.7,48.7,18],"splendid-foresight":[49.3,49.3,18.3],"springs-birdsong":[51.3,45.7,20.0],"star-crossed-lovers":[54.7,50,19.3],"steadfast-oath":[50.3,47.0,19.3],"steelborne-song":[51.0,48.3,22.3],"steelborne-spring":[51.0,48.3,22.3],"strength-of-the-gods":[50,54.3,19.2],"sumerian-memories":[47.7,47.0,20.3],"summer-lilies":[51.3,46.0,18.3],"summer-nights":[45.3,55.7,18],"swallows-return":[46.3,50,20.7],"swan-love":[49.0,47.0,24.6],"sweet-meeting":[50,50,19.2],"sweet-summer":[52.7,50.7,18.3],"sweetest-dreams":[49.3,44.7,19.3],"take-a-turn":[50.7,50.3,21.3],"tasseled-crown":[50.3,55.7,21.3],"tempered-flame":[54.0,46.7,19.3],"temple-of-artemis":[50,46.7,23.3],"thanksgiving-dinner":[48.0,46.0,21.0],"thanksgiving-harvest":[50.0,50,20.7],"the-great-wall":[50,51.0,20.7],"theater-of-muses":[51.0,47.3,18.9],"thistles-and-thorns":[49.7,50.3,19.7],"time-flies":[48.7,50.0,18],"tis-the-season":[44.7,49.0,20.3],"tumi":[45.0,53.7,18],"turquoise-comforts":[45.3,47.7,19.3],"turquoise-invocation":[45.7,46.7,19.3],"undersea-kingdom":[51.0,49.7,18],"unequalled-glory":[47.0,50,19.7],"vile-witch":[50,53.0,21.3],"wanderer-of-duat":[53.0,51.0,20.9],"war-incarnate":[46.3,45.3,18],"warmth-of-spring-49":[49.7,49.3,18],"wave-warlord":[51.3,50.7,18.3],"wavedancer":[52.7,45.7,20.7],"waveglimmer":[50,44.3,18],"wild-spirit":[46.3,50,21.3],"will-of-the-empire":[50.3,47.7,19.0],"wind-of-the-andes":[49.7,50,22.3],"wings-of-iset":[50.7,48.0,21.0],"wings-of-tasi":[54.7,50,19.6],"winter-warmth":[53.3,51.7,18],"words-of-love":[50,52.7,18],"wormwood-and-wine":[50.0,50.7,18],"wrath-of-anubis":[45.0,50,18.9],"year-of-the-rat":[51.3,50,22.3]};
+  const avFrameImg = (id) => '/icons/avatar/' + encodeURIComponent(id) + '.webp';
+  const avFrameName = (id) => id.replace(/\s*\(\d+\)$/, '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  (async function syncFrames() {                           // neue Rahmen im GitHub-Ordner automatisch übernehmen
+    let list = null;
+    try { const c = JSON.parse(localStorage.getItem('rok_frame_files') || 'null'); if (c && Date.now() - c.t < 3600e3 && Array.isArray(c.list)) list = c.list; } catch {}
+    if (!list) { try { const r = await fetch('https://api.github.com/repos/marcopopp51200-coder/rok-scanner/contents/icons/avatar', { headers: { accept: 'application/vnd.github+json' } });
+      if (!r.ok) return; list = (await r.json()).map(x => String(x?.name || '')).filter(n => /\.webp$/i.test(n)).map(n => n.slice(0, -5));
+      try { localStorage.setItem('rok_frame_files', JSON.stringify({ t: Date.now(), list })); } catch {} } catch { return; } }
+    list.forEach(f => { if (!AV_FRAMES[f]) AV_FRAMES[f] = [50, 50, 24]; });
+  })();
   const scSkinHtml = (src, w) => `<img src="${src}" alt="" draggable="false" class="block max-w-none object-contain" style="box-sizing:border-box;width:${3 * SC_G}cqw;height:${3 * SC_G}cqw;border-radius:1cqw;${w.border === 'none' ? '' : `border:${w.bw || 2}px solid ${w.border || 'rgba(245,197,66,.8)'};`}${w.fill === 'none' ? '' : `background:${scRgba(w.fill || '#07090f', w.fillO / 100)};`}${w.shadow ? 'filter:drop-shadow(0 6px 10px rgba(0,0,0,.6));' : ''}">`;
+  // VIP-Symbol aus /icons/anything/vip<Stufe>.webp (fehlt die Stufe: vip16.webp)
+  const scVipIcon = (lvl) => { const n = Math.max(0, Math.min(20, Math.round(+lvl || 16)));
+    return `<img src="/icons/anything/vip${n}.webp" alt="" draggable="false" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='/icons/anything/vip16.webp'}" style="height:1.45em;width:auto;margin-right:.3em;flex:none">`; };
   function scWidget(k, w) {
     const st = sc.stats, W = SC_ELS[k], shadow = w.shadow ? 'filter:drop-shadow(0 2px 3px rgba(0,0,0,.85));' : '';
     const boxSt = scBoxSt(w), box = 'rounded-lg', own = (auto) => auto;   // Werte kommen immer aus dem Profil
@@ -4647,7 +4717,14 @@ window.RokApp = () => {
       const av = st.avatar, letter = String(st.name || '?').charAt(0).toUpperCase();
       const inner = isImgAv(av) ? `<img src="${av}" alt="" draggable="false" class="w-full h-full object-cover">`
         : `<span class="w-full h-full grid place-items-center ${av ? 'bg-ink-800' : 'bg-gradient-to-br from-gold-400 to-gold-600 text-ink-950 font-bold'}" style="font-size:3.4cqw">${esc(av && av.length <= 8 ? av : letter)}</span>`;
-      return `<div class="overflow-hidden" style="width:${3 * SC_G}cqw;height:${3 * SC_G}cqw;box-sizing:border-box;border-radius:1.2cqw;${w.border === 'none' ? '' : `border:${w.bw || 2}px solid ${w.border || 'rgba(245,197,66,.8)'};`}${w.shadow ? 'box-shadow:0 0 14px rgba(245,197,66,.35),0 4px 10px rgba(0,0,0,.6);' : ''}">${inner}</div>`;
+      const F = w.frame && AV_FRAMES[w.frame];
+      if (F) {                                                  // Rahmen: Bild rund im Loch zentriert, Rahmen darüber
+        const S = 3 * SC_G, D = (2 * F[2] + 1.5) / 100 * S;
+        return `<div class="relative" style="width:${S}cqw;height:${S}cqw">
+          <div class="absolute overflow-hidden rounded-full" style="width:${D}cqw;height:${D}cqw;left:${F[0] / 100 * S - D / 2}cqw;top:${F[1] / 100 * S - D / 2}cqw">${inner}</div>
+          <img src="${avFrameImg(w.frame)}" alt="" draggable="false" class="absolute inset-0 w-full h-full object-contain pointer-events-none" style="${w.shadow ? 'filter:drop-shadow(0 4px 8px rgba(0,0,0,.55));' : ''}"></div>`;
+      }
+      return `<div class="overflow-hidden" style="width:${3 * SC_G}cqw;height:${3 * SC_G}cqw;box-sizing:border-box;border-radius:${w.round ? '50%' : '1.2cqw'};${w.border === 'none' ? '' : `border:${w.bw || 2}px solid ${w.border || 'rgba(245,197,66,.8)'};`}${w.shadow ? 'box-shadow:0 0 14px rgba(245,197,66,.35),0 4px 10px rgba(0,0,0,.6);' : ''}">${inner}</div>`;
     }
     const goldTxt = !w.color && (k === 'name' || k === 'vip');
     const col = w.color ? `color:${w.color};` : (goldTxt ? '' : `color:${SC_DEF_COLOR[k]};`);
@@ -4656,7 +4733,7 @@ window.RokApp = () => {
     if (k === 'name') return `<div class="${box} font-display font-extrabold whitespace-nowrap" style="${col}${shadow}${pad}font-size:max(10px,2.5cqw)" translate="no">${gold(esc(st.name || ''))}</div>`;
     if (k === 'tag') return `<div class="${box} font-bold whitespace-nowrap" style="${col}${shadow}${pad}font-size:max(8px,1.65cqw)" translate="no">${own(`[${esc(st.tag || '–')}]`)}</div>`;
     if (k === 'kd') return `<div class="${box} font-bold whitespace-nowrap" style="${col}${shadow}${pad}font-size:max(8px,1.55cqw)">${own(`${w.ni ? '' : '🏰 '}Königreich ${esc(st.kd || '–')}`)}</div>`;
-    if (k === 'vip') return `<div class="${box} font-display font-extrabold whitespace-nowrap" style="${col}${shadow}${pad}font-size:max(8px,1.7cqw)">${w.ni ? '' : '👑 '}${gold(st.vip != null ? vipName(st.vip) : 'VIP –')}</div>`;
+    if (k === 'vip') return `<div class="${box} font-display font-extrabold whitespace-nowrap" style="${col}${shadow}${pad}font-size:max(8px,1.7cqw)">${w.ni ? '' : scVipIcon(st.vip)}${gold(st.vip != null ? vipName(st.vip) : 'VIP –')}</div>`;
     const v = st[k];
     return `<div class="${box} text-center flex flex-col justify-center" style="width:${5 * SC_G}cqw;height:${2 * SC_G}cqw;box-sizing:border-box;${boxSt}${shadow}padding:0 .8cqw">
       <div class="uppercase tracking-widest whitespace-nowrap overflow-hidden text-ellipsis ${w.color ? '' : 'text-slate-400'}" style="${w.color ? `color:${w.color};opacity:.8;` : ''}font-size:max(7px,.95cqw)">${W.icon} ${W.label}</div>
@@ -4686,9 +4763,15 @@ window.RokApp = () => {
     $('scListBar').classList.toggle('hidden', !sc.own && !many);
     $('scListBar').innerHTML = doc.list.map(x => `<button type="button" data-scl="${esc(x.id)}" aria-pressed="${x.id === doc.active}" class="seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold border border-ink-700 transition" translate="no">${esc(x.title)}</button>`).join('')
       + (sc.own ? (doc.list.length < SC_MAX_LIST ? `<button type="button" id="scNewList" class="${b} border-dashed border-gold-500/60 text-gold-300 hover:border-gold-400">+ Neuer Showcase</button>` : '')
+        + (doc.list.length < SC_MAX_LIST ? `<button type="button" id="scDupList" class="${b} border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⧉ Duplizieren</button>` : '')
         + `<button type="button" id="scRefresh" title="Aus der Cloud neu laden und Überlappungen oben/unten auflösen" class="${b} border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⟳ Aktualisieren</button>`
         + `<button type="button" id="scRenList" class="${b} border-ink-600 hover:border-gold-500/60 hover:text-gold-300">✎ Umbenennen</button>`
         + (many ? `<button type="button" id="scDelList" class="${b} border-red-500/40 text-red-300 hover:bg-red-500/10">🗑 Showcase löschen</button>` : '')
+        + (many ? `<label class="ml-auto inline-flex items-center gap-2 text-xs text-slate-300">👁 Im Profil zeigen
+            <select id="scShow" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-gold-500">
+              <option value="all"${doc.show === 'all' ? ' selected' : ''}>Alle Showcases</option>
+              ${doc.list.map(x => `<option value="${esc(x.id)}"${doc.show === x.id ? ' selected' : ''}>Nur „${esc(x.title)}“</option>`).join('')}
+            </select></label>` : '')
         : '');
     if (sc.own) $('scListBar').insertAdjacentHTML('beforeend', '<div class="w-full text-[11px] text-slate-500">👁 Andere Spieler sehen alle deine Showcases in deinem Profil.</div>');
   }
@@ -4696,7 +4779,7 @@ window.RokApp = () => {
     const d = D(), on = sc.own && sc.edit;
     $('scEditBar').classList.toggle('hidden', !on);
     if (!on) return;
-    $('scGridOn').checked = d.grid; $('scSync2').checked = d.sync; $('scSyncA').value = d.syncA || 'top';
+    $('scGridOn').checked = d.grid; $('scSync2').checked = d.sync; $('scSyncA').value = d.syncA || 'top'; $('scGuidesOn').checked = d.guides !== false;
     $('scGridC').innerHTML = Object.entries(SC_GRID_C).map(([k, v]) => `<option value="${k}"${k === d.gridC ? ' selected' : ''}>${v.label}</option>`).join('');
     $('scHeight').innerHTML = Object.entries(SC_HEIGHTS).map(([k, v]) => `<option value="${k}"${k === d.h ? ' selected' : ''}>${v.label}</option>`).join('');
     $('scWidgetOpts').innerHTML = Object.entries(SC_ELS).map(([k, w]) =>
@@ -4729,14 +4812,17 @@ window.RokApp = () => {
       card('📐 Größe &amp; Effekt', `<input id="scPS" type="range" min="40" max="250" step="5" value="${Math.round(o.s * 100)}" class="flex-1 min-w-[110px] accent-yellow-500"><span id="scPSv" class="tabular-nums w-11 text-right">${Math.round(o.s * 100)} %</span>
         ${boxy ? chk('scPSh', o.shadow, 'Schatten') : ''}
         <span class="basis-full h-0"></span>
-        <span class="text-slate-400">↻ Drehung</span><input id="scPRot" type="range" min="0" max="359" step="1" value="${o.r || 0}" class="flex-1 min-w-[110px] accent-yellow-500"><span id="scPRotv" class="tabular-nums w-11 text-right">${o.r || 0}°</span>
+        <span class="text-slate-400">↻ Drehung</span><input id="scPRot" type="range" min="-180" max="180" step="1" value="${o.r || 0}" class="flex-1 min-w-[110px] accent-yellow-500"><span id="scPRotv" class="tabular-nums w-11 text-right">${o.r || 0}°</span>
         <button type="button" id="scPRot0" class="${btn}">0°</button>`),
+      t === 'w' && k === 'avatar' ? card('🖼 Profilbild', `${chk('scPRound', o.round, '◯ Rund')}
+        <button type="button" id="scPFrame" class="${btn}">🖼 Rahmen wählen …</button>${o.frame ? `<span class="text-slate-400 truncate max-w-[10rem]">${esc(avFrameName(o.frame))}</span>` : ''}`) : '',
       t === 'w' && (k === 'kd' || k === 'vip') ? card('✦ Symbol', chk('scPNi', !o.ni, k === 'kd' ? '🏰 anzeigen' : '👑 anzeigen')) : '',
       textual ? card('🎨 Schrift', `<input id="scPC" type="color" value="${o.color || (t === 'tx' ? '#ffffff' : SC_DEF_COLOR[k])}" class="${sw}">
         <button type="button" id="scPCr" class="${btn}">Standardfarbe</button>`) : '',
       fillable ? card('▦ Füllung', `<input id="scPF" type="color" value="${o.fill && o.fill !== 'none' ? o.fill : '#07090f'}" ${o.fill === 'none' ? 'disabled' : ''} class="${sw}">
         <input id="scPFo" type="range" min="0" max="100" step="5" value="${o.fillO}" ${o.fill === 'none' ? 'disabled' : ''} title="Deckkraft" class="flex-1 min-w-[80px] accent-yellow-500 disabled:opacity-40"><span id="scPFov" class="tabular-nums w-9 text-right ${o.fill === 'none' ? 'opacity-40' : ''}">${o.fillO} %</span>
         ${chk('scPFn', o.fill === 'none', 'keine')}`) : '',
+      t === 'set' && o.kind ? card('🛡 ' + (o.kind === 'garrison' ? 'Garnison' : 'Rally'), `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-setopt="gearOn" ${o.gearOn ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Gear anzeigen</label>`) : '',
       t === 'set' && !o.kind ? card('🛡 Set', `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-setopt="heads" ${o.heads ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Nur Kommandanten</label>
         <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-setopt="armOn" ${o.arm.on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Rüstung anzeigen</label>
         <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-setopt="hideEmpty" ${o.hideEmpty ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Leere Slots ausblenden</label>`) : '',
@@ -4762,10 +4848,10 @@ window.RokApp = () => {
     const d = D(), many = d.sets.length > 1;
     $('scSetBar').classList.toggle('hidden', !sc.own && !many);
     const nN = scNormal(d).length, nr = (i) => scNormal(d).findIndex(([, j]) => j === i) + 1;
-    $('scSetBar').innerHTML = d.sets.map((x, i) => `<button type="button" data-si="${i}" aria-pressed="${i === sc.si}" class="seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold border border-ink-700 transition" translate="no">${esc(x.kind ? SC_KIND[x.kind] : (x.name || 'Set ' + nr(i)))}${sc.own && x.priv ? ' 🔒' : ''}</button>`).join('')
+    $('scSetBar').innerHTML = d.sets.map((x, i) => `<button type="button" data-si="${i}" aria-pressed="${i === sc.si}" class="seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold border border-ink-700 transition" translate="no">${esc(x.kind ? SC_KIND[x.kind] + (d.sets.filter(y => y.kind === x.kind).length > 1 ? ' ' + (scKindNo(d, x) + 1) : '') : (x.name || 'Set ' + nr(i)))}${sc.own && x.priv ? ' 🔒' : ''}</button>`).join('')
       + (sc.own && nN < SC_MAX ? '<button type="button" id="scAddSet" class="text-xs px-3 py-1.5 rounded-lg border border-dashed border-gold-500/60 text-gold-300 hover:border-gold-400">+ Set</button>' : '')
       + (sc.own ? `<span class="text-[11px] text-slate-500">${nN}/${SC_MAX}</span>` : '')
-      + (sc.own ? ['garrison', 'rally'].filter(k => !d.sets.some(x => x.kind === k)).map(k => `<button type="button" data-addkind="${k}" class="text-xs px-3 py-1.5 rounded-lg border border-dashed border-sky-400/60 text-sky-300 hover:border-sky-300">+ ${SC_KIND[k]}</button>`).join('') : '')
+      + (sc.own ? ['garrison', 'rally'].filter(k => d.sets.filter(x => x.kind === k).length < SC_KIND_MAX).map(k => `<button type="button" data-addkind="${k}" class="text-xs px-3 py-1.5 rounded-lg border border-dashed border-sky-400/60 text-sky-300 hover:border-sky-300">+ ${SC_KIND[k]}</button>`).join('') : '')
       + (sc.own && many ? '<button type="button" id="scDelSet" class="ml-auto text-xs px-3 py-1.5 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10">🗑 Set löschen</button>' : '');
   }
   function drawDetail() {
@@ -4786,11 +4872,12 @@ window.RokApp = () => {
     const armBox = $('scArmSide'), armHome = own ? $('scManual') : $('scSide');
     if (armBox.parentElement !== armHome) { if (own) armHome.appendChild(armBox); else armHome.insertBefore(armBox, armHome.firstChild); }
     armBox.style.marginTop = own ? '1.5rem' : '';
-    $('scGearTools').classList.toggle('hidden', !(own && x.mode === 'manual') || !!x.kind);
-    $('scGearBoard').parentElement.classList.toggle('hidden', !!x.kind); $('scGearHint').classList.toggle('hidden', !!x.kind);
+    const noGear = !!x.kind && !x.gearOn;
+    $('scGearTools').classList.toggle('hidden', !(own && x.mode === 'manual') || noGear);
+    $('scGearBoard').parentElement.classList.toggle('hidden', noGear);
     $('scGearBtns').innerHTML = own && x.mode === 'manual' ? `<label for="scFile" id="scScanLbl" class="cursor-pointer text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Ausrüstung scannen</label>
       ${scCopyOptions(x)}` : '';
-    $('scGearHint').classList.toggle('hidden', !!sc.gsel || !!x.kind);
+    $('scGearHint').classList.toggle('hidden', !!sc.gsel || noGear);
     $('scManual').classList.toggle('hidden', x.mode !== 'manual');
     $('scShot').classList.toggle('hidden', x.mode !== 'shot');
     if (x.mode === 'manual') {
@@ -4858,7 +4945,7 @@ window.RokApp = () => {
   function drawArm() {
     const a = scSet().arm;
     drawArmSide();
-    if (scSet().kind) { $('scArmSide').classList.add('hidden'); $('scArm').innerHTML = ''; return; }
+    if (scSet().kind && !scSet().gearOn) { $('scArmSide').classList.add('hidden'); $('scArm').innerHTML = ''; return; }
     if (!sc.own) { $('scArm').innerHTML = ''; return; }
     const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
     $('scArm').innerHTML = `<details id="scArmBox" class="mt-4 rounded-xl border border-ink-700 bg-ink-950/50 p-3" ${scArmOpen ? 'open' : ''}>
@@ -4972,7 +5059,7 @@ window.RokApp = () => {
         [[me.cy, b.cy, 0], [me.t, b.t, me.h / 2], [me.b, b.b, -me.h / 2]].forEach(([m, t, off]) => { const dd = Math.abs(m - t); if (dd < TH && (!by || dd < by.dd)) by = { dd, y: t + off, g: t }; }); });
       if (bx) { x = bx.x; guides.push(`<div class="absolute top-0 bottom-0" style="left:${bx.g}cqw;width:0;border-left:1px dashed #22d3ee"></div>`); }
       if (by) { y = by.y; guides.push(`<div class="absolute left-0 right-0" style="top:${by.g}cqw;height:0;border-top:1px dashed #22d3ee"></div>`); } }
-    $('scGuides').innerHTML = guides.join('');
+    $('scGuides').innerHTML = d.guides === false ? '' : guides.join('');
     x = Math.min(100, Math.max(0, x)); y = Math.min(scH(d), Math.max(0, y));
     if (x === scDrag.obj.x && y === scDrag.obj.y) return;
     const dy = y - scDrag.obj.y, dx = x - scDrag.obj.x;
@@ -4983,7 +5070,7 @@ window.RokApp = () => {
       const isSet = scDrag.key.startsWith('set:'), i0 = +scDrag.key.split(':')[1];
       const NI = scNormal(d).map(([, i]) => i), row = (i) => NI.includes(i) ? Math.floor(NI.indexOf(i) / SC_COLS) : -1 - i;
       if (!d.sets[i0].kind) d.sets.forEach((s, i) => {
-        if (isSet) { if (i !== i0 && row(i) === row(i0)) s.y += dy; if (s.arm.on && (i === i0 || row(i) === row(i0))) { s.arm.y += dy; if (i === i0) s.arm.x += dx; } }
+        if (isSet) { if (i !== i0 && row(i) === row(i0)) { s.y += dy; s.x += dx; } if (s.arm.on && (i === i0 || row(i) === row(i0))) { s.arm.y += dy; s.arm.x += dx; } }
         else if (i !== i0 && row(i) === row(i0) && s.arm.on) s.arm.y = y;
       });
       d.sets.forEach((s, i) => { const e1 = $('scEls').querySelector(`[data-el="set:${i}"]`), e2 = $('scEls').querySelector(`[data-el="arm:${i}"]`);
@@ -5028,7 +5115,9 @@ window.RokApp = () => {
     if (ev.target.id === 'scPS') { const d = D(), b = D().grid && scBox(sc.sel, o); if (b) o.y = scLine(b.t, 0) + b.h / 2;
       if (d.sync && /^(set|arm):/.test(sc.sel)) scSyncAlign(d, d.sets[+sc.sel.split(':')[1]]); drawStage(); scSaveSoon(); return; }
     if (ev.target.id === 'scPNi') { o.ni = !ev.target.checked; drawStage(); scSaveSoon(); return; }
-    if (ev.target.dataset.setopt === 'armOn') { o.arm.on = ev.target.checked; if (o.arm.on) { drawStage(); scArmUnder(o); if (D().sync) scSyncAlign(D(), o); } drawStage(); drawArm(); scSaveSoon(); return; }
+    if (ev.target.id === 'scPRound') { o.round = ev.target.checked; drawStage(); scSaveSoon(); return; }
+    if (ev.target.dataset.setopt === 'gearOn') { o.gearOn = ev.target.checked; { const d = D(), L = scLayoutPos(d, scH(d)); d.sets.forEach((x, i) => { if (x.kind && L.sp[i]) { x.x = L.sp[i].x; x.y = L.sp[i].y; } }); } drawStage(); drawProps(); drawDetail(); scSaveSoon(); return; }
+    if (ev.target.dataset.setopt === 'armOn') { o.arm.on = ev.target.checked; if (o.arm.on) scArmShow(o); drawStage(); drawArm(); scSaveSoon(); return; }
     if (ev.target.dataset.setopt) { const x = o; x[ev.target.dataset.setopt] = ev.target.checked;
       if (ev.target.dataset.setopt === 'heads' && x.arm?.on) { drawStage(); scArmUnder(x); }
       drawStage(); drawProps(); drawDetail(); scSaveSoon(); return; }
@@ -5044,6 +5133,7 @@ window.RokApp = () => {
     else if (ev.target.closest('#scPRot0')) { o.r = 0; drawStage(); drawProps(); scSaveSoon(); }
     else if (ev.target.closest('#scPBr')) { const tx = sc.sel.startsWith('tx:');
       Object.assign(o, { s: 1, r: 0, color: '', shadow: true, fill: tx ? 'none' : '', fillO: 75, border: tx ? 'none' : '', bw: 0 }); drawStage(); drawProps(); scSaveSoon(); }
+    else if (ev.target.closest('#scPFrame')) scFramePicker();
     else if (ev.target.closest('#scPSkinAdd')) scSkinPicker('add');
     else if (ev.target.closest('#scPSkin')) scSkinPicker(sc.sel.startsWith('xs:') ? sc.sel.slice(3) : undefined);
     else if (ev.target.closest('#scPDel')) { const d = D(); d.texts = d.texts.filter(x => x !== o); d.xskins = (d.xskins || []).filter(x => x !== o); sc.sel = null; drawStage(); drawProps(); scSaveSoon(); }
@@ -5059,6 +5149,7 @@ window.RokApp = () => {
   $('scSync2').onchange = () => { const d = D(); d.sync = $('scSync2').checked;
     const f = scNormal(d)[0]?.[0]; if (d.sync && f) scSyncAlign(d, f);
     drawStage(); scSaveSoon(); };
+  $('scGuidesOn').onchange = () => { D().guides = $('scGuidesOn').checked; scSaveSoon(); };
   $('scSyncA').onchange = () => { const d = D(); d.syncA = $('scSyncA').value; const f = sc.sel?.startsWith('set:') || sc.sel?.startsWith('arm:') ? d.sets[+sc.sel.split(':')[1]] : scNormal(d)[0]?.[0];
     if (d.sync && f) scSyncAlign(d, f); drawStage(); scSaveSoon(); };
   $('scGridOn').onchange = () => { D().grid = $('scGridOn').checked; drawStage(); scSaveSoon(); };
@@ -5177,6 +5268,30 @@ window.RokApp = () => {
     const have = new Set(CITY_SKINS.map(c => c.id));
     list.filter(f => !have.has(f)).forEach(f => CITY_SKINS.push({ id: f, name: f.replace(/\.[a-z]+$/i, '').replace(/\s*\(\d+\)$/, '').replace(/[-_]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }));
   })();
+  function scFramePicker() {                               // Avatar-Rahmen wählen (mit Suche)
+    if (!sc.own) return;
+    const w = D().els.avatar, root = document.createElement('div');
+    root.className = 'fixed inset-0 z-[85] overflow-y-auto bg-ink-950/85 backdrop-blur-sm ui-fade';
+    const ids = Object.keys(AV_FRAMES).sort();
+    root.innerHTML = `<div data-bd class="min-h-full grid place-items-center p-4"><div class="panel !bg-ink-900 w-full max-w-4xl rounded-2xl p-5 ui-pop">
+      <div class="flex items-center justify-between gap-3 mb-3"><h3 class="font-display text-xl gold-text">Rahmen wählen</h3>
+        <button type="button" data-x class="w-9 h-9 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">✕</button></div>
+      <input data-q type="search" placeholder="Rahmen suchen …" class="mb-3 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold-500">
+      <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-2 max-h-[62vh] overflow-y-auto pr-1">
+        <button type="button" data-fr="" class="rounded-xl p-2 border ${!w.frame ? 'border-gold-400 bg-gold-500/15' : 'border-ink-700 hover:border-gold-500/60'} grid place-items-center text-xs text-slate-300 aspect-square">kein Rahmen</button>
+        ${ids.map(id => `<button type="button" data-fr="${esc(id)}" data-n="${esc(avFrameName(id).toLowerCase())}" title="${esc(avFrameName(id))}" class="rounded-xl p-1 border ${w.frame === id ? 'border-gold-400 bg-gold-500/15' : 'border-ink-700 hover:border-gold-500/60'}">
+          <img src="${avFrameImg(id)}" alt="" loading="lazy" class="w-full aspect-square object-contain"></button>`).join('')}
+      </div></div></div>`;
+    const close = () => { root.remove(); document.body.style.overflow = ''; };
+    root.querySelector('[data-q]').addEventListener('input', (ev) => { const q = ev.target.value.trim().toLowerCase();
+      root.querySelectorAll('[data-n]').forEach(b => { b.style.display = !q || b.dataset.n.includes(q) ? '' : 'none'; }); });
+    root.addEventListener('click', (ev) => {
+      if (ev.target.matches('[data-bd]') || ev.target.closest('[data-x]')) return close();
+      const b = ev.target.closest('[data-fr]'); if (!b) return;
+      w.frame = b.dataset.fr; close(); drawStage(); drawProps(); scSave(w.frame ? '✓ Rahmen gespeichert' : '✓ Rahmen entfernt');
+    });
+    document.body.appendChild(root); document.body.style.overflow = 'hidden';
+  }
   function scSkinPicker(target) {
     if (!sc.own) return;
     const d = D(), root = document.createElement('div');
@@ -5240,6 +5355,11 @@ window.RokApp = () => {
       const x = scNorm({ title: t.trim() || `Showcase ${doc.list.length + 1}` }, doc.list.length);
       doc.list.push(x); doc.active = x.id; sc.si = 0; sc.gsel = null; sc.sel = null;
       drawShowcase(); scSave('✓ Showcase erstellt');
+    } else if (ev.target.closest('#scDupList')) {
+      const src = D(), c = JSON.parse(JSON.stringify(src)); c.id = newId(); c.title = (src.title + ' (Kopie)').slice(0, 30);
+      c.sets.forEach(x => { x.id = newId(); }); (c.texts || []).forEach(x => { x.id = newId(); }); (c.xskins || []).forEach(x => { x.id = newId(); });
+      const x = scNorm(c, doc.list.length); doc.list.push(x); doc.active = x.id; sc.si = 0; sc.gsel = null; sc.sel = null;
+      drawShowcase(); scSave('✓ Showcase kopiert');
     } else if (ev.target.closest('#scRefresh')) {
       const act = doc.active, edit = sc.edit; sc.doc = ownShowcase(); if (sc.doc.list.some(x => x.id === act)) sc.doc.active = act;
       sc.edit = edit; sc.si = Math.min(sc.si, D().sets.length - 1); drawShowcase(); scFlowRows(D()); scSave('✓ Showcase aktualisiert');
@@ -5273,7 +5393,7 @@ window.RokApp = () => {
     const ak = ev.target.closest('[data-addkind]');
     if (ak) {                                                  // Garnison / Rally: nur 2 Kommandanten, unten links / rechts
       const x = scSetNorm({ kind: ak.dataset.addkind }); d.sets.push(x);
-      Object.assign(x, scLayoutPos(d, scH(d)).sp[d.sets.length - 1]);
+      { const L = scLayoutPos(d, scH(d)); d.sets.forEach((y, i) => { if (y.kind && L.sp[i]) Object.assign(y, L.sp[i]); }); }
       sc.si = d.sets.length - 1; sc.gsel = null; if (sc.edit) sc.sel = 'set:' + sc.si;
       drawShowcase(); scSave(`✓ ${SC_KIND[x.kind]} hinzugefügt`); return;
     }
@@ -5351,7 +5471,7 @@ window.RokApp = () => {
       const ST = [['atk', 'attack'], ['def', 'defense'], ['hp', 'health'], ['spd', 'march_speed'], ['dmg', 'all_damage']];
       if (ST.some(([, rk]) => scNum1(r[rk]) != null)) ST.forEach(([k, rk]) => { a[k] = scNum1(r[rk]); });   // neue Werte ersetzen die alten komplett
       if (!list.length && ![r.attack, r.defense, r.health, r.march_speed, r.all_damage].some(v => v != null)) throw new Error('Keine Rüstung im Screenshot erkannt.');
-      if (!a.on) { a.on = true; scArmUnder(scSet()); }
+      if (!a.on) scArmShow(scSet());
       drawArm(); drawStage();
       await scSave(`✓ Rüstung erkannt: ${list.length} Inschriften` + (r.confidence ? ` · Sicherheit: ${r.confidence}` : ''));
     } catch (e) {
@@ -5371,10 +5491,10 @@ window.RokApp = () => {
   });
   $('scArm').addEventListener('change', (ev) => {
     const t = ev.target, a = scSet().arm, d = D();
-    if (t.dataset.arm === 'on') { a.on = t.checked; if (a.on) scArmUnder(scSet()); }
+    if (t.dataset.arm === 'on') { a.on = t.checked; if (a.on) scArmShow(scSet()); }
     else if (t.dataset.arm === 'troop') a.troop = SC_TROOPS[t.value] ? t.value : 'infantry';
     else if (t.dataset.insc != null && t.dataset.f === 'c') a.insc[+t.dataset.insc].c = SC_INSC[t.value] ? t.value : 'gold';
-    else if (t.dataset.arm === 'formsel') { a.formation = t.value; if (t.value && !a.on) { a.on = true; scArmUnder(scSet()); } }
+    else if (t.dataset.arm === 'formsel') { a.formation = t.value; if (t.value && !a.on) scArmShow(scSet()); }
     else if (t.dataset.armpick) {                             // andere Rüstung gewählt → deren gold/blaue Inschrift aus der Liste nehmen
       const old = ARM_BY_ID[a.arms[t.dataset.armpick]];
       if (old) a.insc = a.insc.filter(i => i.t !== old.gold && i.t !== old.blue);
@@ -5390,7 +5510,7 @@ window.RokApp = () => {
       if (i >= 0) a.insc.splice(i, 1);
       else if (a.insc.length >= 12) { scMsg('Maximal 12 Inschriften.', 'warn'); return; }
       else { a.insc.push({ t, c: chip.dataset.c }); scInscSort(a.insc); }
-      if (!a.on) { a.on = true; scArmUnder(scSet()); }
+      if (!a.on) scArmShow(scSet());
       drawArm(); drawStage(); scSaveSoon(); return;
     }
     if (ev.target.closest('#scInscAdd')) { if (a.insc.length < 12) a.insc.push({ t: '', c: 'gold' }); drawArm(); $('scArm').querySelector(`[data-insc="${a.insc.length - 1}"][data-f="t"]`)?.focus(); }
@@ -5626,6 +5746,8 @@ window.RokApp = () => {
   // Zum Scanner & Dashboard im passenden Modus springen
   function goScan(m) { view = 'scanner'; applyView(); mode = m; LS.set(MODE_KEY, mode); applyMode(); $('dropzone').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
   $('profScanSpeed').onclick = () => goScan('speedups');
+  $('profSpeedMode').addEventListener('click', (ev) => { const b = ev.target.closest('[data-pm]'); if (!b) return;
+    try { localStorage.setItem('rok_prof_panel', b.dataset.pm); } catch {} if (lastProfileP) renderGameProfile(lastProfileP); });
 
   // ---- Charts-Fenster (ApexCharts): Reiter · Zeitraum · Area/Bar ----
   const PC_TABS = [
