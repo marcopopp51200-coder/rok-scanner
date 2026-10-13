@@ -4610,6 +4610,8 @@ window.RokApp = () => {
   const gFace = (r) => 'linear-gradient(160deg, rgba(255,255,255,.32) 0%, rgba(255,255,255,.08) 30%, rgba(255,255,255,0) 46%),'
     + 'radial-gradient(70% 55% at 50% 100%, rgba(0,0,0,.28), transparent 70%),' + (GFACE[r] || GFACE.legendary);
   const gFull = (it, v) => !!it && v.refine >= 100;
+  // Innenfläche hinter Expertise-Rahmen: deckendes Dunkelgrau (oben etwas heller, wie im Spiel)
+  const GF_FACE = 'radial-gradient(120% 95% at 50% 18%, #4a505c 0%, #333842 45%, #23272f 80%, #1a1d23 100%)';
   // ---- Expertise-Rahmen (GitHub: icons/frames/*.webp, Ersatz: Original-JPG aus icons/gear) und Iconic-Stufen (icons/gear/iconic-1…5.webp) ----
   const GEAR_FRAMES = [
     { id: 'frame-gold-1', c: 'gold', raw: 'Gemini_Generated_Image_3b99j23b99j23b99.jpg' },
@@ -4660,8 +4662,8 @@ window.RokApp = () => {
     const f = it ? GFILL[rr] || GFILL.legendary : null, fr = gfFor(it, v, rr, fx);
     let h = '';
     if (fr && typeof fr === 'object') {                       // Rahmen-Bild: Fläche bis an den Innenrand, Rahmen darüber
-      const fi = Math.max(0, 50 - 39 * fx.fs / 100);
-      h += `<span class="gdia absolute" style="inset:${fi}%;background:${gFace(rr)}"></span>`;   // das Rahmen-Bild selbst liegt in einer eigenen Ebene (gFrameHtml)
+      const fi = Math.max(0, 50 - 40.5 * fx.fs / 100);       // etwas unter den Ring gezogen → keine durchsichtige Lücke
+      h += `<span class="gdia absolute" style="inset:${fi}%;background:${GF_FACE}"></span>`;   // das Rahmen-Bild selbst liegt in einer eigenen Ebene (gFrameHtml)
     } else if (fr === 'css') {                                 // alter goldener Glitzer-Rand
       h += `<span class="gdia absolute inset-0" style="background:${active ? '#ffffff' : GOLD_RIM}"></span>`
         + (big ? '<span class="gdia absolute inset-[10px]" style="background:linear-gradient(180deg,#5a3200,#2e1900)"></span>' : '')
@@ -5097,7 +5099,7 @@ window.RokApp = () => {
       const face = c === 'purple' ? gFace('epic') : gFace('legendary');
       const inner = f === 'css' ? `<span class="gdia absolute inset-0" style="background:${GOLD_RIM}"></span><span class="gdia absolute inset-[5px]" style="background:${face}"></span>`
         : f === 'none' ? `<span class="gdia absolute inset-0" style="background:${c === 'purple' ? GFILL.epic[0] : GFILL.legendary[0]}"></span><span class="gdia absolute inset-[2px]" style="background:${face}"></span>`
-        : `<span class="gdia absolute inset-[12%]" style="background:${face}"></span>${gfImg(f, 'absolute inset-0 w-full h-full max-w-none', '')}`;
+        : `<span class="gdia absolute inset-[10%]" style="background:${GF_FACE}"></span>${gfImg(f, 'absolute inset-0 w-full h-full max-w-none', '')}`;
       const lbl = f === 'css' ? 'Glitzer-Rand' : f === 'none' ? 'Kein Rahmen' : f.id.replace(/^frame-/, '').replace(/-/g, ' ');
       return `<button type="button" data-gfr="${esc(key)}" data-gfc="${c}" aria-pressed="${on}" title="${esc(lbl)}" class="relative w-16 h-16 rounded-lg border-2 ${on ? 'border-gold-400 bg-gold-500/15' : 'border-ink-600 hover:border-gold-500/60'}">
         <span class="absolute inset-1">${inner}</span></button>`; };
