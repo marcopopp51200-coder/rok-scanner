@@ -587,9 +587,6 @@ tailwind.config = {
             <button id="scImgOnly" type="button" aria-pressed="false" title="Nur das Showcase-Bild anzeigen, ohne Sets und Details darunter" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 aria-pressed:border-gold-400 aria-pressed:bg-gold-500/15 aria-pressed:text-gold-200">🖼 Nur Bild</button>
             <div id="scTools" class="hidden flex flex-wrap gap-2">
               <button id="scEditBtn" type="button" aria-pressed="false" class="text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400 aria-pressed:bg-gold-500 aria-pressed:text-ink-950 aria-pressed:font-semibold">✎ Bearbeiten</button>
-              <button id="scCkSave" type="button" title="Aktuellen Stand dieses Showcase merken – mit „Abbrechen“ kommst du jederzeit dahin zurück" class="text-xs px-3 py-2 rounded-lg border border-emerald-500/50 text-emerald-300 hover:border-emerald-400">💾 Zwischenspeichern</button>
-              <button id="scCkUndo" type="button" title="Alle Änderungen seit dem letzten Zwischenspeichern verwerfen" class="text-xs px-3 py-2 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10 disabled:opacity-40 disabled:cursor-not-allowed">↶ Abbrechen</button>
-              <span id="scCkInfo" class="self-center text-[11px] text-slate-500"></span>
               <button id="scBgBtn" type="button" aria-expanded="false" aria-controls="scBgPick" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">🖼 Hintergrund</button>
             </div>
           </div>
@@ -609,31 +606,62 @@ tailwind.config = {
             <p class="mt-2 text-[11px] text-slate-500">Eigenes Bild wird verkleinert gespeichert und ist für alle sichtbar, die deinen Showcase sehen.</p>
           </div>
           <!-- Bearbeitungsmodus -->
-          <div id="scEditBar" class="hidden mb-3 rounded-xl border border-gold-500/40 bg-ink-950/70 p-3 text-sm">
-            <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
-              <span class="font-semibold text-gold-300">✎ Bearbeitungsmodus</span>
-              <label class="inline-flex items-center gap-1.5 cursor-pointer"><input id="scGridOn" type="checkbox" class="w-4 h-4 accent-yellow-500">▦ Raster</label>
-              <div class="relative" id="scSyncWrap">
-                <button id="scSyncBtn" type="button" aria-expanded="false" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">🔗 Sync <span id="scSyncN" class="text-gold-300"></span> ▾</button>
-                <div id="scSyncMenu" class="hidden absolute z-40 left-0 top-full mt-1 w-[19rem] max-w-[85vw] rounded-xl border border-gold-500/40 bg-ink-900 p-3 shadow-[0_10px_30px_rgba(0,0,0,.6)] space-y-2 text-xs">
-                  <div class="text-[10px] uppercase tracking-widest text-slate-500">Was soll gleich sein?</div>
-                  <div id="scSyncList" class="space-y-1.5"></div>
-                  <label class="flex items-center gap-2 pt-2 border-t border-ink-700"><span class="text-slate-400">Ausrichten an</span>
-                    <select id="scSyncA" title="Sets und Rüstungen ausrichten an" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-gold-500"><option value="top">⬆ Oben</option><option value="center">↕ Mitte</option><option value="bottom">⬇ Unten</option><option value="none">– nur Größe</option></select></label>
-                  <p class="text-[10px] text-amber-300/90">⚠ Beim Einschalten werden Größen und Positionen sofort angeglichen – dein Bild kann sich verändern.</p>
+          <div id="scEditBar" class="hidden mb-3 rounded-2xl border border-gold-500/40 bg-gradient-to-b from-ink-900 to-ink-950 shadow-[0_8px_24px_rgba(0,0,0,.45)] text-sm">
+            <!-- Kopf: Titel + Aktionen -->
+            <div class="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-ink-700">
+              <span class="font-display text-lg gold-text mr-auto">✎ Bearbeitungsmodus</span>
+              <span id="scCkInfo" class="text-[11px] text-slate-500"></span>
+              <div class="inline-flex rounded-lg border border-ink-600 overflow-hidden">
+                <button id="scUndo" type="button" title="Letzten Schritt rückgängig machen (Strg+Z)" class="text-xs px-3 py-1.5 hover:bg-ink-800 hover:text-gold-300 disabled:opacity-40 disabled:cursor-not-allowed">↩ Zurück</button>
+                <button id="scCkSave" type="button" title="Aktuellen Stand merken – „Abbrechen“ springt hierher zurück" class="text-xs px-3 py-1.5 border-l border-ink-600 text-emerald-300 hover:bg-emerald-500/10">💾 Zwischenspeichern</button>
+              </div>
+              <button id="scCkUndo" type="button" title="Bearbeiten abbrechen und den letzten Zwischenstand komplett wiederherstellen" class="text-xs px-3 py-1.5 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10 disabled:opacity-40 disabled:cursor-not-allowed">✖ Abbrechen</button>
+              <button id="scDone" type="button" class="text-xs px-4 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">✓ Fertig</button>
+            </div>
+            <!-- Werkzeuge in drei Gruppen -->
+            <div class="grid gap-3 p-4 md:grid-cols-3">
+              <div class="rounded-xl border border-ink-700 bg-ink-950/60 p-3">
+                <div class="mb-2 text-[10px] uppercase tracking-widest text-slate-500">👁 Ansicht</div>
+                <div class="flex flex-wrap items-center gap-1 text-xs">
+                  <label class="inline-flex items-center gap-1.5 cursor-pointer rounded-lg px-2 py-1 hover:bg-ink-800"><input id="scGridOn" type="checkbox" class="w-4 h-4 accent-yellow-500">▦ Raster</label>
+                  <label class="inline-flex items-center gap-1.5 cursor-pointer rounded-lg px-2 py-1 hover:bg-ink-800" title="Türkise Hilfslinien beim Ziehen"><input id="scGuidesOn" type="checkbox" class="w-4 h-4 accent-yellow-500">┆ Hilfslinien</label>
+                </div>
+                <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
+                  <label class="flex flex-col gap-1 text-slate-400">Rasterfarbe <select id="scGridC" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-gold-500 text-slate-100"></select></label>
+                  <label class="flex flex-col gap-1 text-slate-400">Höhe <select id="scHeight" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-gold-500 text-slate-100"></select></label>
                 </div>
               </div>
-              <label class="inline-flex items-center gap-1.5 cursor-pointer" title="Türkise Hilfslinien beim Ziehen"><input id="scGuidesOn" type="checkbox" class="w-4 h-4 accent-yellow-500">┆ Hilfslinien</label>
-              <label class="inline-flex items-center gap-1.5">Rasterfarbe <select id="scGridC" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-gold-500"></select></label>
-              <label class="inline-flex items-center gap-1.5">Höhe <select id="scHeight" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-gold-500"></select></label>
-              <button id="scAuto" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⊞ Symmetrisch anordnen</button>
-              <button id="scAddText" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">✏️ + Text</button>
-              <button id="scAddSkin" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">🏯 + City-Skin</button>
-              <button id="scDone" type="button" class="ml-auto text-xs px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">✓ Fertig</button>
+              <div class="rounded-xl border border-ink-700 bg-ink-950/60 p-3">
+                <div class="mb-2 text-[10px] uppercase tracking-widest text-slate-500">⊞ Anordnen</div>
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                  <div class="relative" id="scSyncWrap">
+                    <button id="scSyncBtn" type="button" aria-expanded="false" class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">🔗 Sync <span id="scSyncN" class="text-gold-300"></span> ▾</button>
+                    <div id="scSyncMenu" class="hidden absolute z-40 left-0 top-full mt-1 w-[19rem] max-w-[85vw] rounded-xl border border-gold-500/40 bg-ink-900 p-3 shadow-[0_10px_30px_rgba(0,0,0,.6)] space-y-2 text-xs">
+                      <div class="text-[10px] uppercase tracking-widest text-slate-500">Was soll gleich sein?</div>
+                      <div id="scSyncList" class="space-y-1.5"></div>
+                      <label class="flex items-center gap-2 pt-2 border-t border-ink-700"><span class="text-slate-400">Ausrichten an</span>
+                        <select id="scSyncA" title="Sets und Rüstungen ausrichten an" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-gold-500"><option value="top">⬆ Oben</option><option value="center">↕ Mitte</option><option value="bottom">⬇ Unten</option><option value="none">– nur Größe</option></select></label>
+                      <p class="text-[10px] text-amber-300/90">⚠ Beim Einschalten werden Größen und Positionen sofort angeglichen – dein Bild kann sich verändern.</p>
+                    </div>
+                  </div>
+                  <button id="scAuto" type="button" class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⊞ Symmetrisch anordnen</button>
+                </div>
+              </div>
+              <div class="rounded-xl border border-ink-700 bg-ink-950/60 p-3">
+                <div class="mb-2 text-[10px] uppercase tracking-widest text-slate-500">＋ Hinzufügen</div>
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                  <button id="scAddText" type="button" class="px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">✏️ Text</button>
+                  <button id="scAddSkin" type="button" class="px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">🏯 City-Skin</button>
+                </div>
+              </div>
             </div>
-            <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-300"><span class="text-slate-500">Im Showcase anzeigen:</span><span id="scWidgetOpts" class="contents"></span></div>
-            <div id="scProps" class="mt-3 pt-3 border-t border-ink-700"></div>
-            <p class="mt-2 text-[11px] text-slate-500">Elemente mit Maus oder Finger verschieben, antippen zum Einstellen. Mit Raster rasten sie symmetrisch ein – die goldenen Linien markieren die Mitte.</p>
+            <!-- Anzeigen ein/aus als Schalter -->
+            <div class="px-4 pb-3">
+              <div class="mb-2 text-[10px] uppercase tracking-widest text-slate-500">Im Showcase anzeigen</div>
+              <div id="scWidgetOpts" class="flex flex-wrap gap-1.5 text-xs"></div>
+            </div>
+            <div id="scProps" class="mx-4 mb-3 pt-3 border-t border-ink-700"></div>
+            <p class="px-4 pb-3 text-[11px] text-slate-500">Elemente mit Maus oder Finger verschieben, antippen zum Einstellen. Mit Raster rasten sie symmetrisch ein – die goldenen Linien markieren die Mitte.</p>
           </div>
           <!-- Bühne: alle Sets + Anzeigen frei platziert (wird beim Download als Bild gespeichert) -->
           <div id="scStage" class="relative rounded-2xl overflow-hidden border border-ink-700 select-none" style="container-type:inline-size;aspect-ratio:100/75">
@@ -1100,7 +1128,7 @@ window.I18N = (() => {
         '✓ Im Account gespeichert · für andere Spieler sichtbar erst nach dem SQL-Update (Spalte showcase)': '✓ Saved in your account · visible to other players after the SQL update (column showcase)',
         'Bild direkt im Showcase gespeichert – für kürzere Ladezeiten das Storage-SQL ausführen (Bucket „showcase“).': 'Image stored directly in the showcase – run the storage SQL (bucket “showcase”) for faster loading.',
         'Download-Bibliothek konnte nicht geladen werden (Internet/Adblocker prüfen).': 'Download library could not be loaded (check internet/ad blocker).', 'Download fehlgeschlagen.': 'Download failed.',
-        'Füllung': 'Fill', 'Rand': 'Border', 'keine': 'none', 'kein': 'none', 'keiner': 'none', 'Deckkraft': 'Opacity', '↺ Standardwerte': '↺ Defaults', "💾 Zwischenspeichern": "💾 Save checkpoint", "↶ Abbrechen": "↶ Cancel", "Aktuellen Stand dieses Showcase merken – mit „Abbrechen“ kommst du jederzeit dahin zurück": "Remember the current state of this showcase – “Cancel” brings you back to it at any time", "Alle Änderungen seit dem letzten Zwischenspeichern verwerfen": "Discard all changes since the last checkpoint", "💾 Zwischenstand gespeichert – mit „↶ Abbrechen“ kommst du hierher zurück.": "💾 Checkpoint saved – “↶ Cancel” brings you back here.", "↶ Abbrechen?\n\nAlle Änderungen an diesem Showcase seit dem Zwischenspeichern gehen verloren und der gemerkte Stand wird wiederhergestellt.": "↶ Cancel?\n\nAll changes to this showcase since the checkpoint will be lost and the saved state restored.", "↶ Zwischenstand wiederhergestellt": "↶ Checkpoint restored", "Zwischenstand zu groß für den Browser-Speicher (eigene Bilder) – bitte ein eigenes Hintergrundbild entfernen oder verkleinern.": "Checkpoint too large for browser storage (own images) – please remove or shrink a custom background image.", "◇ Rahmen-Dicke": "◇ Frame thickness", "↺ Nur Rahmen zurücksetzen": "↺ Reset frames only", "↺ Refine & Iconic zurücksetzen": "↺ Reset refine & iconic", "50 = Standard (Regler in der Mitte).": "50 = default (slider in the middle).", "✓ Rahmen zurückgesetzt": "✓ Frames reset", "Rahmen erscheinen bei Items mit Expertise (fertig refined).": "Frames appear on items with expertise (fully refined).", "🔗 Für alle Sets gleich": "🔗 Same for all sets", "Rahmen, Partikel, Orange-Ton, rotes Refine-Symbol und Iconic gelten automatisch für alle Sets dieses Showcase": "Frames, particles, orange tone, red refine icon and iconic apply automatically to all sets of this showcase", "⧉ Auf alle Sets aller Showcases übertragen": "⧉ Apply to all sets of all showcases", "Einmalig auf alle Sets aller Showcases übertragen": "Apply once to all sets of all showcases", "Rahmen- und Symbol-Einstellungen dieses Sets auf alle Sets dieses Showcase übertragen und ab jetzt gemeinsam ändern?": "Apply the frame and icon settings of this set to all sets of this showcase and change them together from now on?", "✓ Gilt jetzt für alle Sets": "✓ Now applies to all sets", "✓ Wieder pro Set einstellbar": "✓ Adjustable per set again", "Rahmen und Symbol-Einstellungen dieses Sets auf alle Sets aller Showcases übertragen?": "Apply the frame and icon settings of this set to all sets of all showcases?", "✨ Glitzer-Partikel bei allen Gold-Rahmen": "✨ Glitter particles on all gold frames", "kein Iconic": "no iconic", "Iconic-Stufen gibt es nur bei legendären Items": "Iconic levels only exist on legendary items", "🎨 Orange-Ton": "🎨 Orange tone", "🎨 Orange-Ton: nach links dunkler orange, nach rechts gelblicher (0 = Standard) – gilt für alle legendären Items dieses Sets.": "🎨 Orange tone: left = darker orange, right = more yellow (0 = default) – applies to all legendary items of this set.", 'Angriff': 'Attack', 'Verteidigung': 'Defense', 'Leben': 'Health', 'Marschgeschw.': 'March Speed', "Was soll gleich sein?": "What should match?", "Ausrichten an": "Align at", "aus": "off", "⚠ Beim Einschalten werden Größen und Positionen sofort angeglichen – dein Bild kann sich verändern.": "⚠ When switched on, sizes and positions are matched right away – your image may change.", "🔗 Set-Einheit": "🔗 Set unit", "Set, Rüstung und Werte bewegen sich zusammen – Rüstung und Werte bleiben unter ihrem Set": "Set, armament and stats move together – armament and stats stay below their set", "🛡 Alle Gear-Sets": "🛡 All gear sets", "Alle Sets einer Reihe gleich groß und auf gleicher Höhe": "All sets in a row same size and at the same height", "⚔ Alle Rüstungen": "⚔ All armaments", "Alle Rüstungen einer Reihe gleich groß und auf gleicher Höhe": "All armaments in a row same size and at the same height", "📊 Alle Werte": "📊 All stats", "Alle Werte-Blöcke gleich groß, gleiche Höhe und gleiche Schrift-Ausrichtung": "All stat blocks same size, same height and same text alignment", "🏯 Alle City-Skins": "🏯 All city skins", "Alle City-Skins gleich groß und je Reihe auf gleicher Höhe": "All city skins same size and at the same height per row", "⚡ Energie · KP · Verdienst": "⚡ Power · KP · Merit", "Die drei Werte-Kästen gleich groß und auf gleicher Höhe": "The three value boxes same size and at the same height", "🔗 Sync eingeschaltet – Größen und Höhen wurden angeglichen.": "🔗 Sync on – sizes and heights were matched.", "⚠ Ausrichtung ändern?\n\nAlle gesyncten Elemente werden neu ausgerichtet – dein Showcase-Bild kann sich dadurch verändern.": "⚠ Change alignment?\n\nAll synced elements will be realigned – your showcase image may change.", "Rüstung auf der Bühne": "Armament on stage", "Werte auf der Bühne": "Stats on stage", "Werte anzeigen": "Show stats", "📊 Werte": "📊 Stats", "⬅ Links": "⬅ Left", "↔ Mitte": "↔ Center", "➡ Rechts": "➡ Right", "Links": "Left", "Rechts": "Right", "Truppentyp zeigen (z. B. „Archer Attack“)": "Show troop type (e.g. “Archer Attack”)", "✨ Expertise-Rahmen & Symbole": "✨ Expertise frames & icons", "Rahmen erscheinen bei Items mit Expertise (fertig refined). Gilt für dieses Set.": "Frames appear on items with expertise (fully refined). Applies to this set.", "Gold · legendäre Items": "Gold · legendary items", "Lila · epische Items": "Purple · epic items", "◇ Rahmen-Größe": "◇ Frame size", "✦ Refine-Größe": "✦ Refine size", "✦ Refine ↔": "✦ Refine ↔", "✦ Refine ↕": "✦ Refine ↕", "🏅 Iconic-Größe": "🏅 Iconic size", "🏅 Iconic ↔": "🏅 Iconic ↔", "🏅 Iconic ↕": "🏅 Iconic ↕", "Das rote Refine-Symbol bleibt immer innerhalb des Rahmens.": "The red refine icon always stays inside the frame.", "⧉ Für alle Sets übernehmen": "⧉ Apply to all sets", "Glitzer-Rand": "Glitter rim", "Kein Rahmen": "No frame", "Rahmen und Symbol-Einstellungen dieses Sets für alle Sets übernehmen?": "Apply the frame and icon settings of this set to all sets?", "✓ Für alle Sets übernommen": "✓ Applied to all sets", "Anderer Rahmen …": "Other frame …", "Rahmen hinzufügen …": "Add frame …", "▢ Rahmen entfernen": "▢ Remove frame", "🔍 Bild im Rahmen": "🔍 Picture in frame", "🛡 Ausrüstung": "🛡 Equipment", '– nur Größe': '– size only', "Rund": "Round", "Rahmen wählen …": "Choose frame …", "Rahmen wählen": "Choose frame", "Rahmen suchen …": "Search frame …", "kein Rahmen": "no frame", "Gear anzeigen": "Show gear", "nur Größe": "size only", "Hilfslinien": "Guides", "Türkise Hilfslinien beim Ziehen": "Cyan guide lines while dragging", "Duplizieren": "Duplicate", "Im Profil zeigen": "Show in profile", "Alle Showcases": "All showcases", "Aktionspunkte": "Action points", "Gesamt-AP": "Total AP", "Flaschen": "Bottles", "Gems gesamt": "Total gems", "Auf der Hand": "On hand", "Im Rucksack": "In backpack", "Anzeige": "Display", "✓ Showcase kopiert": "✓ Showcase copied", "✓ Rahmen gespeichert": "✓ Frame saved", "✓ Rahmen entfernt": "✓ Frame removed", "Garnison": "Garrison", "Profilbild": "Profile picture", 'Skin suchen …': 'Search skin …', '+ 🛡 Garnison': '+ 🛡 Garrison', '+ 🚩 Rally': '+ 🚩 Rally', '🛡 Garnison': '🛡 Garrison', "Garnison": "Garrison", "Rally": "Rally", "Aktualisieren": "Refresh", "Aus der Cloud neu laden und Überlappungen oben/unten auflösen": "Reload from the cloud and fix overlaps at top/bottom", "Oben": "Top", "Mitte": "Middle", "Unten": "Bottom", "Sets und Rüstungen ausrichten an": "Align sets and armaments at", "Rüstung anzeigen": "Show armament", "Nur Kommandanten": "Commanders only", "Symbol": "Icon", "🏰 anzeigen": "Show 🏰", "👑 anzeigen": "Show 👑", "✓ Showcase aktualisiert": "✓ Showcase refreshed", "Sets und Rüstungen gemeinsam verschieben und vergrößern (gleiche Höhe und Größe)": "Move and resize sets and armaments together (same height and size)", "Rasterfarbe": "Grid colour", "Schwarz": "Black", "Orange": "Orange", "Drehung": "Rotation", "Helligkeit": "Brightness", "Kontrast": "Contrast", "Zurücksetzen": "Reset", "Nur Kommandanten (Garnison)": "Commanders only (garrison)", "Leere Slots ausblenden": "Hide empty slots", "Nur Bild": "Image only", "Details zeigen": "Show details", "Nur das Showcase-Bild anzeigen, ohne Sets und Details darunter": "Show only the showcase image, without sets and details below", "+ City-Skin": "+ City skin", "Ausrüstung": "Equipment", "Scannen": "Scan", "Screenshot auch per Drag & Drop auf dieses Feld · max. 2 Bilder · werden nach dem Auslesen verworfen": "Screenshot also via drag & drop onto this field · max. 2 images · discarded after reading", "Materialkosten je Item (Anzahl). In legendärer Qualität sind es legendäre Materialien, in epischer die gleiche Anzahl lila Materialien (= ¼ legendär).": "Material cost per item (amount). In legendary quality these are legendary materials, in epic the same amount of purple materials (= ¼ legendary).", "kein Allianz-Tag": "no alliance tag", "Noch kein VIP-Stand": "No VIP level yet", "+ Neuer Showcase": "+ New showcase", "Andere Spieler sehen alle deine Showcases in deinem Profil.": "Other players see all your showcases in your profile.", "Die Vorschau steht direkt darüber. Alles lässt sich nach dem Scan von Hand ändern.": "The preview is right above. Everything can be changed by hand after the scan.", "– keine –": "– none –", "Flagge": "Flag", "Schriftrolle": "Scroll", "Weiß": "White", "Blau": "Blue", "Gesamtschaden %": "All damage %", "Gesamtschaden": "All Damage", "Kein": "None", "Führung": "Leadership", "Item wählen": "Choose item", "Legendär": "Legendary", "Episch": "Epic", "Noch kein Material-Scan – Rucksack-Bestand unbekannt.": "No material scan yet – backpack inventory unknown.", "Noch keine Items – Tabelle gear_items in Supabase füllen oder „+ Eigenes Item“.": "No items yet – fill table gear_items in Supabase or use “+ Own item”.", "Hinzufügen": "Add", "Entfernen": "Remove", "Weiteren Skin": "Add another skin", "Stärke": "Width", "Expertise": "Expertise", "Aus Set übernehmen …": "Copy from set …", "Inhalt eines anderen Sets übernehmen": "Copy the content of another set", "Rüstung scannen": "Scan armament", "Rüstung (Armaments)": "Armaments", "Vorschau Rüstung": "Armament preview", "Auf der Bühne anzeigen": "Show on stage", "Abstand": "Spacing", "für alle Sets": "for all sets", "Slot leeren": "Clear slot", "– leer – unten ein Bild antippen": "– empty – tap an image below", "Größe & Effekt": "Size & effect", "Schrift": "Text", "Füllung": "Fill", "Rahmen": "Frame", "Rand": "Border", "Ausblenden": "Hide", "Standardwerte": "↺ Defaults", "Text löschen": "Delete text", "Skin entfernen": "Remove skin", "Skin wählen …": "Choose skin …", "Weiterer City-Skin": "Additional city skin", "Eigener Text": "Custom text", "Sonstige": "Other", "Formation wählen, um Rüstungen und Inschriften aus der Liste anzutippen.": "Choose a formation to tap armaments and inscriptions from the list.", "Claude liest deine Rüstung …": "Claude is reading your armament …", "Claude liest Ausrüstung und Kommandanten und gleicht sie mit deinen Bildern ab …": "Claude is reading equipment and commanders and matching them with your images …", "Keine Rüstung im Screenshot erkannt.": "No armament detected in the screenshot.", "Maximal 12 Inschriften.": "Maximum 12 inscriptions.", "Maximal 6 weitere City-Skins.": "Maximum 6 additional city skins.", "Keine Bilder für diesen Typ.": "No images for this type.", "Hinweis: anderer Typ als dieser Slot – nur wählen, wenn das Item falsch einsortiert ist.": "Note: different type than this slot – only choose if the item is sorted wrongly.", "Andere Spieler sehen alle deine Showcases in deinem Profil": "Other players see all your showcases in your profile", "Alexander der Große": "Alexander the Great", "Alexander Newski": "Alexander Nevsky", "Assurbanipal": "Ashurbanipal", "Björn Eisenseite": "Björn Ironside", "Dschingis Khan": "Genghis Khan", "Edward von Woodstock": "Edward of Woodstock", "Eleonore von Aquitanien": "Eleanor of Aquitaine", "Elisabeth I.": "Elizabeth I", "Friedrich I.": "Frederick I", "Gilgamesch": "Gilgamesh", "Heinrich V.": "Henry V", "Hektor": "Hector", "Herakleios": "Heraclius", "Iwan III.": "Ivan III", "Jeanne d’Arc": "Joan of Arc", "Jeanne d’Arc (Episch)": "Joan of Arc (Epic)", "Johann Hunyadi": "John Hunyadi", "Karl der Große": "Charlemagne", "Karl Martell": "Charles Martel", "Kasimir III.": "Casimir III", "Kleopatra VII.": "Cleopatra VII", "Konstantin der Große": "Constantine the Great", "Kyros der Große": "Cyrus the Great", "Margarete I.": "Margaret I", "Maria I.": "Mary I", "Mehmed II.": "Mehmed II", "Moctezuma I.": "Montezuma I", "Nebukadnezar II.": "Nebuchadnezzar II", "Osman I.": "Osman I", "Pakal der Große": "Pakal the Great", "Philipp II.": "Philip II", "Pippin der Jüngere": "Pepin the Short", "Ramses II.": "Ramesses II", "Richard I.": "Richard I", "Sargon der Große": "Sargon the Great", "Shapur I.": "Shapur I", "Stephan I.": "Stephen I", "Süleyman I.": "Suleiman I", "Thutmosis III.": "Thutmose III", "Wilhelm I.": "William I", "Katharina": "Catherine", "Mathilde von Flandern": "Matilda of Flanders", "Perikles": "Pericles", "Drachenlanzer": "Dragon Lancer", "Schützin": "Markswoman", "Stadtwächter": "City Keeper", "Zenturio": "Centurion", "Afonso I.": "Afonso I", "Artemisia I.": "Artemisia I", "David IV.": "David IV", "Justinian I.": "Justinian I", "Belisarius (Episch)": "Belisarius (Epic)", "Boudica (Episch)": "Boudica (Epic)", "Hermann (Episch)": "Hermann (Epic)", "Scipio (Episch)": "Scipio (Epic)", "Sun Tzu (Episch)": "Sun Tzu (Epic)", "Ragnar (alt)": "Ragnar (old)", "Kommandant": "Commander", '📐 Größe & Effekt': '📐 Size & effect', '🎨 Schrift': '🎨 Text', '▦ Füllung': '▦ Fill', '▢ Rahmen': '▢ Frame', '▢ Rand': '▢ Border', '👁 Ausblenden': '👁 Hide', 'Dein Text': 'Your text', 'Symmetrisch angeordnet': 'Arranged symmetrically',
+        'Füllung': 'Fill', 'Rand': 'Border', 'keine': 'none', 'kein': 'none', 'keiner': 'none', 'Deckkraft': 'Opacity', '↺ Standardwerte': '↺ Defaults', "Farbverläufe": "Gradients", "📷 Hochladen": "📷 Upload", "Eigenes Bild": "Own image", "Bild löschen": "Delete image", "Maximal 10 Bilder – zum Hochladen erst eins löschen (✕).": "Maximum 10 images – delete one (✕) to upload another.", "Dieses Bild aus deinen Hintergründen löschen?\n\nShowcases, die es gerade nutzen, behalten es.": "Delete this image from your backgrounds?\n\nShowcases currently using it keep it.", "🗑 Bild gelöscht": "🗑 Image deleted", "Maximal 10 eigene Bilder – bitte erst eins löschen.": "Maximum 10 own images – please delete one first.", "✓ Bild gespeichert und als Hintergrund gesetzt": "✓ Image saved and set as background", "👁 Ansicht": "👁 View", "⊞ Anordnen": "⊞ Arrange", "＋ Hinzufügen": "＋ Add", "Im Showcase anzeigen": "Show in showcase", "✏️ Text": "✏️ Text", "🏯 City-Skin": "🏯 City skin", "↩ Zurück": "↩ Undo", "✖ Abbrechen": "✖ Cancel", "Letzten Schritt rückgängig machen (Strg+Z)": "Undo the last step (Ctrl+Z)", "Aktuellen Stand merken – „Abbrechen“ springt hierher zurück": "Remember the current state – “Cancel” jumps back here", "Bearbeiten abbrechen und den letzten Zwischenstand komplett wiederherstellen": "Cancel editing and fully restore the last checkpoint", "💾 Zwischenstand gespeichert – „✖ Abbrechen“ springt hierher zurück.": "💾 Checkpoint saved – “✖ Cancel” jumps back here.", "✖ Abbrechen?\n\nAlle Änderungen seit dem letzten Zwischenspeichern werden verworfen, der Zwischenstand wird komplett wiederhergestellt und das Bearbeiten beendet.": "✖ Cancel?\n\nAll changes since the last checkpoint are discarded, the checkpoint is fully restored and editing ends.", "✖ Abgebrochen – Zwischenstand wiederhergestellt": "✖ Cancelled – checkpoint restored", "↩ Schritt rückgängig": "↩ Step undone", "💾 Zwischenspeichern": "💾 Save checkpoint", "↶ Abbrechen": "↶ Cancel", "Aktuellen Stand dieses Showcase merken – mit „Abbrechen“ kommst du jederzeit dahin zurück": "Remember the current state of this showcase – “Cancel” brings you back to it at any time", "Alle Änderungen seit dem letzten Zwischenspeichern verwerfen": "Discard all changes since the last checkpoint", "💾 Zwischenstand gespeichert – mit „↶ Abbrechen“ kommst du hierher zurück.": "💾 Checkpoint saved – “↶ Cancel” brings you back here.", "↶ Abbrechen?\n\nAlle Änderungen an diesem Showcase seit dem Zwischenspeichern gehen verloren und der gemerkte Stand wird wiederhergestellt.": "↶ Cancel?\n\nAll changes to this showcase since the checkpoint will be lost and the saved state restored.", "↶ Zwischenstand wiederhergestellt": "↶ Checkpoint restored", "Zwischenstand zu groß für den Browser-Speicher (eigene Bilder) – bitte ein eigenes Hintergrundbild entfernen oder verkleinern.": "Checkpoint too large for browser storage (own images) – please remove or shrink a custom background image.", "◇ Rahmen-Dicke": "◇ Frame thickness", "↺ Nur Rahmen zurücksetzen": "↺ Reset frames only", "↺ Refine & Iconic zurücksetzen": "↺ Reset refine & iconic", "50 = Standard (Regler in der Mitte).": "50 = default (slider in the middle).", "✓ Rahmen zurückgesetzt": "✓ Frames reset", "Rahmen erscheinen bei Items mit Expertise (fertig refined).": "Frames appear on items with expertise (fully refined).", "🔗 Für alle Sets gleich": "🔗 Same for all sets", "Rahmen, Partikel, Orange-Ton, rotes Refine-Symbol und Iconic gelten automatisch für alle Sets dieses Showcase": "Frames, particles, orange tone, red refine icon and iconic apply automatically to all sets of this showcase", "⧉ Auf alle Sets aller Showcases übertragen": "⧉ Apply to all sets of all showcases", "Einmalig auf alle Sets aller Showcases übertragen": "Apply once to all sets of all showcases", "Rahmen- und Symbol-Einstellungen dieses Sets auf alle Sets dieses Showcase übertragen und ab jetzt gemeinsam ändern?": "Apply the frame and icon settings of this set to all sets of this showcase and change them together from now on?", "✓ Gilt jetzt für alle Sets": "✓ Now applies to all sets", "✓ Wieder pro Set einstellbar": "✓ Adjustable per set again", "Rahmen und Symbol-Einstellungen dieses Sets auf alle Sets aller Showcases übertragen?": "Apply the frame and icon settings of this set to all sets of all showcases?", "✨ Glitzer-Partikel bei allen Gold-Rahmen": "✨ Glitter particles on all gold frames", "kein Iconic": "no iconic", "Iconic-Stufen gibt es nur bei legendären Items": "Iconic levels only exist on legendary items", "🎨 Orange-Ton": "🎨 Orange tone", "🎨 Orange-Ton: nach links dunkler orange, nach rechts gelblicher (0 = Standard) – gilt für alle legendären Items dieses Sets.": "🎨 Orange tone: left = darker orange, right = more yellow (0 = default) – applies to all legendary items of this set.", 'Angriff': 'Attack', 'Verteidigung': 'Defense', 'Leben': 'Health', 'Marschgeschw.': 'March Speed', "Was soll gleich sein?": "What should match?", "Ausrichten an": "Align at", "aus": "off", "⚠ Beim Einschalten werden Größen und Positionen sofort angeglichen – dein Bild kann sich verändern.": "⚠ When switched on, sizes and positions are matched right away – your image may change.", "🔗 Set-Einheit": "🔗 Set unit", "Set, Rüstung und Werte bewegen sich zusammen – Rüstung und Werte bleiben unter ihrem Set": "Set, armament and stats move together – armament and stats stay below their set", "🛡 Alle Gear-Sets": "🛡 All gear sets", "Alle Sets einer Reihe gleich groß und auf gleicher Höhe": "All sets in a row same size and at the same height", "⚔ Alle Rüstungen": "⚔ All armaments", "Alle Rüstungen einer Reihe gleich groß und auf gleicher Höhe": "All armaments in a row same size and at the same height", "📊 Alle Werte": "📊 All stats", "Alle Werte-Blöcke gleich groß, gleiche Höhe und gleiche Schrift-Ausrichtung": "All stat blocks same size, same height and same text alignment", "🏯 Alle City-Skins": "🏯 All city skins", "Alle City-Skins gleich groß und je Reihe auf gleicher Höhe": "All city skins same size and at the same height per row", "⚡ Energie · KP · Verdienst": "⚡ Power · KP · Merit", "Die drei Werte-Kästen gleich groß und auf gleicher Höhe": "The three value boxes same size and at the same height", "🔗 Sync eingeschaltet – Größen und Höhen wurden angeglichen.": "🔗 Sync on – sizes and heights were matched.", "⚠ Ausrichtung ändern?\n\nAlle gesyncten Elemente werden neu ausgerichtet – dein Showcase-Bild kann sich dadurch verändern.": "⚠ Change alignment?\n\nAll synced elements will be realigned – your showcase image may change.", "Rüstung auf der Bühne": "Armament on stage", "Werte auf der Bühne": "Stats on stage", "Werte anzeigen": "Show stats", "📊 Werte": "📊 Stats", "⬅ Links": "⬅ Left", "↔ Mitte": "↔ Center", "➡ Rechts": "➡ Right", "Links": "Left", "Rechts": "Right", "Truppentyp zeigen (z. B. „Archer Attack“)": "Show troop type (e.g. “Archer Attack”)", "✨ Expertise-Rahmen & Symbole": "✨ Expertise frames & icons", "Rahmen erscheinen bei Items mit Expertise (fertig refined). Gilt für dieses Set.": "Frames appear on items with expertise (fully refined). Applies to this set.", "Gold · legendäre Items": "Gold · legendary items", "Lila · epische Items": "Purple · epic items", "◇ Rahmen-Größe": "◇ Frame size", "✦ Refine-Größe": "✦ Refine size", "✦ Refine ↔": "✦ Refine ↔", "✦ Refine ↕": "✦ Refine ↕", "🏅 Iconic-Größe": "🏅 Iconic size", "🏅 Iconic ↔": "🏅 Iconic ↔", "🏅 Iconic ↕": "🏅 Iconic ↕", "Das rote Refine-Symbol bleibt immer innerhalb des Rahmens.": "The red refine icon always stays inside the frame.", "⧉ Für alle Sets übernehmen": "⧉ Apply to all sets", "Glitzer-Rand": "Glitter rim", "Kein Rahmen": "No frame", "Rahmen und Symbol-Einstellungen dieses Sets für alle Sets übernehmen?": "Apply the frame and icon settings of this set to all sets?", "✓ Für alle Sets übernommen": "✓ Applied to all sets", "Anderer Rahmen …": "Other frame …", "Rahmen hinzufügen …": "Add frame …", "▢ Rahmen entfernen": "▢ Remove frame", "🔍 Bild im Rahmen": "🔍 Picture in frame", "🛡 Ausrüstung": "🛡 Equipment", '– nur Größe': '– size only', "Rund": "Round", "Rahmen wählen …": "Choose frame …", "Rahmen wählen": "Choose frame", "Rahmen suchen …": "Search frame …", "kein Rahmen": "no frame", "Gear anzeigen": "Show gear", "nur Größe": "size only", "Hilfslinien": "Guides", "Türkise Hilfslinien beim Ziehen": "Cyan guide lines while dragging", "Duplizieren": "Duplicate", "Im Profil zeigen": "Show in profile", "Alle Showcases": "All showcases", "Aktionspunkte": "Action points", "Gesamt-AP": "Total AP", "Flaschen": "Bottles", "Gems gesamt": "Total gems", "Auf der Hand": "On hand", "Im Rucksack": "In backpack", "Anzeige": "Display", "✓ Showcase kopiert": "✓ Showcase copied", "✓ Rahmen gespeichert": "✓ Frame saved", "✓ Rahmen entfernt": "✓ Frame removed", "Garnison": "Garrison", "Profilbild": "Profile picture", 'Skin suchen …': 'Search skin …', '+ 🛡 Garnison': '+ 🛡 Garrison', '+ 🚩 Rally': '+ 🚩 Rally', '🛡 Garnison': '🛡 Garrison', "Garnison": "Garrison", "Rally": "Rally", "Aktualisieren": "Refresh", "Aus der Cloud neu laden und Überlappungen oben/unten auflösen": "Reload from the cloud and fix overlaps at top/bottom", "Oben": "Top", "Mitte": "Middle", "Unten": "Bottom", "Sets und Rüstungen ausrichten an": "Align sets and armaments at", "Rüstung anzeigen": "Show armament", "Nur Kommandanten": "Commanders only", "Symbol": "Icon", "🏰 anzeigen": "Show 🏰", "👑 anzeigen": "Show 👑", "✓ Showcase aktualisiert": "✓ Showcase refreshed", "Sets und Rüstungen gemeinsam verschieben und vergrößern (gleiche Höhe und Größe)": "Move and resize sets and armaments together (same height and size)", "Rasterfarbe": "Grid colour", "Schwarz": "Black", "Orange": "Orange", "Drehung": "Rotation", "Helligkeit": "Brightness", "Kontrast": "Contrast", "Zurücksetzen": "Reset", "Nur Kommandanten (Garnison)": "Commanders only (garrison)", "Leere Slots ausblenden": "Hide empty slots", "Nur Bild": "Image only", "Details zeigen": "Show details", "Nur das Showcase-Bild anzeigen, ohne Sets und Details darunter": "Show only the showcase image, without sets and details below", "+ City-Skin": "+ City skin", "Ausrüstung": "Equipment", "Scannen": "Scan", "Screenshot auch per Drag & Drop auf dieses Feld · max. 2 Bilder · werden nach dem Auslesen verworfen": "Screenshot also via drag & drop onto this field · max. 2 images · discarded after reading", "Materialkosten je Item (Anzahl). In legendärer Qualität sind es legendäre Materialien, in epischer die gleiche Anzahl lila Materialien (= ¼ legendär).": "Material cost per item (amount). In legendary quality these are legendary materials, in epic the same amount of purple materials (= ¼ legendary).", "kein Allianz-Tag": "no alliance tag", "Noch kein VIP-Stand": "No VIP level yet", "+ Neuer Showcase": "+ New showcase", "Andere Spieler sehen alle deine Showcases in deinem Profil.": "Other players see all your showcases in your profile.", "Die Vorschau steht direkt darüber. Alles lässt sich nach dem Scan von Hand ändern.": "The preview is right above. Everything can be changed by hand after the scan.", "– keine –": "– none –", "Flagge": "Flag", "Schriftrolle": "Scroll", "Weiß": "White", "Blau": "Blue", "Gesamtschaden %": "All damage %", "Gesamtschaden": "All Damage", "Kein": "None", "Führung": "Leadership", "Item wählen": "Choose item", "Legendär": "Legendary", "Episch": "Epic", "Noch kein Material-Scan – Rucksack-Bestand unbekannt.": "No material scan yet – backpack inventory unknown.", "Noch keine Items – Tabelle gear_items in Supabase füllen oder „+ Eigenes Item“.": "No items yet – fill table gear_items in Supabase or use “+ Own item”.", "Hinzufügen": "Add", "Entfernen": "Remove", "Weiteren Skin": "Add another skin", "Stärke": "Width", "Expertise": "Expertise", "Aus Set übernehmen …": "Copy from set …", "Inhalt eines anderen Sets übernehmen": "Copy the content of another set", "Rüstung scannen": "Scan armament", "Rüstung (Armaments)": "Armaments", "Vorschau Rüstung": "Armament preview", "Auf der Bühne anzeigen": "Show on stage", "Abstand": "Spacing", "für alle Sets": "for all sets", "Slot leeren": "Clear slot", "– leer – unten ein Bild antippen": "– empty – tap an image below", "Größe & Effekt": "Size & effect", "Schrift": "Text", "Füllung": "Fill", "Rahmen": "Frame", "Rand": "Border", "Ausblenden": "Hide", "Standardwerte": "↺ Defaults", "Text löschen": "Delete text", "Skin entfernen": "Remove skin", "Skin wählen …": "Choose skin …", "Weiterer City-Skin": "Additional city skin", "Eigener Text": "Custom text", "Sonstige": "Other", "Formation wählen, um Rüstungen und Inschriften aus der Liste anzutippen.": "Choose a formation to tap armaments and inscriptions from the list.", "Claude liest deine Rüstung …": "Claude is reading your armament …", "Claude liest Ausrüstung und Kommandanten und gleicht sie mit deinen Bildern ab …": "Claude is reading equipment and commanders and matching them with your images …", "Keine Rüstung im Screenshot erkannt.": "No armament detected in the screenshot.", "Maximal 12 Inschriften.": "Maximum 12 inscriptions.", "Maximal 6 weitere City-Skins.": "Maximum 6 additional city skins.", "Keine Bilder für diesen Typ.": "No images for this type.", "Hinweis: anderer Typ als dieser Slot – nur wählen, wenn das Item falsch einsortiert ist.": "Note: different type than this slot – only choose if the item is sorted wrongly.", "Andere Spieler sehen alle deine Showcases in deinem Profil": "Other players see all your showcases in your profile", "Alexander der Große": "Alexander the Great", "Alexander Newski": "Alexander Nevsky", "Assurbanipal": "Ashurbanipal", "Björn Eisenseite": "Björn Ironside", "Dschingis Khan": "Genghis Khan", "Edward von Woodstock": "Edward of Woodstock", "Eleonore von Aquitanien": "Eleanor of Aquitaine", "Elisabeth I.": "Elizabeth I", "Friedrich I.": "Frederick I", "Gilgamesch": "Gilgamesh", "Heinrich V.": "Henry V", "Hektor": "Hector", "Herakleios": "Heraclius", "Iwan III.": "Ivan III", "Jeanne d’Arc": "Joan of Arc", "Jeanne d’Arc (Episch)": "Joan of Arc (Epic)", "Johann Hunyadi": "John Hunyadi", "Karl der Große": "Charlemagne", "Karl Martell": "Charles Martel", "Kasimir III.": "Casimir III", "Kleopatra VII.": "Cleopatra VII", "Konstantin der Große": "Constantine the Great", "Kyros der Große": "Cyrus the Great", "Margarete I.": "Margaret I", "Maria I.": "Mary I", "Mehmed II.": "Mehmed II", "Moctezuma I.": "Montezuma I", "Nebukadnezar II.": "Nebuchadnezzar II", "Osman I.": "Osman I", "Pakal der Große": "Pakal the Great", "Philipp II.": "Philip II", "Pippin der Jüngere": "Pepin the Short", "Ramses II.": "Ramesses II", "Richard I.": "Richard I", "Sargon der Große": "Sargon the Great", "Shapur I.": "Shapur I", "Stephan I.": "Stephen I", "Süleyman I.": "Suleiman I", "Thutmosis III.": "Thutmose III", "Wilhelm I.": "William I", "Katharina": "Catherine", "Mathilde von Flandern": "Matilda of Flanders", "Perikles": "Pericles", "Drachenlanzer": "Dragon Lancer", "Schützin": "Markswoman", "Stadtwächter": "City Keeper", "Zenturio": "Centurion", "Afonso I.": "Afonso I", "Artemisia I.": "Artemisia I", "David IV.": "David IV", "Justinian I.": "Justinian I", "Belisarius (Episch)": "Belisarius (Epic)", "Boudica (Episch)": "Boudica (Epic)", "Hermann (Episch)": "Hermann (Epic)", "Scipio (Episch)": "Scipio (Epic)", "Sun Tzu (Episch)": "Sun Tzu (Epic)", "Ragnar (alt)": "Ragnar (old)", "Kommandant": "Commander", '📐 Größe & Effekt': '📐 Size & effect', '🎨 Schrift': '🎨 Text', '▦ Füllung': '▦ Fill', '▢ Rahmen': '▢ Frame', '▢ Rand': '▢ Border', '👁 Ausblenden': '👁 Hide', 'Dein Text': 'Your text', 'Symmetrisch angeordnet': 'Arranged symmetrically',
         '⚠ Wirklich alles symmetrisch anordnen?\n\nAlle Sets, Rüstungen und Anzeigen dieses Showcase werden automatisch neu platziert – deine eigene Anordnung geht dabei verloren.': '⚠ Really arrange everything symmetrically?\n\nAll sets, armaments and displays of this showcase will be repositioned automatically – your own layout will be lost.',
         'Im Profil zeigen': 'Show in profile', 'Alle Showcases': 'All showcases', '🔒 Niemand – alles privat': '🔒 Nobody – all private', 'Privat': 'Private', 'Öffentlich': 'Public',
         'Nur für dich sichtbar': 'Only visible to you', 'Für andere sichtbar': 'Visible to others', 'Privat – nur für dich sichtbar': 'Private – only visible to you', 'Sichtbarkeit gespeichert': 'Visibility saved',
@@ -1131,7 +1159,9 @@ window.I18N = (() => {
       },
       patterns: [
         [/^Nur „(.+)“$/, 'Only “$1”'],
+        [/^Deine Bilder · (\d+)\/(\d+)$/, 'Your images · $1/$2'],
         [/^Zwischenstand: (.+)$/, 'Checkpoint: $1'],
+        [/^↩ Zurück \((\d+)\)$/, '↩ Undo ($1)'],
         [/^⚠ Sync „(.+)“ einschalten\?\n\nGrößen und Positionen werden sofort angeglichen – dein Showcase-Bild kann sich dadurch verändern\.$/, (m, k) => `⚠ Turn on sync “${I18N.tr(k)}”?\n\nSizes and positions are matched right away – your showcase image may change.`],
         [/^📊 Werte · (.+)$/, '📊 Stats · $1'],
         [/^(🛡 Garnison|🚩 Rally) (\d)$/, (m, k, n) => k.replace('Garnison', 'Garrison') + ' ' + n],
@@ -4150,6 +4180,7 @@ window.RokApp = () => {
   const SC_PICS = ["burning-harbor-standoff.webp", "dolphin-coral-reef (1).webp", "frontier-camp-brawl.webp", "hillside-cavalry-charge.webp", "jungle-temple-guardians.webp", "pharaoh-triumph-parade.webp", "sky-whale-frozen-lake.webp", "smoldering-castle-siege.webp", "spartan-battle-fury.webp", "spartan-desert-charge.webp", "sun-moon-stained-glass.webp", "supporter-amethyst-aurora.webp", "violet-lightning-tree.webp", "war-table-braziers.webp", "warriors-face-off.webp"];   // Vorlagen in /icons/showcase pictures/
   const SC_PIC_DIR = 'showcase%20pictures';                 // GitHub-Ordner icons/showcase pictures
   const scPicUrl = (id) => `/icons/${SC_PIC_DIR}/` + encodeURIComponent(id);
+  const SC_GAL_MAX = 10;
   const scBgNorm = (b) => b?.type === 'lib' && /^[a-z0-9() _.-]{1,80}\.(webp|png|jpe?g)$/i.test(b.id || '') ? { type: 'lib', id: b.id } : b?.type === 'img' && scImgOk(b.src) ? { type: 'img', src: b.src } : { type: 'preset', id: SC_BGS[b?.id] ? b.id : 'none' };
   const SC_HEIGHTS = { compact: { label: 'Kompakt', h: 60 }, normal: { label: 'Normal', h: 75 }, tall: { label: 'Hoch', h: 95 }, xl: { label: 'Sehr hoch', h: 120 }, xxl: { label: 'Extra hoch', h: 150 } };
   const SC_ELS = {
@@ -4555,7 +4586,10 @@ window.RokApp = () => {
     if (!list.length) list = [{}];
     list = list.slice(0, SC_MAX_LIST).map((x, i) => scNorm(x, i, pub));
     const show = list.some(x => x.id === raw?.show) ? raw.show : 'all';   // welcher Showcase im Profil gezeigt wird (alle oder einer)
-    return { v: 3, pub, show, list, active: list.some(x => x.id === raw?.active) ? raw.active : list[0].id, updated: +raw?.updated || 0 };
+    // eigene Hintergrundbilder (max. 10) – bleiben gespeichert, auch wenn gerade ein anderer Hintergrund gewählt ist
+    const gallery = (Array.isArray(raw?.gallery) ? raw.gallery : []).filter(g => scImgOk(g?.src)).map(g => ({ id: String(g.id || newId()), src: g.src, t: +g.t || 0 }));
+    if (!pub) list.forEach(x => { if (x.bg.type === 'img' && !gallery.some(g => g.src === x.bg.src)) gallery.push({ id: newId(), src: x.bg.src, t: 0 }); });   // bisher genutzte eigene Bilder übernehmen
+    return { v: 3, pub, show, list, gallery: gallery.slice(0, SC_GAL_MAX), active: list.some(x => x.id === raw?.active) ? raw.active : list[0].id, updated: +raw?.updated || 0 };
   }
   // Was andere sehen dürfen: nur gewählte Showcases, ohne private Sets. null = gar nichts.
   function scPublicDoc(doc) {                               // alle Showcases und alle Sets sind öffentlich
@@ -4796,42 +4830,49 @@ window.RokApp = () => {
   }
   function drawBgPick() {
     { const d = D(); $('scBgB').value = d.bgB ?? 100; $('scBgBv').textContent = (d.bgB ?? 100) + ' %'; $('scBgC').value = d.bgC ?? 100; $('scBgCv').textContent = (d.bgC ?? 100) + ' %'; }
-    const b = D().bg, sw = 'relative w-16 h-10 rounded-lg overflow-hidden border-2 transition';
-    $('scBgList').innerHTML = Object.entries(SC_BGS).map(([k, v]) => {
-      const on = b.type === 'preset' && b.id === k;
+    const b = D().bg, gal = sc.doc.gallery || [], sw = 'relative w-20 h-12 rounded-lg overflow-hidden border-2 transition';
+    const presets = Object.entries(SC_BGS).map(([k, v]) => { const on = b.type === 'preset' && b.id === k;
       return `<button type="button" data-bg="${k}" aria-pressed="${on}" title="${v.label}" class="${sw} ${on ? 'border-gold-400' : 'border-ink-600 hover:border-gold-500/60'}"
-          style="background:${v.css || '#0c1019'}"><span class="absolute inset-x-0 bottom-0 text-[9px] font-semibold text-white bg-black/45 leading-4">${v.label}</span></button>`;
-    }).join('') + SC_PICS.map(id => { const on = b.type === 'lib' && b.id === id;
-      return `<button type="button" data-bgpic="${esc(id)}" aria-pressed="${on}" title="${esc(id.replace(/\.\w+$/, '').replace(/[-_]+/g, ' '))}" class="${sw} ${on ? 'border-gold-400' : 'border-ink-600 hover:border-gold-500/60'}" style="background:url('${scPicUrl(id)}') center/cover"></button>`; }).join('')
-      + `<label for="scBgFile" title="Eigenes Bild hochladen" class="cursor-pointer ${sw} ${b.type === 'img' ? 'border-gold-400' : 'border-dashed border-gold-500/60 hover:border-gold-400'} grid place-items-center bg-ink-900 text-[10px] text-gold-300 font-semibold"
-        ${b.type === 'img' ? `style="background:url('${b.src}') center/cover"` : ''}>${b.type === 'img' ? '<span class="absolute inset-x-0 bottom-0 text-[9px] text-white bg-black/45 leading-4 text-center">Eigenes</span>' : '📷 Bild'}</label>`;
+          style="background:${v.css || '#0c1019'}"><span class="absolute inset-x-0 bottom-0 text-[9px] font-semibold text-white bg-black/45 leading-4">${v.label}</span></button>`; }).join('');
+    const own = gal.map(g => { const on = b.type === 'img' && b.src === g.src;
+      return `<div class="relative group"><button type="button" data-gal="${esc(g.id)}" aria-pressed="${on}" title="Eigenes Bild" class="${sw} block ${on ? 'border-gold-400' : 'border-ink-600 hover:border-gold-500/60'}" style="background:url('${g.src}') center/cover"></button>
+        <button type="button" data-galdel="${esc(g.id)}" title="Bild löschen" class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-ink-950 border border-red-500/60 text-red-300 text-[10px] leading-none grid place-items-center hover:bg-red-500/20">✕</button></div>`; }).join('');
+    const add = gal.length < SC_GAL_MAX ? `<label for="scBgFile" title="Eigenes Bild hochladen" class="cursor-pointer ${sw} border-dashed border-gold-500/60 hover:border-gold-400 grid place-items-center bg-ink-900 text-[10px] text-gold-300 font-semibold">📷 Hochladen</label>` : '';
+    $('scBgList').innerHTML = `<div class="w-full">
+        <div class="mb-1.5 text-[10px] uppercase tracking-widest text-slate-500">Farbverläufe</div>
+        <div class="flex flex-wrap gap-2">${presets}</div>
+        <div class="mt-3 mb-1.5 text-[10px] uppercase tracking-widest text-slate-500">Deine Bilder · ${gal.length}/${SC_GAL_MAX}</div>
+        <div class="flex flex-wrap gap-2 pt-1.5">${own}${add}</div>
+        ${gal.length >= SC_GAL_MAX ? '<p class="mt-1 text-[11px] text-amber-300">Maximal 10 Bilder – zum Hochladen erst eins löschen (✕).</p>' : ''}
+      </div>`;
   }
-  (async function syncPics() {
-    let list = null;
-    try { const c = JSON.parse(localStorage.getItem('rok_pic_files2') || 'null'); if (c && Date.now() - c.t < 3600e3 && Array.isArray(c.list)) list = c.list; } catch {}
-    if (!list) { try { const r = await fetch('https://api.github.com/repos/marcopopp51200-coder/rok-scanner/contents/icons/' + SC_PIC_DIR, { headers: { accept: 'application/vnd.github+json' } });
-      if (!r.ok) return; list = (await r.json()).map(x => String(x?.name || '')).filter(n => /\.(webp|png|jpe?g)$/i.test(n));
-      try { localStorage.setItem('rok_pic_files2', JSON.stringify({ t: Date.now(), list })); } catch {} } catch { return; } }
-    list.forEach(f => { if (!SC_PICS.includes(f)) SC_PICS.push(f); });
-  })();
   $('scBgBtn').onclick = () => {
     const open = $('scBgPick').classList.toggle('hidden') === false;
     $('scBgBtn').setAttribute('aria-expanded', String(open));
     if (open) { scOpen = true; scApplyOpen(); drawBgPick(); }
   };
-  $('scBgList').addEventListener('click', (ev) => {
-    const pic = ev.target.closest('[data-bgpic]');
-    if (pic && sc.own) { D().bg = { type: 'lib', id: pic.dataset.bgpic }; scApplyBg(); drawBgPick(); scSave('✓ Hintergrund gespeichert'); return; }
-    const b = ev.target.closest('[data-bg]'); if (!b || !sc.own) return;
+  $('scBgList').addEventListener('click', async (ev) => {
+    if (!sc.own) return;
+    const del = ev.target.closest('[data-galdel]');
+    if (del) {
+      if (!(await UI.confirm('Dieses Bild aus deinen Hintergründen löschen?\n\nShowcases, die es gerade nutzen, behalten es.'))) return;
+      sc.doc.gallery = (sc.doc.gallery || []).filter(g => g.id !== del.dataset.galdel); drawBgPick(); scSave('🗑 Bild gelöscht'); return;
+    }
+    const g = ev.target.closest('[data-gal]');
+    if (g) { const it = (sc.doc.gallery || []).find(x => x.id === g.dataset.gal); if (it) { D().bg = { type: 'img', src: it.src }; scApplyBg(); drawBgPick(); scSave('✓ Hintergrund gespeichert'); } return; }
+    const b = ev.target.closest('[data-bg]'); if (!b) return;
     D().bg = { type: 'preset', id: b.dataset.bg }; scApplyBg(); drawBgPick(); scSave('✓ Hintergrund gespeichert');
   });
   $('scBgFile').onchange = async (ev) => {
     const f = ev.target.files?.[0]; ev.target.value = '';
     if (!f || !f.type.startsWith('image/') || !sc.own) return;
+    sc.doc.gallery = sc.doc.gallery || [];
+    if (sc.doc.gallery.length >= SC_GAL_MAX) { scMsg('Maximal 10 eigene Bilder – bitte erst eins löschen.', 'warn'); return; }
     scMsg('Lade Hintergrund hoch …', 'busy');
     try {
-      const d = D(), src = await scStoreImage(f, `${d.id}_bg`, 2560, 1440, 1500000);
-      d.bg = { type: 'img', src }; scApplyBg(); drawBgPick(); scSave('✓ Hintergrund gespeichert');
+      const id = newId(), src = await scStoreImage(f, `bg_${id}`.replace(/\./g, '_'), 2560, 1440, 1500000);   // eigener Dateiname je Bild → nichts wird überschrieben
+      sc.doc.gallery.push({ id, src, t: Date.now() });
+      D().bg = { type: 'img', src }; scApplyBg(); drawBgPick(); scSave('✓ Bild gespeichert und als Hintergrund gesetzt');
     } catch (e) { scMsg(e.message || 'Bild konnte nicht gelesen werden.', 'err'); }
   };
 
@@ -4996,6 +5037,11 @@ window.RokApp = () => {
         : '');
     if (sc.own) $('scListBar').insertAdjacentHTML('beforeend', '<div class="w-full text-[11px] text-slate-500">👁 Andere Spieler sehen alle deine Showcases in deinem Profil.</div>');
   }
+  function drawWidgetOpts(d) {
+    $('scWidgetOpts').innerHTML = Object.entries(SC_ELS).map(([k, w]) =>
+      `<label class="cursor-pointer select-none"><input type="checkbox" data-w="${k}" ${d.els[k].on ? 'checked' : ''} class="peer sr-only">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition ${d.els[k].on ? 'border-gold-400 bg-gold-500/20 text-gold-100' : 'border-ink-600 text-slate-400 hover:border-gold-500/60 hover:text-slate-200'} peer-focus-visible:ring-2 peer-focus-visible:ring-gold-400">${d.els[k].on ? '✓' : '+'} ${w.icon} ${w.label}</span></label>`).join('');
+  }
   function drawEditBar() {
     const d = D(), on = sc.own && sc.edit;
     $('scEditBar').classList.toggle('hidden', !on);
@@ -5003,8 +5049,7 @@ window.RokApp = () => {
     $('scGridOn').checked = d.grid; $('scSyncA').value = d.syncA || 'top'; drawSyncMenu(d); $('scGuidesOn').checked = d.guides !== false;
     $('scGridC').innerHTML = Object.entries(SC_GRID_C).map(([k, v]) => `<option value="${k}"${k === d.gridC ? ' selected' : ''}>${v.label}</option>`).join('');
     $('scHeight').innerHTML = Object.entries(SC_HEIGHTS).map(([k, v]) => `<option value="${k}"${k === d.h ? ' selected' : ''}>${v.label}</option>`).join('');
-    $('scWidgetOpts').innerHTML = Object.entries(SC_ELS).map(([k, w]) =>
-      `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-w="${k}" ${d.els[k].on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${w.icon} ${w.label}</label>`).join('');
+    drawWidgetOpts(d);
     drawProps();
   }
   function scSelObj(key = sc.sel) {
@@ -5253,7 +5298,7 @@ window.RokApp = () => {
     $('scCount').textContent = `${scNormal(d).length}/${SC_MAX} Sets`;
     if (!sc.own) { $('scBgPick').classList.add('hidden'); $('scSync').textContent = ''; }
     else if (!$('scBgPick').classList.contains('hidden')) drawBgPick();
-    drawListBar(); drawStage(); if (scFixStacks(d)) scSaveSoon(); drawEditBar(); drawSetBar(); drawDetail(); drawCk();
+    drawListBar(); drawStage(); if (scFixStacks(d)) scSaveSoon(); drawEditBar(); drawSetBar(); drawDetail(); drawCk(); if (!sc.hLast || sc.hLast.id !== d.id) scHistReset(); else drawUndoBtn();
     scApplyImgOnly(); scApplyOpen();
   }
   // „Nur Bild“: Sets-Leiste und Details unter der Bühne ausblenden (pro Betrachter gemerkt)
@@ -5282,6 +5327,7 @@ window.RokApp = () => {
   }
   async function scSave(okText, quiet) {
     if (!sc.own || !sc.doc) return;
+    scHistTrack();
     clearTimeout(scT); clearTimeout(scRetryT);
     sc.doc.updated = Date.now(); scDirty = true;
     LS.set(SC_KEY, JSON.stringify(sc.doc));                // Kopie im Account (user_state) – wird automatisch hochgeladen
@@ -5304,7 +5350,7 @@ window.RokApp = () => {
       scRetryT = setTimeout(() => scSave(null, true), 10000);
     } finally { scSaving = false; }
   }
-  const scSaveSoon = () => { if (!sc.own) return; scDirty = true; scSync('busy', '☁ ungespeichert …'); clearTimeout(scT); scT = setTimeout(() => scSave(null, true), 600); };
+  const scSaveSoon = () => { if (!sc.own) return; scHistTrack(); scDirty = true; scSync('busy', '☁ ungespeichert …'); clearTimeout(scT); scT = setTimeout(() => scSave(null, true), 600); };
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && scDirty) scSave(null, true); });
   window.addEventListener('pagehide', () => { if (scDirty) scSave(null, true); });
   window.addEventListener('beforeunload', (e) => { if (scDirty) { scSave(null, true); e.preventDefault(); e.returnValue = ''; } });
@@ -5426,33 +5472,68 @@ window.RokApp = () => {
     sc.edit = !sc.edit; sc.gsel = null; sc.sel = null;
     if (sc.edit) scOpen = true; else scSave('✓ Showcase gespeichert');
     drawShowcase();
+    if (sc.edit) { scCkStore(); sc.hist = []; scHistReset(); }   // Bearbeiten beginnt → Zwischenstand = Stand vorher, „Zurück“ startet leer
     if (sc.edit) $('scEditBar').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
   // ---- Zwischenspeichern / Abbrechen: Stand je Showcase merken (auch nach Neuladen, im Browser) und wiederherstellen ----
   const SC_CK_KEY = 'rok_sc_checkpoints';
-  const scCkAll = () => { try { return JSON.parse(localStorage.getItem(SC_CK_KEY) || '{}') || {}; } catch { return {}; } };
+  const scCkAll = () => { let a = {}; try { a = JSON.parse(localStorage.getItem(SC_CK_KEY) || '{}') || {}; } catch {} if (sc.ckMem && sc.doc && !a[scCkKey()] && sc.ckMem.data?.id === D().id) a[scCkKey()] = sc.ckMem; return a; };
   const scCkKey = () => (RokAuth.userId?.() || 'local') + '|' + D().id;
   function drawCk() {
     const c = sc.own && sc.doc ? scCkAll()[scCkKey()] : null;
     $('scCkUndo').disabled = !c;
     $('scCkInfo').textContent = c ? `Zwischenstand: ${new Date(c.t).toLocaleString(I18N.lang?.() === 'en' ? 'en-GB' : 'de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}` : '';
   }
-  $('scCkSave').onclick = () => {
-    if (!sc.own || !sc.doc) return;
+  function scCkStore() {
+    if (!sc.own || !sc.doc) return false;
     const all = scCkAll(); all[scCkKey()] = { t: Date.now(), data: JSON.parse(JSON.stringify(D())) };
     try { localStorage.setItem(SC_CK_KEY, JSON.stringify(all)); }
-    catch { scMsg('Zwischenstand zu groß für den Browser-Speicher (eigene Bilder) – bitte ein eigenes Hintergrundbild entfernen oder verkleinern.', 'err'); return; }
-    drawCk(); scMsg('💾 Zwischenstand gespeichert – mit „↶ Abbrechen“ kommst du hierher zurück.', 'ok');
-  };
+    catch { sc.ckMem = all[scCkKey()]; }                      // zu groß für den Browser-Speicher → nur bis zum Neuladen merken
+    drawCk(); return true;
+  }
+  $('scCkSave').onclick = () => { if (scCkStore()) scMsg('💾 Zwischenstand gespeichert – „✖ Abbrechen“ springt hierher zurück.', 'ok'); };
   $('scCkUndo').onclick = async () => {
     const c = scCkAll()[scCkKey()]; if (!sc.own || !c) return;
-    if (!(await UI.confirm('↶ Abbrechen?\n\nAlle Änderungen an diesem Showcase seit dem Zwischenspeichern gehen verloren und der gemerkte Stand wird wiederhergestellt.'))) return;
-    const i = sc.doc.list.findIndex(x => x.id === c.data.id); if (i < 0) return;
-    sc.doc.list[i] = scNorm(c.data, i, true);
-    if (!sc.doc.list[i].sets.length) sc.doc.list[i].sets.push(scSetNorm({}));
-    sc.sel = null; sc.gsel = null; sc.si = 0; sc.hl = null;
-    drawShowcase(); scSave('↶ Zwischenstand wiederhergestellt');
+    if (!(await UI.confirm('✖ Abbrechen?\n\nAlle Änderungen seit dem letzten Zwischenspeichern werden verworfen, der Zwischenstand wird komplett wiederhergestellt und das Bearbeiten beendet.'))) return;
+    if (scDrag) scDrag = null;
+    clearTimeout(scT);
+    scRestore(c.data); sc.edit = false; sc.hist = []; scHistReset();
+    drawShowcase(); scSave('✖ Abgebrochen – Zwischenstand wiederhergestellt');
   };
+  function scRestore(data) {                                // Showcase-Stand aus einer Kopie zurückholen
+    const raw = typeof data === 'string' ? JSON.parse(data) : JSON.parse(JSON.stringify(data));
+    const i = sc.doc.list.findIndex(x => x.id === raw.id); if (i < 0) return false;
+    sc.doc.list[i] = scNorm(raw, i, true);
+    if (!sc.doc.list[i].sets.length) sc.doc.list[i].sets.push(scSetNorm({}));
+    sc.sel = null; sc.gsel = null; sc.hl = null; sc.si = Math.min(sc.si, sc.doc.list[i].sets.length - 1);
+    $('scGuides').innerHTML = '';
+    return true;
+  }
+  // ---- Zurück: Schritt für Schritt rückgängig (bis zu 60 Schritte, schnelle Folgeänderungen wie Regler = 1 Schritt) ----
+  sc.hist = [];
+  function scHistReset() { sc.hLast = sc.doc ? { id: D().id, j: JSON.stringify(D()) } : null; sc.hT = 0; drawUndoBtn(); }
+  function scHistTrack() {
+    if (!sc.own || !sc.doc || sc.undoing) return;
+    const d = D(), cur = JSON.stringify(d);
+    if (!sc.hLast || sc.hLast.id !== d.id) { sc.hist = []; sc.hLast = { id: d.id, j: cur }; drawUndoBtn(); return; }
+    if (cur === sc.hLast.j) return;
+    const now = Date.now();
+    if (now - (sc.hT || 0) > 700) { sc.hist.push(sc.hLast.j); if (sc.hist.length > 60) sc.hist.shift(); }
+    sc.hT = now; sc.hLast.j = cur; drawUndoBtn();
+  }
+  function drawUndoBtn() { const b = $('scUndo'); if (b) { b.disabled = !sc.hist.length; b.textContent = sc.hist.length ? `↩ Zurück (${sc.hist.length})` : '↩ Zurück'; } }
+  function scUndo() {
+    if (!sc.own || !sc.hist.length) return;
+    const j = sc.hist.pop(); sc.undoing = true;
+    if (scRestore(j)) { drawShowcase(); sc.hLast = { id: D().id, j: JSON.stringify(D()) }; sc.hT = 0; scSave('↩ Schritt rückgängig', true); }
+    sc.undoing = false; drawUndoBtn();
+  }
+  $('scUndo').onclick = scUndo;
+  document.addEventListener('keydown', (ev) => {
+    if (!sc.edit || !sc.own || !(ev.ctrlKey || ev.metaKey) || ev.key.toLowerCase() !== 'z' || ev.shiftKey) return;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) && document.activeElement.type !== 'range' && document.activeElement.type !== 'checkbox') return;
+    ev.preventDefault(); scUndo();
+  });
   $('scDone').onclick = () => { sc.edit = false; sc.sel = null; drawShowcase(); scSave('✓ Showcase gespeichert'); };
   function drawSyncMenu(d) {
     const n = Object.values(d.syncs).filter(Boolean).length;
@@ -5489,7 +5570,7 @@ window.RokApp = () => {
       if (w.x == null || w.y == null) { const L = scLayoutPos(d, scH(d)), p = L.wp[t.dataset.w]; if (p) { Object.assign(w, p); if (L.anch['w:' + t.dataset.w]) scPendingAnch['w:' + t.dataset.w] = L.anch['w:' + t.dataset.w]; } else scAutoLayout(d, true); }
     }
     if (w.on) sc.sel = 'w:' + t.dataset.w; else if (sc.sel === 'w:' + t.dataset.w) sc.sel = null;
-    drawStage(); scFixAnchors(); if (w.on && ['kp', 'power', 'merit', 'kd', 'tag', 'vip'].includes(t.dataset.w)) scFlowRows(d); drawProps(); scSaveSoon();
+    drawStage(); scFixAnchors(); if (w.on && ['kp', 'power', 'merit', 'kd', 'tag', 'vip'].includes(t.dataset.w)) scFlowRows(d); drawProps(); drawWidgetOpts(d); scSaveSoon();
   });
   $('scAddSkin').onclick = () => scSkinPicker('add');
   $('scAddText').onclick = () => {
