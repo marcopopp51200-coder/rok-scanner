@@ -1171,6 +1171,8 @@ window.I18N = (() => {
         '✓ Lokal gespeichert · für andere Spieler sichtbar erst nach dem SQL-Update (Spalte showcase)': '✓ Saved locally · visible to other players after the SQL update (column showcase)',
         'Der Scan-Server kennt den Showcase-Scan noch nicht – bitte den Modus „showcase“ in api/scan.js ergänzen. Bis dahin Kommandanten über „+ Von Hand“ eintragen.': 'The scan server does not know the showcase scan yet – please add the “showcase” mode to api/scan.js. Until then add commanders with “+ Manually”.',
         'Bis zu 5 Screenshots deiner Kommandanten-Ansicht · Bilder werden nach dem Auslesen sofort verworfen · gleiche Kommandanten werden aktualisiert statt doppelt angelegt.': 'Up to 5 screenshots of your commander view · images are discarded right after reading · existing commanders are updated instead of duplicated.',
+        'Sync Set – was wird zusammengepackt': 'Sync set – what gets packed together', 'Mit Set syncen': 'Sync with set', 'Alle Sets': 'All sets', 'Aus': 'Off',
+        'Nicht angehakte Teile bleiben frei beweglich. Verknüpfte Sets bewegen sich mit und werden beim Sync gleich groß und auf gleiche Höhe gesetzt.': 'Unticked parts stay free to move. Linked sets move along and get the same size and height when syncing.',
         'Sync Set': 'Sync set', 'Set-Einstellungen': 'Set settings', 'Kommandanten': 'Commanders', 'Namen': 'Names', 'Rüstung': 'Armament', 'Werte': 'Stats',
         'Set synchronisiert': 'Set synced', 'Formation im Rüstungs-Panel unten wählen': 'Choose the formation in the armament panel below',
         'Fixes Set: Kommandanten, Namen, Gear, Rüstung und Werte bewegen sich zusammen': 'Fixed set: commanders, names, gear, armament and stats move together',
@@ -4295,7 +4297,7 @@ window.RokApp = () => {
   const scInscKnown = (t) => { const k = scInscKey(t); if (!k) return null;      // auch abgeschnittene Namen ("Retaliato…")
     return ARM_KNOWN[k] || (k.length >= 4 ? Object.entries(ARM_KNOWN).find(([n]) => n.startsWith(k))?.[1] : null) || null; };
   const scInscSort = (l) => l.sort((x, y) => (ARM_ORDER[x.c] ?? 3) - (ARM_ORDER[y.c] ?? 3));
-  const scArmNorm = (a) => ({ free: !!a?.free, cols: a?.cols === 2 ? 2 : 1, on: !!a?.on, fsep: !!a?.fsep, fpos: a?.fpos === 'above' ? 'above' : 'below', fm: { x: scPos(a?.fm?.x, 100), y: scPos(a?.fm?.y, 200), s: scScale(a?.fm?.s), r: scRot(a?.fm?.r) }, x: scPos(a?.x, 100), y: scPos(a?.y, 200), s: scScale(a?.s), r: scRot(a?.r), formation: String(a?.formation || '').slice(0, 30),
+  const scArmNorm = (a) => ({ free: !!a?.free, cols: a?.cols === 2 ? 2 : 1, on: !!a?.on, fsep: !!a?.fsep, fpos: ['above', 'hidden'].includes(a?.fpos) ? a.fpos : 'below', fm: { x: scPos(a?.fm?.x, 100), y: scPos(a?.fm?.y, 200), s: scScale(a?.fm?.s), r: scRot(a?.fm?.r) }, x: scPos(a?.x, 100), y: scPos(a?.y, 200), s: scScale(a?.s), r: scRot(a?.r), formation: String(a?.formation || '').slice(0, 30),
     insc: (Array.isArray(a?.insc) ? a.insc : []).slice(0, 12).map(i => ({ t: String(i?.t || '').slice(0, 24), c: SC_INSC[i?.c] ? i.c : 'gold' })),
     arms: Object.fromEntries(Object.keys(ARM_TYPES).map(k => [k, ARM_BY_ID[a?.arms?.[k]]?.type === k ? a.arms[k] : ''])),
     troop: SC_TROOPS[a?.troop] ? a.troop : 'infantry', ...Object.fromEntries(SC_ARM_STATS.map(([k]) => [k, scNum1(a?.[k])])) });
@@ -4310,13 +4312,16 @@ window.RokApp = () => {
   const scGfxNorm = (g) => { const n = (k, lo, hi) => scInt(g?.[k], lo, hi, SC_GFX_DEF[k]), id = (v) => typeof v === 'string' && /^[A-Za-z0-9_. ()-]{1,80}$/.test(v) ? v : '';
     return { pt: g?.pt !== false, fw: n('fw', 0, 100), fh: n('fh', -100, 100), fr: id(g?.fr), fp: id(g?.fp), fs: n('fs', 60, 150), rx: n('rx', 0, 100), ry: n('ry', 0, 100), rs: n('rs', 8, 40), tx: n('tx', 0, 100), ty: n('ty', 0, 100), ts: n('ts', 15, 90) }; };
   // Freies Set: Kommandanten (c), Namen (n) und Ausrüstung (g) als eigene Elemente auf der Bühne
+  const SY_KEYS = [['c', '👤 Kommandanten'], ['n', '🔤 Namen'], ['g', '🛡 Ausrüstung'], ['arm', '⚔ Rüstung'], ['fm', '🔰 Formation'], ['st', '📊 Werte']];
+  const scSyNorm = (o) => Object.fromEntries(SY_KEYS.map(([k]) => [k, o?.[k] !== false]));
   const scPartsNorm = (p) => Object.fromEntries(['c', 'n', 'g'].map(k => [k, { x: scPos(p?.[k]?.x, 100), y: scPos(p?.[k]?.y, 200), s: scScale(p?.[k]?.s), r: scRot(p?.[k]?.r) }]));
   const scSetNorm = (x) => scStMigrate(x, { id: String(x?.id || newId()), name: String(x?.name || '').trim().slice(0, 30), mode: 'manual',
     shot: scImgOk(x?.shot) ? x.shot : '', cmd: [0, 1].map(i => scCmdNorm(x?.cmd?.[i])), gear: scGearNorm(x?.gear),
     x: scPos(x?.x, 100), y: scPos(x?.y, 200), s: scScale(x?.s), r: scRot(x?.r), arm: scArmNorm(x?.arm), priv: false, cg: scInt(x?.cg, 0, 70, 32),
     st: scStNorm(x?.st, x?.arm), gfx: scGfxNorm(x?.gfx), free: !!x?.free,
     heads: !!x?.heads, hideEmpty: !!x?.hideEmpty, gearOn: !!x?.gearOn,
-    cm: x?.cm !== false, cn: x?.cn !== false, nc: scColor(x?.nc), split: !!x?.split, parts: scPartsNorm(x?.parts), kind: ['garrison', 'rally'].includes(x?.kind) ? x.kind : '' });   // kind: Garnison / Rally (nur 2 Kommandanten)   // heads = nur Kommandanten (Garnison) · hideEmpty = leere Slots ausblenden   // cg = Überlappung der Kommandanten in %
+    cm: x?.cm !== false, cn: x?.cn !== false, nc: scColor(x?.nc), split: !!x?.split, parts: scPartsNorm(x?.parts), sy: scSyNorm(x?.sy), lock: x?.lock != null ? !!x.lock : !x?.split,
+    link: (Array.isArray(x?.link) ? x.link : []).map(String).slice(0, 20), kind: ['garrison', 'rally'].includes(x?.kind) ? x.kind : '' });   // kind: Garnison / Rally (nur 2 Kommandanten)   // heads = nur Kommandanten (Garnison) · hideEmpty = leere Slots ausblenden   // cg = Überlappung der Kommandanten in %
 
   function scStMigrate(raw, o) {                            // alte Sets: Werte steckten in der Rüstung → Rüstung wird kürzer, obere Kante bleibt
     if (!raw?.st && o.arm.y != null && scStHas(o.arm) && scArmVis(o.arm)) o.arm.y -= (SC_ARM_STATS.filter(([k]) => o.arm[k]).length * 1.25 + 0.2) * o.arm.s / 2;
@@ -4330,7 +4335,7 @@ window.RokApp = () => {
   const SC_KIND = { garrison: '🛡 Garnison', rally: '🚩 Rally' }, SC_KIND_MAX = 3;
   const scKindNo = (d, x) => d.sets.filter(y => y.kind === x.kind).indexOf(x);   // 0, 1, 2                       // Höhe eines Sets in Kästchen (Breite immer 4)
   const scSetH = (x) => scSetCells(x) * SC_G;
-  const scArmH = (a) => a.on && scArmVis(a) ? Math.ceil(a.insc.filter(i => i.t).length / (a.cols === 2 ? 2 : 1)) * 2.7 + (a.formation && !a.fsep ? 1.5 : 0) + 0.3 : 0;   // cols 2 = Inschriften in 2 Spalten
+  const scArmH = (a) => a.on && scArmVis(a) ? Math.ceil(a.insc.filter(i => i.t).length / (a.cols === 2 ? 2 : 1)) * 2.7 + (a.formation && !a.fsep && a.fpos !== 'hidden' ? 1.5 : 0) + 0.3 : 0;   // cols 2 = Inschriften in 2 Spalten
   const scStH = (x) => x.st.on && scStHas(x.arm) ? SC_ARM_STATS.filter(([k]) => x.arm[k]).length * 1.3 + 0.3 : 0;
   const scUnderH = (x) => (x.arm.on && scArmVis(x.arm) ? SC_G + scArmH(x.arm) : 0) + (scStH(x) ? (x.arm.on && scArmVis(x.arm) ? SC_G / 2 : SC_G) + scStH(x) : 0);   // Platz unter dem Set
   // Sets einer Reihe von links nach rechts: … 5 3 1 2 4 6 … – die Gruppe wird immer um die Mittellinie zentriert
@@ -4961,7 +4966,7 @@ window.RokApp = () => {
     const statsBox = stats ? `<div class="flex flex-col ${al === 'center' ? 'items-center' : al === 'right' ? 'items-end' : 'items-start'}" style="${part === 'st' ? `min-width:${L(W)};width:max-content;` : ''}gap:${L(0.08)}">${stats}</div>` : '';
     if (part === 'st') return statsBox;
     const pills = scInscSort(insc.slice()).map((i, n, l) => two && l.length % 2 && n === l.length - 1 ? `<div style="grid-column:1 / -1">${pill(i)}</div>` : pill(i)).join('');   // ungerade Anzahl: letzte mittig
-    const formH = a.formation && !(part === 'arm' && a.fsep) ? `<div data-fpart class="flex items-center text-slate-300 [text-shadow:0_1px_2px_#000]" style="gap:.35em;font-size:${L(1)};${a.fpos === 'above' ? 'margin-bottom' : 'margin-top'}:${L(0.2)}">${scFormIcon(a.formation)}${esc(a.formation)}</div>` : '';
+    const formH = a.formation && a.fpos !== 'hidden' && !(part === 'arm' && a.fsep) ? `<div data-fpart class="flex items-center text-slate-300 [text-shadow:0_1px_2px_#000]" style="gap:.35em;font-size:${L(1)};${a.fpos === 'above' ? 'margin-bottom' : 'margin-top'}:${L(0.2)}">${scFormIcon(a.formation)}${esc(a.formation)}</div>` : '';
     return `<div class="flex flex-col items-center" style="width:${L(two && part !== 'all' ? W * 1.5 : W)};gap:${L(0.3)}">
       ${a.fpos === 'above' ? formH : ''}
       ${two && part !== 'all' ? `<div class="grid grid-cols-2 justify-items-center" style="gap:${L(0.3)} ${L(0.3)}">${pills}</div>` : pills}
@@ -5031,9 +5036,10 @@ window.RokApp = () => {
     function m0(o) { return o.fm && o.fm.x != null; }
   }
   function scFmPos(x, i, v) {
-    if (!x || !sc.own) return;
-    x.arm.fpos = v === 'above' ? 'above' : 'below'; drawStage();
-    if (x.arm.fsep) { scFmPlace(x, i); drawStage(); }
+    if (!x || !sc.own) return; const a = x.arm, b0 = a.fsep ? null : scBox('arm:' + i, a);
+    a.fpos = ['above', 'hidden'].includes(v) ? v : 'below'; drawStage();
+    if (b0) { const b1 = scBox('arm:' + i, a); if (b1) { a.y = b0.t + b1.h / 2; drawStage(); } }   // obere Kante der Rüstung bleibt
+    if (a.fsep && a.fpos !== 'hidden') { scFmPlace(x, i); drawStage(); }
     drawArm(); drawProps(); scSaveSoon();
   }
   function scFmCtlHtml(a, sm) {
@@ -5049,11 +5055,76 @@ window.RokApp = () => {
     sc.sel = x.split && x.mode !== 'shot' ? (x.cm ? 'pc:' : x.cn ? 'pn:' : 'pg:') + i : 'set:' + i;
     sc.si = i; sc.gsel = null; drawStage(); drawProps(); drawSetBar(); drawDetail();
   }
-  function scSyncSet(x) {                                    // Sync Set: alles zusammenpacken und untereinander aufreihen
-    x.split = false; x.free = false; x.arm.free = false; x.st.free = false; x.arm.fsep = false; x.arm.r = 0; x.st.r = 0;
+  // Welche Teile eines Sets zusammengehören (Auswahl „Sync Set“) – [Schlüssel, Objekt]
+  function scMemberKeys(y, j) {
+    const l = [];
+    if (!y.split) l.push(['set:' + j, y]); else [['pc', 'c'], ['pn', 'n'], ['pg', 'g']].forEach(([t, k]) => { if (y.sy[k]) l.push([t + ':' + j, y.parts[k]]); });
+    if (y.sy.arm) l.push(['arm:' + j, y.arm]);
+    if (y.sy.st) l.push(['st:' + j, y.st]);
+    if (y.sy.fm && y.arm.fsep) l.push(['fm:' + j, y.arm.fm]);
+    return l;
+  }
+  const scMembers = (y) => scMemberKeys(y, 0).map(([, o]) => o);
+  const scLinked = (d, x) => d.sets.filter(y => y !== x && (x.link || []).includes(y.id));
+  function scLinkSet(x, y, on) {
+    x.link = (x.link || []).filter(id => id !== y.id); y.link = (y.link || []).filter(id => id !== x.id);
+    if (on) { x.link.push(y.id); y.link.push(x.id); }
+  }
+  function scSyncOne(x, i) {                                 // angehakte Teile zusammenpacken und untereinander aufreihen
+    const sy = x.sy, s0 = x.s, G = SC_G, a = x.arm, st = x.st, gap = 0.4 * s0;
+    x.lock = true; x.free = false; a.free = false; st.free = false;
+    const fmShown = !!a.formation && a.fpos !== 'hidden';
+    if (sy.fm && sy.arm && a.fsep) a.fsep = false;                                  // Formation zurück in die Rüstung
+    if (!sy.fm && fmShown && !a.fsep && a.on) { drawStage(); scFmSep(x, i, true); }   // Formation bleibt frei beweglich
+    let cx = x.x, bottom = null;
     drawStage();
-    if (x.arm.on && scArmVis(x.arm)) { scArmUnder(x); drawStage(); }
-    if (x.st.on && scStHas(x.arm)) { scStUnder(x); drawStage(); }
+    if (sy.c && sy.n && sy.g) {
+      if (x.split) {
+        const bs = [['pc', 'c'], ['pn', 'n'], ['pg', 'g']].map(([t, k]) => [k, scBox(t + ':' + i, x.parts[k])]).filter(([, b]) => b);
+        const top = bs.length ? Math.min(...bs.map(([, b]) => b.t)) : null; if (bs.length) cx = bs[0][1].cx;
+        x.split = false; drawStage();
+        const cb = scBox('set:' + i, x); if (cb && top != null) { x.x = cx; x.y = top + cb.h / 2; }
+      }
+      x.r = 0; drawStage(); const cb = scBox('set:' + i, x); if (cb) { bottom = cb.b; cx = x.x; }
+    } else {
+      if (!x.split) scSplit(x, i, true);
+      const ps = [['pc', 'c', x.cm], ['pn', 'n', x.cn], ['pg', 'g', scGearShown(x)]].filter(([, k, vis]) => sy[k] && vis);
+      const bs = ps.map(([t, k]) => scBox(t + ':' + i, x.parts[k])).filter(Boolean);
+      if (bs.length) {
+        let top = Math.min(...bs.map(b => b.t)); cx = x.parts[ps[0][1]].x;
+        ps.forEach(([t, k]) => { const pp = x.parts[k]; pp.s = s0; pp.r = 0; pp.x = cx; drawStage(); const b = scBox(t + ':' + i, pp); if (!b) return; pp.y = top + b.h / 2; top += b.h + gap; });
+        bottom = top - gap;
+      }
+    }
+    drawStage();
+    let armIn = false;
+    if (sy.arm && a.on && scArmVis(a)) {
+      a.s = s0; a.r = 0; drawStage();
+      const ab = scBox('arm:' + i, a); if (ab && bottom != null) { a.x = cx; a.y = scLine(bottom + G * s0, 0) + ab.h / 2; }
+      drawStage(); const nb = scBox('arm:' + i, a); if (nb) { bottom = nb.b; cx = a.x; armIn = true; }
+    }
+    if (sy.fm && a.fsep && fmShown && a.on && bottom != null) {                        // Formation ohne Rüstung: direkt darunter
+      a.fm.s = s0; a.fm.r = 0; a.fm.x = cx; drawStage();
+      const fb = scBox('fm:' + i, a.fm); if (fb) { a.fm.y = bottom + G * s0 / 4 + fb.h / 2; bottom = a.fm.y + fb.h / 2; }
+    }
+    if (sy.st && st.on && scStHas(a) && bottom != null) {
+      st.s = s0; st.r = 0; st.x = cx; drawStage();
+      const tb = scBox('st:' + i, st); if (tb) st.y = scLine(bottom + G * s0 * (armIn ? 0.5 : 1), 0) + tb.h / 2;
+    }
+    drawStage();
+  }
+  function scSyncSet(x, i) {                                 // Sync Set: auch verknüpfte Sets gleich groß und auf gleiche Höhe
+    const d = D(); scSyncOne(x, i);
+    const topOf = (y, j) => { const t = scMemberKeys(y, j).map(([k, o]) => scBox(k, o)?.t).filter(v => v != null); return t.length ? Math.min(...t) : null; };
+    const t0 = topOf(x, i);
+    scLinked(d, x).forEach(y => {
+      const j = d.sets.indexOf(y);
+      y.s = x.s; ['c', 'n', 'g'].forEach(k => { y.parts[k].s = x.s; });
+      scSyncOne(y, j);
+      const t1 = topOf(y, j);
+      if (t0 != null && t1 != null) { const dy = t0 - t1; scMembers(y).forEach(o => { if (o && o.y != null) o.y += dy; }); }
+    });
+    drawStage();
   }
   function scMiniSet(x, i) {
     const sel = !sc.edit && !sc.exporting && i === sc.hl;          // oranger Rahmen nur, solange das Set angetippt ist
@@ -5146,7 +5217,7 @@ window.RokApp = () => {
           return P('c', 'pc', x.cm ? scPartCmd(x) : '') + P('n', 'pn', x.cn ? scPartNames(x) : '') + P('g', 'pg', scGearShown(x) ? scPartGear(x) : '');
         }).join('')
       + d.sets.map((x, i) => x.arm.on && scArmVis(x.arm) && !(x.kind && !x.gearOn) ? `<div data-el="arm:${i}" class="absolute${ed('arm:' + i)}" style="${pos(x.arm)}">${scArmHtml(x.arm, n => n + 'cqw', 'arm', null, null, pfsAll)}</div>` : '').join('')
-      + d.sets.map((x, i) => { const a = x.arm; if (!(a.on && a.fsep && a.formation && !(x.kind && !x.gearOn))) return '';
+      + d.sets.map((x, i) => { const a = x.arm; if (!(a.on && a.fsep && a.formation && a.fpos !== 'hidden' && !(x.kind && !x.gearOn))) return '';
           if (a.fm.x == null) { a.fm.x = a.x ?? x.x; a.fm.y = a.y ?? x.y; a.fm.s = a.s; }
           return `<div data-el="fm:${i}" class="absolute${ed('fm:' + i)}" style="${pos(a.fm)}">${scFmHtml(a)}</div>`; }).join('')
       + (() => { const sfs = scStatFsAll(d); return d.sets.map((x, i) => x.st.on && scStHas(x.arm) && !(x.kind && !x.gearOn) ? `<div data-el="st:${i}" class="absolute${ed('st:' + i)}" style="${pos(x.st)}">${scArmHtml(x.arm, n => n + 'cqw', 'st', x.st, sfs)}</div>` : '').join(''); })()
@@ -5219,9 +5290,20 @@ window.RokApp = () => {
     const ck = (f, on, txt) => `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-setopt="${f}" ${on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${txt}</label>`;
     const ncHtml = sxc ? `<span class="text-slate-400">Namen-Farbe</span><input type="color" data-setcol value="${sxc.nc || '#ffffff'}" class="${sw}"><button type="button" data-setact="ncreset" class="${btn}">Standardfarbe</button>` : '';
     const splitHtml = sxc ? `<span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">
-        <button type="button" data-setact="fix" aria-pressed="${!sxc.split}" title="Fixes Set: Kommandanten, Namen, Gear, Rüstung und Werte bewegen sich zusammen" class="px-3 py-1.5 font-semibold ${!sxc.split ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'}">🔒 Fixes Set</button>
-        <button type="button" data-setact="split" aria-pressed="${!!sxc.split}" title="Freies Set: Kommandanten, Namen und Ausrüstung einzeln verschieben, vergrößern und drehen" class="px-3 py-1.5 font-semibold border-l border-ink-600 ${sxc.split ? 'bg-sky-500/25 text-sky-100' : 'hover:text-sky-200'}">✥ Freies Set</button>
-        <button type="button" data-setact="sync" title="Sync Set: alles wieder zusammenpacken und untereinander aufreihen" class="px-3 py-1.5 font-semibold border-l border-ink-600 hover:bg-emerald-500/15 hover:text-emerald-200">⇅ Sync Set</button></span>` : '';
+        <button type="button" data-setact="fix" aria-pressed="${sxc.lock && !sxc.split}" title="Fixes Set: Kommandanten, Namen, Gear, Rüstung und Werte bewegen sich zusammen" class="px-3 py-1.5 font-semibold ${sxc.lock && !sxc.split ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'}">🔒 Fixes Set</button>
+        <button type="button" data-setact="split" aria-pressed="${!sxc.lock}" title="Freies Set: Kommandanten, Namen und Ausrüstung einzeln verschieben, vergrößern und drehen" class="px-3 py-1.5 font-semibold border-l border-ink-600 ${!sxc.lock ? 'bg-sky-500/25 text-sky-100' : 'hover:text-sky-200'}">✥ Freies Set</button>
+        <button type="button" data-setact="sync" aria-pressed="${sxc.lock && sxc.split}" title="Sync Set: alles wieder zusammenpacken und untereinander aufreihen" class="px-3 py-1.5 font-semibold border-l border-ink-600 ${sxc.lock && sxc.split ? 'bg-emerald-500/25 text-emerald-100' : 'hover:bg-emerald-500/15 hover:text-emerald-200'}">⇅ Sync Set</button></span>` : '';
+    const syncHtml = sxc ? (() => { const others = d.sets.filter(y => y !== sxc), lk = new Set(sxc.link || []), all = others.length > 1 && others.every(y => lk.has(y.id));
+      return `<div class="sm:col-span-2 lg:col-span-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-2.5">
+        <div class="mb-1.5 text-[10px] uppercase tracking-widest text-emerald-300/80">⇅ Sync Set – was wird zusammengepackt</div>
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+          ${SY_KEYS.map(([k2, l]) => `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-sy="${k2}" ${sxc.sy[k2] ? 'checked' : ''} class="w-4 h-4 accent-emerald-500">${l}</label>`).join('')}
+          ${others.length ? `<span class="basis-full h-0"></span><span class="text-slate-400">🔗 Mit Set syncen</span>
+            ${others.map(y => `<button type="button" data-link="${d.sets.indexOf(y)}" aria-pressed="${lk.has(y.id)}" class="px-3 py-1 rounded-full border transition ${lk.has(y.id) ? 'border-emerald-400 bg-emerald-500/25 text-emerald-100' : 'border-ink-600 hover:border-emerald-400/60 hover:text-emerald-200'}" translate="no">${lk.has(y.id) ? '✓ ' : ''}${esc(scSetLabel(d, y))}</button>`).join('')}
+            ${others.length > 1 ? `<button type="button" data-linkall aria-pressed="${all}" class="px-3 py-1 rounded-full border transition ${all ? 'border-emerald-400 bg-emerald-500/25 text-emerald-100' : 'border-ink-600 hover:border-emerald-400/60 hover:text-emerald-200'}">${all ? '✓ ' : ''}Alle Sets</button>` : ''}` : ''}
+        </div>
+        <p class="mt-1.5 text-[10px] text-slate-500">Nicht angehakte Teile bleiben frei beweglich. Verknüpfte Sets bewegen sich mit und werden beim Sync gleich groß und auf gleiche Höhe gesetzt.</p>
+      </div>`; })() : '';
     const sec = (title, body) => `<div class="rounded-lg border border-ink-700 bg-ink-900/50 p-2.5"><div class="mb-1.5 text-[10px] uppercase tracking-widest text-slate-500">${title}</div><div class="flex flex-wrap items-center gap-x-3 gap-y-2">${body}</div></div>`;
     const seg = (items, cur, attr) => `<span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">${items.map(([v, l], n) => `<button type="button" ${attr}="${v}" aria-pressed="${cur === v}" class="px-2.5 py-1 ${cur === v ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'} ${n ? 'border-l border-ink-600' : ''}">${l}</button>`).join('')}</span>`;
     const scanB = (f, l) => `<label for="${f}" data-scanset="${k}" class="cursor-pointer px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 ${l}</label>`;
@@ -5230,11 +5312,12 @@ window.RokApp = () => {
       return `<div class="sm:col-span-2 xl:col-span-3 rounded-xl border border-gold-500/30 bg-ink-950/50 p-3 space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2"><div class="text-[10px] uppercase tracking-widest text-slate-500">🛡 Set-Einstellungen</div>${sxc.kind ? '' : splitHtml}</div>
         <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          ${syncHtml}
           ${sec('👤 Kommandanten', ck('cm', sxc.cm, 'Kommandanten anzeigen') + (sxc.kind ? '' : ck('heads', sxc.heads, 'Nur Kommandanten')))}
           ${sec('🔤 Namen', ck('cn', sxc.cn, 'Kommandanten-Namen anzeigen') + BR + ncHtml)}
           ${sec('🛡 Ausrüstung', (sxc.kind ? ck('gearOn', sxc.gearOn, 'Gear anzeigen') : '') + ck('hideEmpty', sxc.hideEmpty, 'Leere Slots ausblenden') + BR + scanB('scFile', 'Ausrüstung scannen'))}
           ${sec('⚔ Rüstung', ck('armOn', a.on, 'Rüstung anzeigen') + BR + '<span class="text-slate-400">Anordnung</span>' + seg([[1, '▤ 1 Spalte'], [2, '▥ 2 Spalten']], a.cols || 1, 'data-armcols') + BR + scanB('scArmFile', 'Rüstung scannen'))}
-          ${sec('🔰 Formation', a.formation ? seg([['above', '⬆ Über'], ['below', '⬇ Unter']], a.fpos, 'data-armfpos')
+          ${sec('🔰 Formation', a.formation ? seg([['above', '⬆ Über'], ['below', '⬇ Unter'], ['hidden', '⊘ Aus']], a.fpos, 'data-armfpos')
               + `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-fsep ${a.fsep ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Formation einzeln (frei bewegen)</label>`
               : '<span class="text-slate-500">Formation im Rüstungs-Panel unten wählen</span>')}
           ${sec('📊 Werte', ck('stOn', st.on, 'Werte anzeigen') + BR + '<span class="text-slate-400">Schrift</span>' + seg(Object.entries(SC_AL), st.al, 'data-stal') + BR + chk('scPNt', !st.nt, 'Truppentyp zeigen (z. B. „Archer Attack“)'))}
@@ -5550,14 +5633,17 @@ window.RokApp = () => {
     scDrag.obj.x = x; scDrag.obj.y = y; scDrag.moved = true;
     scDrag.el.style.left = x + 'cqw'; scDrag.el.style.top = y + 'cqw';
     // Sync: Set-Einheit (Set + Rüstung + Werte) und/oder ganze Reihe (Gear / Rüstungen / Werte) wandern mit
-    const S = d.syncs || {}, m = /^(set|arm|st|fm):(\d+)$/.exec(scDrag.key);
+    const S = d.syncs || {}, m = /^(set|arm|st|fm|pc|pn|pg):(\d+)$/.exec(scDrag.key);
     if (!free && m) {
       const t = m[1], i0 = +m[2], x0 = d.sets[i0], gk = { set: 'gear', arm: 'arm', st: 'st' }[t], grp = !x0.kind && gk && S[gk];
-      const base = grp ? scRowSets(d, i0).filter(([x]) => scVisOf(x, t)).map(([x]) => x) : [x0];
-      const mv = new Set(), unit = (y) => { mv.add(y); mv.add(y.arm); mv.add(y.st); mv.add(y.arm.fm); };
-      base.forEach(y => { if (!y.split) unit(y); else if (t !== 'fm' && y !== x0) mv.add(scObjOf(y, t)); });   // Fixes Set: Kommandanten, Namen, Gear, Rüstung, Formation und Werte zusammen
+      const mv = new Set();
+      if (x0.lock && scMembers(x0).includes(scDrag.obj)) {     // Fixes / gesynctes Set: angehakte Teile + verknüpfte Sets zusammen
+        scMembers(x0).forEach(o => mv.add(o));
+        scLinked(d, x0).forEach(y => scMembers(y).forEach(o => mv.add(o)));
+      }
+      if (grp) scRowSets(d, i0).filter(([y]) => y !== x0 && scVisOf(y, t)).forEach(([y]) => { if (y.lock) scMembers(y).forEach(o => mv.add(o)); else mv.add(scObjOf(y, t)); });
       mv.delete(scDrag.obj); mv.forEach(o => { if (o && o.x != null) { o.x += dx; o.y += dy; } });
-      d.sets.forEach((x, i) => [['set', x], ['arm', x.arm], ['st', x.st], ['fm', x.arm.fm]].forEach(([tt, o]) => { if (!mv.has(o)) return;
+      d.sets.forEach((x, i) => [['set', x], ['arm', x.arm], ['st', x.st], ['fm', x.arm.fm], ['pc', x.parts.c], ['pn', x.parts.n], ['pg', x.parts.g]].forEach(([tt, o]) => { if (!mv.has(o)) return;
         const e = $('scEls').querySelector(`[data-el="${tt}:${i}"]`); if (e) { e.style.left = o.x + 'cqw'; e.style.top = o.y + 'cqw'; } }));
     }
   });
@@ -5598,6 +5684,7 @@ window.RokApp = () => {
     else if (ev.target.id === 'scPT') { o.text = ev.target.value.slice(0, 80); drawStage(); scSaveSoon(); }
   });
   $('scProps').addEventListener('change', (ev) => {
+    if (ev.target.dataset.sy) { const x = scSetOfSel(); if (x) { x.sy[ev.target.dataset.sy] = ev.target.checked; drawProps(); scSaveSoon(); } return; }
     let o = scSelObj(); if (!o) return;
     if (ev.target.dataset.setopt) o = scSetOfSel() || o;
     if (ev.target.dataset.fsep != null) { const x = scSetOfSel(), i = D().sets.indexOf(x); if (!x) return;
@@ -5624,10 +5711,16 @@ window.RokApp = () => {
     const sa = ev.target.closest('[data-setact]');
     if (sa) { const x = scSetOfSel(); if (!x) return; const i = D().sets.indexOf(x);
       if (sa.dataset.setact === 'ncreset') { x.nc = ''; drawStage(); drawProps(); scSaveSoon(); return; }
-      if (sa.dataset.setact === 'sync') { scSyncSet(x); sc.sel = 'set:' + i; drawStage(); drawProps(); drawArm(); scSave('⇅ Set synchronisiert'); return; }
-      const on = sa.dataset.setact === 'split'; if (on === !!x.split) return;
-      scSplit(x, i, on); sc.sel = on ? (x.cm ? 'pc:' + i : 'pg:' + i) : 'set:' + i;
-      drawStage(); drawProps(); scSave(on ? '✥ Freies Set – Kommandanten, Namen und Ausrüstung einzeln bewegen' : '🔒 Set wieder zusammengefügt'); return; }
+      if (sa.dataset.setact === 'sync') { scSyncSet(x, i); sc.sel = x.split ? (['c', 'n', 'g'].map(k => ({ c: 'pc:', n: 'pn:', g: 'pg:' })[k] + i).find((key, n) => x.sy['cng'[n]]) || 'set:' + i) : 'set:' + i;
+        drawStage(); drawProps(); drawArm(); scSave('⇅ Set synchronisiert'); return; }
+      if (sa.dataset.setact === 'fix') { scSplit(x, i, false); x.lock = true; sc.sel = 'set:' + i; drawStage(); drawProps(); scSave('🔒 Set wieder zusammengefügt'); return; }
+      scSplit(x, i, true); x.lock = false; sc.sel = x.cm ? 'pc:' + i : 'pg:' + i;
+      drawStage(); drawProps(); scSave('✥ Freies Set – Kommandanten, Namen und Ausrüstung einzeln bewegen'); return; }
+    const lb = ev.target.closest('[data-link]'), la = ev.target.closest('[data-linkall]');
+    if (lb || la) { const d = D(), x = scSetOfSel(); if (!x) return;
+      if (lb) { const y = d.sets[+lb.dataset.link]; if (y) scLinkSet(x, y, !(x.link || []).includes(y.id)); }
+      else { const others = d.sets.filter(y => y !== x), on = !others.every(y => (x.link || []).includes(y.id)); others.forEach(y => scLinkSet(x, y, on)); }
+      drawProps(); scSaveSoon(); return; }
     const fp = ev.target.closest('[data-armfpos]');
     if (fp) { const x = scSetOfSel(); scFmPos(x, D().sets.indexOf(x), fp.dataset.armfpos); return; }
     if (ev.target.closest('#scPUnfree')) { const [t, k] = sc.sel.split(':'), d = D(), x = d.sets[+k]; o.free = false;
@@ -6007,7 +6100,7 @@ window.RokApp = () => {
       drawShowcase(); scSave('✓ Showcase erstellt');
     } else if (ev.target.closest('#scDupList')) {
       const src = D(), c = JSON.parse(JSON.stringify(src)); c.id = newId(); c.title = (src.title + ' (Kopie)').slice(0, 30);
-      c.sets.forEach(x => { x.id = newId(); }); (c.texts || []).forEach(x => { x.id = newId(); }); (c.xskins || []).forEach(x => { x.id = newId(); });
+      { const mp = {}; c.sets.forEach(x => { const n = newId(); mp[x.id] = n; x.id = n; }); c.sets.forEach(x => { x.link = (x.link || []).map(id => mp[id]).filter(Boolean); }); } (c.texts || []).forEach(x => { x.id = newId(); }); (c.xskins || []).forEach(x => { x.id = newId(); });
       const x = scNorm(c, doc.list.length); doc.list.push(x); doc.active = x.id; sc.si = 0; sc.gsel = null; sc.sel = null;
       drawShowcase(); scSave('✓ Showcase kopiert');
     } else if (ev.target.closest('#scRefresh')) {
