@@ -1171,6 +1171,13 @@ window.I18N = (() => {
         '✓ Lokal gespeichert · für andere Spieler sichtbar erst nach dem SQL-Update (Spalte showcase)': '✓ Saved locally · visible to other players after the SQL update (column showcase)',
         'Der Scan-Server kennt den Showcase-Scan noch nicht – bitte den Modus „showcase“ in api/scan.js ergänzen. Bis dahin Kommandanten über „+ Von Hand“ eintragen.': 'The scan server does not know the showcase scan yet – please add the “showcase” mode to api/scan.js. Until then add commanders with “+ Manually”.',
         'Bis zu 5 Screenshots deiner Kommandanten-Ansicht · Bilder werden nach dem Auslesen sofort verworfen · gleiche Kommandanten werden aktualisiert statt doppelt angelegt.': 'Up to 5 screenshots of your commander view · images are discarded right after reading · existing commanders are updated instead of duplicated.',
+        'Modus': 'Mode', 'Full Sync – alles fest verbunden': 'Full Sync – everything locked together', 'Partial Sync – angehakte Teile verbunden': 'Partial Sync – ticked parts linked',
+        'Free Mode – alles frei beweglich': 'Free Mode – everything moves freely',
+        'Full Sync: alle Teile fest in einer Einheit, ein Ziehen bewegt alles': 'Full Sync: all parts locked in one unit, one drag moves everything',
+        'Partial Sync: angehakte Teile bewegen sich zusammen, der Rest frei': 'Partial Sync: ticked parts move together, the rest freely',
+        'Free Mode: jedes Teil einzeln und völlig frei': 'Free Mode: every part on its own and completely free',
+        'Im Full Sync ist alles fest verbunden – für eine eigene Auswahl auf Partial Sync wechseln.': 'In Full Sync everything is locked together – switch to Partial Sync for your own selection.',
+        'Im Free Mode ist nichts verbunden – für eine eigene Auswahl auf Partial Sync wechseln.': 'In Free Mode nothing is linked – switch to Partial Sync for your own selection.',
         'Sync Set – was wird zusammengepackt': 'Sync set – what gets packed together', 'Mit Set syncen': 'Sync with set', 'Alle Sets': 'All sets', 'Aus': 'Off',
         'Nicht angehakte Teile bleiben frei beweglich. Verknüpfte Sets bewegen sich mit und werden beim Sync gleich groß und auf gleiche Höhe gesetzt.': 'Unticked parts stay free to move. Linked sets move along and get the same size and height when syncing.',
         'Sync Set': 'Sync set', 'Set-Einstellungen': 'Set settings', 'Kommandanten': 'Commanders', 'Namen': 'Names', 'Rüstung': 'Armament', 'Werte': 'Stats',
@@ -4314,13 +4321,18 @@ window.RokApp = () => {
   // Freies Set: Kommandanten (c), Namen (n) und Ausrüstung (g) als eigene Elemente auf der Bühne
   const SY_KEYS = [['c', '👤 Kommandanten'], ['n', '🔤 Namen'], ['g', '🛡 Ausrüstung'], ['arm', '⚔ Rüstung'], ['fm', '🔰 Formation'], ['st', '📊 Werte']];
   const scSyNorm = (o) => Object.fromEntries(SY_KEYS.map(([k]) => [k, o?.[k] !== false]));
+  // syncMode: 'full' | 'partial' | 'free' · sy = Checkboxen · dock = relative Position abgedockter Teile zur Haupt-Gruppe
+  const SC_MODES = ['full', 'partial', 'free'];
+  const scModeOf = (x) => SC_MODES.includes(x?.syncMode) ? x.syncMode : (x?.lock === false || (x?.lock == null && x?.split)) ? 'free' : x?.split ? 'partial' : 'full';
+  const scDockNorm = (o) => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {})
+    .filter(([k, v]) => SY_KEYS.some(([q]) => q === k) && isFinite(+v?.dx) && isFinite(+v?.dy)).map(([k, v]) => [k, { dx: +v.dx, dy: +v.dy }]));
   const scPartsNorm = (p) => Object.fromEntries(['c', 'n', 'g'].map(k => [k, { x: scPos(p?.[k]?.x, 100), y: scPos(p?.[k]?.y, 200), s: scScale(p?.[k]?.s), r: scRot(p?.[k]?.r) }]));
   const scSetNorm = (x) => scStMigrate(x, { id: String(x?.id || newId()), name: String(x?.name || '').trim().slice(0, 30), mode: 'manual',
     shot: scImgOk(x?.shot) ? x.shot : '', cmd: [0, 1].map(i => scCmdNorm(x?.cmd?.[i])), gear: scGearNorm(x?.gear),
     x: scPos(x?.x, 100), y: scPos(x?.y, 200), s: scScale(x?.s), r: scRot(x?.r), arm: scArmNorm(x?.arm), priv: false, cg: scInt(x?.cg, 0, 70, 32),
     st: scStNorm(x?.st, x?.arm), gfx: scGfxNorm(x?.gfx), free: !!x?.free,
     heads: !!x?.heads, hideEmpty: !!x?.hideEmpty, gearOn: !!x?.gearOn,
-    cm: x?.cm !== false, cn: x?.cn !== false, nc: scColor(x?.nc), split: !!x?.split, parts: scPartsNorm(x?.parts), sy: scSyNorm(x?.sy), lock: x?.lock != null ? !!x.lock : !x?.split,
+    cm: x?.cm !== false, cn: x?.cn !== false, nc: scColor(x?.nc), split: !!x?.split, parts: scPartsNorm(x?.parts), sy: scSyNorm(x?.sy), syncMode: scModeOf(x), lock: scModeOf(x) !== 'free', dock: scDockNorm(x?.dock),
     link: (Array.isArray(x?.link) ? x.link : []).map(String).slice(0, 20), kind: ['garrison', 'rally'].includes(x?.kind) ? x.kind : '' });   // kind: Garnison / Rally (nur 2 Kommandanten)   // heads = nur Kommandanten (Garnison) · hideEmpty = leere Slots ausblenden   // cg = Überlappung der Kommandanten in %
 
   function scStMigrate(raw, o) {                            // alte Sets: Werte steckten in der Rüstung → Rüstung wird kürzer, obere Kante bleibt
@@ -5057,11 +5069,12 @@ window.RokApp = () => {
   }
   // Welche Teile eines Sets zusammengehören (Auswahl „Sync Set“) – [Schlüssel, Objekt]
   function scMemberKeys(y, j) {
-    const l = [];
-    if (!y.split) l.push(['set:' + j, y]); else [['pc', 'c'], ['pn', 'n'], ['pg', 'g']].forEach(([t, k]) => { if (y.sy[k]) l.push([t + ':' + j, y.parts[k]]); });
-    if (y.sy.arm) l.push(['arm:' + j, y.arm]);
-    if (y.sy.st) l.push(['st:' + j, y.st]);
-    if (y.sy.fm && y.arm.fsep) l.push(['fm:' + j, y.arm.fm]);
+    const l = [], sy = y.syncMode === 'full' ? scSyNorm({}) : y.syncMode === 'free' ? {} : y.sy;   // Full = alles, Free = nichts
+    if (y.syncMode === 'free') return l;
+    if (!y.split) l.push(['set:' + j, y]); else [['pc', 'c'], ['pn', 'n'], ['pg', 'g']].forEach(([t, k]) => { if (sy[k]) l.push([t + ':' + j, y.parts[k]]); });
+    if (sy.arm) l.push(['arm:' + j, y.arm]);
+    if (sy.st) l.push(['st:' + j, y.st]);
+    if (sy.fm && y.arm.fsep) l.push(['fm:' + j, y.arm.fm]);
     return l;
   }
   const scMembers = (y) => scMemberKeys(y, 0).map(([, o]) => o);
@@ -5070,8 +5083,8 @@ window.RokApp = () => {
     x.link = (x.link || []).filter(id => id !== y.id); y.link = (y.link || []).filter(id => id !== x.id);
     if (on) { x.link.push(y.id); y.link.push(x.id); }
   }
-  function scSyncOne(x, i) {                                 // angehakte Teile zusammenpacken und untereinander aufreihen
-    const sy = x.sy, s0 = x.s, G = SC_G, a = x.arm, st = x.st, gap = 0.4 * s0;
+  function scSyncOne(x, i, all) {                            // angehakte (bzw. alle) Teile zusammenpacken und untereinander aufreihen
+    const sy = all ? scSyNorm({}) : x.sy, s0 = x.s, G = SC_G, a = x.arm, st = x.st, gap = 0.4 * s0;
     x.lock = true; x.free = false; a.free = false; st.free = false;
     const fmShown = !!a.formation && a.fpos !== 'hidden';
     if (sy.fm && sy.arm && a.fsep) a.fsep = false;                                  // Formation zurück in die Rüstung
@@ -5113,14 +5126,40 @@ window.RokApp = () => {
     }
     drawStage();
   }
+  // Abgedockte Teile: Position relativ zum ersten Teil der Gruppe merken / wiederherstellen
+  const scDockEls = (x) => ({ c: x.split ? x.parts.c : null, n: x.split ? x.parts.n : null, g: x.split ? x.parts.g : null, arm: x.arm, fm: x.arm.fsep ? x.arm.fm : null, st: x.st });
+  const scAnchor = (x, i) => { const m = scMemberKeys(x, i)[0]; return m ? m[1] : null; };
+  function scDockSave(x, i) {
+    const A = scAnchor(x, i); if (!A || A.x == null) return; x.dock = x.dock || {};
+    Object.entries(scDockEls(x)).forEach(([k, o]) => { if (o && !x.sy[k] && o.x != null) x.dock[k] = { dx: o.x - A.x, dy: o.y - A.y }; });
+  }
+  function scDockRestore(x, i) {
+    const A = scAnchor(x, i); if (!A || A.x == null) return;
+    Object.entries(scDockEls(x)).forEach(([k, o]) => { const p = x.dock?.[k]; if (o && !x.sy[k] && p) { o.x = A.x + p.dx; o.y = A.y + p.dy; } });
+  }
+  function scSetMode(x, i, mode) {                           // Umschalten der drei Modi
+    if (x.syncMode === 'partial') scDockSave(x, i);
+    x.syncMode = SC_MODES.includes(mode) ? mode : 'full';
+    if (mode === 'free') {
+      if (!x.split) scSplit(x, i, true);
+      const a = x.arm; if (a.on && a.formation && a.fpos !== 'hidden' && !a.fsep) scFmSep(x, i, true);
+      x.lock = false;
+    } else {
+      scSyncSet(x, i);                                       // Full: alles schnappt zusammen · Partial: angehakte Teile
+      if (mode === 'partial') scDockRestore(x, i);
+      x.lock = true;
+    }
+    drawStage();
+  }
   function scSyncSet(x, i) {                                 // Sync Set: auch verknüpfte Sets gleich groß und auf gleiche Höhe
-    const d = D(); scSyncOne(x, i);
+    const d = D(); scSyncOne(x, i, x.syncMode === 'full');
     const topOf = (y, j) => { const t = scMemberKeys(y, j).map(([k, o]) => scBox(k, o)?.t).filter(v => v != null); return t.length ? Math.min(...t) : null; };
     const t0 = topOf(x, i);
     scLinked(d, x).forEach(y => {
       const j = d.sets.indexOf(y);
       y.s = x.s; ['c', 'n', 'g'].forEach(k => { y.parts[k].s = x.s; });
-      scSyncOne(y, j);
+      if (y.syncMode === 'free') return;
+      scSyncOne(y, j, y.syncMode === 'full');
       const t1 = topOf(y, j);
       if (t0 != null && t1 != null) { const dy = t0 - t1; scMembers(y).forEach(o => { if (o && o.y != null) o.y += dy; }); }
     });
@@ -5247,7 +5286,7 @@ window.RokApp = () => {
       `<button type="button" data-wsel="${k}" aria-pressed="${sc.sel === 'w:' + k}" title="${d.els[k].on ? 'Sichtbar' : 'Ausgeblendet'} – antippen zum Einstellen"
         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition ${d.els[k].on ? 'border-gold-400/70 bg-gold-500/15 text-gold-100' : 'border-ink-600 text-slate-500 hover:text-slate-200'} ${sc.sel === 'w:' + k ? 'ring-2 ring-gold-300 ring-offset-1 ring-offset-ink-950' : 'hover:border-gold-500/60'}">${d.els[k].on ? '👁' : '<span class="opacity-60">⊘</span>'} ${w.icon} ${w.label}</button>`).join('')
       + (() => { const cx = scSetOfSel(); return '<span class="self-center w-px h-6 bg-ink-600 mx-1"></span>' + d.sets.map((x, j) => `<button type="button" data-wset="${j}" title="Set antippen zum Einstellen"
-        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition ${x === cx ? 'border-gold-400 bg-gold-500/25 text-gold-100 ring-2 ring-gold-300 ring-offset-1 ring-offset-ink-950' : 'border-sky-500/50 bg-sky-500/10 text-sky-100 hover:border-gold-500/60'}" translate="no">${x.kind ? '' : '🛡 '}${esc(scSetLabel(d, x))}${x.split ? ' ✥' : ''}</button>`).join(''); })();
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition ${x === cx ? 'border-gold-400 bg-gold-500/25 text-gold-100 ring-2 ring-gold-300 ring-offset-1 ring-offset-ink-950' : 'border-sky-500/50 bg-sky-500/10 text-sky-100 hover:border-gold-500/60'}" translate="no">${x.kind ? '' : '🛡 '}${esc(scSetLabel(d, x))}${({ partial: ' ⇅', free: ' ✥' })[x.syncMode] || ''}</button>`).join(''); })();
   }
   function drawEditBar() {
     const d = D(), on = sc.own && sc.edit;
@@ -5289,15 +5328,18 @@ window.RokApp = () => {
     const chk = (id, on, txt) => `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input id="${id}" type="checkbox" ${on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${txt}</label>`;
     const ck = (f, on, txt) => `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-setopt="${f}" ${on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${txt}</label>`;
     const ncHtml = sxc ? `<span class="text-slate-400">Namen-Farbe</span><input type="color" data-setcol value="${sxc.nc || '#ffffff'}" class="${sw}"><button type="button" data-setact="ncreset" class="${btn}">Standardfarbe</button>` : '';
-    const splitHtml = sxc ? `<span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">
-        <button type="button" data-setact="fix" aria-pressed="${sxc.lock && !sxc.split}" title="Fixes Set: Kommandanten, Namen, Gear, Rüstung und Werte bewegen sich zusammen" class="px-3 py-1.5 font-semibold ${sxc.lock && !sxc.split ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'}">🔒 Fixes Set</button>
-        <button type="button" data-setact="split" aria-pressed="${!sxc.lock}" title="Freies Set: Kommandanten, Namen und Ausrüstung einzeln verschieben, vergrößern und drehen" class="px-3 py-1.5 font-semibold border-l border-ink-600 ${!sxc.lock ? 'bg-sky-500/25 text-sky-100' : 'hover:text-sky-200'}">✥ Freies Set</button>
-        <button type="button" data-setact="sync" aria-pressed="${sxc.lock && sxc.split}" title="Sync Set: alles wieder zusammenpacken und untereinander aufreihen" class="px-3 py-1.5 font-semibold border-l border-ink-600 ${sxc.lock && sxc.split ? 'bg-emerald-500/25 text-emerald-100' : 'hover:bg-emerald-500/15 hover:text-emerald-200'}">⇅ Sync Set</button></span>` : '';
+    const MODE_UI = { full: ['🔒', 'Full Sync', 'Full Sync: alle Teile fest in einer Einheit, ein Ziehen bewegt alles', 'bg-gold-500 text-ink-950 shadow-[0_0_14px_rgba(245,197,66,.45)]'],
+      partial: ['⇅', 'Partial Sync', 'Partial Sync: angehakte Teile bewegen sich zusammen, der Rest frei', 'bg-emerald-500 text-ink-950 shadow-[0_0_14px_rgba(16,185,129,.45)]'],
+      free: ['✥', 'Free Mode', 'Free Mode: jedes Teil einzeln und völlig frei', 'bg-sky-500 text-ink-950 shadow-[0_0_14px_rgba(56,189,248,.45)]'] };
+    const splitHtml = sxc ? `<span class="inline-flex items-center gap-1 p-1 rounded-xl border border-ink-600 bg-ink-950" role="radiogroup" aria-label="Modus">${SC_MODES.map(m2 => { const [ic, l, tt, on] = MODE_UI[m2], act = sxc.syncMode === m2;
+        return `<button type="button" role="radio" data-setact="${m2}" aria-checked="${act}" aria-pressed="${act}" title="${tt}" class="px-3 py-1.5 rounded-lg font-semibold transition ${act ? on : 'text-slate-300 hover:bg-ink-800 hover:text-white'}">${ic} ${l}</button>`; }).join('')}</span>` : '';
     const syncHtml = sxc ? (() => { const others = d.sets.filter(y => y !== sxc), lk = new Set(sxc.link || []), all = others.length > 1 && others.every(y => lk.has(y.id));
-      return `<div class="sm:col-span-2 lg:col-span-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-2.5">
-        <div class="mb-1.5 text-[10px] uppercase tracking-widest text-emerald-300/80">⇅ Sync Set – was wird zusammengepackt</div>
+      const live = sxc.syncMode === 'partial', full = sxc.syncMode === 'full';
+      return `<div class="sm:col-span-2 lg:col-span-3 rounded-lg border ${live ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-ink-700 bg-ink-900/40'} p-2.5">
+        <div class="mb-1.5 text-[10px] uppercase tracking-widest ${live ? 'text-emerald-300/80' : 'text-slate-500'}">⇅ Sync Set – was wird zusammengepackt</div>
+        ${live ? '' : `<div class="mb-1.5 text-[11px] text-amber-300/90">${full ? '🔒 Im Full Sync ist alles fest verbunden – für eine eigene Auswahl auf Partial Sync wechseln.' : '✥ Im Free Mode ist nichts verbunden – für eine eigene Auswahl auf Partial Sync wechseln.'}</div>`}
         <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-          ${SY_KEYS.map(([k2, l]) => `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-sy="${k2}" ${sxc.sy[k2] ? 'checked' : ''} class="w-4 h-4 accent-emerald-500">${l}</label>`).join('')}
+          ${SY_KEYS.map(([k2, l]) => `<label class="inline-flex items-center gap-1.5 ${live ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'}"><input type="checkbox" data-sy="${k2}" ${(full || (live && sxc.sy[k2])) ? 'checked' : ''} ${live ? '' : 'disabled'} class="w-4 h-4 accent-emerald-500 disabled:cursor-not-allowed">${l}</label>`).join('')}
           ${others.length ? `<span class="basis-full h-0"></span><span class="text-slate-400">🔗 Mit Set syncen</span>
             ${others.map(y => `<button type="button" data-link="${d.sets.indexOf(y)}" aria-pressed="${lk.has(y.id)}" class="px-3 py-1 rounded-full border transition ${lk.has(y.id) ? 'border-emerald-400 bg-emerald-500/25 text-emerald-100' : 'border-ink-600 hover:border-emerald-400/60 hover:text-emerald-200'}" translate="no">${lk.has(y.id) ? '✓ ' : ''}${esc(scSetLabel(d, y))}</button>`).join('')}
             ${others.length > 1 ? `<button type="button" data-linkall aria-pressed="${all}" class="px-3 py-1 rounded-full border transition ${all ? 'border-emerald-400 bg-emerald-500/25 text-emerald-100' : 'border-ink-600 hover:border-emerald-400/60 hover:text-emerald-200'}">${all ? '✓ ' : ''}Alle Sets</button>` : ''}` : ''}
@@ -5647,7 +5689,8 @@ window.RokApp = () => {
         const e = $('scEls').querySelector(`[data-el="${tt}:${i}"]`); if (e) { e.style.left = o.x + 'cqw'; e.style.top = o.y + 'cqw'; } }));
     }
   });
-  const scEndDrag = () => { if (!scDrag) return; const { moved, key, free, obj } = scDrag; scDrag = null; $('scGuides').innerHTML = ''; drawStage();
+  const scEndDrag = () => { if (!scDrag) return; const { moved, key, free, obj } = scDrag; scDrag = null;
+    { const sx = moved && scSetOfSel(key); if (sx && sx.syncMode === 'partial') scDockSave(sx, D().sets.indexOf(sx)); } $('scGuides').innerHTML = ''; drawStage();
     const d = D(); if (moved && free) obj.free = true; else if (moved) scSyncAfter(d, key);   // frei platziert → bleibt genau so liegen
     drawProps(); if (moved) scSaveSoon(); };
   $('scEls').addEventListener('pointerup', scEndDrag);
@@ -5684,7 +5727,9 @@ window.RokApp = () => {
     else if (ev.target.id === 'scPT') { o.text = ev.target.value.slice(0, 80); drawStage(); scSaveSoon(); }
   });
   $('scProps').addEventListener('change', (ev) => {
-    if (ev.target.dataset.sy) { const x = scSetOfSel(); if (x) { x.sy[ev.target.dataset.sy] = ev.target.checked; drawProps(); scSaveSoon(); } return; }
+    if (ev.target.dataset.sy) { const x = scSetOfSel(); if (!x || x.syncMode !== 'partial') return; const i = D().sets.indexOf(x);
+      scDockSave(x, i); x.sy[ev.target.dataset.sy] = ev.target.checked;            // Partial Sync: sofort neu binden / abdocken
+      scSyncSet(x, i); scDockRestore(x, i); drawStage(); drawProps(); scSaveSoon(); return; }
     let o = scSelObj(); if (!o) return;
     if (ev.target.dataset.setopt) o = scSetOfSel() || o;
     if (ev.target.dataset.fsep != null) { const x = scSetOfSel(), i = D().sets.indexOf(x); if (!x) return;
@@ -5711,11 +5756,12 @@ window.RokApp = () => {
     const sa = ev.target.closest('[data-setact]');
     if (sa) { const x = scSetOfSel(); if (!x) return; const i = D().sets.indexOf(x);
       if (sa.dataset.setact === 'ncreset') { x.nc = ''; drawStage(); drawProps(); scSaveSoon(); return; }
-      if (sa.dataset.setact === 'sync') { scSyncSet(x, i); sc.sel = x.split ? (['c', 'n', 'g'].map(k => ({ c: 'pc:', n: 'pn:', g: 'pg:' })[k] + i).find((key, n) => x.sy['cng'[n]]) || 'set:' + i) : 'set:' + i;
-        drawStage(); drawProps(); drawArm(); scSave('⇅ Set synchronisiert'); return; }
-      if (sa.dataset.setact === 'fix') { scSplit(x, i, false); x.lock = true; sc.sel = 'set:' + i; drawStage(); drawProps(); scSave('🔒 Set wieder zusammengefügt'); return; }
-      scSplit(x, i, true); x.lock = false; sc.sel = x.cm ? 'pc:' + i : 'pg:' + i;
-      drawStage(); drawProps(); scSave('✥ Freies Set – Kommandanten, Namen und Ausrüstung einzeln bewegen'); return; }
+      if (SC_MODES.includes(sa.dataset.setact)) { const md = sa.dataset.setact;
+        scSetMode(x, i, md);
+        sc.sel = x.split ? (x.cm ? 'pc:' : x.cn ? 'pn:' : 'pg:') + i : 'set:' + i;
+        drawStage(); drawProps(); drawArm();
+        scSave({ full: '🔒 Full Sync – alles fest verbunden', partial: '⇅ Partial Sync – angehakte Teile verbunden', free: '✥ Free Mode – alles frei beweglich' }[md]); return; }
+      return; }
     const lb = ev.target.closest('[data-link]'), la = ev.target.closest('[data-linkall]');
     if (lb || la) { const d = D(), x = scSetOfSel(); if (!x) return;
       if (lb) { const y = d.sets[+lb.dataset.link]; if (y) scLinkSet(x, y, !(x.link || []).includes(y.id)); }
@@ -5919,7 +5965,7 @@ window.RokApp = () => {
   };
   $('scAuto').onclick = async () => {
     if (!(await UI.confirm('⚠ Wirklich alles symmetrisch anordnen?\n\nAlle Sets, Rüstungen und Anzeigen dieses Showcase werden automatisch neu platziert – deine eigene Anordnung geht dabei verloren.'))) return;
-    { const d = D(); d.sets.forEach(x => { x.free = false; x.split = false; x.arm.free = false; x.st.free = false; }); Object.values(d.els).forEach(w => { w.free = false; }); (d.texts || []).forEach(t => { t.free = false; }); (d.xskins || []).forEach(t => { t.free = false; }); }
+    { const d = D(); d.sets.forEach(x => { x.free = false; x.split = false; x.syncMode = 'full'; x.lock = true; x.arm.free = false; x.st.free = false; }); Object.values(d.els).forEach(w => { w.free = false; }); (d.texts || []).forEach(t => { t.free = false; }); (d.xskins || []).forEach(t => { t.free = false; }); }
     scAutoLayout(D(), false); drawShowcase(); scFixAnchors(); scFlowRows(D()); scSnapTops(); if (scSyncOn(D())) scSyncAll(D()); D().sets.forEach((x, i) => { if (x.arm.on && x.arm.fsep) scFmPlace(x, i); }); drawStage(); scSave('✓ Symmetrisch angeordnet');
   };
 
