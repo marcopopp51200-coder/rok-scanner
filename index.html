@@ -4209,6 +4209,7 @@ window.RokApp = () => {
   const SC_KEY = 'rok_scanner_showcase';
   const SC_SLOTS = ['Primär', 'Sekundär'];
   // Raster: 1 Kästchen = SC_G (cqw). Bei 100 %: Gear-Set 4 × 9 Kästchen, Rüstung 4 breit, City-Skin 3 × 3, Profilbild 2 × 2, Werte 5 × 2
+  const SC_SET_TOP = 1;                                      // Standard: Set-Oberkante so viele Kästchen unter der Kopfzeile (Full Sync = 100 %)
   const SC_G = 100 / 36, SC_MAX = 7,   // 36 Kästchen Breite: 7 Sets à 4 + 6 Lücken à 1 + Rand 1 links/rechts
    SC_COLS = 7, SC_MAX_LIST = 5, SC_SET_W = 4 * SC_G, SC_SHOT_W = 17, SC_STEP = SC_G / 2;
   const SC_IMG_BASE = RokAuth.imgBase();
@@ -4453,7 +4454,7 @@ window.RokApp = () => {
     const nSkins = (on('skin') && d.skin ? 1 : 0) + (d.xskins || []).length;
     if (on('skin')) wp.skin = scSkinPos(0, E.skin.s);
     const skinBottom = nSkins ? G + (Math.ceil(nSkins / 3) * 4 - 1) * G : 0;
-    const top0 = Math.max(on('avatar') ? G + av : 0, on('kd') || on('tag') ? row2 + G / 2 : 0, skinBottom, on('name') ? 3 * G : 0, G) + 5 * G;   // 5 Kästchen unter der Kopfzeile
+    const top0 = Math.max(on('avatar') ? G + av : 0, on('kd') || on('tag') ? row2 + G / 2 : 0, skinBottom, on('name') ? 3 * G : 0, G) + SC_SET_TOP * G;   // Set-Oberkante 1 Kästchen unter der Kopfzeile
     // Sets: max. 7 pro Reihe, um die Mitte zentriert
     const NS = scNormal(d), n = NS.length, rows = Math.max(1, Math.ceil(n / SC_COLS));
     const stats = ['kp', 'power', 'merit'].filter(on), bottom = stats.length ? 4 * G : G;
@@ -4595,14 +4596,13 @@ window.RokApp = () => {
     if (d.syncs.skin) scSyncSkins(d); if (d.syncs.val) scSyncVals(d);
   }
   // Zeilen ohne Überlappung: Königreich + Allianz-Tag nebeneinander, VIP neben dem Profilbild, Werte unten mittig nebeneinander
-  const SC_SET_TOP = 5;                                     // Startpunkt der Sets: so viele Kästchen unter der Kopfzeile
-  function scFitSets(d, onlyIfNeeded) {                    // Turm (alle Sets) zwischen Kopfzeile und unteren Kacheln zentrieren, notfalls verkleinern
+  function scFitSets(d, onlyIfNeeded, noScale) {                    // Turm (alle Sets) zwischen Kopfzeile und unteren Kacheln zentrieren, notfalls verkleinern
     drawStage();
     const G = SC_G, H = scH(d), bxs = (l) => l.map(([k, o]) => o && o.x != null ? scBox(k, o) : null).filter(Boolean);
     const head = bxs([...['avatar', 'vip', 'kd', 'tag', 'name', 'skin'].filter(k => d.els[k].on).map(k => ['w:' + k, d.els[k]]), ...(d.xskins || []).map(x => ['xs:' + x.id, x])]);
     const foot = bxs(['kp', 'power', 'merit'].filter(k => d.els[k].on).map(k => ['w:' + k, d.els[k]]));
-    const top = (head.length ? Math.max(...head.map(b => b.b)) : G) + SC_SET_TOP * G,   // Oberkante der Sets: 5 Kästchen unter der Kopfzeile
-      bot = (foot.length ? Math.min(...foot.map(b => b.t)) : H) - G;
+    const top = (head.length ? Math.max(...head.map(b => b.b)) : G) + SC_SET_TOP * G,   // Oberkante der Sets: SC_SET_TOP Kästchen unter der Kopfzeile
+      bot = (foot.length ? Math.min(...foot.map(b => b.t)) : H) - G / 2;
     const sets = d.sets.map((x, i) => [x, i]).filter(([x]) => !x.kind && x.mode !== 'shot');
     if (!sets.length || bot - top < 2 * G) return;
     const keysOf = (x, i) => [['set:' + i, x], ['pc:' + i, x.parts.c], ['pn:' + i, x.parts.n], ['pg:' + i, x.parts.g], ['arm:' + i, x.arm], ['st:' + i, x.st], ['fm:' + i, x.arm.fm]];
@@ -4611,7 +4611,7 @@ window.RokApp = () => {
     let U = union(); if (!U) return false;
     if (onlyIfNeeded && Math.abs(U.t - top) < SC_G / 2 && U.b <= bot + SC_G) return false;   // liegt schon frei → eigene Anordnung behalten
     const avail = bot - top;
-    if (U.b - U.t > avail) {                                  // zu hoch → alles gleichmäßig verkleinern
+    if (!noScale && U.b - U.t > avail) {                                  // zu hoch → alles gleichmäßig verkleinern
       const f = Math.max(0.3, Math.floor(avail / (U.b - U.t) * 20) / 20);
       sets.forEach(([x, i]) => { const cx = x.x, seen = new Set();
         keysOf(x, i).forEach(([, o]) => { if (!o || o.x == null || seen.has(o)) return; seen.add(o); o.s = scScale(o.s * f); o.x = cx + (o.x - cx) * f; o.y = U.t + (o.y - U.t) * f; }); });
@@ -5193,6 +5193,14 @@ window.RokApp = () => {
     const a = x.arm; if (!x.sy.fm && a.formation && a.fpos !== 'hidden' && !a.fsep) scFmSep(x, i, true);
     x.lock = true; drawStage();
   }
+  function scScaleGroup(x, i, ns) {                         // Full Sync: alle Module gemeinsam auf Größe ns
+    const k = ns / (x.s || 1); if (!isFinite(k) || Math.abs(k - 1) < 1e-4) return;
+    const tops = scMemberKeys(x, i).map(([key, o]) => scBox(key, o)?.t).filter(v => v != null);
+    const top = tops.length ? Math.min(...tops) : x.y, cx = x.x, seen = new Set();
+    [x, x.parts.c, x.parts.n, x.parts.g, x.arm, x.st, x.arm.fm].forEach(o => { if (!o || seen.has(o)) return; seen.add(o);
+      o.s = scScale((o.s || 1) * k); if (o.x != null) { o.x = cx + (o.x - cx) * k; o.y = top + (o.y - top) * k; } });
+    x.s = ns;
+  }
   function scSetMode(x, i, mode) {                           // Umschalten der drei Modi
     if (x.syncMode === 'partial') scDockSave(x, i);
     x.syncMode = SC_MODES.includes(mode) ? mode : 'full';
@@ -5202,7 +5210,7 @@ window.RokApp = () => {
       x.lock = false;
     } else {
       if (mode === 'partial') { scDecouple(x, i); scDockRestore(x, i); }   // Partial: nichts springt, nur gemerkte Positionen
-      else { scSyncSet(x, i); scFitSets(D()); }                                  // Full: alles schnappt zentriert untereinander zusammen
+      else { x.s = 1; ['c', 'n', 'g'].forEach(k => { x.parts[k].s = 1; }); scSyncSet(x, i); scFitSets(D(), false, true); }                                  // Full: alles schnappt zentriert untereinander zusammen
       x.lock = true;
     }
     drawStage();
@@ -5767,6 +5775,11 @@ window.RokApp = () => {
     if (ev.target.dataset.setcol != null) { const x = scSetOfSel(); if (x) { x.nc = scColor(ev.target.value); drawStage(); scSaveSoon(); } return; }
     const o = scSelObj(); if (!o) return;
     if (ev.target.id === 'scPS') {
+      const gx = scSetOfSel();
+      if (gx && gx.syncMode === 'full' && !gx.kind) {                // Full Sync: der Regler skaliert das ganze Set
+        const ns = scScale(+ev.target.value / 100); scScaleGroup(gx, D().sets.indexOf(gx), (gx.s || 1) * ns / (o.s || 1));
+        $('scPSv').textContent = Math.round(ns * 100) + ' %'; drawStage(); scSaveSoon(); return;
+      }
       const before = scBox(sc.sel, o), d = D();
       o.s = scScale(+ev.target.value / 100); $('scPSv').textContent = Math.round(o.s * 100) + ' %';
       if (before) { const nb = scBox(sc.sel, o); if (nb) o.y = before.t + nb.h / 2; }   // obere Kante bleibt, wo sie ist
@@ -5794,6 +5807,7 @@ window.RokApp = () => {
     if (ev.target.dataset.setopt) o = scSetOfSel() || o;
     if (ev.target.dataset.fsep != null) { const x = scSetOfSel(), i = D().sets.indexOf(x); if (!x) return;
       scFmSep(x, i, ev.target.checked); if (!ev.target.checked && sc.sel === 'fm:' + i) sc.sel = 'set:' + i; drawStage(); drawProps(); drawArm(); scSaveSoon(); return; }
+    if (ev.target.id === 'scPS' && scSetOfSel()?.syncMode === 'full' && !scSetOfSel()?.kind) { drawStage(); drawProps(); scSaveSoon(); return; }
     if (ev.target.id === 'scPS') { const d = D(), b = D().grid && scBox(sc.sel, o); if (b) o.y = scLine(b.t, 0) + b.h / 2;
       scSyncAfter(d, sc.sel); drawStage(); scSaveSoon(); return; }
     if (ev.target.id === 'scPNi') { o.ni = !ev.target.checked; drawStage(); scSaveSoon(); return; }
