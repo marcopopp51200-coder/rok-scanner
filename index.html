@@ -1180,6 +1180,7 @@ window.I18N = (() => {
         'Im Free Mode ist nichts verbunden – für eine eigene Auswahl auf Partial Sync wechseln.': 'In Free Mode nothing is linked – switch to Partial Sync for your own selection.',
         'Sync Set – was wird zusammengepackt': 'Sync set – what gets packed together', 'Mit Set syncen': 'Sync with set', 'Alle Sets': 'All sets', 'Aus': 'Off',
         'Nicht angehakte Teile bleiben frei beweglich. Verknüpfte Sets bewegen sich mit und werden beim Sync gleich groß und auf gleiche Höhe gesetzt.': 'Unticked parts stay free to move. Linked sets move along and get the same size and height when syncing.',
+        'Alle auf': 'All to', 'Dieses Set': 'This set',
         'Sync Set': 'Sync set', 'Set-Einstellungen': 'Set settings', 'Kommandanten': 'Commanders', 'Namen': 'Names', 'Rüstung': 'Armament', 'Werte': 'Stats',
         'Set synchronisiert': 'Set synced', 'Formation im Rüstungs-Panel unten wählen': 'Choose the formation in the armament panel below',
         'Fixes Set: Kommandanten, Namen, Gear, Rüstung und Werte bewegen sich zusammen': 'Fixed set: commanders, names, gear, armament and stats move together',
@@ -1192,6 +1193,7 @@ window.I18N = (() => {
         'Set gespeichert · in der Cloud (user_state)': 'Set saved · in the cloud (user_state)', 'Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': 'Saved locally · cloud unreachable, will sync automatically'
       },
       patterns: [
+        [/^✓ Größe (\d+) % übernommen$/, '✓ Size $1 % applied'],
         [/^(Kommandanten|Namen|Ausrüstung|Formation) · (.+)$/, (m, a, b) => ({ 'Kommandanten': 'Commanders', 'Namen': 'Names', 'Ausrüstung': 'Equipment', 'Formation': 'Formation' })[a] + ' · ' + b],
         [/^Nur „(.+)“$/, 'Only “$1”'],
         [/^Erkannt · (\d+) Änderung(en)?$/, (m, n) => `Detected · ${n} change${n === '1' ? '' : 's'}`],
@@ -4209,6 +4211,7 @@ window.RokApp = () => {
   const SC_KEY = 'rok_scanner_showcase';
   const SC_SLOTS = ['Primär', 'Sekundär'];
   // Raster: 1 Kästchen = SC_G (cqw). Bei 100 %: Gear-Set 4 × 9 Kästchen, Rüstung 4 breit, City-Skin 3 × 3, Profilbild 2 × 2, Werte 5 × 2
+  const SC_HEAD_H = 4;                                       // Kopfzeile: immer 4 Kästchen reserviert
   const SC_SET_TOP = 1;                                      // Standard: Set-Oberkante so viele Kästchen unter der Kopfzeile (Full Sync = 100 %)
   const SC_G = 100 / 36, SC_MAX = 7,   // 36 Kästchen Breite: 7 Sets à 4 + 6 Lücken à 1 + Rand 1 links/rechts
    SC_COLS = 7, SC_MAX_LIST = 5, SC_SET_W = 4 * SC_G, SC_SHOT_W = 17, SC_STEP = SC_G / 2;
@@ -4454,7 +4457,7 @@ window.RokApp = () => {
     const nSkins = (on('skin') && d.skin ? 1 : 0) + (d.xskins || []).length;
     if (on('skin')) wp.skin = scSkinPos(0, E.skin.s);
     const skinBottom = nSkins ? G + (Math.ceil(nSkins / 3) * 4 - 1) * G : 0;
-    const top0 = Math.max(on('avatar') ? G + av : 0, on('kd') || on('tag') ? row2 + G / 2 : 0, skinBottom, on('name') ? 3 * G : 0, G) + SC_SET_TOP * G;   // Set-Oberkante 1 Kästchen unter der Kopfzeile
+    const top0 = Math.max(on('avatar') ? G + av : 0, on('kd') || on('tag') ? row2 + G / 2 : 0, skinBottom, on('name') ? 3 * G : 0, SC_HEAD_H * G) + SC_SET_TOP * G;   // Set-Oberkante 1 Kästchen unter der Kopfzeile
     // Sets: max. 7 pro Reihe, um die Mitte zentriert
     const NS = scNormal(d), n = NS.length, rows = Math.max(1, Math.ceil(n / SC_COLS));
     const stats = ['kp', 'power', 'merit'].filter(on), bottom = stats.length ? 4 * G : G;
@@ -4601,7 +4604,7 @@ window.RokApp = () => {
     const G = SC_G, H = scH(d), bxs = (l) => l.map(([k, o]) => o && o.x != null ? scBox(k, o) : null).filter(Boolean);
     const head = bxs([...['avatar', 'vip', 'kd', 'tag', 'name', 'skin'].filter(k => d.els[k].on).map(k => ['w:' + k, d.els[k]]), ...(d.xskins || []).map(x => ['xs:' + x.id, x])]);
     const foot = bxs(['kp', 'power', 'merit'].filter(k => d.els[k].on).map(k => ['w:' + k, d.els[k]]));
-    const top = (head.length ? Math.max(...head.map(b => b.b)) : G) + SC_SET_TOP * G,   // Oberkante der Sets: SC_SET_TOP Kästchen unter der Kopfzeile
+    const top = Math.max(head.length ? Math.max(...head.map(b => b.b)) : 0, SC_HEAD_H * G) + SC_SET_TOP * G,   // Oberkante der Sets: SC_SET_TOP Kästchen unter der Kopfzeile
       bot = (foot.length ? Math.min(...foot.map(b => b.t)) : H) - G / 2;
     const sets = d.sets.map((x, i) => [x, i]).filter(([x]) => !x.kind && x.mode !== 'shot');
     if (!sets.length || bot - top < 2 * G) return;
@@ -5156,24 +5159,24 @@ window.RokApp = () => {
       const bs = ps.map(([t, k]) => scBox(t + ':' + i, x.parts[k])).filter(Boolean);
       if (bs.length) {
         let top = Math.min(...bs.map(b => b.t)); cx = x.parts[ps[0][1]].x;
-        ps.forEach(([t, k]) => { const pp = x.parts[k]; pp.s = s0; pp.r = 0; pp.x = cx; drawStage(); const b = scBox(t + ':' + i, pp); if (!b) return; pp.y = top + b.h / 2; top += b.h + gap; });
+        ps.forEach(([t, k]) => { const pp = x.parts[k]; pp.r = 0; pp.x = cx; drawStage(); const b = scBox(t + ':' + i, pp); if (!b) return; pp.y = top + b.h / 2; top += b.h + gap; });
         bottom = top - gap;
       }
     }
     drawStage();
     let armIn = false;
     if (sy.arm && scArmBlk(a)) {
-      a.s = s0; a.r = 0; drawStage();
+      a.r = 0; drawStage();
       const ab = scBox('arm:' + i, a); if (ab && bottom != null) { a.x = cx; a.y = scLine(bottom + G * s0, 0) + ab.h / 2; }
       drawStage(); const nb = scBox('arm:' + i, a); if (nb) { bottom = nb.b; cx = a.x; armIn = true; }
     }
     if (sy.fm && a.fsep && fmShown && bottom != null) {                        // Formation ohne Rüstung: direkt darunter
-      a.fm.s = s0; a.fm.r = 0; a.fm.x = cx; drawStage();
+      a.fm.r = 0; a.fm.x = cx; drawStage();
       const fb = scBox('fm:' + i, a.fm); if (fb) { a.fm.y = bottom + G * s0 / 4 + fb.h / 2; bottom = a.fm.y + fb.h / 2; }
     }
     if (sy.st && st.on && scStHas(a) && bottom != null) {
-      st.s = s0; st.r = 0; st.x = cx; drawStage();
-      const tb = scBox('st:' + i, st); if (tb) st.y = scLine(bottom + G * s0 * (armIn ? 0.5 : 1), 0) + tb.h / 2;
+      st.r = 0; st.x = cx; drawStage();
+      const tb = scBox('st:' + i, st); if (tb) st.y = scLineUp(bottom + G * s0 * (armIn ? 0.5 : 1), 0) + tb.h / 2;
     }
     drawStage();
   }
@@ -5201,6 +5204,16 @@ window.RokApp = () => {
       o.s = scScale((o.s || 1) * k); if (o.x != null) { o.x = cx + (o.x - cx) * k; o.y = top + (o.y - top) * k; } });
     x.s = ns;
   }
+  function scSetAllSize(x, i, ns) {                         // alle Module eines Sets auf genau ns – Oberkanten bleiben stehen
+    const mods = [['set:' + i, x], ['pc:' + i, x.parts.c], ['pn:' + i, x.parts.n], ['pg:' + i, x.parts.g], ['arm:' + i, x.arm], ['st:' + i, x.st], ['fm:' + i, x.arm.fm]];
+    drawStage();
+    const tops = mods.map(([k, o]) => [k, o, scBox(k, o)?.t]);
+    mods.forEach(([, o]) => { o.s = ns; });
+    drawStage();
+    tops.forEach(([k, o, t]) => { if (t == null) return; const b = scBox(k, o); if (b) o.y = t + b.h / 2; });
+    drawStage();
+    if (x.syncMode === 'full') { scSyncOne(x, i, true); drawStage(); }   // Full Sync: wieder sauber untereinander
+  }
   function scSetMode(x, i, mode) {                           // Umschalten der drei Modi
     if (x.syncMode === 'partial') scDockSave(x, i);
     x.syncMode = SC_MODES.includes(mode) ? mode : 'full';
@@ -5210,7 +5223,7 @@ window.RokApp = () => {
       x.lock = false;
     } else {
       if (mode === 'partial') { scDecouple(x, i); scDockRestore(x, i); }   // Partial: nichts springt, nur gemerkte Positionen
-      else { x.s = 1; ['c', 'n', 'g'].forEach(k => { x.parts[k].s = 1; }); scSyncSet(x, i); scFitSets(D(), false, true); }                                  // Full: alles schnappt zentriert untereinander zusammen
+      else { scSyncSet(x, i); scFitSets(D(), false, true); }                                  // Full: alles schnappt zentriert untereinander zusammen
       x.lock = true;
     }
     drawStage();
@@ -5221,7 +5234,6 @@ window.RokApp = () => {
     const t0 = topOf(x, i);
     scLinked(d, x).forEach(y => {
       const j = d.sets.indexOf(y);
-      y.s = x.s; ['c', 'n', 'g'].forEach(k => { y.parts[k].s = x.s; });
       if (y.syncMode === 'free') return;
       scSyncOne(y, j, y.syncMode === 'full');
       const t1 = topOf(y, j);
@@ -5435,7 +5447,12 @@ window.RokApp = () => {
         ${boxy ? chk('scPSh', o.shadow, 'Schatten') : ''}
         <span class="basis-full h-0"></span>
         <span class="text-slate-400">↻ Drehung</span><input id="scPRot" type="range" min="-180" max="180" step="1" value="${o.r || 0}" class="flex-1 min-w-[110px] accent-yellow-500"><span id="scPRotv" class="tabular-nums w-11 text-right">${o.r || 0}°</span>
-        <button type="button" id="scPRot0" class="${btn}">0°</button>`),
+        <button type="button" id="scPRot0" class="${btn}">0°</button>
+        ${sx ? `<span class="basis-full h-0 border-t border-ink-700 mt-1"></span>
+          <span class="text-slate-400">Alle auf</span>
+          <input id="scPAll" type="number" min="30" max="400" step="5" value="${Math.round((sx.s || 1) * 100)}" class="w-20 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"><span class="text-slate-400">%</span>
+          <button type="button" data-sizeall="set" class="px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">Dieses Set</button>
+          <button type="button" data-sizeall="all" class="${btn}">Alle Sets</button>` : ''}`),
       setCard,
       t === 'w' && k === 'avatar' ? card('🖼 Profilbild', `${o.frame ? '' : chk('scPRound', o.round, '◯ Rund')}
         <button type="button" id="scPFrame" class="${btn}">🖼 ${o.frame ? 'Anderer Rahmen …' : 'Rahmen hinzufügen …'}</button>
@@ -5832,6 +5849,11 @@ window.RokApp = () => {
   });
   $('scProps').addEventListener('click', (ev) => {
     const o = scSelObj(); if (!o) return;
+    const szb = ev.target.closest('[data-sizeall]');
+    if (szb) { const x = scSetOfSel(), d = D(); if (!x) return;
+      const ns = scScale(Math.min(400, Math.max(30, +$('scPAll').value || 100)) / 100);
+      (szb.dataset.sizeall === 'all' ? d.sets : [x]).forEach(y => scSetAllSize(y, d.sets.indexOf(y), ns));
+      drawStage(); drawProps(); scSave(`✓ Größe ${Math.round(ns * 100)} % übernommen`); return; }
     const sa = ev.target.closest('[data-setact]');
     if (sa) { const x = scSetOfSel(); if (!x) return; const i = D().sets.indexOf(x);
       if (sa.dataset.setact === 'ncreset') { x.nc = ''; drawStage(); drawProps(); scSaveSoon(); return; }
