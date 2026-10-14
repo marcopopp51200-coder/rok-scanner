@@ -4595,19 +4595,21 @@ window.RokApp = () => {
     if (d.syncs.skin) scSyncSkins(d); if (d.syncs.val) scSyncVals(d);
   }
   // Zeilen ohne Überlappung: Königreich + Allianz-Tag nebeneinander, VIP neben dem Profilbild, Werte unten mittig nebeneinander
+  const SC_SET_TOP = 5;                                     // Startpunkt der Sets: so viele Kästchen unter der Kopfzeile
   function scFitSets(d, onlyIfNeeded) {                    // Turm (alle Sets) zwischen Kopfzeile und unteren Kacheln zentrieren, notfalls verkleinern
     drawStage();
     const G = SC_G, H = scH(d), bxs = (l) => l.map(([k, o]) => o && o.x != null ? scBox(k, o) : null).filter(Boolean);
     const head = bxs([...['avatar', 'vip', 'kd', 'tag', 'name', 'skin'].filter(k => d.els[k].on).map(k => ['w:' + k, d.els[k]]), ...(d.xskins || []).map(x => ['xs:' + x.id, x])]);
     const foot = bxs(['kp', 'power', 'merit'].filter(k => d.els[k].on).map(k => ['w:' + k, d.els[k]]));
-    const top = (head.length ? Math.max(...head.map(b => b.b)) : 0) + G, bot = (foot.length ? Math.min(...foot.map(b => b.t)) : H) - G;
+    const top = (head.length ? Math.max(...head.map(b => b.b)) : 0) + SC_SET_TOP * G,   // Oberkante der Sets: 5 Kästchen unter der Kopfzeile
+      bot = (foot.length ? Math.min(...foot.map(b => b.t)) : H) - G;
     const sets = d.sets.map((x, i) => [x, i]).filter(([x]) => !x.kind && x.mode !== 'shot');
     if (!sets.length || bot - top < 2 * G) return;
     const keysOf = (x, i) => [['set:' + i, x], ['pc:' + i, x.parts.c], ['pn:' + i, x.parts.n], ['pg:' + i, x.parts.g], ['arm:' + i, x.arm], ['st:' + i, x.st], ['fm:' + i, x.arm.fm]];
     const union = () => { const b = sets.flatMap(([x, i]) => bxs(keysOf(x, i).filter(([k]) => !(k.startsWith('set:') && x.split)))); if (!b.length) return null;
       return { t: Math.min(...b.map(q => q.t)), b: Math.max(...b.map(q => q.b)), l: Math.min(...b.map(q => q.l)), r: Math.max(...b.map(q => q.r)) }; };
     let U = union(); if (!U) return false;
-    if (onlyIfNeeded && U.t >= top - SC_G && U.b <= bot + SC_G) return false;   // liegt schon frei → eigene Anordnung behalten
+    if (onlyIfNeeded && Math.abs(U.t - top) < SC_G / 2 && U.b <= bot + SC_G) return false;   // liegt schon frei → eigene Anordnung behalten
     const avail = bot - top;
     if (U.b - U.t > avail) {                                  // zu hoch → alles gleichmäßig verkleinern
       const f = Math.max(0.3, Math.floor(avail / (U.b - U.t) * 20) / 20);
@@ -4615,7 +4617,7 @@ window.RokApp = () => {
         keysOf(x, i).forEach(([, o]) => { if (!o || o.x == null || seen.has(o)) return; seen.add(o); o.s = scScale(o.s * f); o.x = cx + (o.x - cx) * f; o.y = U.t + (o.y - U.t) * f; }); });
       drawStage(); U = union(); if (!U) return;
     }
-    const dy = (top + bot) / 2 - (U.t + U.b) / 2, dx = 50 - (U.l + U.r) / 2;
+    const dy = top - U.t, dx = 50 - (U.l + U.r) / 2;
     sets.forEach(([x, i]) => { const seen = new Set();
       keysOf(x, i).forEach(([, o]) => { if (!o || o.x == null || seen.has(o)) return; seen.add(o); o.x += dx; o.y += dy; }); });
     drawStage();
