@@ -152,6 +152,9 @@ tailwind.config = {
         <button id="menuScanner" role="menuitem" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
           <span>📊</span> Scanner &amp; Dashboard
         </button>
+          <button id="menuKvk" role="menuitem" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
+    <span>⚔️</span> KvK-Vorbereitung
+  </button>
         <div translate="no">
           <button id="menuLang" role="menuitem" aria-haspopup="true" aria-expanded="false" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9s1.3-6.4 3.8-9z"/></svg>
@@ -7617,5 +7620,18 @@ window.RokApp = () => {
   applyView();
 };
 </script>
-</body>
+
+        <!-- KvK-Vorbereitung -->
+<div id="kvkModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="kvkTitle">
+  <div class="kvk-backdrop" data-kvk-close></div>
+  <div class="kvk-window">
+    <header class="kvk-head">
+      <h2 id="kvkTitle">⚔️ KvK-Vorbereitung</h2>
+      <button type="button" class="kvk-x" data-kvk-close aria-label="Schließen">✕</button>
+    </header>
+    <div id="kvkRoot"></div>
+  </div>
+</div>
+<script src="kvk-calculator.js" defer></script>
+        </body>
 </html>
