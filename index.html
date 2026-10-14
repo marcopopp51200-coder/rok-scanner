@@ -4595,7 +4595,7 @@ window.RokApp = () => {
     if (d.syncs.skin) scSyncSkins(d); if (d.syncs.val) scSyncVals(d);
   }
   // Zeilen ohne Überlappung: Königreich + Allianz-Tag nebeneinander, VIP neben dem Profilbild, Werte unten mittig nebeneinander
-  function scFitSets(d) {
+  function scFitSets(d, onlyIfNeeded) {                    // Turm (alle Sets) zwischen Kopfzeile und unteren Kacheln zentrieren, notfalls verkleinern
     drawStage();
     const G = SC_G, H = scH(d), bxs = (l) => l.map(([k, o]) => o && o.x != null ? scBox(k, o) : null).filter(Boolean);
     const head = bxs([...['avatar', 'vip', 'kd', 'tag', 'name', 'skin'].filter(k => d.els[k].on).map(k => ['w:' + k, d.els[k]]), ...(d.xskins || []).map(x => ['xs:' + x.id, x])]);
@@ -4606,7 +4606,8 @@ window.RokApp = () => {
     const keysOf = (x, i) => [['set:' + i, x], ['pc:' + i, x.parts.c], ['pn:' + i, x.parts.n], ['pg:' + i, x.parts.g], ['arm:' + i, x.arm], ['st:' + i, x.st], ['fm:' + i, x.arm.fm]];
     const union = () => { const b = sets.flatMap(([x, i]) => bxs(keysOf(x, i).filter(([k]) => !(k.startsWith('set:') && x.split)))); if (!b.length) return null;
       return { t: Math.min(...b.map(q => q.t)), b: Math.max(...b.map(q => q.b)), l: Math.min(...b.map(q => q.l)), r: Math.max(...b.map(q => q.r)) }; };
-    let U = union(); if (!U) return;
+    let U = union(); if (!U) return false;
+    if (onlyIfNeeded && U.t >= top - SC_G && U.b <= bot + SC_G) return false;   // liegt schon frei → eigene Anordnung behalten
     const avail = bot - top;
     if (U.b - U.t > avail) {                                  // zu hoch → alles gleichmäßig verkleinern
       const f = Math.max(0.3, Math.floor(avail / (U.b - U.t) * 20) / 20);
@@ -4618,6 +4619,7 @@ window.RokApp = () => {
     sets.forEach(([x, i]) => { const seen = new Set();
       keysOf(x, i).forEach(([, o]) => { if (!o || o.x == null || seen.has(o)) return; seen.add(o); o.x += dx; o.y += dy; }); });
     drawStage();
+  return true;
   }
   function scFlowRows(d) {
     drawStage();
@@ -4705,15 +4707,22 @@ window.RokApp = () => {
            si: keep ? sc.si : 0, gsel: keep ? sc.gsel : null, sel: keep ? sc.sel : null, edit: keep ? sc.edit : false };
     if (sc.si >= D().sets.length) sc.si = 0;
     drawShowcase();
+    if (!keep) scFitOnLoad();
     if (own && !keep && !scRepub) { scRepub = true; setTimeout(() => scSave(null, true), 1500); }   // öffentliche Fassung einmal neu hochladen (frühere Privat-Einstellungen aufheben)
     if (gearDbState === 'idle') loadGearDb().then(() => { if (view === 'profile') drawShowcase(); });
+  }
+  function scFitOnLoad() {                                   // nach dem Sichtbarwerden der Bühne messen (zwei Frames später)
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (!sc.doc || $('scBody').classList.contains('hidden') || !$('scStage').getBoundingClientRect().width) return;
+      if (scFitSets(D(), true)) { drawShowcase(); if (sc.own) scSaveSoon(); }
+    }));
   }
   function scApplyOpen() {
     $('scBody').classList.toggle('hidden', !scOpen);
     $('scToggle').setAttribute('aria-expanded', String(scOpen));
     $('scChevron').classList.toggle('-rotate-90', !scOpen);
   }
-  $('scToggle').onclick = () => { scOpen = !scOpen; try { localStorage.setItem('rok_showcase_open', scOpen ? '1' : '0'); } catch {} scApplyOpen(); };
+  $('scToggle').onclick = () => { scOpen = !scOpen; try { localStorage.setItem('rok_showcase_open', scOpen ? '1' : '0'); } catch {} scApplyOpen(); if (scOpen) scFitOnLoad(); };
   function scMsg(t, tone) {
     const el = $('scMsg'); el.textContent = t;
     el.className = 'mb-3 text-xs ' + ({ ok: 'text-emerald-400', warn: 'text-amber-300', err: 'text-red-300', busy: 'text-slate-300' }[tone] || 'text-slate-300');
@@ -6190,7 +6199,7 @@ window.RokApp = () => {
   });
   $('scListBar').addEventListener('click', async (ev) => {
     const doc = sc.doc, b = ev.target.closest('[data-scl]');
-    if (b) { doc.active = b.dataset.scl; sc.si = 0; sc.gsel = null; sc.sel = null; drawShowcase(); if (sc.own) scSaveSoon(); return; }
+    if (b) { doc.active = b.dataset.scl; sc.si = 0; sc.gsel = null; sc.sel = null; drawShowcase(); scFitOnLoad(); if (sc.own) scSaveSoon(); return; }
     if (!sc.own) return;
     if (ev.target.closest('#scNewList')) {
       if (doc.list.length >= SC_MAX_LIST) return;
