@@ -4348,9 +4348,11 @@ window.RokApp = () => {
   const SC_KIND = { garrison: '🛡 Garnison', rally: '🚩 Rally' }, SC_KIND_MAX = 3;
   const scKindNo = (d, x) => d.sets.filter(y => y.kind === x.kind).indexOf(x);   // 0, 1, 2                       // Höhe eines Sets in Kästchen (Breite immer 4)
   const scSetH = (x) => scSetCells(x) * SC_G;
-  const scArmH = (a) => a.on && scArmVis(a) ? Math.ceil(a.insc.filter(i => i.t).length / (a.cols === 2 ? 2 : 1)) * 2.7 + (a.formation && !a.fsep && a.fpos !== 'hidden' ? 1.5 : 0) + 0.3 : 0;   // cols 2 = Inschriften in 2 Spalten
+  const scFmAuto = (a) => !!a.formation && a.fpos !== 'hidden' && !a.fsep;          // Formation sitzt automatisch über/unter den Inschriften
+  const scArmBlk = (a) => (a.on && a.insc.some(i => i.t)) || scFmAuto(a);            // Rüstungs-Block sichtbar?
+  const scArmH = (a) => scArmBlk(a) ? Math.ceil((a.on ? a.insc.filter(i => i.t).length : 0) / (a.cols === 2 ? 2 : 1)) * 2.7 + (a.formation && !a.fsep && a.fpos !== 'hidden' ? 1.5 : 0) + 0.3 : 0;   // cols 2 = Inschriften in 2 Spalten
   const scStH = (x) => x.st.on && scStHas(x.arm) ? SC_ARM_STATS.filter(([k]) => x.arm[k]).length * 1.3 + 0.3 : 0;
-  const scUnderH = (x) => (x.arm.on && scArmVis(x.arm) ? SC_G + scArmH(x.arm) : 0) + (scStH(x) ? (x.arm.on && scArmVis(x.arm) ? SC_G / 2 : SC_G) + scStH(x) : 0);   // Platz unter dem Set
+  const scUnderH = (x) => (scArmBlk(x.arm) ? SC_G + scArmH(x.arm) : 0) + (scStH(x) ? (scArmBlk(x.arm) ? SC_G / 2 : SC_G) + scStH(x) : 0);   // Platz unter dem Set
   // Sets einer Reihe von links nach rechts: … 5 3 1 2 4 6 … – die Gruppe wird immer um die Mittellinie zentriert
   function scRowX(n, j) {                          // n = Sets in der Reihe, j = Index in der Reihe → x-Mitte
     const order = [...Array.from({ length: n }, (_, k) => k).filter(k => k % 2 === 0).reverse(), ...Array.from({ length: n }, (_, k) => k).filter(k => k % 2 === 1)];
@@ -4396,7 +4398,7 @@ window.RokApp = () => {
   }
   const scLineUp = (v, from) => from + Math.ceil((v - from) / SC_G - 0.02) * SC_G;   // nächste Rasterlinie darunter
   function scStUnder(x, keep) {                             // Werte direkt unter die Rüstung (ohne Rüstung: 1 Kästchen unter das Set)
-    const i = sc.doc ? D().sets.indexOf(x) : -1, armOn = x.arm.on && scArmVis(x.arm);
+    const i = sc.doc ? D().sets.indexOf(x) : -1, armOn = scArmBlk(x.arm);
     x.st.x = x.x; if (!keep) x.st.s = x.s;
     const sb = i >= 0 ? scBox('set:' + i, x) : null, ab = i >= 0 && armOn ? scBox('arm:' + i, x.arm) : null, tb = i >= 0 ? scBox('st:' + i, x.st) : null;
     const top = armOn ? (ab ? ab.b : x.arm.y + scArmH(x.arm) * x.arm.s / 2) + SC_G * x.s / 2 : (sb ? sb.b : x.y + scSetH(x) * x.s / 2) + SC_G * x.s;
@@ -4407,12 +4409,12 @@ window.RokApp = () => {
     const hit = (a, b) => a && b && a.r > b.l + 0.2 && a.l < b.r - 0.2;
     let ch = false;
     d.sets.forEach((x, i) => { if (x.kind && !x.gearOn) return;
-      if (x.arm.on && scArmVis(x.arm) && !x.arm.free && !x.free && !x.split && scBound(x, 'arm')) { const sb = scBox('set:' + i, x), ab = scBox('arm:' + i, x.arm);
+      if (scArmBlk(x.arm) && !x.arm.free && !x.free && !x.split && scBound(x, 'arm')) { const sb = scBox('set:' + i, x), ab = scBox('arm:' + i, x.arm);
         if (sb && ab && hit(ab, sb) && ab.t < sb.b - 0.1) { scArmUnder(x, true); ch = true; } } });
     if (ch) drawStage();
     let ch2 = false;
     d.sets.forEach((x, i) => { if ((x.kind && !x.gearOn) || !x.st.on || !scStHas(x.arm) || x.st.free || x.free || x.split || x.arm.free || !scBound(x, 'st')) return;
-      const tb = scBox('st:' + i, x.st), armOn = x.arm.on && scArmVis(x.arm), ob = armOn ? scBox('arm:' + i, x.arm) : scBox('set:' + i, x);
+      const tb = scBox('st:' + i, x.st), armOn = scArmBlk(x.arm), ob = armOn ? scBox('arm:' + i, x.arm) : scBox('set:' + i, x);
       if (tb && ob && hit(tb, ob) && tb.t < ob.b - 0.1) { scStUnder(x, true); ch2 = true; } });
     if (ch2) drawStage();
     {                                                        // passt ein Set / eine Rüstung / Werte nicht mehr auf die Bühne → Bühne automatisch höher
@@ -4441,10 +4443,12 @@ window.RokApp = () => {
     const av = 3 * G * E.avatar.s;
     if (on('avatar')) wp.avatar = { x: G + av / 2, y: G + av / 2 };
     const ax = on('avatar') ? G + av + G : G;
+    // Reihe 1 (oben, rechts neben dem Profilbild): VIP, direkt daneben der Allianz-Tag
     if (on('vip')) { wp.vip = { x: ax + 3 * G, y: G + G / 2 }; anch['w:vip'] = { left: ax }; }
-    const row2 = on('avatar') ? G + av + G + G / 2 : (on('vip') ? 3.5 * G : 1.5 * G);
-    if (on('kd')) { wp.kd = { x: 5 * G, y: row2 }; anch['w:kd'] = { left: G }; }
-    if (on('tag')) { wp.tag = { x: 12 * G, y: on('kd') ? row2 : (on('vip') && !on('avatar') ? 1.5 * G : row2) }; anch['w:tag'] = on('kd') ? { after: 'w:kd', gap: G } : { left: on('vip') && !on('avatar') ? ax + 7 * G : G }; }
+    if (on('tag')) { wp.tag = { x: ax + 9 * G, y: G + G / 2 }; anch['w:tag'] = on('vip') ? { after: 'w:vip', gap: G } : { left: ax }; }
+    // Reihe 2 (unten, bündig mit der Unterkante des Profilbilds): Königreich
+    const row2 = on('avatar') ? G + av - G / 2 : (on('vip') || on('tag') ? 3 * G : 1.5 * G);
+    if (on('kd')) { wp.kd = { x: ax + 4 * G, y: row2 }; anch['w:kd'] = { left: ax }; }
     if (on('name')) wp.name = { x: 50, y: 2 * G };
     const nSkins = (on('skin') && d.skin ? 1 : 0) + (d.xskins || []).length;
     if (on('skin')) wp.skin = scSkinPos(0, E.skin.s);
@@ -4464,7 +4468,7 @@ window.RokApp = () => {
         const xc = 50 + (scRowX(l.length, k) - 50) * f;
         sp[i] = { x: xc, y: y + scSetH(x) * f / 2, s: f };
         ap[i] = { x: xc, y: y + (scSetH(x) + G) * f + scArmH({ ...x.arm, on: true }) * f / 2, s: f };
-        const aH = x.arm.on && scArmVis(x.arm) ? G + scArmH(x.arm) + G / 2 : G;
+        const aH = scArmBlk(x.arm) ? G + scArmH(x.arm) + G / 2 : G;
         tp[i] = { x: xc, y: y + (scSetH(x) + aH) * f + scStH({ ...x, st: { ...x.st, on: true } }) * f / 2, s: f };
       });
       y += (rowH(r) + G) * f;
@@ -4535,7 +4539,7 @@ window.RokApp = () => {
     return Object.fromEntries(Object.keys(SC_SYNCS).map(k => [k, o ? !!o[k] : (['set', 'gear', 'arm', 'st'].includes(k) ? def : false)])); };
   const scSyncOn = (d) => Object.values(d.syncs || {}).some(Boolean);
   const scObjOf = (x, t) => t === 'set' ? x : t === 'arm' ? x.arm : x.st;
-  const scVisOf = (x, t) => t === 'set' ? true : t === 'arm' ? x.arm.on && scArmVis(x.arm) : x.st.on && scStHas(x.arm);
+  const scVisOf = (x, t) => t === 'set' ? true : t === 'arm' ? scArmBlk(x.arm) : x.st.on && scStHas(x.arm);
   function scRowSets(d, i0) {                               // normale Sets in derselben Reihe wie Set i0 → [[set, index]]
     const NS = scNormal(d), ri = NS.findIndex(([, i]) => i === i0); if (ri < 0) return [];
     return NS.filter((_, k) => Math.floor(k / SC_COLS) === Math.floor(ri / SC_COLS));
@@ -4591,14 +4595,41 @@ window.RokApp = () => {
     if (d.syncs.skin) scSyncSkins(d); if (d.syncs.val) scSyncVals(d);
   }
   // Zeilen ohne Überlappung: Königreich + Allianz-Tag nebeneinander, VIP neben dem Profilbild, Werte unten mittig nebeneinander
+  function scFitSets(d) {
+    drawStage();
+    const G = SC_G, H = scH(d), bxs = (l) => l.map(([k, o]) => o && o.x != null ? scBox(k, o) : null).filter(Boolean);
+    const head = bxs([...['avatar', 'vip', 'kd', 'tag', 'name', 'skin'].filter(k => d.els[k].on).map(k => ['w:' + k, d.els[k]]), ...(d.xskins || []).map(x => ['xs:' + x.id, x])]);
+    const foot = bxs(['kp', 'power', 'merit'].filter(k => d.els[k].on).map(k => ['w:' + k, d.els[k]]));
+    const top = (head.length ? Math.max(...head.map(b => b.b)) : 0) + G, bot = (foot.length ? Math.min(...foot.map(b => b.t)) : H) - G;
+    const sets = d.sets.map((x, i) => [x, i]).filter(([x]) => !x.kind && x.mode !== 'shot');
+    if (!sets.length || bot - top < 2 * G) return;
+    const keysOf = (x, i) => [['set:' + i, x], ['pc:' + i, x.parts.c], ['pn:' + i, x.parts.n], ['pg:' + i, x.parts.g], ['arm:' + i, x.arm], ['st:' + i, x.st], ['fm:' + i, x.arm.fm]];
+    const union = () => { const b = sets.flatMap(([x, i]) => bxs(keysOf(x, i).filter(([k]) => !(k.startsWith('set:') && x.split)))); if (!b.length) return null;
+      return { t: Math.min(...b.map(q => q.t)), b: Math.max(...b.map(q => q.b)), l: Math.min(...b.map(q => q.l)), r: Math.max(...b.map(q => q.r)) }; };
+    let U = union(); if (!U) return;
+    const avail = bot - top;
+    if (U.b - U.t > avail) {                                  // zu hoch → alles gleichmäßig verkleinern
+      const f = Math.max(0.3, Math.floor(avail / (U.b - U.t) * 20) / 20);
+      sets.forEach(([x, i]) => { const cx = x.x, seen = new Set();
+        keysOf(x, i).forEach(([, o]) => { if (!o || o.x == null || seen.has(o)) return; seen.add(o); o.s = scScale(o.s * f); o.x = cx + (o.x - cx) * f; o.y = U.t + (o.y - U.t) * f; }); });
+      drawStage(); U = union(); if (!U) return;
+    }
+    const dy = (top + bot) / 2 - (U.t + U.b) / 2, dx = 50 - (U.l + U.r) / 2;
+    sets.forEach(([x, i]) => { const seen = new Set();
+      keysOf(x, i).forEach(([, o]) => { if (!o || o.x == null || seen.has(o)) return; seen.add(o); o.x += dx; o.y += dy; }); });
+    drawStage();
+  }
   function scFlowRows(d) {
     drawStage();
     const E = d.els, G = SC_G, bx = (k) => E[k].on ? scBox('w:' + k, E[k]) : null;
     const av = bx('avatar');
     if (E.vip.on && av) { const b = bx('vip'); if (b) { E.vip.x = scLine(av.r + G, 50) + b.w / 2; E.vip.y = av.t + b.h / 2; } }
-    const kd = bx('kd'), tg = bx('tag');
-    if (kd && tg) { const top = Math.min(kd.t, tg.t); E.kd.y = top + kd.h / 2; E.tag.y = top + tg.h / 2;
-      if (tg.l < kd.r + G / 2) E.tag.x = scLine(kd.r + G, 50) + tg.w / 2; }
+    if (av) {                                                // Tag direkt rechts neben VIP, Königreich rechts neben dem Profilbild (unten)
+      drawStage();
+      const vb = bx('vip'), tb = bx('tag'), kb = bx('kd');
+      if (tb) { const l = vb ? scLineUp(vb.r + G, 50) : scLineUp(av.r + G, 50); E.tag.x = l + tb.w / 2; E.tag.y = (vb ? vb.t : av.t) + tb.h / 2; }
+      if (kb) { E.kd.x = scLineUp(av.r + G, 50) + kb.w / 2; E.kd.y = av.b - kb.h / 2; }
+    }
     const st = ['kp', 'power', 'merit'].filter(k => E[k].on).map(k => [k, bx(k)]).filter(([, b]) => b);
     if (st.length) { const tot = st.reduce((a, [, b]) => a + b.w, 0) + G * (st.length - 1), bot = Math.max(...st.map(([, b]) => b.b));
       let l = 50 - tot / 2; st.forEach(([k, b]) => { E[k].x = l + b.w / 2; E[k].y = bot - b.h / 2; l += b.w + G; }); }
@@ -4964,10 +4995,10 @@ window.RokApp = () => {
   // eine Schriftgröße für ALLE Inschriften im Showcase → überall gleich groß (die längste Inschrift bestimmt die Größe)
   const scPillW = (a) => a.cols === 2 ? SC_SET_W * 0.75 - 0.15 : SC_SET_W - 1.4;
   const scPillFs = (a) => { const l = a.insc.filter(i => i.t); return l.length ? Math.min(1.15, ...l.map(i => (scPillW(a) - 1.1) / Math.max(.5, scTextW(I18N.tr(i.t), true)))) : 1.15; };
-  function scArmFsAll(d) { const l = d.sets.filter(x => x.arm.on && scArmVis(x.arm) && !(x.kind && !x.gearOn)).map(x => scPillFs(x.arm)); return l.length ? Math.min(...l) : 1.15; }
+  function scArmFsAll(d) { const l = d.sets.filter(x => scArmBlk(x.arm) && !(x.kind && !x.gearOn)).map(x => scPillFs(x.arm)); return l.length ? Math.min(...l) : 1.15; }
   function scArmHtml(a, L, part = 'all', st = null, sfsIn = null, pfsIn = null) {
     const W = SC_SET_W, fit = (txt, w, max, bold = true) => Math.min(max, w / Math.max(.5, scTextW(txt, bold)));   // Schriftgröße so, dass der Text in 1 Zeile passt
-    const insc = a.insc.filter(i => i.t), nt = !!st?.nt, al = st?.al || 'left';
+    const insc = part === 'arm' && !a.on ? [] : a.insc.filter(i => i.t), nt = !!st?.nt, al = st?.al || 'left';
     const two = a.cols === 2, PW = two ? W * 0.75 - 0.15 : W - 1.4;   // Breite einer Inschrift (2 Spalten: zusammen 1,5 × Set-Breite)
     const pfs = pfsIn || scPillFs(a);
     const pill = (i) => { const c = SC_INSC[i.c], fs = pfs;   // alle Inschriften gleich groß
@@ -4979,7 +5010,7 @@ window.RokApp = () => {
     const statsBox = stats ? `<div class="flex flex-col ${al === 'center' ? 'items-center' : al === 'right' ? 'items-end' : 'items-start'}" style="${part === 'st' ? `min-width:${L(W)};width:max-content;` : ''}gap:${L(0.08)}">${stats}</div>` : '';
     if (part === 'st') return statsBox;
     const pills = scInscSort(insc.slice()).map((i, n, l) => two && l.length % 2 && n === l.length - 1 ? `<div style="grid-column:1 / -1">${pill(i)}</div>` : pill(i)).join('');   // ungerade Anzahl: letzte mittig
-    const formH = a.formation && a.fpos !== 'hidden' && !(part === 'arm' && a.fsep) ? `<div data-fpart class="flex items-center text-slate-300 [text-shadow:0_1px_2px_#000]" style="gap:.35em;font-size:${L(1)};${a.fpos === 'above' ? 'margin-bottom' : 'margin-top'}:${L(0.2)}">${scFormIcon(a.formation)}${esc(a.formation)}</div>` : '';
+    const formH = a.formation && a.fpos !== 'hidden' && !(part === 'arm' && a.fsep) ? `<div data-fpart ${part === 'arm' ? 'data-fslot' : ''} class="flex items-center text-slate-300 [text-shadow:0_1px_2px_#000]" style="${part === 'arm' ? 'visibility:hidden;' : ''}gap:.35em;font-size:${L(1)};${a.fpos === 'above' ? 'margin-bottom' : 'margin-top'}:${L(0.2)}">${scFormIcon(a.formation)}${esc(a.formation)}</div>` : '';
     return `<div class="flex flex-col items-center" style="width:${L(two && part !== 'all' ? W * 1.5 : W)};gap:${L(0.3)}">
       ${a.fpos === 'above' ? formH : ''}
       ${two && part !== 'all' ? `<div class="grid grid-cols-2 justify-items-center" style="gap:${L(0.3)} ${L(0.3)}">${pills}</div>` : pills}
@@ -5016,6 +5047,14 @@ window.RokApp = () => {
     const sr = st.getBoundingClientRect(), r = el.getBoundingClientRect(); if (!sr.width || !r.width) return null;
     const Z = st.classList.contains('sc-zoom') ? sc.zoom : { z: 1, x: 0, y: 0 }, f = 100 / sr.width;
     return { x: ((r.left + r.width / 2 - sr.left) - Z.x) / Z.z * f, y: ((r.top + r.height / 2 - sr.top) - Z.y) / Z.z * f };
+  }
+  function scFmOverlay(d) {                                   // eigenen Formations-Knoten genau auf seinen Platz im Rüstungs-Block legen
+    d.sets.forEach((x, i) => {
+      const fe = $('scEls').querySelector(`[data-fma="${i}"]`); if (!fe) return;
+      const m = scMeasureEl(`[data-el="arm:${i}"] [data-fslot]`); if (!m) { fe.style.visibility = 'hidden'; return; }
+      fe.style.left = m.x + 'cqw'; fe.style.top = m.y + 'cqw';
+      fe.style.transform = `translate(-50%,-50%) rotate(${x.arm.r || 0}deg) scale(${x.arm.s})`; fe.style.visibility = '';
+    });
   }
   function scSplit(x, i, on) {                               // Freies Set an/aus – Teile starten genau dort, wo sie im Set lagen
     if (on && !x.split) {
@@ -5089,7 +5128,7 @@ window.RokApp = () => {
     x.lock = true; x.free = false; a.free = false; st.free = false;
     const fmShown = !!a.formation && a.fpos !== 'hidden';
     if (sy.fm && sy.arm && a.fsep) a.fsep = false;                                  // Formation zurück in die Rüstung
-    if (!sy.fm && fmShown && !a.fsep && a.on) { drawStage(); scFmSep(x, i, true); }   // Formation bleibt frei beweglich
+    if (!sy.fm && fmShown && !a.fsep) { drawStage(); scFmSep(x, i, true); }   // Formation bleibt frei beweglich
     let cx = x.x, bottom = null;
     drawStage();
     if (sy.c && sy.n && sy.g) {
@@ -5112,12 +5151,12 @@ window.RokApp = () => {
     }
     drawStage();
     let armIn = false;
-    if (sy.arm && a.on && scArmVis(a)) {
+    if (sy.arm && scArmBlk(a)) {
       a.s = s0; a.r = 0; drawStage();
       const ab = scBox('arm:' + i, a); if (ab && bottom != null) { a.x = cx; a.y = scLine(bottom + G * s0, 0) + ab.h / 2; }
       drawStage(); const nb = scBox('arm:' + i, a); if (nb) { bottom = nb.b; cx = a.x; armIn = true; }
     }
-    if (sy.fm && a.fsep && fmShown && a.on && bottom != null) {                        // Formation ohne Rüstung: direkt darunter
+    if (sy.fm && a.fsep && fmShown && bottom != null) {                        // Formation ohne Rüstung: direkt darunter
       a.fm.s = s0; a.fm.r = 0; a.fm.x = cx; drawStage();
       const fb = scBox('fm:' + i, a.fm); if (fb) { a.fm.y = bottom + G * s0 / 4 + fb.h / 2; bottom = a.fm.y + fb.h / 2; }
     }
@@ -5140,7 +5179,7 @@ window.RokApp = () => {
   }
   function scDecouple(x, i) {                                // Partial: flache Elemente, jedes behält seine exakte Position
     if (!x.split) scSplit(x, i, true);
-    const a = x.arm; if (!x.sy.fm && a.on && a.formation && a.fpos !== 'hidden' && !a.fsep) scFmSep(x, i, true);
+    const a = x.arm; if (!x.sy.fm && a.formation && a.fpos !== 'hidden' && !a.fsep) scFmSep(x, i, true);
     x.lock = true; drawStage();
   }
   function scSetMode(x, i, mode) {                           // Umschalten der drei Modi
@@ -5148,11 +5187,11 @@ window.RokApp = () => {
     x.syncMode = SC_MODES.includes(mode) ? mode : 'full';
     if (mode === 'free') {
       if (!x.split) scSplit(x, i, true);
-      const a = x.arm; if (a.on && a.formation && a.fpos !== 'hidden' && !a.fsep) scFmSep(x, i, true);
+      const a = x.arm; if (a.formation && a.fpos !== 'hidden' && !a.fsep) scFmSep(x, i, true);
       x.lock = false;
     } else {
       if (mode === 'partial') { scDecouple(x, i); scDockRestore(x, i); }   // Partial: nichts springt, nur gemerkte Positionen
-      else scSyncSet(x, i);                                  // Full: alles schnappt zentriert untereinander zusammen
+      else { scSyncSet(x, i); scFitSets(D()); }                                  // Full: alles schnappt zentriert untereinander zusammen
       x.lock = true;
     }
     drawStage();
@@ -5261,14 +5300,16 @@ window.RokApp = () => {
             return `<div data-el="${t}:${i}" class="absolute${ed(t + ':' + i)}${!sc.edit ? ' cursor-pointer' : ''}" style="${pos(p)}">${h}</div>`; };
           return P('c', 'pc', x.cm ? scPartCmd(x) : '') + P('n', 'pn', x.cn ? scPartNames(x) : '') + P('g', 'pg', scGearShown(x) ? scPartGear(x) : '');
         }).join('')
-      + d.sets.map((x, i) => x.arm.on && scArmVis(x.arm) && !(x.kind && !x.gearOn) ? `<div data-el="arm:${i}" class="absolute${ed('arm:' + i)}" style="${pos(x.arm)}">${scArmHtml(x.arm, n => n + 'cqw', 'arm', null, null, pfsAll)}</div>` : '').join('')
-      + d.sets.map((x, i) => { const a = x.arm; if (!(a.on && a.fsep && a.formation && a.fpos !== 'hidden' && !(x.kind && !x.gearOn))) return '';
+      + d.sets.map((x, i) => scArmBlk(x.arm) && !(x.kind && !x.gearOn) ? `<div data-el="arm:${i}" class="absolute${ed('arm:' + i)}" style="${pos(x.arm)}">${scArmHtml(x.arm, n => n + 'cqw', 'arm', null, null, pfsAll)}</div>` : '').join('')
+      + d.sets.map((x, i) => { const a = x.arm; if (!(a.fsep && a.formation && a.fpos !== 'hidden' && !(x.kind && !x.gearOn))) return '';
           if (a.fm.x == null) { a.fm.x = a.x ?? x.x; a.fm.y = a.y ?? x.y; a.fm.s = a.s; }
           return `<div data-el="fm:${i}" class="absolute${ed('fm:' + i)}" style="${pos(a.fm)}">${scFmHtml(a)}</div>`; }).join('')
       + (() => { const sfs = scStatFsAll(d); return d.sets.map((x, i) => x.st.on && scStHas(x.arm) && !(x.kind && !x.gearOn) ? `<div data-el="st:${i}" class="absolute${ed('st:' + i)}" style="${pos(x.st)}">${scArmHtml(x.arm, n => n + 'cqw', 'st', x.st, sfs)}</div>` : '').join(''); })()
       + Object.entries(d.els).filter(([, w]) => w.on).map(([k, w]) => `<div data-el="w:${k}" class="absolute${ed('w:' + k)}" style="${pos(w)}">${scWidget(k, w)}</div>`).join('')
       + (d.texts || []).map(t => `<div data-el="tx:${t.id}" class="absolute${ed('tx:' + t.id)}" style="${pos(t)}">${scTxHtml(t)}</div>`).join('')
-      + (d.xskins || []).map(x => `<div data-el="xs:${x.id}" class="absolute${ed('xs:' + x.id)}" style="${pos(x)}">${scSkinHtml(x.src, x)}</div>`).join('');
+      + (d.xskins || []).map(x => `<div data-el="xs:${x.id}" class="absolute${ed('xs:' + x.id)}" style="${pos(x)}">${scSkinHtml(x.src, x)}</div>`).join('')
+      + d.sets.map((x, i) => scFmAuto(x.arm) && !(x.kind && !x.gearOn) ? `<div data-fma="${i}" class="absolute pointer-events-none" style="left:0;top:0;visibility:hidden">${scFmHtml(x.arm)}</div>` : '').join('');
+    scFmOverlay(d);
   }
   function drawListBar() {
     const doc = sc.doc, many = doc.list.length > 1, b = 'text-xs px-3 py-1.5 rounded-lg border';
@@ -5685,19 +5726,21 @@ window.RokApp = () => {
     if (!free && m) {
       const t = m[1], i0 = +m[2], x0 = d.sets[i0], gk = { set: 'gear', arm: 'arm', st: 'st' }[t], grp = !x0.kind && gk && S[gk];
       const mv = new Set();
-      if (x0.lock && scMembers(x0).includes(scDrag.obj)) {     // Fixes / gesynctes Set: angehakte Teile + verknüpfte Sets zusammen
-        scMembers(x0).forEach(o => mv.add(o));
-        scLinked(d, x0).forEach(y => scMembers(y).forEach(o => mv.add(o)));
-      }
-      if (grp) scRowSets(d, i0).filter(([y]) => y !== x0 && scVisOf(y, t)).forEach(([y]) => { if (y.lock) scMembers(y).forEach(o => mv.add(o)); else mv.add(scObjOf(y, t)); });
+      // Starrer Block: Full Sync oder „Mit Set syncen“ → JEDES Teil dieses Sets und aller verknüpften Sets bekommt dasselbe dx/dy
+      const linked = scLinked(d, x0), rigid = x0.syncMode === 'full' || linked.length > 0;
+      const allOf = (y) => [y, y.parts.c, y.parts.n, y.parts.g, y.arm, y.st, y.arm.fm];   // Wrapper + alle Module, egal ob sichtbar/angehakt
+      if (rigid) { allOf(x0).forEach(o => mv.add(o)); linked.forEach(y => allOf(y).forEach(o => mv.add(o))); }
+      else if (x0.lock && scMembers(x0).includes(scDrag.obj)) scMembers(x0).forEach(o => mv.add(o));   // Partial Sync: nur angehakte Teile
+      if (grp && !linked.length) scRowSets(d, i0).filter(([y]) => y !== x0 && scVisOf(y, t)).forEach(([y]) => { if (y.lock) scMembers(y).forEach(o => mv.add(o)); else mv.add(scObjOf(y, t)); });
       mv.delete(scDrag.obj); mv.forEach(o => { if (o && o.x != null) { o.x += dx; o.y += dy; } });
       d.sets.forEach((x, i) => [['set', x], ['arm', x.arm], ['st', x.st], ['fm', x.arm.fm], ['pc', x.parts.c], ['pn', x.parts.n], ['pg', x.parts.g]].forEach(([tt, o]) => { if (!mv.has(o)) return;
         const e = $('scEls').querySelector(`[data-el="${tt}:${i}"]`); if (e) { e.style.left = o.x + 'cqw'; e.style.top = o.y + 'cqw'; } }));
     }
+    scFmOverlay(d);
   });
   const scEndDrag = () => { if (!scDrag) return; const { moved, key, free, obj } = scDrag; scDrag = null;
     { const sx = moved && scSetOfSel(key); if (sx && sx.syncMode === 'partial') scDockSave(sx, D().sets.indexOf(sx)); } $('scGuides').innerHTML = ''; drawStage();
-    const d = D(); if (moved && free) obj.free = true; else if (moved) scSyncAfter(d, key);   // frei platziert → bleibt genau so liegen
+    const d = D(); if (moved && free) obj.free = true; else if (moved) { const sx = scSetOfSel(key); if (!(sx && scLinked(d, sx).length)) scSyncAfter(d, key); }   // frei platziert → bleibt genau so liegen
     drawProps(); if (moved) scSaveSoon(); };
   $('scEls').addEventListener('pointerup', scEndDrag);
   $('scEls').addEventListener('pointercancel', scEndDrag);
@@ -5717,13 +5760,13 @@ window.RokApp = () => {
       o.s = scScale(+ev.target.value / 100); $('scPSv').textContent = Math.round(o.s * 100) + ' %';
       if (before) { const nb = scBox(sc.sel, o); if (nb) o.y = before.t + nb.h / 2; }   // obere Kante bleibt, wo sie ist
       if (scSyncOn(d)) scSyncAfter(d, sc.sel);
-      { const el = $('scEls').querySelector(`[data-el="${sc.sel}"]`); if (el) { el.style.transform = scTf(o); el.style.top = o.y + 'cqw'; } }
+      { const el = $('scEls').querySelector(`[data-el="${sc.sel}"]`); if (el) { el.style.transform = scTf(o); el.style.top = o.y + 'cqw'; } scFmOverlay(D()); }
       scSaveSoon();
     } else if (ev.target.id === 'scPFz') {
       o.fz = scInt(ev.target.value, 70, 150, 100); $('scPFzv').textContent = o.fz + ' %'; drawStage(); scSaveSoon();
     } else if (ev.target.id === 'scPRot') {
       o.r = scRot(ev.target.value); $('scPRotv').textContent = o.r + '°';
-      const el = $('scEls').querySelector(`[data-el="${sc.sel}"]`); if (el) el.style.transform = scTf(o);
+      const el = $('scEls').querySelector(`[data-el="${sc.sel}"]`); if (el) el.style.transform = scTf(o); scFmOverlay(D());
       scSaveSoon();
     } else if (ev.target.id === 'scPC') { o.color = scColor(ev.target.value); drawStage(); scSaveSoon(); }
     else if (ev.target.id === 'scPF') { o.fill = scColor(ev.target.value); drawStage(); scSaveSoon(); }
@@ -5745,7 +5788,12 @@ window.RokApp = () => {
     if (ev.target.id === 'scPNi') { o.ni = !ev.target.checked; drawStage(); scSaveSoon(); return; }
     if (ev.target.id === 'scPRound') { o.round = ev.target.checked; drawStage(); scSaveSoon(); return; }
     if (ev.target.dataset.setopt === 'gearOn') { o.gearOn = ev.target.checked; { const d = D(), L = scLayoutPos(d, scH(d)); d.sets.forEach((x, i) => { if (x.kind && L.sp[i]) { x.x = L.sp[i].x; x.y = L.sp[i].y; } }); } drawStage(); drawProps(); drawDetail(); scSaveSoon(); return; }
-    if (ev.target.dataset.setopt === 'armOn') { o.arm.on = ev.target.checked; if (o.arm.on) scArmShow(o); else if (o.st.on && D().syncs.set) { drawStage(); scStUnder(o); } drawStage(); drawArm(); scSaveSoon(); return; }
+    if (ev.target.dataset.setopt === 'armOn') { const i = D().sets.indexOf(o), b0 = scBox('arm:' + i, o.arm);
+      o.arm.on = ev.target.checked;
+      if (o.arm.on && !b0) scArmShow(o);
+      else { drawStage(); const b1 = scBox('arm:' + i, o.arm); if (b0 && b1) { o.arm.y = b0.t + b1.h / 2; drawStage(); }   // obere Kante bleibt
+        if (o.st.on && scStHas(o.arm) && !o.st.free && scBound(o, 'st')) { scStUnder(o, true); } }
+      drawStage(); drawProps(); drawArm(); scSaveSoon(); return; }
     if (ev.target.dataset.setopt === 'stOn') { o.st.on = ev.target.checked; if (o.st.on) scStShow(o); drawStage(); drawArm(); scSaveSoon(); return; }
     if (ev.target.id === 'scPNt') { (scSetOfSel()?.st || o).nt = !ev.target.checked; if (D().syncs.st) { const i = +sc.sel.split(':')[1]; scSyncAfter(D(), 'st:' + i); } drawStage(); scSaveSoon(); return; }
     if (ev.target.dataset.setopt) { const x = o; x[ev.target.dataset.setopt] = ev.target.checked;
@@ -5972,7 +6020,7 @@ window.RokApp = () => {
   $('scAuto').onclick = async () => {
     if (!(await UI.confirm('⚠ Wirklich alles symmetrisch anordnen?\n\nAlle Sets, Rüstungen und Anzeigen dieses Showcase werden automatisch neu platziert – deine eigene Anordnung geht dabei verloren.'))) return;
     { const d = D(); d.sets.forEach(x => { x.free = false; x.split = false; x.syncMode = 'full'; x.lock = true; x.arm.free = false; x.st.free = false; }); Object.values(d.els).forEach(w => { w.free = false; }); (d.texts || []).forEach(t => { t.free = false; }); (d.xskins || []).forEach(t => { t.free = false; }); }
-    scAutoLayout(D(), false); drawShowcase(); scFixAnchors(); scFlowRows(D()); scSnapTops(); if (scSyncOn(D())) scSyncAll(D()); D().sets.forEach((x, i) => { if (x.arm.on && x.arm.fsep) scFmPlace(x, i); }); drawStage(); scSave('✓ Symmetrisch angeordnet');
+    scAutoLayout(D(), false); drawShowcase(); scFixAnchors(); scFlowRows(D()); scSnapTops(); if (scSyncOn(D())) scSyncAll(D()); D().sets.forEach((x, i) => { if (x.arm.on && x.arm.fsep) scFmPlace(x, i); }); drawStage(); scFitSets(D()); scSave('✓ Symmetrisch angeordnet');
   };
 
   // ---- City-Skin auswählen ----
@@ -6157,7 +6205,7 @@ window.RokApp = () => {
       drawShowcase(); scSave('✓ Showcase kopiert');
     } else if (ev.target.closest('#scRefresh')) {
       const act = doc.active, edit = sc.edit; sc.doc = ownShowcase(); if (sc.doc.list.some(x => x.id === act)) sc.doc.active = act;
-      sc.edit = edit; sc.si = Math.min(sc.si, D().sets.length - 1); drawShowcase(); scFlowRows(D()); scSave('✓ Showcase aktualisiert');
+      sc.edit = edit; sc.si = Math.min(sc.si, D().sets.length - 1); drawShowcase(); scFlowRows(D()); scFitSets(D()); scSave('✓ Showcase aktualisiert');
     } else if (ev.target.closest('#scRenList')) {
       const d = D(), t = await UI.prompt('Neuer Name für den Showcase:', d.title); if (t == null || !t.trim()) return;
       d.title = t.trim().slice(0, 30); drawListBar(); scSave('✓ Umbenannt');
@@ -6180,7 +6228,7 @@ window.RokApp = () => {
       if (d.gfxAll && first !== x) x.gfx = { ...first.gfx };
       if (i > 0 && first.y != null) { x.y = first.y + Math.floor(i / SC_COLS) * (scSetH(first) + SC_G + scUnderH(first)) * first.s; x.s = first.s; }
       else Object.assign(x, scLayoutPos(d, scH(d)).sp[i]);
-      scRecenter(d); scArmUnder(x); scStUnder(x);
+      scRecenter(d); scArmUnder(x); scStUnder(x); drawStage(); scFitSets(d);
       sc.si = d.sets.length - 1; sc.gsel = null; if (sc.edit) sc.sel = 'set:' + sc.si;
       drawShowcase(); scSave('✓ Set hinzugefügt');
       $('scStage').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -6288,6 +6336,7 @@ window.RokApp = () => {
       Object.assign(x.arm, { insc: a.insc, formation: a.formation, troop: a.troop, arms: a.arms, ...Object.fromEntries(SC_ARM_STATS.map(([k]) => [k, a[k]])) });
       if (!x.arm.on) scArmShow(x);
       if (!x.st.on && scStHas(x.arm)) scStShow(x);
+      if (x.syncMode !== 'free') scFitSets(D());
       drawArm(); drawStage();
       await scSave(`✓ Rüstung erkannt: ${list.length} Inschriften` + (r.confidence ? ` · Sicherheit: ${r.confidence}` : ''));
     } catch (e) {
@@ -6443,7 +6492,7 @@ window.RokApp = () => {
     if (filled && !(await UI.confirm(`Kommandanten und Ausrüstung von „${x.name || 'diesem Set'}“ mit „${srcName}“ überschreiben?`))) { drawDetail(); return; }
     const c = JSON.parse(JSON.stringify(src));
     Object.assign(x, { cmd: c.cmd, gear: c.gear, gfx: D().gfxAll ? x.gfx : c.gfx, arm: { ...c.arm, x: x.arm.x, y: x.arm.y, s: x.arm.s }, st: { ...c.st, x: x.st.x, y: x.st.y, s: x.st.s }, cg: c.cg, heads: false });
-    drawStage(); if (x.arm.on && scArmVis(x.arm)) { scArmUnder(x, true); drawStage(); } if (x.st.on && scStHas(x.arm)) scStUnder(x, true);   // untereinander: Gear → Rüstung → Werte
+    drawStage(); if (scArmBlk(x.arm)) { scArmUnder(x, true); drawStage(); } if (x.st.on && scStHas(x.arm)) scStUnder(x, true);   // untereinander: Gear → Rüstung → Werte
     if (x.arm.fsep) { drawStage(); scFmPlace(x, D().sets.indexOf(x)); }
     if (!x.kind) scSyncAfter(D(), 'set:' + D().sets.indexOf(x));
     sc.gsel = null; drawShowcase(); scSave(`✓ Übernommen aus „${srcName}“`);
@@ -6541,6 +6590,7 @@ window.RokApp = () => {
           : hit < seen ? `⚠ ${seen - hit} Slot(s) nicht sicher erkannt – sie bleiben leer und lassen sich von Hand wählen.` : '' });
       if (!ok) { scMsg('Scan verworfen – nichts geändert.', 'warn'); return; }
       x.gear = neu; if (cmds.length) x.cmd = newCmd;
+      if (x.syncMode !== 'free') scFitSets(D());
       drawShowcase();
       await scSave(`✓ ${hit} von ${seen} Slots erkannt` + (cmds.length ? ` · Kommandant${cmds.length > 1 ? 'en' : ''}: ${cmds.map(c => CMD_BY_ID[c.id].name + (c.exp ? ' ⭐' : '')).join(' & ')}` : ''));
     } catch (e) {
