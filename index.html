@@ -4326,6 +4326,7 @@ window.RokApp = () => {
   const scModeOf = (x) => SC_MODES.includes(x?.syncMode) ? x.syncMode : (x?.lock === false || (x?.lock == null && x?.split)) ? 'free' : x?.split ? 'partial' : 'full';
   const scDockNorm = (o) => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {})
     .filter(([k, v]) => SY_KEYS.some(([q]) => q === k) && isFinite(+v?.dx) && isFinite(+v?.dy)).map(([k, v]) => [k, { dx: +v.dx, dy: +v.dy }]));
+  const scBound = (x, k) => x.syncMode === 'full' || (x.syncMode === 'partial' && !!x.sy?.[k]);   // je Modul eigene Abfrage
   const scPartsNorm = (p) => Object.fromEntries(['c', 'n', 'g'].map(k => [k, { x: scPos(p?.[k]?.x, 100), y: scPos(p?.[k]?.y, 200), s: scScale(p?.[k]?.s), r: scRot(p?.[k]?.r) }]));
   const scSetNorm = (x) => scStMigrate(x, { id: String(x?.id || newId()), name: String(x?.name || '').trim().slice(0, 30), mode: 'manual',
     shot: scImgOk(x?.shot) ? x.shot : '', cmd: [0, 1].map(i => scCmdNorm(x?.cmd?.[i])), gear: scGearNorm(x?.gear),
@@ -4406,11 +4407,11 @@ window.RokApp = () => {
     const hit = (a, b) => a && b && a.r > b.l + 0.2 && a.l < b.r - 0.2;
     let ch = false;
     d.sets.forEach((x, i) => { if (x.kind && !x.gearOn) return;
-      if (x.arm.on && scArmVis(x.arm) && !x.arm.free && !x.free && !x.split) { const sb = scBox('set:' + i, x), ab = scBox('arm:' + i, x.arm);
+      if (x.arm.on && scArmVis(x.arm) && !x.arm.free && !x.free && !x.split && scBound(x, 'arm')) { const sb = scBox('set:' + i, x), ab = scBox('arm:' + i, x.arm);
         if (sb && ab && hit(ab, sb) && ab.t < sb.b - 0.1) { scArmUnder(x, true); ch = true; } } });
     if (ch) drawStage();
     let ch2 = false;
-    d.sets.forEach((x, i) => { if ((x.kind && !x.gearOn) || !x.st.on || !scStHas(x.arm) || x.st.free || x.free || x.split || x.arm.free) return;
+    d.sets.forEach((x, i) => { if ((x.kind && !x.gearOn) || !x.st.on || !scStHas(x.arm) || x.st.free || x.free || x.split || x.arm.free || !scBound(x, 'st')) return;
       const tb = scBox('st:' + i, x.st), armOn = x.arm.on && scArmVis(x.arm), ob = armOn ? scBox('arm:' + i, x.arm) : scBox('set:' + i, x);
       if (tb && ob && hit(tb, ob) && tb.t < ob.b - 0.1) { scStUnder(x, true); ch2 = true; } });
     if (ch2) drawStage();
@@ -4542,7 +4543,7 @@ window.RokApp = () => {
   const scPick = (A, b) => A === 'top' ? b.t : A === 'bottom' ? b.b : b.cy;
   const scPut = (A, o, b, v) => { o.y = A === 'top' ? v + b.h / 2 : A === 'bottom' ? v - b.h / 2 : v; };
   function scAlignRow(d, t, i0) {                           // Elemente vom Typ t in der Reihe von Set i0: gleiche Größe + Ausrichtung
-    const row = scRowSets(d, i0).filter(([x, j]) => scVisOf(x, t) && (!scObjOf(x, t).free || j === i0)); if (!row.length) return;   // frei platzierte bleiben, wo sie sind
+    const row = scRowSets(d, i0).filter(([x, j]) => scVisOf(x, t) && ((!scObjOf(x, t).free && (t === 'set' || x.syncMode !== 'partial' || x.sy[t])) || j === i0)); if (!row.length) return;   // frei platzierte bleiben, wo sie sind
     const refE = row.find(([, i]) => i === i0) || row[0], ref = scObjOf(refE[0], t), A = d.syncA || 'top';
     const sizeChanged = row.some(([x]) => scObjOf(x, t).s !== ref.s);
     row.forEach(([x]) => { scObjOf(x, t).s = ref.s; if (t === 'st') x.st.al = ref.al; });
@@ -4578,9 +4579,9 @@ window.RokApp = () => {
     const i = +k, x = d.sets[i]; if (!x || x.kind) return;
     if (S.gear) scAlignRow(d, 'set', i); else drawStage();
     const row = scRowSets(d, i), touched = row.filter(([y]) => y === x || S.gear);
-    if (S.set) touched.forEach(([y]) => { if (y.arm.on && !y.arm.free && !y.split) { drawStage(); scArmUnder(y, true); } });   // Set-Einheit: Rüstung bleibt unter dem Set (Größe bleibt eigenständig)
+    if (S.set) touched.forEach(([y]) => { if (y.arm.on && !y.arm.free && !y.split && scBound(y, 'arm')) { drawStage(); scArmUnder(y, true); } });   // Set-Einheit: Rüstung bleibt unter dem Set (Größe bleibt eigenständig)
     if (S.arm) { const r = row.find(([y, j]) => j === i && scVisOf(y, 'arm')) || row.find(([y]) => scVisOf(y, 'arm')); if (r) scAlignRow(d, 'arm', r[1]); }
-    if (S.set) row.filter(([y]) => y === x || S.gear || S.arm).forEach(([y]) => { if (y.st.on && !y.st.free && !y.split) { drawStage(); scStUnder(y, true); } });
+    if (S.set) row.filter(([y]) => y === x || S.gear || S.arm).forEach(([y]) => { if (y.st.on && !y.st.free && !y.split && scBound(y, 'st')) { drawStage(); scStUnder(y, true); } });
     if (S.st) { const r = row.find(([y, j]) => j === i && scVisOf(y, 'st')) || row.find(([y]) => scVisOf(y, 'st')); if (r) scAlignRow(d, 'st', r[1]); }
     drawStage();
   }
@@ -5137,6 +5138,11 @@ window.RokApp = () => {
     const A = scAnchor(x, i); if (!A || A.x == null) return;
     Object.entries(scDockEls(x)).forEach(([k, o]) => { const p = x.dock?.[k]; if (o && !x.sy[k] && p) { o.x = A.x + p.dx; o.y = A.y + p.dy; } });
   }
+  function scDecouple(x, i) {                                // Partial: flache Elemente, jedes behält seine exakte Position
+    if (!x.split) scSplit(x, i, true);
+    const a = x.arm; if (!x.sy.fm && a.on && a.formation && a.fpos !== 'hidden' && !a.fsep) scFmSep(x, i, true);
+    x.lock = true; drawStage();
+  }
   function scSetMode(x, i, mode) {                           // Umschalten der drei Modi
     if (x.syncMode === 'partial') scDockSave(x, i);
     x.syncMode = SC_MODES.includes(mode) ? mode : 'full';
@@ -5145,8 +5151,8 @@ window.RokApp = () => {
       const a = x.arm; if (a.on && a.formation && a.fpos !== 'hidden' && !a.fsep) scFmSep(x, i, true);
       x.lock = false;
     } else {
-      scSyncSet(x, i);                                       // Full: alles schnappt zusammen · Partial: angehakte Teile
-      if (mode === 'partial') scDockRestore(x, i);
+      if (mode === 'partial') { scDecouple(x, i); scDockRestore(x, i); }   // Partial: nichts springt, nur gemerkte Positionen
+      else scSyncSet(x, i);                                  // Full: alles schnappt zentriert untereinander zusammen
       x.lock = true;
     }
     drawStage();
@@ -5728,8 +5734,8 @@ window.RokApp = () => {
   });
   $('scProps').addEventListener('change', (ev) => {
     if (ev.target.dataset.sy) { const x = scSetOfSel(); if (!x || x.syncMode !== 'partial') return; const i = D().sets.indexOf(x);
-      scDockSave(x, i); x.sy[ev.target.dataset.sy] = ev.target.checked;            // Partial Sync: sofort neu binden / abdocken
-      scSyncSet(x, i); scDockRestore(x, i); drawStage(); drawProps(); scSaveSoon(); return; }
+      x.sy[ev.target.dataset.sy] = ev.target.checked;        // Partial Sync: Haken ändert nur die Bindung – das Teil bleibt exakt stehen
+      scDecouple(x, i); scDockSave(x, i); drawStage(); drawProps(); scSaveSoon(); return; }
     let o = scSelObj(); if (!o) return;
     if (ev.target.dataset.setopt) o = scSetOfSel() || o;
     if (ev.target.dataset.fsep != null) { const x = scSetOfSel(), i = D().sets.indexOf(x); if (!x) return;
