@@ -1171,6 +1171,10 @@ window.I18N = (() => {
         '✓ Lokal gespeichert · für andere Spieler sichtbar erst nach dem SQL-Update (Spalte showcase)': '✓ Saved locally · visible to other players after the SQL update (column showcase)',
         'Der Scan-Server kennt den Showcase-Scan noch nicht – bitte den Modus „showcase“ in api/scan.js ergänzen. Bis dahin Kommandanten über „+ Von Hand“ eintragen.': 'The scan server does not know the showcase scan yet – please add the “showcase” mode to api/scan.js. Until then add commanders with “+ Manually”.',
         'Bis zu 5 Screenshots deiner Kommandanten-Ansicht · Bilder werden nach dem Auslesen sofort verworfen · gleiche Kommandanten werden aktualisiert statt doppelt angelegt.': 'Up to 5 screenshots of your commander view · images are discarded right after reading · existing commanders are updated instead of duplicated.',
+        'Sync Set': 'Sync set', 'Set-Einstellungen': 'Set settings', 'Kommandanten': 'Commanders', 'Namen': 'Names', 'Rüstung': 'Armament', 'Werte': 'Stats',
+        'Set synchronisiert': 'Set synced', 'Formation im Rüstungs-Panel unten wählen': 'Choose the formation in the armament panel below',
+        'Fixes Set: Kommandanten, Namen, Gear, Rüstung und Werte bewegen sich zusammen': 'Fixed set: commanders, names, gear, armament and stats move together',
+        'Sync Set: alles wieder zusammenpacken und untereinander aufreihen': 'Sync set: pack everything together again and line it up underneath',
         'Kommandanten anzeigen': 'Show commanders', 'Kommandanten-Namen anzeigen': 'Show commander names', 'Fixes Set': 'Fixed set', 'Freies Set': 'Free set',
         'Namen-Farbe': 'Name colour', 'Über': 'Above', 'Unter': 'Below', 'Formation einzeln (frei bewegen)': 'Formation separate (move freely)',
         'Freies Set – Kommandanten, Namen und Ausrüstung einzeln bewegen': 'Free set – move commanders, names and equipment separately',
@@ -5038,6 +5042,19 @@ window.RokApp = () => {
       <span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">${[['above', '⬆ Über'], ['below', '⬇ Unter']].map(([v, l], n) => `<button type="button" data-armfpos="${v}" aria-pressed="${a.fpos === v}" class="${sm ? 'px-2.5 py-1 text-xs' : 'px-2.5 py-1.5'} ${a.fpos === v ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'} ${n ? 'border-l border-ink-600' : ''}">${l}</button>`).join('')}</span>
       <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-fsep ${a.fsep ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Formation einzeln (frei bewegen)</label>`;
   }
+  const scSetLabel = (d, x) => x.kind ? SC_KIND[x.kind] + (d.sets.filter(y => y.kind === x.kind).length > 1 ? ' ' + (scKindNo(d, x) + 1) : '')
+    : (x.name || 'Set ' + (scNormal(d).findIndex(([y]) => y === x) + 1));
+  function scSelSet(i) {                                     // Set auswählen → Einstellungen unten
+    const x = D().sets[i]; if (!x) return;
+    sc.sel = x.split && x.mode !== 'shot' ? (x.cm ? 'pc:' : x.cn ? 'pn:' : 'pg:') + i : 'set:' + i;
+    sc.si = i; sc.gsel = null; drawStage(); drawProps(); drawSetBar(); drawDetail();
+  }
+  function scSyncSet(x) {                                    // Sync Set: alles zusammenpacken und untereinander aufreihen
+    x.split = false; x.free = false; x.arm.free = false; x.st.free = false; x.arm.fsep = false; x.arm.r = 0; x.st.r = 0;
+    drawStage();
+    if (x.arm.on && scArmVis(x.arm)) { scArmUnder(x); drawStage(); }
+    if (x.st.on && scStHas(x.arm)) { scStUnder(x); drawStage(); }
+  }
   function scMiniSet(x, i) {
     const sel = !sc.edit && !sc.exporting && i === sc.hl;          // oranger Rahmen nur, solange das Set angetippt ist
     const lock = sc.own && x.priv && !sc.exporting ? '<span class="absolute -top-1 -right-1 z-10 rounded-full bg-ink-950/90 border border-amber-400/60 leading-none" style="font-size:max(9px,1.1cqw);padding:.25cqw" title="Privat – nur für dich sichtbar">🔒</span>' : '';
@@ -5157,7 +5174,9 @@ window.RokApp = () => {
   function drawWidgetOpts(d) {
     $('scWidgetOpts').innerHTML = Object.entries(SC_ELS).map(([k, w]) =>
       `<button type="button" data-wsel="${k}" aria-pressed="${sc.sel === 'w:' + k}" title="${d.els[k].on ? 'Sichtbar' : 'Ausgeblendet'} – antippen zum Einstellen"
-        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition ${d.els[k].on ? 'border-gold-400/70 bg-gold-500/15 text-gold-100' : 'border-ink-600 text-slate-500 hover:text-slate-200'} ${sc.sel === 'w:' + k ? 'ring-2 ring-gold-300 ring-offset-1 ring-offset-ink-950' : 'hover:border-gold-500/60'}">${d.els[k].on ? '👁' : '<span class="opacity-60">⊘</span>'} ${w.icon} ${w.label}</button>`).join('');
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition ${d.els[k].on ? 'border-gold-400/70 bg-gold-500/15 text-gold-100' : 'border-ink-600 text-slate-500 hover:text-slate-200'} ${sc.sel === 'w:' + k ? 'ring-2 ring-gold-300 ring-offset-1 ring-offset-ink-950' : 'hover:border-gold-500/60'}">${d.els[k].on ? '👁' : '<span class="opacity-60">⊘</span>'} ${w.icon} ${w.label}</button>`).join('')
+      + (() => { const cx = scSetOfSel(); return '<span class="self-center w-px h-6 bg-ink-600 mx-1"></span>' + d.sets.map((x, j) => `<button type="button" data-wset="${j}" title="Set antippen zum Einstellen"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition ${x === cx ? 'border-gold-400 bg-gold-500/25 text-gold-100 ring-2 ring-gold-300 ring-offset-1 ring-offset-ink-950' : 'border-sky-500/50 bg-sky-500/10 text-sky-100 hover:border-gold-500/60'}" translate="no">${x.kind ? '' : '🛡 '}${esc(scSetLabel(d, x))}${x.split ? ' ✥' : ''}</button>`).join(''); })();
   }
   function drawEditBar() {
     const d = D(), on = sc.own && sc.edit;
@@ -5187,7 +5206,7 @@ window.RokApp = () => {
     { const rb = $('scRemoveSel'); if (rb) rb.disabled = !o; }
     if (!o) { el.innerHTML = '<span class="text-xs text-slate-500">Element auf der Bühne oder oben antippen, um es einzustellen. Ziehen verschiebt es – mit Raster rastet es symmetrisch ein.</span>'; return; }
     const [t, k] = sc.sel.split(':'), d = D();
-    const PL = { pc: '👤 Kommandanten', pn: '🔤 Namen', pg: '🛡 Ausrüstung', fm: '🔰 Formation' }, sx = scSetOfSel(), sxc = ['set', 'pc', 'pn', 'pg'].includes(t) ? sx : null;
+    const PL = { pc: '👤 Kommandanten', pn: '🔤 Namen', pg: '🛡 Ausrüstung', fm: '🔰 Formation' }, sx = scSetOfSel(), sxc = sx;
     const label = t === 'set' ? (d.sets[+k].name || `Set ${+k + 1}`) : PL[t] ? `${PL[t]} · ${d.sets[+k].name || 'Set ' + (+k + 1)}` : t === 'arm' ? `⚔ Rüstung · ${d.sets[+k].name || 'Set ' + (+k + 1)}` : t === 'st' ? `📊 Werte · ${d.sets[+k].name || 'Set ' + (+k + 1)}` : t === 'tx' ? '✏️ Eigener Text' : t === 'xs' ? '🏯 Weiterer City-Skin' : `${SC_ELS[k].icon} ${SC_ELS[k].label}`;
     const textual = t === 'tx' || (t === 'w' && k !== 'avatar' && k !== 'skin'), boxy = t === 'w' || t === 'tx' || t === 'xs', frame = t === 'xs' || (t === 'w' && (k === 'avatar' || k === 'skin'));
     const fillable = boxy && k !== 'avatar', defBw = frame ? 2 : 1;
@@ -5200,14 +5219,33 @@ window.RokApp = () => {
     const ck = (f, on, txt) => `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-setopt="${f}" ${on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${txt}</label>`;
     const ncHtml = sxc ? `<span class="text-slate-400">Namen-Farbe</span><input type="color" data-setcol value="${sxc.nc || '#ffffff'}" class="${sw}"><button type="button" data-setact="ncreset" class="${btn}">Standardfarbe</button>` : '';
     const splitHtml = sxc ? `<span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">
-        <button type="button" data-setact="fix" aria-pressed="${!sxc.split}" title="Fixes Set: alles wieder zusammen wie vorher" class="px-3 py-1.5 font-semibold ${!sxc.split ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'}">🔒 Fixes Set</button>
-        <button type="button" data-setact="split" aria-pressed="${!!sxc.split}" title="Freies Set: Kommandanten, Namen und Ausrüstung einzeln verschieben, vergrößern und drehen" class="px-3 py-1.5 font-semibold border-l border-ink-600 ${sxc.split ? 'bg-sky-500/25 text-sky-100' : 'hover:text-sky-200'}">✥ Freies Set</button></span>` : '';
+        <button type="button" data-setact="fix" aria-pressed="${!sxc.split}" title="Fixes Set: Kommandanten, Namen, Gear, Rüstung und Werte bewegen sich zusammen" class="px-3 py-1.5 font-semibold ${!sxc.split ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'}">🔒 Fixes Set</button>
+        <button type="button" data-setact="split" aria-pressed="${!!sxc.split}" title="Freies Set: Kommandanten, Namen und Ausrüstung einzeln verschieben, vergrößern und drehen" class="px-3 py-1.5 font-semibold border-l border-ink-600 ${sxc.split ? 'bg-sky-500/25 text-sky-100' : 'hover:text-sky-200'}">✥ Freies Set</button>
+        <button type="button" data-setact="sync" title="Sync Set: alles wieder zusammenpacken und untereinander aufreihen" class="px-3 py-1.5 font-semibold border-l border-ink-600 hover:bg-emerald-500/15 hover:text-emerald-200">⇅ Sync Set</button></span>` : '';
+    const sec = (title, body) => `<div class="rounded-lg border border-ink-700 bg-ink-900/50 p-2.5"><div class="mb-1.5 text-[10px] uppercase tracking-widest text-slate-500">${title}</div><div class="flex flex-wrap items-center gap-x-3 gap-y-2">${body}</div></div>`;
+    const seg = (items, cur, attr) => `<span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">${items.map(([v, l], n) => `<button type="button" ${attr}="${v}" aria-pressed="${cur === v}" class="px-2.5 py-1 ${cur === v ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'} ${n ? 'border-l border-ink-600' : ''}">${l}</button>`).join('')}</span>`;
+    const scanB = (f, l) => `<label for="${f}" data-scanset="${k}" class="cursor-pointer px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 ${l}</label>`;
+    const BR = '<span class="basis-full h-0"></span>';
+    const setCard = sxc ? (() => { const a = sxc.arm, st = sxc.st;
+      return `<div class="sm:col-span-2 xl:col-span-3 rounded-xl border border-gold-500/30 bg-ink-950/50 p-3 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2"><div class="text-[10px] uppercase tracking-widest text-slate-500">🛡 Set-Einstellungen</div>${sxc.kind ? '' : splitHtml}</div>
+        <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          ${sec('👤 Kommandanten', ck('cm', sxc.cm, 'Kommandanten anzeigen') + (sxc.kind ? '' : ck('heads', sxc.heads, 'Nur Kommandanten')))}
+          ${sec('🔤 Namen', ck('cn', sxc.cn, 'Kommandanten-Namen anzeigen') + BR + ncHtml)}
+          ${sec('🛡 Ausrüstung', (sxc.kind ? ck('gearOn', sxc.gearOn, 'Gear anzeigen') : '') + ck('hideEmpty', sxc.hideEmpty, 'Leere Slots ausblenden') + BR + scanB('scFile', 'Ausrüstung scannen'))}
+          ${sec('⚔ Rüstung', ck('armOn', a.on, 'Rüstung anzeigen') + BR + '<span class="text-slate-400">Anordnung</span>' + seg([[1, '▤ 1 Spalte'], [2, '▥ 2 Spalten']], a.cols || 1, 'data-armcols') + BR + scanB('scArmFile', 'Rüstung scannen'))}
+          ${sec('🔰 Formation', a.formation ? seg([['above', '⬆ Über'], ['below', '⬇ Unter']], a.fpos, 'data-armfpos')
+              + `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-fsep ${a.fsep ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Formation einzeln (frei bewegen)</label>`
+              : '<span class="text-slate-500">Formation im Rüstungs-Panel unten wählen</span>')}
+          ${sec('📊 Werte', ck('stOn', st.on, 'Werte anzeigen') + BR + '<span class="text-slate-400">Schrift</span>' + seg(Object.entries(SC_AL), st.al, 'data-stal') + BR + chk('scPNt', !st.nt, 'Truppentyp zeigen (z. B. „Archer Attack“)'))}
+        </div></div>`; })() : '';
     const cards = [
       card('📐 Größe &amp; Effekt', `<input id="scPS" type="range" min="30" max="400" step="5" value="${Math.round(o.s * 100)}" class="flex-1 min-w-[110px] accent-yellow-500"><span id="scPSv" class="tabular-nums w-11 text-right">${Math.round(o.s * 100)} %</span>
         ${boxy ? chk('scPSh', o.shadow, 'Schatten') : ''}
         <span class="basis-full h-0"></span>
         <span class="text-slate-400">↻ Drehung</span><input id="scPRot" type="range" min="-180" max="180" step="1" value="${o.r || 0}" class="flex-1 min-w-[110px] accent-yellow-500"><span id="scPRotv" class="tabular-nums w-11 text-right">${o.r || 0}°</span>
         <button type="button" id="scPRot0" class="${btn}">0°</button>`),
+      setCard,
       t === 'w' && k === 'avatar' ? card('🖼 Profilbild', `${o.frame ? '' : chk('scPRound', o.round, '◯ Rund')}
         <button type="button" id="scPFrame" class="${btn}">🖼 ${o.frame ? 'Anderer Rahmen …' : 'Rahmen hinzufügen …'}</button>
         ${o.frame ? `<span class="text-slate-400 truncate max-w-[10rem]">${esc(avFrameName(o.frame))}</span>
@@ -5215,45 +5253,30 @@ window.RokApp = () => {
           <span class="basis-full h-0"></span><span class="text-slate-400">🔍 Bild im Rahmen</span><input id="scPFz" type="range" min="70" max="150" step="1" value="${o.fz || 100}" class="flex-1 min-w-[110px] accent-yellow-500"><span id="scPFzv" class="tabular-nums w-11 text-right">${o.fz || 100} %</span>` : ''}`) : '',
       o.free ? card('✥ Frei platziert', `<span class="text-slate-400">Wird nicht automatisch verschoben.</span>
         <button type="button" id="scPUnfree" class="${btn}">⊞ Wieder einrasten</button>`) : '',
-      t === 'arm' ? card('⚔ Rüstung', `<span class="text-slate-400">Anordnung</span>
-        <span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">${[[1, '▤ 1 Spalte'], [2, '▥ 2 Spalten']].map(([n, l]) => `<button type="button" data-armcols="${n}" aria-pressed="${(o.cols || 1) === n}" class="px-2.5 py-1.5 ${(o.cols || 1) === n ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'} ${n === 2 ? 'border-l border-ink-600' : ''}">${l}</button>`).join('')}</span>${scFmCtlHtml(o)}`) : '',
-      t === 'fm' && sx ? card('🔰 Formation', scFmCtlHtml(sx.arm)) : '',
-      t === 'st' ? card('📊 Werte', `<span class="text-slate-400">Schrift</span>
-        <span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">${Object.entries(SC_AL).map(([v, l]) => `<button type="button" data-stal="${v}" aria-pressed="${o.al === v}" title="${l.replace(/^\S+\s/, '')}" class="px-2.5 py-1.5 ${o.al === v ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'}">${l}</button>`).join('')}</span>
-        ${chk('scPNt', !o.nt, 'Truppentyp zeigen (z. B. „Archer Attack“)')}`) : '',
       t === 'w' && (k === 'kd' || k === 'vip') ? card('✦ Symbol', chk('scPNi', !o.ni, k === 'kd' ? '🏰 anzeigen' : '👑 anzeigen')) : '',
       textual ? card('🎨 Schrift', `<input id="scPC" type="color" value="${o.color || (t === 'tx' ? '#ffffff' : SC_DEF_COLOR[k])}" class="${sw}">
         <button type="button" id="scPCr" class="${btn}">Standardfarbe</button>`) : '',
       fillable ? card('▦ Füllung', `<input id="scPF" type="color" value="${o.fill && o.fill !== 'none' ? o.fill : '#07090f'}" ${o.fill === 'none' ? 'disabled' : ''} class="${sw}">
         <input id="scPFo" type="range" min="0" max="100" step="5" value="${o.fillO}" ${o.fill === 'none' ? 'disabled' : ''} title="Deckkraft" class="flex-1 min-w-[80px] accent-yellow-500 disabled:opacity-40"><span id="scPFov" class="tabular-nums w-9 text-right ${o.fill === 'none' ? 'opacity-40' : ''}">${o.fillO} %</span>
         ${chk('scPFn', o.fill === 'none', 'keine')}`) : '',
-      sxc && sxc.kind ? card('🛡 ' + (sxc.kind === 'garrison' ? 'Garnison' : 'Rally'), `${ck('gearOn', sxc.gearOn, 'Gear anzeigen')}${ck('cm', sxc.cm, 'Kommandanten anzeigen')}${ck('cn', sxc.cn, 'Kommandanten-Namen anzeigen')}
-        <span class="basis-full h-0"></span>${ncHtml}`) : '',
-      sxc && !sxc.kind ? card('🛡 Set', `${splitHtml}<span class="basis-full h-0"></span>
-        ${ck('cm', sxc.cm, 'Kommandanten anzeigen')}${ck('cn', sxc.cn, 'Kommandanten-Namen anzeigen')}${ck('heads', sxc.heads, 'Nur Kommandanten')}
-        ${ck('armOn', sxc.arm.on, 'Rüstung anzeigen')}${ck('stOn', sxc.st.on, 'Werte anzeigen')}${ck('hideEmpty', sxc.hideEmpty, 'Leere Slots ausblenden')}
-        <span class="basis-full h-0"></span>${ncHtml}
-        <span class="basis-full h-0"></span>
-        <label for="scFile" data-scanset="${k}" class="cursor-pointer px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Ausrüstung scannen</label>
-        <label for="scArmFile" data-scanset="${k}" class="cursor-pointer px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Rüstung scannen</label>`) : '',
       boxy ? card(frame ? '▢ Rahmen' : '▢ Rand', `<input id="scPR" type="color" value="${o.border && o.border !== 'none' ? o.border : '#e0a91b'}" ${o.border === 'none' ? 'disabled' : ''} class="${sw}">
         <input id="scPBw" type="range" min="1" max="10" step="1" value="${o.bw || defBw}" ${o.border === 'none' ? 'disabled' : ''} title="Stärke" class="flex-1 min-w-[80px] accent-yellow-500 disabled:opacity-40"><span id="scPBwv" class="tabular-nums w-10 text-right ${o.border === 'none' ? 'opacity-40' : ''}">${o.bw || defBw} px</span>
         ${chk('scPRn', o.border === 'none', frame ? 'keiner' : 'kein')}`) : ''
     ].filter(Boolean);
     el.innerHTML = `<div class="space-y-3 text-xs">
       <div class="flex flex-wrap items-center gap-2">
-        <span class="px-3 py-1.5 rounded-lg bg-gold-500/15 border border-gold-500/40 text-gold-200 font-semibold" translate="no">${esc(label)}</span>
+        ${t === 'set' ? '' : `<span class="px-3 py-1.5 rounded-lg bg-gold-500/15 border border-gold-500/40 text-gold-200 font-semibold" translate="no">${esc(label)}</span>`}
         ${(t === 'w' && k === 'skin') || t === 'xs' ? '<button type="button" id="scPSkin" class="px-3 py-1.5 rounded-lg border border-gold-500/60 text-gold-300 hover:border-gold-400">🏯 Skin wählen …</button><button type="button" id="scPSkinAdd" class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">＋ Weiteren Skin</button>' : ''}
         <div class="ml-auto flex flex-wrap gap-2">
           ${boxy ? `<button type="button" id="scPBr" class="${btn}">↺ Standardwerte</button>` : ''}
           ${t === 'tx' || t === 'xs' ? `<button type="button" id="scPDel" class="px-3 py-1.5 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10">🗑 ${t === 'xs' ? 'Skin entfernen' : 'Text löschen'}</button>`
-            : !['set', 'pc', 'pn', 'pg', 'fm'].includes(t) ? `<span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">
+            : !['set', 'pc', 'pn', 'pg', 'fm', 'arm', 'st'].includes(t) ? `<span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">
                 <button type="button" id="scPShow" ${o.on ? 'disabled' : ''} class="px-3 py-1.5 ${o.on ? 'bg-ink-800 text-slate-500 cursor-default' : 'hover:bg-gold-500/15 hover:text-gold-300'}">👁 Einblenden</button>
                 <button type="button" id="scPHide" ${o.on ? '' : 'disabled'} class="px-3 py-1.5 border-l border-ink-600 ${o.on ? 'hover:bg-red-500/10 hover:text-red-300' : 'bg-ink-800 text-slate-500 cursor-default'}">⊘ Ausblenden</button></span>` : ''}
         </div>
       </div>
       ${t === 'tx' ? `<input id="scPT" maxlength="80" value="${esc(o.text || '')}" placeholder="Dein Text" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold-500">` : ''}
-      <div class="grid gap-2 sm:grid-cols-2 ${cards.length > 2 ? 'xl:grid-cols-4' : ''}">${cards.join('')}</div>
+      <div class="grid gap-2 sm:grid-cols-2 ${cards.length > 2 || sxc ? 'xl:grid-cols-4' : ''}">${cards.join('')}</div>
     </div>`;
   }
   function drawSetBar() {
@@ -5416,10 +5439,6 @@ window.RokApp = () => {
             <p class="text-[11px] text-slate-500">Die Vorschau steht direkt darüber. Alles lässt sich nach dem Scan von Hand ändern.</p>
             <label for="scArmFile" id="scArmScanLbl" class="cursor-pointer text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Rüstung scannen</label>
           </div>
-          <div class="flex flex-wrap gap-x-5 gap-y-1"><label class="inline-flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" data-arm="on" ${a.on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Rüstung auf der Bühne</label>
-            <label class="inline-flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" data-arm="ston" ${scSet().st.on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Werte auf der Bühne</label>
-            <span class="inline-flex items-center gap-2 text-sm"><span class="text-slate-400">Anordnung</span>
-              <span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">${[[1, '▤ 1 Spalte'], [2, '▥ 2 Spalten']].map(([n, l]) => `<button type="button" data-armcols="${n}" aria-pressed="${(a.cols || 1) === n}" class="px-2.5 py-1 text-xs ${(a.cols || 1) === n ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'} ${n === 2 ? 'border-l border-ink-600' : ''}">${l}</button>`).join('')}</span></span>${scFmCtlHtml(a, true)}</div>
           ${scArmPickHtml(a)}
           <div class="flex flex-wrap items-end gap-2">
             <label><span class="text-slate-400">Truppe</span><select data-arm="troop" class="mt-1 block ${inp}">${Object.entries(SC_TROOPS).map(([k, l]) => `<option value="${k}"${k === a.troop ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
@@ -5531,13 +5550,14 @@ window.RokApp = () => {
     scDrag.obj.x = x; scDrag.obj.y = y; scDrag.moved = true;
     scDrag.el.style.left = x + 'cqw'; scDrag.el.style.top = y + 'cqw';
     // Sync: Set-Einheit (Set + Rüstung + Werte) und/oder ganze Reihe (Gear / Rüstungen / Werte) wandern mit
-    const S = d.syncs || {}, m = /^(set|arm|st):(\d+)$/.exec(scDrag.key);
-    if (!free && m && !d.sets[+m[2]].kind && (S.set || S[{ set: 'gear', arm: 'arm', st: 'st' }[m[1]]])) {
-      const t = m[1], i0 = +m[2], grp = S[{ set: 'gear', arm: 'arm', st: 'st' }[t]];
-      const base = grp ? scRowSets(d, i0).filter(([x]) => scVisOf(x, t)).map(([x]) => x) : [d.sets[i0]];
-      const mv = new Set(); base.forEach(x => { if (S.set) { mv.add(x); mv.add(x.arm); mv.add(x.st); } else mv.add(scObjOf(x, t)); });
-      mv.delete(scDrag.obj); mv.forEach(o => { if (o.x != null) { o.x += dx; o.y += dy; } });
-      d.sets.forEach((x, i) => [['set', x], ['arm', x.arm], ['st', x.st]].forEach(([tt, o]) => { if (!mv.has(o)) return;
+    const S = d.syncs || {}, m = /^(set|arm|st|fm):(\d+)$/.exec(scDrag.key);
+    if (!free && m) {
+      const t = m[1], i0 = +m[2], x0 = d.sets[i0], gk = { set: 'gear', arm: 'arm', st: 'st' }[t], grp = !x0.kind && gk && S[gk];
+      const base = grp ? scRowSets(d, i0).filter(([x]) => scVisOf(x, t)).map(([x]) => x) : [x0];
+      const mv = new Set(), unit = (y) => { mv.add(y); mv.add(y.arm); mv.add(y.st); mv.add(y.arm.fm); };
+      base.forEach(y => { if (!y.split) unit(y); else if (t !== 'fm' && y !== x0) mv.add(scObjOf(y, t)); });   // Fixes Set: Kommandanten, Namen, Gear, Rüstung, Formation und Werte zusammen
+      mv.delete(scDrag.obj); mv.forEach(o => { if (o && o.x != null) { o.x += dx; o.y += dy; } });
+      d.sets.forEach((x, i) => [['set', x], ['arm', x.arm], ['st', x.st], ['fm', x.arm.fm]].forEach(([tt, o]) => { if (!mv.has(o)) return;
         const e = $('scEls').querySelector(`[data-el="${tt}:${i}"]`); if (e) { e.style.left = o.x + 'cqw'; e.style.top = o.y + 'cqw'; } }));
     }
   });
@@ -5581,7 +5601,7 @@ window.RokApp = () => {
     let o = scSelObj(); if (!o) return;
     if (ev.target.dataset.setopt) o = scSetOfSel() || o;
     if (ev.target.dataset.fsep != null) { const x = scSetOfSel(), i = D().sets.indexOf(x); if (!x) return;
-      scFmSep(x, i, ev.target.checked); sc.sel = ev.target.checked ? 'fm:' + i : 'arm:' + i; drawStage(); drawProps(); drawArm(); scSaveSoon(); return; }
+      scFmSep(x, i, ev.target.checked); if (!ev.target.checked && sc.sel === 'fm:' + i) sc.sel = 'set:' + i; drawStage(); drawProps(); drawArm(); scSaveSoon(); return; }
     if (ev.target.id === 'scPS') { const d = D(), b = D().grid && scBox(sc.sel, o); if (b) o.y = scLine(b.t, 0) + b.h / 2;
       scSyncAfter(d, sc.sel); drawStage(); scSaveSoon(); return; }
     if (ev.target.id === 'scPNi') { o.ni = !ev.target.checked; drawStage(); scSaveSoon(); return; }
@@ -5589,7 +5609,7 @@ window.RokApp = () => {
     if (ev.target.dataset.setopt === 'gearOn') { o.gearOn = ev.target.checked; { const d = D(), L = scLayoutPos(d, scH(d)); d.sets.forEach((x, i) => { if (x.kind && L.sp[i]) { x.x = L.sp[i].x; x.y = L.sp[i].y; } }); } drawStage(); drawProps(); drawDetail(); scSaveSoon(); return; }
     if (ev.target.dataset.setopt === 'armOn') { o.arm.on = ev.target.checked; if (o.arm.on) scArmShow(o); else if (o.st.on && D().syncs.set) { drawStage(); scStUnder(o); } drawStage(); drawArm(); scSaveSoon(); return; }
     if (ev.target.dataset.setopt === 'stOn') { o.st.on = ev.target.checked; if (o.st.on) scStShow(o); drawStage(); drawArm(); scSaveSoon(); return; }
-    if (ev.target.id === 'scPNt') { o.nt = !ev.target.checked; if (D().syncs.st) { const i = +sc.sel.split(':')[1]; scSyncAfter(D(), 'st:' + i); } drawStage(); scSaveSoon(); return; }
+    if (ev.target.id === 'scPNt') { (scSetOfSel()?.st || o).nt = !ev.target.checked; if (D().syncs.st) { const i = +sc.sel.split(':')[1]; scSyncAfter(D(), 'st:' + i); } drawStage(); scSaveSoon(); return; }
     if (ev.target.dataset.setopt) { const x = o; x[ev.target.dataset.setopt] = ev.target.checked;
       if (ev.target.dataset.setopt === 'heads') { drawStage(); scStack(x); }
       drawStage(); drawProps(); drawDetail(); scSaveSoon(); return; }
@@ -5604,6 +5624,7 @@ window.RokApp = () => {
     const sa = ev.target.closest('[data-setact]');
     if (sa) { const x = scSetOfSel(); if (!x) return; const i = D().sets.indexOf(x);
       if (sa.dataset.setact === 'ncreset') { x.nc = ''; drawStage(); drawProps(); scSaveSoon(); return; }
+      if (sa.dataset.setact === 'sync') { scSyncSet(x); sc.sel = 'set:' + i; drawStage(); drawProps(); drawArm(); scSave('⇅ Set synchronisiert'); return; }
       const on = sa.dataset.setact === 'split'; if (on === !!x.split) return;
       scSplit(x, i, on); sc.sel = on ? (x.cm ? 'pc:' + i : 'pg:' + i) : 'set:' + i;
       drawStage(); drawProps(); scSave(on ? '✥ Freies Set – Kommandanten, Namen und Ausrüstung einzeln bewegen' : '🔒 Set wieder zusammengefügt'); return; }
@@ -5615,7 +5636,7 @@ window.RokApp = () => {
     const ac = ev.target.closest('[data-armcols]');
     if (ac) { scArmCols(D().sets[+sc.sel.split(':')[1]], +ac.dataset.armcols); return; }
     const al = ev.target.closest('[data-stal]');
-    if (al) { o.al = SC_AL[al.dataset.stal] ? al.dataset.stal : 'left'; if (D().syncs.st) scSyncAfter(D(), sc.sel); drawStage(); drawProps(); scSaveSoon(); return; }
+    if (al) { const xs = scSetOfSel(); (xs ? xs.st : o).al = SC_AL[al.dataset.stal] ? al.dataset.stal : 'left'; if (D().syncs.st && xs) scSyncAfter(D(), 'st:' + D().sets.indexOf(xs)); drawStage(); drawProps(); scSaveSoon(); return; }
     if (ev.target.closest('#scPCr')) { o.color = ''; drawStage(); drawProps(); scSaveSoon(); }
     else if (ev.target.closest('#scPRot0')) { o.r = 0; drawStage(); drawProps(); scSaveSoon(); }
     else if (ev.target.closest('#scPBr')) { const tx = sc.sel.startsWith('tx:');
@@ -5790,6 +5811,8 @@ window.RokApp = () => {
     drawStage(); scFixAnchors(); if (w.on && ['kp', 'power', 'merit', 'kd', 'tag', 'vip'].includes(k)) scFlowRows(d); drawProps(); drawWidgetOpts(d); scSaveSoon();
   }
   $('scWidgetOpts').addEventListener('click', (ev) => {        // Antippen = nur auswählen → Einstellungen erscheinen unten
+    const ws = ev.target.closest('[data-wset]');
+    if (ws && sc.own) { scSelSet(+ws.dataset.wset); $('scProps').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); return; }
     const t = ev.target.closest('[data-wsel]'); if (!t || !sc.own) return;
     sc.sel = 'w:' + t.dataset.wsel; drawStage(); drawProps(); drawWidgetOpts(D());
     $('scProps').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
