@@ -642,6 +642,7 @@ tailwind.config = {
                     </div>
                   </div>
                   <button id="scAuto" type="button" class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⊞ Symmetrisch anordnen</button>
+                  <button id="scFreeBtn" type="button" aria-pressed="false" title="Elemente komplett frei bewegen – ohne Raster, Einrasten, Hilfslinien und Sync. Tipp: Alt-Taste beim Ziehen gedrückt halten geht auch." class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-sky-400/60 hover:text-sky-200 aria-pressed:border-sky-400 aria-pressed:bg-sky-500/20 aria-pressed:text-sky-100">✥ Frei bewegen</button>
                 </div>
               </div>
               <div class="rounded-xl border border-ink-700 bg-ink-950/60 p-3">
@@ -1143,7 +1144,7 @@ window.I18N = (() => {
         '✓ Im Account gespeichert · für andere Spieler sichtbar erst nach dem SQL-Update (Spalte showcase)': '✓ Saved in your account · visible to other players after the SQL update (column showcase)',
         'Bild direkt im Showcase gespeichert – für kürzere Ladezeiten das Storage-SQL ausführen (Bucket „showcase“).': 'Image stored directly in the showcase – run the storage SQL (bucket “showcase”) for faster loading.',
         'Download-Bibliothek konnte nicht geladen werden (Internet/Adblocker prüfen).': 'Download library could not be loaded (check internet/ad blocker).', 'Download fehlgeschlagen.': 'Download failed.',
-        'Füllung': 'Fill', 'Rand': 'Border', 'keine': 'none', 'kein': 'none', 'keiner': 'none', 'Deckkraft': 'Opacity', '↺ Standardwerte': '↺ Defaults', "Anordnung": "Layout", "▤ 1 Spalte": "▤ 1 column", "▥ 2 Spalten": "▥ 2 columns", "⚔ Rüstung": "⚔ Armament", "🖐 Freie Ansicht": "🖐 Free view", "Freie Ansicht: zoomen und verschieben, ohne etwas zu verändern": "Free view: zoom and pan without changing anything", "Herauszoomen": "Zoom out", "Hineinzoomen": "Zoom in", "Zoom zurücksetzen": "Reset zoom", "🗑 Entfernen": "🗑 Remove", "Ausgewähltes Element schnell aus dem Bild entfernen (Entf-Taste)": "Quickly remove the selected element from the image (Delete key)", "🗑 Entfernt": "🗑 Removed", "Das letzte Set kann nicht entfernt werden – stattdessen „Set zurücksetzen“ nutzen.": "The last set cannot be removed – use “Reset set” instead.", "↺ Set zurücksetzen": "↺ Reset set", "Nur dieses Set leeren: Kommandanten, Ausrüstung, Rüstung und Werte – Position und Größe bleiben": "Clear only this set: commanders, equipment, armament and stats – position and size stay", "↺ Set zurückgesetzt": "↺ Set reset", "Element auf der Bühne oder oben antippen, um es einzustellen. Ziehen verschiebt es – mit Raster rastet es symmetrisch ein.": "Tap an element on the stage or above to adjust it. Dragging moves it – with the grid it snaps symmetrically.", "📷 Ausrüstung gescannt": "📷 Equipment scanned", "📷 Rüstung gescannt": "📷 Armament scanned", "Gescanntes Bild": "Scanned image", "✓ Übernehmen": "✓ Apply", "Abbrechen": "Cancel", "Mit „Übernehmen“ wird alles ersetzt, auch was vorher eingetragen war. Danach lässt sich alles von Hand ändern.": "“Apply” replaces everything, including what was entered before. Everything can be changed by hand afterwards.", "Scan verworfen – nichts geändert.": "Scan discarded – nothing changed.", "– leer –": "– empty –", "Kommandant 1": "Commander 1", "Kommandant 2": "Commander 2", "Formation": "Formation", "Inschriften": "Inscriptions", "Truppe": "Troop", "⚠ Auf dem Bild wurde keine Ausrüstung erkannt – vielleicht ist es eine Rüstung, ein Kommandanten- oder ein anderes Fenster. Bitte einen Screenshot der Ausrüstung wählen.": "⚠ No equipment was detected in the image – it may be an armament, commander or other screen. Please choose a screenshot of the equipment.", "⚠ Auf dem Bild wurde keine Rüstung erkannt – vielleicht ist es die Ausrüstung oder ein anderes Fenster. Bitte einen Screenshot der Rüstung (Armaments) wählen.": "⚠ No armament was detected in the image – it may be the equipment or another screen. Please choose a screenshot of the armaments.", "👁 Einblenden": "👁 Show", "⊘ Ausblenden": "⊘ Hide", "Sichtbar – antippen zum Einstellen": "Visible – tap to adjust", "Ausgeblendet – antippen zum Einstellen": "Hidden – tap to adjust", "Farbverläufe": "Gradients", "📷 Hochladen": "📷 Upload", "Eigenes Bild": "Own image", "Bild löschen": "Delete image", "Maximal 10 Bilder – zum Hochladen erst eins löschen (✕).": "Maximum 10 images – delete one (✕) to upload another.", "Dieses Bild aus deinen Hintergründen löschen?\n\nShowcases, die es gerade nutzen, behalten es.": "Delete this image from your backgrounds?\n\nShowcases currently using it keep it.", "🗑 Bild gelöscht": "🗑 Image deleted", "Maximal 10 eigene Bilder – bitte erst eins löschen.": "Maximum 10 own images – please delete one first.", "✓ Bild gespeichert und als Hintergrund gesetzt": "✓ Image saved and set as background", "👁 Ansicht": "👁 View", "⊞ Anordnen": "⊞ Arrange", "＋ Hinzufügen": "＋ Add", "Im Showcase anzeigen": "Show in showcase", "✏️ Text": "✏️ Text", "🏯 City-Skin": "🏯 City skin", "↩ Zurück": "↩ Undo", "✖ Abbrechen": "✖ Cancel", "Letzten Schritt rückgängig machen (Strg+Z)": "Undo the last step (Ctrl+Z)", "Aktuellen Stand merken – „Abbrechen“ springt hierher zurück": "Remember the current state – “Cancel” jumps back here", "Bearbeiten abbrechen und den letzten Zwischenstand komplett wiederherstellen": "Cancel editing and fully restore the last checkpoint", "💾 Zwischenstand gespeichert – „✖ Abbrechen“ springt hierher zurück.": "💾 Checkpoint saved – “✖ Cancel” jumps back here.", "✖ Abbrechen?\n\nAlle Änderungen seit dem letzten Zwischenspeichern werden verworfen, der Zwischenstand wird komplett wiederhergestellt und das Bearbeiten beendet.": "✖ Cancel?\n\nAll changes since the last checkpoint are discarded, the checkpoint is fully restored and editing ends.", "✖ Abgebrochen – Zwischenstand wiederhergestellt": "✖ Cancelled – checkpoint restored", "↩ Schritt rückgängig": "↩ Step undone", "💾 Zwischenspeichern": "💾 Save checkpoint", "↶ Abbrechen": "↶ Cancel", "Aktuellen Stand dieses Showcase merken – mit „Abbrechen“ kommst du jederzeit dahin zurück": "Remember the current state of this showcase – “Cancel” brings you back to it at any time", "Alle Änderungen seit dem letzten Zwischenspeichern verwerfen": "Discard all changes since the last checkpoint", "💾 Zwischenstand gespeichert – mit „↶ Abbrechen“ kommst du hierher zurück.": "💾 Checkpoint saved – “↶ Cancel” brings you back here.", "↶ Abbrechen?\n\nAlle Änderungen an diesem Showcase seit dem Zwischenspeichern gehen verloren und der gemerkte Stand wird wiederhergestellt.": "↶ Cancel?\n\nAll changes to this showcase since the checkpoint will be lost and the saved state restored.", "↶ Zwischenstand wiederhergestellt": "↶ Checkpoint restored", "Zwischenstand zu groß für den Browser-Speicher (eigene Bilder) – bitte ein eigenes Hintergrundbild entfernen oder verkleinern.": "Checkpoint too large for browser storage (own images) – please remove or shrink a custom background image.", "◇ Rahmen-Dicke": "◇ Frame thickness", "↺ Nur Rahmen zurücksetzen": "↺ Reset frames only", "↺ Refine & Iconic zurücksetzen": "↺ Reset refine & iconic", "50 = Standard (Regler in der Mitte).": "50 = default (slider in the middle).", "✓ Rahmen zurückgesetzt": "✓ Frames reset", "Rahmen erscheinen bei Items mit Expertise (fertig refined).": "Frames appear on items with expertise (fully refined).", "🔗 Für alle Sets gleich": "🔗 Same for all sets", "Rahmen, Partikel, Orange-Ton, rotes Refine-Symbol und Iconic gelten automatisch für alle Sets dieses Showcase": "Frames, particles, orange tone, red refine icon and iconic apply automatically to all sets of this showcase", "⧉ Auf alle Sets aller Showcases übertragen": "⧉ Apply to all sets of all showcases", "Einmalig auf alle Sets aller Showcases übertragen": "Apply once to all sets of all showcases", "Rahmen- und Symbol-Einstellungen dieses Sets auf alle Sets dieses Showcase übertragen und ab jetzt gemeinsam ändern?": "Apply the frame and icon settings of this set to all sets of this showcase and change them together from now on?", "✓ Gilt jetzt für alle Sets": "✓ Now applies to all sets", "✓ Wieder pro Set einstellbar": "✓ Adjustable per set again", "Rahmen und Symbol-Einstellungen dieses Sets auf alle Sets aller Showcases übertragen?": "Apply the frame and icon settings of this set to all sets of all showcases?", "✨ Glitzer-Partikel bei allen Gold-Rahmen": "✨ Glitter particles on all gold frames", "kein Iconic": "no iconic", "Iconic-Stufen gibt es nur bei legendären Items": "Iconic levels only exist on legendary items", "🎨 Orange-Ton": "🎨 Orange tone", "🎨 Orange-Ton: nach links dunkler orange, nach rechts gelblicher (0 = Standard) – gilt für alle legendären Items dieses Sets.": "🎨 Orange tone: left = darker orange, right = more yellow (0 = default) – applies to all legendary items of this set.", 'Angriff': 'Attack', 'Verteidigung': 'Defense', 'Leben': 'Health', 'Marschgeschw.': 'March Speed', "Was soll gleich sein?": "What should match?", "Ausrichten an": "Align at", "aus": "off", "⚠ Beim Einschalten werden Größen und Positionen sofort angeglichen – dein Bild kann sich verändern.": "⚠ When switched on, sizes and positions are matched right away – your image may change.", "🔗 Set-Einheit": "🔗 Set unit", "Set, Rüstung und Werte bewegen sich zusammen – Rüstung und Werte bleiben unter ihrem Set": "Set, armament and stats move together – armament and stats stay below their set", "🛡 Alle Gear-Sets": "🛡 All gear sets", "Alle Sets einer Reihe gleich groß und auf gleicher Höhe": "All sets in a row same size and at the same height", "⚔ Alle Rüstungen": "⚔ All armaments", "Alle Rüstungen einer Reihe gleich groß und auf gleicher Höhe": "All armaments in a row same size and at the same height", "📊 Alle Werte": "📊 All stats", "Alle Werte-Blöcke gleich groß, gleiche Höhe und gleiche Schrift-Ausrichtung": "All stat blocks same size, same height and same text alignment", "🏯 Alle City-Skins": "🏯 All city skins", "Alle City-Skins gleich groß und je Reihe auf gleicher Höhe": "All city skins same size and at the same height per row", "⚡ Energie · KP · Verdienst": "⚡ Power · KP · Merit", "Die drei Werte-Kästen gleich groß und auf gleicher Höhe": "The three value boxes same size and at the same height", "🔗 Sync eingeschaltet – Größen und Höhen wurden angeglichen.": "🔗 Sync on – sizes and heights were matched.", "⚠ Ausrichtung ändern?\n\nAlle gesyncten Elemente werden neu ausgerichtet – dein Showcase-Bild kann sich dadurch verändern.": "⚠ Change alignment?\n\nAll synced elements will be realigned – your showcase image may change.", "Rüstung auf der Bühne": "Armament on stage", "Werte auf der Bühne": "Stats on stage", "Werte anzeigen": "Show stats", "📊 Werte": "📊 Stats", "⬅ Links": "⬅ Left", "↔ Mitte": "↔ Center", "➡ Rechts": "➡ Right", "Links": "Left", "Rechts": "Right", "Truppentyp zeigen (z. B. „Archer Attack“)": "Show troop type (e.g. “Archer Attack”)", "✨ Expertise-Rahmen & Symbole": "✨ Expertise frames & icons", "Rahmen erscheinen bei Items mit Expertise (fertig refined). Gilt für dieses Set.": "Frames appear on items with expertise (fully refined). Applies to this set.", "Gold · legendäre Items": "Gold · legendary items", "Lila · epische Items": "Purple · epic items", "◇ Rahmen-Größe": "◇ Frame size", "✦ Refine-Größe": "✦ Refine size", "✦ Refine ↔": "✦ Refine ↔", "✦ Refine ↕": "✦ Refine ↕", "🏅 Iconic-Größe": "🏅 Iconic size", "🏅 Iconic ↔": "🏅 Iconic ↔", "🏅 Iconic ↕": "🏅 Iconic ↕", "Das rote Refine-Symbol bleibt immer innerhalb des Rahmens.": "The red refine icon always stays inside the frame.", "⧉ Für alle Sets übernehmen": "⧉ Apply to all sets", "Glitzer-Rand": "Glitter rim", "Kein Rahmen": "No frame", "Rahmen und Symbol-Einstellungen dieses Sets für alle Sets übernehmen?": "Apply the frame and icon settings of this set to all sets?", "✓ Für alle Sets übernommen": "✓ Applied to all sets", "Anderer Rahmen …": "Other frame …", "Rahmen hinzufügen …": "Add frame …", "▢ Rahmen entfernen": "▢ Remove frame", "🔍 Bild im Rahmen": "🔍 Picture in frame", "🛡 Ausrüstung": "🛡 Equipment", '– nur Größe': '– size only', "Rund": "Round", "Rahmen wählen …": "Choose frame …", "Rahmen wählen": "Choose frame", "Rahmen suchen …": "Search frame …", "kein Rahmen": "no frame", "Gear anzeigen": "Show gear", "nur Größe": "size only", "Hilfslinien": "Guides", "Türkise Hilfslinien beim Ziehen": "Cyan guide lines while dragging", "Duplizieren": "Duplicate", "Im Profil zeigen": "Show in profile", "Alle Showcases": "All showcases", "Aktionspunkte": "Action points", "Gesamt-AP": "Total AP", "Flaschen": "Bottles", "Gems gesamt": "Total gems", "Auf der Hand": "On hand", "Im Rucksack": "In backpack", "Anzeige": "Display", "✓ Showcase kopiert": "✓ Showcase copied", "✓ Rahmen gespeichert": "✓ Frame saved", "✓ Rahmen entfernt": "✓ Frame removed", "Garnison": "Garrison", "Profilbild": "Profile picture", 'Skin suchen …': 'Search skin …', '+ 🛡 Garnison': '+ 🛡 Garrison', '+ 🚩 Rally': '+ 🚩 Rally', '🛡 Garnison': '🛡 Garrison', "Garnison": "Garrison", "Rally": "Rally", "Aktualisieren": "Refresh", "Aus der Cloud neu laden und Überlappungen oben/unten auflösen": "Reload from the cloud and fix overlaps at top/bottom", "Oben": "Top", "Mitte": "Middle", "Unten": "Bottom", "Sets und Rüstungen ausrichten an": "Align sets and armaments at", "Rüstung anzeigen": "Show armament", "Nur Kommandanten": "Commanders only", "Symbol": "Icon", "🏰 anzeigen": "Show 🏰", "👑 anzeigen": "Show 👑", "✓ Showcase aktualisiert": "✓ Showcase refreshed", "Sets und Rüstungen gemeinsam verschieben und vergrößern (gleiche Höhe und Größe)": "Move and resize sets and armaments together (same height and size)", "Rasterfarbe": "Grid colour", "Schwarz": "Black", "Orange": "Orange", "Drehung": "Rotation", "Helligkeit": "Brightness", "Kontrast": "Contrast", "Zurücksetzen": "Reset", "Nur Kommandanten (Garnison)": "Commanders only (garrison)", "Leere Slots ausblenden": "Hide empty slots", "Nur Bild": "Image only", "Details zeigen": "Show details", "Nur das Showcase-Bild anzeigen, ohne Sets und Details darunter": "Show only the showcase image, without sets and details below", "+ City-Skin": "+ City skin", "Ausrüstung": "Equipment", "Scannen": "Scan", "Screenshot auch per Drag & Drop auf dieses Feld · max. 2 Bilder · werden nach dem Auslesen verworfen": "Screenshot also via drag & drop onto this field · max. 2 images · discarded after reading", "Materialkosten je Item (Anzahl). In legendärer Qualität sind es legendäre Materialien, in epischer die gleiche Anzahl lila Materialien (= ¼ legendär).": "Material cost per item (amount). In legendary quality these are legendary materials, in epic the same amount of purple materials (= ¼ legendary).", "kein Allianz-Tag": "no alliance tag", "Noch kein VIP-Stand": "No VIP level yet", "+ Neuer Showcase": "+ New showcase", "Andere Spieler sehen alle deine Showcases in deinem Profil.": "Other players see all your showcases in your profile.", "Die Vorschau steht direkt darüber. Alles lässt sich nach dem Scan von Hand ändern.": "The preview is right above. Everything can be changed by hand after the scan.", "– keine –": "– none –", "Flagge": "Flag", "Schriftrolle": "Scroll", "Weiß": "White", "Blau": "Blue", "Gesamtschaden %": "All damage %", "Gesamtschaden": "All Damage", "Kein": "None", "Führung": "Leadership", "Item wählen": "Choose item", "Legendär": "Legendary", "Episch": "Epic", "Noch kein Material-Scan – Rucksack-Bestand unbekannt.": "No material scan yet – backpack inventory unknown.", "Noch keine Items – Tabelle gear_items in Supabase füllen oder „+ Eigenes Item“.": "No items yet – fill table gear_items in Supabase or use “+ Own item”.", "Hinzufügen": "Add", "Entfernen": "Remove", "Weiteren Skin": "Add another skin", "Stärke": "Width", "Expertise": "Expertise", "Aus Set übernehmen …": "Copy from set …", "Inhalt eines anderen Sets übernehmen": "Copy the content of another set", "Rüstung scannen": "Scan armament", "Rüstung (Armaments)": "Armaments", "Vorschau Rüstung": "Armament preview", "Auf der Bühne anzeigen": "Show on stage", "Abstand": "Spacing", "für alle Sets": "for all sets", "Slot leeren": "Clear slot", "– leer – unten ein Bild antippen": "– empty – tap an image below", "Größe & Effekt": "Size & effect", "Schrift": "Text", "Füllung": "Fill", "Rahmen": "Frame", "Rand": "Border", "Ausblenden": "Hide", "Standardwerte": "↺ Defaults", "Text löschen": "Delete text", "Skin entfernen": "Remove skin", "Skin wählen …": "Choose skin …", "Weiterer City-Skin": "Additional city skin", "Eigener Text": "Custom text", "Sonstige": "Other", "Formation wählen, um Rüstungen und Inschriften aus der Liste anzutippen.": "Choose a formation to tap armaments and inscriptions from the list.", "Claude liest deine Rüstung …": "Claude is reading your armament …", "Claude liest Ausrüstung und Kommandanten und gleicht sie mit deinen Bildern ab …": "Claude is reading equipment and commanders and matching them with your images …", "Keine Rüstung im Screenshot erkannt.": "No armament detected in the screenshot.", "Maximal 12 Inschriften.": "Maximum 12 inscriptions.", "Maximal 6 weitere City-Skins.": "Maximum 6 additional city skins.", "Keine Bilder für diesen Typ.": "No images for this type.", "Hinweis: anderer Typ als dieser Slot – nur wählen, wenn das Item falsch einsortiert ist.": "Note: different type than this slot – only choose if the item is sorted wrongly.", "Andere Spieler sehen alle deine Showcases in deinem Profil": "Other players see all your showcases in your profile", "Alexander der Große": "Alexander the Great", "Alexander Newski": "Alexander Nevsky", "Assurbanipal": "Ashurbanipal", "Björn Eisenseite": "Björn Ironside", "Dschingis Khan": "Genghis Khan", "Edward von Woodstock": "Edward of Woodstock", "Eleonore von Aquitanien": "Eleanor of Aquitaine", "Elisabeth I.": "Elizabeth I", "Friedrich I.": "Frederick I", "Gilgamesch": "Gilgamesh", "Heinrich V.": "Henry V", "Hektor": "Hector", "Herakleios": "Heraclius", "Iwan III.": "Ivan III", "Jeanne d’Arc": "Joan of Arc", "Jeanne d’Arc (Episch)": "Joan of Arc (Epic)", "Johann Hunyadi": "John Hunyadi", "Karl der Große": "Charlemagne", "Karl Martell": "Charles Martel", "Kasimir III.": "Casimir III", "Kleopatra VII.": "Cleopatra VII", "Konstantin der Große": "Constantine the Great", "Kyros der Große": "Cyrus the Great", "Margarete I.": "Margaret I", "Maria I.": "Mary I", "Mehmed II.": "Mehmed II", "Moctezuma I.": "Montezuma I", "Nebukadnezar II.": "Nebuchadnezzar II", "Osman I.": "Osman I", "Pakal der Große": "Pakal the Great", "Philipp II.": "Philip II", "Pippin der Jüngere": "Pepin the Short", "Ramses II.": "Ramesses II", "Richard I.": "Richard I", "Sargon der Große": "Sargon the Great", "Shapur I.": "Shapur I", "Stephan I.": "Stephen I", "Süleyman I.": "Suleiman I", "Thutmosis III.": "Thutmose III", "Wilhelm I.": "William I", "Katharina": "Catherine", "Mathilde von Flandern": "Matilda of Flanders", "Perikles": "Pericles", "Drachenlanzer": "Dragon Lancer", "Schützin": "Markswoman", "Stadtwächter": "City Keeper", "Zenturio": "Centurion", "Afonso I.": "Afonso I", "Artemisia I.": "Artemisia I", "David IV.": "David IV", "Justinian I.": "Justinian I", "Belisarius (Episch)": "Belisarius (Epic)", "Boudica (Episch)": "Boudica (Epic)", "Hermann (Episch)": "Hermann (Epic)", "Scipio (Episch)": "Scipio (Epic)", "Sun Tzu (Episch)": "Sun Tzu (Epic)", "Ragnar (alt)": "Ragnar (old)", "Kommandant": "Commander", '📐 Größe & Effekt': '📐 Size & effect', '🎨 Schrift': '🎨 Text', '▦ Füllung': '▦ Fill', '▢ Rahmen': '▢ Frame', '▢ Rand': '▢ Border', '👁 Ausblenden': '👁 Hide', 'Dein Text': 'Your text', 'Symmetrisch angeordnet': 'Arranged symmetrically',
+        'Füllung': 'Fill', 'Rand': 'Border', 'keine': 'none', 'kein': 'none', 'keiner': 'none', 'Deckkraft': 'Opacity', '↺ Standardwerte': '↺ Defaults', "✥ Frei bewegen": "✥ Move freely", "Elemente komplett frei bewegen – ohne Raster, Einrasten, Hilfslinien und Sync. Tipp: Alt-Taste beim Ziehen gedrückt halten geht auch.": "Move elements completely freely – without grid, snapping, guides and sync. Tip: holding Alt while dragging works too.", "✥ Frei bewegen ist an – Elemente bleiben genau dort liegen, wo du sie loslässt.": "✥ Free move is on – elements stay exactly where you drop them.", "⊞ Frei bewegen aus – Raster und Sync gelten wieder.": "⊞ Free move off – grid and sync apply again.", "✥ Frei platziert": "✥ Placed freely", "Wird nicht automatisch verschoben.": "Is not moved automatically.", "⊞ Wieder einrasten": "⊞ Snap back", "Anordnung": "Layout", "▤ 1 Spalte": "▤ 1 column", "▥ 2 Spalten": "▥ 2 columns", "⚔ Rüstung": "⚔ Armament", "🖐 Freie Ansicht": "🖐 Free view", "Freie Ansicht: zoomen und verschieben, ohne etwas zu verändern": "Free view: zoom and pan without changing anything", "Herauszoomen": "Zoom out", "Hineinzoomen": "Zoom in", "Zoom zurücksetzen": "Reset zoom", "🗑 Entfernen": "🗑 Remove", "Ausgewähltes Element schnell aus dem Bild entfernen (Entf-Taste)": "Quickly remove the selected element from the image (Delete key)", "🗑 Entfernt": "🗑 Removed", "Das letzte Set kann nicht entfernt werden – stattdessen „Set zurücksetzen“ nutzen.": "The last set cannot be removed – use “Reset set” instead.", "↺ Set zurücksetzen": "↺ Reset set", "Nur dieses Set leeren: Kommandanten, Ausrüstung, Rüstung und Werte – Position und Größe bleiben": "Clear only this set: commanders, equipment, armament and stats – position and size stay", "↺ Set zurückgesetzt": "↺ Set reset", "Element auf der Bühne oder oben antippen, um es einzustellen. Ziehen verschiebt es – mit Raster rastet es symmetrisch ein.": "Tap an element on the stage or above to adjust it. Dragging moves it – with the grid it snaps symmetrically.", "📷 Ausrüstung gescannt": "📷 Equipment scanned", "📷 Rüstung gescannt": "📷 Armament scanned", "Gescanntes Bild": "Scanned image", "✓ Übernehmen": "✓ Apply", "Abbrechen": "Cancel", "Mit „Übernehmen“ wird alles ersetzt, auch was vorher eingetragen war. Danach lässt sich alles von Hand ändern.": "“Apply” replaces everything, including what was entered before. Everything can be changed by hand afterwards.", "Scan verworfen – nichts geändert.": "Scan discarded – nothing changed.", "– leer –": "– empty –", "Kommandant 1": "Commander 1", "Kommandant 2": "Commander 2", "Formation": "Formation", "Inschriften": "Inscriptions", "Truppe": "Troop", "⚠ Auf dem Bild wurde keine Ausrüstung erkannt – vielleicht ist es eine Rüstung, ein Kommandanten- oder ein anderes Fenster. Bitte einen Screenshot der Ausrüstung wählen.": "⚠ No equipment was detected in the image – it may be an armament, commander or other screen. Please choose a screenshot of the equipment.", "⚠ Auf dem Bild wurde keine Rüstung erkannt – vielleicht ist es die Ausrüstung oder ein anderes Fenster. Bitte einen Screenshot der Rüstung (Armaments) wählen.": "⚠ No armament was detected in the image – it may be the equipment or another screen. Please choose a screenshot of the armaments.", "👁 Einblenden": "👁 Show", "⊘ Ausblenden": "⊘ Hide", "Sichtbar – antippen zum Einstellen": "Visible – tap to adjust", "Ausgeblendet – antippen zum Einstellen": "Hidden – tap to adjust", "Farbverläufe": "Gradients", "📷 Hochladen": "📷 Upload", "Eigenes Bild": "Own image", "Bild löschen": "Delete image", "Maximal 10 Bilder – zum Hochladen erst eins löschen (✕).": "Maximum 10 images – delete one (✕) to upload another.", "Dieses Bild aus deinen Hintergründen löschen?\n\nShowcases, die es gerade nutzen, behalten es.": "Delete this image from your backgrounds?\n\nShowcases currently using it keep it.", "🗑 Bild gelöscht": "🗑 Image deleted", "Maximal 10 eigene Bilder – bitte erst eins löschen.": "Maximum 10 own images – please delete one first.", "✓ Bild gespeichert und als Hintergrund gesetzt": "✓ Image saved and set as background", "👁 Ansicht": "👁 View", "⊞ Anordnen": "⊞ Arrange", "＋ Hinzufügen": "＋ Add", "Im Showcase anzeigen": "Show in showcase", "✏️ Text": "✏️ Text", "🏯 City-Skin": "🏯 City skin", "↩ Zurück": "↩ Undo", "✖ Abbrechen": "✖ Cancel", "Letzten Schritt rückgängig machen (Strg+Z)": "Undo the last step (Ctrl+Z)", "Aktuellen Stand merken – „Abbrechen“ springt hierher zurück": "Remember the current state – “Cancel” jumps back here", "Bearbeiten abbrechen und den letzten Zwischenstand komplett wiederherstellen": "Cancel editing and fully restore the last checkpoint", "💾 Zwischenstand gespeichert – „✖ Abbrechen“ springt hierher zurück.": "💾 Checkpoint saved – “✖ Cancel” jumps back here.", "✖ Abbrechen?\n\nAlle Änderungen seit dem letzten Zwischenspeichern werden verworfen, der Zwischenstand wird komplett wiederhergestellt und das Bearbeiten beendet.": "✖ Cancel?\n\nAll changes since the last checkpoint are discarded, the checkpoint is fully restored and editing ends.", "✖ Abgebrochen – Zwischenstand wiederhergestellt": "✖ Cancelled – checkpoint restored", "↩ Schritt rückgängig": "↩ Step undone", "💾 Zwischenspeichern": "💾 Save checkpoint", "↶ Abbrechen": "↶ Cancel", "Aktuellen Stand dieses Showcase merken – mit „Abbrechen“ kommst du jederzeit dahin zurück": "Remember the current state of this showcase – “Cancel” brings you back to it at any time", "Alle Änderungen seit dem letzten Zwischenspeichern verwerfen": "Discard all changes since the last checkpoint", "💾 Zwischenstand gespeichert – mit „↶ Abbrechen“ kommst du hierher zurück.": "💾 Checkpoint saved – “↶ Cancel” brings you back here.", "↶ Abbrechen?\n\nAlle Änderungen an diesem Showcase seit dem Zwischenspeichern gehen verloren und der gemerkte Stand wird wiederhergestellt.": "↶ Cancel?\n\nAll changes to this showcase since the checkpoint will be lost and the saved state restored.", "↶ Zwischenstand wiederhergestellt": "↶ Checkpoint restored", "Zwischenstand zu groß für den Browser-Speicher (eigene Bilder) – bitte ein eigenes Hintergrundbild entfernen oder verkleinern.": "Checkpoint too large for browser storage (own images) – please remove or shrink a custom background image.", "◇ Rahmen-Dicke": "◇ Frame thickness", "↺ Nur Rahmen zurücksetzen": "↺ Reset frames only", "↺ Refine & Iconic zurücksetzen": "↺ Reset refine & iconic", "50 = Standard (Regler in der Mitte).": "50 = default (slider in the middle).", "✓ Rahmen zurückgesetzt": "✓ Frames reset", "Rahmen erscheinen bei Items mit Expertise (fertig refined).": "Frames appear on items with expertise (fully refined).", "🔗 Für alle Sets gleich": "🔗 Same for all sets", "Rahmen, Partikel, Orange-Ton, rotes Refine-Symbol und Iconic gelten automatisch für alle Sets dieses Showcase": "Frames, particles, orange tone, red refine icon and iconic apply automatically to all sets of this showcase", "⧉ Auf alle Sets aller Showcases übertragen": "⧉ Apply to all sets of all showcases", "Einmalig auf alle Sets aller Showcases übertragen": "Apply once to all sets of all showcases", "Rahmen- und Symbol-Einstellungen dieses Sets auf alle Sets dieses Showcase übertragen und ab jetzt gemeinsam ändern?": "Apply the frame and icon settings of this set to all sets of this showcase and change them together from now on?", "✓ Gilt jetzt für alle Sets": "✓ Now applies to all sets", "✓ Wieder pro Set einstellbar": "✓ Adjustable per set again", "Rahmen und Symbol-Einstellungen dieses Sets auf alle Sets aller Showcases übertragen?": "Apply the frame and icon settings of this set to all sets of all showcases?", "✨ Glitzer-Partikel bei allen Gold-Rahmen": "✨ Glitter particles on all gold frames", "kein Iconic": "no iconic", "Iconic-Stufen gibt es nur bei legendären Items": "Iconic levels only exist on legendary items", "🎨 Orange-Ton": "🎨 Orange tone", "🎨 Orange-Ton: nach links dunkler orange, nach rechts gelblicher (0 = Standard) – gilt für alle legendären Items dieses Sets.": "🎨 Orange tone: left = darker orange, right = more yellow (0 = default) – applies to all legendary items of this set.", 'Angriff': 'Attack', 'Verteidigung': 'Defense', 'Leben': 'Health', 'Marschgeschw.': 'March Speed', "Was soll gleich sein?": "What should match?", "Ausrichten an": "Align at", "aus": "off", "⚠ Beim Einschalten werden Größen und Positionen sofort angeglichen – dein Bild kann sich verändern.": "⚠ When switched on, sizes and positions are matched right away – your image may change.", "🔗 Set-Einheit": "🔗 Set unit", "Set, Rüstung und Werte bewegen sich zusammen – Rüstung und Werte bleiben unter ihrem Set": "Set, armament and stats move together – armament and stats stay below their set", "🛡 Alle Gear-Sets": "🛡 All gear sets", "Alle Sets einer Reihe gleich groß und auf gleicher Höhe": "All sets in a row same size and at the same height", "⚔ Alle Rüstungen": "⚔ All armaments", "Alle Rüstungen einer Reihe gleich groß und auf gleicher Höhe": "All armaments in a row same size and at the same height", "📊 Alle Werte": "📊 All stats", "Alle Werte-Blöcke gleich groß, gleiche Höhe und gleiche Schrift-Ausrichtung": "All stat blocks same size, same height and same text alignment", "🏯 Alle City-Skins": "🏯 All city skins", "Alle City-Skins gleich groß und je Reihe auf gleicher Höhe": "All city skins same size and at the same height per row", "⚡ Energie · KP · Verdienst": "⚡ Power · KP · Merit", "Die drei Werte-Kästen gleich groß und auf gleicher Höhe": "The three value boxes same size and at the same height", "🔗 Sync eingeschaltet – Größen und Höhen wurden angeglichen.": "🔗 Sync on – sizes and heights were matched.", "⚠ Ausrichtung ändern?\n\nAlle gesyncten Elemente werden neu ausgerichtet – dein Showcase-Bild kann sich dadurch verändern.": "⚠ Change alignment?\n\nAll synced elements will be realigned – your showcase image may change.", "Rüstung auf der Bühne": "Armament on stage", "Werte auf der Bühne": "Stats on stage", "Werte anzeigen": "Show stats", "📊 Werte": "📊 Stats", "⬅ Links": "⬅ Left", "↔ Mitte": "↔ Center", "➡ Rechts": "➡ Right", "Links": "Left", "Rechts": "Right", "Truppentyp zeigen (z. B. „Archer Attack“)": "Show troop type (e.g. “Archer Attack”)", "✨ Expertise-Rahmen & Symbole": "✨ Expertise frames & icons", "Rahmen erscheinen bei Items mit Expertise (fertig refined). Gilt für dieses Set.": "Frames appear on items with expertise (fully refined). Applies to this set.", "Gold · legendäre Items": "Gold · legendary items", "Lila · epische Items": "Purple · epic items", "◇ Rahmen-Größe": "◇ Frame size", "✦ Refine-Größe": "✦ Refine size", "✦ Refine ↔": "✦ Refine ↔", "✦ Refine ↕": "✦ Refine ↕", "🏅 Iconic-Größe": "🏅 Iconic size", "🏅 Iconic ↔": "🏅 Iconic ↔", "🏅 Iconic ↕": "🏅 Iconic ↕", "Das rote Refine-Symbol bleibt immer innerhalb des Rahmens.": "The red refine icon always stays inside the frame.", "⧉ Für alle Sets übernehmen": "⧉ Apply to all sets", "Glitzer-Rand": "Glitter rim", "Kein Rahmen": "No frame", "Rahmen und Symbol-Einstellungen dieses Sets für alle Sets übernehmen?": "Apply the frame and icon settings of this set to all sets?", "✓ Für alle Sets übernommen": "✓ Applied to all sets", "Anderer Rahmen …": "Other frame …", "Rahmen hinzufügen …": "Add frame …", "▢ Rahmen entfernen": "▢ Remove frame", "🔍 Bild im Rahmen": "🔍 Picture in frame", "🛡 Ausrüstung": "🛡 Equipment", '– nur Größe': '– size only', "Rund": "Round", "Rahmen wählen …": "Choose frame …", "Rahmen wählen": "Choose frame", "Rahmen suchen …": "Search frame …", "kein Rahmen": "no frame", "Gear anzeigen": "Show gear", "nur Größe": "size only", "Hilfslinien": "Guides", "Türkise Hilfslinien beim Ziehen": "Cyan guide lines while dragging", "Duplizieren": "Duplicate", "Im Profil zeigen": "Show in profile", "Alle Showcases": "All showcases", "Aktionspunkte": "Action points", "Gesamt-AP": "Total AP", "Flaschen": "Bottles", "Gems gesamt": "Total gems", "Auf der Hand": "On hand", "Im Rucksack": "In backpack", "Anzeige": "Display", "✓ Showcase kopiert": "✓ Showcase copied", "✓ Rahmen gespeichert": "✓ Frame saved", "✓ Rahmen entfernt": "✓ Frame removed", "Garnison": "Garrison", "Profilbild": "Profile picture", 'Skin suchen …': 'Search skin …', '+ 🛡 Garnison': '+ 🛡 Garrison', '+ 🚩 Rally': '+ 🚩 Rally', '🛡 Garnison': '🛡 Garrison', "Garnison": "Garrison", "Rally": "Rally", "Aktualisieren": "Refresh", "Aus der Cloud neu laden und Überlappungen oben/unten auflösen": "Reload from the cloud and fix overlaps at top/bottom", "Oben": "Top", "Mitte": "Middle", "Unten": "Bottom", "Sets und Rüstungen ausrichten an": "Align sets and armaments at", "Rüstung anzeigen": "Show armament", "Nur Kommandanten": "Commanders only", "Symbol": "Icon", "🏰 anzeigen": "Show 🏰", "👑 anzeigen": "Show 👑", "✓ Showcase aktualisiert": "✓ Showcase refreshed", "Sets und Rüstungen gemeinsam verschieben und vergrößern (gleiche Höhe und Größe)": "Move and resize sets and armaments together (same height and size)", "Rasterfarbe": "Grid colour", "Schwarz": "Black", "Orange": "Orange", "Drehung": "Rotation", "Helligkeit": "Brightness", "Kontrast": "Contrast", "Zurücksetzen": "Reset", "Nur Kommandanten (Garnison)": "Commanders only (garrison)", "Leere Slots ausblenden": "Hide empty slots", "Nur Bild": "Image only", "Details zeigen": "Show details", "Nur das Showcase-Bild anzeigen, ohne Sets und Details darunter": "Show only the showcase image, without sets and details below", "+ City-Skin": "+ City skin", "Ausrüstung": "Equipment", "Scannen": "Scan", "Screenshot auch per Drag & Drop auf dieses Feld · max. 2 Bilder · werden nach dem Auslesen verworfen": "Screenshot also via drag & drop onto this field · max. 2 images · discarded after reading", "Materialkosten je Item (Anzahl). In legendärer Qualität sind es legendäre Materialien, in epischer die gleiche Anzahl lila Materialien (= ¼ legendär).": "Material cost per item (amount). In legendary quality these are legendary materials, in epic the same amount of purple materials (= ¼ legendary).", "kein Allianz-Tag": "no alliance tag", "Noch kein VIP-Stand": "No VIP level yet", "+ Neuer Showcase": "+ New showcase", "Andere Spieler sehen alle deine Showcases in deinem Profil.": "Other players see all your showcases in your profile.", "Die Vorschau steht direkt darüber. Alles lässt sich nach dem Scan von Hand ändern.": "The preview is right above. Everything can be changed by hand after the scan.", "– keine –": "– none –", "Flagge": "Flag", "Schriftrolle": "Scroll", "Weiß": "White", "Blau": "Blue", "Gesamtschaden %": "All damage %", "Gesamtschaden": "All Damage", "Kein": "None", "Führung": "Leadership", "Item wählen": "Choose item", "Legendär": "Legendary", "Episch": "Epic", "Noch kein Material-Scan – Rucksack-Bestand unbekannt.": "No material scan yet – backpack inventory unknown.", "Noch keine Items – Tabelle gear_items in Supabase füllen oder „+ Eigenes Item“.": "No items yet – fill table gear_items in Supabase or use “+ Own item”.", "Hinzufügen": "Add", "Entfernen": "Remove", "Weiteren Skin": "Add another skin", "Stärke": "Width", "Expertise": "Expertise", "Aus Set übernehmen …": "Copy from set …", "Inhalt eines anderen Sets übernehmen": "Copy the content of another set", "Rüstung scannen": "Scan armament", "Rüstung (Armaments)": "Armaments", "Vorschau Rüstung": "Armament preview", "Auf der Bühne anzeigen": "Show on stage", "Abstand": "Spacing", "für alle Sets": "for all sets", "Slot leeren": "Clear slot", "– leer – unten ein Bild antippen": "– empty – tap an image below", "Größe & Effekt": "Size & effect", "Schrift": "Text", "Füllung": "Fill", "Rahmen": "Frame", "Rand": "Border", "Ausblenden": "Hide", "Standardwerte": "↺ Defaults", "Text löschen": "Delete text", "Skin entfernen": "Remove skin", "Skin wählen …": "Choose skin …", "Weiterer City-Skin": "Additional city skin", "Eigener Text": "Custom text", "Sonstige": "Other", "Formation wählen, um Rüstungen und Inschriften aus der Liste anzutippen.": "Choose a formation to tap armaments and inscriptions from the list.", "Claude liest deine Rüstung …": "Claude is reading your armament …", "Claude liest Ausrüstung und Kommandanten und gleicht sie mit deinen Bildern ab …": "Claude is reading equipment and commanders and matching them with your images …", "Keine Rüstung im Screenshot erkannt.": "No armament detected in the screenshot.", "Maximal 12 Inschriften.": "Maximum 12 inscriptions.", "Maximal 6 weitere City-Skins.": "Maximum 6 additional city skins.", "Keine Bilder für diesen Typ.": "No images for this type.", "Hinweis: anderer Typ als dieser Slot – nur wählen, wenn das Item falsch einsortiert ist.": "Note: different type than this slot – only choose if the item is sorted wrongly.", "Andere Spieler sehen alle deine Showcases in deinem Profil": "Other players see all your showcases in your profile", "Alexander der Große": "Alexander the Great", "Alexander Newski": "Alexander Nevsky", "Assurbanipal": "Ashurbanipal", "Björn Eisenseite": "Björn Ironside", "Dschingis Khan": "Genghis Khan", "Edward von Woodstock": "Edward of Woodstock", "Eleonore von Aquitanien": "Eleanor of Aquitaine", "Elisabeth I.": "Elizabeth I", "Friedrich I.": "Frederick I", "Gilgamesch": "Gilgamesh", "Heinrich V.": "Henry V", "Hektor": "Hector", "Herakleios": "Heraclius", "Iwan III.": "Ivan III", "Jeanne d’Arc": "Joan of Arc", "Jeanne d’Arc (Episch)": "Joan of Arc (Epic)", "Johann Hunyadi": "John Hunyadi", "Karl der Große": "Charlemagne", "Karl Martell": "Charles Martel", "Kasimir III.": "Casimir III", "Kleopatra VII.": "Cleopatra VII", "Konstantin der Große": "Constantine the Great", "Kyros der Große": "Cyrus the Great", "Margarete I.": "Margaret I", "Maria I.": "Mary I", "Mehmed II.": "Mehmed II", "Moctezuma I.": "Montezuma I", "Nebukadnezar II.": "Nebuchadnezzar II", "Osman I.": "Osman I", "Pakal der Große": "Pakal the Great", "Philipp II.": "Philip II", "Pippin der Jüngere": "Pepin the Short", "Ramses II.": "Ramesses II", "Richard I.": "Richard I", "Sargon der Große": "Sargon the Great", "Shapur I.": "Shapur I", "Stephan I.": "Stephen I", "Süleyman I.": "Suleiman I", "Thutmosis III.": "Thutmose III", "Wilhelm I.": "William I", "Katharina": "Catherine", "Mathilde von Flandern": "Matilda of Flanders", "Perikles": "Pericles", "Drachenlanzer": "Dragon Lancer", "Schützin": "Markswoman", "Stadtwächter": "City Keeper", "Zenturio": "Centurion", "Afonso I.": "Afonso I", "Artemisia I.": "Artemisia I", "David IV.": "David IV", "Justinian I.": "Justinian I", "Belisarius (Episch)": "Belisarius (Epic)", "Boudica (Episch)": "Boudica (Epic)", "Hermann (Episch)": "Hermann (Epic)", "Scipio (Episch)": "Scipio (Epic)", "Sun Tzu (Episch)": "Sun Tzu (Epic)", "Ragnar (alt)": "Ragnar (old)", "Kommandant": "Commander", '📐 Größe & Effekt': '📐 Size & effect', '🎨 Schrift': '🎨 Text', '▦ Füllung': '▦ Fill', '▢ Rahmen': '▢ Frame', '▢ Rand': '▢ Border', '👁 Ausblenden': '👁 Hide', 'Dein Text': 'Your text', 'Symmetrisch angeordnet': 'Arranged symmetrically',
         '⚠ Wirklich alles symmetrisch anordnen?\n\nAlle Sets, Rüstungen und Anzeigen dieses Showcase werden automatisch neu platziert – deine eigene Anordnung geht dabei verloren.': '⚠ Really arrange everything symmetrically?\n\nAll sets, armaments and displays of this showcase will be repositioned automatically – your own layout will be lost.',
         'Im Profil zeigen': 'Show in profile', 'Alle Showcases': 'All showcases', '🔒 Niemand – alles privat': '🔒 Nobody – all private', 'Privat': 'Private', 'Öffentlich': 'Public',
         'Nur für dich sichtbar': 'Only visible to you', 'Für andere sichtbar': 'Visible to others', 'Privat – nur für dich sichtbar': 'Private – only visible to you', 'Sichtbarkeit gespeichert': 'Visibility saved',
@@ -1170,9 +1171,15 @@ window.I18N = (() => {
         '✓ Lokal gespeichert · für andere Spieler sichtbar erst nach dem SQL-Update (Spalte showcase)': '✓ Saved locally · visible to other players after the SQL update (column showcase)',
         'Der Scan-Server kennt den Showcase-Scan noch nicht – bitte den Modus „showcase“ in api/scan.js ergänzen. Bis dahin Kommandanten über „+ Von Hand“ eintragen.': 'The scan server does not know the showcase scan yet – please add the “showcase” mode to api/scan.js. Until then add commanders with “+ Manually”.',
         'Bis zu 5 Screenshots deiner Kommandanten-Ansicht · Bilder werden nach dem Auslesen sofort verworfen · gleiche Kommandanten werden aktualisiert statt doppelt angelegt.': 'Up to 5 screenshots of your commander view · images are discarded right after reading · existing commanders are updated instead of duplicated.',
+        'Kommandanten anzeigen': 'Show commanders', 'Kommandanten-Namen anzeigen': 'Show commander names', 'Fixes Set': 'Fixed set', 'Freies Set': 'Free set',
+        'Namen-Farbe': 'Name colour', 'Über': 'Above', 'Unter': 'Below', 'Formation einzeln (frei bewegen)': 'Formation separate (move freely)',
+        'Freies Set – Kommandanten, Namen und Ausrüstung einzeln bewegen': 'Free set – move commanders, names and equipment separately',
+        'Set wieder zusammengefügt': 'Set joined again', 'Fixes Set: alles wieder zusammen wie vorher': 'Fixed set: everything joined like before',
+        'Freies Set: Kommandanten, Namen und Ausrüstung einzeln verschieben, vergrößern und drehen': 'Free set: move, resize and rotate commanders, names and equipment separately',
         'Set gespeichert · in der Cloud (user_state)': 'Set saved · in the cloud (user_state)', 'Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': 'Saved locally · cloud unreachable, will sync automatically'
       },
       patterns: [
+        [/^(Kommandanten|Namen|Ausrüstung|Formation) · (.+)$/, (m, a, b) => ({ 'Kommandanten': 'Commanders', 'Namen': 'Names', 'Ausrüstung': 'Equipment', 'Formation': 'Formation' })[a] + ' · ' + b],
         [/^Nur „(.+)“$/, 'Only “$1”'],
         [/^Erkannt · (\d+) Änderung(en)?$/, (m, n) => `Detected · ${n} change${n === '1' ? '' : 's'}`],
         [/^⚠ (\d+) Slot\(s\) nicht sicher erkannt – sie bleiben leer und lassen sich von Hand wählen\.$/, '⚠ $1 slot(s) not reliably detected – they stay empty and can be chosen by hand.'],
@@ -4229,7 +4236,7 @@ window.RokApp = () => {
   const scRot = (v) => { let n = Math.round(+v || 0) % 360; if (n > 180) n -= 360; if (n < -180) n += 360; return n; };   // Drehung −180 … +180°
   const scElNorm = (w) => { const off = w?.box === false;                 // altes "box: false" = ohne Füllung und Rand
     const fo = w?.fillO == null || w?.fillO === '' ? NaN : +w.fillO;
-    return { on: !!w?.on, x: scPos(w?.x, 100), y: scPos(w?.y, 200), s: scScale(w?.s), color: scColor(w?.color), shadow: w?.shadow !== false,
+    return { free: !!w?.free, on: !!w?.on, x: scPos(w?.x, 100), y: scPos(w?.y, 200), s: scScale(w?.s), color: scColor(w?.color), shadow: w?.shadow !== false,
       fill: w?.fill === 'none' || (off && w?.fill == null) ? 'none' : scColor(w?.fill), fillO: Number.isFinite(fo) ? Math.min(100, Math.max(0, Math.round(fo))) : 75,
       border: w?.border === 'none' || (off && w?.border == null) ? 'none' : scColor(w?.border), bw: Math.min(10, Math.max(0, Math.round(+w?.bw || 0))), r: scRot(w?.r), ni: !!w?.ni, round: !!w?.round, fz: scInt(w?.fz, 70, 150, 100), frame: typeof w?.frame === 'string' && /^[a-z0-9() _-]{1,60}$/i.test(w.frame) ? w.frame : '', text: '' }; };   // ni = ohne Symbol (Königreich / VIP)
   // eigene Texte im Showcase (ohne Box als Standard) · City-Skin: Katalog-Bild oder eigenes Bild
@@ -4284,7 +4291,7 @@ window.RokApp = () => {
   const scInscKnown = (t) => { const k = scInscKey(t); if (!k) return null;      // auch abgeschnittene Namen ("Retaliato…")
     return ARM_KNOWN[k] || (k.length >= 4 ? Object.entries(ARM_KNOWN).find(([n]) => n.startsWith(k))?.[1] : null) || null; };
   const scInscSort = (l) => l.sort((x, y) => (ARM_ORDER[x.c] ?? 3) - (ARM_ORDER[y.c] ?? 3));
-  const scArmNorm = (a) => ({ cols: a?.cols === 2 ? 2 : 1, on: !!a?.on, x: scPos(a?.x, 100), y: scPos(a?.y, 200), s: scScale(a?.s), r: scRot(a?.r), formation: String(a?.formation || '').slice(0, 30),
+  const scArmNorm = (a) => ({ free: !!a?.free, cols: a?.cols === 2 ? 2 : 1, on: !!a?.on, fsep: !!a?.fsep, fpos: a?.fpos === 'above' ? 'above' : 'below', fm: { x: scPos(a?.fm?.x, 100), y: scPos(a?.fm?.y, 200), s: scScale(a?.fm?.s), r: scRot(a?.fm?.r) }, x: scPos(a?.x, 100), y: scPos(a?.y, 200), s: scScale(a?.s), r: scRot(a?.r), formation: String(a?.formation || '').slice(0, 30),
     insc: (Array.isArray(a?.insc) ? a.insc : []).slice(0, 12).map(i => ({ t: String(i?.t || '').slice(0, 24), c: SC_INSC[i?.c] ? i.c : 'gold' })),
     arms: Object.fromEntries(Object.keys(ARM_TYPES).map(k => [k, ARM_BY_ID[a?.arms?.[k]]?.type === k ? a.arms[k] : ''])),
     troop: SC_TROOPS[a?.troop] ? a.troop : 'infantry', ...Object.fromEntries(SC_ARM_STATS.map(([k]) => [k, scNum1(a?.[k])])) });
@@ -4292,17 +4299,20 @@ window.RokApp = () => {
   const scArmVis = (a) => a.insc.some(i => i.t) || !!a.formation;                  // Rüstungs-Element (Inschriften + Formation)
   const scStHas = (a) => SC_ARM_STATS.some(([k]) => a[k]);                          // Werte-Element (Angriff, Verteidigung …)
   const SC_AL = { left: '⬅ Links', center: '↔ Mitte', right: '➡ Rechts' };
-  const scStNorm = (t, a) => ({ on: t ? !!t.on : !!a?.on, x: scPos(t?.x, 100), y: scPos(t?.y, 200), s: t ? scScale(t.s) : scScale(a?.s), r: scRot(t?.r),
+  const scStNorm = (t, a) => ({ free: !!t?.free, on: t ? !!t.on : !!a?.on, x: scPos(t?.x, 100), y: scPos(t?.y, 200), s: t ? scScale(t.s) : scScale(a?.s), r: scRot(t?.r),
     al: SC_AL[t?.al] ? t.al : 'left', nt: !!t?.nt });                                // al = Ausrichtung der Schrift · nt = ohne Truppentyp („Attack“ statt „Archer Attack“)
   // Expertise-Rahmen und Iconic-Stufe je Set: fr = Gold-Rahmen, fp = Lila-Rahmen (episch), fs = Rahmengröße, r* = Refine-Symbol, t* = Iconic-Symbol (alles in % der Raute)
   const SC_GFX_DEF = { pt: true, fw: 50, fh: 0, fr: '', fp: '', fs: 100, rx: 64, ry: 70, rs: 16, tx: 50, ty: 91, ts: 44 };
   const scGfxNorm = (g) => { const n = (k, lo, hi) => scInt(g?.[k], lo, hi, SC_GFX_DEF[k]), id = (v) => typeof v === 'string' && /^[A-Za-z0-9_. ()-]{1,80}$/.test(v) ? v : '';
     return { pt: g?.pt !== false, fw: n('fw', 0, 100), fh: n('fh', -100, 100), fr: id(g?.fr), fp: id(g?.fp), fs: n('fs', 60, 150), rx: n('rx', 0, 100), ry: n('ry', 0, 100), rs: n('rs', 8, 40), tx: n('tx', 0, 100), ty: n('ty', 0, 100), ts: n('ts', 15, 90) }; };
+  // Freies Set: Kommandanten (c), Namen (n) und Ausrüstung (g) als eigene Elemente auf der Bühne
+  const scPartsNorm = (p) => Object.fromEntries(['c', 'n', 'g'].map(k => [k, { x: scPos(p?.[k]?.x, 100), y: scPos(p?.[k]?.y, 200), s: scScale(p?.[k]?.s), r: scRot(p?.[k]?.r) }]));
   const scSetNorm = (x) => scStMigrate(x, { id: String(x?.id || newId()), name: String(x?.name || '').trim().slice(0, 30), mode: 'manual',
     shot: scImgOk(x?.shot) ? x.shot : '', cmd: [0, 1].map(i => scCmdNorm(x?.cmd?.[i])), gear: scGearNorm(x?.gear),
     x: scPos(x?.x, 100), y: scPos(x?.y, 200), s: scScale(x?.s), r: scRot(x?.r), arm: scArmNorm(x?.arm), priv: false, cg: scInt(x?.cg, 0, 70, 32),
-    st: scStNorm(x?.st, x?.arm), gfx: scGfxNorm(x?.gfx),
-    heads: !!x?.heads, hideEmpty: !!x?.hideEmpty, gearOn: !!x?.gearOn, kind: ['garrison', 'rally'].includes(x?.kind) ? x.kind : '' });   // kind: Garnison / Rally (nur 2 Kommandanten)   // heads = nur Kommandanten (Garnison) · hideEmpty = leere Slots ausblenden   // cg = Überlappung der Kommandanten in %
+    st: scStNorm(x?.st, x?.arm), gfx: scGfxNorm(x?.gfx), free: !!x?.free,
+    heads: !!x?.heads, hideEmpty: !!x?.hideEmpty, gearOn: !!x?.gearOn,
+    cm: x?.cm !== false, cn: x?.cn !== false, nc: scColor(x?.nc), split: !!x?.split, parts: scPartsNorm(x?.parts), kind: ['garrison', 'rally'].includes(x?.kind) ? x.kind : '' });   // kind: Garnison / Rally (nur 2 Kommandanten)   // heads = nur Kommandanten (Garnison) · hideEmpty = leere Slots ausblenden   // cg = Überlappung der Kommandanten in %
 
   function scStMigrate(raw, o) {                            // alte Sets: Werte steckten in der Rüstung → Rüstung wird kürzer, obere Kante bleibt
     if (!raw?.st && o.arm.y != null && scStHas(o.arm) && scArmVis(o.arm)) o.arm.y -= (SC_ARM_STATS.filter(([k]) => o.arm[k]).length * 1.25 + 0.2) * o.arm.s / 2;
@@ -4316,7 +4326,7 @@ window.RokApp = () => {
   const SC_KIND = { garrison: '🛡 Garnison', rally: '🚩 Rally' }, SC_KIND_MAX = 3;
   const scKindNo = (d, x) => d.sets.filter(y => y.kind === x.kind).indexOf(x);   // 0, 1, 2                       // Höhe eines Sets in Kästchen (Breite immer 4)
   const scSetH = (x) => scSetCells(x) * SC_G;
-  const scArmH = (a) => a.on && scArmVis(a) ? Math.ceil(a.insc.filter(i => i.t).length / (a.cols === 2 ? 2 : 1)) * 2.7 + (a.formation ? 1.5 : 0) + 0.3 : 0;   // cols 2 = Inschriften in 2 Spalten
+  const scArmH = (a) => a.on && scArmVis(a) ? Math.ceil(a.insc.filter(i => i.t).length / (a.cols === 2 ? 2 : 1)) * 2.7 + (a.formation && !a.fsep ? 1.5 : 0) + 0.3 : 0;   // cols 2 = Inschriften in 2 Spalten
   const scStH = (x) => x.st.on && scStHas(x.arm) ? SC_ARM_STATS.filter(([k]) => x.arm[k]).length * 1.3 + 0.3 : 0;
   const scUnderH = (x) => (x.arm.on && scArmVis(x.arm) ? SC_G + scArmH(x.arm) : 0) + (scStH(x) ? (x.arm.on && scArmVis(x.arm) ? SC_G / 2 : SC_G) + scStH(x) : 0);   // Platz unter dem Set
   // Sets einer Reihe von links nach rechts: … 5 3 1 2 4 6 … – die Gruppe wird immer um die Mittellinie zentriert
@@ -4375,11 +4385,11 @@ window.RokApp = () => {
     const hit = (a, b) => a && b && a.r > b.l + 0.2 && a.l < b.r - 0.2;
     let ch = false;
     d.sets.forEach((x, i) => { if (x.kind && !x.gearOn) return;
-      if (x.arm.on && scArmVis(x.arm)) { const sb = scBox('set:' + i, x), ab = scBox('arm:' + i, x.arm);
+      if (x.arm.on && scArmVis(x.arm) && !x.arm.free && !x.free && !x.split) { const sb = scBox('set:' + i, x), ab = scBox('arm:' + i, x.arm);
         if (sb && ab && hit(ab, sb) && ab.t < sb.b - 0.1) { scArmUnder(x, true); ch = true; } } });
     if (ch) drawStage();
     let ch2 = false;
-    d.sets.forEach((x, i) => { if ((x.kind && !x.gearOn) || !x.st.on || !scStHas(x.arm)) return;
+    d.sets.forEach((x, i) => { if ((x.kind && !x.gearOn) || !x.st.on || !scStHas(x.arm) || x.st.free || x.free || x.split || x.arm.free) return;
       const tb = scBox('st:' + i, x.st), armOn = x.arm.on && scArmVis(x.arm), ob = armOn ? scBox('arm:' + i, x.arm) : scBox('set:' + i, x);
       if (tb && ob && hit(tb, ob) && tb.t < ob.b - 0.1) { scStUnder(x, true); ch2 = true; } });
     if (ch2) drawStage();
@@ -4511,7 +4521,7 @@ window.RokApp = () => {
   const scPick = (A, b) => A === 'top' ? b.t : A === 'bottom' ? b.b : b.cy;
   const scPut = (A, o, b, v) => { o.y = A === 'top' ? v + b.h / 2 : A === 'bottom' ? v - b.h / 2 : v; };
   function scAlignRow(d, t, i0) {                           // Elemente vom Typ t in der Reihe von Set i0: gleiche Größe + Ausrichtung
-    const row = scRowSets(d, i0).filter(([x]) => scVisOf(x, t)); if (!row.length) return;
+    const row = scRowSets(d, i0).filter(([x, j]) => scVisOf(x, t) && (!scObjOf(x, t).free || j === i0)); if (!row.length) return;   // frei platzierte bleiben, wo sie sind
     const refE = row.find(([, i]) => i === i0) || row[0], ref = scObjOf(refE[0], t), A = d.syncA || 'top';
     const sizeChanged = row.some(([x]) => scObjOf(x, t).s !== ref.s);
     row.forEach(([x]) => { scObjOf(x, t).s = ref.s; if (t === 'st') x.st.al = ref.al; });
@@ -4547,9 +4557,9 @@ window.RokApp = () => {
     const i = +k, x = d.sets[i]; if (!x || x.kind) return;
     if (S.gear) scAlignRow(d, 'set', i); else drawStage();
     const row = scRowSets(d, i), touched = row.filter(([y]) => y === x || S.gear);
-    if (S.set) touched.forEach(([y]) => { if (y.arm.on) { drawStage(); scArmUnder(y, true); } });   // Set-Einheit: Rüstung bleibt unter dem Set (Größe bleibt eigenständig)
+    if (S.set) touched.forEach(([y]) => { if (y.arm.on && !y.arm.free && !y.split) { drawStage(); scArmUnder(y, true); } });   // Set-Einheit: Rüstung bleibt unter dem Set (Größe bleibt eigenständig)
     if (S.arm) { const r = row.find(([y, j]) => j === i && scVisOf(y, 'arm')) || row.find(([y]) => scVisOf(y, 'arm')); if (r) scAlignRow(d, 'arm', r[1]); }
-    if (S.set) row.filter(([y]) => y === x || S.gear || S.arm).forEach(([y]) => { if (y.st.on) { drawStage(); scStUnder(y, true); } });
+    if (S.set) row.filter(([y]) => y === x || S.gear || S.arm).forEach(([y]) => { if (y.st.on && !y.st.free && !y.split) { drawStage(); scStUnder(y, true); } });
     if (S.st) { const r = row.find(([y, j]) => j === i && scVisOf(y, 'st')) || row.find(([y]) => scVisOf(y, 'st')); if (r) scAlignRow(d, 'st', r[1]); }
     drawStage();
   }
@@ -4929,11 +4939,16 @@ window.RokApp = () => {
     const l = d.sets.filter(x => x.st.on && scStHas(x.arm)).map(x => scStatFs(x.arm, x.st.nt));
     return l.length ? Math.min(...l) : SC_STAT_FS;
   }
-  function scArmHtml(a, L, part = 'all', st = null, sfsIn = null) {
+  // eine Schriftgröße für ALLE Inschriften im Showcase → überall gleich groß (die längste Inschrift bestimmt die Größe)
+  const scPillW = (a) => a.cols === 2 ? SC_SET_W * 0.75 - 0.15 : SC_SET_W - 1.4;
+  const scPillFs = (a) => { const l = a.insc.filter(i => i.t); return l.length ? Math.min(1.15, ...l.map(i => (scPillW(a) - 1.1) / Math.max(.5, scTextW(I18N.tr(i.t), true)))) : 1.15; };
+  function scArmFsAll(d) { const l = d.sets.filter(x => x.arm.on && scArmVis(x.arm) && !(x.kind && !x.gearOn)).map(x => scPillFs(x.arm)); return l.length ? Math.min(...l) : 1.15; }
+  function scArmHtml(a, L, part = 'all', st = null, sfsIn = null, pfsIn = null) {
     const W = SC_SET_W, fit = (txt, w, max, bold = true) => Math.min(max, w / Math.max(.5, scTextW(txt, bold)));   // Schriftgröße so, dass der Text in 1 Zeile passt
     const insc = a.insc.filter(i => i.t), nt = !!st?.nt, al = st?.al || 'left';
     const two = a.cols === 2, PW = two ? W * 0.75 - 0.15 : W - 1.4;   // Breite einer Inschrift (2 Spalten: zusammen 1,5 × Set-Breite)
-    const pill = (i) => { const c = SC_INSC[i.c], fs = fit(I18N.tr(i.t), PW - 1.8, 1.15);   // jede Inschrift für sich: kurze Namen überall gleich groß
+    const pfs = pfsIn || scPillFs(a);
+    const pill = (i) => { const c = SC_INSC[i.c], fs = pfs;   // alle Inschriften gleich groß
       return `<div style="background:${c.bd};padding:${L(0.17)};clip-path:polygon(7% 0,93% 0,100% 50%,93% 100%,7% 100%,0 50%)">
         <div class="grid place-items-center font-extrabold whitespace-nowrap overflow-hidden" style="width:${L(PW)};height:${L(2.15)};font-size:${L(fs)};color:${c.fg};background:${c.bg};clip-path:polygon(7% 0,93% 0,100% 50%,93% 100%,7% 100%,0 50%)">${esc(i.t || '–')}</div></div>`; };
     const sfs = sfsIn || scStatFs(a, nt);
@@ -4942,11 +4957,86 @@ window.RokApp = () => {
     const statsBox = stats ? `<div class="flex flex-col ${al === 'center' ? 'items-center' : al === 'right' ? 'items-end' : 'items-start'}" style="${part === 'st' ? `min-width:${L(W)};width:max-content;` : ''}gap:${L(0.08)}">${stats}</div>` : '';
     if (part === 'st') return statsBox;
     const pills = scInscSort(insc.slice()).map((i, n, l) => two && l.length % 2 && n === l.length - 1 ? `<div style="grid-column:1 / -1">${pill(i)}</div>` : pill(i)).join('');   // ungerade Anzahl: letzte mittig
+    const formH = a.formation && !(part === 'arm' && a.fsep) ? `<div data-fpart class="flex items-center text-slate-300 [text-shadow:0_1px_2px_#000]" style="gap:.35em;font-size:${L(1)};${a.fpos === 'above' ? 'margin-bottom' : 'margin-top'}:${L(0.2)}">${scFormIcon(a.formation)}${esc(a.formation)}</div>` : '';
     return `<div class="flex flex-col items-center" style="width:${L(two && part !== 'all' ? W * 1.5 : W)};gap:${L(0.3)}">
+      ${a.fpos === 'above' ? formH : ''}
       ${two && part !== 'all' ? `<div class="grid grid-cols-2 justify-items-center" style="gap:${L(0.3)} ${L(0.3)}">${pills}</div>` : pills}
-      ${a.formation ? `<div class="flex items-center text-slate-300 [text-shadow:0_1px_2px_#000]" style="gap:.35em;font-size:${L(1)};margin-top:${L(0.2)}">${scFormIcon(a.formation)}${esc(a.formation)}</div>` : ''}
+      ${a.fpos !== 'above' ? formH : ''}
       ${part === 'all' ? statsBox : ''}
     </div>`;
+  }
+  // ---- Freies / Fixes Set und einzelne Formation ----
+  function scPartCmd(x) {
+    const hide = x.hideEmpty;
+    const cmd = (c, main) => { const m = c && CMD_BY_ID[c.id];
+      return `<div class="relative flex items-center justify-center" style="width:${(main ? 1.8 : 1.5) * SC_G}cqw;aspect-ratio:1;z-index:${main ? 1 : 0};${main ? '' : `margin-left:-${(1.5 * SC_G * x.cg / 100).toFixed(2)}cqw;transform:translateY(.25cqw)`}">
+        ${m ? `<img src="${cmdImg(m.id, c.exp)}" alt="" draggable="false" class="w-full h-full object-contain drop-shadow-[0_3px_6px_rgba(0,0,0,.6)]">` : '<span class="ghex w-[78%] aspect-[166/192] bg-ink-600/70"></span>'}</div>`; };
+    const showC = (k) => !hide || !!(x.cmd[k] && CMD_BY_ID[x.cmd[k].id]);
+    return `<div class="flex items-end justify-center">${showC(0) ? cmd(x.cmd[0], true) : ''}${showC(1) ? cmd(x.cmd[1], false) : ''}</div>`;
+  }
+  function scPartNames(x) {
+    const cn = (k) => { const m = x.cmd[k] && CMD_BY_ID[x.cmd[k].id]; return m ? m.name : ''; };
+    if (!cn(0) && !cn(1)) return '';
+    const c = x.nc ? `color:${x.nc};` : '';
+    return `<div class="flex flex-col items-center text-center leading-tight [text-shadow:0_1px_3px_#000]">
+      ${cn(0) ? `<div class="font-bold ${x.nc ? '' : 'text-white'} whitespace-nowrap" style="${c}font-size:max(7px,1.05cqw)">${esc(cn(0))}</div>` : ''}
+      ${cn(1) ? `<div class="${x.nc ? '' : 'text-slate-300'} whitespace-nowrap" style="${c}${x.nc ? 'opacity:.85;' : ''}font-size:max(6px,.88cqw)">${esc(cn(1))}</div>` : ''}</div>`;
+  }
+  const scGearShown = (x) => !(x.heads || (x.kind && !x.gearOn));
+  const scPartGear = (x) => `<div class="relative" style="width:${2.9 * SC_G}cqw;aspect-ratio:1/2">${scGearBoard(x.gear, true, x.hideEmpty, x.gfx)}</div>`;
+  const scFmHtml = (a) => `<div class="flex items-center text-slate-300 [text-shadow:0_1px_2px_#000] whitespace-nowrap" style="gap:.35em;font-size:1cqw">${scFormIcon(a.formation)}${esc(a.formation)}</div>`;
+  function scSetOfSel(key = sc.sel) {
+    if (!key || !sc.doc) return null; const [t, k] = key.split(':');
+    return ['set', 'pc', 'pn', 'pg', 'fm', 'arm', 'st'].includes(t) ? D().sets[+k] || null : null;
+  }
+  function scMeasureEl(sel) {                                // Mitte eines Elements auf der Bühne in cqw
+    const st = $('scStage'), el = $('scEls').querySelector(sel); if (!el) return null;
+    const sr = st.getBoundingClientRect(), r = el.getBoundingClientRect(); if (!sr.width || !r.width) return null;
+    const Z = st.classList.contains('sc-zoom') ? sc.zoom : { z: 1, x: 0, y: 0 }, f = 100 / sr.width;
+    return { x: ((r.left + r.width / 2 - sr.left) - Z.x) / Z.z * f, y: ((r.top + r.height / 2 - sr.top) - Z.y) / Z.z * f };
+  }
+  function scSplit(x, i, on) {                               // Freies Set an/aus – Teile starten genau dort, wo sie im Set lagen
+    if (on && !x.split) {
+      drawStage();
+      ['c', 'n', 'g'].forEach(k => { const m = scMeasureEl(`[data-el="set:${i}"] [data-part="${k}"]`);
+        x.parts[k] = m ? { x: m.x, y: m.y, s: x.s, r: x.r || 0 } : { x: x.x, y: x.y, s: x.s, r: 0 }; });
+      x.split = true;
+    } else if (!on) x.split = false;
+    drawStage();
+  }
+  function scFmPlace(x, i) {                                 // einzelne Formation direkt über / unter die Rüstung
+    const a = x.arm; a.fm.s = a.s; a.fm.r = 0;
+    if (a.fm.x == null) { a.fm.x = a.x ?? x.x; a.fm.y = a.y ?? x.y; }
+    drawStage();
+    const ab = scBox('arm:' + i, a), fb = scBox('fm:' + i, a.fm), h = fb ? fb.h : 1.5 * a.s;
+    if (!ab) return;
+    const gap = SC_G * a.s / 4;
+    a.fm.x = ab.cx; a.fm.y = a.fpos === 'above' ? ab.t - gap - h / 2 : ab.b + gap + h / 2;
+  }
+  function scFmSep(x, i, on) {                               // Formation aus der Rüstung lösen / wieder einfügen
+    if (!x) return; const a = x.arm; if (on === !!a.fsep) return;
+    const b0 = scBox('arm:' + i, a);
+    if (on) { const m = scMeasureEl(`[data-el="arm:${i}"] [data-fpart]`); a.fsep = true;
+      a.fm = m ? { x: m.x, y: m.y, s: a.s, r: a.r || 0 } : { x: null, y: null, s: a.s, r: 0 }; }
+    else a.fsep = false;
+    drawStage();
+    const b1 = scBox('arm:' + i, a);
+    if (b0 && b1) a.y = a.fpos === 'above' ? b0.b - b1.h / 2 : b0.t + b1.h / 2;   // die andere Kante der Rüstung bleibt stehen
+    drawStage();
+    if (on && !m0(a)) { scFmPlace(x, i); drawStage(); }
+    function m0(o) { return o.fm && o.fm.x != null; }
+  }
+  function scFmPos(x, i, v) {
+    if (!x || !sc.own) return;
+    x.arm.fpos = v === 'above' ? 'above' : 'below'; drawStage();
+    if (x.arm.fsep) { scFmPlace(x, i); drawStage(); }
+    drawArm(); drawProps(); scSaveSoon();
+  }
+  function scFmCtlHtml(a, sm) {
+    if (!a?.formation) return '';
+    return `<span class="basis-full h-0"></span><span class="text-slate-400">Formation</span>
+      <span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">${[['above', '⬆ Über'], ['below', '⬇ Unter']].map(([v, l], n) => `<button type="button" data-armfpos="${v}" aria-pressed="${a.fpos === v}" class="${sm ? 'px-2.5 py-1 text-xs' : 'px-2.5 py-1.5'} ${a.fpos === v ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'} ${n ? 'border-l border-ink-600' : ''}">${l}</button>`).join('')}</span>
+      <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-fsep ${a.fsep ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Formation einzeln (frei bewegen)</label>`;
   }
   function scMiniSet(x, i) {
     const sel = !sc.edit && !sc.exporting && i === sc.hl;          // oranger Rahmen nur, solange das Set angetippt ist
@@ -4955,19 +5045,11 @@ window.RokApp = () => {
     if (x.mode === 'shot') return `<div class="relative flex flex-col items-center rounded-lg ${sc.own && x.priv && !sc.exporting ? 'opacity-60' : ''} ${sel ? 'ring-2 ring-gold-400/80 bg-gold-500/10' : ''}" style="padding:.4cqw">${name}
       ${x.shot ? `<img src="${x.shot}" alt="" draggable="false" class="w-full rounded-md border border-gold-500/40 shadow-[0_4px_14px_rgba(0,0,0,.6)]">`
                : '<div class="w-full aspect-[4/3] rounded-md border border-dashed border-ink-600 grid place-items-center text-slate-500" style="font-size:max(9px,1.2cqw)">📷</div>'}</div>`;
-    const cn = (k) => { const m = x.cmd[k] && CMD_BY_ID[x.cmd[k].id]; return m ? m.name : ''; };
-    const hide = x.hideEmpty, G = SC_G;
-    const cmd = (c, main) => { const m = c && CMD_BY_ID[c.id];
-      return `<div class="relative flex items-center justify-center" style="width:${(main ? 1.8 : 1.5) * SC_G}cqw;aspect-ratio:1;z-index:${main ? 1 : 0};${main ? '' : `margin-left:-${(1.5 * SC_G * x.cg / 100).toFixed(2)}cqw;transform:translateY(.25cqw)`}">
-        ${m ? `<img src="${cmdImg(m.id, c.exp)}" alt="" draggable="false" class="w-full h-full object-contain drop-shadow-[0_3px_6px_rgba(0,0,0,.6)]">` : '<span class="ghex w-[78%] aspect-[166/192] bg-ink-600/70"></span>'}</div>`; };
-    const showC = (k) => !hide || !!(x.cmd[k] && CMD_BY_ID[x.cmd[k].id]);
     return `<div class="relative flex flex-col items-center ${x.heads || x.kind ? 'justify-center' : ''} rounded-lg overflow-visible ${sel ? 'ring-2 ring-gold-400/80 bg-gold-500/10' : ''}" style="height:${scSetH(x)}cqw;padding:.35cqw 0">${name}
       ${x.kind ? `<div class="font-display font-bold gold-text whitespace-nowrap" style="font-size:max(8px,1.2cqw);margin-bottom:.2cqw">${SC_KIND[x.kind]}</div>` : ''}
-      <div class="flex items-end justify-center">${showC(0) ? cmd(x.cmd[0], true) : ''}${showC(1) ? cmd(x.cmd[1], false) : ''}</div>
-      ${cn(0) || cn(1) ? `<div class="flex flex-col items-center text-center leading-tight [text-shadow:0_1px_3px_#000]" style="margin-top:.35cqw">
-        ${cn(0) ? `<div class="font-bold text-white whitespace-nowrap" style="font-size:max(7px,1.05cqw)">${esc(cn(0))}</div>` : ''}
-        ${cn(1) ? `<div class="text-slate-300 whitespace-nowrap" style="font-size:max(6px,.88cqw)">${esc(cn(1))}</div>` : ''}</div>` : ''}
-      ${x.heads || (x.kind && !x.gearOn) ? '' : `<div class="relative" style="width:${2.9 * G}cqw;aspect-ratio:1/2;margin-top:.4cqw">${scGearBoard(x.gear, true, hide, x.gfx)}</div>`}
+      ${x.cm ? `<div data-part="c">${scPartCmd(x)}</div>` : ''}
+      ${x.cn && scPartNames(x) ? `<div data-part="n" style="margin-top:.35cqw">${scPartNames(x)}</div>` : ''}
+      ${scGearShown(x) ? `<div data-part="g" style="margin-top:.4cqw">${scPartGear(x)}</div>` : ''}
     </div>`;
   }
   const SC_DEF_COLOR = { name: '#f5c542', tag: '#fde68a', kd: '#fde68a', vip: '#f5c542', power: '#ffffff', kp: '#ffffff', merit: '#ffffff' };
@@ -5028,7 +5110,7 @@ window.RokApp = () => {
   }
   const scTf = (o) => `translate(-50%,-50%) rotate(${o.r || 0}deg) scale(${o.s})`;
   function drawStage() {
-    const d = D(), st = $('scStage');
+    const d = D(), st = $('scStage'), pfsAll = scArmFsAll(d);
     st.style.aspectRatio = `100 / ${scH(d)}`;
     scApplyBg();
     $('scGridOv').classList.toggle('hidden', !(sc.edit && d.grid));
@@ -5039,8 +5121,17 @@ window.RokApp = () => {
     ['ring-2', 'ring-gold-500/60'].forEach(k => st.classList.toggle(k, sc.edit));
     const ed = (key) => sc.edit ? ` cursor-move touch-none rounded-md ${sc.sel === key ? 'outline outline-2 outline-gold-300' : 'outline-dashed outline-1 outline-gold-400/70 hover:outline-2'}` : '';
     const pos = (o) => `left:${o.x}cqw;top:${o.y}cqw;transform:${scTf(o)}`;
-    $('scEls').innerHTML = d.sets.map((x, i) => `<div data-el="set:${i}" class="absolute${ed('set:' + i)}${!sc.edit && d.sets.length > 1 ? ' cursor-pointer' : ''}" style="${pos(x)};${i === sc.si && !sc.exporting ? 'z-index:5;' : ''}width:${x.mode === 'shot' ? SC_SHOT_W : SC_SET_W}cqw" title="${esc(x.name || 'Set ' + (i + 1))}">${scMiniSet(x, i)}</div>`).join('')
-      + d.sets.map((x, i) => x.arm.on && scArmVis(x.arm) && !(x.kind && !x.gearOn) ? `<div data-el="arm:${i}" class="absolute${ed('arm:' + i)}" style="${pos(x.arm)}">${scArmHtml(x.arm, n => n + 'cqw', 'arm')}</div>` : '').join('')
+    $('scEls').innerHTML = d.sets.map((x, i) => `<div data-el="set:${i}" class="absolute${ed('set:' + i)}${!sc.edit && d.sets.length > 1 ? ' cursor-pointer' : ''}" style="${pos(x)};${i === sc.si && !sc.exporting ? 'z-index:5;' : ''}width:${x.mode === 'shot' ? SC_SHOT_W : SC_SET_W}cqw${x.split && x.mode !== 'shot' ? ';visibility:hidden;pointer-events:none' : ''}" title="${esc(x.name || 'Set ' + (i + 1))}">${scMiniSet(x, i)}</div>`).join('')
+      + d.sets.map((x, i) => {                                // Freies Set: Teile einzeln
+          if (!x.split || x.mode === 'shot') return '';
+          const P = (k, t, h) => { if (!h) return ''; const p = x.parts[k]; if (p.x == null) { p.x = x.x; p.y = x.y; p.s = x.s; }
+            return `<div data-el="${t}:${i}" class="absolute${ed(t + ':' + i)}${!sc.edit ? ' cursor-pointer' : ''}" style="${pos(p)}">${h}</div>`; };
+          return P('c', 'pc', x.cm ? scPartCmd(x) : '') + P('n', 'pn', x.cn ? scPartNames(x) : '') + P('g', 'pg', scGearShown(x) ? scPartGear(x) : '');
+        }).join('')
+      + d.sets.map((x, i) => x.arm.on && scArmVis(x.arm) && !(x.kind && !x.gearOn) ? `<div data-el="arm:${i}" class="absolute${ed('arm:' + i)}" style="${pos(x.arm)}">${scArmHtml(x.arm, n => n + 'cqw', 'arm', null, null, pfsAll)}</div>` : '').join('')
+      + d.sets.map((x, i) => { const a = x.arm; if (!(a.on && a.fsep && a.formation && !(x.kind && !x.gearOn))) return '';
+          if (a.fm.x == null) { a.fm.x = a.x ?? x.x; a.fm.y = a.y ?? x.y; a.fm.s = a.s; }
+          return `<div data-el="fm:${i}" class="absolute${ed('fm:' + i)}" style="${pos(a.fm)}">${scFmHtml(a)}</div>`; }).join('')
       + (() => { const sfs = scStatFsAll(d); return d.sets.map((x, i) => x.st.on && scStHas(x.arm) && !(x.kind && !x.gearOn) ? `<div data-el="st:${i}" class="absolute${ed('st:' + i)}" style="${pos(x.st)}">${scArmHtml(x.arm, n => n + 'cqw', 'st', x.st, sfs)}</div>` : '').join(''); })()
       + Object.entries(d.els).filter(([, w]) => w.on).map(([k, w]) => `<div data-el="w:${k}" class="absolute${ed('w:' + k)}" style="${pos(w)}">${scWidget(k, w)}</div>`).join('')
       + (d.texts || []).map(t => `<div data-el="tx:${t.id}" class="absolute${ed('tx:' + t.id)}" style="${pos(t)}">${scTxHtml(t)}</div>`).join('')
@@ -5084,6 +5175,8 @@ window.RokApp = () => {
     if (t === 'set') return d.sets[+k] || null;
     if (t === 'arm') return d.sets[+k]?.arm || null;
     if (t === 'st') return d.sets[+k]?.st || null;
+    if (t === 'pc' || t === 'pn' || t === 'pg') return d.sets[+k]?.parts?.[t[1]] || null;
+    if (t === 'fm') return d.sets[+k]?.arm?.fm || null;
     if (t === 'tx') return (d.texts || []).find(x => x.id === k) || null;
     if (t === 'xs') return (d.xskins || []).find(x => x.id === k) || null;
     return d.els[k] || null;
@@ -5094,7 +5187,8 @@ window.RokApp = () => {
     { const rb = $('scRemoveSel'); if (rb) rb.disabled = !o; }
     if (!o) { el.innerHTML = '<span class="text-xs text-slate-500">Element auf der Bühne oder oben antippen, um es einzustellen. Ziehen verschiebt es – mit Raster rastet es symmetrisch ein.</span>'; return; }
     const [t, k] = sc.sel.split(':'), d = D();
-    const label = t === 'set' ? (d.sets[+k].name || `Set ${+k + 1}`) : t === 'arm' ? `⚔ Rüstung · ${d.sets[+k].name || 'Set ' + (+k + 1)}` : t === 'st' ? `📊 Werte · ${d.sets[+k].name || 'Set ' + (+k + 1)}` : t === 'tx' ? '✏️ Eigener Text' : t === 'xs' ? '🏯 Weiterer City-Skin' : `${SC_ELS[k].icon} ${SC_ELS[k].label}`;
+    const PL = { pc: '👤 Kommandanten', pn: '🔤 Namen', pg: '🛡 Ausrüstung', fm: '🔰 Formation' }, sx = scSetOfSel(), sxc = ['set', 'pc', 'pn', 'pg'].includes(t) ? sx : null;
+    const label = t === 'set' ? (d.sets[+k].name || `Set ${+k + 1}`) : PL[t] ? `${PL[t]} · ${d.sets[+k].name || 'Set ' + (+k + 1)}` : t === 'arm' ? `⚔ Rüstung · ${d.sets[+k].name || 'Set ' + (+k + 1)}` : t === 'st' ? `📊 Werte · ${d.sets[+k].name || 'Set ' + (+k + 1)}` : t === 'tx' ? '✏️ Eigener Text' : t === 'xs' ? '🏯 Weiterer City-Skin' : `${SC_ELS[k].icon} ${SC_ELS[k].label}`;
     const textual = t === 'tx' || (t === 'w' && k !== 'avatar' && k !== 'skin'), boxy = t === 'w' || t === 'tx' || t === 'xs', frame = t === 'xs' || (t === 'w' && (k === 'avatar' || k === 'skin'));
     const fillable = boxy && k !== 'avatar', defBw = frame ? 2 : 1;
     const btn = 'px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 transition';
@@ -5103,6 +5197,11 @@ window.RokApp = () => {
         <div class="text-[10px] uppercase tracking-widest text-slate-500 mb-2">${title}</div>
         <div class="flex flex-wrap items-center gap-x-3 gap-y-2">${body}</div></div>`;
     const chk = (id, on, txt) => `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input id="${id}" type="checkbox" ${on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${txt}</label>`;
+    const ck = (f, on, txt) => `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-setopt="${f}" ${on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${txt}</label>`;
+    const ncHtml = sxc ? `<span class="text-slate-400">Namen-Farbe</span><input type="color" data-setcol value="${sxc.nc || '#ffffff'}" class="${sw}"><button type="button" data-setact="ncreset" class="${btn}">Standardfarbe</button>` : '';
+    const splitHtml = sxc ? `<span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">
+        <button type="button" data-setact="fix" aria-pressed="${!sxc.split}" title="Fixes Set: alles wieder zusammen wie vorher" class="px-3 py-1.5 font-semibold ${!sxc.split ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'}">🔒 Fixes Set</button>
+        <button type="button" data-setact="split" aria-pressed="${!!sxc.split}" title="Freies Set: Kommandanten, Namen und Ausrüstung einzeln verschieben, vergrößern und drehen" class="px-3 py-1.5 font-semibold border-l border-ink-600 ${sxc.split ? 'bg-sky-500/25 text-sky-100' : 'hover:text-sky-200'}">✥ Freies Set</button></span>` : '';
     const cards = [
       card('📐 Größe &amp; Effekt', `<input id="scPS" type="range" min="30" max="400" step="5" value="${Math.round(o.s * 100)}" class="flex-1 min-w-[110px] accent-yellow-500"><span id="scPSv" class="tabular-nums w-11 text-right">${Math.round(o.s * 100)} %</span>
         ${boxy ? chk('scPSh', o.shadow, 'Schatten') : ''}
@@ -5114,8 +5213,11 @@ window.RokApp = () => {
         ${o.frame ? `<span class="text-slate-400 truncate max-w-[10rem]">${esc(avFrameName(o.frame))}</span>
           <button type="button" id="scPFrameOff" class="px-3 py-1.5 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10">▢ Rahmen entfernen</button>
           <span class="basis-full h-0"></span><span class="text-slate-400">🔍 Bild im Rahmen</span><input id="scPFz" type="range" min="70" max="150" step="1" value="${o.fz || 100}" class="flex-1 min-w-[110px] accent-yellow-500"><span id="scPFzv" class="tabular-nums w-11 text-right">${o.fz || 100} %</span>` : ''}`) : '',
+      o.free ? card('✥ Frei platziert', `<span class="text-slate-400">Wird nicht automatisch verschoben.</span>
+        <button type="button" id="scPUnfree" class="${btn}">⊞ Wieder einrasten</button>`) : '',
       t === 'arm' ? card('⚔ Rüstung', `<span class="text-slate-400">Anordnung</span>
-        <span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">${[[1, '▤ 1 Spalte'], [2, '▥ 2 Spalten']].map(([n, l]) => `<button type="button" data-armcols="${n}" aria-pressed="${(o.cols || 1) === n}" class="px-2.5 py-1.5 ${(o.cols || 1) === n ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'} ${n === 2 ? 'border-l border-ink-600' : ''}">${l}</button>`).join('')}</span>`) : '',
+        <span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">${[[1, '▤ 1 Spalte'], [2, '▥ 2 Spalten']].map(([n, l]) => `<button type="button" data-armcols="${n}" aria-pressed="${(o.cols || 1) === n}" class="px-2.5 py-1.5 ${(o.cols || 1) === n ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'} ${n === 2 ? 'border-l border-ink-600' : ''}">${l}</button>`).join('')}</span>${scFmCtlHtml(o)}`) : '',
+      t === 'fm' && sx ? card('🔰 Formation', scFmCtlHtml(sx.arm)) : '',
       t === 'st' ? card('📊 Werte', `<span class="text-slate-400">Schrift</span>
         <span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">${Object.entries(SC_AL).map(([v, l]) => `<button type="button" data-stal="${v}" aria-pressed="${o.al === v}" title="${l.replace(/^\S+\s/, '')}" class="px-2.5 py-1.5 ${o.al === v ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'}">${l}</button>`).join('')}</span>
         ${chk('scPNt', !o.nt, 'Truppentyp zeigen (z. B. „Archer Attack“)')}`) : '',
@@ -5125,11 +5227,12 @@ window.RokApp = () => {
       fillable ? card('▦ Füllung', `<input id="scPF" type="color" value="${o.fill && o.fill !== 'none' ? o.fill : '#07090f'}" ${o.fill === 'none' ? 'disabled' : ''} class="${sw}">
         <input id="scPFo" type="range" min="0" max="100" step="5" value="${o.fillO}" ${o.fill === 'none' ? 'disabled' : ''} title="Deckkraft" class="flex-1 min-w-[80px] accent-yellow-500 disabled:opacity-40"><span id="scPFov" class="tabular-nums w-9 text-right ${o.fill === 'none' ? 'opacity-40' : ''}">${o.fillO} %</span>
         ${chk('scPFn', o.fill === 'none', 'keine')}`) : '',
-      t === 'set' && o.kind ? card('🛡 ' + (o.kind === 'garrison' ? 'Garnison' : 'Rally'), `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-setopt="gearOn" ${o.gearOn ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Gear anzeigen</label>`) : '',
-      t === 'set' && !o.kind ? card('🛡 Set', `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-setopt="heads" ${o.heads ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Nur Kommandanten</label>
-        <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-setopt="armOn" ${o.arm.on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Rüstung anzeigen</label>
-        <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-setopt="stOn" ${o.st.on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Werte anzeigen</label>
-        <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-setopt="hideEmpty" ${o.hideEmpty ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Leere Slots ausblenden</label>
+      sxc && sxc.kind ? card('🛡 ' + (sxc.kind === 'garrison' ? 'Garnison' : 'Rally'), `${ck('gearOn', sxc.gearOn, 'Gear anzeigen')}${ck('cm', sxc.cm, 'Kommandanten anzeigen')}${ck('cn', sxc.cn, 'Kommandanten-Namen anzeigen')}
+        <span class="basis-full h-0"></span>${ncHtml}`) : '',
+      sxc && !sxc.kind ? card('🛡 Set', `${splitHtml}<span class="basis-full h-0"></span>
+        ${ck('cm', sxc.cm, 'Kommandanten anzeigen')}${ck('cn', sxc.cn, 'Kommandanten-Namen anzeigen')}${ck('heads', sxc.heads, 'Nur Kommandanten')}
+        ${ck('armOn', sxc.arm.on, 'Rüstung anzeigen')}${ck('stOn', sxc.st.on, 'Werte anzeigen')}${ck('hideEmpty', sxc.hideEmpty, 'Leere Slots ausblenden')}
+        <span class="basis-full h-0"></span>${ncHtml}
         <span class="basis-full h-0"></span>
         <label for="scFile" data-scanset="${k}" class="cursor-pointer px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Ausrüstung scannen</label>
         <label for="scArmFile" data-scanset="${k}" class="cursor-pointer px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Rüstung scannen</label>`) : '',
@@ -5144,7 +5247,7 @@ window.RokApp = () => {
         <div class="ml-auto flex flex-wrap gap-2">
           ${boxy ? `<button type="button" id="scPBr" class="${btn}">↺ Standardwerte</button>` : ''}
           ${t === 'tx' || t === 'xs' ? `<button type="button" id="scPDel" class="px-3 py-1.5 rounded-lg border border-red-500/40 text-red-300 hover:bg-red-500/10">🗑 ${t === 'xs' ? 'Skin entfernen' : 'Text löschen'}</button>`
-            : t !== 'set' ? `<span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">
+            : !['set', 'pc', 'pn', 'pg', 'fm'].includes(t) ? `<span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">
                 <button type="button" id="scPShow" ${o.on ? 'disabled' : ''} class="px-3 py-1.5 ${o.on ? 'bg-ink-800 text-slate-500 cursor-default' : 'hover:bg-gold-500/15 hover:text-gold-300'}">👁 Einblenden</button>
                 <button type="button" id="scPHide" ${o.on ? '' : 'disabled'} class="px-3 py-1.5 border-l border-ink-600 ${o.on ? 'hover:bg-red-500/10 hover:text-red-300' : 'bg-ink-800 text-slate-500 cursor-default'}">⊘ Ausblenden</button></span>` : ''}
         </div>
@@ -5316,7 +5419,7 @@ window.RokApp = () => {
           <div class="flex flex-wrap gap-x-5 gap-y-1"><label class="inline-flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" data-arm="on" ${a.on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Rüstung auf der Bühne</label>
             <label class="inline-flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" data-arm="ston" ${scSet().st.on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">Werte auf der Bühne</label>
             <span class="inline-flex items-center gap-2 text-sm"><span class="text-slate-400">Anordnung</span>
-              <span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">${[[1, '▤ 1 Spalte'], [2, '▥ 2 Spalten']].map(([n, l]) => `<button type="button" data-armcols="${n}" aria-pressed="${(a.cols || 1) === n}" class="px-2.5 py-1 text-xs ${(a.cols || 1) === n ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'} ${n === 2 ? 'border-l border-ink-600' : ''}">${l}</button>`).join('')}</span></span></div>
+              <span class="inline-flex rounded-lg border border-ink-600 overflow-hidden">${[[1, '▤ 1 Spalte'], [2, '▥ 2 Spalten']].map(([n, l]) => `<button type="button" data-armcols="${n}" aria-pressed="${(a.cols || 1) === n}" class="px-2.5 py-1 text-xs ${(a.cols || 1) === n ? 'bg-gold-500/25 text-gold-200' : 'hover:text-gold-300'} ${n === 2 ? 'border-l border-ink-600' : ''}">${l}</button>`).join('')}</span></span>${scFmCtlHtml(a, true)}</div>
           ${scArmPickHtml(a)}
           <div class="flex flex-wrap items-end gap-2">
             <label><span class="text-slate-400">Truppe</span><select data-arm="troop" class="mt-1 block ${inp}">${Object.entries(SC_TROOPS).map(([k, l]) => `<option value="${k}"${k === a.troop ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
@@ -5347,7 +5450,7 @@ window.RokApp = () => {
   }
   // Klick irgendwo außerhalb eines Sets → oranger Rahmen weg
   document.addEventListener('click', (ev) => {
-    if (sc.hl == null || ev.target.closest?.('[data-el^="set:"]')) return;
+    if (sc.hl == null || ev.target.closest?.('[data-el^="set:"],[data-el^="pc:"],[data-el^="pn:"],[data-el^="pg:"]')) return;
     sc.hl = null; if (sc.doc) drawStage();
   });
   $('scImgOnly').onclick = () => {
@@ -5402,7 +5505,7 @@ window.RokApp = () => {
     ev.preventDefault();
     const key = el.dataset.el, obj = scSelObj(key); if (!obj) return;
     sc.sel = key;
-    const d0 = D(), others = [...d0.sets.map((x, i) => ['set:' + i, x]), ...d0.sets.map((x, i) => ['arm:' + i, x.arm]).filter(([, a]) => a.on), ...d0.sets.map((x, i) => ['st:' + i, x.st]).filter(([, a]) => a.on),
+    const d0 = D(), others = [...d0.sets.map((x, i) => ['set:' + i, x]).filter(([, x]) => !x.split), ...d0.sets.flatMap((x, i) => x.split ? [['pc:' + i, x.parts.c], ['pn:' + i, x.parts.n], ['pg:' + i, x.parts.g]] : []), ...d0.sets.map((x, i) => ['fm:' + i, x.arm.fm]).filter(([, f], i) => d0.sets[i].arm.fsep), ...d0.sets.map((x, i) => ['arm:' + i, x.arm]).filter(([, a]) => a.on), ...d0.sets.map((x, i) => ['st:' + i, x.st]).filter(([, a]) => a.on),
       ...Object.entries(d0.els).filter(([, w]) => w.on).map(([k, w]) => ['w:' + k, w]), ...(d0.texts || []).map(t => ['tx:' + t.id, t]), ...(d0.xskins || []).map(x => ['xs:' + x.id, x])].filter(([k]) => k !== key);
     scDrag = { el, obj, key, others, f: 100 / $('scStage').getBoundingClientRect().width, sx: ev.clientX, sy: ev.clientY, ox: obj.x, oy: obj.y, moved: false };
     try { el.setPointerCapture(ev.pointerId); } catch {} el.style.zIndex = 30;
@@ -5411,9 +5514,10 @@ window.RokApp = () => {
     if (!scDrag) return;
     let x = scDrag.ox + (ev.clientX - scDrag.sx) * scDrag.f, y = scDrag.oy + (ev.clientY - scDrag.sy) * scDrag.f;
     const d = D(), guides = [];
-    if (d.grid) [x, y] = scGridFit(scDrag.key, scDrag.obj, x, y);
+    const free = sc.free || ev.altKey; scDrag.free = scDrag.free || free;   // frei bewegen: kein Raster, kein Einrasten, kein Sync (auch mit gedrückter Alt-Taste)
+    if (d.grid && !free) [x, y] = scGridFit(scDrag.key, scDrag.obj, x, y);
     // an anderen Elementen ausrichten: Mitte, linke/rechte, obere/untere Kante (Hilfslinie erscheint)
-    const me = scBox(scDrag.key, { ...scDrag.obj, x, y });
+    const me = free ? null : scBox(scDrag.key, { ...scDrag.obj, x, y });
     if (me) { const TH = 0.9; let bx = null, by = null;
       scDrag.others.forEach(([k, o]) => { const b = scBox(k, o); if (!b) return;
         [[me.cx, b.cx, 0], [me.l, b.l, me.w / 2], [me.r, b.r, -me.w / 2], [me.cx, 50, 0]].forEach(([m, t, off]) => { const dd = Math.abs(m - t); if (dd < TH && (!bx || dd < bx.dd)) bx = { dd, x: t + off, g: t }; });
@@ -5428,7 +5532,7 @@ window.RokApp = () => {
     scDrag.el.style.left = x + 'cqw'; scDrag.el.style.top = y + 'cqw';
     // Sync: Set-Einheit (Set + Rüstung + Werte) und/oder ganze Reihe (Gear / Rüstungen / Werte) wandern mit
     const S = d.syncs || {}, m = /^(set|arm|st):(\d+)$/.exec(scDrag.key);
-    if (m && !d.sets[+m[2]].kind && (S.set || S[{ set: 'gear', arm: 'arm', st: 'st' }[m[1]]])) {
+    if (!free && m && !d.sets[+m[2]].kind && (S.set || S[{ set: 'gear', arm: 'arm', st: 'st' }[m[1]]])) {
       const t = m[1], i0 = +m[2], grp = S[{ set: 'gear', arm: 'arm', st: 'st' }[t]];
       const base = grp ? scRowSets(d, i0).filter(([x]) => scVisOf(x, t)).map(([x]) => x) : [d.sets[i0]];
       const mv = new Set(); base.forEach(x => { if (S.set) { mv.add(x); mv.add(x.arm); mv.add(x.st); } else mv.add(scObjOf(x, t)); });
@@ -5437,20 +5541,21 @@ window.RokApp = () => {
         const e = $('scEls').querySelector(`[data-el="${tt}:${i}"]`); if (e) { e.style.left = o.x + 'cqw'; e.style.top = o.y + 'cqw'; } }));
     }
   });
-  const scEndDrag = () => { if (!scDrag) return; const { moved, key } = scDrag; scDrag = null; $('scGuides').innerHTML = ''; drawStage();
-    const d = D(); if (moved) scSyncAfter(d, key);
+  const scEndDrag = () => { if (!scDrag) return; const { moved, key, free, obj } = scDrag; scDrag = null; $('scGuides').innerHTML = ''; drawStage();
+    const d = D(); if (moved && free) obj.free = true; else if (moved) scSyncAfter(d, key);   // frei platziert → bleibt genau so liegen
     drawProps(); if (moved) scSaveSoon(); };
   $('scEls').addEventListener('pointerup', scEndDrag);
   $('scEls').addEventListener('pointercancel', scEndDrag);
   $('scEls').addEventListener('click', (ev) => {                 // außerhalb des Bearbeitungsmodus: Set antippen = unten anzeigen
     if (sc.edit) return;
-    const el = ev.target.closest('[data-el^="set:"]');
+    const el = ev.target.closest('[data-el^="set:"],[data-el^="pc:"],[data-el^="pn:"],[data-el^="pg:"]');
     if (!el) { if (sc.hl != null) { sc.hl = null; drawStage(); } return; }
     const i = +el.dataset.el.split(':')[1];
     if (sc.hl === i) { $('scDetail').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }   // nochmal antippen → runter zum Set
     sc.hl = i; sc.si = i; sc.gsel = null; drawShowcase();
   });
   $('scProps').addEventListener('input', (ev) => {
+    if (ev.target.dataset.setcol != null) { const x = scSetOfSel(); if (x) { x.nc = scColor(ev.target.value); drawStage(); scSaveSoon(); } return; }
     const o = scSelObj(); if (!o) return;
     if (ev.target.id === 'scPS') {
       const before = scBox(sc.sel, o), d = D();
@@ -5473,7 +5578,10 @@ window.RokApp = () => {
     else if (ev.target.id === 'scPT') { o.text = ev.target.value.slice(0, 80); drawStage(); scSaveSoon(); }
   });
   $('scProps').addEventListener('change', (ev) => {
-    const o = scSelObj(); if (!o) return;
+    let o = scSelObj(); if (!o) return;
+    if (ev.target.dataset.setopt) o = scSetOfSel() || o;
+    if (ev.target.dataset.fsep != null) { const x = scSetOfSel(), i = D().sets.indexOf(x); if (!x) return;
+      scFmSep(x, i, ev.target.checked); sc.sel = ev.target.checked ? 'fm:' + i : 'arm:' + i; drawStage(); drawProps(); drawArm(); scSaveSoon(); return; }
     if (ev.target.id === 'scPS') { const d = D(), b = D().grid && scBox(sc.sel, o); if (b) o.y = scLine(b.t, 0) + b.h / 2;
       scSyncAfter(d, sc.sel); drawStage(); scSaveSoon(); return; }
     if (ev.target.id === 'scPNi') { o.ni = !ev.target.checked; drawStage(); scSaveSoon(); return; }
@@ -5493,6 +5601,17 @@ window.RokApp = () => {
   });
   $('scProps').addEventListener('click', (ev) => {
     const o = scSelObj(); if (!o) return;
+    const sa = ev.target.closest('[data-setact]');
+    if (sa) { const x = scSetOfSel(); if (!x) return; const i = D().sets.indexOf(x);
+      if (sa.dataset.setact === 'ncreset') { x.nc = ''; drawStage(); drawProps(); scSaveSoon(); return; }
+      const on = sa.dataset.setact === 'split'; if (on === !!x.split) return;
+      scSplit(x, i, on); sc.sel = on ? (x.cm ? 'pc:' + i : 'pg:' + i) : 'set:' + i;
+      drawStage(); drawProps(); scSave(on ? '✥ Freies Set – Kommandanten, Namen und Ausrüstung einzeln bewegen' : '🔒 Set wieder zusammengefügt'); return; }
+    const fp = ev.target.closest('[data-armfpos]');
+    if (fp) { const x = scSetOfSel(); scFmPos(x, D().sets.indexOf(x), fp.dataset.armfpos); return; }
+    if (ev.target.closest('#scPUnfree')) { const [t, k] = sc.sel.split(':'), d = D(), x = d.sets[+k]; o.free = false;
+      if (t === 'arm' && x) scArmUnder(x, true); else if (t === 'st' && x) { drawStage(); scStUnder(x, true); } else scSnapObj(sc.sel, o);
+      drawStage(); scSyncAfter(d, sc.sel); drawProps(); scSaveSoon(); return; }
     const ac = ev.target.closest('[data-armcols]');
     if (ac) { scArmCols(D().sets[+sc.sel.split(':')[1]], +ac.dataset.armcols); return; }
     const al = ev.target.closest('[data-stal]');
@@ -5614,19 +5733,26 @@ window.RokApp = () => {
       const x = d.sets[+k]; if (d.sets.length <= 1) { UI.alert('Das letzte Set kann nicht entfernt werden – stattdessen „Set zurücksetzen“ nutzen.'); return; }
       if (!(await UI.confirm(`„${x.kind ? SC_KIND[x.kind] : (x.name || 'Set ' + (+k + 1))}“ aus dem Showcase löschen?`))) return;
       d.sets.splice(+k, 1); sc.si = Math.max(0, Math.min(sc.si, d.sets.length - 1)); scRecenter(d);
-    } else if (t === 'tx') d.texts = d.texts.filter(x => x !== o);
+    } else if (t === 'pc') d.sets[+k].cm = false;
+    else if (t === 'pn') d.sets[+k].cn = false;
+    else if (t === 'pg') d.sets[+k].heads = true;
+    else if (t === 'fm') scFmSep(d.sets[+k], +k, false);
+    else if (t === 'tx') d.texts = d.texts.filter(x => x !== o);
     else if (t === 'xs') d.xskins = (d.xskins || []).filter(x => x !== o);
     else o.on = false;                                         // Anzeige / Rüstung / Werte: nur ausblenden (über „Einblenden“ zurückholbar)
     sc.sel = null; drawShowcase(); scSave('🗑 Entfernt');
   }
   $('scRemoveSel').onclick = scRemoveSel;
+  sc.free = false;
+  $('scFreeBtn').onclick = () => { sc.free = !sc.free; $('scFreeBtn').setAttribute('aria-pressed', String(sc.free));
+    scMsg(sc.free ? '✥ Frei bewegen ist an – Elemente bleiben genau dort liegen, wo du sie loslässt.' : '⊞ Frei bewegen aus – Raster und Sync gelten wieder.', 'ok'); };
   document.addEventListener('keydown', (ev) => {
     if (!sc.edit || !sc.own || !sc.sel || !['Delete', 'Backspace'].includes(ev.key)) return;
     if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable) return;
     ev.preventDefault(); scRemoveSel();
   });
   $('scProps').addEventListener('click', (ev) => { const b = ev.target.closest('[data-scanset]'); if (b) sc.si = +b.dataset.scanset; }, true);
-  $('scDone').onclick = () => { Object.assign(sc.zoom, { on: false, z: 1, x: 0, y: 0 }); scZoomApply(); sc.edit = false; sc.sel = null; drawShowcase(); scSave('✓ Showcase gespeichert'); };
+  $('scDone').onclick = () => { sc.free = false; $('scFreeBtn').setAttribute('aria-pressed', 'false'); Object.assign(sc.zoom, { on: false, z: 1, x: 0, y: 0 }); scZoomApply(); sc.edit = false; sc.sel = null; drawShowcase(); scSave('✓ Showcase gespeichert'); };
   function drawSyncMenu(d) {
     const n = Object.values(d.syncs).filter(Boolean).length;
     $('scSyncN').textContent = n ? `(${n})` : 'aus';
@@ -5677,7 +5803,8 @@ window.RokApp = () => {
   };
   $('scAuto').onclick = async () => {
     if (!(await UI.confirm('⚠ Wirklich alles symmetrisch anordnen?\n\nAlle Sets, Rüstungen und Anzeigen dieses Showcase werden automatisch neu platziert – deine eigene Anordnung geht dabei verloren.'))) return;
-    scAutoLayout(D(), false); drawShowcase(); scFixAnchors(); scFlowRows(D()); scSnapTops(); if (scSyncOn(D())) scSyncAll(D()); scSave('✓ Symmetrisch angeordnet');
+    { const d = D(); d.sets.forEach(x => { x.free = false; x.split = false; x.arm.free = false; x.st.free = false; }); Object.values(d.els).forEach(w => { w.free = false; }); (d.texts || []).forEach(t => { t.free = false; }); (d.xskins || []).forEach(t => { t.free = false; }); }
+    scAutoLayout(D(), false); drawShowcase(); scFixAnchors(); scFlowRows(D()); scSnapTops(); if (scSyncOn(D())) scSyncAll(D()); D().sets.forEach((x, i) => { if (x.arm.on && x.arm.fsep) scFmPlace(x, i); }); drawStage(); scSave('✓ Symmetrisch angeordnet');
   };
 
   // ---- City-Skin auswählen ----
@@ -6015,6 +6142,7 @@ window.RokApp = () => {
     const t = ev.target, a = scSet().arm, d = D();
     if (t.dataset.arm === 'on') { a.on = t.checked; if (a.on) scArmShow(scSet()); }
     else if (t.dataset.arm === 'ston') { scSet().st.on = t.checked; if (t.checked) scStShow(scSet()); }
+    else if (t.dataset.fsep != null) scFmSep(scSet(), d.sets.indexOf(scSet()), t.checked);
     else if (t.dataset.arm === 'troop') a.troop = SC_TROOPS[t.value] ? t.value : 'infantry';
     else if (t.dataset.insc != null && t.dataset.f === 'c') a.insc[+t.dataset.insc].c = SC_INSC[t.value] ? t.value : 'gold';
     else if (t.dataset.arm === 'formsel') { a.formation = t.value; if (t.value && !a.on) scArmShow(scSet()); }
@@ -6029,6 +6157,8 @@ window.RokApp = () => {
   $('scArm').addEventListener('click', (ev) => {
     const cb = ev.target.closest('[data-armcols]');
     if (cb && sc.own) { scArmCols(scSet(), +cb.dataset.armcols); return; }
+    const fpb = ev.target.closest('[data-armfpos]');
+    if (fpb && sc.own) { scFmPos(scSet(), D().sets.indexOf(scSet()), fpb.dataset.armfpos); return; }
     const a = scSet().arm, del = ev.target.closest('[data-inscdel]'), chip = ev.target.closest('[data-ins]');
     if (chip) {                                               // Inschrift an/aus – sortiert gold, blau, grau
       const t = chip.dataset.ins, i = a.insc.findIndex(x => x.t.toLowerCase() === t.toLowerCase());
@@ -6146,6 +6276,7 @@ window.RokApp = () => {
     const c = JSON.parse(JSON.stringify(src));
     Object.assign(x, { cmd: c.cmd, gear: c.gear, gfx: D().gfxAll ? x.gfx : c.gfx, arm: { ...c.arm, x: x.arm.x, y: x.arm.y, s: x.arm.s }, st: { ...c.st, x: x.st.x, y: x.st.y, s: x.st.s }, cg: c.cg, heads: false });
     drawStage(); if (x.arm.on && scArmVis(x.arm)) { scArmUnder(x, true); drawStage(); } if (x.st.on && scStHas(x.arm)) scStUnder(x, true);   // untereinander: Gear → Rüstung → Werte
+    if (x.arm.fsep) { drawStage(); scFmPlace(x, D().sets.indexOf(x)); }
     if (!x.kind) scSyncAfter(D(), 'set:' + D().sets.indexOf(x));
     sc.gsel = null; drawShowcase(); scSave(`✓ Übernommen aus „${srcName}“`);
   }
