@@ -152,6 +152,9 @@ tailwind.config = {
         <button id="menuScanner" role="menuitem" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
           <span>📊</span> Scanner &amp; Dashboard
         </button>
+        <button id="menuKvk" role="menuitem" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
+          <span>⚔️</span> KvK-Vorbereitung
+        </button>
         <div translate="no">
           <button id="menuLang" role="menuitem" aria-haspopup="true" aria-expanded="false" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9s1.3-6.4 3.8-9z"/></svg>
@@ -893,6 +896,15 @@ tailwind.config = {
         <button id="gearCatReload" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">↻ Katalog aus Supabase neu laden</button>
       </div>
     </details>
+  </section>
+
+  <!-- KvK-Vorbereitung -->
+  <section id="kvkView" class="hidden space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <button id="kvkBack" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">← Zurück</button>
+      <h2 class="font-display text-lg text-gold-300">⚔️ KvK-Vorbereitung</h2>
+    </div>
+    <div id="kvkRoot" class="panel rounded-2xl p-5"></div>
   </section>
 
   <!-- Rangliste -->
@@ -3376,6 +3388,7 @@ window.RokApp = () => {
     $('rankView').classList.toggle('hidden', view !== 'rank');
     $('profileView').classList.toggle('hidden', view !== 'profile');
     $('craftView').classList.toggle('hidden', view !== 'craft');
+    $('kvkView').classList.toggle('hidden', view !== 'kvk');
     $('mainNav').classList.toggle('hidden', view !== 'rank' && view !== 'craft');      // Reiter „Rangliste“ / „Craft“ nur auf der Startseite
     if (view !== 'profile') { lastMainView = view; try { localStorage.setItem('rok_view', view); } catch {} }
     if (view === 'rank') loadRanking();
@@ -3555,6 +3568,7 @@ window.RokApp = () => {
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeMenu(); });
   $('menuProfile').onclick = () => { closeMenu(); openProfile(RokAuth.userId()); };
   $('menuScanner').onclick = () => { closeMenu(); view = 'scanner'; applyView(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  $('menuKvk').onclick = () => { closeMenu(); view = 'kvk'; applyView(); window.KvKCalc?.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   let profileUid = null, lastProfileP = null, profRefreshT = null;
   const ownProfileOpen = () => view === 'profile' && profileUid && profileUid === RokAuth.userId();
@@ -3623,6 +3637,7 @@ window.RokApp = () => {
   const goRank = () => { view = 'rank'; navStack = []; applyView(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   $('profBack').onclick = goRank;
   $('scanBack').onclick = goRank;
+  $('kvkBack').onclick = goRank;
   $('brandHome').onclick = goRank;
   $('brandHome').onkeydown = (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); goRank(); } };
 
@@ -7617,5 +7632,6 @@ window.RokApp = () => {
   applyView();
 };
 </script>
+<script src="kvk-calculator.js" defer></script>
 </body>
 </html>
