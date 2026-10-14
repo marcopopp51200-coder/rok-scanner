@@ -3,8 +3,9 @@
  * für das Wiz fan Club Dashboard.
  *
  * Einbinden:   <script src="kvk-calculator.js" defer></script>
- * Erwartet:    #kvkRoot (Pflicht), optional #kvkModal (Fenster) und #menuKvk (Menüpunkt)
- * API:         window.KvKCalc.open() / .close() / .getState() / .setState(obj) / .reset()
+ * Erwartet:    #kvkRoot (Pflicht). Seiten-Modus: #kvkRoot liegt in #kvkView (Umschalten über applyView).
+ *              Popup-Modus: #kvkRoot liegt in #kvkModal (+ optional #menuKvk).
+ * API:         window.KvKCalc.open() / .render() / .close() / .getState() / .setState(obj) / .reset()
  * Event:       window 'kvkcalc:change' (detail = aktueller State) – z. B. für Supabase-Sync
  */
 (function () {
@@ -603,7 +604,8 @@
 .kvk-head h2 { margin:0; font-size:1.1rem; font-weight:700; color:var(--kvk-gold); }
 .kvk-x { background:none; border:0; color:var(--kvk-muted); font-size:1.1rem; cursor:pointer; padding:6px 10px; border-radius:8px; }
 .kvk-x:hover { background:var(--kvk-panel-2); color:var(--kvk-text); }
-#kvkRoot { overflow-y:auto; color:var(--kvk-text); }
+#kvkModal #kvkRoot { overflow-y:auto; }
+.kvk-scope { color:var(--kvk-text); }
 body.kvk-lock { overflow:hidden; }
 
 .kvk-tabs { position:sticky; top:0; z-index:2; display:flex; gap:4px; padding:8px 12px 0; background:var(--kvk-bg);
@@ -673,6 +675,11 @@ body.kvk-lock { overflow:hidden; }
 .kvk-note { font-size:.8rem; color:var(--kvk-muted); margin:0; line-height:1.5; }
 .kvk-note code { background:var(--kvk-panel-2); padding:1px 5px; border-radius:4px; }
 
+/* Seiten-Modus (eigene Ansicht wie Scanner/Profil) */
+.kvk-page .kvk-tabs { position:static; background:transparent; padding:0; }
+.kvk-page .kvk-body { padding:16px 0 0; }
+.kvk-page .kvk-foot { padding:12px 0 0; }
+
 @media (max-width: 640px) {
   #kvkModal { padding:0; }
   .kvk-window { max-height:100vh; height:100%; border-radius:0; border:0; }
@@ -695,6 +702,7 @@ body.kvk-lock { overflow:hidden; }
     modal = document.getElementById('kvkModal');
     injectStyles();
     root.classList.add('kvk-scope');
+    if (!modal) root.classList.add('kvk-page');
 
     root.addEventListener('input', onInput);
     root.addEventListener('change', onInput);
@@ -712,7 +720,8 @@ body.kvk-lock { overflow:hidden; }
       render(); // Ohne Modal: direkt im Container anzeigen
     }
 
-    const menuBtn = document.getElementById('menuKvk');
+    // Menüpunkt nur im Popup-Modus selbst verdrahten – im Seiten-Modus macht das die index.html
+    const menuBtn = modal && document.getElementById('menuKvk');
     if (menuBtn) {
       menuBtn.addEventListener('click', () => {
         const menu = document.getElementById('userMenu');
@@ -725,6 +734,7 @@ body.kvk-lock { overflow:hidden; }
   window.KvKCalc = {
     open,
     close,
+    render: () => { if (!root) init(); render(); },
     getState: () => clone(state),
     setState(obj) { state = mergeInto(freshState(), obj); save(); render(); },
     reset() { state = freshState(); save(); render(); }
