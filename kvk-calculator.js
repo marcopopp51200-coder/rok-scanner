@@ -25,6 +25,8 @@
    * perDay/days  = Kristalle kommen täglich statt sofort
    * ================================================================== */
   const CHEST_CRYSTALS = 100000;
+  // Hintergrund des Countdown-Felds (eingebettet, damit nur diese eine Datei nötig ist)
+  const TIMER_BG = 'data:image/webp;base64,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';
   const BUNDLES = [
     {
       id: 'psup', name: 'Premium Season Crystal Supply', kind: 'once',
@@ -784,7 +786,7 @@
     let wrap = el.querySelector('.kvk-fire-wrap');
     if (!wrap || wrap.dataset.lang !== lang()) {
       el.innerHTML = `<div class="kvk-fire-wrap" role="timer" data-lang="${lang()}">${labs.map((lab, i) => `
-        <div class="kvk-fire-tile" style="--d:${(i * 0.37).toFixed(2)}s">
+        <div class="kvk-fire-tile">
           <span class="kvk-fire" data-v=""></span>
           <span class="kvk-fire-lab">${lab}</span>
         </div>`).join('')}</div>`;
@@ -850,8 +852,18 @@
     x.fillStyle = g; x.fillRect(0, 0, 64, 64);
     return (SPRITES[rgb] = c);
   }
-  // Farbe je nach Lebensalter: weiß-gelb → gelb → orange → rot
-  const STAGES = [[0.08, '255,226,120'], [0.3, '255,190,30'], [0.6, '255,110,10'], [1, '200,30,0']];
+  // Farbe je nach Lebensalter: weiß-heiß an der Basis → gelb → orange → dunkelrot an der Spitze
+  const STAGES = [[0.1, '255,244,214'], [0.28, '255,206,72'], [0.5, '255,140,22'], [0.75, '235,72,4'], [1, '150,24,0']];
+  // Glatte Pseudo-Zufallskurve (Summe von Sinuswellen) für unruhiges, aber weiches Flackern
+  const noise = (t, sd) => 0.5 + 0.22 * Math.sin(t * 1.7 + sd) + 0.16 * Math.sin(t * 3.3 + sd * 1.7) + 0.12 * Math.sin(t * 7.9 + sd * 2.3);
+  let emitters = [], emW = 0;
+  function setupEmitters(w) {
+    const n = Math.max(6, Math.round(w / 38));
+    emitters = Array.from({ length: n }, (_, i) => ({
+      x: ((i + 0.5) * w) / n + (Math.random() - 0.5) * 18, sd: Math.random() * 1000, size: 0.7 + Math.random() * 0.75
+    }));
+    emW = w;
+  }
 
   function startFlames() {
     if (flamesOn) return;
@@ -870,6 +882,7 @@
     const dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth, h = cv.clientHeight;
     if (!w || !h) return;
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    if (Math.abs(emW - w) > 8) setupEmitters(w);
     const ctx = cv.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const dt = lastT ? Math.min(3, (ts - lastT) / 16.7) : 1;
@@ -877,41 +890,64 @@
     ctx.globalCompositeOperation = 'source-over';
     ctx.clearRect(0, 0, w, h);
 
-    // Glut-Intensität: ohne Datum nur schwaches Glimmen, im KvK etwas stärker
     const ph = phase();
-    const heat = !ph ? 0.25 : ph.before ? 1 : 1.2;
-    const sc = h / 80;
+    const heat = !ph ? 0.3 : ph.before ? 1 : 1.2;   // ohne Datum nur Glut, im KvK stärker
+    const sc = h / 90, t = ts / 1000;
+    const gust = Math.sin(t * 0.7) * 0.5 + Math.sin(t * 1.9) * 0.25;   // gemeinsamer Luftzug
 
-    // Neue Flammen-Partikel entlang der Unterkante (in Wellen, damit die Flammen „züngeln“)
-    const spawn = Math.min(85, w / 13) * heat * dt;
-    for (let i = 0; i < spawn; i++) {
-      const x = Math.random() * w;
-      const wave = 0.6 + 0.4 * Math.sin(x * 0.035 + ts * 0.0021) * Math.sin(x * 0.011 - ts * 0.0013);
-      if (Math.random() > wave) continue;
-      parts.push({ x, y: h + 6, vx: (Math.random() - 0.5) * 0.35, vy: -(0.7 + Math.random() * 1.6) * sc * (0.6 + wave * 0.7),
-        r: (6 + Math.random() * 11) * sc * (0.7 + wave * 0.5), life: 0, dur: 38 + Math.random() * 34, ph: Math.random() * 6.283, spark: false });
-    }
-    // Funken, die höher steigen
-    if (Math.random() < 0.18 * heat * dt) {
-      parts.push({ x: Math.random() * w, y: h - 4, vx: (Math.random() - 0.5) * 0.6, vy: -(1.6 + Math.random() * 1.6) * sc,
-        r: (1.4 + Math.random() * 1.8) * sc, life: 0, dur: 70 + Math.random() * 50, ph: Math.random() * 6.283, spark: true });
+    // Jede Flammenzunge hat ihr eigenes Flacker-Tempo → die Flammen „ticken“ unabhängig
+    for (const e of emitters) {
+      const it = Math.max(0, noise(t * 1.6, e.sd)) * heat;
+      e.it = it;
+      const n = it * 2.2 * dt;
+      for (let k = 0; k < n; k++) {
+        if (k + 1 > n && Math.random() > n % 1) break;
+        const off = (Math.random() + Math.random() - 1) * 26 * sc;
+        parts.push({ ex: e.x + off * 0.35, x: e.x + off, y: h + 3 * sc,
+          vx: (Math.random() - 0.5) * 0.25, vy: -(0.9 + Math.random() * 1.1) * sc * (0.65 + it * 0.7),
+          r: (10 + Math.random() * 9) * sc * e.size * (0.8 + it * 0.4), life: 0, dur: 26 + Math.random() * 22 + it * 14, spark: false });
+      }
+      // Funken aus besonders heißen Zungen
+      if (it > 0.75 && Math.random() < 0.035 * dt) {
+        parts.push({ ex: e.x, x: e.x, y: h - 6 * sc, vx: (Math.random() - 0.5) * 0.8, vy: -(1.8 + Math.random() * 1.8) * sc,
+          r: (1.1 + Math.random() * 1.4) * sc, life: 0, dur: 60 + Math.random() * 60, spark: true });
+      }
     }
 
     ctx.globalCompositeOperation = 'lighter';
+    // Glutbett am Boden
+    const bed = ctx.createLinearGradient(0, h, 0, h - 16 * sc);
+    bed.addColorStop(0, `rgba(255,120,20,${0.55 * Math.min(1, heat)})`); bed.addColorStop(1, 'rgba(255,60,0,0)');
+    ctx.fillStyle = bed; ctx.fillRect(0, h - 16 * sc, w, 16 * sc);
+
     const keep = [];
     for (const p of parts) {
       p.life += dt / p.dur;
-      if (p.life >= 1) continue;
-      p.x += (p.vx + Math.sin(ts * 0.004 + p.ph + p.y * 0.05) * (p.spark ? 0.6 : 0.3)) * dt;
+      if (p.life >= 1 || p.y < -20) continue;
+      const up = 1 - p.y / h;                                     // weiter oben = mehr Verwirbelung
+      if (p.spark) {
+        p.vx += (Math.sin(t * 3 + p.ex) * 0.04 + gust * 0.01) * dt;
+      } else {
+        p.vx += ((p.ex - p.x) * 0.0045 + gust * 0.014 * up) * dt;  // zur Zungenmitte ziehen → spitze Flammen
+        p.vy -= 0.012 * sc * dt;                                   // heiße Luft beschleunigt nach oben
+      }
+      p.x += (p.vx + Math.sin(t * 6 + p.y * 0.09 + p.ex) * 0.35 * up) * dt;
       p.y += p.vy * dt;
       const k = 1 - p.life;
-      const stage = STAGES.find((st) => p.life <= st[0])[1];
-      const r = p.spark ? p.r * 2.4 : p.r * (0.35 + 0.65 * k);
-      ctx.globalAlpha = p.spark ? Math.min(1, k * 1.4) : k * k * 0.42;
-      ctx.drawImage(sprite(p.spark ? '255,200,90' : stage), p.x - r, p.y - r, r * 2, r * 2);
+      if (p.spark) {
+        ctx.globalAlpha = Math.min(1, k * 1.5) * (0.7 + Math.random() * 0.3);
+        const r = p.r * 2.2;
+        ctx.drawImage(sprite('255,190,80'), p.x - r, p.y - r, r * 2, r * 2);
+      } else {
+        const stage = STAGES.find((st) => p.life <= st[0])[1];
+        const rw = p.r * Math.pow(k, 0.7) + 0.5;                  // nach oben schmaler
+        const rh = rw * (1.5 + p.life * 1.4);                      // und länger gezogen
+        ctx.globalAlpha = Math.pow(k, 1.4) * 0.42 * (0.85 + Math.random() * 0.3);
+        ctx.drawImage(sprite(stage), p.x - rw, p.y - rh * 0.65, rw * 2, rh * 2);
+      }
       keep.push(p);
     }
-    parts = keep.length > 900 ? keep.slice(-900) : keep;
+    parts = keep.length > 1100 ? keep.slice(-1100) : keep;
     ctx.globalAlpha = 1;
   }
 
@@ -1047,7 +1083,8 @@
 #kvkRoot .kvk-flame-glow { position:absolute; left:0; right:0; bottom:0; height:60px; pointer-events:none; z-index:0;
   background:radial-gradient(60% 100% at 50% 100%, rgba(255,90,0,.28), rgba(255,40,0,.08) 60%, transparent 100%);
   animation:kvk-glow 2.6s ease-in-out infinite; }
-#kvkRoot .kvk-time { border-bottom-color:rgba(255,106,0,.45); }
+#kvkRoot .kvk-time { border-bottom-color:rgba(255,106,0,.45);
+  background:linear-gradient(180deg, rgba(7,9,15,.62) 0%, rgba(7,9,15,.38) 45%, rgba(7,9,15,.72) 100%), url(${TIMER_BG}) center 60% / cover no-repeat, #0c1019; }
 @keyframes kvk-glow { 0%, 100% { opacity:.75; } 50% { opacity:1; } }
 @media (prefers-reduced-motion: reduce) { #kvkRoot .kvk-flame-glow { animation:none; } }
 #kvkRoot .kvk-fire-wrap { display:flex; justify-content:center; gap:clamp(6px, 2vw, 14px); }
