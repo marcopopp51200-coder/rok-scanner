@@ -282,7 +282,7 @@
       max: 'Max', chestsMax: 'max. 38', buildTitle: 'Bauzeit Kristallgebäude', buildSpeed: 'Bau-Tempo (%)', buildSpeedHint: 'deine Bau-Geschwindigkeit, z. B. 98',
       helps: 'Allianz-Hilfen je Stufe', helpsHint: 'max. 30 · je Hilfe 1 % der Bauzeit, mind. 1 Min', helpsShort: 'Hilfen',
       buildNeed: 'Benötigt gesamt', buildHave: 'Bau-Speedups', buildLeft: 'Übrig', buildMissing: 'Fehlt', withUni: 'mit Universal', rmStartBuys: 'Start-Käufe', packs: 'Pakete',
-      countdown: 'KvK Countdown', edit: 'Bearbeiten', bgLabel: 'Hintergrundbild', bgPick: 'Bild wählen', bgReset: 'Standard',
+      openKvk: 'KvK öffnen', countdown: 'KvK Countdown', edit: 'Bearbeiten', bgLabel: 'Hintergrundbild', bgPick: 'Bild wählen', bgReset: 'Standard',
       bgBusy: 'Bild wird verarbeitet …', bgDone: 'Hintergrund gespeichert', bgTooBig: 'Bild ist zu groß für den Browser-Speicher', bgFail: 'Bild konnte nicht gelesen werden', calTitle: 'KvK-Kalender', done: 'Fertig', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End' },
       calc: 'Berechnung', calcHint: 'Kisten, Bundles, Kosten Mine & Kristall-Tech-Gebäude', costMine: 'Kristallmine – Ziel-Stufe', costTech: 'Kristall-Tech-Gebäude – Ziel-Stufe', lv: 'Stufe', costTotal: 'Kristall-Kosten gesamt', left: 'Übrig', resOnly: 'nur Rohstoffe',
@@ -330,7 +330,7 @@
       max: 'Max', chestsMax: 'max. 38', buildTitle: 'Build time crystal buildings', buildSpeed: 'Building speed (%)', buildSpeedHint: 'your building speed, e.g. 98',
       helps: 'Alliance helps per level', helpsHint: 'max. 30 · each help 1% of build time, min. 1 min', helpsShort: 'helps',
       buildNeed: 'Needed total', buildHave: 'Building speedups', buildLeft: 'Left over', buildMissing: 'Missing', withUni: 'with universal', rmStartBuys: 'Start purchases', packs: 'packs',
-      countdown: 'KvK Countdown', edit: 'Edit', bgLabel: 'Background image', bgPick: 'Choose image', bgReset: 'Default',
+      openKvk: 'Open KvK', countdown: 'KvK Countdown', edit: 'Edit', bgLabel: 'Background image', bgPick: 'Choose image', bgReset: 'Default',
       bgBusy: 'Processing image …', bgDone: 'Background saved', bgTooBig: 'Image is too large for browser storage', bgFail: 'Image could not be read', calTitle: 'KvK calendar', done: 'Done', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End' },
       calc: 'Calculation', calcHint: 'Chests, bundles, mine & crystal tech building cost', costMine: 'Crystal mine – target level', costTech: 'Crystal tech building – target level', lv: 'Level', costTotal: 'Total crystal cost', left: 'Left over', resOnly: 'resources only',
@@ -888,14 +888,14 @@
   /* ================================================================== *
    * Ansicht
    * ================================================================== */
-  function viewHTML() {
+  // Timer-Feld (Feuer-Countdown mit Hintergrundbild und Flammen) – im KvK-Bereich und z. B. im Profil
+  function timePanelHTML(openBtn) {
     const L = t();
-
-    // ---- Zeit (kompakt, LED-Uhr) ----
-    const timePanel = `
+    return `
       <section class="kvk-time panel relative overflow-hidden rounded-2xl px-4 pt-4 sm:pt-5 pb-[72px] sm:pb-20">
         <div class="kvk-flame-glow" aria-hidden="true"></div>
         <canvas data-flames class="kvk-flames" aria-hidden="true"></canvas>
+        ${openBtn ? `<button type="button" data-kvk-open class="absolute right-3 top-3 z-20 text-xs px-3 py-1.5 rounded-lg border border-gold-500/40 bg-ink-950/60 text-gold-300 hover:border-gold-400 hover:bg-ink-950/80 backdrop-blur-sm">${L.openKvk} ›</button>` : ''}
         <div class="relative z-10 flex flex-col items-center text-center gap-2.5">
           <div class="font-display text-sm sm:text-base uppercase tracking-[.3em] text-gold-300/90">${L.countdown}</div>
           <div data-phase></div>
@@ -903,6 +903,13 @@
           <div data-startline class="text-xs text-slate-500"></div>
         </div>
       </section>`;
+  }
+
+  function viewHTML() {
+    const L = t();
+
+    // ---- Zeit (kompakt, LED-Uhr) ----
+    const timePanel = timePanelHTML();
 
     // ---- Kalender-Editor (über den Edit-Knopf) ----
     const editor = `
@@ -1291,10 +1298,13 @@
 
   /* ----- Countdown & Phase ----- */
   function renderClock() {
-    if (!root) return;
+    if (root) renderClockIn(root);
+    hosts.forEach((h) => { if (h.isConnected && h.offsetParent !== null) renderClockIn(h); });
+  }
+  function renderClockIn(scope) {
     const L = t(), ph = phase();
-    const phEl = root.querySelector('[data-phase]'), cdEl = root.querySelector('[data-countdown]');
-    const utcEl = root.querySelector('[data-utc]'), lineEl = root.querySelector('[data-startline]');
+    const phEl = scope.querySelector('[data-phase]'), cdEl = scope.querySelector('[data-countdown]');
+    const utcEl = scope.querySelector('[data-utc]'), lineEl = scope.querySelector('[data-startline]');
     if (!phEl || !cdEl) return;
     const badge = (txt, cls) => `<span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full border ${cls}">${txt}</span>`;
 
@@ -1414,7 +1424,10 @@
   const visible = () => root && root.offsetParent !== null;
   function startClock() {
     if (clock) return;
-    clock = setInterval(() => { if (visible()) renderClock(); }, 1000);
+    clock = setInterval(() => {
+      if (visible()) renderClockIn(root);
+      hosts.forEach((h) => { if (h.isConnected && h.offsetParent !== null) renderClockIn(h); });
+    }, 1000);
     startFlames();
   }
 
@@ -1424,8 +1437,27 @@
   const bgKey = () => { try { const p = window.RokAuth && window.RokAuth.current && window.RokAuth.current(); return 'kvkBg.' + (p && p.id ? p.id : 'local'); } catch (e) { return 'kvkBg.local'; } };
   const customBg = () => { try { return localStorage.getItem(bgKey()) || ''; } catch (e) { return ''; } };
   function applyBg() {
-    const sec = root && root.querySelector('.kvk-time');
-    if (sec) sec.style.setProperty('--kvk-bg', `url("${customBg() || TIMER_BG}")`);
+    const bg = `url("${customBg() || TIMER_BG}")`;
+    [root, ...hosts].forEach((sc) => { const sec = sc && sc.querySelector('.kvk-time'); if (sec) sec.style.setProperty('--kvk-bg', bg); });
+  }
+
+  /* ----- Timer auf anderen Seiten (z. B. Game Profil): gleiche Uhr, gleiche Flammen ----- */
+  const hosts = [];
+  function mountTimer(el, opts = {}) {
+    if (!el) return;
+    if (!root) init();
+    injectStyles();
+    state = load();                                        // aktuelles Konto / zuletzt gespeichertes Datum
+    el.classList.add('kvk-host');
+    el.setAttribute('translate', 'no');
+    el.innerHTML = timePanelHTML(!!opts.onOpen);
+    const b = el.querySelector('[data-kvk-open]');
+    if (b) b.onclick = () => opts.onOpen();
+    for (let i = hosts.length - 1; i >= 0; i--) if (!hosts[i].isConnected || hosts[i] === el) hosts.splice(i, 1);
+    hosts.push(el);
+    applyBg();
+    renderClockIn(el);
+    startClock();
   }
 
   // Bild über Canvas skalieren: max. 2048 px breit, Seitenverhältnis bleibt, hohe Glättung, Qualität 0.92
@@ -1469,7 +1501,7 @@
   }
 
   /* ----- Flammen am unteren Rand des Timer-Felds (Canvas-Partikel) ----- */
-  let flamesOn = false, parts = [], lastT = 0;
+  let flamesOn = false;
   const SPRITES = {};
   function sprite(rgb) {
     if (SPRITES[rgb]) return SPRITES[rgb];
@@ -1483,13 +1515,12 @@
   const STAGES = [[0.1, '255,244,214'], [0.28, '255,206,72'], [0.5, '255,140,22'], [0.75, '235,72,4'], [1, '150,24,0']];
   // Glatte Pseudo-Zufallskurve (Summe von Sinuswellen) für unruhiges, aber weiches Flackern
   const noise = (t, sd) => 0.5 + 0.22 * Math.sin(t * 1.7 + sd) + 0.16 * Math.sin(t * 3.3 + sd * 1.7) + 0.12 * Math.sin(t * 7.9 + sd * 2.3);
-  let emitters = [], emW = 0;
-  function setupEmitters(w) {
+  function setupEmitters(fx, w) {
     const n = Math.max(6, Math.round(w / 38));
-    emitters = Array.from({ length: n }, (_, i) => ({
+    fx.emitters = Array.from({ length: n }, (_, i) => ({
       x: ((i + 0.5) * w) / n + (Math.random() - 0.5) * 18, sd: Math.random() * 1000, size: 0.7 + Math.random() * 0.75
     }));
-    emW = w;
+    fx.emW = w;
   }
 
   function startFlames() {
@@ -1497,9 +1528,11 @@
     try { if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (e) { /* egal */ }
     flamesOn = true;
     const tick = (ts) => {
-      const cv = root && root.querySelector('canvas[data-flames]');
-      if (!cv || !visible() || document.hidden) { parts = []; lastT = 0; setTimeout(() => requestAnimationFrame(tick), 400); return; }
-      drawFlames(cv, ts);
+      const all = [...document.querySelectorAll('canvas[data-flames]')];
+      const live = document.hidden ? [] : all.filter((cv) => cv.offsetParent !== null);
+      all.forEach((cv) => { if (!live.includes(cv) && cv._fx) { cv._fx.parts = []; cv._fx.lastT = 0; } });
+      if (!live.length) { setTimeout(() => requestAnimationFrame(tick), 400); return; }
+      live.forEach((cv) => drawFlames(cv, ts));
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -1509,11 +1542,13 @@
     const dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth, h = cv.clientHeight;
     if (!w || !h) return;
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
-    if (Math.abs(emW - w) > 8) setupEmitters(w);
+    const fx = cv._fx || (cv._fx = { parts: [], lastT: 0, emitters: [], emW: 0 });
+    if (Math.abs(fx.emW - w) > 8) setupEmitters(fx, w);
     const ctx = cv.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const dt = lastT ? Math.min(3, (ts - lastT) / 16.7) : 1;
-    lastT = ts;
+    const dt = fx.lastT ? Math.min(3, (ts - fx.lastT) / 16.7) : 1;
+    fx.lastT = ts;
+    const parts = fx.parts;
     ctx.globalCompositeOperation = 'source-over';
     ctx.clearRect(0, 0, w, h);
 
@@ -1523,7 +1558,7 @@
     const gust = Math.sin(t * 0.7) * 0.5 + Math.sin(t * 1.9) * 0.25;   // gemeinsamer Luftzug
 
     // Jede Flammenzunge hat ihr eigenes Flacker-Tempo → die Flammen „ticken“ unabhängig
-    for (const e of emitters) {
+    for (const e of fx.emitters) {
       const it = Math.max(0, noise(t * 1.6, e.sd)) * heat;
       e.it = it;
       const n = it * 2.2 * dt;
@@ -1574,7 +1609,7 @@
       }
       keep.push(p);
     }
-    parts = keep.length > 1100 ? keep.slice(-1100) : keep;
+    fx.parts = keep.length > 1100 ? keep.slice(-1100) : keep;
     ctx.globalAlpha = 1;
   }
 
@@ -1826,41 +1861,41 @@
 #kvkRoot .kvk-masonry > * { break-inside:avoid; margin-bottom:12px; }
 @media (min-width:1024px) { #kvkRoot .kvk-masonry { columns:2; } }
 #kvkRoot .grid > * { min-width:0; }
-#kvkRoot .kvk-flames { position:absolute; left:0; right:0; bottom:0; width:100%; height:clamp(70px, 12vw, 100px); pointer-events:none; z-index:1; }
-#kvkRoot .kvk-flame-glow { position:absolute; left:0; right:0; bottom:0; height:60px; pointer-events:none; z-index:0;
+:is(#kvkRoot, .kvk-host) .kvk-flames { position:absolute; left:0; right:0; bottom:0; width:100%; height:clamp(70px, 12vw, 100px); pointer-events:none; z-index:1; }
+:is(#kvkRoot, .kvk-host) .kvk-flame-glow { position:absolute; left:0; right:0; bottom:0; height:60px; pointer-events:none; z-index:0;
   background:radial-gradient(60% 100% at 50% 100%, rgba(255,90,0,.28), rgba(255,40,0,.08) 60%, transparent 100%);
   animation:kvk-glow 2.6s ease-in-out infinite; }
-#kvkRoot .kvk-time { border-bottom-color:rgba(255,106,0,.45);
+:is(#kvkRoot, .kvk-host) .kvk-time { border-bottom-color:rgba(255,106,0,.45);
   background-color:#0c1019;
   background-image:linear-gradient(180deg, rgba(7,9,15,.66) 0%, rgba(7,9,15,.42) 45%, rgba(7,9,15,.78) 100%), var(--kvk-bg, none);
   background-size:cover; background-position:center; background-repeat:no-repeat;
   image-rendering:auto; image-rendering:high-quality; }
-#kvkRoot .kvk-time [data-startline] { color:#cbd5e1; text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.8); }
-#kvkRoot .kvk-time [data-startline] span { color:#fff; }
+:is(#kvkRoot, .kvk-host) .kvk-time [data-startline] { color:#cbd5e1; text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.8); }
+:is(#kvkRoot, .kvk-host) .kvk-time [data-startline] span { color:#fff; }
 @keyframes kvk-glow { 0%, 100% { opacity:.75; } 50% { opacity:1; } }
-@media (prefers-reduced-motion: reduce) { #kvkRoot .kvk-flame-glow { animation:none; } }
-#kvkRoot .kvk-fire-wrap { display:flex; justify-content:center; gap:clamp(6px, 2vw, 14px); }
-#kvkRoot .kvk-fire-tile { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
+@media (prefers-reduced-motion: reduce) { :is(#kvkRoot, .kvk-host) .kvk-flame-glow { animation:none; } }
+:is(#kvkRoot, .kvk-host) .kvk-fire-wrap { display:flex; justify-content:center; gap:clamp(6px, 2vw, 14px); }
+:is(#kvkRoot, .kvk-host) .kvk-fire-tile { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
   width:clamp(68px, 19vw, 124px); padding:clamp(10px, 2.4vw, 16px) 6px clamp(8px, 1.8vw, 12px); border-radius:14px; overflow:hidden;
   background:radial-gradient(120% 70% at 50% 115%, rgba(255,90,0,.22), rgba(255,60,0,.06) 45%, transparent 70%), #0c1019;
   border:1px solid rgba(255,106,0,.28);
   box-shadow:inset 0 0 20px rgba(0,0,0,.9), inset 0 -12px 26px -8px rgba(255,90,0,.28), 0 0 0 1px rgba(0,0,0,.5), 0 8px 24px -10px rgba(255,60,0,.35);
   animation:kvk-ember 3.2s ease-in-out infinite; animation-delay:var(--d, 0s); }
-#kvkRoot .kvk-fire { position:relative; display:inline-block; color:transparent; -webkit-text-fill-color:transparent;
+:is(#kvkRoot, .kvk-host) .kvk-fire { position:relative; display:inline-block; color:transparent; -webkit-text-fill-color:transparent;
   font-family:Cinzel, Georgia, serif; font-weight:800; line-height:1; letter-spacing:.02em;
   font-size:clamp(2.1rem, 8.5vw, 4.1rem); font-variant-numeric:tabular-nums; }
 /* Ebene 1 (unten): Glut – nur Schatten, flackert */
-#kvkRoot .kvk-fire::before { content:attr(data-v); position:absolute; inset:0; z-index:0;
+:is(#kvkRoot, .kvk-host) .kvk-fire::before { content:attr(data-v); position:absolute; inset:0; z-index:0;
   color:transparent; -webkit-text-fill-color:transparent;
   text-shadow:0 0 4px #ffe600, 0 -2px 10px #ff6a00, 0 -8px 20px #ff3300, 0 -15px 40px #aa0000;
   animation:fire-flicker 1.7s ease-in-out infinite; animation-delay:var(--d, 0s); }
 /* Ebene 2 (oben): Magma-Verlauf gelb → orange → rot */
-#kvkRoot .kvk-fire::after { content:attr(data-v); position:absolute; inset:0; z-index:1;
+:is(#kvkRoot, .kvk-host) .kvk-fire::after { content:attr(data-v); position:absolute; inset:0; z-index:1;
   background:linear-gradient(to bottom, #ffe600 20%, #ff6a00 50%, #e01a00 90%);
   background-size:100% 125%; background-position:50% 0%;
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent;
   animation:kvk-magma 4s ease-in-out infinite alternate; animation-delay:var(--d, 0s); }
-#kvkRoot .kvk-fire-lab { margin-top:8px; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:#fdba74; opacity:.75; }
+:is(#kvkRoot, .kvk-host) .kvk-fire-lab { margin-top:8px; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:#fdba74; opacity:.75; }
 @keyframes fire-flicker {
   0%, 100% { text-shadow:0 0 4px rgba(255,230,0,.9), 0 -3px 12px rgba(255,106,0,.8), 0 -8px 22px rgba(255,51,0,.7), 0 -18px 45px rgba(200,0,0,.6); filter:brightness(1); }
   50% { text-shadow:0 0 6px rgba(255,230,0,1), 0 -1px 10px rgba(255,106,0,.9), 0 -10px 25px rgba(255,51,0,.8), 0 -14px 38px rgba(180,0,0,.5); filter:brightness(1.1) contrast(1.1); }
@@ -1872,12 +1907,12 @@
   50% { box-shadow:inset 0 0 20px rgba(0,0,0,.9), inset 0 -14px 30px -8px rgba(255,110,0,.38), 0 0 0 1px rgba(0,0,0,.5), 0 8px 28px -10px rgba(255,80,0,.45); }
 }
 /* Kein Datum gesetzt: erloschene Glut */
-#kvkRoot .kvk-fire-wrap.is-dim .kvk-fire::after { background:linear-gradient(to bottom, #64748b, #334155); -webkit-background-clip:text; background-clip:text; animation:none; }
-#kvkRoot .kvk-fire-wrap.is-dim .kvk-fire::before { text-shadow:none; animation:none; }
-#kvkRoot .kvk-fire-wrap.is-dim .kvk-fire-tile { animation:none; border-color:#212b40; background:#0c1019; }
-#kvkRoot .kvk-fire-wrap.is-dim .kvk-fire-lab { color:#64748b; }
+:is(#kvkRoot, .kvk-host) .kvk-fire-wrap.is-dim .kvk-fire::after { background:linear-gradient(to bottom, #64748b, #334155); -webkit-background-clip:text; background-clip:text; animation:none; }
+:is(#kvkRoot, .kvk-host) .kvk-fire-wrap.is-dim .kvk-fire::before { text-shadow:none; animation:none; }
+:is(#kvkRoot, .kvk-host) .kvk-fire-wrap.is-dim .kvk-fire-tile { animation:none; border-color:#212b40; background:#0c1019; }
+:is(#kvkRoot, .kvk-host) .kvk-fire-wrap.is-dim .kvk-fire-lab { color:#64748b; }
 @media (prefers-reduced-motion: reduce) {
-  #kvkRoot .kvk-fire::after, #kvkRoot .kvk-fire::before, #kvkRoot .kvk-fire-tile { animation:none; }
+  :is(#kvkRoot, .kvk-host) .kvk-fire::after, :is(#kvkRoot, .kvk-host) .kvk-fire::before, :is(#kvkRoot, .kvk-host) .kvk-fire-tile { animation:none; }
 }`;
     document.head.appendChild(st);
   }
@@ -1936,6 +1971,7 @@
     kauKaruakCrystals,
     kauKaruakHourly,
     mineOutput,
+    mountTimer,                                     // KvKCalc.mountTimer(element, { onOpen }) – Countdown z. B. im Profil
     getState: () => clone(state),
     setState(obj) { state = mergeInto(freshState(), obj); save(); rerender(); },
     reset() { state = freshState(); save(); rerender(); }

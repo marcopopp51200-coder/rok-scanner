@@ -520,13 +520,15 @@ tailwind.config = {
     <div class="flex flex-wrap items-center justify-between gap-3">
       <button id="profBack" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">← Zurück</button>
       <div class="flex flex-wrap items-center justify-end gap-2">
-        <button id="profKvk" type="button" class="hidden inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border border-red-400/50 bg-gradient-to-r from-red-950/70 to-ink-900 text-amber-200 hover:border-amber-300 shadow-[0_0_14px_rgba(239,68,68,.25)] transition" title="KvK öffnen"></button>
         <button id="profModeBadge" type="button" class="text-xs px-2.5 py-1 rounded-full border"></button>
       </div>
     </div>
     <div id="profState" class="hidden panel rounded-2xl p-10 text-center text-sm text-slate-400"></div>
     <div id="profBody" class="hidden space-y-6">
       <div id="profHead" class="panel rounded-2xl p-6"></div>
+
+      <!-- KvK-Countdown (gleiche Uhr wie im KvK-Bereich) -->
+      <div id="profKvkTimer"></div>
 
       <!-- Bearbeiten (nur eigenes Profil) – öffnet sich als Fenster über „✎ Dein Profil“ -->
       <div id="profEditModal" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-ink-950/85 backdrop-blur-sm p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="profEditTitle">
@@ -3477,7 +3479,7 @@ window.RokApp = () => {
     $('mainNav').classList.toggle('hidden', view !== 'rank' && view !== 'craft');      // Reiter „Rangliste“ / „Craft“ nur auf der Startseite
     if (view !== 'profile') { lastMainView = view; try { localStorage.setItem('rok_view', view); } catch {} }
     if (view === 'rank') loadRanking();
-    if (view === 'profile') { loadGameProfile(); startProfKvk(); } else closeProfEdit?.();
+    if (view === 'profile') loadGameProfile(); else closeProfEdit?.();
     if (view === 'craft') renderGear();
   }
   document.querySelectorAll('.main-tab').forEach(b => b.onclick = () => { view = b.dataset.view; applyView(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
@@ -3714,37 +3716,14 @@ window.RokApp = () => {
   ];
   speedUi.profEv = speedUi.profEv || 'zenith';
 
-  // KvK-Start (aus dem KvK-Rechner: Datum, Start immer 00:00 UTC)
-  function kvkStartTs() {
-    try {
-      const st = window.KvKCalc?.getState?.();
-      let d = st?.startDate;
-      if (!d) { const id = RokAuth.userId(); const raw = localStorage.getItem(id ? RokAuth.nsOf(id) + 'kvk' : 'kvkCalc.v2'); d = raw ? JSON.parse(raw)?.startDate : ''; }
-      const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || '');
-      return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : null;
-    } catch { return null; }
+  // KvK-Countdown im Profil: dieselbe Feuer-Uhr wie im KvK-Bereich (aus kvk-calculator.js)
+  function mountProfKvk() {
+    const el = $('profKvkTimer');
+    if (!window.KvKCalc?.mountTimer) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    try { window.KvKCalc.mountTimer(el, { onOpen: () => { view = 'kvk'; applyView(); window.KvKCalc?.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } }); }
+    catch (e) { console.warn('KvK-Countdown nicht verfügbar', e); el.classList.add('hidden'); }
   }
-  const pad2 = (n) => String(n).padStart(2, '0');
-  let kvkTick = null, kvkLast = '';
-  function drawProfKvk() {
-    const b = $('profKvk');
-    if (view !== 'profile') { clearInterval(kvkTick); kvkTick = null; return; }
-    const ts = kvkStartTs();
-    let html;
-    if (ts == null) html = '<span>⚔️</span><span>KvK-Start festlegen</span>';
-    else {
-      const diff = ts - Date.now();
-      if (diff > 0) {
-        const s = Math.floor(diff / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), mi = Math.floor(s % 3600 / 60), se = s % 60;
-        const dU = window.I18N?.lang?.() === 'en' ? 'd' : 'T';
-        html = `<span>⚔️</span><span class="font-semibold">KvK-Start in</span><span class="font-bold tabular-nums text-white" translate="no">${d > 0 ? d + dU + ' ' : ''}${pad2(h)}:${pad2(mi)}:${pad2(se)}</span>`;
-      } else html = `<span>⚔️</span><span class="font-semibold">KvK läuft · Tag</span><span class="font-bold tabular-nums text-white" translate="no">${Math.floor(-diff / 86400000) + 1}</span>`;
-    }
-    if (html !== kvkLast) { b.innerHTML = html; kvkLast = html; }
-    b.classList.remove('hidden');
-  }
-  $('profKvk').onclick = () => { view = 'kvk'; applyView(); window.KvKCalc?.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
-  function startProfKvk() { kvkLast = ''; drawProfKvk(); clearInterval(kvkTick); kvkTick = setInterval(drawProfKvk, 1000); }
 
   function openProfile(uid) {
     if (!uid) return;
@@ -3811,6 +3790,7 @@ window.RokApp = () => {
       const place = sorted.findIndex(r => r.user_id === uid) + 1;
       renderGameProfile({ own, admin, row, entries, place, players: sorted.length, scansError: p.scansError, isPrivate: own ? !!RokAuth.ownMeta().is_private : !!p.isPrivate });
       $('profState').classList.add('hidden'); $('profBody').classList.remove('hidden');
+      mountProfKvk();
     } catch (e) {
       $('profState').textContent = 'Profil konnte nicht geladen werden: ' + (e.message || e);
     }
