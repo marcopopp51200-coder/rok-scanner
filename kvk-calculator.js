@@ -75,6 +75,175 @@
   ];
   const ALL_TIERS = BUNDLES.flatMap((b) => b.tiers.map((t) => ({ ...t, bundle: b })));
 
+  /* ================================================================== *
+   * KvK-DATEN (Quelle: Kings Codex Datenblätter „Crystals“, Stand Oktober 2026)
+   *   1. Crystal Buildings  – Kristallmine & Kristall-Forschungszentrum (Zeit + Kosten je Stufe)
+   *   2. Trial of Kau Karuak – Kristalle & Season Coins je Stufe und Schwierigkeit
+   *   3. Free Crystal Sources – kostenlose Kristallquellen
+   * Zeiten sind in Minuten gespeichert (Basiszeiten ohne Bau-Tempo).
+   * ================================================================== */
+  // "1d 3h 3m" → Minuten
+  const dhm = (s) => String(s).split(/\s+/).reduce((a, p) => {
+    const m = /^(\d+)([dhm])$/.exec(p);
+    return m ? a + (+m[1]) * (m[2] === 'd' ? 1440 : m[2] === 'h' ? 60 : 1) : a;
+  }, 0);
+  const lvRows = (rows) => rows.map(([level, time, crystals]) => ({ level, minutes: dhm(time), crystals }));
+
+  const KVK_DATA = {
+    meta: { source: 'Kings Codex (discord.gg/KINGSCODEX)', updated: '2026-10' },
+
+    /* ---------- 1. Kristallgebäude ---------- */
+    crystalBuildings: {
+      // Stufe 1 jedes Gebäudes: je 1.000 Nahrung, Holz, Stein; benötigt Rathaus 25
+      level1: { food: 1000, wood: 1000, stone: 1000, cityHall: 25 },
+      // „Adjusted Cost“ im Datenblatt = Gesamtzeit mit +98 % Bau-Tempo (Zeit / 1,98)
+      referenceSpeedPct: 98,
+      mine: {
+        name: { de: 'Kristallmine', en: 'Crystal Mine' },
+        popupBundleLevels: [5, 15, 20, 22, 25],          // Pop-up-Kristallbundles erscheinen bei diesen Stufen
+        levels: lvRows([
+          [2, '1h 12m', 1000], [3, '1h 26m', 2500], [4, '1h 43m', 4000], [5, '2h 4m', 5500],
+          [6, '2h 29m', 7000], [7, '2h 59m', 10000], [8, '3h 34m', 15000], [9, '4h 17m', 20000],
+          [10, '5h 9m', 25000], [11, '6h 11m', 30000], [12, '7h 25m', 37500], [13, '8h 54m', 45000],
+          [14, '10h 41m', 52500], [15, '12h 50m', 60000], [16, '15h 24m', 70000], [17, '18h 28m', 80000],
+          [18, '20h 19m', 90000], [19, '22h 21m', 100000], [20, '1d 35m', 115000], [21, '1d 3h 3m', 130000],
+          [22, '1d 5h 45m', 150000], [23, '1d 8h 44m', 200000], [24, '1d 12h', 250000], [25, '1d 15h 36m', 300000]
+        ]),
+        // Summen laut Datenblatt. Hinweis: Die Einzelzeiten sind dort auf Minuten gekürzt –
+        // ihre Summe (14d 1h 9m) liegt deshalb ~14 Min. unter der sekundengenauen Gesamtzeit.
+        totals: { minutes: dhm('14d 1h 23m'), crystals: 1800000, adjustedMinutes: dhm('7d 2h 23m') }
+      },
+      research: {
+        name: { de: 'Kristall-Forschungszentrum', en: 'Crystal Research Center' },
+        popupBundleLevels: [5, 10, 15, 18, 25],
+        levels: lvRows([
+          [2, '3h 36m', 1000], [3, '4h 19m', 2500], [4, '5h 11m', 4000], [5, '6h 13m', 5500],
+          [6, '7h 27m', 7000], [7, '8h 57m', 10000], [8, '10h 44m', 15000], [9, '12h 53m', 20000],
+          [10, '15h 28m', 25000], [11, '18h 34m', 30000], [12, '22h 17m', 37500], [13, '1d 2h 44m', 45000],
+          [14, '1d 8h 5m', 52500], [15, '1d 14h 30m', 60000], [16, '1d 22h 12m', 70000], [17, '2d 7h 27m', 80000],
+          [18, '2d 13h', 90000], [19, '2d 19h 6m', 100000], [20, '3d 1h 48m', 115000], [21, '3d 9h 11m', 130000],
+          [22, '3d 17h 18m', 150000], [23, '4d 2h 14m', 200000], [24, '4d 12h 4m', 250000], [25, '4d 22h 52m', 300000]
+        ]),
+        // Summe der gekürzten Einzelzeiten: 42d 4h 10m (~13 Min. Rundungsdifferenz zum Datenblatt)
+        totals: { minutes: dhm('42d 4h 23m'), crystals: 1800000, adjustedMinutes: dhm('21d 7h 18m') }
+      }
+    },
+
+    /* ---------- 2. Trial of Kau Karuak ---------- */
+    kauKaruak: {
+      difficulties: ['easy', 'normal', 'hard'],
+      eliteLevels: [5, 10, 15],
+      hourlyPerElite: 500,          // +500 Kristalle/Std. je geschaffter Elite-Stufe (5, 10, 15)
+      hourlyMaxStoreHours: 24,      // bis zu 24 Std. speicherbar
+      researchMaxPct: 100,          // „Karaku Reports“: bis +100 % Kau-Karuak-Kristalle (Werte unten = vor Forschung)
+      // Kristalle je Stufe: [Easy, Normal, Hard]
+      crystals: {
+        1: [9000, 28000, 50000], 2: [13000, 39000, 100000], 3: [17000, 54000, 150000], 4: [29000, 73000, 200000],
+        5: [50000, 150000, 350000], 6: [35000, 106000, 250000], 7: [40000, 123000, 300000], 8: [46000, 139000, 350000],
+        9: [63000, 199000, 400000], 10: [80000, 250000, 700000], 11: [62000, 230000, 450000], 12: [65000, 240000, 500000],
+        13: [69000, 270000, 550000], 14: [79000, 280000, 600000], 15: [100000, 350000, 1050000]
+      },
+      crystalTotals: [757000, 2531000, 6000000],
+      // Nightmare: Season Coins je Stufe
+      nightmareCoins: {
+        1: 400, 2: 500, 3: 600, 4: 700, 5: 12000, 6: 900, 7: 1000, 8: 1100,
+        9: 1200, 10: 14000, 11: 1400, 12: 1500, 13: 1600, 14: 1700, 15: 15000
+      },
+      nightmareCoinsTotal: 53600,
+      // Elite-Stufen: Season-Coins-Bonus [Easy, Normal, Hard]
+      eliteCoins: { 5: [400, 1200, 2500], 10: [600, 1600, 3000], 15: [1000, 2000, 3500] },
+      eliteCoinsTotals: [2000, 4800, 9000]
+    },
+
+    /* ---------- 3. Kostenlose Kristallquellen ---------- */
+    freeSources: {
+      // Kristallmine: Ertrag pro Stunde und maximale Auftragsgröße (nur diese Stufen sind im Datenblatt angegeben)
+      mineOutput: [
+        { level: 1, perHour: 150, maxOrder: 8000 }, { level: 5, perHour: 290, maxOrder: 13000 },
+        { level: 10, perHour: 600, maxOrder: 30000 }, { level: 15, perHour: 1800, maxOrder: 90000 },
+        { level: 20, perHour: 4300, maxOrder: 210000 }, { level: 22, perHour: 5750, maxOrder: 275000 },
+        { level: 25, perHour: 8000, maxOrder: 400000 }
+      ],
+      barbarians: [
+        { id: 'b41', label: { de: 'Barbaren Lvl 41–43', en: 'Barbarians Lvl 41–43' }, from: 41, to: 43, crystals: 400 },
+        { id: 'b44', label: { de: 'Barbaren Lvl 44–46', en: 'Barbarians Lvl 44–46' }, from: 44, to: 46, crystals: 450 },
+        { id: 'b47', label: { de: 'Barbaren Lvl 47–49', en: 'Barbarians Lvl 47–49' }, from: 47, to: 49, crystals: 500 },
+        { id: 'b50', label: { de: 'Barbaren Lvl 50–52', en: 'Barbarians Lvl 50–52' }, from: 50, to: 52, crystals: 550 },
+        { id: 'b53', label: { de: 'Barbaren Lvl 53–55', en: 'Barbarians Lvl 53–55' }, from: 53, to: 55, crystals: 600 }
+      ],
+      forts: [
+        { id: 'f11', level: 11, crystals: 2500 }, { id: 'f12', level: 12, crystals: 2750 },
+        { id: 'f13', level: 13, crystals: 3000 }, { id: 'f14', level: 14, crystals: 3250 },
+        { id: 'f15', level: 15, crystals: 3500 }
+      ],
+      kaharTheHidden: 45000,
+      bastionQuest: { min: 1500, max: 22500 },  // pro Quest, vor „Cultural Exchange“ (+100 %)
+      startOfSeason: {
+        welcomeMail: { crystals: 1500000, note: { de: 'Nur in der ersten Season of Conquest', en: 'Only in your first Season of Conquest' } },
+        crystalChests: { maxChests: 38, perChest: 100000, maxCrystals: 3800000,
+          note: { de: 'Bis zu 38 Crystal Chest III aus den in der letzten Season ausgegebenen Kristallen, geöffnet beim nächsten KvK-Start',
+                  en: 'Up to 38 Crystal Chest III from crystals spent last season, opened when your next KvK starts' } }
+      },
+      events: [
+        { id: 'crystalQuest', name: 'Crystal Quest', crystals: 10800000, free: 1200000, paid: 9600000,
+          note: { de: '50 Stufen: 1,2 Mio. Free-Track + 9,6 Mio. Paid-Track', en: '50 levels: 1.2M free track + 9.6M paid track' } },
+        { id: 'kauKaruak', name: 'Trial of Kau Karuak', crystals: 9288000,
+          note: { de: 'Alle Stufen Easy, Normal und Hard (ohne Stundenertrag)', en: 'Every level of Easy, Normal and Hard (without hourly crystals)' } },
+        { id: 'willAncients', name: 'Will of the Ancients', crystals: 145000,
+          note: { de: '7 Tage Tagesquests, davon 50.000 bei 100 Ancient Coins', en: '7 days of daily quests, 50,000 of it at 100 Ancient Coins' } },
+        { id: 'lostKingdom', name: 'Lost Kingdom Achievements', crystals: null,
+          note: { de: 'Crusader-Erfolgsbelohnungen (keine Menge angegeben)', en: 'Crusader achievement rewards (no amount given)' } }
+      ],
+      // Forschungs-Boni (Werte oben jeweils vor Forschung)
+      research: [
+        { id: 'culturalExchange', name: 'Cultural Exchange', maxPct: 100, appliesTo: 'bastion' },
+        { id: 'barbarianBounties', name: 'Barbarian Bounties', maxPct: 25, appliesTo: 'barbarians+forts' },
+        { id: 'karakuReports', name: 'Karaku Reports', maxPct: 100, appliesTo: 'kauKaruak' }
+      ],
+      // Übrige Kristalle werden am Season-Ende zu Season Coins: 800 Kristalle = 1 Coin (Forschung lohnt mehr)
+      leftoverCrystalsPerCoin: 800
+    }
+  };
+
+  // Daten schreibgeschützt machen (auch über window.KvKCalc.data nicht veränderbar)
+  (function deepFreeze(o) { Object.values(o).forEach((v) => { if (v && typeof v === 'object') deepFreeze(v); }); return Object.freeze(o); })(KVK_DATA);
+
+  /* ---------- Rechen-Helfer auf Basis der Daten ---------- */
+  // Upgrade-Kosten eines Kristallgebäudes von Stufe `from` auf Stufe `to` (z. B. 1 → 25)
+  function buildingUpgrade(type, from, to, speedPct = 0) {
+    const b = KVK_DATA.crystalBuildings[type];
+    if (!b) return null;
+    const rows = b.levels.filter((r) => r.level > from && r.level <= to);
+    const minutes = rows.reduce((a, r) => a + r.minutes, 0);
+    return {
+      crystals: rows.reduce((a, r) => a + r.crystals, 0),
+      minutes,
+      adjustedMinutes: Math.round(minutes / (1 + (speedPct || 0) / 100)),
+      levels: rows.length,
+      popupBundles: b.popupBundleLevels.filter((l) => l > from && l <= to)
+    };
+  }
+
+  // Kau-Karuak-Kristalle für Stufen 1..upTo einer Schwierigkeit, optional mit Forschungs-Bonus
+  function kauKaruakCrystals(difficulty, upTo = 15, researchPct = 0) {
+    const d = KVK_DATA.kauKaruak.difficulties.indexOf(difficulty);
+    if (d < 0) return 0;
+    let sum = 0;
+    for (let l = 1; l <= Math.min(15, upTo); l++) sum += KVK_DATA.kauKaruak.crystals[l][d];
+    return Math.round(sum * (1 + (researchPct || 0) / 100));
+  }
+
+  // Stundenertrag aus Kau-Karuak-Elite-Stufen (je +500/Std.) für eine Anzahl Stunden (max. 24 gespeichert pro Abholung)
+  function kauKaruakHourly(elitesBeaten, hours) {
+    const k = KVK_DATA.kauKaruak;
+    return Math.max(0, Math.min(3, elitesBeaten)) * k.hourlyPerElite * Math.max(0, hours);
+  }
+
+  // Kristallminen-Ertrag pro Stunde – nur für die im Datenblatt genannten Stufen exakt, sonst null
+  function mineOutput(level) {
+    return KVK_DATA.freeSources.mineOutput.find((r) => r.level === level) || null;
+  }
+
   // Bewertung nach $ pro 1 Mio Kristalle (wie im Sheet: MUST · GREAT · OK'ish · BAD)
   const RATINGS = [
     { max: 5, key: 'MUST', cls: 'bg-emerald-600 text-white', bar: '#059669' },
@@ -1245,6 +1414,11 @@
     render: () => { if (!root) init(); render(); },
     open,
     close,
+    data: KVK_DATA,
+    buildingUpgrade,
+    kauKaruakCrystals,
+    kauKaruakHourly,
+    mineOutput,
     getState: () => clone(state),
     setState(obj) { state = mergeInto(freshState(), obj); save(); rerender(); },
     reset() { state = freshState(); save(); rerender(); }
