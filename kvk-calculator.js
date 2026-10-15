@@ -53,7 +53,7 @@
       ]
     },
     {
-      id: 'mw', name: 'Mountain Warfare', kind: 'repeat', unit: { de: 'Pässe', en: 'passes' },
+      id: 'mw', name: 'Mountain Warfare', kind: 'repeat', sequential: true, unit: { de: 'Pässe', en: 'passes' },
       info: { de: '12 Std vor Pass-Öffnungen', en: '12h before pass openings' },
       tiers: [
         { id: 'mw1', label: 'Stone', usd: 4.99, cr: 250000 },
@@ -64,7 +64,7 @@
       ]
     },
     {
-      id: 'cw', name: "Conquer's Will", kind: 'repeat', unit: { de: 'Tage', en: 'days' },
+      id: 'cw', name: "Conquer's Will", kind: 'repeat', sequential: true, unit: { de: 'Tage', en: 'days' },
       info: { de: 'Tägliches Bundle', en: 'Daily bundle' },
       tiers: [
         { id: 'cw1', label: 'Stone', usd: 4.99, cr: 150000 },
@@ -73,7 +73,8 @@
       ]
     }
   ];
-  const ALL_TIERS = BUNDLES.flatMap((b) => b.tiers.map((t) => ({ ...t, bundle: b })));
+  // prev = Stufe, die vorher gekauft sein muss (nur bei sequential-Bundles)
+  const ALL_TIERS = BUNDLES.flatMap((b) => b.tiers.map((t, i) => ({ ...t, bundle: b, idx: i, prev: b.sequential && i > 0 ? b.tiers[i - 1].id : null })));
 
   /* ================================================================== *
    * KvK-DATEN (Quelle: Kings Codex Datenblätter „Crystals“, Stand Oktober 2026)
@@ -285,11 +286,11 @@
       goals: 'Kristall-Ziele', goalName: 'z. B. Kristall-Tech', goalCost: 'Kristalle', addGoal: '+ Ziel hinzufügen',
       noGoals: 'Noch keine Ziele. Füge Kristallgebäude oder Technologien mit ihren Kosten hinzu.',
       shop: 'Echtgeld-Bundles', shopHint: 'Haken setzen bzw. Anzahl eintragen, was du kaufst',
-      perMil: '$/Mio', times: '×', perDayShort: '/Tag',
+      perMil: '$/Mio', times: '×', perDayShort: '/Tag', seqHint: 'Stufen nacheinander freischalten',
       stats: 'Statistik', statsHint: 'Preis pro 1 Mio Kristalle (alle Stufen eines Bundles) – kürzer ist besser',
       maxed: 'Komplett', sel: 'Deine Auswahl', spend: 'Ausgaben', crystals: 'Kristalle', avg: 'Ø Preis',
       best: 'Bestes Angebot', worst: 'Schlechtestes Angebot', nothing: 'Noch nichts ausgewählt',
-      budget: 'Budget-Planer', budgetHint: 'Bester Mix für dein Budget (jede Stufe einmal, günstigster $/Mio zuerst)',
+      budget: 'Budget-Planer', budgetHint: 'Bester Mix für dein Budget (jede Stufe einmal, günstigster $/Mio zuerst, Stufenfolge beachtet)',
       budgetLabel: 'Budget in $', budgetGet: 'Damit bekommst du', budgetLeft: 'Rest', apply: 'Auswahl übernehmen',
       resTitle: 'Resources', resHint: 'Ressourcen-Vorrat (Gesamt)',
       res: { food: 'Nahrung', wood: 'Holz', stone: 'Stein', gold: 'Gold' },
@@ -324,11 +325,11 @@
       goals: 'Crystal goals', goalName: 'e.g. crystal tech', goalCost: 'Crystals', addGoal: '+ Add goal',
       noGoals: 'No goals yet. Add crystal buildings or technologies with their cost.',
       shop: 'Real-money bundles', shopHint: 'Tick or enter how many you buy',
-      perMil: '$/M', times: '×', perDayShort: '/day',
+      perMil: '$/M', times: '×', perDayShort: '/day', seqHint: 'tiers unlock in order',
       stats: 'Statistics', statsHint: 'Price per 1M crystals (all tiers of a bundle) – shorter is better',
       maxed: 'Maxed', sel: 'Your selection', spend: 'Spend', crystals: 'Crystals', avg: 'Avg. price',
       best: 'Best deal', worst: 'Worst deal', nothing: 'Nothing selected yet',
-      budget: 'Budget planner', budgetHint: 'Best mix for your budget (each tier once, cheapest $/M first)',
+      budget: 'Budget planner', budgetHint: 'Best mix for your budget (each tier once, cheapest $/M first, tier order respected)',
       budgetLabel: 'Budget in $', budgetGet: 'You get', budgetLeft: 'Left', apply: 'Apply selection',
       resTitle: 'Resources', resHint: 'Resource stock (total)',
       res: { food: 'Food', wood: 'Wood', stone: 'Stone', gold: 'Gold' },
@@ -406,6 +407,12 @@
         id: String(g.id || uid()), name: String(g.name || ''), cost: +g.cost || 0, on: g.on !== false
       }));
       Object.keys(st.buy).forEach((k) => { st.buy[k] = Math.max(0, +st.buy[k] || 0); if (!st.buy[k]) delete st.buy[k]; });
+      BUNDLES.filter((b) => b.sequential).forEach((b) => {   // höhere Stufe nie öfter als die davor
+        for (let i = 1; i < b.tiers.length; i++) {
+          const cap = st.buy[b.tiers[i - 1].id] || 0, id = b.tiers[i].id;
+          if ((st.buy[id] || 0) > cap) { if (cap) st.buy[id] = cap; else delete st.buy[id]; }
+        }
+      });
       return st;
     } catch (e) { return freshState(); }
   }
@@ -555,7 +562,15 @@
     const sorted = ALL_TIERS.slice().sort((a, z) => perMil(a.usd, a.cr) - perMil(z.usd, z.cr));
     let left = budget, cr = 0;
     const pick = {};
-    sorted.forEach((tr) => { if (tr.usd <= left + 1e-9) { left -= tr.usd; cr += tr.cr; pick[tr.id] = 1; } });
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const tr of sorted) {
+        if (pick[tr.id] || (tr.prev && !pick[tr.prev]) || tr.usd > left + 1e-9) continue;
+        left -= tr.usd; cr += tr.cr; pick[tr.id] = 1; changed = true;
+        break;   // nach jedem Kauf neu beim günstigsten $/Mio beginnen – evtl. ist jetzt eine Folgestufe frei
+      }
+    }
     return { pick, cr, spent: budget - left, left, count: Object.keys(pick).length };
   }
 
@@ -846,6 +861,7 @@
           <span class="min-w-0">
             <span class="block text-sm font-semibold text-slate-100">${esc(b.name)}</span>
             <span class="block text-xs text-slate-500 truncate">${esc(tx(b.info))}${b.kind === 'repeat' ? ` · ${L.times} ${tx(b.unit)}` : ''}</span>
+            ${b.sequential ? `<span class="block text-[11px] text-amber-300/80">🔒 ${L.seqHint}: ${b.tiers.map((x) => esc(tx(x.label))).join(' → ')}</span>` : ''}
           </span>
           <span data-bsum="${b.id}" class="shrink-0 text-xs text-gold-300 tabular-nums"></span>
         </summary>
@@ -1203,9 +1219,26 @@
     // Bundle-Auswahl
     if (el.dataset && el.dataset.buy) {
       const q = el.type === 'checkbox' ? (el.checked ? 1 : 0) : Math.floor(parseNum(el.value));
-      if (q) state.buy[el.dataset.buy] = q; else delete state.buy[el.dataset.buy];
-      const lab = el.closest('label');
-      if (lab) lab.classList.toggle('bg-gold-500/5', !!q);
+      const tr = ALL_TIERS.find((x) => x.id === el.dataset.buy);
+      const setQ = (id, v) => { if (v) state.buy[id] = v; else delete state.buy[id]; };
+      setQ(el.dataset.buy, q);
+      if (tr && tr.bundle.sequential) {
+        // Stufen nacheinander: niedrigere Stufen mindestens so oft, höhere höchstens so oft
+        tr.bundle.tiers.forEach((x, i) => {
+          if (i < tr.idx) setQ(x.id, Math.max(state.buy[x.id] || 0, q));
+          if (i > tr.idx) setQ(x.id, Math.min(state.buy[x.id] || 0, q));
+        });
+        tr.bundle.tiers.forEach((x) => {
+          const inp = root.querySelector(`[data-buy="${x.id}"]`);
+          if (!inp) return;
+          const v = state.buy[x.id] || 0;
+          if (inp !== el) inp.value = v || '';
+          const l = inp.closest('label'); if (l) l.classList.toggle('bg-gold-500/5', !!v);
+        });
+      } else {
+        const lab = el.closest('label');
+        if (lab) lab.classList.toggle('bg-gold-500/5', !!q);
+      }
       save(); refresh();
       return;
     }
