@@ -280,6 +280,7 @@
       statsFold: 'Stats', statsFoldHint: 'Macht, Kill-Punkte & Tote', power: 'Macht', kp: 'Kill-Punkte', deads: 'Tote', statsScanHint: 'Macht & Kill-Punkte aus deinem Statthalter-Scan', kpPerPower: 'Kill-Punkte je Macht', deadsPct: 'Tote im Verhältnis zur Macht',
       rmMine: 'Kristallmine', rmRc: 'Forschungszentrum', rmSci: 'Scientific Pioneer', lvShort: 'Stufe',
       max: 'Max', chestsMax: 'max. 38', buildTitle: 'Bauzeit Kristallgebäude', buildSpeed: 'Bau-Tempo (%)', buildSpeedHint: 'deine Bau-Geschwindigkeit, z. B. 98',
+      helps: 'Allianz-Hilfen je Stufe', helpsHint: 'max. 30 · je Hilfe 1 % der Bauzeit, mind. 1 Min', helpsShort: 'Hilfen',
       buildNeed: 'Benötigt gesamt', buildHave: 'Bau-Speedups', buildLeft: 'Übrig', buildMissing: 'Fehlt', withUni: 'mit Universal', rmStartBuys: 'Start-Käufe', packs: 'Pakete',
       countdown: 'KvK Countdown', edit: 'Bearbeiten', bgLabel: 'Hintergrundbild', bgPick: 'Bild wählen', bgReset: 'Standard',
       bgBusy: 'Bild wird verarbeitet …', bgDone: 'Hintergrund gespeichert', bgTooBig: 'Bild ist zu groß für den Browser-Speicher', bgFail: 'Bild konnte nicht gelesen werden', calTitle: 'KvK-Kalender', done: 'Fertig', startShort: 'Start',
@@ -327,6 +328,7 @@
       statsFold: 'Stats', statsFoldHint: 'Power, kill points & deads', power: 'Power', kp: 'Kill points', deads: 'Deads', statsScanHint: 'Power & kill points from your governor scan', kpPerPower: 'Kill points per power', deadsPct: 'Deads relative to power',
       rmMine: 'Crystal Mine', rmRc: 'Research Center', rmSci: 'Scientific Pioneer', lvShort: 'Level',
       max: 'Max', chestsMax: 'max. 38', buildTitle: 'Build time crystal buildings', buildSpeed: 'Building speed (%)', buildSpeedHint: 'your building speed, e.g. 98',
+      helps: 'Alliance helps per level', helpsHint: 'max. 30 · each help 1% of build time, min. 1 min', helpsShort: 'helps',
       buildNeed: 'Needed total', buildHave: 'Building speedups', buildLeft: 'Left over', buildMissing: 'Missing', withUni: 'with universal', rmStartBuys: 'Start purchases', packs: 'packs',
       countdown: 'KvK Countdown', edit: 'Edit', bgLabel: 'Background image', bgPick: 'Choose image', bgReset: 'Default',
       bgBusy: 'Processing image …', bgDone: 'Background saved', bgTooBig: 'Image is too large for browser storage', bgFail: 'Image could not be read', calTitle: 'KvK calendar', done: 'Done', startShort: 'Start',
@@ -396,6 +398,7 @@
       speed: { universal: 0, training: 0, healing: 0, research: 0, building: 0 },   // Minuten
       crystal: { start: 0, chests: 0, mineLv: 25, techLv: 25, perMarch: 0, marches: 0, other: 0 },
       buildSpeed: 0,                                                              // Bau-Tempo in % (für die Bauzeit der Kristallgebäude)
+      helps: 30,                                                                  // Allianz-Hilfen je Ausbaustufe (max. 30)
       open: { calc: true, bundles: false, res: false, stats: false, rmStart: false },                                       // eingeklappte Fenster
       buy: {},                                                                    // Stufen-ID → Anzahl
       budget: 0,
@@ -956,30 +959,45 @@
       </label>`;
     const lvSelect = (label, path, type, compact) => {
       const cur = Math.max(1, Math.min(25, Math.round(+getPath(state, path) || 25)));
-      const opts = [];
+      const items = [];
       for (let l = 25; l >= 1; l--) {
-        const c = buildingUpgrade(type, 1, l).crystals;
-        opts.push(`<option value="${l}" ${l === cur ? 'selected' : ''}>${L.lv} ${l}${compact ? '' : ` · ${c ? fmt(c) + ' 💎' : L.resOnly}`}</option>`);
+        items.push(`<button type="button" role="option" data-dd-val="${l}" aria-selected="${l === cur}"
+          class="kvk-dd-opt w-full text-left px-3 py-1.5 text-sm tabular-nums hover:bg-ink-800 aria-selected:bg-gold-500/15 aria-selected:text-gold-300">${lvLabel(type, l, compact)}</button>`);
       }
       return `
-      <label class="flex flex-col gap-1 text-xs text-slate-400">
+      <div class="flex flex-col gap-1 text-xs text-slate-400">
         <span>${label}</span>
         <span class="flex gap-1.5">
-          <select data-path="${path}" class="w-full min-w-0 bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-slate-100 tabular-nums focus:outline-none focus:border-gold-500 [color-scheme:dark]">${opts.join('')}</select>
+          <span class="kvk-dd relative w-full min-w-0" data-dd="${path}" data-type="${type}" data-compact="${compact ? 1 : ''}">
+            <button type="button" data-dd-btn aria-haspopup="listbox" aria-expanded="false"
+              class="w-full flex items-center justify-between gap-2 bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 tabular-nums hover:border-gold-500/60 focus:outline-none focus:border-gold-500">
+              <span data-dd-label class="truncate">${lvLabel(type, cur, compact)}</span><span class="text-slate-500 text-xs">▾</span>
+            </button>
+            <span role="listbox" data-dd-list class="hidden absolute left-0 right-0 top-full mt-1 z-40 max-h-64 overflow-y-auto rounded-lg border border-ink-600 bg-ink-900 shadow-2xl py-1">${items.join('')}</span>
+          </span>
           ${maxBtn(path, 25)}
         </span>
-      </label>`;
+      </div>`;
     };
     // ---- Ressourcen: AP · Speedups · Rohstoffe ----
     const card = (inner) => `<div data-card class="rounded-xl border border-ink-700 bg-ink-950/50 p-4 flex flex-col gap-3">${inner}</div>`;
     const apTile = card(`${tileHead('🧪', L.apTitle, L.apHint, 'ap')}<div data-out="ap" class="mt-auto"></div>`);
-    const speedTile = card(`${tileHead('⏱️', L.speedTitle, L.speedHint, 'speed')}<div data-out="speed"></div>
-      <div class="border-t border-ink-700 pt-3 flex flex-col gap-2">
-        <div class="text-[10px] uppercase tracking-widest text-slate-500">🏗️ ${L.buildTitle}</div>
-        <div class="grid gap-2 sm:grid-cols-2">${lvSelect('⛏️ ' + L.rmMine, 'crystal.mineLv', 'mine', true)}${lvSelect('🏛️ ' + L.rmRc, 'crystal.techLv', 'research', true)}</div>
-        <label class="grid grid-cols-[1fr_110px] items-center gap-2 text-xs text-slate-400"><span>🚀 ${L.buildSpeed} <span class="text-slate-600">· ${L.buildSpeedHint}</span></span>
-          <input type="text" inputmode="decimal" autocomplete="off" data-path="buildSpeed" value="${esc(inVal(state.buildSpeed))}" placeholder="0" class="${INPUT}"></label>
-        <div data-out="build"></div>
+    const speedTile = card(`${tileHead('⏱️', L.speedTitle, L.speedHint, 'speed')}
+      <div class="grid gap-5 lg:grid-cols-2">
+        <div data-out="speed"></div>
+        <div class="flex flex-col gap-2 lg:border-l lg:border-ink-700 lg:pl-5 border-t lg:border-t-0 border-ink-700 pt-3 lg:pt-0">
+          <div class="text-[10px] uppercase tracking-widest text-slate-500">🏗️ ${L.buildTitle}</div>
+          <div class="grid gap-2 sm:grid-cols-2">${lvSelect('⛏️ ' + L.rmMine, 'crystal.mineLv', 'mine', true)}${lvSelect('🏛️ ' + L.rmRc, 'crystal.techLv', 'research', true)}</div>
+          <div class="grid gap-2 sm:grid-cols-2">
+            <label class="flex flex-col gap-1 text-xs text-slate-400"><span>🚀 ${L.buildSpeed}</span>
+              <input type="text" inputmode="decimal" autocomplete="off" data-path="buildSpeed" value="${esc(inVal(state.buildSpeed))}" placeholder="0" class="${INPUT}">
+              <span class="text-[10px] text-slate-600">${L.buildSpeedHint}</span></label>
+            <label class="flex flex-col gap-1 text-xs text-slate-400"><span>🤝 ${L.helps}</span>
+              <span class="flex gap-1.5"><input type="text" inputmode="numeric" autocomplete="off" data-path="helps" value="${esc(String(state.helps ?? 30))}" placeholder="0" class="${INPUT}">${maxBtn('helps', 30)}</span>
+              <span class="text-[10px] text-slate-600">${L.helpsHint}</span></label>
+          </div>
+          <div data-out="build"></div>
+        </div>
       </div>`);
     const resCard = card(`${tileHead('🌾', L.resTitle, L.resHint, 'res')}
       <div class="grid grid-cols-2 gap-2">
@@ -990,7 +1008,7 @@
           </label>`).join('')}
       </div>
       <div data-out="res" class="mt-auto"></div>`);
-    const resBody = `<div class="grid gap-4 pt-3 md:grid-cols-2 items-start"><div class="flex flex-col gap-4">${apTile}${resCard}</div>${speedTile}</div>`;
+    const resBody = `<div class="grid gap-4 pt-3">${speedTile}<div class="grid gap-4 md:grid-cols-2 items-start">${apTile}${resCard}</div></div>`;
 
     // ---- Stats: Macht · Kill-Punkte · Tote ----
     const statsBody = card(`${tileHead('⚔️', L.statsFold, L.statsScanHint, 'stats')}
@@ -1241,16 +1259,27 @@
         : `<p class="text-xs text-slate-500">${L.noData}</p>`,
       build: (() => {
         const sp2 = Math.max(0, +state.buildSpeed || 0);
-        const m = buildingUpgrade('mine', 1, lvOk2(state.crystal.mineLv), sp2), rc = buildingUpgrade('research', 1, lvOk2(state.crystal.techLv), sp2);
-        const need = m.adjustedMinutes + rc.adjustedMinutes, have = state.speed.building || 0, uni = state.speed.universal || 0;
+        const helps = Math.max(0, Math.min(30, Math.round(+state.helps || 0)));
+        // je Stufe: Zeit ÷ (1 + Tempo) – dann Hilfen: jede kürzt um max(1 % der Stufenzeit, 1 Min), höchstens bis 0
+        const bt = (type, lv) => {
+          let base = 0, sped = 0, saved = 0;
+          KVK_DATA.crystalBuildings[type].levels.filter((x) => x.level <= lv).forEach((x) => {
+            const T = x.minutes / (1 + sp2 / 100);
+            base += x.minutes; sped += T; saved += Math.min(T, helps * Math.max(0.01 * T, 1));
+          });
+          return { base, sped, saved, net: sped - saved };
+        };
+        const ml = lvOk2(state.crystal.mineLv), rl = lvOk2(state.crystal.techLv);
+        const m = bt('mine', ml), rc = bt('research', rl);
+        const need = m.net + rc.net, have = state.speed.building || 0, uni = state.speed.universal || 0;
         const left = have - need, leftU = have + uni - need;
         const row = (lab, val, cls = 'text-slate-100', sub = '') => `<div class="py-1 border-b border-ink-700/60 last:border-0">
           <div class="flex items-center justify-between gap-3 text-sm"><span class="text-slate-400">${lab}</span><span class="font-semibold tabular-nums ${cls}">${val}</span></div>
           ${sub ? `<div class="text-[11px] text-slate-500 tabular-nums text-right">${sub}</div>` : ''}</div>`;
-        const base = (x) => sp2 ? `Basis ${dur(x.minutes)} ÷ ${fmt(1 + sp2 / 100, 2)}` : '';
+        const how = (x) => [sp2 ? `${dur(x.base)} ÷ ${fmt(1 + sp2 / 100, 2)} = ${dur(x.sped)}` : `${dur(x.base)}`, helps ? `− ${helps} ${L.helpsShort} ${dur(x.saved)}` : ''].filter(Boolean).join(' ');
         return `
-          ${row(`⛏️ ${L.rmMine} 1 → ${lvOk2(state.crystal.mineLv)}`, dur(m.adjustedMinutes), 'text-slate-100', base(m))}
-          ${row(`🏛️ ${L.rmRc} 1 → ${lvOk2(state.crystal.techLv)}`, dur(rc.adjustedMinutes), 'text-slate-100', base(rc))}
+          ${row(`⛏️ ${L.rmMine} 1 → ${ml}`, dur(m.net), 'text-slate-100', how(m))}
+          ${row(`🏛️ ${L.rmRc} 1 → ${rl}`, dur(rc.net), 'text-slate-100', how(rc))}
           ${row(L.buildNeed, dur(need), 'text-gold-300')}
           ${row(`🔨 ${L.buildHave}`, dur(have))}
           <div class="mt-2">${sumBox(left >= 0 ? `✓ ${L.buildLeft}` : `⚠️ ${L.buildMissing}`, `<span class="${left >= 0 ? 'text-emerald-400' : 'text-red-300'}">${dur(Math.abs(left))}</span>`,
@@ -1594,6 +1623,7 @@
       v = parseNum(el.value);
       if (el.dataset.unit === 'days') v = Math.round(v * 1440);   // Tage → Minuten
       if (el.dataset.path === 'crystal.chests') v = Math.min(38, Math.round(v));   // max. 38 Crystal Chest III
+      if (el.dataset.path === 'helps') v = Math.min(30, Math.round(v));            // max. 30 Allianz-Hilfen je Stufe
     }
     setPath(state, el.dataset.path, v);
     syncPath(el.dataset.path, el);
@@ -1613,10 +1643,26 @@
     if (el.dataset.path === 'startDate') renderClock();
   }
 
+  function lvLabel(type, l, compact) {
+    const L = t(), c = buildingUpgrade(type, 1, l).crystals;
+    return `${L.lv} ${l}${compact ? '' : ` · ${c ? fmt(c) + ' 💎' : L.resOnly}`}`;
+  }
+  function closeDropdowns(except) {
+    if (!root) return;
+    root.querySelectorAll('[data-dd]').forEach((dd) => {
+      if (dd === except) return;
+      dd.querySelector('[data-dd-list]').classList.add('hidden');
+      dd.querySelector('[data-dd-btn]').setAttribute('aria-expanded', 'false');
+    });
+  }
   // Alle Felder mit demselben data-path auf den aktuellen Wert setzen (z. B. Stufenwahl oben und bei den Speedups)
   function syncPath(path, except) {
     if (!root) return;
     const v = getPath(state, path);
+    root.querySelectorAll(`[data-dd="${path}"]`).forEach((dd) => {
+      dd.querySelector('[data-dd-label]').textContent = lvLabel(dd.dataset.type, +v, !!dd.dataset.compact);
+      dd.querySelectorAll('[data-dd-val]').forEach((o) => o.setAttribute('aria-selected', String(+o.dataset.ddVal === +v)));
+    });
     root.querySelectorAll(`[data-path="${path}"]`).forEach((x) => {
       if (x === except) return;
       if (x.tagName === 'SELECT') x.value = String(v);
@@ -1638,6 +1684,26 @@
   }
 
   function onClick(e) {
+    const ddOpt = e.target.closest('[data-dd-val]');
+    if (ddOpt) {
+      const dd = ddOpt.closest('[data-dd]');
+      setPath(state, dd.dataset.dd, +ddOpt.dataset.ddVal);
+      syncPath(dd.dataset.dd, null);
+      closeDropdowns();
+      save(); refresh();
+      return;
+    }
+    const ddBtn = e.target.closest('[data-dd-btn]');
+    if (ddBtn) {
+      const dd = ddBtn.closest('[data-dd]'), list = dd.querySelector('[data-dd-list]');
+      const willOpen = list.classList.contains('hidden');
+      closeDropdowns(dd);
+      list.classList.toggle('hidden', !willOpen);
+      ddBtn.setAttribute('aria-expanded', String(willOpen));
+      if (willOpen) { const sel = list.querySelector('[aria-selected="true"]'); if (sel) list.scrollTop = Math.max(0, sel.offsetTop - 4); }
+      return;
+    }
+    closeDropdowns();
     const maxB = e.target.closest('[data-max]');
     if (maxB) {
       e.preventDefault();
@@ -1839,6 +1905,8 @@
     window.addEventListener('pointerup', onRoadUp);
     root.addEventListener('scroll', (e) => { if (e.target.matches && e.target.matches('[data-road-scroll]')) roadArrows(); }, true);
     window.addEventListener('resize', roadArrows);
+    document.addEventListener('click', (e) => { if (root && !root.contains(e.target)) closeDropdowns(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDropdowns(); });
     root.addEventListener('toggle', (e) => {
       const d = e.target;
       if (!d || !d.dataset || !d.dataset.fold) return;
