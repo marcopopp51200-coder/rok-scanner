@@ -279,6 +279,8 @@
       spCombo: 'inkl. Universal', research: 'Forschung', building: 'Bau',
       statsFold: 'Stats', statsFoldHint: 'Macht, Kill-Punkte & Tote', power: 'Macht', kp: 'Kill-Punkte', deads: 'Tote', statsScanHint: 'Macht & Kill-Punkte aus deinem Statthalter-Scan', kpPerPower: 'Kill-Punkte je Macht', deadsPct: 'Tote im Verhältnis zur Macht',
       rmMine: 'Kristallmine', rmRc: 'Forschungszentrum', rmSci: 'Scientific Pioneer', lvShort: 'Stufe',
+      max: 'Max', chestsMax: 'max. 38', buildTitle: 'Bauzeit Kristallgebäude', buildSpeed: 'Bau-Tempo (%)', buildSpeedHint: 'deine Bau-Geschwindigkeit, z. B. 98',
+      buildNeed: 'Benötigt gesamt', buildHave: 'Bau-Speedups', buildLeft: 'Übrig', buildMissing: 'Fehlt', withUni: 'mit Universal', rmStartBuys: 'Start-Käufe', packs: 'Pakete',
       countdown: 'KvK Countdown', edit: 'Bearbeiten', bgLabel: 'Hintergrundbild', bgPick: 'Bild wählen', bgReset: 'Standard',
       bgBusy: 'Bild wird verarbeitet …', bgDone: 'Hintergrund gespeichert', bgTooBig: 'Bild ist zu groß für den Browser-Speicher', bgFail: 'Bild konnte nicht gelesen werden', calTitle: 'KvK-Kalender', done: 'Fertig', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End' },
@@ -324,6 +326,8 @@
       spCombo: 'incl. universal', research: 'Research', building: 'Building',
       statsFold: 'Stats', statsFoldHint: 'Power, kill points & deads', power: 'Power', kp: 'Kill points', deads: 'Deads', statsScanHint: 'Power & kill points from your governor scan', kpPerPower: 'Kill points per power', deadsPct: 'Deads relative to power',
       rmMine: 'Crystal Mine', rmRc: 'Research Center', rmSci: 'Scientific Pioneer', lvShort: 'Level',
+      max: 'Max', chestsMax: 'max. 38', buildTitle: 'Build time crystal buildings', buildSpeed: 'Building speed (%)', buildSpeedHint: 'your building speed, e.g. 98',
+      buildNeed: 'Needed total', buildHave: 'Building speedups', buildLeft: 'Left over', buildMissing: 'Missing', withUni: 'with universal', rmStartBuys: 'Start purchases', packs: 'packs',
       countdown: 'KvK Countdown', edit: 'Edit', bgLabel: 'Background image', bgPick: 'Choose image', bgReset: 'Default',
       bgBusy: 'Processing image …', bgDone: 'Background saved', bgTooBig: 'Image is too large for browser storage', bgFail: 'Image could not be read', calTitle: 'KvK calendar', done: 'Done', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End' },
@@ -390,8 +394,9 @@
       tab: 'start',                                                               // start | mid | end                                                              // YYYY-MM-DD (UTC-Tag, Start 00:00 UTC)
       ap: { b50: 0, b100: 0, b500: 0, b1000: 0, perDay: 0 },
       speed: { universal: 0, training: 0, healing: 0, research: 0, building: 0 },   // Minuten
-      crystal: { start: 0, chests: 0, mineLv: 1, techLv: 1, perMarch: 0, marches: 0, other: 0 },
-      open: { calc: true, bundles: false, res: false, stats: false },                                       // eingeklappte Fenster
+      crystal: { start: 0, chests: 0, mineLv: 25, techLv: 25, perMarch: 0, marches: 0, other: 0 },
+      buildSpeed: 0,                                                              // Bau-Tempo in % (für die Bauzeit der Kristallgebäude)
+      open: { calc: true, bundles: false, res: false, stats: false, rmStart: false },                                       // eingeklappte Fenster
       buy: {},                                                                    // Stufen-ID → Anzahl
       budget: 0,
       planPass: 8,                                                                // Planung bis zu diesem Pass (MW je Pass + Conquer's Will je Tag)
@@ -711,7 +716,7 @@
         if (tiers.length) startItems.push({ title: `${title} <span class="font-normal text-slate-500">· ${L.rmUnlock}</span>`, sub: lvRowsHTML(tiers, lab), ...sum(tiers), rows: true });
       });
     const dt0 = startTs() != null ? shortDate(new Date(startTs())) : '';
-    cols.push({ head: L.rmStart, date: dt0 || `${L.dayN} 0`, items: startItems });
+    cols.push({ head: L.rmStart, date: dt0 || `${L.dayN} 0`, items: startItems, collapse: true });
 
     // Conquer's Will: eine Karte je Station – Tagesbereich (von, bis] und Anzahl je Stufe
     const cwBlock = (from, to) => {
@@ -759,13 +764,25 @@
               </div>
               <div class="kvk-road-dot"><span></span></div>
               <div class="flex flex-col gap-1.5">
+                ${c.collapse && c.items.length ? `
+                <details data-fold="rmStart" class="kvk-rm-fold" ${state.open.rmStart ? 'open' : ''}>
+                  <summary class="list-none cursor-pointer rounded-lg border border-gold-500/40 bg-gold-500/5 px-2 py-1.5">
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="text-[11px] font-semibold text-slate-100">🧾 ${L.rmStartBuys} · ${c.items.length} ${L.packs}</span>
+                      <span class="kvk-rm-caret text-slate-400 text-xs">▾</span>
+                    </div>
+                    <div class="text-[11px] tabular-nums mt-0.5"><span class="text-slate-300">${usd(u)}</span> · <span class="text-gold-300">${short(cr)}</span></div>
+                  </summary>
+                  <div class="flex flex-col gap-1.5 mt-1.5">
+                ` : ''}
                 ${c.items.length ? c.items.map((it) => `
                   <div class="rounded-lg border ${it.hot ? 'border-gold-500/40 bg-gold-500/5' : 'border-ink-700 bg-ink-900/70'} px-2 py-1.5">
                     <div class="text-[11px] font-semibold text-slate-200 leading-tight">${it.title}</div>
                     <div class="text-[10px] text-slate-400 leading-snug ${it.rows ? 'mt-1' : ''}">${it.sub}</div>
                     <div class="text-[11px] tabular-nums mt-0.5 ${it.rows ? 'text-right pt-1 border-t border-ink-700' : ''}">${it.rows ? 'Σ ' : ''}<span class="text-slate-300">${usd(it.u)}</span> · <span class="text-gold-300">${short(it.c)}</span></div>
                   </div>`).join('') : `<div class="text-center text-xs text-slate-600 py-2">${L.rmNothing}</div>`}
-                ${c.items.length > 1 ? `<div class="text-[10px] text-right tabular-nums text-slate-500 pr-1">Σ ${usd(u)} · ${short(cr)}</div>` : ''}
+                ${c.collapse && c.items.length ? '</div></details>' : ''}
+                ${c.items.length > 1 && !c.collapse ? `<div class="text-[10px] text-right tabular-nums text-slate-500 pr-1">Σ ${usd(u)} · ${short(cr)}</div>` : ''}
               </div>
             </div>`;
           }).join('')}
@@ -792,7 +809,7 @@
     const mine = c.perMarch * c.marches * (1 + shop.mineBoost);
     const daily = mine + c.other + shop.supplyPerDay;
     const now = chestCr + shop.crTotal;
-    const lvOk = (v) => Math.max(1, Math.min(25, Math.round(+v || 1)));
+    const lvOk = (v) => Math.max(1, Math.min(25, Math.round(+v || 25)));
     const mineCost = buildingUpgrade('mine', 1, lvOk(c.mineLv)).crystals;
     const techCost = buildingUpgrade('research', 1, lvOk(c.techLv)).crystals;
     const goal = mineCost + techCost;
@@ -928,10 +945,42 @@
         <div class="px-4 pb-4 pt-1 border-t border-ink-700/70">${body}</div>
       </details>`;
 
+    const maxBtn = (path, val) => `<button type="button" data-max="${path}" data-val="${val}" class="shrink-0 text-[11px] font-semibold px-2.5 rounded-lg border border-gold-500/40 text-gold-300 hover:bg-gold-500/10">${L.max}</button>`;
+    const field = (label, path, val, max) => `
+      <label class="flex flex-col gap-1 text-xs text-slate-400">
+        <span>${label}</span>
+        <span class="flex gap-1.5">
+          <input type="text" inputmode="decimal" autocomplete="off" data-path="${path}" value="${esc(val)}" placeholder="0" class="${INPUT}">
+          ${max != null ? maxBtn(path, max) : ''}
+        </span>
+      </label>`;
+    const lvSelect = (label, path, type, compact) => {
+      const cur = Math.max(1, Math.min(25, Math.round(+getPath(state, path) || 25)));
+      const opts = [];
+      for (let l = 25; l >= 1; l--) {
+        const c = buildingUpgrade(type, 1, l).crystals;
+        opts.push(`<option value="${l}" ${l === cur ? 'selected' : ''}>${L.lv} ${l}${compact ? '' : ` · ${c ? fmt(c) + ' 💎' : L.resOnly}`}</option>`);
+      }
+      return `
+      <label class="flex flex-col gap-1 text-xs text-slate-400">
+        <span>${label}</span>
+        <span class="flex gap-1.5">
+          <select data-path="${path}" class="w-full min-w-0 bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-slate-100 tabular-nums focus:outline-none focus:border-gold-500 [color-scheme:dark]">${opts.join('')}</select>
+          ${maxBtn(path, 25)}
+        </span>
+      </label>`;
+    };
     // ---- Ressourcen: AP · Speedups · Rohstoffe ----
-    const card = (inner) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-4 flex flex-col gap-3">${inner}</div>`;
+    const card = (inner) => `<div data-card class="rounded-xl border border-ink-700 bg-ink-950/50 p-4 flex flex-col gap-3">${inner}</div>`;
     const apTile = card(`${tileHead('🧪', L.apTitle, L.apHint, 'ap')}<div data-out="ap" class="mt-auto"></div>`);
-    const speedTile = card(`${tileHead('⏱️', L.speedTitle, L.speedHint, 'speed')}<div data-out="speed" class="mt-auto"></div>`);
+    const speedTile = card(`${tileHead('⏱️', L.speedTitle, L.speedHint, 'speed')}<div data-out="speed"></div>
+      <div class="border-t border-ink-700 pt-3 flex flex-col gap-2">
+        <div class="text-[10px] uppercase tracking-widest text-slate-500">🏗️ ${L.buildTitle}</div>
+        <div class="grid gap-2 sm:grid-cols-2">${lvSelect('⛏️ ' + L.rmMine, 'crystal.mineLv', 'mine', true)}${lvSelect('🏛️ ' + L.rmRc, 'crystal.techLv', 'research', true)}</div>
+        <label class="grid grid-cols-[1fr_110px] items-center gap-2 text-xs text-slate-400"><span>🚀 ${L.buildSpeed} <span class="text-slate-600">· ${L.buildSpeedHint}</span></span>
+          <input type="text" inputmode="decimal" autocomplete="off" data-path="buildSpeed" value="${esc(inVal(state.buildSpeed))}" placeholder="0" class="${INPUT}"></label>
+        <div data-out="build"></div>
+      </div>`);
     const resCard = card(`${tileHead('🌾', L.resTitle, L.resHint, 'res')}
       <div class="grid grid-cols-2 gap-2">
         ${RES.map((r) => `
@@ -941,7 +990,7 @@
           </label>`).join('')}
       </div>
       <div data-out="res" class="mt-auto"></div>`);
-    const resBody = `<div class="grid gap-4 pt-3 lg:grid-cols-3 md:grid-cols-2">${apTile}${speedTile}${resCard}</div>`;
+    const resBody = `<div class="grid gap-4 pt-3 md:grid-cols-2 items-start"><div class="flex flex-col gap-4">${apTile}${resCard}</div>${speedTile}</div>`;
 
     // ---- Stats: Macht · Kill-Punkte · Tote ----
     const statsBody = card(`${tileHead('⚔️', L.statsFold, L.statsScanHint, 'stats')}
@@ -951,32 +1000,13 @@
             <span>${ic} ${lab}</span>
             <input type="text" inputmode="decimal" autocomplete="off" data-path="${path}" value="${esc(inVal(getPath(state, path)))}" placeholder="0" class="${INPUT}">
           </label>`).join('')}
-      </div>
-      <div data-out="stats2"></div>`);
+      </div>`);
 
     // ---- Berechnung ----
-    const field = (label, path, val) => `
-      <label class="flex flex-col gap-1 text-xs text-slate-400">
-        <span>${label}</span>
-        <input type="text" inputmode="decimal" autocomplete="off" data-path="${path}" value="${esc(val)}" placeholder="0" class="${INPUT}">
-      </label>`;
-    const lvSelect = (label, path, type) => {
-      const cur = Math.max(1, Math.min(25, Math.round(+getPath(state, path) || 1)));
-      const opts = [];
-      for (let l = 25; l >= 1; l--) {
-        const c = buildingUpgrade(type, 1, l).crystals;
-        opts.push(`<option value="${l}" ${l === cur ? 'selected' : ''}>${L.lv} ${l} · ${c ? fmt(c) + ' 💎' : L.resOnly}</option>`);
-      }
-      return `
-      <label class="flex flex-col gap-1 text-xs text-slate-400">
-        <span>${label}</span>
-        <select data-path="${path}" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-slate-100 tabular-nums focus:outline-none focus:border-gold-500 [color-scheme:dark]">${opts.join('')}</select>
-      </label>`;
-    };
     const calcBody = `
       <div class="flex flex-col gap-4 pt-3">
         <div class="grid gap-3 sm:grid-cols-3">
-          ${field(`📦 ${L.crChests} <span class="text-slate-500">× ${L.chestNote}</span>`, 'crystal.chests', inVal(state.crystal.chests))}
+          ${field(`📦 ${L.crChests} <span class="text-slate-500">× ${L.chestNote} · ${L.chestsMax}</span>`, 'crystal.chests', inVal(state.crystal.chests), 38)}
           ${lvSelect('⛏️ ' + L.costMine, 'crystal.mineLv', 'mine')}
           ${lvSelect('🏛️ ' + L.costTech, 'crystal.techLv', 'research')}
         </div>
@@ -1103,6 +1133,7 @@
   /* ----- Ausgaben ----- */
   function outputs(r) {
     const L = t();
+    const lvOk2 = (v) => Math.max(1, Math.min(25, Math.round(+v || 25)));
 
     // Crystal-Berechnung
     const ok = r.goal > 0 && r.diff >= 0;
@@ -1196,16 +1227,10 @@
         const tot = RES.reduce((a, x) => a + (state.res[x.k] || 0), 0);
         return tot ? sumBox(L.resSum, short(tot)) : '';
       })(),
-      stats2: (() => {
-        const st2 = state.stats; const out = [];
-        if (st2.power && st2.kp) out.push(line(L.kpPerPower, fmt(st2.kp / st2.power, 2)));
-        if (st2.power && st2.deads) out.push(line(L.deadsPct, `${fmt((st2.deads / st2.power) * 100, 1)} %`));
-        return out.length ? `<div class="mt-1">${out.join('')}</div>` : '';
-      })(),
       speed: state.src.speed || r.spTotal
         ? `${SPEED_CATS.map((c) => line(`${c.icon} ${L.cats[c.k]}`, dur(state.speed[c.k] || 0))).join('')}
            <div class="text-[10px] uppercase tracking-widest text-slate-500 mt-3 mb-1">🧾 ${L.apCalc} · ${L.spCombo}</div>
-           ${['training', 'healing', 'research', 'building'].map((k) => {
+           ${['training', 'healing'].map((k) => {
              const c = SPEED_CATS.find((x) => x.k === k);
              return `<div class="py-1 border-b border-ink-700/60 last:border-0">
                <div class="flex items-center justify-between gap-3 text-sm"><span class="text-slate-400">${c.icon} ${L.cats[k]} + ⏱️</span><span class="font-semibold tabular-nums text-slate-100">${dur((state.speed[k] || 0) + (state.speed.universal || 0))}</span></div>
@@ -1214,6 +1239,23 @@
            }).join('')}
            <div class="mt-3">${sumBox(L.total, dur(r.spTotal))}</div>`
         : `<p class="text-xs text-slate-500">${L.noData}</p>`,
+      build: (() => {
+        const sp2 = Math.max(0, +state.buildSpeed || 0);
+        const m = buildingUpgrade('mine', 1, lvOk2(state.crystal.mineLv), sp2), rc = buildingUpgrade('research', 1, lvOk2(state.crystal.techLv), sp2);
+        const need = m.adjustedMinutes + rc.adjustedMinutes, have = state.speed.building || 0, uni = state.speed.universal || 0;
+        const left = have - need, leftU = have + uni - need;
+        const row = (lab, val, cls = 'text-slate-100', sub = '') => `<div class="py-1 border-b border-ink-700/60 last:border-0">
+          <div class="flex items-center justify-between gap-3 text-sm"><span class="text-slate-400">${lab}</span><span class="font-semibold tabular-nums ${cls}">${val}</span></div>
+          ${sub ? `<div class="text-[11px] text-slate-500 tabular-nums text-right">${sub}</div>` : ''}</div>`;
+        const base = (x) => sp2 ? `Basis ${dur(x.minutes)} ÷ ${fmt(1 + sp2 / 100, 2)}` : '';
+        return `
+          ${row(`⛏️ ${L.rmMine} 1 → ${lvOk2(state.crystal.mineLv)}`, dur(m.adjustedMinutes), 'text-slate-100', base(m))}
+          ${row(`🏛️ ${L.rmRc} 1 → ${lvOk2(state.crystal.techLv)}`, dur(rc.adjustedMinutes), 'text-slate-100', base(rc))}
+          ${row(L.buildNeed, dur(need), 'text-gold-300')}
+          ${row(`🔨 ${L.buildHave}`, dur(have))}
+          <div class="mt-2">${sumBox(left >= 0 ? `✓ ${L.buildLeft}` : `⚠️ ${L.buildMissing}`, `<span class="${left >= 0 ? 'text-emerald-400' : 'text-red-300'}">${dur(Math.abs(left))}</span>`,
+            left < 0 ? `${L.withUni}: ${leftU >= 0 ? `✓ ${L.buildLeft} ${dur(leftU)}` : `${L.buildMissing} ${dur(-leftU)}`}` : '')}</div>`;
+      })(),
       crystal, shop, stats, budget, roadmap, _fsum: fsum
     };
   }
@@ -1551,12 +1593,15 @@
     else {
       v = parseNum(el.value);
       if (el.dataset.unit === 'days') v = Math.round(v * 1440);   // Tage → Minuten
+      if (el.dataset.path === 'crystal.chests') v = Math.min(38, Math.round(v));   // max. 38 Crystal Chest III
     }
     setPath(state, el.dataset.path, v);
+    syncPath(el.dataset.path, el);
     const part = el.dataset.path.split('.')[0];
     if (part in state.src && state.src[part]) {
       state.src[part] = 0;
-      const hint = el.closest('section') && el.closest('section').querySelector('[data-hint]');
+      const box = el.closest('[data-card]') || el.closest('section');
+      const hint = box && box.querySelector('[data-hint]');
       if (hint) hint.innerHTML = hint.innerHTML.split(' · ')[0];
     }
     if (el.dataset.path === 'budget') {   // kurz warten, bis fertig getippt ist – dann optimal neu rechnen
@@ -1566,6 +1611,17 @@
     }
     save(); refresh();
     if (el.dataset.path === 'startDate') renderClock();
+  }
+
+  // Alle Felder mit demselben data-path auf den aktuellen Wert setzen (z. B. Stufenwahl oben und bei den Speedups)
+  function syncPath(path, except) {
+    if (!root) return;
+    const v = getPath(state, path);
+    root.querySelectorAll(`[data-path="${path}"]`).forEach((x) => {
+      if (x === except) return;
+      if (x.tagName === 'SELECT') x.value = String(v);
+      else if (x.type !== 'checkbox' && x.dataset.kind !== 'raw') x.value = inVal(v);
+    });
   }
 
   function onBlur(e) {
@@ -1582,6 +1638,14 @@
   }
 
   function onClick(e) {
+    const maxB = e.target.closest('[data-max]');
+    if (maxB) {
+      e.preventDefault();
+      setPath(state, maxB.dataset.max, +maxB.dataset.val);
+      syncPath(maxB.dataset.max, null);
+      save(); refresh();
+      return;
+    }
     const arrow = e.target.closest('[data-road]');
     if (arrow) {
       const sc = root.querySelector('[data-road-scroll]');
@@ -1690,6 +1754,9 @@
 #kvkRoot .kvk-road-dot span { width:16px; height:16px; border-radius:999px; border:2px solid #475569; background:#0c1019; position:relative; z-index:1; }
 #kvkRoot .kvk-road-col.is-on .kvk-road-dot span { border-color:#f5c542; background:radial-gradient(circle, #fde68a 0 35%, #e0a91b 36% 100%); box-shadow:0 0 10px rgba(245,197,66,.6); }
 #kvkRoot .kvk-masonry { column-gap:12px; }
+#kvkRoot .kvk-rm-fold > summary::-webkit-details-marker { display:none; }
+#kvkRoot .kvk-rm-fold > summary::after { content:none; }
+#kvkRoot .kvk-rm-fold[open] .kvk-rm-caret { transform:rotate(180deg); display:inline-block; }
 #kvkRoot .kvk-masonry > * { break-inside:avoid; margin-bottom:12px; }
 @media (min-width:1024px) { #kvkRoot .kvk-masonry { columns:2; } }
 #kvkRoot .grid > * { min-width:0; }
