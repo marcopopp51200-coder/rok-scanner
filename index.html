@@ -33,6 +33,8 @@ tailwind.config = {
   /* Charts im Game Profil: Tooltip im App-Stil */
   #pcChart .apexcharts-tooltip.apexcharts-theme-dark { background: #0c1019; border: 1px solid rgba(245,197,66,.3); }
   #pcChart .apexcharts-tooltip.apexcharts-theme-dark .apexcharts-tooltip-title { background: #111725; border-bottom: 1px solid rgba(245,197,66,.2); }
+  #profModeBadge:not(:disabled) { cursor: pointer; }
+  #profModeBadge:not(:disabled):hover { border-color: rgba(245,197,66,.9); color: #fde68a; box-shadow: 0 0 12px rgba(245,197,66,.25); }
   #profPrivate[aria-checked="true"] span { transform: translateX(24px); }
   .lang-opt[aria-checked="false"] .lang-check { visibility: hidden; }
   .bar { transition: width .9s cubic-bezier(.2,.8,.2,1); }
@@ -517,19 +519,25 @@ tailwind.config = {
   <section id="profileView" class="hidden space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <button id="profBack" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">← Zurück</button>
-      <span id="profModeBadge" class="text-xs px-2.5 py-1 rounded-full border"></span>
+      <div class="flex flex-wrap items-center justify-end gap-2">
+        <button id="profKvk" type="button" class="hidden inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border border-red-400/50 bg-gradient-to-r from-red-950/70 to-ink-900 text-amber-200 hover:border-amber-300 shadow-[0_0_14px_rgba(239,68,68,.25)] transition" title="KvK öffnen"></button>
+        <button id="profModeBadge" type="button" class="text-xs px-2.5 py-1 rounded-full border"></button>
+      </div>
     </div>
     <div id="profState" class="hidden panel rounded-2xl p-10 text-center text-sm text-slate-400"></div>
     <div id="profBody" class="hidden space-y-6">
       <div id="profHead" class="panel rounded-2xl p-6"></div>
 
-      <!-- Bearbeiten (nur eigenes Profil) -->
-      <div id="profEdit" class="hidden panel rounded-2xl p-5">
+      <!-- Bearbeiten (nur eigenes Profil) – öffnet sich als Fenster über „✎ Dein Profil“ -->
+      <div id="profEditModal" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-ink-950/85 backdrop-blur-sm p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="profEditTitle">
+      <div class="max-w-5xl mx-auto sm:my-6">
+      <div id="profEdit" class="panel !bg-ink-900 rounded-2xl p-5 shadow-2xl ring-1 ring-gold-500/30">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-          <h3 class="font-display text-xl gold-text">Profil bearbeiten</h3>
-          <div class="flex flex-wrap gap-2">
+          <h3 id="profEditTitle" class="font-display text-xl gold-text">Profil bearbeiten</h3>
+          <div class="flex flex-wrap items-center gap-2">
             <label for="profGovFile" id="profScanGov" class="cursor-pointer text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">📷 Statthalter-Profil scannen</label>
             <input id="profGovFile" type="file" accept="image/*" class="hidden">
+            <button id="profEditClose" type="button" title="Schließen" aria-label="Schließen" class="w-9 h-9 grid place-items-center rounded-lg border border-ink-600 text-slate-300 hover:border-gold-500/60 hover:text-gold-300">✕</button>
           </div>
         </div>
         <div class="grid md:grid-cols-2 gap-5">
@@ -574,10 +582,33 @@ tailwind.config = {
             </div>
           </div>
         </div>
-        <div class="mt-3 flex flex-wrap items-center gap-3">
+        <!-- Statthalter-Werte: kommen aus dem Scan, lassen sich aber jederzeit von Hand eintragen/korrigieren -->
+        <div class="mt-5 pt-4 border-t border-ink-700">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <div class="text-sm font-semibold text-white">Statthalter-Werte</div>
+            <div class="text-[11px] text-slate-500">Werden beim Scannen ausgefüllt – falls der Scanner danebenliegt, hier von Hand eintragen.</div>
+          </div>
+          <div id="profGovFields" class="mt-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <label class="min-w-0"><span class="text-xs text-slate-400">⚡ Energie</span>
+              <input data-gov="energy" inputmode="numeric" autocomplete="off" placeholder="z. B. 85.141.754" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+            <label class="min-w-0"><span class="text-xs text-slate-400">⚔️ Kill-Punkte</span>
+              <input data-gov="kill_points" inputmode="numeric" autocomplete="off" placeholder="z. B. 5.482.675.899" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+            <label class="min-w-0"><span class="text-xs text-slate-400">🏅 Höchster Verdienst</span>
+              <input data-gov="highest_merit" inputmode="numeric" autocomplete="off" placeholder="z. B. 20.061.883" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+            <label class="min-w-0"><span class="text-xs text-slate-400">💀 Deads</span>
+              <input data-gov="deads" inputmode="numeric" autocomplete="off" placeholder="z. B. 12.500.000" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+            <label class="min-w-0"><span class="text-xs text-slate-400">🏛️ Ark of Osiris</span>
+              <input data-gov="ark_wins" inputmode="numeric" autocomplete="off" placeholder="Siege" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+            <label class="min-w-0"><span class="text-xs text-slate-400">👑 Lost Kingdom</span>
+              <input data-gov="lk_autarch" inputmode="numeric" autocomplete="off" placeholder="× Autarch" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+          </div>
+        </div>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
           <button id="profSave" class="px-5 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Profil speichern</button>
           <span id="profMsg" class="text-sm"></span>
         </div>
+      </div>
+      </div>
       </div>
 
       <!-- Showcase (aufklappbar): mehrere Showcases mit je bis zu 7 Sets -->
@@ -590,7 +621,7 @@ tailwind.config = {
           </button>
           <div class="flex flex-wrap items-center gap-2">
             <span id="scSync" class="text-[11px] text-slate-500"></span>
-            <button id="scDl" type="button" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⬇ Download</button>
+            <button id="scDl" type="button" class="hidden text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⬇ Download</button>
             <button id="scImgOnly" type="button" aria-pressed="false" title="Nur das Showcase-Bild anzeigen, ohne Sets und Details darunter" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 aria-pressed:border-gold-400 aria-pressed:bg-gold-500/15 aria-pressed:text-gold-200">🖼 Nur Bild</button>
             <div id="scTools" class="hidden flex flex-wrap gap-2">
               <button id="scEditBtn" type="button" aria-pressed="false" class="text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400 aria-pressed:bg-gold-500 aria-pressed:text-ink-950 aria-pressed:font-semibold">✎ Bearbeiten</button>
@@ -922,6 +953,7 @@ tailwind.config = {
         <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition" data-sort="merit" aria-pressed="false" role="tab">🏅 Verdienst</button>
         <button class="rank-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap transition" data-sort="vip" aria-pressed="true" role="tab">👑 VIP</button>
       </div>
+      <p class="text-[11px] text-slate-500"><span class="text-emerald-400 font-semibold">+ grün</span> = Zuwachs seit dem letzten Scan</p>
     </div>
 
     <div id="rankMe" class="hidden panel rounded-2xl p-5 ring-1 ring-gold-500/40"></div>
@@ -961,6 +993,19 @@ window.I18N = (() => {
     de: {},   // Grundsprache – Texte stehen direkt im HTML/JS
     en: {
       texts: {
+        // Rangliste-Zuwachs, Profil-Fenster, KvK-Timer, Showcase-Sichtbarkeit
+        '+ grün': '+ green', 'Zuwachs seit dem letzten Scan': 'gain since the last scan', 'seit dem letzten Scan': 'since the last scan',
+        'KvK-Start in': 'KvK starts in', 'KvK läuft · Tag': 'KvK running · Day', 'KvK-Start festlegen': 'Set KvK start', 'KvK öffnen': 'Open KvK',
+        'Statthalter-Werte': 'Governor stats', 'Werden beim Scannen ausgefüllt – falls der Scanner danebenliegt, hier von Hand eintragen.': 'Filled in when you scan – if the scanner gets something wrong, enter it here manually.',
+        'Siege': 'Wins', 'Speedups gesamt': 'Speedups total', 'nur für dich & Admins sichtbar': 'only visible to you & admins',
+        '✓ Gespeichert · Statthalter-Werte übernommen': '✓ Saved · governor stats updated', 'Prüfe Werte …': 'Checking values …', 'Abgebrochen – nichts übernommen.': 'Cancelled – nothing saved.',
+        'z. B. 85.141.754': 'e.g. 85,141,754', 'z. B. 5.482.675.899': 'e.g. 5,482,675,899', 'z. B. 20.061.883': 'e.g. 20,061,883', 'z. B. 12.500.000': 'e.g. 12,500,000',
+        'Keinen – privat': 'None – private', 'Details privat': 'Details private', 'Details öffentlich': 'Details public',
+        'Andere sehen nur das Showcase-Bild – Sets, Ausrüstung und Details darunter bleiben privat': 'Others only see the showcase image – sets, equipment and details below stay private',
+        '👁 Andere Spieler sehen deinen Showcase in deinem Profil.': '👁 Other players see your showcase in your profile.',
+        '👁 Andere Spieler sehen nur den ausgewählten Showcase.': '👁 Other players only see the selected showcase.',
+        'Details sind privat – andere sehen nur das Bild.': 'Details are private – others only see the image.',
+        '🔒 Details sind jetzt privat – andere sehen nur das Bild': '🔒 Details are now private – others only see the image', '🔓 Details sind jetzt für andere sichtbar': '🔓 Details are now visible to others',
         // Navigation & Überschriften
         'Allianz-Rangliste': 'Alliance Leaderboard', 'Rangliste': 'Leaderboard', 'Game Profil': 'Game Profile',
         'Scanner & Dashboard': 'Scanner & Dashboard', 'Profil bearbeiten': 'Edit Profile', 'Verlauf': 'History',
@@ -1205,6 +1250,8 @@ window.I18N = (() => {
         'Set gespeichert · in der Cloud (user_state)': 'Set saved · in the cloud (user_state)', 'Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': 'Saved locally · cloud unreachable, will sync automatically'
       },
       patterns: [
+        [/^Bitte nur Zahlen eintragen, z\. B\. 85\.141\.754 oder 85,1M: (.+)$/, (m, f) => 'Please enter numbers only, e.g. 85,141,754 or 85.1M: ' + f.split(', ').map(x => tr(x)).join(', ')],
+        [/^Der Screenshot zeigt die ID (\d+), in deinem Profil steht die ID (\d+)\.\n\nWerte trotzdem übernehmen\?$/, 'The screenshot shows ID $1, but your profile has ID $2.\n\nUse the values anyway?'],
         [/^✓ Größe (\d+) % übernommen$/, '✓ Size $1 % applied'],
         [/^Item „(.+)“ löschen\?(\n\nEs wird in mindestens einem Set verwendet – dieser Slot gilt danach als leer\.)?$/, (m, n, u) => `Delete item “${n}”?` + (u ? '\n\nIt is used in at least one set – that slot will be empty afterwards.' : '')],
         [/^(Kommandanten|Namen|Ausrüstung|Formation) · (.+)$/, (m, a, b) => ({ 'Kommandanten': 'Commanders', 'Namen': 'Names', 'Ausrüstung': 'Equipment', 'Formation': 'Formation' })[a] + ' · ' + b],
@@ -1593,7 +1640,9 @@ window.RokAuth = (() => {
       d.total_legendary = Math.round((+e.total_leg || 0) * 100) / 100;
       return d;
     }
-    if (e.type === 'governor') return { kill_points: n0(e.kill_points), highest_merit: n0(e.highest_merit), energy: n0(e.energy), ...(e.governor_id ? { governor_id: String(e.governor_id) } : {}) };
+    if (e.type === 'governor') { const nn = (v) => v == null || v === '' || isNaN(+v) ? null : n0(v);
+      return { kill_points: n0(e.kill_points), highest_merit: n0(e.highest_merit), energy: n0(e.energy), deads: nn(e.deads), ark_wins: nn(e.ark_wins), lk_autarch: nn(e.lk_autarch),
+               ...(e.governor_id ? { governor_id: String(e.governor_id) } : {}), ...(e.src ? { src: String(e.src).slice(0, 10) } : {}) }; }
     if (e.type === 'speedups') return { training: n0(e.training), heal: n0(e.healing), universal: n0(e.universal),
                                         building: n0(e.building), research: n0(e.research), total: n0(e.total) };
     return e;
@@ -1831,14 +1880,26 @@ window.RokAuth = (() => {
     lbKills = data?.kill_points != null ? +data.kill_points : null;
     lbMerit = data?.highest_merit != null ? +data.highest_merit : null;
     lbEnergy = data?.energy != null ? +data.energy : null;
+    lbDeads = data?.deads != null ? +data.deads : null;
+    lbArk = data?.ark_wins != null ? +data.ark_wins : null;
+    lbLk = data?.lk_autarch != null ? +data.lk_autarch : null;
+    ownGains = data?.gains && typeof data.gains === 'object' ? data.gains : {};
     ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', is_private: !!data?.is_private, governor_id: data?.governor_id || '', showcase: data?.showcase || null, kingdom: data?.kingdom || '', alliance_name: data?.alliance_name || '' };
   }
   // Aktuellen VIP-Stand melden. force = neuer Scan (immer aktualisieren), sonst nur bei geänderter Punktzahl.
   // Kill-Punkte aus dem Statthalter-Scan in die Rangliste schreiben (Spalte kill_points)
   // Statthalter-Werte in die Rangliste schreiben: kill_points und highest_merit (je eigene Spalte, einzeln gesendet)
-  let lbKills = null, lbMerit = null, lbEnergy = null;
+  let lbKills = null, lbMerit = null, lbEnergy = null, lbDeads = null, lbArk = null, lbLk = null, ownGains = {};
+  // Zuwachs seit dem letzten Scan (Spalte leaderboard.gains, jsonb: { kill_points: { d, at }, … })
+  async function saveGains(patch) {
+    if (!user || missingCols.has('gains') || !Object.keys(patch).length) return;
+    const next = { ...ownGains, ...patch };
+    const { error } = await sb.from('leaderboard').upsert({ user_id: user.id, username: profile.name.slice(0, 40), gains: next });
+    if (error) { console.warn('Zuwachs nicht gespeichert (Spalte gains in Supabase anlegen)', error); if (/gains|column|schema/i.test(error.message || '')) missingCols.add('gains'); return; }
+    ownGains = next;
+  }
   async function pushStat(col, v, cur) {
-    if (!user || v == null || !isFinite(v) || v < 0) return null;
+    if (!user || v == null || !isFinite(v) || v < 0) return cur;               // kein Wert im Scan → bisherigen Stand behalten
     v = Math.round(v);
     if (v === cur) return v;
     const row = { user_id: user.id, username: profile.name.slice(0, 40), [col]: v, updated_at: new Date().toISOString() };
@@ -1848,10 +1909,20 @@ window.RokAuth = (() => {
     if (lbLast == null) lbLast = 0;
     return v;
   }
-  async function pushGov(g) {
+  const govCur = () => ({ kill_points: lbKills, highest_merit: lbMerit, energy: lbEnergy, deads: lbDeads, ark_wins: lbArk, lk_autarch: lbLk });
+  // fresh = neuer Scan bzw. neue Eingabe → Zuwachs gegenüber dem bisherigen Stand merken
+  async function pushGov(g, fresh = false) {
+    const before = govCur();
     lbKills = await pushStat('kill_points', g?.kill_points, lbKills);
     lbMerit = await pushStat('highest_merit', g?.highest_merit, lbMerit);
     lbEnergy = await pushStat('energy', g?.energy, lbEnergy);
+    lbDeads = await pushStat('deads', g?.deads, lbDeads);
+    lbArk = await pushStat('ark_wins', g?.ark_wins, lbArk);
+    lbLk = await pushStat('lk_autarch', g?.lk_autarch, lbLk);
+    if (!fresh) return;
+    const after = govCur(), at = Date.now(), patch = {};
+    Object.keys(after).forEach(k => { if (g?.[k] != null && before[k] != null && after[k] === Math.round(+g[k])) patch[k] = { d: after[k] - before[k], at }; });
+    await saveGains(patch);
   }
   function pushVip(points, level, force = false) {
     if (!user || points == null || !isFinite(points) || points < 0) return;
@@ -1859,35 +1930,52 @@ window.RokAuth = (() => {
     if (!force && points === lbLast) return;
     clearTimeout(lbTimer);
     lbTimer = setTimeout(async () => {
+      const prev = lbLast;
       const { error } = await sb.from('leaderboard').upsert({
         user_id: user.id, username: profile.name.slice(0, 40), vip_points: points, vip_level: level || 0,
         updated_at: new Date().toISOString()
       });
-      if (error) console.error('Rangliste nicht aktualisiert', error); else lbLast = points;
+      if (error) { console.error('Rangliste nicht aktualisiert', error); return; }
+      lbLast = points;
+      if (force && prev != null && prev > 0) saveGains({ vip_points: { d: points - prev, at: Date.now() } });   // neuer VIP-Scan → Zuwachs
     }, 600);
   }
   const missingCols = new Set();   // Spalten, die in public.leaderboard (noch) fehlen
   async function loadLeaderboard() {
     // ohne city_skin laden (Bilder nur im Profil) – Fallback '*', falls Spalten fehlen
     const q = (cols) => sb.from('leaderboard').select(cols).order('vip_points', { ascending: false }).limit(500);
-    let r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar,kill_points,highest_merit');
-    if (r.error) { missingCols.add('highest_merit'); r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar,kill_points'); }
-    if (r.error) { missingCols.add('kill_points'); r = await q('user_id,username,vip_points,vip_level,updated_at,alliance_tag,avatar'); }
+    // fehlt eine Spalte, meldet Supabase „column leaderboard.x does not exist“ → ohne diese Spalte erneut laden
+    let cols = ['user_id', 'username', 'vip_points', 'vip_level', 'updated_at', 'alliance_tag', 'avatar', 'kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'gains'], r;
+    for (let i = 0; i < 12; i++) {
+      r = await q(cols.join(','));
+      if (!r.error) break;
+      const m = /column\s+(?:\w+\.)?"?(\w+)"?\s+does not exist/i.exec(r.error.message || '');
+      if (!m || !cols.includes(m[1]) || cols.indexOf(m[1]) < 7) break;
+      missingCols.add(m[1]); cols = cols.filter(c => c !== m[1]);
+    }
     if (r.error) r = await q('*');
     if (r.error) throw new Error(germanError(r.error));
     const rows = r.data || [];
-    // Fehlende Kill-Punkte / Verdienst aus dem letzten Statthalter-Scan des Spielers ergänzen
-    if (rows.some(x => x.kill_points == null || x.highest_merit == null)) {
-      const g = await sb.from('scans').select('user_id,scanned_at,data').eq('type', 'governor').order('scanned_at', { ascending: false }).limit(1000);
-      if (!g.error) {
-        const seen = new Set();
-        for (const sc of g.data || []) {
-          if (seen.has(sc.user_id)) continue; seen.add(sc.user_id);
-          const row = rows.find(x => x.user_id === sc.user_id), d = sc.data || {};
-          if (row) ['kill_points', 'highest_merit', 'energy'].forEach(k => { if (row[k] == null && d[k] != null) row[k] = +d[k]; });
-        }
-      }
-    }
+    const GOV = ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch'];
+    rows.forEach(x => { x._g = x.gains && typeof x.gains === 'object' ? { ...x.gains } : {}; });
+    // Fehlende Werte und Zuwachs aus den letzten beiden Scans des Spielers ergänzen (falls lesbar)
+    const needGov = rows.some(x => GOV.slice(0, 3).some(k => x[k] == null) || GOV.slice(0, 4).some(k => x._g[k] == null));
+    const needVip = rows.some(x => x._g.vip_points == null);
+    const [g, v] = await Promise.all([
+      needGov ? sb.from('scans').select('user_id,scanned_at,data').eq('type', 'governor').order('scanned_at', { ascending: false }).limit(2000) : null,
+      needVip ? sb.from('scans').select('user_id,scanned_at,data').eq('type', 'vip').order('scanned_at', { ascending: false }).limit(2000) : null]);
+    const lastTwo = (res) => { const m = new Map(); for (const sc of (res && !res.error ? res.data : null) || []) { const l = m.get(sc.user_id) || []; if (l.length < 2) { l.push(sc); m.set(sc.user_id, l); } } return m; };
+    const gm = lastTwo(g), vm = lastTwo(v);
+    rows.forEach(row => {
+      const [a, b] = gm.get(row.user_id) || [];
+      if (a) GOV.forEach(k => {
+        const da = a.data || {}, db = b?.data || {};
+        if (row[k] == null && da[k] != null) row[k] = +da[k];
+        if (row._g[k] == null && b && da[k] != null && db[k] != null && +row[k] === +da[k]) row._g[k] = { d: +da[k] - +db[k], at: Date.parse(a.scanned_at) };
+      });
+      const [va, vb] = vm.get(row.user_id) || [];
+      if (row._g.vip_points == null && va && vb && va.data?.after != null && vb.data?.after != null) row._g.vip_points = { d: +va.data.after - +vb.data.after, at: Date.parse(va.scanned_at) };
+    });
     return rows;
   }
 
@@ -1927,11 +2015,15 @@ window.RokAuth = (() => {
     return true;
   }
   // Öffentliches Profil eines Spielers: Kopfzeile + VIP-/Speedup-Verlauf
-  async function loadProfile(uid) {
+  async function loadProfile(uid, opts = {}) {
     const lb = await sb.from('leaderboard').select('*').eq('user_id', uid).maybeSingle();
     if (lb.error) throw new Error(germanError(lb.error));
-    // Privates Profil eines anderen Spielers: Verlauf gar nicht erst abrufen (nur die Kopfzeile ist sichtbar)
-    if (lb.data?.is_private && uid !== user?.id) return { row: lb.data, scans: [], scansError: false, isPrivate: true };
+    // Privates Profil eines anderen Spielers: Verlauf gar nicht erst abrufen (nur die Kopfzeile ist sichtbar) – Admins bekommen nur die Speedups
+    if (lb.data?.is_private && uid !== user?.id) {
+      if (!opts.admin) return { row: lb.data, scans: [], scansError: false, isPrivate: true };
+      const sp = await sb.from('scans').select('id,type,scanned_at,data').eq('user_id', uid).in('type', ['speedups']).order('scanned_at', { ascending: true });
+      return { row: lb.data, scans: sp.error ? [] : (sp.data || []).map(entryOf), scansError: !!sp.error, isPrivate: true };
+    }
     const sc = await sb.from('scans').select('id,type,scanned_at,data').eq('user_id', uid).in('type', ['vip', 'speedups', 'gems', 'ap', 'resources', 'governor', 'materials']).order('scanned_at', { ascending: true });
     return { row: lb.data, scans: sc.error ? [] : (sc.data || []).map(entryOf), scansError: !!sc.error, isPrivate: !!lb.data?.is_private };
   }
@@ -1996,6 +2088,10 @@ window.RokAuth = (() => {
     } catch { return false; }
   }
 
+  // Admin (Tabelle feature_access, feature = 'admin') – einmal pro Sitzung abfragen
+  let adminP = null;
+  const isAdmin = () => adminP || (adminP = hasFeature('admin'));
+
   // Item-Katalog des Crafting-Planers (Tabelle public.gear_items, für alle lesbar)
   async function loadGearItems() {
     const q = (cols) => sb.from('gear_items').select(cols).order('slot').order('name');
@@ -2006,7 +2102,7 @@ window.RokAuth = (() => {
     return r.data || [];
   }
 
-  return { pending: () => hasPending, hasFeature, loadGearItems, saveShowcase, uploadImage, imgBase: () => IMG_BASE, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
+  return { pending: () => hasPending, hasFeature, isAdmin, ownGains: () => ownGains, loadGearItems, saveShowcase, uploadImage, imgBase: () => IMG_BASE, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
            pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
 })();
 </script>
@@ -2647,11 +2743,12 @@ window.RokApp = () => {
   // Altdaten-Schutz: nur bekannte Zahlenfelder übernehmen
   const sanitize = (e) => {
     const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups', 'ap', 'governor', 'materials'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
-    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'materials' ? [...ALL_MAT_KEYS, 'total_leg'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'energy', 'governor_id']
+    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'materials' ? [...ALL_MAT_KEYS, 'total_leg'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'governor_id']
       : out.type === 'speedups' ? ['universal', 'building', 'research', 'training', 'healing', 'total']
       : ['food', 'wood', 'stone', 'gold', 'total', 'farmFood', 'farmWood', 'farmStone', 'farmGold', 'bagFood', 'bagWood', 'bagStone', 'bagGold'];
     keys.forEach(k => out[k] = (e[k] === null || e[k] === undefined || isNaN(+e[k])) ? null : +e[k]);
     if (out.type === 'ap' && out.total_ap == null && e.ap != null && !isNaN(+e.ap)) out.total_ap = +e.ap;   // ältere AP-Einträge
+    if (out.type === 'governor' && e.src === 'manual') out.src = 'manual';                                  // von Hand eingetragen
     return out;
   };
   history = history.filter(e => e && e.id).map(sanitize);
@@ -3380,7 +3477,7 @@ window.RokApp = () => {
     $('mainNav').classList.toggle('hidden', view !== 'rank' && view !== 'craft');      // Reiter „Rangliste“ / „Craft“ nur auf der Startseite
     if (view !== 'profile') { lastMainView = view; try { localStorage.setItem('rok_view', view); } catch {} }
     if (view === 'rank') loadRanking();
-    if (view === 'profile') loadGameProfile();
+    if (view === 'profile') { loadGameProfile(); startProfKvk(); } else closeProfEdit?.();
     if (view === 'craft') renderGear();
   }
   document.querySelectorAll('.main-tab').forEach(b => b.onclick = () => { view = b.dataset.view; applyView(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
@@ -3417,24 +3514,37 @@ window.RokApp = () => {
   let rankLoading = false;
   // Statthalter-Ranglisten: Spalte, Beschriftung, Symbol
   const RANK_STAT = {
-    kills: { col: 'kill_points',   label: 'Kill-Punkte', icon: '⚔️', sub: 'Kill-Punkten' },
+    kills: { col: 'kill_points',   label: 'Kill-Punkte', icon: '⚔️', sub: 'Kill-Punkten', extra: { col: 'deads', label: 'Deads', icon: '💀' } },
     merit: { col: 'highest_merit', label: 'Verdienst',   icon: '🏅', sub: 'höchstem Verdienst' }
   };
-  let rankSort = (() => { try { const v = localStorage.getItem('rok_rank_sort'); return RANK_STAT[v] ? v : 'vip'; } catch { return 'vip'; } })();
+  let rankSort = 'kills';   // beim Öffnen der Seite immer Kill-Punkte (Umschalten gilt nur bis zum Neuladen)
   let rankRows = [];
   document.querySelectorAll('.rank-tab').forEach(b => b.onclick = () => {
-    rankSort = b.dataset.sort; try { localStorage.setItem('rok_rank_sort', rankSort); } catch {}
+    rankSort = b.dataset.sort;
     renderRanking(rankRows);
   });
+  // Zuwachs seit dem letzten Scan (grün +, rot −, grau ±0)
+  function gainParts(r, col) {
+    const g = r?._g?.[col]; if (!g || g.d == null || !isFinite(+g.d)) return null;
+    const d = Math.round(+g.d);
+    return { d, txt: (d > 0 ? '+' : d < 0 ? '−' : '±') + fmt(Math.abs(d)), cls: d > 0 ? 'text-emerald-400' : d < 0 ? 'text-red-300' : 'text-slate-500' };
+  }
+  const gainHtml = (r, col) => { const g = gainParts(r, col); return g ? `<div class="text-[11px] font-semibold tabular-nums ${g.cls}" title="Zuwachs seit dem letzten Scan">${g.txt}</div>` : ''; };
+  const gainLine = (r, col) => { const g = gainParts(r, col); return g ? `<div class="text-xs tabular-nums"><span class="font-semibold ${g.cls}">${g.txt}</span> <span class="text-slate-500">seit dem letzten Scan</span></div>` : ''; };
+  // neuester eigener Statthalter-Wert je Feld (auch aus älteren Scans, falls der neueste ihn nicht enthält)
+  function govLatest(k, list) {
+    const l = (list || history).filter(e => e.type === 'governor' && e[k] != null).sort((a, b) => b.ts - a.ts);
+    return l.length ? +l[0][k] : null;
+  }
   async function loadRanking() {
     if (rankLoading) return;
     rankLoading = true;
     $('rankState').classList.remove('hidden'); $('rankState').textContent = 'Lade Rangliste …';
     try {
       const rows = (await RokAuth.loadLeaderboard())
-        .map(r => ({ ...r, vip_points: +r.vip_points || 0, kill_points: r.kill_points == null ? null : +r.kill_points, highest_merit: r.highest_merit == null ? null : +r.highest_merit }));
-      const myGov = history.filter(e => e.type === 'governor').sort((a, b) => b.ts - a.ts)[0], me = rows.find(r => r.user_id === RokAuth.userId());
-      if (myGov && me) ['kill_points', 'highest_merit'].forEach(k => { if (me[k] == null && myGov[k] != null) me[k] = +myGov[k]; });
+        .map(r => { const o = { ...r, vip_points: +r.vip_points || 0, _g: r._g || {} }; ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch'].forEach(k => { o[k] = r[k] == null ? null : +r[k]; }); return o; });
+      const me = rows.find(r => r.user_id === RokAuth.userId());
+      if (me) { ['kill_points', 'highest_merit', 'deads'].forEach(k => { if (me[k] == null) { const g = govLatest(k); if (g != null) me[k] = g; } }); me._g = { ...me._g, ...RokAuth.ownGains() }; }
       rankRows = rows;
       renderRanking(rows);
     } catch (e) {
@@ -3450,8 +3560,9 @@ window.RokApp = () => {
       ? (a, b) => ((b[stat.col] ?? -1) - (a[stat.col] ?? -1)) || byName(a, b)       // ohne Wert ans Ende
       : (a, b) => (b.vip_points - a.vip_points) || (new Date(a.updated_at) - new Date(b.updated_at)) || byName(a, b));
     const th = (t, cls = 'text-left') => `<th class="py-2 px-3 ${cls} font-medium whitespace-nowrap">${t}</th>`;
+    const ex = kills ? stat.extra : null;
     $('rankHead').innerHTML = '<tr>' + th('Platz', 'text-left w-20') + th('Spieler') + (kills
-      ? th(`${stat.icon} ${stat.label}`, 'text-right') + th('Zuletzt aktualisiert', 'text-right')
+      ? th(`${stat.icon} ${stat.label}`, 'text-right') + (ex ? th(`${ex.icon} ${ex.label}`, 'text-right') : '') + th('Zuletzt aktualisiert', 'text-right')
       : th('VIP-Punkte', 'text-right') + th('VIP-Stufe', 'text-center')
         + th('Bis zum nächsten VIP', 'text-left min-w-[190px]') + th('Zuletzt aktualisiert', 'text-right')) + '</tr>';
     $('rankStamp').textContent = `Stand: ${dateLabel(Date.now())} · ${rows.length} Spieler`;
@@ -3477,8 +3588,9 @@ window.RokApp = () => {
             ${r.alliance_tag ? `<span class="px-2 py-0.5 rounded-md bg-ink-950 border border-gold-500/30 text-gold-300 font-semibold text-xs">[${esc(r.alliance_tag)}]</span>` : ''}
           </button>
         </td>
-        ${kills ? `<td class="py-3 px-3 text-right font-bold tabular-nums ${noKp ? 'text-slate-500' : m ? m.name : 'text-white'}">${noKp ? 'noch kein Scan' : fmt(r[stat.col])}</td>` : `
-        <td class="py-3 px-3 text-right font-bold tabular-nums ${m ? m.name : 'text-white'}" title="${fmt(r.vip_points)}">${fmt(r.vip_points)}</td>
+        ${kills ? `<td class="py-3 px-3 text-right font-bold tabular-nums ${noKp ? 'text-slate-500' : m ? m.name : 'text-white'}">${noKp ? 'noch kein Scan' : fmt(r[stat.col]) + gainHtml(r, stat.col)}</td>`
+          + (ex ? `<td class="py-3 px-3 text-right font-semibold tabular-nums ${r[ex.col] == null ? 'text-slate-500' : 'text-slate-200'}">${r[ex.col] == null ? '–' : fmt(r[ex.col]) + gainHtml(r, ex.col)}</td>` : '') : `
+        <td class="py-3 px-3 text-right font-bold tabular-nums ${m ? m.name : 'text-white'}" title="${fmt(r.vip_points)}">${fmt(r.vip_points)}${gainHtml(r, 'vip_points')}</td>
         <td class="py-3 px-3 text-center"><span class="inline-block px-2.5 py-1 rounded-lg bg-ink-950 border border-gold-500/30 text-gold-300 font-semibold text-xs">${vipName(lbLevel(r.vip_points))}</span></td>
         <td class="py-3 px-3">${nextCell(r.vip_points)}</td>`}
         <td class="py-3 px-3 text-right text-slate-400 whitespace-nowrap rounded-r-xl">${r.updated_at ? dateLabel(new Date(r.updated_at).getTime()) : '–'}</td>
@@ -3502,6 +3614,7 @@ window.RokApp = () => {
           </div>
           <div class="text-right">
             <div class="text-lg font-bold text-gold-300 tabular-nums">${stat.icon} ${fmt(meRow[stat.col])} ${stat.label}</div>
+            ${gainLine(meRow, stat.col)}${ex && meRow[ex.col] != null ? `<div class="text-xs text-slate-300 tabular-nums">${ex.icon} ${fmt(meRow[ex.col])} ${ex.label}</div>` : ''}
             <div class="text-xs text-slate-400">${above ? `Noch ${fmt(above[stat.col] - meRow[stat.col] + 1)} ${stat.label} bis Platz ${k} (${esc(above.username)})` : `Du führst die ${stat.label}-Rangliste an! ${stat.icon}`}</div>
           </div>
         </div>`;
@@ -3521,6 +3634,7 @@ window.RokApp = () => {
         </div>
         <div class="text-right">
           <div class="text-lg font-bold text-gold-300 tabular-nums">${fmt(meRow.vip_points)} Punkte · ${vipName(lbLevel(meRow.vip_points))}</div>
+          ${gainLine(meRow, 'vip_points')}
           <div class="text-xs text-slate-400">${above ? `Noch ${fmt(gap + 1)} Punkte bis Platz ${idx} (${esc(above.username)})` : 'Du führst die Rangliste an! 👑'}</div>
         </div>
       </div>`;
@@ -3600,6 +3714,38 @@ window.RokApp = () => {
   ];
   speedUi.profEv = speedUi.profEv || 'zenith';
 
+  // KvK-Start (aus dem KvK-Rechner: Datum, Start immer 00:00 UTC)
+  function kvkStartTs() {
+    try {
+      const st = window.KvKCalc?.getState?.();
+      let d = st?.startDate;
+      if (!d) { const id = RokAuth.userId(); const raw = localStorage.getItem(id ? RokAuth.nsOf(id) + 'kvk' : 'kvkCalc.v2'); d = raw ? JSON.parse(raw)?.startDate : ''; }
+      const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || '');
+      return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : null;
+    } catch { return null; }
+  }
+  const pad2 = (n) => String(n).padStart(2, '0');
+  let kvkTick = null, kvkLast = '';
+  function drawProfKvk() {
+    const b = $('profKvk');
+    if (view !== 'profile') { clearInterval(kvkTick); kvkTick = null; return; }
+    const ts = kvkStartTs();
+    let html;
+    if (ts == null) html = '<span>⚔️</span><span>KvK-Start festlegen</span>';
+    else {
+      const diff = ts - Date.now();
+      if (diff > 0) {
+        const s = Math.floor(diff / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), mi = Math.floor(s % 3600 / 60), se = s % 60;
+        const dU = window.I18N?.lang?.() === 'en' ? 'd' : 'T';
+        html = `<span>⚔️</span><span class="font-semibold">KvK-Start in</span><span class="font-bold tabular-nums text-white" translate="no">${d > 0 ? d + dU + ' ' : ''}${pad2(h)}:${pad2(mi)}:${pad2(se)}</span>`;
+      } else html = `<span>⚔️</span><span class="font-semibold">KvK läuft · Tag</span><span class="font-bold tabular-nums text-white" translate="no">${Math.floor(-diff / 86400000) + 1}</span>`;
+    }
+    if (html !== kvkLast) { b.innerHTML = html; kvkLast = html; }
+    b.classList.remove('hidden');
+  }
+  $('profKvk').onclick = () => { view = 'kvk'; applyView(); window.KvKCalc?.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  function startProfKvk() { kvkLast = ''; drawProfKvk(); clearInterval(kvkTick); kvkTick = setInterval(drawProfKvk, 1000); }
+
   function openProfile(uid) {
     if (!uid) return;
     profileUid = uid; view = 'profile'; applyView();
@@ -3617,14 +3763,42 @@ window.RokApp = () => {
   $('brandHome').onclick = goRank;
   $('brandHome').onkeydown = (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); goRank(); } };
 
+  function setModeBadge(own, priv) {
+    const b = $('profModeBadge');
+    b.textContent = own ? '✎ Dein Profil · ' + (priv ? '🔒 privat' : 'öffentlich') : '👁 Nur Ansicht';
+    b.className = 'text-xs px-2.5 py-1 rounded-full border transition ' + (own ? 'border-gold-500/50 text-gold-300 bg-gold-500/5' : 'border-ink-600 text-slate-400');
+    b.disabled = !own; b.title = own ? 'Profil bearbeiten' : '';
+    b.setAttribute('aria-haspopup', own ? 'dialog' : 'false');
+  }
+  // Profil bearbeiten: eigenes Fenster
+  function editOpen() { return !$('profEditModal').classList.contains('hidden'); }
+  function openProfEdit() {
+    if (!ownProfileOpen()) return;
+    $('profEditModal').classList.remove('hidden'); document.body.style.overflow = 'hidden';
+    setTimeout(() => $('profEditClose').focus(), 30);
+  }
+  function closeProfEdit() {
+    if (!editOpen()) return;
+    $('profEditModal').classList.add('hidden'); document.body.style.overflow = '';
+    $('profEditModal').querySelectorAll('[data-gov]').forEach(i => { delete i.dataset.dirty; });
+    if (lastProfileP?.own) refreshOwnProfile();
+  }
+  document.body.appendChild($('profEditModal'));                // außerhalb des Profil-Inhalts (bleibt beim Neuladen offen)
+  $('profModeBadge').onclick = () => openProfEdit();
+  $('profEditClose').onclick = () => closeProfEdit();
+  $('profEditModal').addEventListener('mousedown', (ev) => { if (ev.target === $('profEditModal')) closeProfEdit(); });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && editOpen()) closeProfEdit(); });
+  $('profEditModal').addEventListener('input', (ev) => { if (ev.target.dataset?.gov) ev.target.dataset.dirty = '1'; });
+
   async function loadGameProfile() {
     const uid = profileUid, own = uid === RokAuth.userId();
-    $('profModeBadge').textContent = own ? '✎ Dein Profil · ' + (RokAuth.ownMeta().is_private ? '🔒 privat' : 'öffentlich') : '👁 Nur Ansicht';
-    $('profModeBadge').className = 'text-xs px-2.5 py-1 rounded-full border ' + (own ? 'border-gold-500/50 text-gold-300' : 'border-ink-600 text-slate-400');
+    setModeBadge(own, RokAuth.ownMeta().is_private);
+    if (!own) closeProfEdit();
     $('profBody').classList.add('hidden');
     $('profState').classList.remove('hidden'); $('profState').textContent = 'Lade Game Profil …';
     try {
-      const [p, all] = await Promise.all([RokAuth.loadProfile(uid), RokAuth.loadLeaderboard().catch(() => [])]);
+      const admin = own ? false : await RokAuth.isAdmin().catch(() => false);
+      const [p, all] = await Promise.all([RokAuth.loadProfile(uid, { admin }), RokAuth.loadLeaderboard().catch(() => [])]);
       if (uid !== profileUid) return;                         // inzwischen anderes Profil geöffnet
       let entries;
       if (own) { await syncOwnHistory(); entries = ownEntries(); }
@@ -3635,7 +3809,7 @@ window.RokApp = () => {
       const sorted = all.map(r => ({ ...r, vip_points: +r.vip_points || 0 }))
         .sort((a, b) => (b.vip_points - a.vip_points) || (new Date(a.updated_at) - new Date(b.updated_at)) || String(a.username).localeCompare(b.username));
       const place = sorted.findIndex(r => r.user_id === uid) + 1;
-      renderGameProfile({ own, row, entries, place, players: sorted.length, scansError: p.scansError, isPrivate: own ? !!RokAuth.ownMeta().is_private : !!p.isPrivate });
+      renderGameProfile({ own, admin, row, entries, place, players: sorted.length, scansError: p.scansError, isPrivate: own ? !!RokAuth.ownMeta().is_private : !!p.isPrivate });
       $('profState').classList.add('hidden'); $('profBody').classList.remove('hidden');
     } catch (e) {
       $('profState').textContent = 'Profil konnte nicht geladen werden: ' + (e.message || e);
@@ -3658,12 +3832,23 @@ window.RokApp = () => {
 
     // ---- Kopf ----
     const govEntries = entries.filter(e => e.type === 'governor');
-    // letzter Statthalter-Scan – bei privaten Profilen (kein Verlauf) aus der Rangliste
-    const gov = govEntries.length ? govEntries[govEntries.length - 1]
-      : (row.kill_points != null || row.highest_merit != null || row.energy != null)
-        ? { kill_points: row.kill_points != null ? +row.kill_points : null, highest_merit: row.highest_merit != null ? +row.highest_merit : null, energy: row.energy != null ? +row.energy : null, ts: null } : null;
+    // Statthalter-Werte: je Feld der neueste Scan, der es enthält – sonst (z. B. private Profile) aus der Rangliste
+    const GOV_KEYS = ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch'];
+    const gov = (() => {
+      const o = { ts: govEntries.length ? govEntries[govEntries.length - 1].ts : null }; let any = false;
+      GOV_KEYS.forEach(k => { const v = govLatest(k, govEntries); o[k] = v != null ? v : (row[k] != null ? +row[k] : null); if (o[k] != null) any = true; });
+      return any ? o : null;
+    })();
     if (!meta.governor_id) { const gi = [...govEntries].reverse().find(x => x.governor_id); if (gi) meta.governor_id = String(gi.governor_id); }
     const lvl = points != null ? lbLevel(points) : null, nx = points != null ? lbNext(points) : null;
+    // Speedups gesamt: nur für den Spieler selbst und Admins
+    const canSpeed = own || !!P.admin;
+    const spTotal = sp ? (sp.total != null ? +sp.total : SPEED.reduce((a, c) => a + (+sp[c.k] || 0), 0)) : null;
+    const spTile = canSpeed ? `<div class="col-span-2 sm:col-span-3 rounded-xl bg-gradient-to-r from-sky-950/50 to-ink-950/60 border border-sky-500/30 px-3 py-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+            <div class="text-[10px] uppercase tracking-widest text-sky-200/80 whitespace-nowrap">⏱ Speedups gesamt</div>
+            <div class="text-lg sm:text-xl font-extrabold text-white tabular-nums">${spTotal != null ? `${days(spTotal)} <span class="text-sm font-semibold text-slate-400">Tage</span>` : '–'}</div>
+            <div class="w-full flex flex-wrap justify-between gap-x-3 text-[11px] text-slate-500"><span>${spTotal != null ? durText(spTotal) : 'keine Daten'}</span><span>🔒 nur für dich &amp; Admins sichtbar</span></div>
+          </div>` : '';
     $('profHead').innerHTML = `
       <div class="flex flex-wrap items-center gap-5">
         ${avatarHtml(row.username, meta.avatar, 'w-20 h-20 text-4xl rounded-2xl')}
@@ -3680,13 +3865,15 @@ window.RokApp = () => {
             ${row.updated_at ? `<span class="text-xs text-slate-500">aktualisiert ${dateLabel(new Date(row.updated_at).getTime())}</span>` : ''}
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-2 sm:gap-3 w-full lg:w-auto">
-          ${[['⚔️', 'Kill-Punkte', 'kill_points'], ['🏅', 'Höchster Verdienst', 'highest_merit'], ['⚡', 'Energie', 'energy']].map(([ic, label, k]) => `
-          <div class="rounded-xl bg-ink-950/60 border border-ink-700 px-3 py-2.5 lg:min-w-[150px]">
-            <div class="text-[10px] uppercase tracking-widest text-slate-400 whitespace-nowrap">${ic} ${label}</div>
-            <div class="text-lg sm:text-xl font-extrabold text-white tabular-nums mt-0.5">${gov && gov[k] != null ? fmt(gov[k]) : '–'}</div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 w-full lg:w-auto">
+          ${[['⚔️', 'Kill-Punkte', 'kill_points'], ['🏅', 'Höchster Verdienst', 'highest_merit'], ['⚡', 'Energie', 'energy'],
+             ['💀', 'Deads', 'deads'], ['🏛️', 'Ark of Osiris', 'ark_wins', 'Siege'], ['👑', 'Lost Kingdom', 'lk_autarch', '× Autarch']].map(([ic, label, k, unit]) => `
+          <div class="min-w-0 rounded-xl bg-ink-950/60 border border-ink-700 px-3 py-2.5 lg:min-w-[150px]">
+            <div class="text-[10px] uppercase tracking-wide sm:tracking-widest text-slate-400 truncate">${ic} ${label}</div>
+            <div class="text-lg sm:text-xl font-extrabold text-white tabular-nums mt-0.5">${gov && gov[k] != null ? fmt(gov[k]) + (unit ? ` <span class="text-xs font-semibold text-slate-400">${unit}</span>` : '') : '–'}</div>
           </div>`).join('')}
-          <div class="col-span-3 text-[11px] text-slate-500 text-right">${gov ? (gov.ts ? `Statthalter-Profil vom ${dateLabel(gov.ts)}` : '') : (own ? 'Noch kein Scan – „📷 Statthalter-Profil scannen“' : 'Noch kein Statthalter-Scan')}</div>
+          ${spTile}
+          <div class="col-span-2 sm:col-span-3 text-[11px] text-slate-500 text-right">${gov ? (gov.ts ? `Statthalter-Profil vom ${dateLabel(gov.ts)}` : '') : (own ? 'Noch kein Scan – „📷 Statthalter-Profil scannen“' : 'Noch kein Statthalter-Scan')}</div>
         </div>
       </div>
       ${nx ? `<div class="mt-5">
@@ -3700,8 +3887,13 @@ window.RokApp = () => {
       </div>` : ''}`;
 
     // ---- Speedups / AP / Gems (Umschalter oben im Feld, wird pro Gerät gemerkt) ----
-    const pm = (() => { try { return localStorage.getItem('rok_prof_panel') || 'speed'; } catch { return 'speed'; } })();
-    $('profSpeedMode').querySelectorAll('[data-pm]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pm === pm)));
+    const onlySpeed = !own && P.isPrivate;                            // Admin bei privatem Profil: nur Speedups
+    let pm = (() => { try { return localStorage.getItem('rok_prof_panel') || 'speed'; } catch { return 'speed'; } })();
+    if (!canSpeed && pm === 'speed') pm = 'ap';
+    if (onlySpeed) pm = 'speed';
+    $('profSpeedMode').querySelectorAll('[data-pm]').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.pm === pm)); b.classList.toggle('hidden', b.dataset.pm === 'speed' ? !canSpeed : onlySpeed); });
+    const nBtn = canSpeed ? (onlySpeed ? 1 : 3) : 2;
+    $('profSpeedMode').classList.toggle('grid-cols-3', nBtn === 3); $('profSpeedMode').classList.toggle('grid-cols-2', nBtn === 2); $('profSpeedMode').classList.toggle('grid-cols-1', nBtn === 1);
     $('profSpeedTitle').textContent = pm === 'ap' ? 'Aktionspunkte' : pm === 'gems' ? 'Gems' : 'Speedups';
     $('profScanSpeed').classList.toggle('hidden', !own || pm !== 'speed');
     if (pm !== 'speed') {
@@ -3736,9 +3928,15 @@ window.RokApp = () => {
     }
 
     // ---- Bearbeiten ----
-    $('profEdit').classList.toggle('hidden', !own);
-    $('profScanSpeed').classList.toggle('hidden', !own);
+    $('profScanSpeed').classList.toggle('hidden', !own || pm !== 'speed');
+    if (!own) closeProfEdit();
     if (own) {
+      profGov = gov ? { ...gov } : null;
+      // Statthalter-Werte vorbelegen (nicht überschreiben, während man tippt)
+      $('profEditModal').querySelectorAll('[data-gov]').forEach(i => {
+        if (i.dataset.dirty || document.activeElement === i) return;
+        const v = gov?.[i.dataset.gov]; i.value = v != null ? fmt(v) : '';
+      });
       $('profTag').value = meta.alliance_tag || '';
       $('profKd').value = meta.kingdom || '';
       $('profAlly').value = meta.alliance_name || '';
@@ -3769,7 +3967,7 @@ window.RokApp = () => {
     // Privat: andere sehen nur den Kopf
     const hideBody = !own && P.isPrivate;
     $('profPrivNote').classList.toggle('hidden', !hideBody);
-    $('profSpeedPanel').classList.toggle('hidden', hideBody);
+    $('profSpeedPanel').classList.toggle('hidden', hideBody && !canSpeed);
     $('profChartsPanel').classList.toggle('hidden', hideBody);
     $('profShowcase').classList.toggle('hidden', hideBody);
     if (!hideBody) renderShowcase(own, row, { name: row.username, avatar: meta.avatar, tag: meta.alliance_tag || '', ally: meta.alliance_name || '', kd: meta.kingdom || '', vip: lvl, power: gov?.energy ?? null, kp: gov?.kill_points ?? null, merit: gov?.highest_merit ?? null });
@@ -3783,7 +3981,7 @@ window.RokApp = () => {
           await RokAuth.setPrivate(next);
           sw.setAttribute('aria-checked', String(next));
           $('profMsg').textContent = next ? '🔒 Profil ist jetzt privat' : '🌐 Profil ist jetzt öffentlich'; $('profMsg').className = 'text-sm text-emerald-400';
-          $('profModeBadge').textContent = '✎ Dein Profil · ' + (next ? '🔒 privat' : 'öffentlich');
+          setModeBadge(true, next);
         } catch (e) { $('profMsg').textContent = e.message || String(e); $('profMsg').className = 'text-sm text-red-300'; }
         finally { sw.disabled = false; }
       };
@@ -3800,6 +3998,8 @@ window.RokApp = () => {
     const msg = (t, ok) => { $('profMsg').textContent = t; $('profMsg').className = 'text-sm ' + (ok ? 'text-emerald-400' : 'text-red-300'); };
     $('profSave').disabled = true; msg('Speichere …', true);
     try {
+      const gv = await saveManualGov($('profGovId').value.replace(/\D/g, '').slice(0, 12));
+      if (gv.bad) { msg('Bitte nur Zahlen eintragen, z. B. 85.141.754 oder 85,1M: ' + gv.bad, false); return; }
       // Allianz-Tag + Profilbild
       const meta = { alliance_tag: $('profTag').value.trim().toUpperCase().slice(0, 6), avatar: getAvatar(),
                      kingdom: $('profKd').value.replace(/\D/g, '').slice(0, 5), alliance_name: $('profAlly').value.trim().slice(0, 40) };
@@ -3813,10 +4013,34 @@ window.RokApp = () => {
       let warn = '';
       if (gid !== (old.governor_id || '')) { try { await RokAuth.saveGovId(gid); } catch (x) { warn = x.message; } }
       if (warn) { $('profMsg').textContent = '✓ Gespeichert · ' + warn; $('profMsg').className = 'text-sm text-amber-300'; return; }
-      msg('✓ Gespeichert', true);
-      setTimeout(() => { if (view === 'profile') loadGameProfile(); }, 900);
+      msg(gv.changed ? '✓ Gespeichert · Statthalter-Werte übernommen' : '✓ Gespeichert', true);
+      setTimeout(() => { if (view === 'profile') { closeProfEdit(); loadGameProfile(); } }, 900);
     } catch (e) { msg(e.message || String(e), false); }
     finally { $('profSave').disabled = false; }
+  }
+  // Statthalter-Werte von Hand: geänderte Felder → neuer Statthalter-Eintrag (zählt wie ein Scan, inkl. Zuwachs)
+  let profGov = null;                                        // angezeigte eigene Statthalter-Werte (Vergleich beim Speichern)
+  const GOV_LABEL = { energy: 'Energie', kill_points: 'Kill-Punkte', highest_merit: 'Höchster Verdienst', deads: 'Deads', ark_wins: 'Ark of Osiris', lk_autarch: 'Lost Kingdom' };
+  async function saveManualGov(gid) {
+    const cur = {}, next = {}, bad = [];
+    let changed = false;
+    $('profEditModal').querySelectorAll('[data-gov]').forEach(i => {
+      const k = i.dataset.gov, c = profGov ? profGov[k] ?? null : govLatest(k); cur[k] = c;
+      const t = i.value.trim();
+      if (!t) { next[k] = c; return; }
+      const v = parseAmount(t);
+      if (isNaN(v) || v < 0) { bad.push(GOV_LABEL[k]); i.classList.add('border-red-500'); return; }
+      i.classList.remove('border-red-500');
+      next[k] = v; if (v !== c) changed = true;
+    });
+    if (bad.length) return { bad: bad.join(', ') };
+    if (!changed) return { changed: false };
+    const e = { id: newId(), ts: Date.now(), type: 'governor', ...next, governor_id: gid ? +gid : null, confidence: 'manuell', src: 'manual' };
+    addHistory(e);
+    await RokAuth.saveNow('governor');
+    await RokAuth.pushGov(next, true);
+    $('profEditModal').querySelectorAll('[data-gov]').forEach(i => { delete i.dataset.dirty; });
+    return { changed: true };
   }
   // Statthalter-Profil (Kill-Punkte, Höchster Verdienst, Energie) direkt aus dem Profil scannen
   // Statthalter-Profil: Server-Scan (KI) + Texterkennung im Browser als Ergänzung für ID, Allianz-Tag und Werte
@@ -3844,16 +4068,60 @@ window.RokApp = () => {
       im.src = dataUrl;
     });
   }
+  // Statthalter-Werte aus Wort-Positionen (Texterkennung): funktioniert für das eigene Profil (Werte untereinander:
+  // Energie, Kill-Punkte, Verdienst, Höchster Verdienst) und für fremde Profile (Werte unter der Beschriftung in Spalten)
+  function govParseWords(words) {
+    const W = (words || []).map(w => ({ t: String(w.text || '').trim(), x0: +w.bbox?.x0, x1: +w.bbox?.x1, y0: +w.bbox?.y0, y1: +w.bbox?.y1 }))
+      .filter(w => w.t && isFinite(w.x0) && isFinite(w.y0));
+    W.forEach(w => { w.cx = (w.x0 + w.x1) / 2; w.cy = (w.y0 + w.y1) / 2; w.h = Math.max(1, w.y1 - w.y0); });
+    const out = {};
+    const sameRow = (a, b) => Math.abs(a.cy - b.cy) < Math.max(a.h, b.h) * 0.7;
+    const digit = (t) => +String(t).replace(/[OoDQ]/g, '0').replace(/[^\d]/g, '');
+    const leftOf = (lab, re) => W.filter(w => w !== lab && sameRow(w, lab) && w.x1 <= lab.x0 + lab.h && w.x1 > lab.x0 - lab.h * 4 && re.test(w.t)).sort((a, b) => b.x1 - a.x1)[0];
+    // Abzeichen: „9 Wins“ / „9 Siege“ · „4x Autarch“
+    const win = W.find(w => /^(Wins?|Siege?|Victor(y|ies))$/i.test(w.t));
+    if (win) { const n = leftOf(win, /^[0-9OoDQ]{1,4}$/); if (n) out.ark_wins = digit(n.t); }
+    const aut = W.find(w => /Autar/i.test(w.t));
+    if (aut) {
+      const inl = aut.t.match(/^([0-9OoDQ]{1,4})\s*[x×X]/);
+      const n = inl ? null : leftOf(aut, /^[0-9OoDQ]{1,4}\s*[x×X]?$/);
+      if (inl) out.lk_autarch = digit(inl[1]); else if (n) out.lk_autarch = digit(n.t.replace(/[x×X]/g, ''));
+    }
+    // Werte: Zahlen mit Tausenderpunkt (keine AP-Leiste „1,001/1,700“) + einzelne Nullen in derselben Spalte
+    const isBig = (t) => /^\(?\d{1,3}(?:[.,]\d{3})+\)?$/.test(t);
+    const bigs = W.filter(w => isBig(w.t) && !w.t.includes('/'));
+    if (!bigs.length) return out;
+    const yMax = Math.max(...bigs.map(b => b.y1)), hAvg = bigs.reduce((a, b) => a + b.h, 0) / bigs.length;
+    const zeros = W.filter(w => /^[0O]$/.test(w.t) && w.y0 < yMax + hAvg * 2 && bigs.some(b => Math.abs(b.x0 - w.x0) < hAvg * 3 || Math.abs(b.x1 - w.x1) < hAvg * 3));
+    const nums = [...bigs, ...zeros].map(w => ({ ...w, v: isBig(w.t) ? +w.t.replace(/[^\d]/g, '') : 0 }));
+    const rows = [];
+    nums.sort((a, b) => a.cy - b.cy).forEach(n => { const r = rows.find(r => sameRow(r[0], n)); r ? r.push(n) : rows.push([n]); });
+    rows.forEach(r => r.sort((a, b) => a.cx - b.cx));
+    const wide = rows.find(r => r.filter(n => n.v > 0).length >= 2);
+    if (wide) {                                                   // fremdes Profil: [Kill-Punkte, Energie] darüber, [Verdienst, Höchster Verdienst] darunter
+      const r1 = wide.filter(n => n.v > 0), kp = r1[0], pw = r1[r1.length - 1];
+      out.kill_points = kp.v; out.energy = pw.v;
+      const below = rows.filter(r => r[0].cy > kp.cy + kp.h * 0.7).flat();
+      const hm = below.filter(n => Math.abs(n.cx - pw.cx) < Math.abs(n.cx - kp.cx)).sort((a, b) => a.cy - b.cy)[0];
+      if (hm && hm.v > 0) out.highest_merit = hm.v;
+    } else {                                                      // eigenes Profil: untereinander
+      const col = rows.map(r => r[r.length - 1]).filter(n => n.v > 0);
+      if (col[0]) out.energy = col[0].v;
+      if (col[1]) out.kill_points = col[1].v;
+      if (col.length >= 3) out.highest_merit = col[col.length - 1].v;
+    }
+    return out;
+  }
   async function govOcr(dataUrl) {
     const T = await loadTesseract();
     const { data } = await T.recognize(await govPrep(dataUrl), 'eng');
     const text = String(data?.text || ''), lines = text.split(/\n+/).map(l => l.trim()).filter(Boolean);
     const out = { id: (text.match(/I\s*D\s*[:：.;]?\s*(\d{6,12})/i) || [])[1] || '' };
-    // Allianz-Tag = Text in [ ] (Zeile "Bündnis" bevorzugt)
-    const allianceLine = lines.find(l => /B.?ndnis|Bundnis|Alliance|Allianz/i.test(l)) || '';
-    const tm = (allianceLine || text).match(/[\[(|{]\s*([A-Za-z0-9]{1,6})\s*[\])|}]/);
-    out.tag = tm && !/^ID$/i.test(tm[1]) ? tm[1].toUpperCase() : '';
-    const tagLine = lines.find(l => /\[\s*[A-Za-z0-9]{1,6}\s*\]/.test(l)) || '';
+    // Allianz-Tag = Text in [ ] (Zeile "Bündnis" bevorzugt) · „$“ wird oft statt „S“ erkannt
+    const allianceLine = lines.find(l => /B.?ndnis|Bundnis|Alliance|Allianz/i.test(l) && /[\[(|{]/.test(l)) || '';
+    const tm = (allianceLine || text).match(/[\[(|{]\s*([A-Za-z0-9$]{1,6})\s*[\])|}]/);
+    out.tag = tm && !/^ID$/i.test(tm[1]) ? tm[1].replace(/\$/g, 'S').toUpperCase() : '';
+    const tagLine = lines.find(l => /\[\s*[A-Za-z0-9$]{1,6}\s*\]/.test(l)) || '';
     out.ally = tagLine.replace(/^.*?\]\s*/, '').replace(/[^\p{L}\p{N} .'&-]/gu, '').trim().slice(0, 40);
     // Werte: zuerst über die Beschriftung, sonst in fester Reihenfolge unter dem Bündnis (Energie, Kill-Punkte, …, Höchster Verdienst)
     const NUM = /(\d{1,3}(?:[.,]\d{3})+)/g;
@@ -3866,6 +4134,11 @@ window.RokApp = () => {
     if (out.energy == null && seq[0] != null) out.energy = seq[0];
     if (out.kill_points == null && seq[1] != null) out.kill_points = seq[1];
     if (out.highest_merit == null && seq.length >= 3) out.highest_merit = seq[seq.length - 1];
+    // Positionen der Wörter (zuverlässiger als die Zeilen-Reihenfolge) – überschreiben die Schätzung oben
+    const words = data?.words?.length ? data.words : (data?.blocks || []).flatMap(b => (b.paragraphs || []).flatMap(p => (p.lines || []).flatMap(l => l.words || [])));
+    const pos = govParseWords(words);
+    out.layout = pos.energy != null && pos.kill_points != null && pos.highest_merit != null;   // alle drei Werte sicher zugeordnet
+    Object.entries(pos).forEach(([k, v]) => { if (v != null) out[k] = v; });
     return out;
   }
   $('profGovFile').onchange = async (ev) => {
@@ -3884,23 +4157,34 @@ window.RokApp = () => {
         if (!res.ok) throw new Error(res.status === 400 && /modus/i.test(data?.error || '') ? 'Der Scan-Server kennt den Statthalter-Scan noch nicht – bitte die neue api/scan.js einspielen.' : (data?.error || `Serverfehler ${res.status}`));
         raw = String(data.text || ''); r = parseJson(raw) || {};
       } catch (x) { serverErr = x.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : x.message; }
-      const e = { kill_points: govBig(r.kill_points ?? r.killpoints), highest_merit: govBig(r.highest_merit ?? r.highestMerit), energy: govBig(r.energy ?? r.power) };
+      const e = { kill_points: govBig(r.kill_points ?? r.killpoints), highest_merit: govBig(r.highest_merit ?? r.highest_acclaim ?? r.highestMerit), energy: govBig(r.energy ?? r.power),
+                  deads: govBig(r.deads ?? r.dead), ark_wins: govBig(r.ark_wins ?? r.ark), lk_autarch: govBig(r.lk_autarch ?? r.autarch) };
+      const GK = ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch'], hasVal = () => GK.some(k => e[k] != null);
       let gid = String(r.governor_id ?? r.governorId ?? r.id ?? '').replace(/\D/g, '').slice(0, 12);
       if (!gid) { const m = raw.match(/ID\s*[:：]?\s*(\d{5,12})/i); if (m) gid = m[1]; }
       let ally = String(r.alliance_name ?? r.allianceName ?? (String(r.alliance ?? '').includes(']') ? String(r.alliance).replace(/^\s*\[[^\]]*\]\s*/, '') : '')).trim().slice(0, 40);
       let tag = govTag(r.alliance_tag ?? r.allianceTag ?? r.tag) || govTag(r.alliance ?? r.alliance_name ?? r.buendnis) || govTag((raw.match(/\[\s*[A-Za-z0-9]{1,6}\s*\]/) || [])[0]);
-      // Fehlt etwas: Texterkennung direkt im Browser (Bild bleibt dabei auf dem Gerät)
-      if (!gid || !tag || (e.kill_points == null && e.highest_merit == null && e.energy == null)) {
-        msg('Lese ID und Allianz-Tag …', 'text-slate-300');
-        try {
-          const o = await govOcr(img.dataUrl);
-          if (!gid && o.id) gid = o.id.slice(0, 12);
-          if (!tag && o.tag) tag = o.tag;
-          if (!ally && o.ally) ally = o.ally;
-          ['kill_points', 'highest_merit', 'energy'].forEach(k => { if (e[k] == null && o[k] != null) e[k] = o[k]; });
-        } catch (x) { console.warn('Texterkennung (Statthalter) fehlgeschlagen', x); }
+      // Zur Kontrolle immer auch die Texterkennung im Browser (Bild bleibt dabei auf dem Gerät)
+      let diff = [];
+      msg('Prüfe Werte …', 'text-slate-300');
+      try {
+        const o = await govOcr(img.dataUrl);
+        if (!gid && o.id) gid = o.id.slice(0, 12);
+        if (!tag && o.tag) tag = o.tag;
+        if (!ally && o.ally) ally = o.ally;
+        GK.forEach(k => {
+          if (o[k] == null) return;
+          if (e[k] == null) { e[k] = o[k]; return; }
+          // Werte sicher zugeordnet (alle drei gefunden) und anders als die KI → Texterkennung gewinnt, Feld zum Prüfen markieren
+          if (o.layout && +o[k] !== +e[k] && ['kill_points', 'highest_merit', 'energy'].includes(k)) { diff.push(k); e[k] = o[k]; }
+        });
+      } catch (x) { console.warn('Texterkennung (Statthalter) fehlgeschlagen', x); }
+      if (!hasVal() && !gid && !tag) throw new Error(serverErr || 'Keine Werte im Screenshot erkannt.');
+      // Anderer Statthalter als im Profil gespeichert? (z. B. Screenshot eines Farm-Accounts)
+      const savedGid = String(RokAuth.ownMeta().governor_id || $('profGovId').value || '').replace(/\D/g, '');
+      if (gid && savedGid && gid !== savedGid && !confirm(`Der Screenshot zeigt die ID ${gid}, in deinem Profil steht die ID ${savedGid}.\n\nWerte trotzdem übernehmen?`)) {
+        msg('Abgebrochen – nichts übernommen.', 'text-amber-300'); return;
       }
-      if (e.kill_points == null && e.highest_merit == null && e.energy == null && !gid && !tag) throw new Error(serverErr || 'Keine Werte im Screenshot erkannt.');
       let gidErr = '';
       if (gid) { $('profGovId').value = gid; if (gid !== (RokAuth.ownMeta().governor_id || '')) { try { await RokAuth.saveGovId(gid); } catch (x) { gidErr += ' · ' + x.message; } } }
       if (tag || ally) {
@@ -3913,13 +4197,14 @@ window.RokApp = () => {
         }
       }
       const found = [gid && `ID ${gid}`, tag && `[${tag}]`].filter(Boolean).join(' · ');
-      if (e.kill_points != null || e.highest_merit != null || e.energy != null || gid) {
+      if (hasVal() || gid) {
         addHistory({ id: newId(), ts: Date.now(), type: 'governor', ...e, governor_id: gid ? +gid : null, confidence: r.confidence || (serverErr ? 'OCR lokal' : null) });
       }
       const saved = await RokAuth.saveNow('governor');                 // ID steht so auch im Scan (falls Spalte governor_id fehlt)
-      if (e.kill_points != null || e.highest_merit != null || e.energy != null) await RokAuth.pushGov(e);                                          // Kill- und Verdienst-Rangliste
+      if (hasVal()) await RokAuth.pushGov(e, true);                    // Ranglisten + Zuwachs seit dem letzten Scan
+      $('profEditModal').querySelectorAll('[data-gov]').forEach(i => { delete i.dataset.dirty; i.classList.toggle('border-amber-400', diff.includes(i.dataset.gov)); });
       msg((saved.where === 'scans' ? '✓ Statthalter-Profil gespeichert' : saved.where === 'user_state' ? '✓ Gespeichert (Profil-Speicher – SQL-Update für public.scans fehlt)' : '✓ Lokal gespeichert, Cloud folgt')
-        + (found ? ` · ${found}` : '') + gidErr, gidErr ? 'text-amber-300' : 'text-emerald-400');
+        + (found ? ` · ${found}` : '') + gidErr + (diff.length ? ' · ⚠ Bitte prüfen: ' + diff.map(k => GOV_LABEL[k]).join(', ') : ''), gidErr || diff.length ? 'text-amber-300' : 'text-emerald-400');
       loadGameProfile();
     } catch (e2) { msg(e2.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : e2.message, 'text-red-300'); }
     finally { if (img) { img.base64 = null; img.dataUrl = null; } }   // Bild sofort verwerfen
@@ -4679,17 +4964,18 @@ window.RokApp = () => {
     let list = Array.isArray(raw?.list) ? raw.list : (raw && (raw.sets || raw.cmd || raw.gear) ? [raw] : []);
     if (!list.length) list = [{}];
     list = list.slice(0, SC_MAX_LIST).map((x, i) => scNorm(x, i, pub));
-    const show = list.some(x => x.id === raw?.show) ? raw.show : 'all';   // welcher Showcase im Profil gezeigt wird (alle oder einer)
+    const show = raw?.show === 'none' ? 'none' : list.some(x => x.id === raw?.show) ? raw.show : 'all';   // im Profil: alle, nur einer oder keiner (privat)
     // eigene Hintergrundbilder (max. 10) – bleiben gespeichert, auch wenn gerade ein anderer Hintergrund gewählt ist
     const gallery = (Array.isArray(raw?.gallery) ? raw.gallery : []).filter(g => scImgOk(g?.src)).map(g => ({ id: String(g.id || newId()), src: g.src, t: +g.t || 0 }));
     if (!pub) list.forEach(x => { if (x.bg.type === 'img' && !gallery.some(g => g.src === x.bg.src)) gallery.push({ id: newId(), src: x.bg.src, t: 0 }); });   // bisher genutzte eigene Bilder übernehmen
-    return { v: 3, pub, show, list, gallery: gallery.slice(0, SC_GAL_MAX), active: list.some(x => x.id === raw?.active) ? raw.active : list[0].id, updated: +raw?.updated || 0 };
+    return { v: 3, pub, show, detPriv: !!raw?.detPriv, list, gallery: gallery.slice(0, SC_GAL_MAX), active: list.some(x => x.id === raw?.active) ? raw.active : list[0].id, updated: +raw?.updated || 0 };
   }
   // Was andere sehen dürfen: nur gewählte Showcases, ohne private Sets. null = gar nichts.
-  function scPublicDoc(doc) {                               // alle Showcases und alle Sets sind öffentlich
+  function scPublicDoc(doc) {                               // show: alle / nur einer / keiner · detPriv: andere sehen nur das Bild
+    if (doc.show === 'none') return null;
     const list = doc.list.filter(x => doc.show === 'all' || !doc.show || x.id === doc.show).map(x => ({ ...x, sets: x.sets.map(s => ({ ...s, priv: false })) }));
     if (!list.length) return null;
-    return { v: 3, pub: true, list, active: list.some(x => x.id === doc.active) ? doc.active : list[0].id, updated: doc.updated };
+    return { v: 3, pub: true, detPriv: !!doc.detPriv, list, active: list.some(x => x.id === doc.active) ? doc.active : list[0].id, updated: doc.updated };
   }
   // Item für die Anzeige: aus dem Katalog, sonst aus der gespeicherten Kopie (Name/Icon) – wichtig für fremde Profile
   const scItem = (v) => gItem(v?.item) || (v?.name ? { name: v.name, icon: v.icon, rarity: v.rarity } : null);
@@ -5396,13 +5682,20 @@ window.RokApp = () => {
         + `<button type="button" id="scRefresh" title="Aus der Cloud neu laden und Überlappungen oben/unten auflösen" class="${b} border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⟳ Aktualisieren</button>`
         + `<button type="button" id="scRenList" class="${b} border-ink-600 hover:border-gold-500/60 hover:text-gold-300">✎ Umbenennen</button>`
         + (many ? `<button type="button" id="scDelList" class="${b} border-red-500/40 text-red-300 hover:bg-red-500/10">🗑 Showcase löschen</button>` : '')
-        + (many ? `<label class="ml-auto inline-flex items-center gap-2 text-xs text-slate-300">👁 Im Profil zeigen
+        + `<div class="ml-auto flex flex-wrap items-center gap-2">
+            <label class="inline-flex items-center gap-2 text-xs text-slate-300">👁 Im Profil zeigen
             <select id="scShow" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-gold-500">
-              <option value="all"${doc.show === 'all' ? ' selected' : ''}>Alle Showcases</option>
-              ${doc.list.map(x => `<option value="${esc(x.id)}"${doc.show === x.id ? ' selected' : ''}>Nur „${esc(x.title)}“</option>`).join('')}
-            </select></label>` : '')
+              ${many ? `<option value="all"${doc.show === 'all' ? ' selected' : ''}>Alle Showcases</option>` : `<option value="all"${doc.show !== 'none' ? ' selected' : ''}>Öffentlich</option>`}
+              ${many ? doc.list.map(x => `<option value="${esc(x.id)}"${doc.show === x.id ? ' selected' : ''}>Nur „${esc(x.title)}“</option>`).join('') : ''}
+              <option value="none"${doc.show === 'none' ? ' selected' : ''}>🔒 Keinen – privat</option>
+            </select></label>
+            <button type="button" id="scDetPriv" role="switch" aria-checked="${!!doc.detPriv}" ${doc.show === 'none' ? 'disabled' : ''} title="Andere sehen nur das Showcase-Bild – Sets, Ausrüstung und Details darunter bleiben privat"
+              class="${b} ${doc.detPriv ? 'border-amber-400/70 bg-amber-500/15 text-amber-200' : 'border-ink-600 text-slate-300 hover:border-gold-500/60 hover:text-gold-300'} disabled:opacity-40">${doc.detPriv ? '🔒 Details privat' : '🔓 Details öffentlich'}</button>
+          </div>`
         : '');
-    if (sc.own) $('scListBar').insertAdjacentHTML('beforeend', '<div class="w-full text-[11px] text-slate-500">👁 Andere Spieler sehen alle deine Showcases in deinem Profil.</div>');
+    if (sc.own) $('scListBar').insertAdjacentHTML('beforeend', `<div class="w-full text-[11px] text-slate-500"><span>${doc.show === 'none' ? '🔒 Dein Showcase ist privat – andere Spieler sehen ihn nicht.'
+      : (doc.show === 'all' ? (many ? '👁 Andere Spieler sehen alle deine Showcases in deinem Profil.' : '👁 Andere Spieler sehen deinen Showcase in deinem Profil.') : '👁 Andere Spieler sehen nur den ausgewählten Showcase.')
+        }</span>${doc.detPriv ? ' <span>Details sind privat – andere sehen nur das Bild.</span>' : ''}</div>`);
   }
   function drawWidgetOpts(d) {
     $('scWidgetOpts').innerHTML = Object.entries(SC_ELS).map(([k, w]) =>
@@ -5549,9 +5842,10 @@ window.RokApp = () => {
     </div>`;
     scDrawPreview();
   }
+  const scImgEff = () => scImgOnly || (!sc.own && !!sc.doc?.detPriv);   // „Nur Bild“: selbst gewählt oder vom Besitzer erzwungen
   function drawSetBar() {
     const d = D(), many = d.sets.length > 1;
-    $('scSetBar').classList.toggle('hidden', !sc.own && !many);
+    $('scSetBar').classList.toggle('hidden', (!sc.own && !many) || scImgEff());
     const nN = scNormal(d).length, nr = (i) => scNormal(d).findIndex(([, j]) => j === i) + 1;
     $('scSetBar').innerHTML = d.sets.map((x, i) => `<button type="button" data-si="${i}" aria-pressed="${i === sc.si}" class="seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold border border-ink-700 transition" translate="no">${esc(x.kind ? SC_KIND[x.kind] + (d.sets.filter(y => y.kind === x.kind).length > 1 ? ' ' + (scKindNo(d, x) + 1) : '') : (x.name || 'Set ' + nr(i)))}${sc.own && x.priv ? ' 🔒' : ''}</button>`).join('')
       + (sc.own && nN < SC_MAX ? '<button type="button" id="scAddSet" class="text-xs px-3 py-1.5 rounded-lg border border-dashed border-gold-500/60 text-gold-300 hover:border-gold-400">+ Set</button>' : '')
@@ -5561,8 +5855,8 @@ window.RokApp = () => {
   }
   function drawDetail() {
     const x = scSet(), own = sc.own, segB = 'seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition';
-    $('scDetail').classList.toggle('hidden', !x);
-    if (!x) return;
+    $('scDetail').classList.toggle('hidden', !x || scImgEff());
+    if (!x || scImgEff()) return;
     $('scDetailHead').innerHTML = own ? `
       <div class="flex flex-wrap items-center gap-2 mb-3">
         <input id="scSetName" maxlength="30" value="${esc(x.name)}" placeholder="Name des Sets (optional), z. B. Infanterie Marsch" class="order-1 flex-1 min-w-[200px] bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold-500">
@@ -5723,6 +6017,7 @@ window.RokApp = () => {
     const d = D();
     $('scTools').classList.toggle('hidden', !sc.own);
     $('scHint').classList.toggle('hidden', !sc.own);
+    $('scDl').classList.toggle('hidden', !sc.own);                     // Download nur beim eigenen Showcase
     $('scEditBtn').textContent = sc.edit ? '✓ Fertig' : '✎ Bearbeiten';
     $('scEditBtn').setAttribute('aria-pressed', String(sc.edit));
     $('scCount').textContent = `${scNormal(d).length}/${SC_MAX} Sets`;
@@ -5734,8 +6029,10 @@ window.RokApp = () => {
   // „Nur Bild“: Sets-Leiste und Details unter der Bühne ausblenden (pro Betrachter gemerkt)
   let scImgOnly = (() => { try { return localStorage.getItem('rok_showcase_imgonly') === '1'; } catch { return false; } })();
   function scApplyImgOnly() {
-    const btn = $('scImgOnly'); btn.setAttribute('aria-pressed', String(scImgOnly)); btn.textContent = scImgOnly ? '☰ Details zeigen' : '🖼 Nur Bild';
-    if (scImgOnly) { $('scSetBar').classList.add('hidden'); $('scDetail').classList.add('hidden'); }
+    const btn = $('scImgOnly'), forced = !sc.own && !!sc.doc?.detPriv;
+    btn.setAttribute('aria-pressed', String(scImgOnly)); btn.textContent = scImgOnly ? '☰ Details zeigen' : '🖼 Nur Bild';
+    btn.classList.toggle('hidden', forced);
+    if (scImgEff()) { $('scSetBar').classList.add('hidden'); $('scDetail').classList.add('hidden'); }
   }
   // Klick irgendwo außerhalb eines Sets → oranger Rahmen weg
   document.addEventListener('click', (ev) => {
@@ -6324,6 +6621,11 @@ window.RokApp = () => {
     sc.doc.show = ev.target.value; drawListBar();
     scSave(sc.doc.show === 'none' ? '🔒 Showcase ist jetzt privat' : '✓ Sichtbarkeit gespeichert');
   });
+  $('scListBar').addEventListener('click', (ev) => {
+    if (!ev.target.closest('#scDetPriv') || !sc.own) return;
+    sc.doc.detPriv = !sc.doc.detPriv; drawListBar();
+    scSave(sc.doc.detPriv ? '🔒 Details sind jetzt privat – andere sehen nur das Bild' : '🔓 Details sind jetzt für andere sichtbar');
+  });
   $('scListBar').addEventListener('click', async (ev) => {
     const doc = sc.doc, b = ev.target.closest('[data-scl]');
     if (b) { doc.active = b.dataset.scl; sc.si = 0; sc.gsel = null; sc.sel = null; drawShowcase(); scFitOnLoad(); if (sc.own) scSaveSoon(); return; }
@@ -6536,6 +6838,7 @@ window.RokApp = () => {
     document.head.appendChild(s);
   }));
   $('scDl').onclick = async () => {
+    if (!sc.own) return;
     const btn = $('scDl'), wasEdit = sc.edit;
     btn.disabled = true; btn.classList.add('opacity-50');
     scOpen = true; scApplyOpen();
