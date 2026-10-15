@@ -264,7 +264,7 @@
       countdown: 'KvK Countdown', edit: 'Bearbeiten', bgLabel: 'Hintergrundbild', bgPick: 'Bild wählen', bgReset: 'Standard',
       bgBusy: 'Bild wird verarbeitet …', bgDone: 'Hintergrund gespeichert', bgTooBig: 'Bild ist zu groß für den Browser-Speicher', bgFail: 'Bild konnte nicht gelesen werden', calTitle: 'KvK-Kalender', done: 'Fertig', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End' },
-      calc: 'Berechnung', calcHint: 'Kisten, Bundles, Kosten Mine & Kristall-Tech-Gebäude', costMine: 'Kosten Kristallmine', costTech: 'Kosten Kristall-Tech-Gebäude',
+      calc: 'Berechnung', calcHint: 'Kisten, Bundles, Kosten Mine & Kristall-Tech-Gebäude', costMine: 'Kristallmine – Ziel-Stufe', costTech: 'Kristall-Tech-Gebäude – Ziel-Stufe', lv: 'Stufe', costTotal: 'Kristall-Kosten gesamt', left: 'Übrig', resOnly: 'nur Rohstoffe',
       income: 'Ertrag pro Tag', avail: 'Verfügbar', need: 'Benötigt', diff: 'Differenz', chestsNeed: 'Kisten nötig', chestsUnit: 'Kisten',
       enough: 'Reicht', missingTxt: 'Fehlen', availTotal: 'Verfügbar gesamt', inclSupply: 'inkl. Premium Supply', mineTech: 'Mine + Tech', bundlesFold: 'Bundles', bundlesHint: 'Echtgeld-Angebote, Statistik & Budget-Planer',
       soon: { mid: 'Hier entsteht die Planung für die Mitte des KvK.', end: 'Hier entsteht die Planung für das Ende des KvK.' }, soonSub: 'Kommt als Nächstes',
@@ -303,7 +303,7 @@
       countdown: 'KvK Countdown', edit: 'Edit', bgLabel: 'Background image', bgPick: 'Choose image', bgReset: 'Default',
       bgBusy: 'Processing image …', bgDone: 'Background saved', bgTooBig: 'Image is too large for browser storage', bgFail: 'Image could not be read', calTitle: 'KvK calendar', done: 'Done', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End' },
-      calc: 'Calculation', calcHint: 'Chests, bundles, mine & crystal tech building cost', costMine: 'Crystal mine cost', costTech: 'Crystal tech building cost',
+      calc: 'Calculation', calcHint: 'Chests, bundles, mine & crystal tech building cost', costMine: 'Crystal mine – target level', costTech: 'Crystal tech building – target level', lv: 'Level', costTotal: 'Total crystal cost', left: 'Left over', resOnly: 'resources only',
       income: 'Income per day', avail: 'Available', need: 'Needed', diff: 'Difference', chestsNeed: 'Chests needed', chestsUnit: 'chests',
       enough: 'Enough', missingTxt: 'Missing', availTotal: 'Available total', inclSupply: 'incl. Premium Supply', mineTech: 'Mine + tech', bundlesFold: 'Bundles', bundlesHint: 'Real-money offers, statistics & budget planner',
       soon: { mid: 'Planning for the middle of KvK will live here.', end: 'Planning for the end of KvK will live here.' }, soonSub: 'Coming next',
@@ -365,7 +365,7 @@
       tab: 'start',                                                               // start | mid | end                                                              // YYYY-MM-DD (UTC-Tag, Start 00:00 UTC)
       ap: { b50: 0, b100: 0, b500: 0, b1000: 0, perDay: 0 },
       speed: { universal: 0, training: 0, healing: 0, research: 0, building: 0 },   // Minuten
-      crystal: { start: 0, chests: 0, costMine: 0, costTech: 0, perMarch: 0, marches: 0, other: 0 },
+      crystal: { start: 0, chests: 0, mineLv: 1, techLv: 1, perMarch: 0, marches: 0, other: 0 },
       open: { calc: true, bundles: false },                                       // eingeklappte Fenster
       buy: {},                                                                    // Stufen-ID → Anzahl
       budget: 0,
@@ -573,7 +573,10 @@
     const mine = c.perMarch * c.marches * (1 + shop.mineBoost);
     const daily = mine + c.other + shop.supplyPerDay;
     const now = chestCr + shop.crTotal;
-    const goal = (c.costMine || 0) + (c.costTech || 0);
+    const lvOk = (v) => Math.max(1, Math.min(25, Math.round(+v || 1)));
+    const mineCost = buildingUpgrade('mine', 1, lvOk(c.mineLv)).crystals;
+    const techCost = buildingUpgrade('research', 1, lvOk(c.techLv)).crystals;
+    const goal = mineCost + techCost;
     const remaining = Math.max(0, goal - now);
     const daysToGoal = goal <= 0 ? null : remaining === 0 ? 0 : daily > 0 ? Math.ceil(remaining / daily) : Infinity;
 
@@ -581,7 +584,7 @@
       apTotal, apDays,
       spTotal, trainU: sp.training + sp.universal, healU: sp.healing + sp.universal,
       shop, chestCr, mine, daily, now, day1: now + daily, goal, remaining, daysToGoal,
-      diff: now - goal, chestsNeeded: Math.ceil(remaining / CHEST_CRYSTALS),
+      diff: now - goal, chestsNeeded: Math.ceil(remaining / CHEST_CRYSTALS), mineCost, techCost,
       crPct: goal > 0 ? Math.min(100, (now / goal) * 100) : 0
     };
   }
@@ -717,12 +720,25 @@
         <span>${label}</span>
         <input type="text" inputmode="decimal" autocomplete="off" data-path="${path}" value="${esc(val)}" placeholder="0" class="${INPUT}">
       </label>`;
+    const lvSelect = (label, path, type) => {
+      const cur = Math.max(1, Math.min(25, Math.round(+getPath(state, path) || 1)));
+      const opts = [];
+      for (let l = 25; l >= 1; l--) {
+        const c = buildingUpgrade(type, 1, l).crystals;
+        opts.push(`<option value="${l}" ${l === cur ? 'selected' : ''}>${L.lv} ${l} · ${c ? fmt(c) + ' 💎' : L.resOnly}</option>`);
+      }
+      return `
+      <label class="flex flex-col gap-1 text-xs text-slate-400">
+        <span>${label}</span>
+        <select data-path="${path}" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-slate-100 tabular-nums focus:outline-none focus:border-gold-500 [color-scheme:dark]">${opts.join('')}</select>
+      </label>`;
+    };
     const calcBody = `
       <div class="flex flex-col gap-4 pt-3">
         <div class="grid gap-3 sm:grid-cols-3">
           ${field(`📦 ${L.crChests} <span class="text-slate-500">× ${L.chestNote}</span>`, 'crystal.chests', inVal(state.crystal.chests))}
-          ${field('⛏️ ' + L.costMine, 'crystal.costMine', inVal(state.crystal.costMine))}
-          ${field('🏛️ ' + L.costTech, 'crystal.costTech', inVal(state.crystal.costTech))}
+          ${lvSelect('⛏️ ' + L.costMine, 'crystal.mineLv', 'mine')}
+          ${lvSelect('🏛️ ' + L.costTech, 'crystal.techLv', 'research')}
         </div>
         <div data-out="crystal"></div>
       </div>`;
@@ -844,7 +860,6 @@
     // Crystal-Berechnung
     const ok = r.goal > 0 && r.diff >= 0;
     const diffTxt = r.goal <= 0 ? '—' : `<span class="${ok ? 'text-emerald-400' : 'text-red-300'}">${ok ? '+' : '−'}${short(Math.abs(r.diff))}</span>`;
-    const chestTxt = r.goal <= 0 ? '—' : r.chestsNeeded === 0 ? `<span class="text-emerald-400">✓ 0</span>` : `<span class="text-red-300">${fmt(r.chestsNeeded)}</span>`;
     const crBar = r.goal > 0 ? `
       <div class="mt-2 h-2 rounded-full bg-ink-800 overflow-hidden" title="${fmt(r.crPct, 1)} %">
         <div class="h-full rounded-full bg-gradient-to-r from-sky-500 to-sky-300 transition-all" style="width:${r.crPct.toFixed(1)}%"></div>
@@ -856,9 +871,9 @@
         <div class="col-span-2">${sumBox('💎 ' + L.availTotal, short(r.now) + ' 💎')}</div>
       </div>
       <div class="grid gap-2 grid-cols-3 mt-3">
-        ${kpi('🏛️ ' + L.need, r.goal > 0 ? short(r.goal) : '—', L.mineTech)}
-        ${kpi('⚖️ ' + L.diff, diffTxt, r.goal > 0 ? (ok ? L.enough : L.missingTxt) : '')}
-        ${kpi('📦 ' + L.chestsNeed, chestTxt, `× ${L.chestNote}`)}
+        ${kpi('🏛️ ' + L.costTotal, r.goal > 0 ? short(r.goal) : '—', `⛏️ ${short(r.mineCost)} + 🏛️ ${short(r.techCost)}`)}
+        ${kpi('⚖️ ' + L.diff, diffTxt, r.goal <= 0 ? '' : ok ? L.enough : `${L.missingTxt} · ${fmt(r.chestsNeeded)} ${L.chestsUnit}`)}
+        ${kpi('💎 ' + L.left, r.goal <= 0 ? '—' : `<span class="${ok ? 'text-emerald-400' : 'text-slate-500'}">${short(Math.max(0, r.diff))}</span>`, ok && r.diff > 0 ? '' : '')}
       </div>
       ${crBar}`;
 
