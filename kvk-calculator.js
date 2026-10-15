@@ -38,22 +38,22 @@
       id: 'fcfs', name: 'First Come, First Served – ⛏️ Kristallmine', kind: 'once', col: 1,
       info: { de: 'Erscheint, sobald die Kristallmine die Stufe erreicht', en: 'Appears once the Crystal Mine reaches the level' },
       tiers: [
-        { id: 'fcfs1', label: { de: 'Mine Stufe 5', en: 'Mine level 5' }, usd: 2.99, cr: 300000 },
-        { id: 'fcfs2', label: { de: 'Mine Stufe 15', en: 'Mine level 15' }, usd: 4.99, cr: 550000 },
-        { id: 'fcfs3', label: { de: 'Mine Stufe 20', en: 'Mine level 20' }, usd: 9.99, cr: 1300000 },
-        { id: 'fcfs4', label: { de: 'Mine Stufe 22', en: 'Mine level 22' }, usd: 14.99, cr: 2000000 },
-        { id: 'fcfs5', label: { de: 'Mine Stufe 25', en: 'Mine level 25' }, usd: 19.99, cr: 2750000 }
+        { id: 'fcfs1', lv: 5, label: { de: 'Mine Stufe 5', en: 'Mine level 5' }, usd: 2.99, cr: 300000 },
+        { id: 'fcfs2', lv: 15, label: { de: 'Mine Stufe 15', en: 'Mine level 15' }, usd: 4.99, cr: 550000 },
+        { id: 'fcfs3', lv: 20, label: { de: 'Mine Stufe 20', en: 'Mine level 20' }, usd: 9.99, cr: 1300000 },
+        { id: 'fcfs4', lv: 22, label: { de: 'Mine Stufe 22', en: 'Mine level 22' }, usd: 14.99, cr: 2000000 },
+        { id: 'fcfs5', lv: 25, label: { de: 'Mine Stufe 25', en: 'Mine level 25' }, usd: 19.99, cr: 2750000 }
       ]
     },
     {
       id: 'fcfsrc', name: 'First Come, First Served – 🏛️ Forschungszentrum', kind: 'once', col: 1,
       info: { de: 'Erscheint, sobald das Kristall-Forschungszentrum die Stufe erreicht', en: 'Appears once the Crystal Research Center reaches the level' },
       tiers: [
-        { id: 'fcrc1', label: { de: 'RC Stufe 5', en: 'RC level 5' }, usd: 2.99, cr: 300000 },
-        { id: 'fcrc2', label: { de: 'RC Stufe 10', en: 'RC level 10' }, usd: 4.99, cr: 550000 },
-        { id: 'fcrc3', label: { de: 'RC Stufe 15', en: 'RC level 15' }, usd: 4.99, cr: 550000 },
-        { id: 'fcrc4', label: { de: 'RC Stufe 18', en: 'RC level 18' }, usd: 9.99, cr: 1300000 },
-        { id: 'fcrc5', label: { de: 'RC Stufe 25', en: 'RC level 25' }, usd: 19.99, cr: 2750000 }
+        { id: 'fcrc1', lv: 5, label: { de: 'RC Stufe 5', en: 'RC level 5' }, usd: 2.99, cr: 300000 },
+        { id: 'fcrc2', lv: 10, label: { de: 'RC Stufe 10', en: 'RC level 10' }, usd: 4.99, cr: 550000 },
+        { id: 'fcrc3', lv: 15, label: { de: 'RC Stufe 15', en: 'RC level 15' }, usd: 4.99, cr: 550000 },
+        { id: 'fcrc4', lv: 18, label: { de: 'RC Stufe 18', en: 'RC level 18' }, usd: 9.99, cr: 1300000 },
+        { id: 'fcrc5', lv: 25, label: { de: 'RC Stufe 25', en: 'RC level 25' }, usd: 19.99, cr: 2750000 }
       ]
     },
     {
@@ -274,6 +274,11 @@
     de: {
       title: 'KvK Start', sub: 'Vorbereitung',
       startLabel: 'KvK-Start (Datum)', utcNote: 'KvK startet immer um 00:00 UTC', localIs: 'bei dir',
+      planTitle: 'Vorbereitung', planHint: 'Kristalle, Bundles, Ressourcen & Stats',
+      resFold: 'Ressourcen', resFoldHint: 'AP, Speedups & Rohstoffe – aus deinen Scans', apCalc: 'Rechnung', resSum: 'Rohstoffe gesamt',
+      spCombo: 'inkl. Universal', research: 'Forschung', building: 'Bau',
+      statsFold: 'Stats', statsFoldHint: 'Macht, Kill-Punkte & Tote', power: 'Macht', kp: 'Kill-Punkte', deads: 'Tote', statsScanHint: 'Macht & Kill-Punkte aus deinem Statthalter-Scan', kpPerPower: 'Kill-Punkte je Macht', deadsPct: 'Tote im Verhältnis zur Macht',
+      rmMine: 'Kristallmine', rmRc: 'Forschungszentrum', rmSci: 'Scientific Pioneer', lvShort: 'Stufe',
       countdown: 'KvK Countdown', edit: 'Bearbeiten', bgLabel: 'Hintergrundbild', bgPick: 'Bild wählen', bgReset: 'Standard',
       bgBusy: 'Bild wird verarbeitet …', bgDone: 'Hintergrund gespeichert', bgTooBig: 'Bild ist zu groß für den Browser-Speicher', bgFail: 'Bild konnte nicht gelesen werden', calTitle: 'KvK-Kalender', done: 'Fertig', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End' },
@@ -305,7 +310,7 @@
       budget: 'Budget-Planer', budgetHint: 'Exakt optimiert: meiste Kristalle für dein Budget, Stufenfolge beachtet',
       budgetLabel: 'Budget in $', passesLabel: 'Planung bis Pass', passesHint: 'Mountain Warfare 12 Std vor jeder Pass-Öffnung · Conquer\'s Will täglich ab KvK-Start bis dahin', dayN: 'Tag', daysN: 'Tage', planTo: 'Planung bis', cwDaily: 'Conquer\'s Will (täglich)', pass: 'Pass', noBuy: 'nicht kaufen', upTo: 'bis', budgetGet: 'Damit bekommst du', budgetLeft: 'Rest', apply: 'Auswahl übernehmen', autoNote: 'Die Auswahl oben wird bei jeder Änderung automatisch optimal neu berechnet.',
       roadmap: 'Roadmap', roadmapHint: 'Was du wann kaufst – aus deiner aktuellen Auswahl', rmStart: 'KvK-Start', rmCond: 'Sobald freigeschaltet', rmEmpty: 'Noch nichts ausgewählt – Budget im Planer eintragen oder Bundles anhaken.', rmTotal: 'Gesamt', rmDays: 'Tage', rmDay: 'Tag', rmNothing: '—', budgetEmpty: 'Budget eintragen – dann wird die beste Kombination berechnet und oben übernommen.', rmAfter: 'Danach', rmDaily: 'Täglich', rmUnlock: 'bei Freischaltung',
-      resTitle: 'Resources', resHint: 'Ressourcen-Vorrat (Gesamt)',
+      resTitle: 'Rohstoffe', resHint: 'Ressourcen-Vorrat (Gesamt)',
       res: { food: 'Nahrung', wood: 'Holz', stone: 'Stein', gold: 'Gold' },
       scan: '↻ Aus Scan', scanFrom: 'Letzter Scan', noScan: 'Noch kein Scan im Scanner',
       reset: 'Alle KvK-Eingaben zurücksetzen', confirmReset: 'Wirklich alle KvK-Eingaben zurücksetzen?', remove: 'Entfernen',
@@ -314,6 +319,11 @@
     en: {
       title: 'KvK Start', sub: 'Preparation',
       startLabel: 'KvK start (date)', utcNote: 'KvK always starts at 00:00 UTC', localIs: 'for you',
+      planTitle: 'Preparation', planHint: 'Crystals, bundles, resources & stats',
+      resFold: 'Resources', resFoldHint: 'AP, speedups & resources – from your scans', apCalc: 'Calculation', resSum: 'Resources total',
+      spCombo: 'incl. universal', research: 'Research', building: 'Building',
+      statsFold: 'Stats', statsFoldHint: 'Power, kill points & deads', power: 'Power', kp: 'Kill points', deads: 'Deads', statsScanHint: 'Power & kill points from your governor scan', kpPerPower: 'Kill points per power', deadsPct: 'Deads relative to power',
+      rmMine: 'Crystal Mine', rmRc: 'Research Center', rmSci: 'Scientific Pioneer', lvShort: 'Level',
       countdown: 'KvK Countdown', edit: 'Edit', bgLabel: 'Background image', bgPick: 'Choose image', bgReset: 'Default',
       bgBusy: 'Processing image …', bgDone: 'Background saved', bgTooBig: 'Image is too large for browser storage', bgFail: 'Image could not be read', calTitle: 'KvK calendar', done: 'Done', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End' },
@@ -381,13 +391,14 @@
       ap: { b50: 0, b100: 0, b500: 0, b1000: 0, perDay: 0 },
       speed: { universal: 0, training: 0, healing: 0, research: 0, building: 0 },   // Minuten
       crystal: { start: 0, chests: 0, mineLv: 1, techLv: 1, perMarch: 0, marches: 0, other: 0 },
-      open: { calc: true, bundles: false },                                       // eingeklappte Fenster
+      open: { calc: true, bundles: false, res: false, stats: false },                                       // eingeklappte Fenster
       buy: {},                                                                    // Stufen-ID → Anzahl
       budget: 0,
       planPass: 8,                                                                // Planung bis zu diesem Pass (MW je Pass + Conquer's Will je Tag)
       res: { food: 0, wood: 0, stone: 0, gold: 0 },
+      stats: { power: 0, kp: 0, deads: 0 },
       goals: [],
-      src: { ap: 0, speed: 0, res: 0 }
+      src: { ap: 0, speed: 0, res: 0, stats: 0 }
     };
   }
   function mergeInto(base, src) {
@@ -459,16 +470,27 @@
   function lastScan(type) {
     const n = ns();
     if (!n) return null;
+    if (type === 'governor') {   // Statthalter-Scans liegen im Verlauf (Macht = „energy“)
+      try {
+        const h = JSON.parse(localStorage.getItem(n + 'history_v1') || '[]');
+        return (Array.isArray(h) ? h : []).filter((e) => e && e.type === 'governor' && (e.energy != null || e.kill_points != null))
+          .sort((a, z) => (+z.ts || 0) - (+a.ts || 0))[0] || null;
+      } catch (e) { return null; }
+    }
     try { const v = JSON.parse(localStorage.getItem(n + 'last_scan_' + type) || 'null'); return v && typeof v === 'object' ? v : null; }
     catch (e) { return null; }
   }
-  const SCAN_TYPE = { ap: 'ap', speed: 'speedups', res: 'resources' };
+  const SCAN_TYPE = { ap: 'ap', speed: 'speedups', res: 'resources', stats: 'governor' };
 
   function importScan(part) {
     const s = lastScan(SCAN_TYPE[part]);
     if (!s) return false;
     if (part === 'ap') AP_SIZES.forEach((z) => (state.ap['b' + z] = Math.max(0, Math.round(+s['ap_' + z] || 0))));
     if (part === 'speed') SPEED_CATS.forEach((c) => (state.speed[c.k] = Math.max(0, Math.round(+s[c.k] || 0))));
+    if (part === 'stats') {
+      if (s.energy != null) state.stats.power = Math.max(0, Math.round(+s.energy || 0));
+      if (s.kill_points != null) state.stats.kp = Math.max(0, Math.round(+s.kill_points || 0));
+    }
     if (part === 'res') {
       const bar = (s.resources && s.resources.bar) || {};
       RES.forEach((r) => (state.res[r.k] = Math.max(0, Math.round(+bar[r.k] || 0))));
@@ -485,7 +507,8 @@
     const empty = {
       ap: AP_SIZES.every((z) => !state.ap['b' + z]),
       speed: SPEED_CATS.every((c) => !state.speed[c.k]),
-      res: RES.every((r) => !state.res[r.k])
+      res: RES.every((r) => !state.res[r.k]),
+      stats: !state.stats.power && !state.stats.kp
     };
     Object.keys(empty).forEach((p) => { if (empty[p] && !state.src[p] && importScan(p)) changed = true; });
     if (changed) save();
@@ -674,10 +697,19 @@
 
     // Station „Start“: Premium Supply + Bundles bei Freischaltung
     const ps = B('psup').tiers.filter((x) => buy[x.id]);
-    const cond = [...B('fcfs').tiers, ...B('fcfsrc').tiers, ...B('sci').tiers].filter((x) => buy[x.id]);
     const startItems = [];
-    if (ps.length) startItems.push({ title: 'Premium Supply', sub: `60.000 💎${L.perDayShort}`, ...sum(ps) });
-    if (cond.length) startItems.push({ title: L.rmUnlock, sub: cond.map((x) => esc(tx(x.label))).join(' · '), ...sum(cond) });
+    if (ps.length) startItems.push({ title: '🚀 Premium Supply', sub: `60.000 💎${L.perDayShort}`, ...sum(ps) });
+    // Freischaltungen: je Gebäude/Bundle eine Karte, jede Stufe eine Zeile
+    const lvRowsHTML = (tiers, labelOf) => tiers.map((x) => `
+      <div class="flex items-center justify-between gap-2 py-0.5 border-b border-ink-700/60 last:border-0">
+        <span class="text-slate-300">${labelOf(x)}</span>
+        <span class="tabular-nums"><span class="text-slate-400">${usd(x.usd)}</span> · <span class="text-gold-300">${short(x.cr)}</span></span>
+      </div>`).join('');
+    [['fcfs', '⛏️ ' + L.rmMine, (x) => `${L.lvShort} ${x.lv}`], ['fcfsrc', '🏛️ ' + L.rmRc, (x) => `${L.lvShort} ${x.lv}`], ['sci', '🔬 ' + L.rmSci, (x) => esc(tx(x.label))]]
+      .forEach(([id, title, lab]) => {
+        const tiers = B(id).tiers.filter((x) => buy[x.id]);
+        if (tiers.length) startItems.push({ title: `${title} <span class="font-normal text-slate-500">· ${L.rmUnlock}</span>`, sub: lvRowsHTML(tiers, lab), ...sum(tiers), rows: true });
+      });
     const dt0 = startTs() != null ? shortDate(new Date(startTs())) : '';
     cols.push({ head: L.rmStart, date: dt0 || `${L.dayN} 0`, items: startItems });
 
@@ -730,8 +762,8 @@
                 ${c.items.length ? c.items.map((it) => `
                   <div class="rounded-lg border ${it.hot ? 'border-gold-500/40 bg-gold-500/5' : 'border-ink-700 bg-ink-900/70'} px-2 py-1.5">
                     <div class="text-[11px] font-semibold text-slate-200 leading-tight">${it.title}</div>
-                    <div class="text-[10px] text-slate-400 leading-snug">${it.sub}</div>
-                    <div class="text-[11px] tabular-nums mt-0.5"><span class="text-slate-300">${usd(it.u)}</span> · <span class="text-gold-300">${short(it.c)}</span></div>
+                    <div class="text-[10px] text-slate-400 leading-snug ${it.rows ? 'mt-1' : ''}">${it.sub}</div>
+                    <div class="text-[11px] tabular-nums mt-0.5 ${it.rows ? 'text-right pt-1 border-t border-ink-700' : ''}">${it.rows ? 'Σ ' : ''}<span class="text-slate-300">${usd(it.u)}</span> · <span class="text-gold-300">${short(it.c)}</span></div>
                   </div>`).join('') : `<div class="text-center text-xs text-slate-600 py-2">${L.rmNothing}</div>`}
                 ${c.items.length > 1 ? `<div class="text-[10px] text-right tabular-nums text-slate-500 pr-1">Σ ${usd(u)} · ${short(cr)}</div>` : ''}
               </div>
@@ -896,10 +928,31 @@
         <div class="px-4 pb-4 pt-1 border-t border-ink-700/70">${body}</div>
       </details>`;
 
-    // ---- AP / Speed (unten im Crystal-Feld) ----
-    const card = (inner) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-4 flex flex-col gap-4">${inner}</div>`;
+    // ---- Ressourcen: AP · Speedups · Rohstoffe ----
+    const card = (inner) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-4 flex flex-col gap-3">${inner}</div>`;
     const apTile = card(`${tileHead('🧪', L.apTitle, L.apHint, 'ap')}<div data-out="ap" class="mt-auto"></div>`);
     const speedTile = card(`${tileHead('⏱️', L.speedTitle, L.speedHint, 'speed')}<div data-out="speed" class="mt-auto"></div>`);
+    const resCard = card(`${tileHead('🌾', L.resTitle, L.resHint, 'res')}
+      <div class="grid grid-cols-2 gap-2">
+        ${RES.map((r) => `
+          <label class="flex flex-col gap-1 text-xs text-slate-400">
+            <span>${r.icon} ${L.res[r.k]}</span>
+            <input type="text" inputmode="decimal" autocomplete="off" data-path="res.${r.k}" value="${esc(inVal(state.res[r.k]))}" placeholder="0" class="${INPUT}">
+          </label>`).join('')}
+      </div>
+      <div data-out="res" class="mt-auto"></div>`);
+    const resBody = `<div class="grid gap-4 pt-3 lg:grid-cols-3 md:grid-cols-2">${apTile}${speedTile}${resCard}</div>`;
+
+    // ---- Stats: Macht · Kill-Punkte · Tote ----
+    const statsBody = card(`${tileHead('⚔️', L.statsFold, L.statsScanHint, 'stats')}
+      <div class="grid gap-3 sm:grid-cols-3">
+        ${[['💪', L.power, 'stats.power'], ['⚔️', L.kp, 'stats.kp'], ['💀', L.deads, 'stats.deads']].map(([ic, lab, path]) => `
+          <label class="flex flex-col gap-1 text-xs text-slate-400">
+            <span>${ic} ${lab}</span>
+            <input type="text" inputmode="decimal" autocomplete="off" data-path="${path}" value="${esc(inVal(getPath(state, path)))}" placeholder="0" class="${INPUT}">
+          </label>`).join('')}
+      </div>
+      <div data-out="stats2"></div>`);
 
     // ---- Berechnung ----
     const field = (label, path, val) => `
@@ -973,29 +1026,14 @@
         </div>
       </div>`;
 
-    // ---- Crystal (volle Breite): Berechnung · Bundles · AP/Speed ----
+    // ---- Vorbereitung: Berechnung · Bundles · Ressourcen · Stats ----
     const crystalTile = `
       <section class="panel rounded-2xl p-5 flex flex-col gap-4">
-        ${tileHead('💎', L.crTitle, L.crHint, null)}
+        ${tileHead('🗂️', L.planTitle, L.planHint, null)}
         ${fold('calc', '🧮', L.calc, L.calcHint, calcBody)}
         ${fold('bundles', '🛒', L.bundlesFold, L.bundlesHint, bundlesBody)}
-        <div class="grid gap-4 md:grid-cols-2">
-          ${apTile}
-          ${speedTile}
-        </div>
-      </section>`;
-
-    // ---- Resources (volle Breite) ----
-    const resTile = `
-      <section class="panel rounded-2xl p-5 flex flex-col gap-4">
-        ${tileHead('📦', L.resTitle, L.resHint, 'res')}
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          ${RES.map((r) => `
-            <label class="flex flex-col gap-1 text-xs text-slate-400">
-              <span>${r.icon} ${L.res[r.k]}</span>
-              <input type="text" inputmode="decimal" autocomplete="off" data-path="res.${r.k}" value="${esc(inVal(state.res[r.k]))}" placeholder="0" class="${INPUT}">
-            </label>`).join('')}
-        </div>
+        ${fold('res', '📦', L.resFold, L.resFoldHint, resBody)}
+        ${fold('stats', '📊', L.statsFold, L.statsFoldHint, `<div class="pt-3">${statsBody}</div>`)}
       </section>`;
 
     return `
@@ -1014,7 +1052,6 @@
         ${tabs}
         ${state.tab === 'start' ? `
         ${crystalTile}
-        ${resTile}
         <div class="text-right">
           <button type="button" data-reset class="text-xs text-slate-500 hover:text-red-300 underline">${L.reset}</button>
         </div>` : `
@@ -1059,6 +1096,7 @@
           <span data-bsum="${b.id}" class="shrink-0 text-xs text-gold-300 tabular-nums min-w-[7.5rem] text-right"></span>
         </div>
         <div class="px-1.5 pb-2 space-y-0.5">${tiersHTML}</div>
+        <div data-bfoot="${b.id}"></div>
       </div>`;
   }
 
@@ -1091,7 +1129,9 @@
       calc: r.goal <= 0 ? `<span class="text-slate-500">${short(r.now)} 💎</span>`
         : ok ? `<span class="text-emerald-400">✓ ${L.enough} · +${short(r.diff)}</span>`
         : `<span class="text-red-300">${L.missingTxt} ${short(-r.diff)} · ${fmt(r.chestsNeeded)} ${L.chestsUnit}</span>`,
-      bundles: r.shop.items ? `<span class="text-gold-300">${usd(r.shop.usd)} · ${short(r.shop.crTotal)} 💎</span>` : ''
+      bundles: r.shop.items ? `<span class="text-gold-300">${usd(r.shop.usd)} · ${short(r.shop.crTotal)} 💎</span>` : '',
+      res: (r.apTotal || r.spTotal) ? `<span class="text-slate-300">${short(r.apTotal)} AP · ${dur(r.spTotal)}</span>` : '',
+      stats: (state.stats.power || state.stats.kp) ? `<span class="text-slate-300">💪 ${short(state.stats.power)} · ⚔️ ${short(state.stats.kp)}</span>` : ''
     };
 
     // Auswahl-Zusammenfassung
@@ -1148,9 +1188,31 @@
     const roadmap = roadmapHTML();
 
     return {
-      ap: state.src.ap || r.apTotal ? sumBox(L.total, `${short(r.apTotal)} AP`) : `<p class="text-xs text-slate-500">${L.noData}</p>`,
+      ap: state.src.ap || r.apTotal ? `
+        <div class="text-[10px] uppercase tracking-widest text-slate-500 mb-1">🧾 ${L.apCalc}</div>
+        ${AP_SIZES.map((z) => line(`${z >= 500 ? '⚗️' : '🧪'} ${fmt(state.ap['b' + z] || 0)} × ${fmt(z)}`, `${fmt((state.ap['b' + z] || 0) * z)} AP`)).join('')}
+        <div class="mt-2">${sumBox(L.total, `${short(r.apTotal)} AP`)}</div>` : `<p class="text-xs text-slate-500">${L.noData}</p>`,
+      res: (() => {
+        const tot = RES.reduce((a, x) => a + (state.res[x.k] || 0), 0);
+        return tot ? sumBox(L.resSum, short(tot)) : '';
+      })(),
+      stats2: (() => {
+        const st2 = state.stats; const out = [];
+        if (st2.power && st2.kp) out.push(line(L.kpPerPower, fmt(st2.kp / st2.power, 2)));
+        if (st2.power && st2.deads) out.push(line(L.deadsPct, `${fmt((st2.deads / st2.power) * 100, 1)} %`));
+        return out.length ? `<div class="mt-1">${out.join('')}</div>` : '';
+      })(),
       speed: state.src.speed || r.spTotal
-        ? `${line(L.trainU, dur(r.trainU))}${line(L.healU, dur(r.healU))}<div class="mt-3">${sumBox(L.total, dur(r.spTotal))}</div>`
+        ? `${SPEED_CATS.map((c) => line(`${c.icon} ${L.cats[c.k]}`, dur(state.speed[c.k] || 0))).join('')}
+           <div class="text-[10px] uppercase tracking-widest text-slate-500 mt-3 mb-1">🧾 ${L.apCalc} · ${L.spCombo}</div>
+           ${['training', 'healing', 'research', 'building'].map((k) => {
+             const c = SPEED_CATS.find((x) => x.k === k);
+             return `<div class="py-1 border-b border-ink-700/60 last:border-0">
+               <div class="flex items-center justify-between gap-3 text-sm"><span class="text-slate-400">${c.icon} ${L.cats[k]} + ⏱️</span><span class="font-semibold tabular-nums text-slate-100">${dur((state.speed[k] || 0) + (state.speed.universal || 0))}</span></div>
+               <div class="text-[11px] text-slate-500 tabular-nums text-right">${dur(state.speed[k] || 0)} + ${dur(state.speed.universal || 0)}</div>
+             </div>`;
+           }).join('')}
+           <div class="mt-3">${sumBox(L.total, dur(r.spTotal))}</div>`
         : `<p class="text-xs text-slate-500">${L.noData}</p>`,
       crystal, shop, stats, budget, roadmap, _fsum: fsum
     };
@@ -1243,6 +1305,13 @@
       const u = b.tiers.reduce((a, tr) => a + (state.buy[tr.id] || 0) * tr.usd, 0);
       const c = b.tiers.reduce((a, tr) => a + (state.buy[tr.id] || 0) * tr.cr, 0);
       el.innerHTML = u ? `${usd(u)} · ${short(c)} 💎` : '';
+      const ft = root.querySelector(`[data-bfoot="${b.id}"]`);
+      const n = b.tiers.reduce((a, tr) => a + (state.buy[tr.id] || 0), 0);
+      if (ft) ft.innerHTML = n >= 2 ? `
+        <div class="mx-1.5 mb-2 flex items-center justify-between gap-2 rounded-lg border border-gold-500/30 bg-gold-500/5 px-3 py-1.5 text-xs">
+          <span class="uppercase tracking-widest text-slate-400">Σ ${t().sel} · ${n}×</span>
+          <span class="tabular-nums font-semibold"><span class="text-slate-100">${usd(u)}</span> · <span class="text-gold-300">${short(c)} 💎</span> <span class="text-slate-500 font-normal">· ${usd(perMil(u, c))}/Mio</span></span>
+        </div>` : '';
     });
   }
 
