@@ -90,11 +90,11 @@
     de: {
       title: 'KvK Start', sub: 'Vorbereitung',
       startLabel: 'KvK-Start (Datum)', utcNote: 'KvK startet immer um 00:00 UTC', localIs: 'bei dir',
-      edit: 'Bearbeiten', calTitle: 'KvK-Kalender', done: 'Fertig', startShort: 'Start',
+      countdown: 'KvK Countdown', edit: 'Bearbeiten', calTitle: 'KvK-Kalender', done: 'Fertig', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End' },
-      calc: 'Berechnung', calcHint: 'Kisten, Kosten Mine & Kristall-Tech-Gebäude', costMine: 'Kosten Kristallmine', costTech: 'Kosten Kristall-Tech-Gebäude',
+      calc: 'Berechnung', calcHint: 'Kisten, Bundles, Kosten Mine & Kristall-Tech-Gebäude', costMine: 'Kosten Kristallmine', costTech: 'Kosten Kristall-Tech-Gebäude',
       income: 'Ertrag pro Tag', avail: 'Verfügbar', need: 'Benötigt', diff: 'Differenz', chestsNeed: 'Kisten nötig', chestsUnit: 'Kisten',
-      enough: 'Reicht', missingTxt: 'Fehlen', mineTech: 'Mine + Tech', bundlesFold: 'Bundles', bundlesHint: 'Echtgeld-Angebote, Statistik & Budget-Planer',
+      enough: 'Reicht', missingTxt: 'Fehlen', availTotal: 'Verfügbar gesamt', inclSupply: 'inkl. Premium Supply', mineTech: 'Mine + Tech', bundlesFold: 'Bundles', bundlesHint: 'Echtgeld-Angebote, Statistik & Budget-Planer',
       soon: { mid: 'Hier entsteht die Planung für die Mitte des KvK.', end: 'Hier entsteht die Planung für das Ende des KvK.' }, soonSub: 'Kommt als Nächstes',
       noStart: 'Start-Datum festlegen', pre: 'Pre-KvK', day: 'Tag', untilStart: 'bis zum Start', sinceStart: 'seit Start',
       u: { d: 'Tage', h: 'Std', m: 'Min', s: 'Sek' },
@@ -103,7 +103,7 @@
       speedTitle: 'Speed', speedHint: 'Aus deinem letzten Speedup-Scan',
       cats: { universal: 'Universal', training: 'Ausbildung', healing: 'Heilung', research: 'Forschung', building: 'Bau' },
       trainU: 'Ausbildung + Universal', healU: 'Heilung + Universal',
-      crTitle: 'Crystal', crHint: 'Bestand, Kisten, Ertrag und Echtgeld-Bundles',
+      crTitle: 'Crystal', crHint: 'Kisten, Echtgeld-Bundles, Kosten · AP & Speed',
       stock: 'Bestand & Ertrag', crStart: 'Kristalle (Bestand)', crChests: 'Kristall-Kisten', chestNote: 'je 100.000',
       crMarch: 'Kristalle pro Sammelmarsch', crMarches: 'Sammelmärsche pro Tag', crOther: 'Sonstiges pro Tag',
       boostOn: '+50 % Minen-Tempo aktiv (Premium Supply)',
@@ -128,11 +128,11 @@
     en: {
       title: 'KvK Start', sub: 'Preparation',
       startLabel: 'KvK start (date)', utcNote: 'KvK always starts at 00:00 UTC', localIs: 'for you',
-      edit: 'Edit', calTitle: 'KvK calendar', done: 'Done', startShort: 'Start',
+      countdown: 'KvK Countdown', edit: 'Edit', calTitle: 'KvK calendar', done: 'Done', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End' },
-      calc: 'Calculation', calcHint: 'Chests, mine & crystal tech building cost', costMine: 'Crystal mine cost', costTech: 'Crystal tech building cost',
+      calc: 'Calculation', calcHint: 'Chests, bundles, mine & crystal tech building cost', costMine: 'Crystal mine cost', costTech: 'Crystal tech building cost',
       income: 'Income per day', avail: 'Available', need: 'Needed', diff: 'Difference', chestsNeed: 'Chests needed', chestsUnit: 'chests',
-      enough: 'Enough', missingTxt: 'Missing', mineTech: 'Mine + tech', bundlesFold: 'Bundles', bundlesHint: 'Real-money offers, statistics & budget planner',
+      enough: 'Enough', missingTxt: 'Missing', availTotal: 'Available total', inclSupply: 'incl. Premium Supply', mineTech: 'Mine + tech', bundlesFold: 'Bundles', bundlesHint: 'Real-money offers, statistics & budget planner',
       soon: { mid: 'Planning for the middle of KvK will live here.', end: 'Planning for the end of KvK will live here.' }, soonSub: 'Coming next',
       noStart: 'Set start date', pre: 'Pre-KvK', day: 'Day', untilStart: 'until start', sinceStart: 'since start',
       u: { d: 'Days', h: 'Hrs', m: 'Min', s: 'Sec' },
@@ -141,7 +141,7 @@
       speedTitle: 'Speed', speedHint: 'From your last speedup scan',
       cats: { universal: 'Universal', training: 'Training', healing: 'Healing', research: 'Research', building: 'Building' },
       trainU: 'Training + Universal', healU: 'Healing + Universal',
-      crTitle: 'Crystal', crHint: 'Stock, chests, income and real-money bundles',
+      crTitle: 'Crystal', crHint: 'Chests, real-money bundles, costs · AP & speed',
       stock: 'Stock & income', crStart: 'Crystals (stock)', crChests: 'Crystal chests', chestNote: '100,000 each',
       crMarch: 'Crystals per gathering march', crMarches: 'Gathering marches per day', crOther: 'Other per day',
       boostOn: '+50% mine speed active (Premium Supply)',
@@ -399,7 +399,7 @@
     const chestCr = c.chests * CHEST_CRYSTALS;
     const mine = c.perMarch * c.marches * (1 + shop.mineBoost);
     const daily = mine + c.other + shop.supplyPerDay;
-    const now = c.start + chestCr + shop.crNow;
+    const now = chestCr + shop.crTotal;
     const goal = (c.costMine || 0) + (c.costTech || 0);
     const remaining = Math.max(0, goal - now);
     const daysToGoal = goal <= 0 ? null : remaining === 0 ? 0 : daily > 0 ? Math.ceil(remaining / daily) : Infinity;
@@ -478,8 +478,11 @@
 
     // ---- Zeit (kompakt, LED-Uhr) ----
     const timePanel = `
-      <section class="panel rounded-2xl px-4 py-4 sm:py-5">
-        <div class="flex flex-col items-center text-center gap-2.5">
+      <section class="kvk-time panel relative overflow-hidden rounded-2xl px-4 pt-4 sm:pt-5 pb-[72px] sm:pb-20">
+        <div class="kvk-flame-glow" aria-hidden="true"></div>
+        <canvas data-flames class="kvk-flames" aria-hidden="true"></canvas>
+        <div class="relative z-10 flex flex-col items-center text-center gap-2.5">
+          <div class="font-display text-sm sm:text-base uppercase tracking-[.3em] text-gold-300/90">${L.countdown}</div>
           <div data-phase></div>
           <div data-countdown class="max-w-full overflow-x-auto"></div>
           <div data-startline class="text-xs text-slate-500"></div>
@@ -526,17 +529,17 @@
     const speedTile = card(`${tileHead('⏱️', L.speedTitle, L.speedHint, 'speed')}<div data-out="speed" class="mt-auto"></div>`);
 
     // ---- Berechnung ----
+    const field = (label, path, val) => `
+      <label class="flex flex-col gap-1 text-xs text-slate-400">
+        <span>${label}</span>
+        <input type="text" inputmode="decimal" autocomplete="off" data-path="${path}" value="${esc(val)}" placeholder="0" class="${INPUT}">
+      </label>`;
     const calcBody = `
-      <div class="grid gap-6 lg:grid-cols-2 pt-3">
-        <div class="space-y-2">
-          ${row('💎 ' + L.crStart, 'crystal.start', inVal(state.crystal.start))}
-          ${row(`📦 ${L.crChests} <span class="text-slate-500 text-xs">× ${L.chestNote}</span>`, 'crystal.chests', inVal(state.crystal.chests))}
-          ${row('⛏️ ' + L.costMine, 'crystal.costMine', inVal(state.crystal.costMine))}
-          ${row('🏛️ ' + L.costTech, 'crystal.costTech', inVal(state.crystal.costTech))}
-          <div class="pt-3">${subTitle('📈 ' + L.income)}</div>
-          ${row('⛏️ ' + L.crMarch, 'crystal.perMarch', inVal(state.crystal.perMarch))}
-          ${row('🔁 ' + L.crMarches, 'crystal.marches', inVal(state.crystal.marches))}
-          ${row('🎁 ' + L.crOther, 'crystal.other', inVal(state.crystal.other))}
+      <div class="flex flex-col gap-4 pt-3">
+        <div class="grid gap-3 sm:grid-cols-3">
+          ${field(`📦 ${L.crChests} <span class="text-slate-500">× ${L.chestNote}</span>`, 'crystal.chests', inVal(state.crystal.chests))}
+          ${field('⛏️ ' + L.costMine, 'crystal.costMine', inVal(state.crystal.costMine))}
+          ${field('🏛️ ' + L.costTech, 'crystal.costTech', inVal(state.crystal.costTech))}
         </div>
         <div data-out="crystal"></div>
       </div>`;
@@ -656,13 +659,6 @@
     const L = t();
 
     // Crystal-Berechnung
-    let crDays;
-    if (r.goal <= 0) crDays = line(L.crDays, L.crNoGoal, 'text-slate-500');
-    else if (r.daysToGoal === 0) crDays = line(L.crDays, '✓ ' + L.crReached, 'text-emerald-400');
-    else if (!Number.isFinite(r.daysToGoal)) crDays = line(L.crDays, L.crNoIncome, 'text-amber-300');
-    else crDays = line(L.crDays, `${fmt(r.daysToGoal)} ${r.daysToGoal === 1 ? L.dayOne : L.days}`, 'text-gold-300');
-    const nowSub = [r.chestCr ? `${short(r.chestCr)} ${L.fromChests}` : '', r.shop.crNow ? `${short(r.shop.crNow)} ${L.fromBundles}` : ''].filter(Boolean).join(' · ');
-    const dailySub = r.shop.supplyPerDay ? ` <span class="text-xs text-slate-500">(+${short(r.shop.supplyPerDay)} ${L.fromSupply})</span>` : '';
     const ok = r.goal > 0 && r.diff >= 0;
     const diffTxt = r.goal <= 0 ? '—' : `<span class="${ok ? 'text-emerald-400' : 'text-red-300'}">${ok ? '+' : '−'}${short(Math.abs(r.diff))}</span>`;
     const chestTxt = r.goal <= 0 ? '—' : r.chestsNeeded === 0 ? `<span class="text-emerald-400">✓ 0</span>` : `<span class="text-red-300">${fmt(r.chestsNeeded)}</span>`;
@@ -671,19 +667,17 @@
         <div class="h-full rounded-full bg-gradient-to-r from-sky-500 to-sky-300 transition-all" style="width:${r.crPct.toFixed(1)}%"></div>
       </div>` : '';
     const crystal = `
-      <div class="grid grid-cols-2 gap-2">
-        ${kpi('💎 ' + L.avail, short(r.now), nowSub)}
+      <div class="grid gap-2 grid-cols-2">
+        ${kpi('📦 ' + L.fromChests, short(r.chestCr), `${fmt(state.crystal.chests)} × ${L.chestNote}`)}
+        ${kpi('🛒 ' + L.fromBundles, short(r.shop.crTotal), r.shop.supplyTotal ? L.inclSupply : '')}
+        <div class="col-span-2">${sumBox('💎 ' + L.availTotal, short(r.now) + ' 💎')}</div>
+      </div>
+      <div class="grid gap-2 grid-cols-3 mt-3">
         ${kpi('🏛️ ' + L.need, r.goal > 0 ? short(r.goal) : '—', L.mineTech)}
         ${kpi('⚖️ ' + L.diff, diffTxt, r.goal > 0 ? (ok ? L.enough : L.missingTxt) : '')}
         ${kpi('📦 ' + L.chestsNeed, chestTxt, `× ${L.chestNote}`)}
       </div>
-      ${crBar}
-      <div class="mt-3">
-        ${line(L.crDaily, short(r.daily) + dailySub)}
-        ${r.shop.mineBoost ? `<div class="text-xs text-emerald-400 py-1">⚡ ${L.boostOn}</div>` : ''}
-        ${crDays}
-      </div>
-      <div class="mt-3">${sumBox(L.crDay1, short(r.day1) + ' 💎')}</div>`;
+      ${crBar}`;
 
     // Kurzinfo in den Klappfenster-Köpfen (sichtbar auch eingeklappt)
     const fsum = {
@@ -763,7 +757,7 @@
 
     if (!ph) {
       phEl.innerHTML = badge('🕒 ' + L.noStart, 'border-ink-600 text-slate-400');
-      cdEl.innerHTML = led(0, true);
+      fireClock(cdEl, 0, true);
       if (utcEl) utcEl.textContent = L.utcNote;
       if (lineEl) lineEl.textContent = L.utcNote;
       return;
@@ -771,7 +765,7 @@
     phEl.innerHTML = ph.before
       ? badge('⏳ ' + L.pre, 'border-gold-500/40 text-gold-300 bg-gold-500/5')
       : badge(`⚔️ KvK · ${L.day} ${fmt(ph.day)}`, 'border-red-400/40 text-red-300 bg-red-500/10');
-    cdEl.innerHTML = led(ph.ms, false);
+    fireClock(cdEl, ph.ms, false);
     const local = new Date(ph.ts).toLocaleString(locale(), { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     if (lineEl) lineEl.innerHTML = `${ph.before ? L.untilStart : L.sinceStart} · ${L.startShort}: <span class="text-slate-300">${local}</span> (00:00 UTC)`;
     if (utcEl) {
@@ -780,31 +774,27 @@
     }
   }
 
-  // 7-Segment-Ziffer als SVG (Segmente a–g)
-  const SEG_ON = ['abcdef', 'bc', 'abged', 'abgcd', 'fgbc', 'afgcd', 'afgedc', 'abc', 'abcdefg', 'abcdfg'];
-  const SEG_POLY = (() => {
-    const tk = 5, g = 2.5;
-    const hz = (x1, x2, y) => `${x1},${y} ${x1 + tk},${y - tk} ${x2 - tk},${y - tk} ${x2},${y} ${x2 - tk},${y + tk} ${x1 + tk},${y + tk}`;
-    const vt = (x, y1, y2) => `${x},${y1} ${x + tk},${y1 + tk} ${x + tk},${y2 - tk} ${x},${y2} ${x - tk},${y2 - tk} ${x - tk},${y1 + tk}`;
-    const L = 8, R = 52, T = 8, M = 50, B = 92;
-    return {
-      a: hz(L + g, R - g, T), b: vt(R, T + g, M - g), c: vt(R, M + g, B - g), d: hz(L + g, R - g, B),
-      e: vt(L, M + g, B - g), f: vt(L, T + g, M - g), g: hz(L + g, R - g, M)
-    };
-  })();
-  const digitSvg = (n) => `<svg class="kvk-dg" viewBox="0 0 60 100" aria-hidden="true">${
-    Object.keys(SEG_POLY).map((k) => `<polygon class="${SEG_ON[n].includes(k) ? 'on' : 'off'}" points="${SEG_POLY[k]}"/>`).join('')}</svg>`;
-  const colonSvg = (blink) => `<svg class="kvk-col${blink ? ' blink' : ''}" viewBox="0 0 16 100" aria-hidden="true"><circle class="on" cx="8" cy="34" r="5"/><circle class="on" cx="8" cy="68" r="5"/></svg>`;
-
-  function led(ms, dim) {
+  // Feuer-Countdown: 4 Kacheln. Aufbau einmalig, danach nur Zahlen tauschen –
+  // so laufen die Flacker-Animationen ohne Neustart jede Sekunde weiter.
+  function fireClock(el, ms, dim) {
     const L = t(), s = Math.floor(ms / 1000);
-    const parts = [[Math.floor(s / 86400), L.u.d], [Math.floor((s % 86400) / 3600), L.u.h], [Math.floor((s % 3600) / 60), L.u.m], [s % 60, L.u.s]];
-    const label = parts.map(([v, lab]) => `${v} ${lab}`).join(' ');
-    return `<div class="kvk-led${dim ? ' dim' : ''}" role="timer" aria-label="${esc(label)}">${parts.map(([v, lab], i) => `
-      <div class="kvk-led-grp">
-        <div class="kvk-led-digits">${String(v).padStart(2, '0').split('').map((d) => digitSvg(+d)).join('')}</div>
-        <div class="kvk-led-lab">${lab}</div>
-      </div>${i < 3 ? colonSvg(!dim && s % 2 === 1) : ''}`).join('')}</div>`;
+    const vals = [Math.floor(s / 86400), Math.floor((s % 86400) / 3600), Math.floor((s % 3600) / 60), s % 60]
+      .map((v) => String(v).padStart(2, '0'));
+    const labs = [L.u.d, L.u.h, L.u.m, L.u.s];
+    let wrap = el.querySelector('.kvk-fire-wrap');
+    if (!wrap || wrap.dataset.lang !== lang()) {
+      el.innerHTML = `<div class="kvk-fire-wrap" role="timer" data-lang="${lang()}">${labs.map((lab, i) => `
+        <div class="kvk-fire-tile" style="--d:${(i * 0.37).toFixed(2)}s">
+          <span class="kvk-fire" data-v=""></span>
+          <span class="kvk-fire-lab">${lab}</span>
+        </div>`).join('')}</div>`;
+      wrap = el.querySelector('.kvk-fire-wrap');
+    }
+    wrap.classList.toggle('is-dim', !!dim);
+    wrap.setAttribute('aria-label', vals.map((v, i) => `${+v} ${labs[i]}`).join(', '));
+    wrap.querySelectorAll('.kvk-fire').forEach((n, i) => {
+      if (n.dataset.v !== vals[i]) { n.dataset.v = vals[i]; n.textContent = vals[i]; }
+    });
   }
 
   /* ================================================================== *
@@ -846,6 +836,83 @@
   function startClock() {
     if (clock) return;
     clock = setInterval(() => { if (visible()) renderClock(); }, 1000);
+    startFlames();
+  }
+
+  /* ----- Flammen am unteren Rand des Timer-Felds (Canvas-Partikel) ----- */
+  let flamesOn = false, parts = [], lastT = 0;
+  const SPRITES = {};
+  function sprite(rgb) {
+    if (SPRITES[rgb]) return SPRITES[rgb];
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, `rgba(${rgb},1)`); g.addColorStop(0.35, `rgba(${rgb},.55)`); g.addColorStop(1, `rgba(${rgb},0)`);
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+    return (SPRITES[rgb] = c);
+  }
+  // Farbe je nach Lebensalter: weiß-gelb → gelb → orange → rot
+  const STAGES = [[0.08, '255,226,120'], [0.3, '255,190,30'], [0.6, '255,110,10'], [1, '200,30,0']];
+
+  function startFlames() {
+    if (flamesOn) return;
+    try { if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (e) { /* egal */ }
+    flamesOn = true;
+    const tick = (ts) => {
+      const cv = root && root.querySelector('canvas[data-flames]');
+      if (!cv || !visible() || document.hidden) { parts = []; lastT = 0; setTimeout(() => requestAnimationFrame(tick), 400); return; }
+      drawFlames(cv, ts);
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  function drawFlames(cv, ts) {
+    const dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth, h = cv.clientHeight;
+    if (!w || !h) return;
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const dt = lastT ? Math.min(3, (ts - lastT) / 16.7) : 1;
+    lastT = ts;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.clearRect(0, 0, w, h);
+
+    // Glut-Intensität: ohne Datum nur schwaches Glimmen, im KvK etwas stärker
+    const ph = phase();
+    const heat = !ph ? 0.25 : ph.before ? 1 : 1.2;
+    const sc = h / 80;
+
+    // Neue Flammen-Partikel entlang der Unterkante (in Wellen, damit die Flammen „züngeln“)
+    const spawn = Math.min(85, w / 13) * heat * dt;
+    for (let i = 0; i < spawn; i++) {
+      const x = Math.random() * w;
+      const wave = 0.6 + 0.4 * Math.sin(x * 0.035 + ts * 0.0021) * Math.sin(x * 0.011 - ts * 0.0013);
+      if (Math.random() > wave) continue;
+      parts.push({ x, y: h + 6, vx: (Math.random() - 0.5) * 0.35, vy: -(0.7 + Math.random() * 1.6) * sc * (0.6 + wave * 0.7),
+        r: (6 + Math.random() * 11) * sc * (0.7 + wave * 0.5), life: 0, dur: 38 + Math.random() * 34, ph: Math.random() * 6.283, spark: false });
+    }
+    // Funken, die höher steigen
+    if (Math.random() < 0.18 * heat * dt) {
+      parts.push({ x: Math.random() * w, y: h - 4, vx: (Math.random() - 0.5) * 0.6, vy: -(1.6 + Math.random() * 1.6) * sc,
+        r: (1.4 + Math.random() * 1.8) * sc, life: 0, dur: 70 + Math.random() * 50, ph: Math.random() * 6.283, spark: true });
+    }
+
+    ctx.globalCompositeOperation = 'lighter';
+    const keep = [];
+    for (const p of parts) {
+      p.life += dt / p.dur;
+      if (p.life >= 1) continue;
+      p.x += (p.vx + Math.sin(ts * 0.004 + p.ph + p.y * 0.05) * (p.spark ? 0.6 : 0.3)) * dt;
+      p.y += p.vy * dt;
+      const k = 1 - p.life;
+      const stage = STAGES.find((st) => p.life <= st[0])[1];
+      const r = p.spark ? p.r * 2.4 : p.r * (0.35 + 0.65 * k);
+      ctx.globalAlpha = p.spark ? Math.min(1, k * 1.4) : k * k * 0.42;
+      ctx.drawImage(sprite(p.spark ? '255,200,90' : stage), p.x - r, p.y - r, r * 2, r * 2);
+      keep.push(p);
+    }
+    parts = keep.length > 900 ? keep.slice(-900) : keep;
+    ctx.globalAlpha = 1;
   }
 
   function onInput(e) {
@@ -976,19 +1043,53 @@
 #kvkRoot .kvk-masonry > * { break-inside:avoid; margin-bottom:12px; }
 @media (min-width:1024px) { #kvkRoot .kvk-masonry { columns:2; } }
 #kvkRoot .grid > * { min-width:0; }
-#kvkRoot .kvk-led { display:inline-flex; align-items:flex-start; gap:6px; padding:14px 18px 10px; border-radius:14px;
-  background-color:#080b12; background-image:radial-gradient(rgba(148,163,184,.09) 1px, transparent 1.3px); background-size:4px 4px;
-  border:1px solid #212b40; box-shadow:inset 0 0 24px rgba(0,0,0,.7), 0 0 0 1px rgba(0,0,0,.5); }
-#kvkRoot .kvk-led-grp { display:flex; flex-direction:column; align-items:center; }
-#kvkRoot .kvk-led-digits { display:flex; gap:5px; }
-#kvkRoot .kvk-dg, #kvkRoot .kvk-col { height:clamp(38px, 10vw, 68px); width:auto; transform:skewX(-7deg); filter:drop-shadow(0 0 6px rgba(255,35,35,.55)); }
-#kvkRoot .kvk-col { margin:0 1px; }
-#kvkRoot .kvk-led .on { fill:#ff2a2a; }
-#kvkRoot .kvk-led .off { fill:rgba(255,42,42,.07); }
-#kvkRoot .kvk-col.blink .on { fill:rgba(255,42,42,.25); }
-#kvkRoot .kvk-led.dim .on { fill:rgba(255,42,42,.22); }
-#kvkRoot .kvk-led.dim .kvk-dg, #kvkRoot .kvk-led.dim .kvk-col { filter:none; }
-#kvkRoot .kvk-led-lab { font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:#94a3b8; margin-top:6px; }`;
+#kvkRoot .kvk-flames { position:absolute; left:0; right:0; bottom:0; width:100%; height:clamp(70px, 12vw, 100px); pointer-events:none; z-index:1; }
+#kvkRoot .kvk-flame-glow { position:absolute; left:0; right:0; bottom:0; height:60px; pointer-events:none; z-index:0;
+  background:radial-gradient(60% 100% at 50% 100%, rgba(255,90,0,.28), rgba(255,40,0,.08) 60%, transparent 100%);
+  animation:kvk-glow 2.6s ease-in-out infinite; }
+#kvkRoot .kvk-time { border-bottom-color:rgba(255,106,0,.45); }
+@keyframes kvk-glow { 0%, 100% { opacity:.75; } 50% { opacity:1; } }
+@media (prefers-reduced-motion: reduce) { #kvkRoot .kvk-flame-glow { animation:none; } }
+#kvkRoot .kvk-fire-wrap { display:flex; justify-content:center; gap:clamp(6px, 2vw, 14px); }
+#kvkRoot .kvk-fire-tile { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  width:clamp(68px, 19vw, 124px); padding:clamp(10px, 2.4vw, 16px) 6px clamp(8px, 1.8vw, 12px); border-radius:14px; overflow:hidden;
+  background:radial-gradient(120% 70% at 50% 115%, rgba(255,90,0,.22), rgba(255,60,0,.06) 45%, transparent 70%), #0c1019;
+  border:1px solid rgba(255,106,0,.28);
+  box-shadow:inset 0 0 20px rgba(0,0,0,.9), inset 0 -12px 26px -8px rgba(255,90,0,.28), 0 0 0 1px rgba(0,0,0,.5), 0 8px 24px -10px rgba(255,60,0,.35);
+  animation:kvk-ember 3.2s ease-in-out infinite; animation-delay:var(--d, 0s); }
+#kvkRoot .kvk-fire { position:relative; display:inline-block; color:transparent; -webkit-text-fill-color:transparent;
+  font-family:Cinzel, Georgia, serif; font-weight:800; line-height:1; letter-spacing:.02em;
+  font-size:clamp(2.1rem, 8.5vw, 4.1rem); font-variant-numeric:tabular-nums; }
+/* Ebene 1 (unten): Glut – nur Schatten, flackert */
+#kvkRoot .kvk-fire::before { content:attr(data-v); position:absolute; inset:0; z-index:0;
+  color:transparent; -webkit-text-fill-color:transparent;
+  text-shadow:0 0 4px #ffe600, 0 -2px 10px #ff6a00, 0 -8px 20px #ff3300, 0 -15px 40px #aa0000;
+  animation:fire-flicker 1.7s ease-in-out infinite; animation-delay:var(--d, 0s); }
+/* Ebene 2 (oben): Magma-Verlauf gelb → orange → rot */
+#kvkRoot .kvk-fire::after { content:attr(data-v); position:absolute; inset:0; z-index:1;
+  background:linear-gradient(to bottom, #ffe600 20%, #ff6a00 50%, #e01a00 90%);
+  background-size:100% 125%; background-position:50% 0%;
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent;
+  animation:kvk-magma 4s ease-in-out infinite alternate; animation-delay:var(--d, 0s); }
+#kvkRoot .kvk-fire-lab { margin-top:8px; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:#fdba74; opacity:.75; }
+@keyframes fire-flicker {
+  0%, 100% { text-shadow:0 0 4px rgba(255,230,0,.9), 0 -3px 12px rgba(255,106,0,.8), 0 -8px 22px rgba(255,51,0,.7), 0 -18px 45px rgba(200,0,0,.6); filter:brightness(1); }
+  50% { text-shadow:0 0 6px rgba(255,230,0,1), 0 -1px 10px rgba(255,106,0,.9), 0 -10px 25px rgba(255,51,0,.8), 0 -14px 38px rgba(180,0,0,.5); filter:brightness(1.1) contrast(1.1); }
+  70% { text-shadow:0 0 3px rgba(255,230,0,.8), 0 -4px 14px rgba(255,106,0,.7), 0 -7px 18px rgba(255,51,0,.6), 0 -20px 48px rgba(220,0,0,.6); }
+}
+@keyframes kvk-magma { 0% { background-position:50% 0%; } 100% { background-position:50% 100%; } }
+@keyframes kvk-ember {
+  0%, 100% { box-shadow:inset 0 0 20px rgba(0,0,0,.9), inset 0 -12px 26px -8px rgba(255,90,0,.24), 0 0 0 1px rgba(0,0,0,.5), 0 8px 24px -10px rgba(255,60,0,.3); }
+  50% { box-shadow:inset 0 0 20px rgba(0,0,0,.9), inset 0 -14px 30px -8px rgba(255,110,0,.38), 0 0 0 1px rgba(0,0,0,.5), 0 8px 28px -10px rgba(255,80,0,.45); }
+}
+/* Kein Datum gesetzt: erloschene Glut */
+#kvkRoot .kvk-fire-wrap.is-dim .kvk-fire::after { background:linear-gradient(to bottom, #64748b, #334155); -webkit-background-clip:text; background-clip:text; animation:none; }
+#kvkRoot .kvk-fire-wrap.is-dim .kvk-fire::before { text-shadow:none; animation:none; }
+#kvkRoot .kvk-fire-wrap.is-dim .kvk-fire-tile { animation:none; border-color:#212b40; background:#0c1019; }
+#kvkRoot .kvk-fire-wrap.is-dim .kvk-fire-lab { color:#64748b; }
+@media (prefers-reduced-motion: reduce) {
+  #kvkRoot .kvk-fire::after, #kvkRoot .kvk-fire::before, #kvkRoot .kvk-fire-tile { animation:none; }
+}`;
     document.head.appendChild(st);
   }
 
