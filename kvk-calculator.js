@@ -92,6 +92,9 @@
       startLabel: 'KvK-Start (Datum)', utcNote: 'KvK startet immer um 00:00 UTC', localIs: 'bei dir',
       edit: 'Bearbeiten', calTitle: 'KvK-Kalender', done: 'Fertig', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End' },
+      calc: 'Berechnung', calcHint: 'Kisten, Kosten Mine & Kristall-Tech-Gebäude', costMine: 'Kosten Kristallmine', costTech: 'Kosten Kristall-Tech-Gebäude',
+      income: 'Ertrag pro Tag', avail: 'Verfügbar', need: 'Benötigt', diff: 'Differenz', chestsNeed: 'Kisten nötig', chestsUnit: 'Kisten',
+      enough: 'Reicht', missingTxt: 'Fehlen', mineTech: 'Mine + Tech', bundlesFold: 'Bundles', bundlesHint: 'Echtgeld-Angebote, Statistik & Budget-Planer',
       soon: { mid: 'Hier entsteht die Planung für die Mitte des KvK.', end: 'Hier entsteht die Planung für das Ende des KvK.' }, soonSub: 'Kommt als Nächstes',
       noStart: 'Start-Datum festlegen', pre: 'Pre-KvK', day: 'Tag', untilStart: 'bis zum Start', sinceStart: 'seit Start',
       u: { d: 'Tage', h: 'Std', m: 'Min', s: 'Sek' },
@@ -105,7 +108,7 @@
       crMarch: 'Kristalle pro Sammelmarsch', crMarches: 'Sammelmärsche pro Tag', crOther: 'Sonstiges pro Tag',
       boostOn: '+50 % Minen-Tempo aktiv (Premium Supply)',
       crNow: 'Sofort verfügbar', crDaily: 'Ertrag pro Tag', crDay1: 'Budget Tag 1', crGoal: 'Ziel (aktive Ziele)', crDays: 'Tage bis Ziel',
-      crReached: 'Ziel erreicht', crNoIncome: 'Ertrag eintragen', crNoGoal: 'Ziele unten hinzufügen',
+      crReached: 'Ziel erreicht', crNoIncome: 'Ertrag eintragen', crNoGoal: 'Kosten eintragen',
       fromChests: 'aus Kisten', fromBundles: 'aus Bundles', fromSupply: 'Supply pro Tag',
       goals: 'Kristall-Ziele', goalName: 'z. B. Kristall-Tech', goalCost: 'Kristalle', addGoal: '+ Ziel hinzufügen',
       noGoals: 'Noch keine Ziele. Füge Kristallgebäude oder Technologien mit ihren Kosten hinzu.',
@@ -127,6 +130,9 @@
       startLabel: 'KvK start (date)', utcNote: 'KvK always starts at 00:00 UTC', localIs: 'for you',
       edit: 'Edit', calTitle: 'KvK calendar', done: 'Done', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End' },
+      calc: 'Calculation', calcHint: 'Chests, mine & crystal tech building cost', costMine: 'Crystal mine cost', costTech: 'Crystal tech building cost',
+      income: 'Income per day', avail: 'Available', need: 'Needed', diff: 'Difference', chestsNeed: 'Chests needed', chestsUnit: 'chests',
+      enough: 'Enough', missingTxt: 'Missing', mineTech: 'Mine + tech', bundlesFold: 'Bundles', bundlesHint: 'Real-money offers, statistics & budget planner',
       soon: { mid: 'Planning for the middle of KvK will live here.', end: 'Planning for the end of KvK will live here.' }, soonSub: 'Coming next',
       noStart: 'Set start date', pre: 'Pre-KvK', day: 'Day', untilStart: 'until start', sinceStart: 'since start',
       u: { d: 'Days', h: 'Hrs', m: 'Min', s: 'Sec' },
@@ -140,7 +146,7 @@
       crMarch: 'Crystals per gathering march', crMarches: 'Gathering marches per day', crOther: 'Other per day',
       boostOn: '+50% mine speed active (Premium Supply)',
       crNow: 'Available now', crDaily: 'Income per day', crDay1: 'Day 1 budget', crGoal: 'Goal (active goals)', crDays: 'Days to goal',
-      crReached: 'Goal reached', crNoIncome: 'Enter income', crNoGoal: 'Add goals below',
+      crReached: 'Goal reached', crNoIncome: 'Enter income', crNoGoal: 'Enter costs',
       fromChests: 'from chests', fromBundles: 'from bundles', fromSupply: 'supply per day',
       goals: 'Crystal goals', goalName: 'e.g. crystal tech', goalCost: 'Crystals', addGoal: '+ Add goal',
       noGoals: 'No goals yet. Add crystal buildings or technologies with their cost.',
@@ -186,7 +192,8 @@
       tab: 'start',                                                               // start | mid | end                                                              // YYYY-MM-DD (UTC-Tag, Start 00:00 UTC)
       ap: { b50: 0, b100: 0, b500: 0, b1000: 0, perDay: 0 },
       speed: { universal: 0, training: 0, healing: 0, research: 0, building: 0 },   // Minuten
-      crystal: { start: 0, chests: 0, perMarch: 0, marches: 0, other: 0 },
+      crystal: { start: 0, chests: 0, costMine: 0, costTech: 0, perMarch: 0, marches: 0, other: 0 },
+      open: { calc: true, bundles: false },                                       // eingeklappte Fenster
       buy: {},                                                                    // Stufen-ID → Anzahl
       budget: 0,
       res: { food: 0, wood: 0, stone: 0, gold: 0 },
@@ -393,7 +400,7 @@
     const mine = c.perMarch * c.marches * (1 + shop.mineBoost);
     const daily = mine + c.other + shop.supplyPerDay;
     const now = c.start + chestCr + shop.crNow;
-    const goal = state.goals.filter((g) => g.on).reduce((a, g) => a + (g.cost || 0), 0);
+    const goal = (c.costMine || 0) + (c.costTech || 0);
     const remaining = Math.max(0, goal - now);
     const daysToGoal = goal <= 0 ? null : remaining === 0 ? 0 : daily > 0 ? Math.ceil(remaining / daily) : Infinity;
 
@@ -401,6 +408,7 @@
       apTotal, apDays,
       spTotal, trainU: sp.training + sp.universal, healU: sp.healing + sp.universal,
       shop, chestCr, mine, daily, now, day1: now + daily, goal, remaining, daysToGoal,
+      diff: now - goal, chestsNeeded: Math.ceil(remaining / CHEST_CRYSTALS),
       crPct: goal > 0 ? Math.min(100, (now / goal) * 100) : 0
     };
   }
@@ -499,67 +507,50 @@
             class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition">${TAB_ICONS[k]} ${L.tabs[k]}</button>`).join('')}
       </div>`;
 
-    // ---- AP ----
-    const apTile = `
-      <section class="panel rounded-2xl p-5 flex flex-col gap-4">
-        ${tileHead('🧪', L.apTitle, L.apHint, 'ap')}
-        <div data-out="ap" class="mt-auto"></div>
-      </section>`;
+    // ---- Klappfenster ----
+    const fold = (key, icon, title, hint, body) => `
+      <details data-fold="${key}" class="kvk-fold rounded-xl border border-ink-700 bg-ink-950/50" ${state.open[key] ? 'open' : ''}>
+        <summary class="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer list-none">
+          <span class="min-w-0">
+            <span class="block font-semibold text-slate-100">${icon} ${title}</span>
+            <span class="block text-xs text-slate-500 truncate">${hint}</span>
+          </span>
+          <span data-fsum="${key}" class="ml-auto shrink-0 text-xs sm:text-sm font-semibold tabular-nums text-right"></span>
+        </summary>
+        <div class="px-4 pb-4 pt-1 border-t border-ink-700/70">${body}</div>
+      </details>`;
 
-    // ---- Speed ----
-    const speedTile = `
-      <section class="panel rounded-2xl p-5 flex flex-col gap-4">
-        ${tileHead('⏱️', L.speedTitle, L.speedHint, 'speed')}
-        <div data-out="speed" class="mt-auto"></div>
-      </section>`;
+    // ---- AP / Speed (unten im Crystal-Feld) ----
+    const card = (inner) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-4 flex flex-col gap-4">${inner}</div>`;
+    const apTile = card(`${tileHead('🧪', L.apTitle, L.apHint, 'ap')}<div data-out="ap" class="mt-auto"></div>`);
+    const speedTile = card(`${tileHead('⏱️', L.speedTitle, L.speedHint, 'speed')}<div data-out="speed" class="mt-auto"></div>`);
 
-    // ---- Crystal (volle Breite) ----
-    const goalsHTML = state.goals.length ? state.goals.map((g) => `
-        <div class="grid grid-cols-[auto_1fr_104px_auto] items-center gap-2" data-goal="${esc(g.id)}">
-          <input type="checkbox" data-goal-field="on" ${g.on ? 'checked' : ''} class="w-4 h-4 accent-[#e0a91b]" aria-label="${esc(g.name)}">
-          <input type="text" data-goal-field="name" value="${esc(g.name)}" placeholder="${L.goalName}"
-                 class="w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500">
-          <input type="text" inputmode="decimal" data-goal-field="cost" value="${esc(inVal(g.cost))}" placeholder="${L.goalCost}" class="${INPUT_SM}">
-          <button type="button" data-goal-del title="${L.remove}" class="px-2 py-1 rounded-md text-slate-500 hover:text-red-300 hover:bg-ink-800">✕</button>
-        </div>`).join('')
-      : `<p class="text-xs text-slate-500 leading-relaxed">${L.noGoals}</p>`;
-
-    const stockCol = `
-      <div class="flex flex-col gap-4">
-        ${subTitle('💎 ' + L.stock)}
+    // ---- Berechnung ----
+    const calcBody = `
+      <div class="grid gap-6 lg:grid-cols-2 pt-3">
         <div class="space-y-2">
           ${row('💎 ' + L.crStart, 'crystal.start', inVal(state.crystal.start))}
           ${row(`📦 ${L.crChests} <span class="text-slate-500 text-xs">× ${L.chestNote}</span>`, 'crystal.chests', inVal(state.crystal.chests))}
+          ${row('⛏️ ' + L.costMine, 'crystal.costMine', inVal(state.crystal.costMine))}
+          ${row('🏛️ ' + L.costTech, 'crystal.costTech', inVal(state.crystal.costTech))}
+          <div class="pt-3">${subTitle('📈 ' + L.income)}</div>
           ${row('⛏️ ' + L.crMarch, 'crystal.perMarch', inVal(state.crystal.perMarch))}
           ${row('🔁 ' + L.crMarches, 'crystal.marches', inVal(state.crystal.marches))}
           ${row('🎁 ' + L.crOther, 'crystal.other', inVal(state.crystal.other))}
         </div>
         <div data-out="crystal"></div>
-        <div class="border-t border-ink-700 pt-4 space-y-2">
-          ${subTitle('🎯 ' + L.goals)}
-          ${goalsHTML}
-          <button type="button" data-goal-add class="text-xs px-3 py-2 rounded-lg border border-dashed border-ink-600 hover:border-gold-500/60 hover:text-gold-300 w-full">${L.addGoal}</button>
-        </div>
       </div>`;
 
-    const shopCol = `
-      <div class="flex flex-col gap-3">
+    // ---- Bundles ----
+    const bundlesBody = `
+      <div class="flex flex-col gap-4 pt-3">
         <div class="flex items-end justify-between gap-3">
-          <div>${subTitle('🛒 ' + L.shop)}<p class="text-xs text-slate-500 mt-0.5">${L.shopHint}</p></div>
+          <p class="text-xs text-slate-500">${L.shopHint}</p>
           <button type="button" data-shop-clear class="text-xs text-slate-500 hover:text-red-300 underline shrink-0">${L.clearShop}</button>
         </div>
-        ${BUNDLES.map(bundleCard).join('')}
+        <div class="kvk-masonry">${BUNDLES.map(bundleCard).join('')}</div>
         <div data-out="shop"></div>
-      </div>`;
-
-    const crystalTile = `
-      <section class="panel rounded-2xl p-5 md:col-span-2 flex flex-col gap-5">
-        ${tileHead('💎', L.crTitle, L.crHint, null)}
-        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
-          ${stockCol}
-          ${shopCol}
-        </div>
-        <div class="border-t border-ink-700 pt-5 grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+        <div class="border-t border-ink-700 pt-4 grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
           <div class="flex flex-col gap-3">
             <div>${subTitle('📊 ' + L.stats)}<p class="text-xs text-slate-500 mt-0.5">${L.statsHint}</p></div>
             <div data-out="stats"></div>
@@ -570,11 +561,23 @@
             <div data-out="budget"></div>
           </div>
         </div>
+      </div>`;
+
+    // ---- Crystal (volle Breite): Berechnung · Bundles · AP/Speed ----
+    const crystalTile = `
+      <section class="panel rounded-2xl p-5 flex flex-col gap-4">
+        ${tileHead('💎', L.crTitle, L.crHint, null)}
+        ${fold('calc', '🧮', L.calc, L.calcHint, calcBody)}
+        ${fold('bundles', '🛒', L.bundlesFold, L.bundlesHint, bundlesBody)}
+        <div class="grid gap-4 md:grid-cols-2">
+          ${apTile}
+          ${speedTile}
+        </div>
       </section>`;
 
     // ---- Resources (volle Breite) ----
     const resTile = `
-      <section class="panel rounded-2xl p-5 md:col-span-2 flex flex-col gap-4">
+      <section class="panel rounded-2xl p-5 flex flex-col gap-4">
         ${tileHead('📦', L.resTitle, L.resHint, 'res')}
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           ${RES.map((r) => `
@@ -600,12 +603,8 @@
         ${timePanel}
         ${tabs}
         ${state.tab === 'start' ? `
-        <div class="grid gap-5 md:grid-cols-2">
-          ${apTile}
-          ${speedTile}
-          ${crystalTile}
-          ${resTile}
-        </div>
+        ${crystalTile}
+        ${resTile}
         <div class="text-right">
           <button type="button" data-reset class="text-xs text-slate-500 hover:text-red-300 underline">${L.reset}</button>
         </div>` : `
@@ -656,7 +655,7 @@
   function outputs(r) {
     const L = t();
 
-    // Crystal-Zusammenfassung
+    // Crystal-Berechnung
     let crDays;
     if (r.goal <= 0) crDays = line(L.crDays, L.crNoGoal, 'text-slate-500');
     else if (r.daysToGoal === 0) crDays = line(L.crDays, '✓ ' + L.crReached, 'text-emerald-400');
@@ -664,18 +663,35 @@
     else crDays = line(L.crDays, `${fmt(r.daysToGoal)} ${r.daysToGoal === 1 ? L.dayOne : L.days}`, 'text-gold-300');
     const nowSub = [r.chestCr ? `${short(r.chestCr)} ${L.fromChests}` : '', r.shop.crNow ? `${short(r.shop.crNow)} ${L.fromBundles}` : ''].filter(Boolean).join(' · ');
     const dailySub = r.shop.supplyPerDay ? ` <span class="text-xs text-slate-500">(+${short(r.shop.supplyPerDay)} ${L.fromSupply})</span>` : '';
+    const ok = r.goal > 0 && r.diff >= 0;
+    const diffTxt = r.goal <= 0 ? '—' : `<span class="${ok ? 'text-emerald-400' : 'text-red-300'}">${ok ? '+' : '−'}${short(Math.abs(r.diff))}</span>`;
+    const chestTxt = r.goal <= 0 ? '—' : r.chestsNeeded === 0 ? `<span class="text-emerald-400">✓ 0</span>` : `<span class="text-red-300">${fmt(r.chestsNeeded)}</span>`;
     const crBar = r.goal > 0 ? `
       <div class="mt-2 h-2 rounded-full bg-ink-800 overflow-hidden" title="${fmt(r.crPct, 1)} %">
         <div class="h-full rounded-full bg-gradient-to-r from-sky-500 to-sky-300 transition-all" style="width:${r.crPct.toFixed(1)}%"></div>
       </div>` : '';
     const crystal = `
-      ${line(L.crNow, short(r.now) + (nowSub ? `<span class="block text-xs font-normal text-slate-500">${nowSub}</span>` : ''))}
-      ${line(L.crDaily, short(r.daily) + dailySub)}
-      ${r.shop.mineBoost ? `<div class="text-xs text-emerald-400 py-1">⚡ ${L.boostOn}</div>` : ''}
-      ${line(L.crGoal, r.goal > 0 ? short(r.goal) : '—')}
-      ${crDays}
-      <div class="mt-3">${sumBox(L.crDay1, short(r.day1) + ' 💎')}</div>
-      ${crBar}`;
+      <div class="grid grid-cols-2 gap-2">
+        ${kpi('💎 ' + L.avail, short(r.now), nowSub)}
+        ${kpi('🏛️ ' + L.need, r.goal > 0 ? short(r.goal) : '—', L.mineTech)}
+        ${kpi('⚖️ ' + L.diff, diffTxt, r.goal > 0 ? (ok ? L.enough : L.missingTxt) : '')}
+        ${kpi('📦 ' + L.chestsNeed, chestTxt, `× ${L.chestNote}`)}
+      </div>
+      ${crBar}
+      <div class="mt-3">
+        ${line(L.crDaily, short(r.daily) + dailySub)}
+        ${r.shop.mineBoost ? `<div class="text-xs text-emerald-400 py-1">⚡ ${L.boostOn}</div>` : ''}
+        ${crDays}
+      </div>
+      <div class="mt-3">${sumBox(L.crDay1, short(r.day1) + ' 💎')}</div>`;
+
+    // Kurzinfo in den Klappfenster-Köpfen (sichtbar auch eingeklappt)
+    const fsum = {
+      calc: r.goal <= 0 ? `<span class="text-slate-500">${short(r.now)} 💎</span>`
+        : ok ? `<span class="text-emerald-400">✓ ${L.enough} · +${short(r.diff)}</span>`
+        : `<span class="text-red-300">${L.missingTxt} ${short(-r.diff)} · ${fmt(r.chestsNeeded)} ${L.chestsUnit}</span>`,
+      bundles: r.shop.items ? `<span class="text-gold-300">${usd(r.shop.usd)} · ${short(r.shop.crTotal)} 💎</span>` : ''
+    };
 
     // Auswahl-Zusammenfassung
     const s = r.shop;
@@ -732,7 +748,7 @@
       speed: state.src.speed || r.spTotal
         ? `${line(L.trainU, dur(r.trainU))}${line(L.healU, dur(r.healU))}<div class="mt-3">${sumBox(L.total, dur(r.spTotal))}</div>`
         : `<p class="text-xs text-slate-500">${L.noData}</p>`,
-      crystal, shop, stats, budget
+      crystal, shop, stats, budget, _fsum: fsum
     };
   }
 
@@ -815,6 +831,7 @@
     if (!root) return;
     const out = outputs(calc());
     Object.keys(out).forEach((k) => { const el = root.querySelector(`[data-out="${k}"]`); if (el) el.innerHTML = out[k]; });
+    Object.keys(out._fsum).forEach((k) => { const el = root.querySelector(`[data-fsum="${k}"]`); if (el) el.innerHTML = out._fsum[k]; });
     // Summe je Bundle in der Kopfzeile
     BUNDLES.forEach((b) => {
       const el = root.querySelector(`[data-bsum="${b.id}"]`);
@@ -954,6 +971,10 @@
 #kvkRoot details > summary::-webkit-details-marker { display:none; }
 #kvkRoot details > summary::after { content:'▾'; color:#64748b; margin-left:.5rem; transition:transform .15s; }
 #kvkRoot details[open] > summary::after { transform:rotate(180deg); }
+#kvkRoot .kvk-fold[open] { border-color:#2e3a55; }
+#kvkRoot .kvk-masonry { column-gap:12px; }
+#kvkRoot .kvk-masonry > * { break-inside:avoid; margin-bottom:12px; }
+@media (min-width:1024px) { #kvkRoot .kvk-masonry { columns:2; } }
 #kvkRoot .grid > * { min-width:0; }
 #kvkRoot .kvk-led { display:inline-flex; align-items:flex-start; gap:6px; padding:14px 18px 10px; border-radius:14px;
   background-color:#080b12; background-image:radial-gradient(rgba(148,163,184,.09) 1px, transparent 1.3px); background-size:4px 4px;
@@ -986,6 +1007,11 @@
     root.addEventListener('change', (e) => { if (e.target.type === 'checkbox' || e.target.dataset.kind === 'raw') onInput(e); });
     root.addEventListener('focusout', onBlur);
     root.addEventListener('click', onClick);
+    root.addEventListener('toggle', (e) => {
+      const d = e.target;
+      if (!d || !d.dataset || !d.dataset.fold) return;
+      if (state.open[d.dataset.fold] !== d.open) { state.open[d.dataset.fold] = d.open; save(); }
+    }, true);
     window.addEventListener('langchange', () => { if (root.innerHTML) rerender(); });
 
     if (modal) {
