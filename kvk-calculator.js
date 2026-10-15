@@ -290,8 +290,9 @@
       stats: 'Statistik', statsHint: 'Preis pro 1 Mio Kristalle (alle Stufen eines Bundles) – kürzer ist besser',
       maxed: 'Komplett', sel: 'Deine Auswahl', spend: 'Ausgaben', crystals: 'Kristalle', avg: 'Ø Preis',
       best: 'Bestes Angebot', worst: 'Schlechtestes Angebot', nothing: 'Noch nichts ausgewählt',
-      budget: 'Budget-Planer', budgetHint: 'Bester Mix für dein Budget (jede Stufe einmal, günstigster $/Mio zuerst, Stufenfolge beachtet)',
-      budgetLabel: 'Budget in $', passesLabel: 'Planung bis Pass', passesHint: 'Mountain Warfare 12 Std vor jeder Pass-Öffnung · Conquer\'s Will täglich ab KvK-Start bis dahin', dayN: 'Tag', daysN: 'Tage', planTo: 'Planung bis', cwDaily: 'Conquer\'s Will (täglich)', pass: 'Pass', noBuy: 'nicht kaufen', upTo: 'bis', budgetGet: 'Damit bekommst du', budgetLeft: 'Rest', apply: 'Auswahl übernehmen',
+      budget: 'Budget-Planer', budgetHint: 'Exakt optimiert: meiste Kristalle für dein Budget, Stufenfolge beachtet',
+      budgetLabel: 'Budget in $', passesLabel: 'Planung bis Pass', passesHint: 'Mountain Warfare 12 Std vor jeder Pass-Öffnung · Conquer\'s Will täglich ab KvK-Start bis dahin', dayN: 'Tag', daysN: 'Tage', planTo: 'Planung bis', cwDaily: 'Conquer\'s Will (täglich)', pass: 'Pass', noBuy: 'nicht kaufen', upTo: 'bis', budgetGet: 'Damit bekommst du', budgetLeft: 'Rest', apply: 'Auswahl übernehmen', autoNote: 'Die Auswahl oben wird bei jeder Änderung automatisch optimal neu berechnet.',
+      roadmap: 'Roadmap', roadmapHint: 'Was du wann kaufst – aus deiner aktuellen Auswahl', rmStart: 'KvK-Start', rmCond: 'Sobald freigeschaltet', rmEmpty: 'Noch nichts ausgewählt – Budget im Planer eintragen oder Bundles anhaken.', rmTotal: 'Gesamt', rmDays: 'Tage', rmDay: 'Tag',
       resTitle: 'Resources', resHint: 'Ressourcen-Vorrat (Gesamt)',
       res: { food: 'Nahrung', wood: 'Holz', stone: 'Stein', gold: 'Gold' },
       scan: '↻ Aus Scan', scanFrom: 'Letzter Scan', noScan: 'Noch kein Scan im Scanner',
@@ -329,8 +330,9 @@
       stats: 'Statistics', statsHint: 'Price per 1M crystals (all tiers of a bundle) – shorter is better',
       maxed: 'Maxed', sel: 'Your selection', spend: 'Spend', crystals: 'Crystals', avg: 'Avg. price',
       best: 'Best deal', worst: 'Worst deal', nothing: 'Nothing selected yet',
-      budget: 'Budget planner', budgetHint: 'Best mix for your budget (each tier once, cheapest $/M first, tier order respected)',
-      budgetLabel: 'Budget in $', passesLabel: 'Plan up to pass', passesHint: 'Mountain Warfare 12h before each pass opening · Conquer\'s Will daily from KvK start until then', dayN: 'Day', daysN: 'days', planTo: 'Plan up to', cwDaily: 'Conquer\'s Will (daily)', pass: 'Pass', noBuy: 'skip', upTo: 'up to', budgetGet: 'You get', budgetLeft: 'Left', apply: 'Apply selection',
+      budget: 'Budget planner', budgetHint: 'Exactly optimised: most crystals for your budget, tier order respected',
+      budgetLabel: 'Budget in $', passesLabel: 'Plan up to pass', passesHint: 'Mountain Warfare 12h before each pass opening · Conquer\'s Will daily from KvK start until then', dayN: 'Day', daysN: 'days', planTo: 'Plan up to', cwDaily: 'Conquer\'s Will (daily)', pass: 'Pass', noBuy: 'skip', upTo: 'up to', budgetGet: 'You get', budgetLeft: 'Left', apply: 'Apply selection', autoNote: 'The selection above is re-optimised automatically on every change.',
+      roadmap: 'Roadmap', roadmapHint: 'What you buy when – from your current selection', rmStart: 'KvK start', rmCond: 'As soon as unlocked', rmEmpty: 'Nothing selected yet – enter a budget in the planner or tick bundles.', rmTotal: 'Total', rmDays: 'days', rmDay: 'Day',
       resTitle: 'Resources', resHint: 'Resource stock (total)',
       res: { food: 'Food', wood: 'Wood', stone: 'Stone', gold: 'Gold' },
       scan: '↻ From scan', scanFrom: 'Last scan', noScan: 'No scan in the scanner yet',
@@ -569,48 +571,144 @@
   const passDate = (n) => { const s = startTs(); return s == null ? null : new Date(s + passDay(n) * 86400000); };
   const shortDate = (d) => d.toLocaleDateString(locale(), { day: '2-digit', month: '2-digit' });
 
-  // Budget-Planer: alle Angebote nach (effektivem) $/Mio, jede Stufe einmal, Stufenfolge beachtet.
-  // Planung bis Pass X: Mountain Warfare als eigene Kette je Pass 4…X, Conquer's Will als eigene Kette je Tag bis Pass X.
+  // Budget-Planer – exakte Optimierung (Gruppen-Rucksack, Beträge in Cent):
+  //  • jede einmalige Stufe (Premium Supply, First Come First Served, Scientific Pioneer) = eigene Ja/Nein-Gruppe
+  //  • Mountain Warfare je Pass 4…X  = Gruppe „kaufen bis Stufe 0…5“ (Stufenfolge erzwungen)
+  //  • Conquer's Will je Tag 1…Tag(X) = Gruppe „kaufen bis Stufe 0…3“
+  // Ergebnis: maximale Kristalle ≤ Budget; bei Gleichstand die günstigere Variante.
+  const planCache = new Map();
   function budgetPlan(budget, planPass = state.planPass) {
+    const key = `${Math.round(budget * 100)}|${planPass}`;
+    if (planCache.has(key)) return planCache.get(key);
     const sel = MW_PASSES.filter((n) => n <= planPass);
     const cwDays = passDay(planPass);
-    const items = [];
-    ALL_TIERS.forEach((tr) => {
-      if (tr.bundle.id === 'mw') {
-        sel.forEach((n) => items.push({ ...tr, key: `${tr.id}@p${n}`, prevKey: tr.prev ? `${tr.prev}@p${n}` : null, pass: n }));
-      } else if (tr.bundle.id === 'cw') {
-        for (let d = 1; d <= cwDays; d++) items.push({ ...tr, key: `${tr.id}@d${d}`, prevKey: tr.prev ? `${tr.prev}@d${d}` : null, day: d });
-      } else {
-        items.push({ ...tr, key: tr.id, prevKey: tr.prev });
-      }
-    });
-    // Effektiver $/Mio: bei Stufenketten zählt auch, was eine Stufe freischaltet
-    // (z. B. Iron allein $24,99/Mio, Iron→Silver→Gold zusammen ~$20,48/Mio)
-    const eff = (it) => {
-      if (!it.bundle.sequential) return perMil(it.usd, it.cr);
-      let u = 0, c = 0, best = Infinity;
-      for (let i = it.idx; i < it.bundle.tiers.length; i++) { u += it.bundle.tiers[i].usd; c += it.bundle.tiers[i].cr; best = Math.min(best, perMil(u, c)); }
-      return best;
+    const groups = [];
+    const chain = (b, tag) => {
+      const opts = [{ c: 0, cr: 0, k: 0 }];
+      let c = 0, cr = 0;
+      b.tiers.forEach((x, i) => { c += Math.round(x.usd * 100); cr += x.cr; opts.push({ c, cr, k: i + 1 }); });
+      return { bundle: b, tag, opts };
     };
-    items.forEach((it) => { it.eff = eff(it); });
-    items.sort((a, z) => a.eff - z.eff || a.idx - z.idx || (a.pass || a.day || 0) - (z.pass || z.day || 0));
-    let left = budget, cr = 0;
-    const taken = {};
-    let changed = true;
-    while (changed) {
-      changed = false;
-      for (const it of items) {
-        if (taken[it.key] || (it.prevKey && !taken[it.prevKey]) || it.usd > left + 1e-9) continue;
-        left -= it.usd; cr += it.cr; taken[it.key] = it; changed = true;
-        break;   // nach jedem Kauf neu beim günstigsten beginnen – evtl. ist jetzt eine Folgestufe frei
-      }
-    }
-    const pick = {}, perPass = {};
-    Object.values(taken).forEach((it) => {
-      pick[it.id] = (pick[it.id] || 0) + 1;
-      if (it.pass) perPass[it.pass] = Math.max(perPass[it.pass] ?? -1, it.idx);
+    BUNDLES.forEach((b) => {
+      if (b.id === 'mw') sel.forEach((n) => groups.push(chain(b, { pass: n })));
+      else if (b.id === 'cw') for (let d = 1; d <= cwDays; d++) groups.push(chain(b, { day: d }));
+      else b.tiers.forEach((x) => groups.push({ bundle: b, tier: x, opts: [{ c: 0, cr: 0, k: 0 }, { c: Math.round(x.usd * 100), cr: x.cr, k: 1 }] }));
     });
-    return { pick, perPass, passes: sel, cwDays, cr, spent: budget - left, left, count: Object.keys(taken).length };
+    const maxSpend = groups.reduce((a, g) => a + g.opts[g.opts.length - 1].c, 0);
+    const B = Math.max(0, Math.min(Math.round(budget * 100), maxSpend));
+    let dp = new Float64Array(B + 1);
+    const choice = groups.map(() => new Uint8Array(B + 1));
+    groups.forEach((g, gi) => {
+      const nd = new Float64Array(dp), ch = choice[gi];
+      for (let oi = 1; oi < g.opts.length; oi++) {
+        const { c, cr } = g.opts[oi];
+        for (let b = B; b >= c; b--) {
+          const v = dp[b - c] + cr;
+          if (v > nd[b]) { nd[b] = v; ch[b] = oi; }
+        }
+      }
+      dp = nd;
+    });
+    // kleinstes Budget mit dem Maximum → günstigste der besten Varianten
+    const best = dp[B];
+    let b = B;
+    while (b > 0 && dp[b - 1] === best) b--;
+    const spentC = b;
+    const pick = {}, perPass = {}, perDay = {};
+    for (let gi = groups.length - 1; gi >= 0; gi--) {
+      const g = groups[gi], o = g.opts[choice[gi][b]];
+      b -= o.c;
+      if (!o.k) continue;
+      if (g.tier) { pick[g.tier.id] = (pick[g.tier.id] || 0) + 1; continue; }
+      g.bundle.tiers.slice(0, o.k).forEach((x) => { pick[x.id] = (pick[x.id] || 0) + 1; });
+      if (g.tag.pass) perPass[g.tag.pass] = o.k - 1;
+      if (g.tag.day) perDay[g.tag.day] = o.k - 1;
+    }
+    const count = groups.length && Object.values(pick).reduce((a, v) => a + v, 0);
+    const res = { pick, perPass, perDay, passes: sel, cwDays, cr: best, spent: spentC / 100, left: budget - spentC / 100, count };
+    if (planCache.size > 60) planCache.clear();
+    planCache.set(key, res);
+    return res;
+  }
+
+  // Planer-Ergebnis in die Bundle-Auswahl übernehmen (ohne Neuaufbau der Seite → nichts springt)
+  function applyPlan() {
+    if (!(state.budget > 0)) return;
+    state.buy = { ...budgetPlan(state.budget).pick };
+    syncShopInputs();
+  }
+  function syncShopInputs() {
+    if (!root) return;
+    root.querySelectorAll('[data-buy]').forEach((inp) => {
+      const v = state.buy[inp.dataset.buy] || 0;
+      if (inp.type === 'checkbox') inp.checked = !!v;
+      else if (document.activeElement !== inp) inp.value = v || '';
+      const l = inp.closest('label'); if (l) l.classList.toggle('bg-gold-500/5', !!v);
+    });
+  }
+
+  // Roadmap aus der aktuellen Auswahl: was an welchem Tag / Pass gekauft wird
+  function roadmapHTML() {
+    const L = t(), buy = state.buy;
+    const B = (id) => BUNDLES.find((b) => b.id === id);
+    const sum = (tiers) => ({ u: tiers.reduce((a, x) => a + x.usd, 0), c: tiers.reduce((a, x) => a + x.cr, 0) });
+    const dayDate = (d) => { const s0 = startTs(); return s0 == null ? '' : shortDate(new Date(s0 + (d - 1) * 86400000)); };
+    const nodes = [];   // { day, title, sub, u, c }
+    let totU = 0, totC = 0;
+    const add = (n) => { nodes.push(n); totU += n.u; totC += n.c; };
+
+    // KvK-Start
+    const ps = B('psup').tiers.filter((x) => buy[x.id]);
+    if (ps.length) { const v = sum(ps); add({ day: 0, icon: '🚀', title: L.rmStart, sub: `Premium Season Crystal Supply · 60.000 💎${L.perDayShort}`, ...v }); }
+    // Bedingte Bundles
+    const cond = [...B('fcfs').tiers, ...B('sci').tiers].filter((x) => buy[x.id]);
+    if (cond.length) { const v = sum(cond); add({ day: 0.5, icon: '🔓', title: L.rmCond, sub: cond.map((x) => esc(tx(x.label))).join(' · '), ...v }); }
+    // Mountain Warfare: höhere Stufen bei den frühesten Pässen
+    const mw = B('mw').tiers, nPass = buy[mw[0].id] || 0;
+    for (let j = 0; j < nPass; j++) {
+      const sch = PASS_SCHEDULE[j], tiers = mw.filter((x) => (buy[x.id] || 0) > j);
+      const day = sch ? sch.day : 99 + j, v = sum(tiers);
+      const dt = sch ? passDate(sch.n) : null;
+      add({ day: day - 0.5, icon: '⛰️', title: sch ? `${L.pass} ${sch.n} · ${L.rmDay} ${sch.day}${dt ? ` (${shortDate(dt)})` : ''}` : `${L.pass} ?`,
+        sub: `Mountain Warfare: ${tiers.map((x) => esc(tx(x.label))).join(' → ')}`, ...v });
+    }
+    // Conquer's Will: Tage mit gleicher Stufe zusammenfassen, an Pass-Grenzen trennen
+    const cw = B('cw').tiers, nDay = buy[cw[0].id] || 0;
+    const cuts = PASS_SCHEDULE.map((p) => p.day);
+    let d = 1;
+    while (d <= nDay) {
+      const k = cw.filter((x) => (buy[x.id] || 0) >= d).length;
+      let e = d;
+      while (e + 1 <= nDay && cw.filter((x) => (buy[x.id] || 0) >= e + 1).length === k && !cuts.includes(e)) e++;
+      const tiers = cw.slice(0, k), one = sum(tiers), n = e - d + 1;
+      const range = d === e ? `${L.rmDay} ${d}` : `${L.rmDay} ${d}–${e}`;
+      const dts = dayDate(d) ? ` (${dayDate(d)}${d === e ? '' : '–' + dayDate(e)})` : '';
+      add({ day: d - 0.25, icon: '📆', title: `${range}${dts}`, sub: `Conquer's Will: ${tiers.map((x) => esc(tx(x.label))).join(' → ')} · ${n}×`, u: one.u * n, c: one.c * n });
+      d = e + 1;
+    }
+    if (!nodes.length) return `<p class="text-xs text-slate-500">${L.rmEmpty}</p>`;
+    nodes.sort((a, z) => a.day - z.day);
+    return `
+      <ol class="relative ml-2 border-l border-gold-500/30 space-y-2.5">
+        ${nodes.map((n) => `
+          <li class="relative pl-5">
+            <span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-ink-900 border border-gold-500/60 text-[9px] flex items-center justify-center">${n.icon}</span>
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <div class="text-sm font-semibold text-slate-100">${n.title}</div>
+                <div class="text-xs text-slate-400">${n.sub}</div>
+              </div>
+              <div class="shrink-0 text-right text-xs tabular-nums">
+                <div class="text-slate-200">${usd(n.u)}</div>
+                <div class="text-gold-300">${short(n.c)} 💎</div>
+              </div>
+            </div>
+          </li>`).join('')}
+      </ol>
+      <div class="mt-3 flex items-center justify-between rounded-lg border border-gold-500/30 bg-gold-500/5 px-3 py-2 text-sm">
+        <span class="text-xs uppercase tracking-widest text-slate-400">${L.rmTotal}</span>
+        <span class="tabular-nums font-bold"><span class="text-slate-100">${usd(totU)}</span> · <span class="text-gold-300">${short(totC)} 💎</span></span>
+      </div>`;
   }
 
   function calc() {
@@ -800,6 +898,10 @@
     // ---- Bundles ----
     const bundlesBody = `
       <div class="flex flex-col gap-4 pt-3">
+        <div class="rounded-xl border border-gold-500/25 bg-ink-950/60 p-4">
+          <div class="mb-3">${subTitle('🗺️ ' + L.roadmap)}<p class="text-xs text-slate-500 mt-0.5">${L.roadmapHint}</p></div>
+          <div data-out="roadmap"></div>
+        </div>
         <div class="flex items-end justify-between gap-3">
           <p class="text-xs text-slate-500">${L.shopHint}</p>
           <button type="button" data-shop-clear class="text-xs text-slate-500 hover:text-red-300 underline shrink-0">${L.clearShop}</button>
@@ -1019,16 +1121,17 @@
               : L.noBuy}</span>
           </div>
         </div>
-        <button type="button" data-budget-apply ${p.count ? '' : 'disabled'}
-          class="mt-2 w-full py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm disabled:opacity-40">${L.apply}</button>`;
+        <p class="mt-2 text-[11px] text-emerald-400/90">✓ ${L.autoNote}</p>`;
     }
+
+    const roadmap = roadmapHTML();
 
     return {
       ap: state.src.ap || r.apTotal ? sumBox(L.total, `${short(r.apTotal)} AP`) : `<p class="text-xs text-slate-500">${L.noData}</p>`,
       speed: state.src.speed || r.spTotal
         ? `${line(L.trainU, dur(r.trainU))}${line(L.healU, dur(r.healU))}<div class="mt-3">${sumBox(L.total, dur(r.spTotal))}</div>`
         : `<p class="text-xs text-slate-500">${L.noData}</p>`,
-      crystal, shop, stats, budget, _fsum: fsum
+      crystal, shop, stats, budget, roadmap, _fsum: fsum
     };
   }
 
@@ -1338,6 +1441,11 @@
       const hint = el.closest('section') && el.closest('section').querySelector('[data-hint]');
       if (hint) hint.innerHTML = hint.innerHTML.split(' · ')[0];
     }
+    if (el.dataset.path === 'budget') {   // kurz warten, bis fertig getippt ist – dann optimal neu rechnen
+      clearTimeout(onInput._bt);
+      onInput._bt = setTimeout(() => { applyPlan(); save(); refresh(); }, 220);
+      return;
+    }
     save(); refresh();
     if (el.dataset.path === 'startDate') renderClock();
   }
@@ -1398,6 +1506,7 @@
         const on = +b.dataset.pass === state.planPass;
         b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-checked', String(on));
       });
+      applyPlan();
       save(); refresh();
       return;
     }
@@ -1546,6 +1655,7 @@
     open,
     close,
     data: KVK_DATA,
+    plan: (budget, planPass) => budgetPlan(+budget || 0, planPass || state.planPass),
     buildingUpgrade,
     kauKaruakCrystals,
     kauKaruakHourly,
