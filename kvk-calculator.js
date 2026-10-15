@@ -34,14 +34,26 @@
       tiers: [{ id: 'psup', label: { de: 'Einmalkauf', en: 'One-time purchase' }, usd: 4.99, cr: 3000000, perDay: 60000, days: 50, mineBoost: 0.5 }]
     },
     {
-      id: 'fcfs', name: 'First Come, First Served', kind: 'once',
-      info: { de: 'Bedingung: Mine & Forschungszentrum erreichen', en: 'Conditional: reach Mine & Research Center level' },
+      // Mine und Forschungszentrum sind getrennte Angebote (Datenblatt „Maxed“: $96 · 12.350.000 = Mine $52,95/6,9 Mio + RC $42,95/5,45 Mio)
+      id: 'fcfs', name: 'First Come, First Served – ⛏️ Kristallmine', kind: 'once', col: 1,
+      info: { de: 'Erscheint, sobald die Kristallmine die Stufe erreicht', en: 'Appears once the Crystal Mine reaches the level' },
       tiers: [
-        { id: 'fcfs1', label: 'Mine 5 · RC 5', usd: 2.99, cr: 300000 },
-        { id: 'fcfs2', label: 'Mine 15 · RC 10/15', usd: 4.99, cr: 550000 },
-        { id: 'fcfs3', label: 'Mine 20 · RC 18', usd: 9.99, cr: 1300000 },
-        { id: 'fcfs4', label: 'Mine 22', usd: 14.99, cr: 2000000 },
-        { id: 'fcfs5', label: 'Mine 25 · RC 25', usd: 19.99, cr: 2750000 }
+        { id: 'fcfs1', label: { de: 'Mine Stufe 5', en: 'Mine level 5' }, usd: 2.99, cr: 300000 },
+        { id: 'fcfs2', label: { de: 'Mine Stufe 15', en: 'Mine level 15' }, usd: 4.99, cr: 550000 },
+        { id: 'fcfs3', label: { de: 'Mine Stufe 20', en: 'Mine level 20' }, usd: 9.99, cr: 1300000 },
+        { id: 'fcfs4', label: { de: 'Mine Stufe 22', en: 'Mine level 22' }, usd: 14.99, cr: 2000000 },
+        { id: 'fcfs5', label: { de: 'Mine Stufe 25', en: 'Mine level 25' }, usd: 19.99, cr: 2750000 }
+      ]
+    },
+    {
+      id: 'fcfsrc', name: 'First Come, First Served – 🏛️ Forschungszentrum', kind: 'once', col: 1,
+      info: { de: 'Erscheint, sobald das Kristall-Forschungszentrum die Stufe erreicht', en: 'Appears once the Crystal Research Center reaches the level' },
+      tiers: [
+        { id: 'fcrc1', label: { de: 'RC Stufe 5', en: 'RC level 5' }, usd: 2.99, cr: 300000 },
+        { id: 'fcrc2', label: { de: 'RC Stufe 10', en: 'RC level 10' }, usd: 4.99, cr: 550000 },
+        { id: 'fcrc3', label: { de: 'RC Stufe 15', en: 'RC level 15' }, usd: 4.99, cr: 550000 },
+        { id: 'fcrc4', label: { de: 'RC Stufe 18', en: 'RC level 18' }, usd: 9.99, cr: 1300000 },
+        { id: 'fcrc5', label: { de: 'RC Stufe 25', en: 'RC level 25' }, usd: 19.99, cr: 2750000 }
       ]
     },
     {
@@ -292,7 +304,7 @@
       best: 'Bestes Angebot', worst: 'Schlechtestes Angebot', nothing: 'Noch nichts ausgewählt',
       budget: 'Budget-Planer', budgetHint: 'Exakt optimiert: meiste Kristalle für dein Budget, Stufenfolge beachtet',
       budgetLabel: 'Budget in $', passesLabel: 'Planung bis Pass', passesHint: 'Mountain Warfare 12 Std vor jeder Pass-Öffnung · Conquer\'s Will täglich ab KvK-Start bis dahin', dayN: 'Tag', daysN: 'Tage', planTo: 'Planung bis', cwDaily: 'Conquer\'s Will (täglich)', pass: 'Pass', noBuy: 'nicht kaufen', upTo: 'bis', budgetGet: 'Damit bekommst du', budgetLeft: 'Rest', apply: 'Auswahl übernehmen', autoNote: 'Die Auswahl oben wird bei jeder Änderung automatisch optimal neu berechnet.',
-      roadmap: 'Roadmap', roadmapHint: 'Was du wann kaufst – aus deiner aktuellen Auswahl', rmStart: 'KvK-Start', rmCond: 'Sobald freigeschaltet', rmEmpty: 'Noch nichts ausgewählt – Budget im Planer eintragen oder Bundles anhaken.', rmTotal: 'Gesamt', rmDays: 'Tage', rmDay: 'Tag',
+      roadmap: 'Roadmap', roadmapHint: 'Was du wann kaufst – aus deiner aktuellen Auswahl', rmStart: 'KvK-Start', rmCond: 'Sobald freigeschaltet', rmEmpty: 'Noch nichts ausgewählt – Budget im Planer eintragen oder Bundles anhaken.', rmTotal: 'Gesamt', rmDays: 'Tage', rmDay: 'Tag', rmNothing: '—', budgetEmpty: 'Budget eintragen – dann wird die beste Kombination berechnet und oben übernommen.', rmAfter: 'Danach', rmDaily: 'Täglich', rmUnlock: 'bei Freischaltung',
       resTitle: 'Resources', resHint: 'Ressourcen-Vorrat (Gesamt)',
       res: { food: 'Nahrung', wood: 'Holz', stone: 'Stein', gold: 'Gold' },
       scan: '↻ Aus Scan', scanFrom: 'Letzter Scan', noScan: 'Noch kein Scan im Scanner',
@@ -332,7 +344,7 @@
       best: 'Best deal', worst: 'Worst deal', nothing: 'Nothing selected yet',
       budget: 'Budget planner', budgetHint: 'Exactly optimised: most crystals for your budget, tier order respected',
       budgetLabel: 'Budget in $', passesLabel: 'Plan up to pass', passesHint: 'Mountain Warfare 12h before each pass opening · Conquer\'s Will daily from KvK start until then', dayN: 'Day', daysN: 'days', planTo: 'Plan up to', cwDaily: 'Conquer\'s Will (daily)', pass: 'Pass', noBuy: 'skip', upTo: 'up to', budgetGet: 'You get', budgetLeft: 'Left', apply: 'Apply selection', autoNote: 'The selection above is re-optimised automatically on every change.',
-      roadmap: 'Roadmap', roadmapHint: 'What you buy when – from your current selection', rmStart: 'KvK start', rmCond: 'As soon as unlocked', rmEmpty: 'Nothing selected yet – enter a budget in the planner or tick bundles.', rmTotal: 'Total', rmDays: 'days', rmDay: 'Day',
+      roadmap: 'Roadmap', roadmapHint: 'What you buy when – from your current selection', rmStart: 'KvK start', rmCond: 'As soon as unlocked', rmEmpty: 'Nothing selected yet – enter a budget in the planner or tick bundles.', rmTotal: 'Total', rmDays: 'days', rmDay: 'Day', rmNothing: '—', budgetEmpty: 'Enter a budget – the best combination is calculated and applied above.', rmAfter: 'Later', rmDaily: 'Daily', rmUnlock: 'when unlocked',
       resTitle: 'Resources', resHint: 'Resource stock (total)',
       res: { food: 'Food', wood: 'Wood', stone: 'Stone', gold: 'Gold' },
       scan: '↻ From scan', scanFrom: 'Last scan', noScan: 'No scan in the scanner yet',
@@ -647,64 +659,87 @@
     });
   }
 
-  // Roadmap aus der aktuellen Auswahl: was an welchem Tag / Pass gekauft wird
+  // Roadmap (horizontal): Start ● — Pass 4 ● — Pass 5 ● — …  · darunter, was an der Station gekauft wird
   function roadmapHTML() {
     const L = t(), buy = state.buy;
     const B = (id) => BUNDLES.find((b) => b.id === id);
-    const sum = (tiers) => ({ u: tiers.reduce((a, x) => a + x.usd, 0), c: tiers.reduce((a, x) => a + x.cr, 0) });
+    const sum = (tiers, n = 1) => ({ u: tiers.reduce((a, x) => a + x.usd, 0) * n, c: tiers.reduce((a, x) => a + x.cr, 0) * n });
     const dayDate = (d) => { const s0 = startTs(); return s0 == null ? '' : shortDate(new Date(s0 + (d - 1) * 86400000)); };
-    const nodes = [];   // { day, title, sub, u, c }
-    let totU = 0, totC = 0;
-    const add = (n) => { nodes.push(n); totU += n.u; totC += n.c; };
+    const chainTxt = (tiers) => tiers.map((x) => esc(tx(x.label))).join(' → ');
 
-    // KvK-Start
+    const mw = B('mw').tiers, cw = B('cw').tiers;
+    const nPass = buy[mw[0].id] || 0, nDay = buy[cw[0].id] || 0;
+    const nShown = Math.max(MW_PASSES.length, nPass);
+    const cols = [];
+
+    // Station „Start“: Premium Supply + Bundles bei Freischaltung
     const ps = B('psup').tiers.filter((x) => buy[x.id]);
-    if (ps.length) { const v = sum(ps); add({ day: 0, icon: '🚀', title: L.rmStart, sub: `Premium Season Crystal Supply · 60.000 💎${L.perDayShort}`, ...v }); }
-    // Bedingte Bundles
-    const cond = [...B('fcfs').tiers, ...B('sci').tiers].filter((x) => buy[x.id]);
-    if (cond.length) { const v = sum(cond); add({ day: 0.5, icon: '🔓', title: L.rmCond, sub: cond.map((x) => esc(tx(x.label))).join(' · '), ...v }); }
-    // Mountain Warfare: höhere Stufen bei den frühesten Pässen
-    const mw = B('mw').tiers, nPass = buy[mw[0].id] || 0;
-    for (let j = 0; j < nPass; j++) {
-      const sch = PASS_SCHEDULE[j], tiers = mw.filter((x) => (buy[x.id] || 0) > j);
-      const day = sch ? sch.day : 99 + j, v = sum(tiers);
-      const dt = sch ? passDate(sch.n) : null;
-      add({ day: day - 0.5, icon: '⛰️', title: sch ? `${L.pass} ${sch.n} · ${L.rmDay} ${sch.day}${dt ? ` (${shortDate(dt)})` : ''}` : `${L.pass} ?`,
-        sub: `Mountain Warfare: ${tiers.map((x) => esc(tx(x.label))).join(' → ')}`, ...v });
+    const cond = [...B('fcfs').tiers, ...B('fcfsrc').tiers, ...B('sci').tiers].filter((x) => buy[x.id]);
+    const startItems = [];
+    if (ps.length) startItems.push({ title: 'Premium Supply', sub: `60.000 💎${L.perDayShort}`, ...sum(ps) });
+    if (cond.length) startItems.push({ title: L.rmUnlock, sub: cond.map((x) => esc(tx(x.label))).join(' · '), ...sum(cond) });
+    const dt0 = startTs() != null ? shortDate(new Date(startTs())) : '';
+    cols.push({ head: L.rmStart, date: dt0 || `${L.dayN} 0`, items: startItems });
+
+    // Conquer's Will: eine Karte je Station – Tagesbereich (von, bis] und Anzahl je Stufe
+    const cwBlock = (from, to) => {
+      const last = Math.min(to, nDay);
+      if (last <= from) return [];
+      const counts = cw.map((x) => Math.max(0, Math.min(buy[x.id] || 0, last) - from));
+      const u = cw.reduce((a, x, i) => a + x.usd * counts[i], 0), c = cw.reduce((a, x, i) => a + x.cr * counts[i], 0);
+      const a = from + 1, range = a === last ? `${a}` : `${a}–${last}`;
+      const dts = dayDate(a) ? ` · ${dayDate(a)}${a === last ? '' : '–' + dayDate(last)}` : '';
+      return [{ title: `📆 ${L.rmDay} ${range}`, sub: `Conquer's Will${dts}<br>${cw.map((x, i) => counts[i] ? `${esc(tx(x.label))} <b class="text-slate-200">${counts[i]}×</b>` : '').filter(Boolean).join(' · ')}`, u, c }];
+    };
+
+    // Pass-Stationen
+    let prevDay = 0;
+    for (let j = 0; j < nShown; j++) {
+      const sch = PASS_SCHEDULE[j];
+      if (!sch) break;
+      const items = cwBlock(prevDay, sch.day);
+      const tiers = mw.filter((x) => (buy[x.id] || 0) > j);
+      if (tiers.length) items.push({ title: '⛰️ Mountain Warfare', sub: chainTxt(tiers), ...sum(tiers), hot: true });
+      const dt = passDate(sch.n);
+      cols.push({ head: `${L.pass} ${sch.n}`, date: dt ? shortDate(dt) : `${L.dayN} ${sch.day}`, items });
+      prevDay = sch.day;
     }
-    // Conquer's Will: Tage mit gleicher Stufe zusammenfassen, an Pass-Grenzen trennen
-    const cw = B('cw').tiers, nDay = buy[cw[0].id] || 0;
-    const cuts = PASS_SCHEDULE.map((p) => p.day);
-    let d = 1;
-    while (d <= nDay) {
-      const k = cw.filter((x) => (buy[x.id] || 0) >= d).length;
-      let e = d;
-      while (e + 1 <= nDay && cw.filter((x) => (buy[x.id] || 0) >= e + 1).length === k && !cuts.includes(e)) e++;
-      const tiers = cw.slice(0, k), one = sum(tiers), n = e - d + 1;
-      const range = d === e ? `${L.rmDay} ${d}` : `${L.rmDay} ${d}–${e}`;
-      const dts = dayDate(d) ? ` (${dayDate(d)}${d === e ? '' : '–' + dayDate(e)})` : '';
-      add({ day: d - 0.25, icon: '📆', title: `${range}${dts}`, sub: `Conquer's Will: ${tiers.map((x) => esc(tx(x.label))).join(' → ')} · ${n}×`, u: one.u * n, c: one.c * n });
-      d = e + 1;
-    }
-    if (!nodes.length) return `<p class="text-xs text-slate-500">${L.rmEmpty}</p>`;
-    nodes.sort((a, z) => a.day - z.day);
+    // Conquer's Will nach dem letzten gezeigten Pass (bei Handeingabe möglich)
+    if (nDay > prevDay) cols.push({ head: L.rmAfter, date: `${L.dayN} ${prevDay + 1}+`, items: cwBlock(prevDay, Infinity) });
+
+    let totU = 0, totC = 0;
+    cols.forEach((c) => c.items.forEach((it) => { totU += it.u; totC += it.c; }));
+    if (!totU) return `<p class="text-xs text-slate-500">${L.rmEmpty}</p>`;
+
     return `
-      <ol class="relative ml-2 border-l border-gold-500/30 space-y-2.5">
-        ${nodes.map((n) => `
-          <li class="relative pl-5">
-            <span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-ink-900 border border-gold-500/60 text-[9px] flex items-center justify-center">${n.icon}</span>
-            <div class="flex items-start justify-between gap-3">
-              <div class="min-w-0">
-                <div class="text-sm font-semibold text-slate-100">${n.title}</div>
-                <div class="text-xs text-slate-400">${n.sub}</div>
+      <div class="relative">
+        <button type="button" data-road="-1" class="kvk-road-arrow left-0" aria-label="←">‹</button>
+        <button type="button" data-road="1" class="kvk-road-arrow right-0" aria-label="→">›</button>
+        <div class="kvk-road-scroll overflow-x-auto pb-2" data-road-scroll>
+        <div class="kvk-road" style="--cols:${cols.length}">
+          ${cols.map((c) => {
+            const u = c.items.reduce((a, it) => a + it.u, 0), cr = c.items.reduce((a, it) => a + it.c, 0);
+            return `
+            <div class="kvk-road-col ${c.items.length ? 'is-on' : ''}">
+              <div class="text-center">
+                <div class="text-sm font-semibold ${c.items.length ? 'text-gold-300' : 'text-slate-500'}">${c.head}</div>
+                <div class="text-[10px] text-slate-500 tabular-nums">${c.date}</div>
               </div>
-              <div class="shrink-0 text-right text-xs tabular-nums">
-                <div class="text-slate-200">${usd(n.u)}</div>
-                <div class="text-gold-300">${short(n.c)} 💎</div>
+              <div class="kvk-road-dot"><span></span></div>
+              <div class="flex flex-col gap-1.5">
+                ${c.items.length ? c.items.map((it) => `
+                  <div class="rounded-lg border ${it.hot ? 'border-gold-500/40 bg-gold-500/5' : 'border-ink-700 bg-ink-900/70'} px-2 py-1.5">
+                    <div class="text-[11px] font-semibold text-slate-200 leading-tight">${it.title}</div>
+                    <div class="text-[10px] text-slate-400 leading-snug">${it.sub}</div>
+                    <div class="text-[11px] tabular-nums mt-0.5"><span class="text-slate-300">${usd(it.u)}</span> · <span class="text-gold-300">${short(it.c)}</span></div>
+                  </div>`).join('') : `<div class="text-center text-xs text-slate-600 py-2">${L.rmNothing}</div>`}
+                ${c.items.length > 1 ? `<div class="text-[10px] text-right tabular-nums text-slate-500 pr-1">Σ ${usd(u)} · ${short(cr)}</div>` : ''}
               </div>
-            </div>
-          </li>`).join('')}
-      </ol>
+            </div>`;
+          }).join('')}
+        </div>
+        </div>
+      </div>
       <div class="mt-3 flex items-center justify-between rounded-lg border border-gold-500/30 bg-gold-500/5 px-3 py-2 text-sm">
         <span class="text-xs uppercase tracking-widest text-slate-400">${L.rmTotal}</span>
         <span class="tabular-nums font-bold"><span class="text-slate-100">${usd(totU)}</span> · <span class="text-gold-300">${short(totC)} 💎</span></span>
@@ -896,39 +931,45 @@
       </div>`;
 
     // ---- Bundles ----
+    const passBtns = MW_PASSES.map((n) => { const dt = passDate(n); return `<button type="button" role="radio" data-pass="${n}" aria-checked="${state.planPass === n}" aria-pressed="${state.planPass === n}"
+        class="seg-btn rounded-lg py-1.5 px-1 border border-ink-600 transition leading-tight">
+        <span class="block text-xs sm:text-sm font-semibold whitespace-nowrap"><span class="sm:hidden">P${n}</span><span class="hidden sm:inline">${L.pass} ${n}</span></span>
+        <span class="block text-[10px] opacity-75 tabular-nums">${dt ? shortDate(dt) : `${L.dayN} ${passDay(n)}`}</span>
+      </button>`; }).join('');
+
     const bundlesBody = `
       <div class="flex flex-col gap-4 pt-3">
-        <div class="rounded-xl border border-gold-500/25 bg-ink-950/60 p-4">
-          <div class="mb-3">${subTitle('🗺️ ' + L.roadmap)}<p class="text-xs text-slate-500 mt-0.5">${L.roadmapHint}</p></div>
-          <div data-out="roadmap"></div>
+        <div class="rounded-xl border border-gold-500/25 bg-ink-950/60 p-4 flex flex-col gap-4">
+          <div>${subTitle('🧮 ' + L.budget)}<p class="text-xs text-slate-500 mt-0.5">${L.budgetHint}</p></div>
+          <!-- Budget | Pässe in einer Linie -->
+          <div class="flex flex-col md:flex-row md:items-end gap-3">
+            <label class="flex flex-col gap-1 text-xs text-slate-400 md:w-44 shrink-0">
+              <span>💵 ${L.budgetLabel}</span>
+              <input type="text" inputmode="decimal" autocomplete="off" data-path="budget" value="${esc(state.budget ? fmt(state.budget, 2) : '')}" placeholder="0" class="${INPUT} !py-2.5 !text-base">
+            </label>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs text-slate-400 mb-1">⛰️ ${L.passesLabel} <span class="text-slate-600">· ${L.passesHint}</span></div>
+              <div class="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label="${L.passesLabel}">${passBtns}</div>
+            </div>
+          </div>
+          <div data-out="budget"></div>
+          <div class="border-t border-ink-700 pt-4">
+            <div class="mb-3">${subTitle('🗺️ ' + L.roadmap)}<p class="text-xs text-slate-500 mt-0.5">${L.roadmapHint}</p></div>
+            <div data-out="roadmap"></div>
+          </div>
         </div>
         <div class="flex items-end justify-between gap-3">
           <p class="text-xs text-slate-500">${L.shopHint}</p>
           <button type="button" data-shop-clear class="text-xs text-slate-500 hover:text-red-300 underline shrink-0">${L.clearShop}</button>
         </div>
-        <div class="kvk-masonry">${BUNDLES.map(bundleCard).join('')}</div>
+        <div class="grid gap-3 lg:grid-cols-2 items-start">
+          <div class="flex flex-col gap-3">${BUNDLES.filter((b) => ['psup', 'fcfs', 'fcfsrc'].includes(b.id)).map(bundleCard).join('')}</div>
+          <div class="flex flex-col gap-3">${BUNDLES.filter((b) => !['psup', 'fcfs', 'fcfsrc'].includes(b.id)).map(bundleCard).join('')}</div>
+        </div>
         <div data-out="shop"></div>
-        <div class="border-t border-ink-700 pt-4 grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
-          <div class="flex flex-col gap-3">
-            <div>${subTitle('📊 ' + L.stats)}<p class="text-xs text-slate-500 mt-0.5">${L.statsHint}</p></div>
-            <div data-out="stats"></div>
-          </div>
-          <div class="flex flex-col gap-3">
-            <div>${subTitle('🧮 ' + L.budget)}<p class="text-xs text-slate-500 mt-0.5">${L.budgetHint}</p></div>
-            ${row('💵 ' + L.budgetLabel, 'budget', state.budget ? fmt(state.budget, 2) : '')}
-            <div>
-              <div class="text-xs text-slate-300">⛰️ ${L.passesLabel}</div>
-              <div class="text-[11px] text-slate-500 mb-2">${L.passesHint}</div>
-              <div class="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label="${L.passesLabel}">
-                ${MW_PASSES.map((n) => { const dt = passDate(n); return `<button type="button" role="radio" data-pass="${n}" aria-checked="${state.planPass === n}" aria-pressed="${state.planPass === n}"
-                    class="seg-btn rounded-lg py-1.5 border border-ink-600 transition leading-tight">
-                    <span class="block text-xs sm:text-sm font-semibold">${L.pass} ${n}</span>
-                    <span class="block text-[10px] opacity-75 tabular-nums">${dt ? shortDate(dt) : `${L.dayN} ${passDay(n)}`}</span>
-                  </button>`; }).join('')}
-              </div>
-            </div>
-            <div data-out="budget"></div>
-          </div>
+        <div class="border-t border-ink-700 pt-4 flex flex-col gap-3">
+          <div>${subTitle('📊 ' + L.stats)}<p class="text-xs text-slate-500 mt-0.5">${L.statsHint}</p></div>
+          <div data-out="stats"></div>
         </div>
       </div>`;
 
@@ -1090,36 +1131,16 @@
         ${kpi('⚠️ ' + L.worst, esc(st[st.length - 1].b.name), `${usd(st[st.length - 1].pm)} / Mio`)}
       </div>`;
 
-    // Budget-Planer
-    let budget = '';
+    // Budget-Planer: Kennzahlen (Details stehen in der Roadmap)
+    let budget = `<p class="text-xs text-slate-500">${L.budgetEmpty}</p>`;
     if (state.budget > 0) {
       const p = budgetPlan(state.budget);
       budget = `
-        ${line(L.budgetGet, `${short(p.cr)} 💎`, 'text-gold-300')}
-        ${line(L.spend, `${usd(p.spent)} · ${p.count}×`)}
-        ${line(L.budgetLeft, usd(p.left), 'text-slate-400')}
-        ${line(L.avg, `${usd(perMil(p.spent, p.cr))} / Mio`)}
-        <div class="mt-3 rounded-lg border border-ink-700 bg-ink-950/60 p-2.5 space-y-1">
-          <div class="text-[11px] text-slate-500 mb-1">📅 ${L.planTo} ${L.pass} ${state.planPass} · ${L.dayN} ${p.cwDays}${passDate(state.planPass) ? ` (${shortDate(passDate(state.planPass))})` : ''}</div>
-          <div class="text-[11px] uppercase tracking-widest text-slate-500 pt-1">⛰️ Mountain Warfare</div>
-          ${p.passes.map((n) => {
-            const top = p.perPass[n];
-            const tiers = BUNDLES.find((b) => b.id === 'mw').tiers;
-            const usdSum = top == null ? 0 : tiers.slice(0, top + 1).reduce((a, x) => a + x.usd, 0);
-            const crSum = top == null ? 0 : tiers.slice(0, top + 1).reduce((a, x) => a + x.cr, 0);
-            return `<div class="flex items-center justify-between gap-2 text-sm">
-              <span class="text-slate-300">${L.pass} ${n}</span>
-              <span class="tabular-nums ${top == null ? 'text-slate-600' : 'text-slate-100'}">${top == null ? L.noBuy
-                : `${L.upTo} <b class="text-gold-300">${esc(tx(tiers[top].label))}</b> · ${usd(usdSum)} · ${short(crSum)} 💎`}</span>
-            </div>`;
-          }).join('')}
-          <div class="text-[11px] uppercase tracking-widest text-slate-500 pt-2">📆 ${L.cwDaily} · ${p.cwDays} ${L.daysN}</div>
-          <div class="flex items-center justify-between gap-2 text-sm">
-            <span class="text-slate-300">${p.cwDays} ${L.daysN}</span>
-            <span class="tabular-nums ${p.pick.cw1 ? 'text-slate-100' : 'text-slate-600'}">${p.pick.cw1
-              ? BUNDLES.find((b) => b.id === 'cw').tiers.filter((x) => p.pick[x.id]).map((x) => `${esc(tx(x.label))} ${p.pick[x.id]}×`).join(' · ')
-              : L.noBuy}</span>
-          </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          ${kpi('💎 ' + L.budgetGet, `<span class="text-gold-300">${short(p.cr)}</span>`, '')}
+          ${kpi('💵 ' + L.spend, usd(p.spent), `${p.count}×`)}
+          ${kpi('↩️ ' + L.budgetLeft, usd(p.left), '')}
+          ${kpi('⚖️ ' + L.avg, usd(perMil(p.spent, p.cr)), '/ Mio')}
         </div>
         <p class="mt-2 text-[11px] text-emerald-400/90">✓ ${L.autoNote}</p>`;
     }
@@ -1210,7 +1231,10 @@
   function refresh() {
     if (!root) return;
     const out = outputs(calc());
+    const oldRoad = root.querySelector('[data-road-scroll]'), roadX = oldRoad ? oldRoad.scrollLeft : 0;
     Object.keys(out).forEach((k) => { const el = root.querySelector(`[data-out="${k}"]`); if (el) el.innerHTML = out[k]; });
+    const newRoad = root.querySelector('[data-road-scroll]');
+    if (newRoad) { newRoad.style.scrollBehavior = 'auto'; newRoad.scrollLeft = roadX; newRoad.style.scrollBehavior = ''; roadArrows(); }
     Object.keys(out._fsum).forEach((k) => { const el = root.querySelector(`[data-fsum="${k}"]`); if (el) el.innerHTML = out._fsum[k]; });
     // Summe je Bundle in der Kopfzeile
     BUNDLES.forEach((b) => {
@@ -1221,6 +1245,31 @@
       el.innerHTML = u ? `${usd(u)} · ${short(c)} 💎` : '';
     });
   }
+
+  // Roadmap: Pfeile nur zeigen, wenn es in die Richtung noch etwas gibt
+  function roadArrows() {
+    const sc = root && root.querySelector('[data-road-scroll]');
+    if (!sc) return;
+    const max = sc.scrollWidth - sc.clientWidth;
+    const l = root.querySelector('[data-road="-1"]'), r = root.querySelector('[data-road="1"]');
+    if (l) l.disabled = sc.scrollLeft <= 2;
+    if (r) r.disabled = sc.scrollLeft >= max - 2 || max <= 2;
+  }
+  // Roadmap mit Maus/Finger ziehen
+  let roadDrag = null;
+  function onRoadDown(e) {
+    const sc = e.target.closest && e.target.closest('[data-road-scroll]');
+    if (!sc || e.button > 0 || e.pointerType === 'touch') return;   // Touch scrollt nativ
+    roadDrag = { sc, x: e.clientX, start: sc.scrollLeft, moved: false };
+    sc.classList.add('is-drag');
+  }
+  function onRoadMove(e) {
+    if (!roadDrag) return;
+    const dx = e.clientX - roadDrag.x;
+    if (Math.abs(dx) > 3) roadDrag.moved = true;
+    roadDrag.sc.scrollLeft = roadDrag.start - dx;
+  }
+  function onRoadUp() { if (roadDrag) { roadDrag.sc.classList.remove('is-drag'); roadDrag = null; } }
 
   const visible = () => root && root.offsetParent !== null;
   function startClock() {
@@ -1464,6 +1513,12 @@
   }
 
   function onClick(e) {
+    const arrow = e.target.closest('[data-road]');
+    if (arrow) {
+      const sc = root.querySelector('[data-road-scroll]');
+      if (sc) sc.scrollBy({ left: +arrow.dataset.road * Math.max(200, sc.clientWidth * 0.7), behavior: 'smooth' });
+      return;
+    }
     if (e.target.closest('[data-bg-reset]')) {
       try { localStorage.removeItem(bgKey()); } catch (er) { /* egal */ }
       applyBg();
@@ -1553,6 +1608,18 @@
 #kvkRoot details > summary::after { content:'▾'; color:#64748b; margin-left:.5rem; transition:transform .15s; }
 #kvkRoot details[open] > summary::after { transform:rotate(180deg); }
 #kvkRoot .kvk-fold[open] { border-color:#2e3a55; }
+#kvkRoot .kvk-road { position:relative; display:grid; grid-template-columns:repeat(var(--cols), minmax(176px, 1fr)); gap:10px; min-width:calc(var(--cols) * 186px); padding:0 6px; }
+#kvkRoot .kvk-road-scroll { cursor:grab; scrollbar-width:thin; scrollbar-color:#2e3a55 transparent; scroll-behavior:smooth; }
+#kvkRoot .kvk-road-scroll.is-drag { cursor:grabbing; scroll-behavior:auto; user-select:none; }
+#kvkRoot .kvk-road-arrow { position:absolute; top:40px; z-index:3; width:30px; height:30px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+  font-size:20px; line-height:1; color:#fde68a; background:rgba(12,16,25,.92); border:1px solid rgba(224,169,27,.45); box-shadow:0 4px 12px rgba(0,0,0,.5); }
+#kvkRoot .kvk-road-arrow:hover { background:#161e2f; color:#fff; }
+#kvkRoot .kvk-road-arrow[disabled] { opacity:0; pointer-events:none; }
+#kvkRoot .kvk-road::before { content:''; position:absolute; left:0; right:0; top:52px; height:2px; background:linear-gradient(90deg, rgba(224,169,27,.15), rgba(224,169,27,.55), rgba(224,169,27,.15)); }
+#kvkRoot .kvk-road-col { position:relative; display:flex; flex-direction:column; gap:8px; }
+#kvkRoot .kvk-road-dot { height:22px; display:flex; align-items:center; justify-content:center; }
+#kvkRoot .kvk-road-dot span { width:16px; height:16px; border-radius:999px; border:2px solid #475569; background:#0c1019; position:relative; z-index:1; }
+#kvkRoot .kvk-road-col.is-on .kvk-road-dot span { border-color:#f5c542; background:radial-gradient(circle, #fde68a 0 35%, #e0a91b 36% 100%); box-shadow:0 0 10px rgba(245,197,66,.6); }
 #kvkRoot .kvk-masonry { column-gap:12px; }
 #kvkRoot .kvk-masonry > * { break-inside:avoid; margin-bottom:12px; }
 @media (min-width:1024px) { #kvkRoot .kvk-masonry { columns:2; } }
@@ -1631,6 +1698,11 @@
     });
     root.addEventListener('focusout', onBlur);
     root.addEventListener('click', onClick);
+    root.addEventListener('pointerdown', onRoadDown);
+    window.addEventListener('pointermove', onRoadMove);
+    window.addEventListener('pointerup', onRoadUp);
+    root.addEventListener('scroll', (e) => { if (e.target.matches && e.target.matches('[data-road-scroll]')) roadArrows(); }, true);
+    window.addEventListener('resize', roadArrows);
     root.addEventListener('toggle', (e) => {
       const d = e.target;
       if (!d || !d.dataset || !d.dataset.fold) return;
