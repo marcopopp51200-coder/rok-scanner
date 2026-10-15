@@ -291,7 +291,7 @@
       maxed: 'Komplett', sel: 'Deine Auswahl', spend: 'Ausgaben', crystals: 'Kristalle', avg: 'Ø Preis',
       best: 'Bestes Angebot', worst: 'Schlechtestes Angebot', nothing: 'Noch nichts ausgewählt',
       budget: 'Budget-Planer', budgetHint: 'Bester Mix für dein Budget (jede Stufe einmal, günstigster $/Mio zuerst, Stufenfolge beachtet)',
-      budgetLabel: 'Budget in $', passesLabel: 'Mountain Warfare – bei welchen Pässen kaufen?', passesHint: 'Das Angebot erscheint 12 Std vor der jeweiligen Pass-Öffnung', pass: 'Pass', noBuy: 'nicht kaufen', upTo: 'bis', budgetGet: 'Damit bekommst du', budgetLeft: 'Rest', apply: 'Auswahl übernehmen',
+      budgetLabel: 'Budget in $', passesLabel: 'Planung bis Pass', passesHint: 'Mountain Warfare 12 Std vor jeder Pass-Öffnung · Conquer\'s Will täglich ab KvK-Start bis dahin', dayN: 'Tag', daysN: 'Tage', planTo: 'Planung bis', cwDaily: 'Conquer\'s Will (täglich)', pass: 'Pass', noBuy: 'nicht kaufen', upTo: 'bis', budgetGet: 'Damit bekommst du', budgetLeft: 'Rest', apply: 'Auswahl übernehmen',
       resTitle: 'Resources', resHint: 'Ressourcen-Vorrat (Gesamt)',
       res: { food: 'Nahrung', wood: 'Holz', stone: 'Stein', gold: 'Gold' },
       scan: '↻ Aus Scan', scanFrom: 'Letzter Scan', noScan: 'Noch kein Scan im Scanner',
@@ -330,7 +330,7 @@
       maxed: 'Maxed', sel: 'Your selection', spend: 'Spend', crystals: 'Crystals', avg: 'Avg. price',
       best: 'Best deal', worst: 'Worst deal', nothing: 'Nothing selected yet',
       budget: 'Budget planner', budgetHint: 'Best mix for your budget (each tier once, cheapest $/M first, tier order respected)',
-      budgetLabel: 'Budget in $', passesLabel: 'Mountain Warfare – buy at which passes?', passesHint: 'The offer appears 12h before each pass opening', pass: 'Pass', noBuy: 'skip', upTo: 'up to', budgetGet: 'You get', budgetLeft: 'Left', apply: 'Apply selection',
+      budgetLabel: 'Budget in $', passesLabel: 'Plan up to pass', passesHint: 'Mountain Warfare 12h before each pass opening · Conquer\'s Will daily from KvK start until then', dayN: 'Day', daysN: 'days', planTo: 'Plan up to', cwDaily: 'Conquer\'s Will (daily)', pass: 'Pass', noBuy: 'skip', upTo: 'up to', budgetGet: 'You get', budgetLeft: 'Left', apply: 'Apply selection',
       resTitle: 'Resources', resHint: 'Resource stock (total)',
       res: { food: 'Food', wood: 'Wood', stone: 'Stone', gold: 'Gold' },
       scan: '↻ From scan', scanFrom: 'Last scan', noScan: 'No scan in the scanner yet',
@@ -370,7 +370,7 @@
       open: { calc: true, bundles: false },                                       // eingeklappte Fenster
       buy: {},                                                                    // Stufen-ID → Anzahl
       budget: 0,
-      passes: [4, 5, 6, 7, 8],                                                    // Pässe, bei denen Mountain Warfare gekauft werden soll
+      planPass: 8,                                                                // Planung bis zu diesem Pass (MW je Pass + Conquer's Will je Tag)
       res: { food: 0, wood: 0, stone: 0, gold: 0 },
       goals: [],
       src: { ap: 0, speed: 0, res: 0 }
@@ -408,7 +408,8 @@
         id: String(g.id || uid()), name: String(g.name || ''), cost: +g.cost || 0, on: g.on !== false
       }));
       Object.keys(st.buy).forEach((k) => { st.buy[k] = Math.max(0, +st.buy[k] || 0); if (!st.buy[k]) delete st.buy[k]; });
-      st.passes = (Array.isArray(st.passes) ? st.passes : []).map(Number).filter((n, i, a) => [4, 5, 6, 7, 8].includes(n) && a.indexOf(n) === i).sort((a, z) => a - z);
+      if (parsed && Array.isArray(parsed.passes) && parsed.planPass == null && parsed.passes.length) st.planPass = Math.max(...parsed.passes.map(Number));
+      if (![4, 5, 6, 7, 8].includes(+st.planPass)) st.planPass = 8;
       BUNDLES.filter((b) => b.sequential).forEach((b) => {   // höhere Stufe nie öfter als die davor
         for (let i = 1; i < b.tiers.length; i++) {
           const cap = st.buy[b.tiers[i - 1].id] || 0, id = b.tiers[i].id;
@@ -559,15 +560,26 @@
     }).sort((a, z) => a.pm - z.pm);
   }
 
-  const MW_PASSES = [4, 5, 6, 7, 8];   // Mountain Warfare erscheint 12 Std vor diesen Pass-Öffnungen
-  // Budget-Planer: alle Angebote nach $/Mio sortiert, jede Stufe einmal, Stufenfolge beachtet.
-  // Mountain Warfare zählt für jeden gewählten Pass als eigenes Angebot (eigene Kette Stone → … → Gold).
-  function budgetPlan(budget, passes = state.passes) {
-    const sel = MW_PASSES.filter((n) => (passes || []).includes(n));
+  // Pass-Öffnungen als Abstand zum KvK-Start (Tage). Abgeleitet aus einem Referenz-KvK mit Start 25.09.:
+  // Pass 4 → 02.10. (+7), Pass 5 → 09.10. (+14), Pass 6 → 10.10. (+15), Pass 7 → 19.10. (+24), Pass 8 → 23.10. (+28).
+  // Mountain Warfare erscheint 12 Std vor jeder Öffnung.
+  const PASS_SCHEDULE = [{ n: 4, day: 7 }, { n: 5, day: 14 }, { n: 6, day: 15 }, { n: 7, day: 24 }, { n: 8, day: 28 }];
+  const MW_PASSES = PASS_SCHEDULE.map((p) => p.n);
+  const passDay = (n) => (PASS_SCHEDULE.find((p) => p.n === n) || {}).day || 0;
+  const passDate = (n) => { const s = startTs(); return s == null ? null : new Date(s + passDay(n) * 86400000); };
+  const shortDate = (d) => d.toLocaleDateString(locale(), { day: '2-digit', month: '2-digit' });
+
+  // Budget-Planer: alle Angebote nach (effektivem) $/Mio, jede Stufe einmal, Stufenfolge beachtet.
+  // Planung bis Pass X: Mountain Warfare als eigene Kette je Pass 4…X, Conquer's Will als eigene Kette je Tag bis Pass X.
+  function budgetPlan(budget, planPass = state.planPass) {
+    const sel = MW_PASSES.filter((n) => n <= planPass);
+    const cwDays = passDay(planPass);
     const items = [];
     ALL_TIERS.forEach((tr) => {
       if (tr.bundle.id === 'mw') {
-        sel.forEach((n) => items.push({ ...tr, key: `${tr.id}@${n}`, prevKey: tr.prev ? `${tr.prev}@${n}` : null, pass: n }));
+        sel.forEach((n) => items.push({ ...tr, key: `${tr.id}@p${n}`, prevKey: tr.prev ? `${tr.prev}@p${n}` : null, pass: n }));
+      } else if (tr.bundle.id === 'cw') {
+        for (let d = 1; d <= cwDays; d++) items.push({ ...tr, key: `${tr.id}@d${d}`, prevKey: tr.prev ? `${tr.prev}@d${d}` : null, day: d });
       } else {
         items.push({ ...tr, key: tr.id, prevKey: tr.prev });
       }
@@ -581,7 +593,7 @@
       return best;
     };
     items.forEach((it) => { it.eff = eff(it); });
-    items.sort((a, z) => a.eff - z.eff || a.idx - z.idx);
+    items.sort((a, z) => a.eff - z.eff || a.idx - z.idx || (a.pass || a.day || 0) - (z.pass || z.day || 0));
     let left = budget, cr = 0;
     const taken = {};
     let changed = true;
@@ -590,16 +602,15 @@
       for (const it of items) {
         if (taken[it.key] || (it.prevKey && !taken[it.prevKey]) || it.usd > left + 1e-9) continue;
         left -= it.usd; cr += it.cr; taken[it.key] = it; changed = true;
-        break;   // nach jedem Kauf neu beim günstigsten $/Mio beginnen – evtl. ist jetzt eine Folgestufe frei
+        break;   // nach jedem Kauf neu beim günstigsten beginnen – evtl. ist jetzt eine Folgestufe frei
       }
     }
-    // Auswahl je Stufe zählen (bei Mountain Warfare = Anzahl Pässe) + höchste Stufe je Pass
     const pick = {}, perPass = {};
     Object.values(taken).forEach((it) => {
       pick[it.id] = (pick[it.id] || 0) + 1;
       if (it.pass) perPass[it.pass] = Math.max(perPass[it.pass] ?? -1, it.idx);
     });
-    return { pick, perPass, passes: sel, cr, spent: budget - left, left, count: Object.keys(taken).length };
+    return { pick, perPass, passes: sel, cwDays, cr, spent: budget - left, left, count: Object.keys(taken).length };
   }
 
   function calc() {
@@ -806,9 +817,12 @@
             <div>
               <div class="text-xs text-slate-300">⛰️ ${L.passesLabel}</div>
               <div class="text-[11px] text-slate-500 mb-2">${L.passesHint}</div>
-              <div class="grid grid-cols-5 gap-1.5">
-                ${MW_PASSES.map((n) => `<button type="button" data-pass="${n}" aria-pressed="${state.passes.includes(n)}"
-                    class="seg-btn rounded-lg py-2 text-xs sm:text-sm font-semibold border border-ink-600 transition">${L.pass} ${n}</button>`).join('')}
+              <div class="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label="${L.passesLabel}">
+                ${MW_PASSES.map((n) => { const dt = passDate(n); return `<button type="button" role="radio" data-pass="${n}" aria-checked="${state.planPass === n}" aria-pressed="${state.planPass === n}"
+                    class="seg-btn rounded-lg py-1.5 border border-ink-600 transition leading-tight">
+                    <span class="block text-xs sm:text-sm font-semibold">${L.pass} ${n}</span>
+                    <span class="block text-[10px] opacity-75 tabular-nums">${dt ? shortDate(dt) : `${L.dayN} ${passDay(n)}`}</span>
+                  </button>`; }).join('')}
               </div>
             </div>
             <div data-out="budget"></div>
@@ -892,17 +906,17 @@
         </label>`;
     }).join('');
     return `
-      <details class="rounded-xl border border-ink-700 bg-ink-950/60 open:border-ink-600" ${b.tiers.some((x) => state.buy[x.id]) || b.id === 'psup' ? 'open' : ''}>
-        <summary class="flex items-center justify-between gap-3 px-3 py-2.5 cursor-pointer list-none">
+      <div class="rounded-xl border border-ink-600 bg-ink-950/60">
+        <div class="flex items-center justify-between gap-3 px-3 py-2.5">
           <span class="min-w-0">
             <span class="block text-sm font-semibold text-slate-100">${esc(b.name)}</span>
             <span class="block text-xs text-slate-500 truncate">${esc(tx(b.info))}${b.kind === 'repeat' ? ` · ${L.times} ${tx(b.unit)}` : ''}</span>
             ${b.sequential ? `<span class="block text-[11px] text-amber-300/80">🔒 ${L.seqHint}: ${b.tiers.map((x) => esc(tx(x.label))).join(' → ')}</span>` : ''}
           </span>
-          <span data-bsum="${b.id}" class="shrink-0 text-xs text-gold-300 tabular-nums"></span>
-        </summary>
+          <span data-bsum="${b.id}" class="shrink-0 text-xs text-gold-300 tabular-nums min-w-[7.5rem] text-right"></span>
+        </div>
         <div class="px-1.5 pb-2 space-y-0.5">${tiersHTML}</div>
-      </details>`;
+      </div>`;
   }
 
   /* ----- Ausgaben ----- */
@@ -983,9 +997,9 @@
         ${line(L.spend, `${usd(p.spent)} · ${p.count}×`)}
         ${line(L.budgetLeft, usd(p.left), 'text-slate-400')}
         ${line(L.avg, `${usd(perMil(p.spent, p.cr))} / Mio`)}
-        ${p.passes.length ? `
         <div class="mt-3 rounded-lg border border-ink-700 bg-ink-950/60 p-2.5 space-y-1">
-          <div class="text-[11px] uppercase tracking-widest text-slate-500 mb-1">⛰️ Mountain Warfare</div>
+          <div class="text-[11px] text-slate-500 mb-1">📅 ${L.planTo} ${L.pass} ${state.planPass} · ${L.dayN} ${p.cwDays}${passDate(state.planPass) ? ` (${shortDate(passDate(state.planPass))})` : ''}</div>
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 pt-1">⛰️ Mountain Warfare</div>
           ${p.passes.map((n) => {
             const top = p.perPass[n];
             const tiers = BUNDLES.find((b) => b.id === 'mw').tiers;
@@ -997,7 +1011,14 @@
                 : `${L.upTo} <b class="text-gold-300">${esc(tx(tiers[top].label))}</b> · ${usd(usdSum)} · ${short(crSum)} 💎`}</span>
             </div>`;
           }).join('')}
-        </div>` : ''}
+          <div class="text-[11px] uppercase tracking-widest text-slate-500 pt-2">📆 ${L.cwDaily} · ${p.cwDays} ${L.daysN}</div>
+          <div class="flex items-center justify-between gap-2 text-sm">
+            <span class="text-slate-300">${p.cwDays} ${L.daysN}</span>
+            <span class="tabular-nums ${p.pick.cw1 ? 'text-slate-100' : 'text-slate-600'}">${p.pick.cw1
+              ? BUNDLES.find((b) => b.id === 'cw').tiers.filter((x) => p.pick[x.id]).map((x) => `${esc(tx(x.label))} ${p.pick[x.id]}×`).join(' · ')
+              : L.noBuy}</span>
+          </div>
+        </div>
         <button type="button" data-budget-apply ${p.count ? '' : 'disabled'}
           class="mt-2 w-full py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm disabled:opacity-40">${L.apply}</button>`;
     }
@@ -1349,6 +1370,7 @@
       if (ed) ed.classList.toggle('hidden', !editOpen);
       if (btn) btn.setAttribute('aria-expanded', String(editOpen));
       if (editOpen) { const inp = ed && ed.querySelector('input'); if (inp) inp.focus(); }
+      else rerender();   // Pass-Daten im Budget-Planer an neuen KvK-Start anpassen
       return;
     }
     const scanBtn = e.target.closest('[data-scan]');
@@ -1371,9 +1393,11 @@
     if (e.target.closest('[data-shop-clear]')) { state.buy = {}; save(); rerender(); return; }
     const passBtn = e.target.closest('[data-pass]');
     if (passBtn) {
-      const n = +passBtn.dataset.pass;
-      state.passes = state.passes.includes(n) ? state.passes.filter((x) => x !== n) : [...state.passes, n].sort((a, z) => a - z);
-      passBtn.setAttribute('aria-pressed', String(state.passes.includes(n)));
+      state.planPass = +passBtn.dataset.pass;
+      root.querySelectorAll('[data-pass]').forEach((b) => {
+        const on = +b.dataset.pass === state.planPass;
+        b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-checked', String(on));
+      });
       save(); refresh();
       return;
     }
