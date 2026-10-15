@@ -90,6 +90,9 @@
     de: {
       title: 'KvK Start', sub: 'Vorbereitung',
       startLabel: 'KvK-Start (Datum)', utcNote: 'KvK startet immer um 00:00 UTC', localIs: 'bei dir',
+      edit: 'Bearbeiten', calTitle: 'KvK-Kalender', done: 'Fertig', startShort: 'Start',
+      tabs: { start: 'Start', mid: 'Mid', end: 'End' },
+      soon: { mid: 'Hier entsteht die Planung für die Mitte des KvK.', end: 'Hier entsteht die Planung für das Ende des KvK.' }, soonSub: 'Kommt als Nächstes',
       noStart: 'Start-Datum festlegen', pre: 'Pre-KvK', day: 'Tag', untilStart: 'bis zum Start', sinceStart: 'seit Start',
       u: { d: 'Tage', h: 'Std', m: 'Min', s: 'Sek' },
       apTitle: 'AP', apHint: 'Aus deinem letzten AP-Scan', noData: 'Noch kein Scan – im Scanner scannen oder „Aus Scan“ klicken', bottles: 'er Flaschen', apPerDay: 'Geplant pro Tag',
@@ -122,6 +125,9 @@
     en: {
       title: 'KvK Start', sub: 'Preparation',
       startLabel: 'KvK start (date)', utcNote: 'KvK always starts at 00:00 UTC', localIs: 'for you',
+      edit: 'Edit', calTitle: 'KvK calendar', done: 'Done', startShort: 'Start',
+      tabs: { start: 'Start', mid: 'Mid', end: 'End' },
+      soon: { mid: 'Planning for the middle of KvK will live here.', end: 'Planning for the end of KvK will live here.' }, soonSub: 'Coming next',
       noStart: 'Set start date', pre: 'Pre-KvK', day: 'Day', untilStart: 'until start', sinceStart: 'since start',
       u: { d: 'Days', h: 'Hrs', m: 'Min', s: 'Sec' },
       apTitle: 'AP', apHint: 'From your last AP scan', noData: 'No scan yet – scan in the scanner or click “From scan”', bottles: ' potions', apPerDay: 'Planned per day',
@@ -176,7 +182,8 @@
   function freshState() {
     return {
       v: 3,
-      startDate: '',                                                              // YYYY-MM-DD (UTC-Tag, Start 00:00 UTC)
+      startDate: '',
+      tab: 'start',                                                               // start | mid | end                                                              // YYYY-MM-DD (UTC-Tag, Start 00:00 UTC)
       ap: { b50: 0, b100: 0, b500: 0, b1000: 0, perDay: 0 },
       speed: { universal: 0, training: 0, healing: 0, research: 0, building: 0 },   // Minuten
       crystal: { start: 0, chests: 0, perMarch: 0, marches: 0, other: 0 },
@@ -461,20 +468,36 @@
   function viewHTML() {
     const L = t();
 
-    // ---- Zeit (mittig) ----
+    // ---- Zeit (kompakt, LED-Uhr) ----
     const timePanel = `
-      <section class="panel rounded-2xl p-5 sm:p-6">
-        <div class="flex flex-col items-center text-center gap-3">
+      <section class="panel rounded-2xl px-4 py-4 sm:py-5">
+        <div class="flex flex-col items-center text-center gap-2.5">
           <div data-phase></div>
-          <div data-countdown class="w-full"></div>
-          <label class="flex flex-col items-center gap-1.5 text-xs text-slate-400 mt-1">
-            <span class="uppercase tracking-widest">${L.startLabel}</span>
-            <input type="date" data-path="startDate" data-kind="raw" value="${esc(state.startDate)}"
-                   class="w-56 bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-center text-slate-100 focus:outline-none focus:border-gold-500 [color-scheme:dark]">
-            <span data-utc class="text-slate-500"></span>
-          </label>
+          <div data-countdown class="max-w-full overflow-x-auto"></div>
+          <div data-startline class="text-xs text-slate-500"></div>
         </div>
       </section>`;
+
+    // ---- Kalender-Editor (über den Edit-Knopf) ----
+    const editor = `
+      <div data-editor class="${editOpen ? '' : 'hidden'} absolute right-0 top-11 z-30 w-72 max-w-[calc(100vw-2rem)] panel !bg-ink-900 rounded-xl p-4 text-left shadow-2xl ui-pop">
+        <div class="text-xs uppercase tracking-widest text-gold-300 mb-2">📅 ${L.calTitle}</div>
+        <label class="flex flex-col gap-1.5 text-xs text-slate-400">
+          <span>${L.startLabel}</span>
+          <input type="date" data-path="startDate" data-kind="raw" value="${esc(state.startDate)}"
+                 class="w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 [color-scheme:dark]">
+          <span data-utc class="text-slate-500 leading-snug"></span>
+        </label>
+        <button type="button" data-edit-done class="mt-3 w-full py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">${L.done}</button>
+      </div>`;
+
+    // ---- Seiten-Umschalter ----
+    const TAB_ICONS = { start: '🚀', mid: '⚔️', end: '🏁' };
+    const tabs = `
+      <div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist">
+        ${['start', 'mid', 'end'].map((k) => `<button type="button" role="tab" data-ktab="${k}" aria-pressed="${state.tab === k}"
+            class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition">${TAB_ICONS[k]} ${L.tabs[k]}</button>`).join('')}
+      </div>`;
 
     // ---- AP ----
     const apTile = `
@@ -564,11 +587,19 @@
 
     return `
       <div class="space-y-5">
-        <header class="text-center py-1">
+        <header class="relative text-center py-1 px-12 sm:px-28">
           <h2 class="wiz-title font-display text-3xl sm:text-4xl font-extrabold tracking-wide">${L.title}</h2>
           <p class="text-[11px] uppercase tracking-[.35em] text-slate-500 mt-1">${L.sub}</p>
+          <button type="button" data-edit aria-expanded="${editOpen}" title="${L.edit}" aria-label="${L.edit}"
+            class="absolute right-0 top-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-xs sm:text-sm">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>
+            <span class="hidden sm:inline">${L.edit}</span>
+          </button>
+          ${editor}
         </header>
         ${timePanel}
+        ${tabs}
+        ${state.tab === 'start' ? `
         <div class="grid gap-5 md:grid-cols-2">
           ${apTile}
           ${speedTile}
@@ -577,7 +608,13 @@
         </div>
         <div class="text-right">
           <button type="button" data-reset class="text-xs text-slate-500 hover:text-red-300 underline">${L.reset}</button>
-        </div>
+        </div>` : `
+        <section class="panel rounded-2xl p-10 text-center">
+          <div class="text-4xl mb-3">${TAB_ICONS[state.tab]}</div>
+          <h3 class="font-display text-xl text-gold-300">KvK ${L.tabs[state.tab]}</h3>
+          <p class="text-sm text-slate-400 mt-2">${L.soon[state.tab]}</p>
+          <p class="text-[11px] uppercase tracking-widest text-slate-600 mt-4">${L.soonSub}</p>
+        </section>`}
       </div>`;
   }
 
@@ -703,40 +740,61 @@
   function renderClock() {
     if (!root) return;
     const L = t(), ph = phase();
-    const phEl = root.querySelector('[data-phase]'), cdEl = root.querySelector('[data-countdown]'), utcEl = root.querySelector('[data-utc]');
+    const phEl = root.querySelector('[data-phase]'), cdEl = root.querySelector('[data-countdown]');
+    const utcEl = root.querySelector('[data-utc]'), lineEl = root.querySelector('[data-startline]');
     if (!phEl || !cdEl) return;
     const badge = (txt, cls) => `<span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full border ${cls}">${txt}</span>`;
 
     if (!ph) {
       phEl.innerHTML = badge('🕒 ' + L.noStart, 'border-ink-600 text-slate-400');
-      cdEl.innerHTML = units(0, true);
+      cdEl.innerHTML = led(0, true);
       if (utcEl) utcEl.textContent = L.utcNote;
+      if (lineEl) lineEl.textContent = L.utcNote;
       return;
     }
     phEl.innerHTML = ph.before
       ? badge('⏳ ' + L.pre, 'border-gold-500/40 text-gold-300 bg-gold-500/5')
       : badge(`⚔️ KvK · ${L.day} ${fmt(ph.day)}`, 'border-red-400/40 text-red-300 bg-red-500/10');
-    cdEl.innerHTML = units(ph.ms, false) + `<div class="text-xs text-slate-500 mt-2">${ph.before ? L.untilStart : L.sinceStart}</div>`;
+    cdEl.innerHTML = led(ph.ms, false);
+    const local = new Date(ph.ts).toLocaleString(locale(), { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    if (lineEl) lineEl.innerHTML = `${ph.before ? L.untilStart : L.sinceStart} · ${L.startShort}: <span class="text-slate-300">${local}</span> (00:00 UTC)`;
     if (utcEl) {
       const tz = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { return ''; } })();
-      const local = new Date(ph.ts).toLocaleString(locale(), { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
       utcEl.innerHTML = `00:00 UTC = <span class="text-slate-300">${local}</span> ${L.localIs}${tz ? ` (${esc(tz)})` : ''}`;
     }
   }
-  function units(ms, dim) {
+
+  // 7-Segment-Ziffer als SVG (Segmente a–g)
+  const SEG_ON = ['abcdef', 'bc', 'abged', 'abgcd', 'fgbc', 'afgcd', 'afgedc', 'abc', 'abcdefg', 'abcdfg'];
+  const SEG_POLY = (() => {
+    const tk = 5, g = 2.5;
+    const hz = (x1, x2, y) => `${x1},${y} ${x1 + tk},${y - tk} ${x2 - tk},${y - tk} ${x2},${y} ${x2 - tk},${y + tk} ${x1 + tk},${y + tk}`;
+    const vt = (x, y1, y2) => `${x},${y1} ${x + tk},${y1 + tk} ${x + tk},${y2 - tk} ${x},${y2} ${x - tk},${y2 - tk} ${x - tk},${y1 + tk}`;
+    const L = 8, R = 52, T = 8, M = 50, B = 92;
+    return {
+      a: hz(L + g, R - g, T), b: vt(R, T + g, M - g), c: vt(R, M + g, B - g), d: hz(L + g, R - g, B),
+      e: vt(L, M + g, B - g), f: vt(L, T + g, M - g), g: hz(L + g, R - g, M)
+    };
+  })();
+  const digitSvg = (n) => `<svg class="kvk-dg" viewBox="0 0 60 100" aria-hidden="true">${
+    Object.keys(SEG_POLY).map((k) => `<polygon class="${SEG_ON[n].includes(k) ? 'on' : 'off'}" points="${SEG_POLY[k]}"/>`).join('')}</svg>`;
+  const colonSvg = (blink) => `<svg class="kvk-col${blink ? ' blink' : ''}" viewBox="0 0 16 100" aria-hidden="true"><circle class="on" cx="8" cy="34" r="5"/><circle class="on" cx="8" cy="68" r="5"/></svg>`;
+
+  function led(ms, dim) {
     const L = t(), s = Math.floor(ms / 1000);
     const parts = [[Math.floor(s / 86400), L.u.d], [Math.floor((s % 86400) / 3600), L.u.h], [Math.floor((s % 3600) / 60), L.u.m], [s % 60, L.u.s]];
-    return `<div class="flex justify-center gap-2 sm:gap-3">${parts.map(([v, lab]) => `
-      <div class="flex-1 max-w-[120px] rounded-xl bg-ink-950 border border-ink-700 px-2 py-3 text-center">
-        <div class="text-3xl sm:text-5xl font-extrabold tabular-nums ${dim ? 'text-slate-600' : 'text-gold-300'}">${String(v).padStart(2, '0')}</div>
-        <div class="text-[10px] uppercase tracking-widest text-slate-500 mt-1">${lab}</div>
-      </div>`).join('')}</div>`;
+    const label = parts.map(([v, lab]) => `${v} ${lab}`).join(' ');
+    return `<div class="kvk-led${dim ? ' dim' : ''}" role="timer" aria-label="${esc(label)}">${parts.map(([v, lab], i) => `
+      <div class="kvk-led-grp">
+        <div class="kvk-led-digits">${String(v).padStart(2, '0').split('').map((d) => digitSvg(+d)).join('')}</div>
+        <div class="kvk-led-lab">${lab}</div>
+      </div>${i < 3 ? colonSvg(!dim && s % 2 === 1) : ''}`).join('')}</div>`;
   }
 
   /* ================================================================== *
    * Rendering & Events
    * ================================================================== */
-  let root = null, modal = null, lastFocus = null, clock = null;
+  let root = null, modal = null, lastFocus = null, clock = null, editOpen = false;
 
   function render() {
     if (!root) return;
@@ -747,6 +805,7 @@
   }
   function rerender() {
     if (!root) return;
+    if (!['start', 'mid', 'end'].includes(state.tab)) state.tab = 'start';
     root.setAttribute('translate', 'no');      // eigene DE/EN-Texte – nicht vom Seiten-Übersetzer anfassen
     root.innerHTML = viewHTML();
     refresh();
@@ -825,6 +884,16 @@
   }
 
   function onClick(e) {
+    const tabBtn = e.target.closest('[data-ktab]');
+    if (tabBtn) { state.tab = tabBtn.dataset.ktab; save(); rerender(); return; }
+    if (e.target.closest('[data-edit]') || e.target.closest('[data-edit-done]')) {
+      editOpen = !editOpen && !e.target.closest('[data-edit-done]');
+      const ed = root.querySelector('[data-editor]'), btn = root.querySelector('[data-edit]');
+      if (ed) ed.classList.toggle('hidden', !editOpen);
+      if (btn) btn.setAttribute('aria-expanded', String(editOpen));
+      if (editOpen) { const inp = ed && ed.querySelector('input'); if (inp) inp.focus(); }
+      return;
+    }
     const scanBtn = e.target.closest('[data-scan]');
     if (scanBtn) { if (importScan(scanBtn.dataset.scan)) { save(); rerender(); } return; }
 
@@ -884,7 +953,21 @@
 #kvkRoot input::placeholder { color:#475569; }
 #kvkRoot details > summary::-webkit-details-marker { display:none; }
 #kvkRoot details > summary::after { content:'▾'; color:#64748b; margin-left:.5rem; transition:transform .15s; }
-#kvkRoot details[open] > summary::after { transform:rotate(180deg); }`;
+#kvkRoot details[open] > summary::after { transform:rotate(180deg); }
+#kvkRoot .grid > * { min-width:0; }
+#kvkRoot .kvk-led { display:inline-flex; align-items:flex-start; gap:6px; padding:14px 18px 10px; border-radius:14px;
+  background-color:#080b12; background-image:radial-gradient(rgba(148,163,184,.09) 1px, transparent 1.3px); background-size:4px 4px;
+  border:1px solid #212b40; box-shadow:inset 0 0 24px rgba(0,0,0,.7), 0 0 0 1px rgba(0,0,0,.5); }
+#kvkRoot .kvk-led-grp { display:flex; flex-direction:column; align-items:center; }
+#kvkRoot .kvk-led-digits { display:flex; gap:5px; }
+#kvkRoot .kvk-dg, #kvkRoot .kvk-col { height:clamp(38px, 10vw, 68px); width:auto; transform:skewX(-7deg); filter:drop-shadow(0 0 6px rgba(255,35,35,.55)); }
+#kvkRoot .kvk-col { margin:0 1px; }
+#kvkRoot .kvk-led .on { fill:#ff2a2a; }
+#kvkRoot .kvk-led .off { fill:rgba(255,42,42,.07); }
+#kvkRoot .kvk-col.blink .on { fill:rgba(255,42,42,.25); }
+#kvkRoot .kvk-led.dim .on { fill:rgba(255,42,42,.22); }
+#kvkRoot .kvk-led.dim .kvk-dg, #kvkRoot .kvk-led.dim .kvk-col { filter:none; }
+#kvkRoot .kvk-led-lab { font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:#94a3b8; margin-top:6px; }`;
     document.head.appendChild(st);
   }
 
@@ -896,6 +979,7 @@
     root = document.getElementById('kvkRoot');
     if (!root) return;
     modal = document.getElementById('kvkModal');
+    if (!modal) root.classList.remove('panel', 'rounded-2xl', 'p-5');   // ältere index.html: Container ohne eigenen Rahmen
     injectStyles();
 
     root.addEventListener('input', onInput);
