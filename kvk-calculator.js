@@ -1893,8 +1893,8 @@
   function mapsChanged() { applyBg(); if (root) rerender(); mapHosts.forEach((h) => { if (h.isConnected && h._kvkRemount) h._kvkRemount(); }); }
   // falls maps/index.json nicht lädt: bekannte Karten trotzdem zur Auswahl anbieten
   const MAP_INDEX_FALLBACK = [
-    { id: 'lk1', bg: 'bg/s04-heroic-anthem.jpg', name: { de: 'Heroic Anthem', en: 'Heroic Anthem' }, desc: { de: 'Ring aus Zonen um die Ziggurat, 4 Altar-Höfe, Pässe 4–8', en: 'ring of zones around the ziggurat, 4 altar courts, passes 4–8' } },
-    { id: 'lk2', bg: 'bg/s21-mighty-assembly.jpg', name: { de: 'Mighty Assembly', en: 'Mighty Assembly' }, desc: { de: 'Quadratische Festung in der Mitte, Camps an den Seiten, Pässe 4–9', en: 'square fortress in the middle, camps on the sides, passes 4–9' } },
+    { id: 'lk1', bg: 'bg/s4heroic_anthem_cover.png', name: { de: 'Heroic Anthem', en: 'Heroic Anthem' }, desc: { de: 'Ring aus Zonen um die Ziggurat, 4 Altar-Höfe, Pässe 4–8', en: 'ring of zones around the ziggurat, 4 altar courts, passes 4–8' } },
+    { id: 'lk2', bg: 'bg/s21mighty_assembly_cover.png', name: { de: 'Mighty Assembly', en: 'Mighty Assembly' }, desc: { de: 'Quadratische Festung in der Mitte, Camps an den Seiten, Pässe 4–9', en: 'square fortress in the middle, camps on the sides, passes 4–9' } },
     { id: 'tbd', bg: 'bg/tbd-not-official.jpg', nomap: true, name: { de: 'Noch nicht offiziell', en: 'Not official yet' }, desc: { de: 'KvK-Typ noch unbekannt – Karte folgt, Zeiten wie Standard', en: 'KvK type not known yet – map follows, default times' } }];
   function loadMapIndex() {
     if (MAP_INDEX || mapIndexLoading) return;
@@ -3582,7 +3582,7 @@
   // Bild erst prüfen: fehlt die Datei (z. B. noch nicht hochgeladen), bleibt das Standardbild statt schwarz
   const bgOk = {};
   const layoutBg = (id) => {
-    const m = layoutInfo(id), url = m && m.bg && /^[\w\/.-]+$/.test(m.bg) ? MAP_BASE + m.bg : '';
+    const m = layoutInfo(id), url = m && m.bg && /^[\w\/. ()-]+$/.test(m.bg) ? MAP_BASE + encodeURI(m.bg) : '';   // Dateinamen dürfen Leerzeichen/Klammern haben
     if (!url) return TIMER_BG;
     if (bgOk[url] === undefined) { bgOk[url] = null; const im = new Image(); im.onload = () => { bgOk[url] = true; applyBg(); }; im.onerror = () => { bgOk[url] = false; console.warn('KvK-Hintergrund fehlt:', url); }; im.src = url; }
     return bgOk[url] ? url : TIMER_BG;
