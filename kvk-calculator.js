@@ -1618,8 +1618,8 @@
             </div>
             <div class="grid grid-cols-5 gap-1.5" data-camp-kds="${i}">${(() => { const ks = parseKds(c.kds).slice(0, 10); return Array.from({ length: 10 }, (_, j) => `
               <div class="flex flex-col gap-1">
-                <input type="text" inputmode="numeric" maxlength="6" data-camp-kd="${i}:${j}" value="${esc(ks[j] || '')}" placeholder="${j + 1}" class="${INPUT_SM} !px-1 !text-center" style="color:${({ g: '#fbbf24', s: '#d1d5db' })[(md.kdTier || {})[ks[j]]] || '#ffffff'}" aria-label="${M.campNames[i]} ${j + 1}">
-                ${ks[j] ? (() => { const tr = (md.kdTier || {})[ks[j]] || ''; return `<button type="button" data-kd-tier="${esc(ks[j])}" title="${M.tierHint}" class="text-[10px] leading-none py-1 rounded-md border transition ${tr === 'g' ? 'border-amber-400/70 text-amber-300 bg-amber-400/10' : tr === 's' ? 'border-slate-300/70 text-slate-200 bg-slate-300/10' : 'border-ink-600 text-slate-500 hover:text-slate-300'}">${tr === 'g' ? '🥇 ' + M.tierG : tr === 's' ? '🥈 ' + M.tierS : '○ ' + M.tierN}</button>`; })() : ''}
+                <input type="text" inputmode="numeric" maxlength="4" pattern="[0-9]*" data-camp-kd="${i}:${j}" value="${esc(ks[j] || '')}" placeholder="${j + 1}" class="${INPUT_SM} !px-1 !text-center" style="color:${({ g: '#fbbf24', s: '#d1d5db' })[(md.kdTier || {})[ks[j]]] || '#ffffff'}" aria-label="${M.campNames[i]} ${j + 1}">
+                ${ks[j] ? tierBtnHTML(ks[j]) : ''}
               </div>`).join(''); })()}</div>
           </div>`; }).join('')}</div>
         <p class="text-[11px] text-slate-500">🥇🥈 ${M.tierHint}</p>`)}
@@ -1715,7 +1715,7 @@
    * KvK Ende: Bilanz Start → Ende
    * ================================================================== */
   // Karte als eigenständige Funktion – auch fürs Profil (fremde Daten aus leaderboard.kvk_map)
-  const parseKds = (txt) => [...new Set(String(txt || '').split(/[,;\s]+/).map((k) => k.replace(/[^\d]/g, '').slice(0, 6)).filter(Boolean))];
+  const parseKds = (txt) => [...new Set(String(txt || '').split(/[,;\s]+/).map((k) => k.replace(/[^\d]/g, '').slice(0, 4)).filter(Boolean))];
   // Ereignisse (Ruinen/Altäre/Eigenes) kompakt fürs Profil – nur geprüfte Felder
   function cleanEvents(list) {
     if (!Array.isArray(list)) return [];
@@ -2199,6 +2199,12 @@
     const ms = ts - now; el.textContent = cdText(ms, el.hasAttribute('data-cd-big')); return ms <= 0;
   }
   // Auswahl „Welches KvK?“ (Reiter Start und Reiter Karte)
+  // Knopf unter einem Königreich-Feld: Schrift Imperium (Gold) / Silber / normal
+  function tierBtnHTML(kd) {
+    const M = t().m, md = state.mid;
+    const tr = (md.kdTier || {})[kd] || ''; return `<button type="button" data-kd-tier="${esc(kd)}" title="${M.tierHint}" class="text-[10px] leading-none py-1 rounded-md border transition ${tr === 'g' ? 'border-amber-400/70 text-amber-300 bg-amber-400/10' : tr === 's' ? 'border-slate-300/70 text-slate-200 bg-slate-300/10' : 'border-ink-600 text-slate-500 hover:text-slate-300'}">${tr === 'g' ? '🥇 ' + M.tierG : tr === 's' ? '🥈 ' + M.tierS : '○ ' + M.tierN}</button>`;
+  }
+  const TIER_TXT = (kd) => ({ g: '#fbbf24', s: '#d1d5db' })[(state.mid.kdTier || {})[kd]] || '#ffffff';
   function layoutName() {
     const id = validLayout(state.mid.layout), m = (MAP_INDEX || []).find((x) => x.id === id);
     return id === 'schema' ? t().mp.layouts.schema[0] : m ? tx(m.name) : id;
@@ -3594,8 +3600,14 @@
     // Reiter Karte: Königreich-Felder je Camp → als Liste gespeichert
     if (el.dataset && el.dataset.campKd) {
       const i = +el.dataset.campKd.split(':')[0], box = el.closest('[data-camp-kds]');
+      const v = el.value.replace(/[^\d]/g, '').slice(0, 4);
+      if (el.value !== v) el.value = v;
+      el.style.color = TIER_TXT(v);
+      const wrap = el.parentElement, old = wrap && wrap.querySelector('[data-kd-tier]');
+      if (old) old.remove();
+      if (wrap && v) wrap.insertAdjacentHTML('beforeend', tierBtnHTML(v));
       if (box && state.mid.camps[i]) {
-        state.mid.camps[i].kds = [...box.querySelectorAll('[data-camp-kd]')].map((x) => x.value.replace(/[^\d]/g, '').slice(0, 6)).filter(Boolean).join(', ');
+        state.mid.camps[i].kds = [...box.querySelectorAll('[data-camp-kd]')].map((x) => x.value.replace(/[^\d]/g, '').slice(0, 4)).filter(Boolean).join(', ');
         save(); refresh();
       }
       return;
