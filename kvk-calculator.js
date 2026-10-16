@@ -3579,7 +3579,14 @@
   }
   // Timer-Hintergrund und KvK-Name kommen fest vom gewählten KvK (maps/index.json → bg), sonst das Standardbild
   const layoutInfo = (id) => (MAP_INDEX || MAP_INDEX_FALLBACK).find((m) => m.id === validLayout(id)) || null;
-  const layoutBg = (id) => { const m = layoutInfo(id); return m && m.bg && /^[\w\/.-]+$/.test(m.bg) ? MAP_BASE + m.bg : TIMER_BG; };
+  // Bild erst prüfen: fehlt die Datei (z. B. noch nicht hochgeladen), bleibt das Standardbild statt schwarz
+  const bgOk = {};
+  const layoutBg = (id) => {
+    const m = layoutInfo(id), url = m && m.bg && /^[\w\/.-]+$/.test(m.bg) ? MAP_BASE + m.bg : '';
+    if (!url) return TIMER_BG;
+    if (bgOk[url] === undefined) { bgOk[url] = null; const im = new Image(); im.onload = () => { bgOk[url] = true; applyBg(); }; im.onerror = () => { bgOk[url] = false; console.warn('KvK-Hintergrund fehlt:', url); }; im.src = url; }
+    return bgOk[url] ? url : TIMER_BG;
+  };
   const hostLayout = (sc) => (sc && sc._kvkFixed && sc._kvkLayout ? sc._kvkLayout : state.mid.layout);
   function applyBg() {
     loadMapIndex();
