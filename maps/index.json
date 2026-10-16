@@ -18,7 +18,7 @@
     7,
     8
    ],
-   "bg": "bg/s04-heroic-anthem.jpg"
+   "bg": "bg/s4heroic_anthem_cover.png"
   },
   {
    "id": "lk2",
@@ -38,11 +38,11 @@
     8,
     9
    ],
-   "bg": "bg/s21-mighty-assembly.jpg"
+   "bg": "bg/s21mighty_assembly_cover.png"
   },
   {
    "id": "tbd",
-   "bg": "bg/tbd-not-official.jpg",
+   "bg": "bg/Build the ultimate kingdom.jpg",
    "name": {
     "de": "Noch nicht offiziell",
     "en": "Not official yet"
@@ -63,64 +63,69 @@
  ],
  "bgs": [
   {
+   "kvk": "Noch nicht offiziell",
+   "season": 0,
+   "file": "bg/Build the ultimate kingdom.jpg"
+  },
+  {
    "kvk": "Distant Journey",
    "season": 2,
-   "file": "bg/s02-distant-journey.jpg"
+   "file": "bg/S2Distant-Journey.png"
   },
   {
    "kvk": "Heroic Anthem",
    "season": 4,
-   "file": "bg/s04-heroic-anthem.jpg"
+   "file": "bg/s4heroic_anthem_cover.png"
   },
   {
    "kvk": "King of the Nile",
    "season": 9,
-   "file": "bg/s09-king-of-the-nile.jpg"
+   "file": "bg/s9king_of_the_nile_cover.png"
   },
   {
    "kvk": "Siege of Orléans",
    "season": 10,
-   "file": "bg/s10-siege-of-orleans.jpg"
+   "file": "bg/s10siege_of_orleans_cover.png"
   },
   {
    "kvk": "Warriors Unbound",
    "season": 11,
-   "file": "bg/s11-warriors-unbound.jpg"
+   "file": "bg/s11warriors_unbound_cover.png"
   },
   {
    "kvk": "Storm of Stratagems",
    "season": 12,
-   "file": "bg/s12-storm-of-stratagems.jpg"
+   "file": "bg/s12storm_of_stratagems_cover (1).png"
   },
   {
    "kvk": "Tides of War",
    "season": 14,
-   "file": "bg/s14-tides-of-war.jpg"
+   "file": "bg/s14tides_of_war_cover.png"
   },
   {
    "kvk": "Alliance Invictus",
    "season": 15,
-   "file": "bg/s15-alliance-invictus.jpg"
+   "file": "bg/s15alliance_invictus_cover.png"
   },
   {
    "kvk": "Keener Blades",
    "season": 16,
-   "file": "bg/s16-keener-blades.jpg"
+   "file": "bg/s16keener_blades_cover.png"
   },
   {
    "kvk": "King of All Britain",
    "season": 19,
-   "file": "bg/s19-king-of-all-britain.jpg"
+   "file": "bg/s19king_of_all_britain_cover (1).png"
   },
   {
    "kvk": "Song of Troy",
    "season": 20,
-   "file": "bg/s20-song-of-troy.jpg"
+   "file": "bg/s20song_of_troy_cover.png"
   },
   {
    "kvk": "Mighty Assembly",
    "season": 21,
-   "file": "bg/s21-mighty-assembly.jpg"
+   "file": "bg/s21mighty_assembly_cover.png"
   }
  ]
 }
