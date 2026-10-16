@@ -288,7 +288,18 @@
       lockTip: 'Fixiert seit KvK-Start – zum Ändern „Startwerte bearbeiten“', noPreScan: 'Kein Scan von vor dem KvK-Start vorhanden',
       showMap: 'Karte zeigen', openKvk: 'KvK öffnen', countdown: 'KvK Countdown', edit: 'Bearbeiten', bgLabel: 'Hintergrundbild', bgPick: 'Bild wählen', bgReset: 'Standard',
       bgBusy: 'Bild wird verarbeitet …', bgDone: 'Hintergrund gespeichert', bgTooBig: 'Bild ist zu groß für den Browser-Speicher', bgFail: 'Bild konnte nicht gelesen werden', calTitle: 'KvK-Kalender', done: 'Fertig', startShort: 'Start',
-      tabs: { start: 'Start', mid: 'Mid', end: 'End', map: 'Karte' },
+      tabs: { start: 'Get Ready', mid: 'Running', end: 'Finished', map: 'Karte', friends: 'Friends' },
+      fr: { title: 'KvK-Gruppen', hint: 'Jedes KvK startet und endet für alle gleichzeitig – mach eine Gruppe mit Spielern aus deinem KvK und vergleicht eure Werte', sameKvk: 'KvK-Start', sameKvkShort: 'selbes KvK',
+        needStart: 'Trag zuerst im Reiter Get Ready dein KvK-Startdatum ein – dann siehst du, wer im selben KvK ist.', noLogin: 'Für Gruppen bitte einloggen.', loading: 'Lade Gruppen …',
+        noTable: 'Gruppen brauchen noch die Tabellen kvk_groups und kvk_group_members in Supabase (SQL ausführen).', err: 'Konnte nicht geladen werden', refresh: '↻ Neu laden',
+        incoming: 'Einladungen an dich', accept: '✓ Annehmen', decline: 'Ablehnen', from: 'von', noGroups: 'Du bist noch in keiner Gruppe – erstell unten eine oder tritt einer öffentlichen bei.',
+        pubGroups: 'Öffentliche Gruppen in deinem KvK', join: '＋ Beitreten', by: 'von', members: 'Mitglieder', member1: 'Mitglied', invitedN: 'eingeladen', pending: 'eingeladen', owner: 'Ersteller', youOwner: 'deine Gruppe',
+        compare: '📊 Vergleich', invite: '＋ Einladen', inviteOpen: 'Einladen', inviteBtn: 'Einladen', inviteInto: 'Spieler einladen in', del: 'Löschen', sure: 'Wirklich?', leave: 'Verlassen',
+        search: 'Name, Governor-ID oder Königreich …', searching: 'Suche nach ID …', noHits: 'Keine Spieler gefunden – mit der Governor-ID findest du auch Spieler aus anderen KvKs.', otherKvk: 'anderes KvK',
+        newGroup: 'Neue Gruppe', groupName: 'Gruppenname, z. B. S79 Kristall-Crew', defName: 'KvK-Gruppe', visibility: 'Sichtbarkeit', private: 'Privat', public: 'Öffentlich', create: 'Erstellen',
+        privHint: 'Privat: nur wer eingeladen wird', pubHint: 'Öffentlich: jeder in deinem KvK kann beitreten', pubToggle: 'Antippen: öffentlich ⇄ privat', you: 'Du',
+        cmpTitle: 'KvK-Vergleich', cmpHint: 'Alle Mitglieder · Spalte antippen = sortieren', noStats: 'noch keine Werte',
+        k: { cr: 'Kristall-Boost', spent: 'Kristalle ausgegeben', honor: 'Ehre', kp: 'KP-Gewinn', acclaim: 'Verdienst' }, kSub: { cr: 'Ø pro Tag', spent: 'Ist-Abgleich', honor: 'Stand', kp: 'seit KvK-Start', acclaim: 'im KvK' } },
       mp: { whichKvk: 'Welches KvK?', whichHint: 'Bestimmt, welche Karte im Reiter Karte und in deinem Profil erscheint', layouts: { schema: ['Schema', 'vereinfachte Zonen-Übersicht (Testanordnung)'] }, mapsLoading: 'Karten werden geladen …', mapLoading: 'Karte wird geladen …', mapFail: 'Karte konnte nicht geladen werden – Schema wird gezeigt', title: 'Karte & Zeiten', hint: 'Camps, Pässe, Ruinen und Altäre – mit Timer bis zum nächsten Ereignis', next: 'Nächstes Ereignis', none: 'Keine kommenden Ereignisse im KvK', noTime: 'Für diesen Pass ist noch keine Zeit hinterlegt', fightSinceLbl: 'Kampf läuft seit', fightOn: 'Kampf läuft noch', fightSince: 'seit', fightLen: 'Kampfdauer {h} Std', nextOne: 'danach', altarNext: 'Nächster Altar', passNext: 'Öffnet', fightNow: 'Kampf', nextShort: 'Nächstes', needStart: 'Trag oben über ✎ das KvK-Startdatum ein – dann erscheinen alle Zeiten und der Timer.', upcoming: 'Als Nächstes', passes: 'Pässe', rules: 'Ruinen & Altäre', kinds: { pass: 'Pass', ruin: 'Ruine', altar: 'Altar', other: 'Sonstiges' }, passOpen: 'Pass {n} öffnet', campsFold: 'Camps bearbeiten', campsHint: 'Bis zu 10 Königreiche je Camp, eigenes und verbündetes Camp', designHint: '{n} Designs zur Auswahl – gilt auch für die Karte im Profil', timesFold: 'Zeiten bearbeiten', timesHint: 'Ruinen, Altäre und eigene Ereignisse – Datum oder KvK-Tag, Uhrzeit UTC, Abstand in Stunden', day: 'KvK-Tag', time: 'Uhrzeit (UTC)', date: 'Datum (UTC)', rep: 'alle … Std', repHint: '0 = einmal · 24 = täglich · Ruinen alle 40 Std · Altar alle 86 Std · Datum gesetzt → KvK-Tag wird ignoriert', once: 'einmal', daily: 'täglich', every: 'alle {n}', everyH: 'Std', add: 'hinzufügen', name: 'Name (optional)', past: 'vorbei', dayN: 'Tag', noRules: 'Noch keine Ruinen- oder Altarzeiten eingetragen', soon: 'Die echten Ruinen- und Altarzeiten kommen noch – bis dahin kannst du sie unten selbst eintragen.', allDone: 'alle vorbei', del: 'Entfernen' },
       calc: 'Berechnung', calcHint: 'Kisten, Bundles, Kosten Mine & Kristall-Tech-Gebäude', costMine: 'Kristallmine – Ziel-Stufe', costTech: 'Kristall-Tech-Gebäude – Ziel-Stufe', lv: 'Stufe', costTotal: 'Kristall-Kosten gesamt', left: 'Übrig', resOnly: 'nur Rohstoffe',
       income: 'Ertrag pro Tag', avail: 'Verfügbar', need: 'Benötigt', diff: 'Differenz', chestsNeed: 'Kisten nötig', chestsUnit: 'Kisten',
@@ -396,7 +407,7 @@
       best: 'Bestes Angebot', worst: 'Schlechtestes Angebot', nothing: 'Noch nichts ausgewählt',
       budget: 'Budget-Planer', budgetHint: 'Exakt optimiert: meiste Kristalle für dein Budget, Stufenfolge beachtet',
       budgetLabel: 'Budget in $', passesLabel: 'Planung bis Pass', passesHint: 'Mountain Warfare 12 Std vor jeder Pass-Öffnung · Conquer\'s Will täglich ab KvK-Start bis dahin', dayN: 'Tag', daysN: 'Tage', planTo: 'Planung bis', cwDaily: 'Conquer\'s Will (täglich)', pass: 'Pass', noBuy: 'nicht kaufen', upTo: 'bis', budgetGet: 'Damit bekommst du', budgetLeft: 'Rest', apply: 'Auswahl übernehmen', autoNote: 'Die Auswahl oben wird bei jeder Änderung automatisch optimal neu berechnet.',
-      roadmap: 'Roadmap', roadmapHint: 'Was du wann kaufst – aus deiner aktuellen Auswahl', rmStart: 'KvK-Start', rmCond: 'Sobald freigeschaltet', rmEmpty: 'Noch nichts ausgewählt – Budget im Planer eintragen oder Bundles anhaken.', rmTotal: 'Gesamt', rmDays: 'Tage', rmDay: 'Tag', rmNothing: '—', budgetEmpty: 'Budget eintragen – dann wird die beste Kombination berechnet und oben übernommen.', rmAfter: 'Danach', rmDaily: 'Täglich', rmUnlock: 'bei Freischaltung',
+      roadmap: 'Roadmap', roadmapHint: 'Was du wann kaufst – aus deiner aktuellen Auswahl', rmStart: 'KvK-Start', rmCond: 'Sobald freigeschaltet', rmEmpty: 'Noch nichts ausgewählt – Budget im Planer eintragen oder Bundles anhaken.', rmTotal: 'Gesamt', rmDays: 'Tage', rmDay: 'Tag', rmNothing: '—', budgetEmpty: 'Budget eintragen – dann wird die beste Kombination berechnet und oben übernommen (0 = nichts kaufen).', budgetZero: '0 $ – nichts kaufen, nur kostenlose Quellen (Auswahl oben geleert)', rmAfter: 'Danach', rmDaily: 'Täglich', rmUnlock: 'bei Freischaltung',
       resTitle: 'Rohstoffe', resHint: 'Ressourcen-Vorrat (Gesamt)',
       res: { food: 'Nahrung', wood: 'Holz', stone: 'Stein', gold: 'Gold' },
       scan: '↻ Aus Scan', scanFrom: 'Letzter Scan', noScan: 'Noch kein Scan im Scanner',
@@ -420,7 +431,18 @@
       lockTip: 'Locked since KvK start – use “Edit start values” to change', noPreScan: 'No scan from before KvK start',
       showMap: 'Show map', openKvk: 'Open KvK', countdown: 'KvK Countdown', edit: 'Edit', bgLabel: 'Background image', bgPick: 'Choose image', bgReset: 'Default',
       bgBusy: 'Processing image …', bgDone: 'Background saved', bgTooBig: 'Image is too large for browser storage', bgFail: 'Image could not be read', calTitle: 'KvK calendar', done: 'Done', startShort: 'Start',
-      tabs: { start: 'Start', mid: 'Mid', end: 'End', map: 'Map' },
+      tabs: { start: 'Get Ready', mid: 'Running', end: 'Finished', map: 'Map', friends: 'Friends' },
+      fr: { title: 'KvK groups', hint: 'Every KvK starts and ends for everyone at the same time – make a group with players from your KvK and compare your values', sameKvk: 'KvK start', sameKvkShort: 'same KvK',
+        needStart: 'Enter your KvK start date in the Get Ready tab first – then you see who is in the same KvK.', noLogin: 'Please log in to use groups.', loading: 'Loading groups …',
+        noTable: 'Groups need the kvk_groups and kvk_group_members tables in Supabase (run the SQL).', err: 'Could not be loaded', refresh: '↻ Reload',
+        incoming: 'Invitations to you', accept: '✓ Accept', decline: 'Decline', from: 'from', noGroups: 'You are not in a group yet – create one below or join a public one.',
+        pubGroups: 'Public groups in your KvK', join: '＋ Join', by: 'by', members: 'members', member1: 'member', invitedN: 'invited', pending: 'invited', owner: 'Owner', youOwner: 'your group',
+        compare: '📊 Compare', invite: '＋ Invite', inviteOpen: 'Invite', inviteBtn: 'Invite', inviteInto: 'Invite players to', del: 'Delete', sure: 'Sure?', leave: 'Leave',
+        search: 'Name, governor ID or kingdom …', searching: 'Searching ID …', noHits: 'No players found – with the governor ID you also find players from other KvKs.', otherKvk: 'other KvK',
+        newGroup: 'New group', groupName: 'Group name, e.g. S79 crystal crew', defName: 'KvK group', visibility: 'Visibility', private: 'Private', public: 'Public', create: 'Create',
+        privHint: 'Private: only invited players', pubHint: 'Public: anyone in your KvK can join', pubToggle: 'Tap: public ⇄ private', you: 'You',
+        cmpTitle: 'KvK comparison', cmpHint: 'All members · tap a column to sort', noStats: 'no values yet',
+        k: { cr: 'Crystal boost', spent: 'Crystals spent', honor: 'Honor', kp: 'KP gain', acclaim: 'Acclaim' }, kSub: { cr: 'Ø per day', spent: 'reality check', honor: 'current', kp: 'since KvK start', acclaim: 'in KvK' } },
       mp: { whichKvk: 'Which KvK?', whichHint: 'Decides which map shows in the Map tab and in your profile', layouts: { schema: ['Schematic', 'simplified zone overview (test layout)'] }, mapsLoading: 'Loading maps …', mapLoading: 'Loading map …', mapFail: 'Map could not be loaded – showing the schematic', title: 'Map & times', hint: 'Camps, passes, ruins and altars – with a timer to the next event', next: 'Next event', none: 'No upcoming events in this KvK', noTime: 'No time stored for this pass yet', fightSinceLbl: 'fight running for', fightOn: 'Fight still on', fightSince: 'since', fightLen: 'fight lasts {h} h', nextOne: 'then', altarNext: 'Next altar', passNext: 'Opens', fightNow: 'Fight', nextShort: 'Next', needStart: 'Set the KvK start date via ✎ above – then all times and the timer appear.', upcoming: 'Coming up', passes: 'Passes', rules: 'Ruins & altars', kinds: { pass: 'Pass', ruin: 'Ruin', altar: 'Altar', other: 'Other' }, passOpen: 'Pass {n} opens', campsFold: 'Edit camps', campsHint: 'Up to 10 kingdoms per camp, own and allied camp', designHint: '{n} designs to choose from – also used for the map in your profile', timesFold: 'Edit times', timesHint: 'Ruins, altars and your own events – date or KvK day, time in UTC, interval in hours', day: 'KvK day', time: 'Time (UTC)', date: 'Date (UTC)', rep: 'every … h', repHint: '0 = once · 24 = daily · ruins every 40 h · altar every 86 h · with a date set, the KvK day is ignored', once: 'once', daily: 'daily', every: 'every {n}', everyH: 'h', add: 'add', name: 'Name (optional)', past: 'over', dayN: 'Day', noRules: 'No ruin or altar times entered yet', soon: 'The real ruin and altar times are still coming – until then you can enter them below.', allDone: 'all over', del: 'Remove' },
       calc: 'Calculation', calcHint: 'Chests, bundles, mine & crystal tech building cost', costMine: 'Crystal mine – target level', costTech: 'Crystal tech building – target level', lv: 'Level', costTotal: 'Total crystal cost', left: 'Left over', resOnly: 'resources only',
       income: 'Income per day', avail: 'Available', need: 'Needed', diff: 'Difference', chestsNeed: 'Chests needed', chestsUnit: 'chests',
@@ -528,7 +550,7 @@
       best: 'Best deal', worst: 'Worst deal', nothing: 'Nothing selected yet',
       budget: 'Budget planner', budgetHint: 'Exactly optimised: most crystals for your budget, tier order respected',
       budgetLabel: 'Budget in $', passesLabel: 'Plan up to pass', passesHint: 'Mountain Warfare 12h before each pass opening · Conquer\'s Will daily from KvK start until then', dayN: 'Day', daysN: 'days', planTo: 'Plan up to', cwDaily: 'Conquer\'s Will (daily)', pass: 'Pass', noBuy: 'skip', upTo: 'up to', budgetGet: 'You get', budgetLeft: 'Left', apply: 'Apply selection', autoNote: 'The selection above is re-optimised automatically on every change.',
-      roadmap: 'Roadmap', roadmapHint: 'What you buy when – from your current selection', rmStart: 'KvK start', rmCond: 'As soon as unlocked', rmEmpty: 'Nothing selected yet – enter a budget in the planner or tick bundles.', rmTotal: 'Total', rmDays: 'days', rmDay: 'Day', rmNothing: '—', budgetEmpty: 'Enter a budget – the best combination is calculated and applied above.', rmAfter: 'Later', rmDaily: 'Daily', rmUnlock: 'when unlocked',
+      roadmap: 'Roadmap', roadmapHint: 'What you buy when – from your current selection', rmStart: 'KvK start', rmCond: 'As soon as unlocked', rmEmpty: 'Nothing selected yet – enter a budget in the planner or tick bundles.', rmTotal: 'Total', rmDays: 'days', rmDay: 'Day', rmNothing: '—', budgetEmpty: 'Enter a budget – the best combination is calculated and applied above (0 = buy nothing).', budgetZero: '$0 – buy nothing, free sources only (selection above cleared)', rmAfter: 'Later', rmDaily: 'Daily', rmUnlock: 'when unlocked',
       resTitle: 'Resources', resHint: 'Resource stock (total)',
       res: { food: 'Food', wood: 'Wood', stone: 'Stone', gold: 'Gold' },
       scan: '↻ From scan', scanFrom: 'Last scan', noScan: 'No scan in the scanner yet',
@@ -570,7 +592,7 @@
       mapEv: [],                                                              // Ruinen/Altäre/Eigenes: { id, kind, name, day, time 'HH:MM' UTC, rep (Tage, 0 = einmal) }
       open: { mapCamps: false, mapTimes: false, mapDesign: false, mapLayout: false, calc: false, bundles: false, res: false, stats: false, rmStart: false, midFlow: false, midGoal: false, midAp: false, midHon: false, midStats: false, midMap: false, endSum: false, endImg: false },                                       // eingeklappte Fenster
       buy: {},                                                                    // Stufen-ID → Anzahl
-      budget: 0,
+      budget: 0, budgetOn: 0,                                                   // budgetOn 1 = Budget eingetragen (auch 0 $ = nur kostenlos)
       planPass: 8,                                                                // Planung bis zu diesem Pass (MW je Pass + Conquer's Will je Tag)
       res: { food: 0, wood: 0, stone: 0, gold: 0 },
       stats: { power: 0, kp: 0, deads: 0, acclaim: 0 },
@@ -955,8 +977,8 @@
   }
   // Planer-Ergebnis in die Bundle-Auswahl übernehmen (ohne Neuaufbau der Seite → nichts springt)
   function applyPlan() {
-    if (!(state.budget > 0)) return;
-    const plan = budgetPlan(state.budget);
+    if (!(state.budget > 0) && !state.budgetOn) return;
+    const plan = budgetPlan(Math.max(0, state.budget || 0));
     state.buy = { ...plan.pick };
     MW_PASSES.forEach((n) => { state.mwPass[n] = plan.perPass[n] != null ? plan.perPass[n] + 1 : 0; });
     mwToBuy();
@@ -1230,11 +1252,11 @@
       </div>`;
 
     // ---- Seiten-Umschalter ----
-    const TAB_ICONS = { start: '🚀', mid: '⚔️', end: '🏁', map: '🗺️' };
+    const TAB_ICONS = { start: '🚀', mid: '⚔️', end: '🏁', map: '🗺️', friends: '👥' };
     const tabs = `
-      <div class="grid grid-cols-4 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist">
-        ${['start', 'mid', 'end', 'map'].map((k) => `<button type="button" role="tab" data-ktab="${k}" aria-pressed="${state.tab === k}"
-            class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition whitespace-nowrap"><span class="block sm:inline">${TAB_ICONS[k]}</span> ${L.tabs[k]}</button>`).join('')}
+      <div class="grid grid-cols-5 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist">
+        ${['start', 'mid', 'end', 'map', 'friends'].map((k) => `<button type="button" role="tab" data-ktab="${k}" aria-pressed="${state.tab === k}"
+            class="seg-btn relative rounded-lg py-3 px-0.5 text-[11px] sm:text-base font-semibold transition whitespace-nowrap"><span class="block sm:inline">${TAB_ICONS[k]}</span> ${L.tabs[k]}${k === 'friends' ? `<span data-tab-badge style="display:${fr.inv ? 'grid' : 'none'}" class="absolute top-1 right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold place-items-center">${fr.inv > 9 ? '9+' : fr.inv}</span>` : ''}</button>`).join('')}
       </div>`;
 
     // ---- Klappfenster ----
@@ -1348,7 +1370,7 @@
           <div class="flex flex-col md:flex-row md:items-end gap-3">
             <label class="flex flex-col gap-1 text-xs text-slate-400 md:w-44 shrink-0">
               <span>💵 ${L.budgetLabel}</span>
-              <input type="text" inputmode="decimal" autocomplete="off" data-path="budget" value="${esc(state.budget ? fmt(state.budget, 2) : '')}" placeholder="0" class="${INPUT} !py-2.5 !text-base">
+              <input type="text" inputmode="decimal" autocomplete="off" data-path="budget" value="${esc(state.budget ? fmt(state.budget, 2) : state.budgetOn ? '0' : '')}" placeholder="–" class="${INPUT} !py-2.5 !text-base">
             </label>
             <div class="flex-1 min-w-0">
               <div class="text-xs text-slate-400 mb-1">⛰️ ${L.passesLabel} <span class="text-slate-600">· ${L.passesHint}</span></div>
@@ -1770,7 +1792,7 @@
         ${crystalTile}
         <div class="text-right">
           <button type="button" data-reset class="text-xs text-slate-500 hover:text-red-300 underline">${L.reset}</button>
-        </div>` : state.tab === 'mid' ? midTile : state.tab === 'end' ? endTile : state.tab === 'map' ? mapTile : `
+        </div>` : state.tab === 'mid' ? midTile : state.tab === 'end' ? endTile : state.tab === 'map' ? mapTile : state.tab === 'friends' ? friendsTile() : `
         <section class="panel rounded-2xl p-10 text-center">
           <div class="text-4xl mb-3">${TAB_ICONS[state.tab]}</div>
           <h3 class="font-display text-xl text-gold-300">KvK ${L.tabs[state.tab]}</h3>
@@ -3128,21 +3150,23 @@
 
     // Budget-Planer: Kennzahlen (Details stehen in der Roadmap)
     let budget = `<p class="text-xs text-slate-500">${L.budgetEmpty}</p>`;
-    if (state.budget > 0) {
-      const p = budgetPlan(state.budget);
+    if (state.budget > 0 || state.budgetOn) {
+      const p = budgetPlan(Math.max(0, state.budget || 0));
       budget = `
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           ${kpi('💎 ' + L.budgetGet, `<span class="text-gold-300">${short(p.cr)}</span>`, '')}
           ${kpi('💵 ' + L.spend, usd(p.spent), `${p.count}×`)}
           ${kpi('↩️ ' + L.budgetLeft, usd(p.left), '')}
-          ${kpi('⚖️ ' + L.avg, usd(perMil(p.spent, p.cr)), L.perMil.replace('$', ' '))}
+          ${kpi('⚖️ ' + L.avg, p.cr > 0 ? usd(perMil(p.spent, p.cr)) : '–', p.cr > 0 ? L.perMil.replace('$', ' ') : '')}
         </div>
-        <p class="mt-2 text-[11px] text-emerald-400/90">✓ ${L.autoNote}</p>`;
+        <p class="mt-2 text-[11px] text-emerald-400/90">✓ ${state.budget > 0 ? L.autoNote : L.budgetZero}</p>`;
     }
 
     const roadmap = roadmapHTML();
 
     return {
+      friends: state.tab === 'friends' ? friendsListHTML() : '',
+      frSearch: state.tab === 'friends' && fr.inviteFor ? frSearchHTML() : '',
       ap: state.src.ap || r.apTotal ? `
         <div class="text-[10px] uppercase tracking-widest text-slate-500 mb-1">🧾 ${L.apCalc}</div>
         ${AP_SIZES.map((z) => line(`${z >= 500 ? '⚗️' : '🧪'} ${fmt(state.ap['b' + z] || 0)} × ${fmt(z)}`, `${fmt((state.ap['b' + z] || 0) * z)} AP`)).join('')}
@@ -3321,7 +3345,7 @@
   }
   function rerender() {
     if (!root) return;
-    if (!['start', 'mid', 'end', 'map'].includes(state.tab)) state.tab = 'start';
+    if (!['start', 'mid', 'end', 'map', 'friends'].includes(state.tab)) state.tab = 'start';
     root.setAttribute('translate', 'no');      // eigene DE/EN-Texte – nicht vom Seiten-Übersetzer anfassen
     root.innerHTML = viewHTML();
     lockDom();
@@ -3485,6 +3509,211 @@
   }
 
   // Karte als Fenster über der Seite (Profil: „Karte zeigen“ im Countdown)
+  /* ----- Friends: KvK-Gruppen (öffentlich/privat), Einladungen, Vergleich – Daten über window.RokAuth ----- */
+  const FR_KEYS = ['cr', 'spent', 'honor', 'kp', 'acclaim'];
+  const FR_ICON = { cr: '💎', spent: '💸', honor: '🎖️', kp: '⚔️', acclaim: '🏅' };
+  const fr = { loading: false, loaded: false, err: '', noTable: false, peers: [], users: {}, groups: [], members: [], pub: [], q: '', inviteFor: null, idHits: [], idQ: '', newName: '', newPublic: false, sort: 'kp', inv: 0 };
+  const frApi = () => { const A = window.RokAuth; return A && A.kvkGroups && A.myId && A.myId() ? A : null; };
+  function kvkStats() {
+    const r = calc(), mc = midCalc(r), e = state.end, n = state.mid.now, st = state.stats;
+    const kpNow = +e.now.kp || +n.kp || 0;
+    return { cr: Math.round(mc.earned / mc.D), crTot: Math.round(mc.earned), spent: Math.round(+state.mid.adj.spent || 0),
+      honor: Math.round(+e.now.honor || +state.mid.hon.start || 0), kp: kpNow && st.kp ? Math.max(0, Math.round(kpNow - st.kp)) : 0,
+      acclaim: Math.round(+e.now.acclaim || +n.acclaim || 0) };
+  }
+  async function loadFriends() {
+    const A = frApi(); if (!A || fr.loading) { if (root) refresh(); return; }
+    fr.loading = true; fr.err = ''; if (root) refresh();
+    if (A.saveKvkStats) A.saveKvkStats(kvkStats()).catch(() => {});            // eigene Werte für die Gruppe aktuell halten
+    try {
+      const [peers, gd] = await Promise.all([state.startDate ? A.kvkPeers(state.startDate) : [], A.kvkGroups(state.startDate).catch((x) => { if (String(x && x.message) === 'NO_TABLE') { fr.noTable = true; return { groups: [], members: [], pub: [] }; } throw x; })]);
+      fr.peers = peers || []; fr.groups = gd.groups; fr.members = gd.members; fr.pub = gd.pub;
+      const known = new Set(fr.peers.map((p0) => p0.user_id)), me = A.myId();
+      const need = [...new Set([...fr.members.map((m) => m.user_id), ...fr.members.map((m) => m.invited_by), ...fr.pub.map((g) => g.owner), ...fr.groups.map((g) => g.owner)])].filter((id) => id && id !== me && !known.has(id));
+      const extra = need.length ? await A.kvkUsers(need) : [];
+      fr.users = {}; [...fr.peers, ...extra].forEach((u) => { fr.users[u.user_id] = u; });
+      fr.inv = fr.members.filter((m) => m.user_id === me && m.status === 'invited').length;
+      fr.loaded = true;
+      if (A.refreshInvites) A.refreshInvites().catch(() => {});
+    } catch (x) { fr.err = String((x && x.message) || x); }
+    fr.loading = false; if (root) { if (state.tab === 'friends') rerender(); else refresh(); }
+  }
+  const frMe = () => { const A = window.RokAuth || {}, meta = (A.ownMeta && A.ownMeta()) || {}, who = (A.current && A.current()) || {};
+    return { user_id: A.myId ? A.myId() : 'me', username: who.name || t().fr.you, avatar: meta.avatar, alliance_tag: meta.alliance_tag, kingdom: meta.kingdom, governor_id: meta.governor_id }; };
+  const frU = (id) => (id && frApi() && id === frApi().myId() ? frMe() : fr.users[id] || { user_id: id, username: '?' });
+  const frAvatar = (u, cls = 'w-9 h-9') => { const a = String((u && u.avatar) || ''), nm = String((u && u.username) || '?');
+    return /^(data:image\/|https?:\/\/)/.test(a) ? `<img src="${esc(a)}" alt="" class="${cls} rounded-lg object-cover shrink-0">`
+      : `<span class="${cls} rounded-lg shrink-0 grid place-items-center font-bold text-ink-950 bg-gradient-to-br from-gold-300 to-gold-600">${esc(a ? [...a].slice(0, 2).join('') : [...nm][0].toUpperCase())}</span>`; };
+  const frBtn = (attr, lab, tone) => `<button type="button" ${attr} class="text-xs px-2.5 py-1.5 rounded-lg border whitespace-nowrap ${tone === 'gold' ? 'border-gold-400 bg-gold-500 text-ink-950 font-semibold hover:bg-gold-400' : tone === 'red' ? 'border-ink-600 text-slate-400 hover:border-red-400/60 hover:text-red-300' : 'border-gold-500/50 text-gold-300 hover:bg-gold-500/10'}">${lab}</button>`;
+  const frRow = (u, btns, sub) => `<div class="flex items-center gap-3 py-2 border-b border-ink-700/60 last:border-0">
+      ${frAvatar(u)}
+      <div class="min-w-0 flex-1"><div class="font-semibold text-slate-100 truncate">${esc(u.username || '?')}${u.alliance_tag ? ` <span class="text-slate-400 font-normal">[${esc(u.alliance_tag)}]</span>` : ''}</div>
+        <div class="text-[11px] text-slate-500 truncate">${[u.kingdom ? `🏰 #${esc(u.kingdom)}` : '', u.governor_id ? `ID ${esc(u.governor_id)}` : '', sub || ''].filter(Boolean).join(' · ')}</div></div>
+      <div class="flex gap-1.5 shrink-0">${btns}</div></div>`;
+  const frPubBadge = (g, owner) => `<${owner ? `button type="button" data-fr-pub="${esc(g.id)}" title="${t().fr.pubToggle}"` : 'span'} class="text-[11px] px-2 py-0.5 rounded-full border ${g.is_public ? 'border-emerald-400/50 text-emerald-300 bg-emerald-500/10' : 'border-slate-500/50 text-slate-300 bg-ink-800'}${owner ? ' hover:border-gold-400' : ''}">${g.is_public ? '🌐 ' + t().fr.public : '🔒 ' + t().fr.private}${owner ? ' ⇄' : ''}</${owner ? 'button' : 'span'}>`;
+  function friendsListHTML() {
+    const L = t(), F = L.fr, A = frApi();
+    const noDate = !state.startDate ? `<p class="text-sm text-amber-300">📅 ${F.needStart}</p>` : '';
+    if (!A) return noDate +  `<p class="text-sm text-slate-400">${F.noLogin}</p>`;
+    if (!fr.loaded) { if (!fr.loading) setTimeout(loadFriends, 0); return `<p class="text-sm text-slate-500">⏳ ${F.loading}</p>`; }
+    if (fr.err) return `<p class="text-sm text-red-300">⚠ ${F.err}: ${esc(fr.err)}</p>`;
+    if (fr.noTable) return `<p class="text-sm text-amber-300 rounded-lg border border-amber-400/30 bg-amber-500/5 px-3 py-2">⚠ ${F.noTable}</p>`;
+    const me = A.myId(), memOf = (gid) => fr.members.filter((m) => m.group_id === gid), memTxt = (n) => `${fmt(n)} ${n === 1 ? F.member1 : F.members}`;
+    const myRow = (gid) => fr.members.find((m) => m.group_id === gid && m.user_id === me);
+    const invited = fr.groups.filter((g) => (myRow(g.id) || {}).status === 'invited');
+    const mine = fr.groups.filter((g) => (myRow(g.id) || {}).status === 'member');
+    const box = (title, body, tone) => `<div class="rounded-xl border ${tone || 'border-ink-700'} bg-ink-950/60 p-3"><div class="text-xs uppercase tracking-widest text-slate-400 mb-2">${title}</div>${body}</div>`;
+    const card = (g) => {
+      const own = g.owner === me, ms = memOf(g.id), act = ms.filter((m) => m.status === 'member'), pend = ms.filter((m) => m.status === 'invited');
+      const chip = (m) => { const u = frU(m.user_id), you = m.user_id === me;
+        return `<span class="inline-flex items-center gap-1.5 rounded-lg border ${m.status === 'invited' ? 'border-dashed border-slate-600 opacity-70' : you ? 'border-gold-500/50 bg-gold-500/5' : 'border-ink-700 bg-ink-900/70'} pl-1 pr-2 py-1">
+          ${frAvatar(u, 'w-6 h-6 text-[11px]')}<span class="text-xs text-slate-200 max-w-[8rem] truncate">${esc(you ? F.you : u.username)}</span>${g.owner === m.user_id ? '<span title="' + F.owner + '">👑</span>' : ''}${m.status === 'invited' ? `<span class="text-[10px] text-slate-500">${F.pending}</span>` : ''}
+          ${own && !you ? `<button type="button" data-fr-kick="${esc(g.id)}|${esc(m.user_id)}" class="text-slate-500 hover:text-red-300 text-xs" aria-label="✕">✕</button>` : ''}</span>`; };
+      return `<div class="rounded-xl border ${fr.inviteFor === g.id ? 'border-gold-400' : 'border-gold-500/30'} bg-ink-950/60 p-3 flex flex-col gap-2.5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="min-w-0"><div class="font-display text-lg text-gold-300 truncate">👥 ${esc(g.name || 'KvK')}</div>
+            <div class="text-[11px] text-slate-500">${memTxt(act.length)}${pend.length ? ` · ${fmt(pend.length)} ${F.invitedN}` : ''}${own ? ` · ${F.youOwner}` : ''}</div></div>
+          ${frPubBadge(g, own)}
+        </div>
+        <div class="flex flex-wrap gap-1.5">${[...act, ...pend].map(chip).join('')}</div>
+        <div class="flex flex-wrap gap-1.5">
+          ${frBtn(`data-fr-compare="${esc(g.id)}"`, F.compare, 'gold')}
+          ${frBtn(`data-fr-invitefor="${esc(g.id)}"`, fr.inviteFor === g.id ? '✓ ' + F.inviteOpen : F.invite)}
+          ${own ? frBtn(`data-fr-del="${esc(g.id)}"`, F.del, 'red') : frBtn(`data-fr-leave="${esc(g.id)}"`, F.leave, 'red')}
+        </div>
+      </div>`;
+    };
+    return `<div class="flex flex-col gap-3">
+      ${noDate}
+      ${invited.length ? box(`📨 ${F.incoming} · ${invited.length}`, invited.map((g) => { const by = frU((myRow(g.id) || {}).invited_by);
+        return frRow({ username: g.name, avatar: '👥' }, frBtn(`data-fr-join="${esc(g.id)}"`, F.accept, 'gold') + frBtn(`data-fr-leave="${esc(g.id)}"`, F.decline, 'red'),
+          `${F.from} ${esc(by.username || '?')} · ${memTxt(memOf(g.id).filter((m) => m.status === 'member').length)} · ${g.is_public ? '🌐' : '🔒'}`); }).join(''), 'border-red-400/50') : ''}
+      ${mine.length ? mine.map(card).join('') : `<p class="text-sm text-slate-500 rounded-xl border border-ink-700 bg-ink-950/60 px-3 py-3">${F.noGroups}</p>`}
+      ${fr.pub.length ? box(`🌐 ${F.pubGroups} · ${fr.pub.length}`, fr.pub.map((g) => frRow({ username: g.name, avatar: '🌐' }, frBtn(`data-fr-join="${esc(g.id)}"`, F.join),
+        `${F.by} ${esc(frU(g.owner).username || '?')} · ${memTxt(memOf(g.id).filter((m) => m.status === 'member').length)}`)).join('')) : ''}
+    </div>`;
+  }
+  // Suchergebnis: Spieler im selben KvK (Name, Governor-ID, Königreich) + ID-Treffer aus anderen KvKs
+  function frSearchHTML() {
+    const F = t().fr, g = fr.groups.find((x) => x.id === fr.inviteFor); if (!g) return '';
+    const inG = new Set(fr.members.filter((m) => m.group_id === g.id).map((m) => m.user_id)), q = fr.q.trim().toLowerCase(), qd = q.replace(/\D/g, '');
+    const hit = (u) => !q || String(u.username || '').toLowerCase().includes(q) || (qd && (String(u.governor_id || '').includes(qd) || String(u.kingdom || '') === qd));
+    let list = fr.peers.filter((u) => !inG.has(u.user_id) && hit(u));
+    if (qd.length >= 5 && fr.idQ === qd) fr.idHits.forEach((u) => { if (!inG.has(u.user_id) && !list.some((x) => x.user_id === u.user_id)) list.push(u); });
+    if (qd.length >= 5 && fr.idQ !== qd) frFindId(qd);
+    const sub = (u) => (u.kvk_start && u.kvk_start !== state.startDate ? `<span class="text-amber-300">${F.otherKvk}</span>` : F.sameKvkShort);
+    return list.length ? list.slice(0, 40).map((u) => frRow(u, frBtn(`data-fr-inv="${esc(u.user_id)}"`, F.inviteBtn, 'gold'), sub(u))).join('')
+      : `<p class="text-sm text-slate-500 py-1">${qd.length >= 5 && fr.idQ !== qd ? '⏳ ' + F.searching : F.noHits}</p>`;
+  }
+  let frIdT = null;
+  function frFindId(qd) {
+    clearTimeout(frIdT);
+    frIdT = setTimeout(async () => { const A = frApi(); if (!A || !A.kvkFindId) return;
+      try { const r = await A.kvkFindId(qd); fr.idHits = r || []; (r || []).forEach((u) => { fr.users[u.user_id] = fr.users[u.user_id] || u; }); } catch (e) { fr.idHits = []; }
+      fr.idQ = qd; if (root) refresh(); }, 350);
+  }
+  function friendsTile() {
+    const L = t(), F = L.fr, s0 = startTs(), g = fr.groups.find((x) => x.id === fr.inviteFor), A = frApi();
+    return `
+      <section class="panel rounded-2xl p-5 flex flex-col gap-4">
+        ${tileHead('👥', F.title, F.hint, null, `<button type="button" data-fr-reload class="shrink-0 text-xs px-2.5 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">${F.refresh}</button>`)}
+        ${s0 != null ? `<div><span class="text-xs px-2.5 py-1 rounded-lg border border-gold-500/40 bg-gold-500/5 text-gold-300">📅 ${F.sameKvk}: ${shortDate(new Date(s0))}</span></div>` : ''}
+        <div data-out="friends"></div>
+        ${g ? `<div class="rounded-xl border border-gold-400 bg-gold-500/5 p-3 flex flex-col gap-2">
+          <div class="flex items-center justify-between gap-2"><div class="text-xs uppercase tracking-widest text-slate-300">＋ ${F.inviteInto} „<span class="text-gold-300 normal-case tracking-normal">${esc(g.name)}</span>“</div>
+            <button type="button" data-fr-invitefor="${esc(g.id)}" class="text-xs text-slate-400 hover:text-white">✕</button></div>
+          <input type="search" data-fr-q value="${esc(fr.q)}" placeholder="${F.search}" class="${INPUT} !text-left">
+          <div data-out="frSearch"></div>
+        </div>` : ''}
+        ${s0 != null && A && fr.loaded && !fr.noTable ? `<div class="rounded-xl border border-dashed border-gold-500/50 bg-ink-950/40 p-3 flex flex-col gap-2">
+          <div class="text-xs uppercase tracking-widest text-slate-400">＋ ${F.newGroup}</div>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input type="text" data-fr-name maxlength="40" value="${esc(fr.newName)}" placeholder="${F.groupName}" class="${INPUT} !text-left flex-1">
+            <div class="grid grid-cols-2 gap-1 p-1 rounded-lg bg-ink-950 border border-ink-700 sm:w-64" role="radiogroup" aria-label="${F.visibility}">
+              <button type="button" data-fr-newpub="0" aria-pressed="${!fr.newPublic}" class="seg-btn rounded-md py-1.5 text-xs font-semibold">🔒 ${F.private}</button>
+              <button type="button" data-fr-newpub="1" aria-pressed="${fr.newPublic}" class="seg-btn rounded-md py-1.5 text-xs font-semibold">🌐 ${F.public}</button>
+            </div>
+            ${frBtn('data-fr-create', F.create, 'gold')}
+          </div>
+          <p class="text-[11px] text-slate-500">🔒 ${F.privHint} · 🌐 ${F.pubHint}</p>
+        </div>` : ''}
+      </section>`;
+  }
+  // Vergleich der Gruppe als Fenster über der Seite
+  function openFriendsCompare(gid) {
+    const L = t(), F = L.fr, A = frApi(); if (!A) return;
+    const me = A.myId(), g = fr.groups.find((x) => x.id === gid) || {};
+    const ids = fr.members.filter((m) => m.group_id === gid && m.status === 'member').map((m) => m.user_id);
+    const rows = ids.map((id) => (id === me ? { you: true, u: frMe(), s: kvkStats() } : { u: frU(id), s: (fr.users[id] && fr.users[id].kvk_stats) || null }));
+    if (!rows.some((x) => x.you)) rows.unshift({ you: true, u: frMe(), s: kvkStats() });
+    let ov = document.getElementById('kvkFrModal'); if (ov) ov.remove();
+    ov = document.createElement('div'); ov.id = 'kvkFrModal'; ov.className = 'p-3 sm:p-6';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:70;overflow-y:auto;background:rgba(7,9,15,.88);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)';
+    ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true');
+    const draw = () => {
+      const k0 = fr.sort, val = (x, k) => (x.s && x.s[k]) || 0, list = rows.slice().sort((a, b) => val(b, k0) - val(a, k0));
+      const max = {}; FR_KEYS.forEach((k) => { max[k] = Math.max(1, ...rows.map((x) => val(x, k))); });
+      const cell = (x, k) => { const v = x.s ? x.s[k] || 0 : null, best = v && v === max[k] && rows.length > 1;
+        return `<td class="px-2 py-2 align-middle"><div class="text-right tabular-nums font-semibold ${v == null ? 'text-slate-600' : best ? 'text-gold-300' : 'text-slate-100'}">${v == null ? '–' : (best ? '👑 ' : '') + short(v)}</div>
+          <div class="mt-1 h-1.5 rounded-full bg-ink-800 overflow-hidden"><div class="h-full rounded-full ${best ? 'bg-gold-400' : 'bg-sky-500/70'}" style="width:${v ? Math.max(3, (v / max[k]) * 100) : 0}%"></div></div></td>`; };
+      ov.innerHTML = `<div class="relative max-w-4xl mx-auto sm:my-6 ui-pop rounded-2xl border border-gold-500/40 bg-ink-900 shadow-2xl p-4 sm:p-5">
+        <button type="button" data-fr-close class="absolute top-3 right-3 text-sm px-3 py-1.5 rounded-lg border border-ink-600 bg-ink-900 text-slate-300 hover:text-white" aria-label="✕">✕</button>
+        <h3 class="font-display text-xl text-gold-300 pr-12">📊 ${esc(g.name || F.cmpTitle)}</h3>
+        <p class="text-xs text-slate-400 mt-0.5">${F.cmpHint}${startTs() != null ? ` · 📅 ${F.sameKvk} ${shortDate(new Date(startTs()))}` : ''}</p>
+        <div class="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2">${FR_KEYS.map((k) => { const top = rows.slice().sort((a, b) => val(b, k) - val(a, k))[0];
+          return `<button type="button" data-fr-sort="${k}" class="text-left rounded-xl border ${k === k0 ? 'border-gold-400 bg-gold-500/10' : 'border-ink-700 bg-ink-950/60 hover:border-gold-500/50'} px-3 py-2">
+            <div class="text-[10px] uppercase tracking-widest text-slate-400 truncate">${FR_ICON[k]} ${F.k[k]}</div>
+            <div class="text-sm font-bold text-slate-100 truncate">${top && val(top, k) ? `👑 ${esc(top.you ? F.you : top.u.username)}` : '–'}</div>
+            <div class="text-[11px] text-slate-500 truncate">${F.kSub[k]}</div></button>`; }).join('')}</div>
+        <div class="mt-4 overflow-x-auto"><table class="w-full min-w-[640px] text-sm">
+          <thead><tr class="text-[10px] uppercase tracking-widest text-slate-500"><th class="text-left font-medium px-2 py-1">#</th><th class="text-left font-medium px-2 py-1"></th>
+            ${FR_KEYS.map((k) => `<th class="text-right font-medium px-2 py-1"><button type="button" data-fr-sort="${k}" class="uppercase tracking-widest ${k === k0 ? 'text-gold-300' : 'hover:text-slate-300'}">${FR_ICON[k]} ${F.k[k]}${k === k0 ? ' ▾' : ''}</button></th>`).join('')}</tr></thead>
+          <tbody>${list.map((x, i) => `<tr class="border-t border-ink-700/60 ${x.you ? 'bg-gold-500/5' : ''}">
+            <td class="px-2 py-2 text-slate-400 tabular-nums">${i + 1}</td>
+            <td class="px-2 py-2"><div class="flex items-center gap-2 min-w-[9rem]">${frAvatar(x.u)}<div class="min-w-0"><div class="font-semibold truncate ${x.you ? 'text-gold-300' : 'text-slate-100'}">${esc(x.you ? `${x.u.username} (${F.you})` : x.u.username)}</div>
+              <div class="text-[11px] text-slate-500 truncate">${x.u.kingdom ? `🏰 #${esc(x.u.kingdom)}` : ''}${x.s ? '' : ` ${F.noStats}`}</div></div></div></td>
+            ${FR_KEYS.map((k) => cell(x, k)).join('')}</tr>`).join('')}</tbody></table></div>
+      </div>`;
+    };
+    draw();
+    document.body.appendChild(ov);
+    const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    ov.addEventListener('click', (e) => { const so = e.target.closest('[data-fr-sort]'); if (so) { fr.sort = so.dataset.frSort; draw(); return; }
+      if (e.target === ov || e.target.closest('[data-fr-close]')) close(); });
+  }
+  async function frAction(fn) {
+    const A = frApi(); if (!A) return;
+    try { await fn(A); } catch (x) { fr.err = String((x && x.message) || x); }
+    fr.loaded = false; await loadFriends();
+  }
+  function frClick(e) {
+    const q = (sel) => e.target.closest(sel), F = t().fr;
+    let b;
+    if ((b = q('[data-fr-compare]'))) { openFriendsCompare(b.dataset.frCompare); return true; }
+    if (q('[data-fr-reload]')) { fr.loaded = false; loadFriends(); return true; }
+    if ((b = q('[data-fr-invitefor]'))) { fr.inviteFor = fr.inviteFor === b.dataset.frInvitefor ? null : b.dataset.frInvitefor; fr.q = ''; rerender(); if (fr.inviteFor) { const i = root.querySelector('[data-fr-q]'); if (i) i.focus(); } return true; }
+    if ((b = q('[data-fr-newpub]'))) { fr.newPublic = b.dataset.frNewpub === '1'; root.querySelectorAll('[data-fr-newpub]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); return true; }
+    if (q('[data-fr-create]')) { const name = fr.newName.trim() || F.defName; b = q('[data-fr-create]'); b.disabled = true;
+      frAction(async (A) => { const id = await A.kvkGroupCreate(name, fr.newPublic, state.startDate); fr.newName = ''; fr.inviteFor = id; }); return true; }
+    if ((b = q('[data-fr-inv]'))) { b.disabled = true; b.textContent = '✓'; const gid = fr.inviteFor; frAction((A) => A.kvkGroupInvite(gid, b.dataset.frInv)); return true; }
+    if ((b = q('[data-fr-join]'))) { b.disabled = true; const g = [...fr.groups, ...fr.pub].find((x) => x.id === b.dataset.frJoin);
+      if (g && g.kvk_start && !state.startDate && /^\d{4}-\d{2}-\d{2}$/.test(g.kvk_start)) { state.startDate = g.kvk_start; save(); renderClock(); }   // gleiches KvK → Startdatum übernehmen
+      frAction((A) => A.kvkGroupJoin(b.dataset.frJoin)); return true; }
+    if ((b = q('[data-fr-leave]'))) { b.disabled = true; if (fr.inviteFor === b.dataset.frLeave) fr.inviteFor = null; frAction((A) => A.kvkGroupLeave(b.dataset.frLeave)); return true; }
+    if ((b = q('[data-fr-kick]'))) { const [gid, uid] = b.dataset.frKick.split('|'); frAction((A) => A.kvkGroupLeave(gid, uid)); return true; }
+    if ((b = q('[data-fr-del]'))) { if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = F.sure; return true; } if (fr.inviteFor === b.dataset.frDel) fr.inviteFor = null; frAction((A) => A.kvkGroupDelete(b.dataset.frDel)); return true; }
+    if ((b = q('[data-fr-pub]'))) { const g = fr.groups.find((x) => x.id === b.dataset.frPub); if (g) frAction((A) => A.kvkGroupPublic(g.id, !g.is_public)); return true; }
+    return false;
+  }
+  // Zahl offener Einladungen (kommt von index.html) → kleines Abzeichen am Reiter
+  function setInvites(n) {
+    fr.inv = +n || 0;
+    const el = root && root.querySelector('[data-ktab="friends"] [data-tab-badge]');
+    if (el) { el.textContent = fr.inv > 9 ? '9+' : String(fr.inv); el.style.display = fr.inv ? 'grid' : 'none'; }
+  }
+
   function openMapModal(data, opts = {}) {
     let ov = document.getElementById('kvkMapModal');
     if (ov) ov.remove();
@@ -3737,6 +3966,8 @@
       save(); refresh();
       return;
     }
+    if (el.hasAttribute && el.hasAttribute('data-fr-q')) { fr.q = el.value; refresh(); return; }
+    if (el.hasAttribute && el.hasAttribute('data-fr-name')) { fr.newName = el.value; return; }
     // Reiter Karte: Königreich-Felder je Camp → als Liste gespeichert
     if (el.dataset && el.dataset.campKd) {
       const i = +el.dataset.campKd.split(':')[0], box = el.closest('[data-camp-kds]');
@@ -3809,6 +4040,7 @@
       const hint = box && box.querySelector('[data-hint]');
       if (hint) hint.innerHTML = hint.innerHTML.split(' · ')[0];
     }
+    if (el.dataset.path === 'budget') state.budgetOn = String(el.value).trim() !== '' ? 1 : 0;   // „0“ = bewusst nichts kaufen
     if (el.dataset.path === 'budget') {   // kurz warten, bis fertig getippt ist – dann optimal neu rechnen
       clearTimeout(onInput._bt);
       onInput._bt = setTimeout(() => { applyPlan(); save(); refresh(); }, 220);
@@ -3964,6 +4196,7 @@
     }
     const endRes = e.target.closest('[data-end-result]');
     if (endRes) { state.end.result = +endRes.dataset.endResult; save(); rerender(); return; }
+    if (frClick(e)) return;
     if (e.target.closest('[data-ap-max]')) { state.mid.apSpend = 0; save(); rerender(); return; }
     if (e.target.closest('[data-start-scan]')) {
       if (startLocked()) return;
@@ -4266,6 +4499,8 @@
     close,
     data: KVK_DATA,
     plan: (budget, planPass) => budgetPlan(+budget || 0, planPass || state.planPass),
+    kvkStats: () => kvkStats(),
+    setInvites,
     buildingUpgrade,
     kauKaruakCrystals,
     kauKaruakHourly,

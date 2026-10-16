@@ -139,7 +139,7 @@ tailwind.config = {
     <div id="userBox" class="hidden relative self-start sm:self-auto">
       <button id="userMenuBtn" aria-haspopup="menu" aria-expanded="false"
               class="flex items-center gap-2 rounded-xl border border-ink-600 bg-ink-900/70 pl-2 pr-3 py-1.5 hover:border-gold-500/60 transition text-left">
-        <span id="userAvatar"></span>
+        <span class="relative"><span id="userAvatar"></span><span data-inv-badge style="display:none" class="absolute -top-1.5 -right-1.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold grid place-items-center ring-2 ring-ink-950"></span></span>
         <span class="leading-tight">
           <span class="block text-[10px] uppercase tracking-widest text-slate-500">Eingeloggt als</span>
           <span id="userName" translate="no" class="block text-sm font-semibold text-white max-w-[140px] truncate"></span>
@@ -149,13 +149,13 @@ tailwind.config = {
       </button>
       <div id="userMenu" role="menu" class="hidden absolute right-0 mt-2 w-72 z-50 panel !bg-ink-900 rounded-xl p-1.5 shadow-2xl">
         <button id="menuProfile" role="menuitem" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
-          <span>🛡️</span> Game Profil
+          <span>🛡️</span> Game Profil <span data-inv-badge style="display:none" class="ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold grid place-items-center"></span>
         </button>
         <button id="menuScanner" role="menuitem" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
           <span>📊</span> Scanner &amp; Dashboard
         </button>
         <button id="menuKvk" role="menuitem" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
-          <span>⚔️</span> KvK
+          <span>⚔️</span> KvK <span data-inv-badge style="display:none" class="ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold grid place-items-center"></span>
         </button>
         <div translate="no">
           <button id="menuLang" role="menuitem" aria-haspopup="true" aria-expanded="false" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-left hover:bg-ink-800 hover:text-gold-300">
@@ -525,6 +525,11 @@ tailwind.config = {
     </div>
     <div id="profState" class="hidden panel rounded-2xl p-10 text-center text-sm text-slate-400"></div>
     <div id="profBody" class="hidden space-y-6">
+      <button id="profInvNote" type="button" style="display:none" class="w-full mb-3 flex items-center gap-3 rounded-xl border border-red-400/50 bg-red-500/10 px-4 py-3 text-left hover:bg-red-500/15">
+        <span class="w-7 h-7 rounded-full bg-red-500 text-white text-sm font-bold grid place-items-center">📨</span>
+        <span class="flex-1 text-sm text-slate-100"><b data-inv-n>1 Einladung</b> in eine KvK-Gruppe – im KvK unter 👥 Friends annehmen</span>
+        <span class="text-xs text-red-200">ansehen ›</span>
+      </button>
       <div id="profHead" class="panel rounded-2xl p-6"></div>
 
       <!-- KvK-Countdown (gleiche Uhr wie im KvK-Bereich) -->
@@ -1823,6 +1828,8 @@ window.RokAuth = (() => {
     hideOverlay();
     if (!$('syncStatus').textContent) status('ok', '☁ synchronisiert');
     window.RokApp();
+    refreshInvites().catch(() => {});                             // Einladungen in KvK-Gruppen → Zahl am Menü
+    clearInterval(enter._inv); enter._inv = setInterval(() => { if (document.visibilityState === 'visible') refreshInvites().catch(() => {}); }, 120000);
   }
 
   async function login(id, pw) {
@@ -1905,7 +1912,7 @@ window.RokAuth = (() => {
     lbLk = data?.lk_autarch != null ? +data.lk_autarch : null;
     lbUk = data?.units_killed != null ? +data.units_killed : null; lbUl = data?.units_lost != null ? +data.units_lost : null; lbUh = data?.units_healed != null ? +data.units_healed : null;
     ownGains = data?.gains && typeof data.gains === 'object' ? data.gains : {};
-    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', prof_bg: data?.prof_bg || '', prof_order: data?.prof_order || '', is_private: !!data?.is_private, governor_id: data?.governor_id || '', showcase: data?.showcase || null, kingdom: data?.kingdom || '', alliance_name: data?.alliance_name || '', kvk_start: data?.kvk_start || '', kvk_map: data?.kvk_map || null };
+    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', prof_bg: data?.prof_bg || '', prof_order: data?.prof_order || '', kvk_stats: data?.kvk_stats || null, is_private: !!data?.is_private, governor_id: data?.governor_id || '', showcase: data?.showcase || null, kingdom: data?.kingdom || '', alliance_name: data?.alliance_name || '', kvk_start: data?.kvk_start || '', kvk_map: data?.kvk_map || null };
   }
   // Aktuellen VIP-Stand melden. force = neuer Scan (immer aktualisieren), sonst nur bei geänderter Punktzahl.
   // Kill-Punkte aus dem Statthalter-Scan in die Rangliste schreiben (Spalte kill_points)
@@ -2158,6 +2165,92 @@ window.RokAuth = (() => {
     return true;
   }
 
+  // ---- KvK-Freunde: Einladungen in public.kvk_friends, eigene KvK-Werte in leaderboard.kvk_stats ----
+  async function saveKvkStats(st) {
+    if (!user || missingCols.has('kvk_stats') || !st) return false;
+    if (JSON.stringify(st) === JSON.stringify(ownMeta.kvk_stats || null)) return true;
+    const row = { user_id: user.id, username: profile.name.slice(0, 40), kvk_stats: st };
+    if (lbLast == null) { row.vip_points = 0; row.vip_level = 0; row.updated_at = new Date().toISOString(); }
+    const { error } = await sb.from('leaderboard').upsert(row);
+    if (error) { if (/kvk_stats|column|schema/i.test(error.message || '')) missingCols.add('kvk_stats'); return false; }
+    ownMeta = { ...ownMeta, kvk_stats: st };
+    if (lbLast == null) lbLast = 0;
+    return true;
+  }
+  const KVK_USER_COLS = 'user_id,username,avatar,alliance_tag,kingdom,governor_id,kvk_start,kvk_stats';
+  async function kvkUserQuery(build) {
+    let r = await build(KVK_USER_COLS);
+    if (r.error && /kvk_stats/i.test(r.error.message || '')) { missingCols.add('kvk_stats'); r = await build(KVK_USER_COLS.replace(',kvk_stats', '')); }
+    if (r.error) throw new Error(germanError(r.error));
+    return r.data || [];
+  }
+  // Spieler mit demselben KvK-Start (jedes KvK startet für alle gleichzeitig)
+  async function kvkPeers(d) {
+    if (!user || !d) return [];
+    return (await kvkUserQuery((c) => sb.from('leaderboard').select(c).eq('kvk_start', d).limit(300))).filter((x) => x.user_id !== user.id);
+  }
+  const kvkUsers = async (ids) => (ids && ids.length ? kvkUserQuery((c) => sb.from('leaderboard').select(c).in('user_id', ids)) : []);
+  // Spieler über die Governor-ID finden (auch aus anderen KvKs)
+  async function kvkFindId(gid) {
+    const g = String(gid || '').replace(/\D/g, '');
+    if (!user || g.length < 5) return [];
+    return (await kvkUserQuery((c) => sb.from('leaderboard').select(c + ',governor_id').eq('governor_id', g).limit(5))).filter((x) => x.user_id !== user.id);
+  }
+  // ---- KvK-Gruppen: public.kvk_groups (Name, öffentlich/privat) + public.kvk_group_members (invited | member) ----
+  const tblErr = (e) => { const m = String(e?.message || e || ''); return /kvk_group|relation|schema cache|does not exist/i.test(m) ? new Error('NO_TABLE') : new Error(germanError(e)); };
+  async function kvkGroups(d) {
+    if (!user) return { groups: [], members: [], pub: [] };
+    const mine = await sb.from('kvk_group_members').select('group_id,user_id,status,invited_by').eq('user_id', user.id);
+    if (mine.error) throw tblErr(mine.error);
+    const ids = [...new Set((mine.data || []).map((m) => m.group_id))];
+    const [g, mem, pub] = await Promise.all([
+      ids.length ? sb.from('kvk_groups').select('*').in('id', ids) : { data: [] },
+      ids.length ? sb.from('kvk_group_members').select('group_id,user_id,status,invited_by').in('group_id', ids) : { data: [] },
+      d ? sb.from('kvk_groups').select('*').eq('is_public', true).eq('kvk_start', d).limit(50) : { data: [] }]);
+    if (g.error) throw tblErr(g.error);
+    const members = [...(mem.data || [])];
+    (mine.data || []).forEach((m) => { if (!members.some((x) => x.group_id === m.group_id && x.user_id === m.user_id)) members.push(m); });
+    const pubIds = (pub.data || []).filter((x) => !ids.includes(x.id)).map((x) => x.id);
+    if (pubIds.length) { const pm = await sb.from('kvk_group_members').select('group_id,user_id,status,invited_by').in('group_id', pubIds); (pm.data || []).forEach((m) => members.push(m)); }
+    return { groups: g.data || [], members, pub: (pub.data || []).filter((x) => !ids.includes(x.id)) };
+  }
+  const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); }));
+  async function kvkGroupCreate(name, isPublic, d) {
+    const id = uuid();
+    let r = await sb.from('kvk_groups').upsert({ id, owner: user.id, name: String(name || '').trim().slice(0, 40) || 'KvK-Gruppe', is_public: !!isPublic, kvk_start: d || null });
+    if (r.error) throw tblErr(r.error);
+    r = await sb.from('kvk_group_members').upsert({ group_id: id, user_id: user.id, status: 'member', invited_by: user.id });
+    if (r.error) throw tblErr(r.error);
+    return id;
+  }
+  async function kvkGroupPublic(id, isPublic) { const r = await sb.from('kvk_groups').update({ is_public: !!isPublic }).eq('id', id); if (r.error) throw tblErr(r.error); }
+  async function kvkGroupInvite(id, uid) {
+    const r = await sb.from('kvk_group_members').upsert({ group_id: id, user_id: uid, status: 'invited', invited_by: user.id });
+    if (r.error) throw tblErr(r.error);
+  }
+  async function kvkGroupJoin(id) {                                   // Einladung annehmen (Zeile ändern) oder öffentlicher Gruppe beitreten (neue Zeile)
+    const ex = await sb.from('kvk_group_members').select('status').eq('group_id', id).eq('user_id', user.id).maybeSingle();
+    const r = ex.data ? await sb.from('kvk_group_members').update({ status: 'member' }).eq('group_id', id).eq('user_id', user.id)
+      : await sb.from('kvk_group_members').upsert({ group_id: id, user_id: user.id, status: 'member' });
+    if (r.error) throw tblErr(r.error);
+    refreshInvites();
+  }
+  async function kvkGroupLeave(id, uid) {                             // eigene Zeile = verlassen/ablehnen, fremde = entfernen (Ersteller)
+    const r = await sb.from('kvk_group_members').delete().eq('group_id', id).eq('user_id', uid || user.id);
+    if (r.error) throw tblErr(r.error);
+    refreshInvites();
+  }
+  async function kvkGroupDelete(id) { const r = await sb.from('kvk_groups').delete().eq('id', id); if (r.error) throw tblErr(r.error); await sb.from('kvk_group_members').delete().eq('group_id', id); refreshInvites(); }
+  // offene Einladungen zählen → kleine Zahl am Menü, Profil und KvK
+  let inviteN = 0;
+  async function refreshInvites() {
+    if (!user) return 0;
+    const r = await sb.from('kvk_group_members').select('group_id,status').eq('user_id', user.id).eq('status', 'invited');
+    inviteN = r.error ? 0 : (r.data || []).length;
+    window.dispatchEvent(new CustomEvent('kvk:invites', { detail: inviteN }));
+    return inviteN;
+  }
+
   // Admin (Tabelle feature_access, feature = 'admin') – einmal pro Sitzung abfragen
   let adminP = null;
   const isAdmin = () => adminP || (adminP = hasFeature('admin'));
@@ -2172,7 +2265,7 @@ window.RokAuth = (() => {
     return r.data || [];
   }
 
-  return { pending: () => hasPending, hasFeature, isAdmin, saveKvkStart, saveKvkMap, ownGains: () => ownGains, loadGearItems, saveShowcase, uploadImage, imgBase: () => IMG_BASE, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
+  return { pending: () => hasPending, hasFeature, isAdmin, saveKvkStart, saveKvkMap, saveKvkStats, kvkPeers, kvkUsers, kvkFindId, kvkGroups, kvkGroupCreate, kvkGroupPublic, kvkGroupInvite, kvkGroupJoin, kvkGroupLeave, kvkGroupDelete, refreshInvites, invites: () => inviteN, myId: () => user?.id || null, ownGains: () => ownGains, loadGearItems, saveShowcase, uploadImage, imgBase: () => IMG_BASE, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
            pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, saveProfBg, saveProfOrder, loadProfile, setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
 })();
 </script>
@@ -3740,6 +3833,7 @@ window.RokApp = () => {
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeMenu(); });
   $('menuProfile').onclick = () => { closeMenu(); openProfile(RokAuth.userId()); };
   $('menuScanner').onclick = () => { closeMenu(); view = 'scanner'; applyView(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  $('profInvNote').onclick = () => { view = 'kvk'; applyView(); const K = window.KvKCalc; if (K) { const s = K.getState(); s.tab = 'friends'; K.setState(s); K.render(); } window.scrollTo({ top: 0, behavior: 'smooth' }); };
   $('menuKvk').onclick = () => { closeMenu(); view = 'kvk'; applyView(); window.KvKCalc?.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   let profileUid = null, lastProfileP = null, profRefreshT = null;
@@ -3843,9 +3937,20 @@ window.RokApp = () => {
   }
   // Datum im KvK-Bereich geändert → im Profil speichern
   let kvkMapT = null;
+  // Einladungen in KvK-Gruppen: kleine Zahl am Menü, Hinweis im eigenen Profil, Reiter Friends im KvK
+  window.addEventListener('kvk:invites', (ev) => {
+    const n = +ev.detail || 0;
+    document.querySelectorAll('[data-inv-badge]').forEach((b) => { b.textContent = n > 9 ? '9+' : String(n); b.style.display = n ? 'grid' : 'none'; });
+    const note = $('profInvNote');
+    if (note) { note.style.display = n && profileUid === RokAuth.userId() ? 'flex' : 'none'; note.querySelector('[data-inv-n]').textContent = n === 1 ? '1 Einladung' : n + ' Einladungen'; }
+    window.KvKCalc?.setInvites?.(n);
+  });
   window.addEventListener('kvkcalc:change', (ev) => {
     const d = kvkDate(ev.detail?.startDate); if (d !== kvkDate(RokAuth.ownMeta().kvk_start)) RokAuth.saveKvkStart(d);
-    clearTimeout(kvkMapT); kvkMapT = setTimeout(() => { if (window.KvKCalc?.mapData) RokAuth.saveKvkMap(window.KvKCalc.mapData()); }, 1500);   // Karte gesammelt speichern (Tippen)
+    clearTimeout(kvkMapT); kvkMapT = setTimeout(() => {
+      if (window.KvKCalc?.mapData) RokAuth.saveKvkMap(window.KvKCalc.mapData());   // Karte gesammelt speichern (Tippen)
+      if (window.KvKCalc?.kvkStats) RokAuth.saveKvkStats(window.KvKCalc.kvkStats()); // Werte für den Freunde-Vergleich
+    }, 1500);
   });
 
   function openProfile(uid) {
@@ -3913,6 +4018,7 @@ window.RokApp = () => {
       renderGameProfile({ own, row, entries, place, players: sorted.length, scansError: p.scansError, isPrivate: own ? !!RokAuth.ownMeta().is_private : !!p.isPrivate });
       $('profState').classList.add('hidden'); $('profBody').classList.remove('hidden');
       mountProfKvk(own, row);
+      if (own) RokAuth.refreshInvites().catch(() => {}); else $('profInvNote').style.display = 'none';
     } catch (e) {
       $('profState').textContent = 'Profil konnte nicht geladen werden: ' + (e.message || e);
     }
