@@ -286,7 +286,7 @@
       lockOn: 'Startwerte fixiert', lockSince: 'seit KvK-Start', lockInfo: 'neue Scans ändern sie nicht mehr', lockEdit: 'Startwerte bearbeiten',
       lockMode: 'Bearbeitungsmodus', lockModeInfo: 'Änderungen werden sofort gespeichert · Scan nimmt nur Daten von vor dem KvK-Start', lockDone: 'Fertig', lockUndo: 'Verwerfen',
       lockTip: 'Fixiert seit KvK-Start – zum Ändern „Startwerte bearbeiten“', noPreScan: 'Kein Scan von vor dem KvK-Start vorhanden',
-      showMap: 'Karte zeigen', openKvk: 'KvK öffnen', countdown: 'KvK Countdown', edit: 'Bearbeiten', bgLabel: 'Hintergrundbild', bgPick: 'Bild wählen', bgReset: 'Standard',
+      showMap: 'Karte zeigen', openKvk: 'KvK öffnen', countdown: 'KvK Countdown', edit: 'Bearbeiten', bgLabel: 'Hintergrundbild', bgAuto: 'Das Hintergrundbild kommt automatisch vom gewählten KvK (Get Ready → Welches KvK?)', bgPick: 'Bild wählen', bgReset: 'Standard',
       bgBusy: 'Bild wird verarbeitet …', bgDone: 'Hintergrund gespeichert', bgTooBig: 'Bild ist zu groß für den Browser-Speicher', bgFail: 'Bild konnte nicht gelesen werden', calTitle: 'KvK-Kalender', done: 'Fertig', startShort: 'Start',
       tabs: { start: 'Get Ready', mid: 'Running', end: 'Finished', map: 'Karte', friends: 'Friends' },
       fr: { title: 'KvK-Gruppen', hint: 'Jedes KvK startet und endet für alle gleichzeitig – mach eine Gruppe mit Spielern aus deinem KvK und vergleicht eure Werte', sameKvk: 'KvK-Start', sameKvkShort: 'selbes KvK',
@@ -429,7 +429,7 @@
       lockOn: 'Start values locked', lockSince: 'since KvK start', lockInfo: 'new scans no longer change them', lockEdit: 'Edit start values',
       lockMode: 'Edit mode', lockModeInfo: 'Changes are saved right away · scan only uses data from before KvK start', lockDone: 'Done', lockUndo: 'Discard',
       lockTip: 'Locked since KvK start – use “Edit start values” to change', noPreScan: 'No scan from before KvK start',
-      showMap: 'Show map', openKvk: 'Open KvK', countdown: 'KvK Countdown', edit: 'Edit', bgLabel: 'Background image', bgPick: 'Choose image', bgReset: 'Default',
+      showMap: 'Show map', openKvk: 'Open KvK', countdown: 'KvK Countdown', edit: 'Edit', bgLabel: 'Background image', bgAuto: 'The background comes automatically from the chosen KvK (Get Ready → Which KvK?)', bgPick: 'Choose image', bgReset: 'Default',
       bgBusy: 'Processing image …', bgDone: 'Background saved', bgTooBig: 'Image is too large for browser storage', bgFail: 'Image could not be read', calTitle: 'KvK calendar', done: 'Done', startShort: 'Start',
       tabs: { start: 'Get Ready', mid: 'Running', end: 'Finished', map: 'Map', friends: 'Friends' },
       fr: { title: 'KvK groups', hint: 'Every KvK starts and ends for everyone at the same time – make a group with players from your KvK and compare your values', sameKvk: 'KvK start', sameKvkShort: 'same KvK',
@@ -1207,6 +1207,7 @@
         </div>` : ''}
         <div class="relative z-10 flex flex-col items-center text-center gap-2.5">
           <div class="font-display text-sm sm:text-base uppercase tracking-[.3em] text-gold-300/90">${L.countdown}</div>
+          <div data-kvk-name class="kvk-name font-display text-xl sm:text-3xl font-extrabold -mt-1.5"></div>
           <div data-phase></div>
           <div data-countdown class="max-w-full overflow-x-auto"></div>
           <div data-startline class="text-xs text-slate-500"></div>
@@ -1238,16 +1239,7 @@
                  class="w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 [color-scheme:dark]">
           <span class="text-slate-500 leading-snug">${L.endHint}${startTs() != null ? ` · ${L.endShort}: ${new Date(phase().end).toLocaleDateString(locale(), { day: '2-digit', month: '2-digit', year: 'numeric' })}` : ''}</span>
         </label>
-        <div class="mt-3 pt-3 border-t border-ink-700">
-          <div class="text-xs text-slate-400 mb-1.5">🖼️ ${L.bgLabel}</div>
-          <div class="flex gap-2">
-            <label class="flex-1 text-center cursor-pointer text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">
-              ${L.bgPick}<input type="file" accept="image/*" data-bg-file class="hidden">
-            </label>
-            <button type="button" data-bg-reset class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-red-400/60 hover:text-red-300">${L.bgReset}</button>
-          </div>
-          <div data-bg-msg class="text-[11px] text-slate-500 mt-1.5 min-h-[1em]"></div>
-        </div>
+        <p class="mt-3 pt-3 border-t border-ink-700 text-[11px] text-slate-500">🖼️ ${L.bgAuto}</p>
         <button type="button" data-edit-done class="mt-3 w-full py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">${L.done}</button>
       </div>`;
 
@@ -1850,11 +1842,11 @@
   let MAP_INDEX = null, mapIndexLoading = null;
   const MAP_BASE = (() => { try { const sc = document.currentScript && document.currentScript.src; return sc ? new URL('maps/', sc).href : 'maps/'; } catch (e) { return 'maps/'; } })();
   const validLayout = (v) => (typeof v === 'string' && v !== 'schema' && /^[a-z0-9_-]{1,20}$/.test(v) ? v : 'lk1');   // Schema-Karte gibt es nicht mehr → Heroic Anthem
-  function mapsChanged() { if (root) rerender(); mapHosts.forEach((h) => { if (h.isConnected && h._kvkRemount) h._kvkRemount(); }); }
+  function mapsChanged() { applyBg(); if (root) rerender(); mapHosts.forEach((h) => { if (h.isConnected && h._kvkRemount) h._kvkRemount(); }); }
   // falls maps/index.json nicht lädt: bekannte Karten trotzdem zur Auswahl anbieten
   const MAP_INDEX_FALLBACK = [
-    { id: 'lk1', name: { de: 'Heroic Anthem', en: 'Heroic Anthem' }, desc: { de: 'Ring aus Zonen um die Ziggurat, 4 Altar-Höfe, Pässe 4–8', en: 'ring of zones around the ziggurat, 4 altar courts, passes 4–8' } },
-    { id: 'lk2', name: { de: 'Mighty Assembly', en: 'Mighty Assembly' }, desc: { de: 'Quadratische Festung in der Mitte, Camps an den Seiten, Pässe 4–9', en: 'square fortress in the middle, camps on the sides, passes 4–9' } }];
+    { id: 'lk1', bg: 'bg/s04-heroic-anthem.jpg', name: { de: 'Heroic Anthem', en: 'Heroic Anthem' }, desc: { de: 'Ring aus Zonen um die Ziggurat, 4 Altar-Höfe, Pässe 4–8', en: 'ring of zones around the ziggurat, 4 altar courts, passes 4–8' } },
+    { id: 'lk2', bg: 'bg/s21-mighty-assembly.jpg', name: { de: 'Mighty Assembly', en: 'Mighty Assembly' }, desc: { de: 'Quadratische Festung in der Mitte, Camps an den Seiten, Pässe 4–9', en: 'square fortress in the middle, camps on the sides, passes 4–9' } }];
   function loadMapIndex() {
     if (MAP_INDEX || mapIndexLoading) return;
     mapIndexLoading = fetch(MAP_BASE + 'index.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null))
@@ -3432,11 +3424,20 @@
   function endBgCss(key) {
     if (END_BG[key]) return END_BG[key];
     const own = key === 'own' && endOwnBg();
-    return `url('${own || customBg() || TIMER_BG}') center/cover`;
+    return `url('${own || layoutBg(state.mid.layout)}') center/cover`;
   }
+  // Timer-Hintergrund und KvK-Name kommen fest vom gewählten KvK (maps/index.json → bg), sonst das Standardbild
+  const layoutInfo = (id) => (MAP_INDEX || MAP_INDEX_FALLBACK).find((m) => m.id === validLayout(id)) || null;
+  const layoutBg = (id) => { const m = layoutInfo(id); return m && m.bg && /^[\w\/.-]+$/.test(m.bg) ? MAP_BASE + m.bg : TIMER_BG; };
+  const hostLayout = (sc) => (sc && sc._kvkFixed && sc._kvkLayout ? sc._kvkLayout : state.mid.layout);
   function applyBg() {
-    const bg = `url("${customBg() || TIMER_BG}")`;
-    [root, ...hosts].forEach((sc) => { const sec = sc && sc.querySelector('.kvk-time'); if (sec) sec.style.setProperty('--kvk-bg', bg); });
+    loadMapIndex();
+    [root, ...hosts].forEach((sc) => {
+      const sec = sc && sc.querySelector('.kvk-time'); if (!sec) return;
+      const id = hostLayout(sc), m = layoutInfo(id);
+      sec.style.setProperty('--kvk-bg', `url("${layoutBg(id)}")`);
+      const nm = sec.querySelector('[data-kvk-name]'); if (nm) nm.textContent = m ? tx(m.name) : '';
+    });
   }
 
   /* ----- Karte auf anderen Seiten (Game Profil) ----- */
@@ -3535,7 +3536,7 @@
       fr.inv = fr.members.filter((m) => m.user_id === me && m.status === 'invited').length;
       fr.loaded = true;
       if (A.refreshInvites) A.refreshInvites().catch(() => {});
-    } catch (x) { fr.err = String((x && x.message) || x); }
+    } catch (x) { fr.err = String((x && x.message) || x); fr.loaded = true; }   // Fehler anzeigen statt endlos neu zu laden
     fr.loading = false; if (root) { if (state.tab === 'friends') rerender(); else refresh(); }
   }
   const frMe = () => { const A = window.RokAuth || {}, meta = (A.ownMeta && A.ownMeta()) || {}, who = (A.current && A.current()) || {};
@@ -3555,8 +3556,8 @@
     const L = t(), F = L.fr, A = frApi();
     const noDate = !state.startDate ? `<p class="text-sm text-amber-300">📅 ${F.needStart}</p>` : '';
     if (!A) return noDate +  `<p class="text-sm text-slate-400">${F.noLogin}</p>`;
-    if (!fr.loaded) { if (!fr.loading) setTimeout(loadFriends, 0); return `<p class="text-sm text-slate-500">⏳ ${F.loading}</p>`; }
-    if (fr.err) return `<p class="text-sm text-red-300">⚠ ${F.err}: ${esc(fr.err)}</p>`;
+    if (!fr.loaded) { if (!fr.loading && !fr.auto) { fr.auto = true; setTimeout(loadFriends, 0); } return `<p class="text-sm text-slate-500">⏳ ${F.loading}</p>`; }
+    if (fr.err) return `<div class="text-sm text-red-300 rounded-lg border border-red-400/30 bg-red-500/5 px-3 py-2">⚠ ${F.err}: ${esc(fr.err)}<div class="mt-2">${frBtn('data-fr-reload', F.refresh)}</div></div>`;
     if (fr.noTable) return `<p class="text-sm text-amber-300 rounded-lg border border-amber-400/30 bg-amber-500/5 px-3 py-2">⚠ ${F.noTable}</p>`;
     const me = A.myId(), memOf = (gid) => fr.members.filter((m) => m.group_id === gid), memTxt = (n) => `${fmt(n)} ${n === 1 ? F.member1 : F.members}`;
     const myRow = (gid) => fr.members.find((m) => m.group_id === gid && m.user_id === me);
@@ -3685,14 +3686,16 @@
   }
   async function frAction(fn) {
     const A = frApi(); if (!A) return;
-    try { await fn(A); } catch (x) { fr.err = String((x && x.message) || x); }
-    fr.loaded = false; await loadFriends();
+    let err = '';
+    try { await fn(A); } catch (x) { err = String((x && x.message) || x); }
+    fr.loaded = false; fr.auto = true; await loadFriends();
+    if (err) { fr.err = err; if (root && state.tab === 'friends') rerender(); }
   }
   function frClick(e) {
     const q = (sel) => e.target.closest(sel), F = t().fr;
     let b;
     if ((b = q('[data-fr-compare]'))) { openFriendsCompare(b.dataset.frCompare); return true; }
-    if (q('[data-fr-reload]')) { fr.loaded = false; loadFriends(); return true; }
+    if (q('[data-fr-reload]')) { fr.loaded = false; fr.auto = true; loadFriends(); return true; }
     if ((b = q('[data-fr-invitefor]'))) { fr.inviteFor = fr.inviteFor === b.dataset.frInvitefor ? null : b.dataset.frInvitefor; fr.q = ''; rerender(); if (fr.inviteFor) { const i = root.querySelector('[data-fr-q]'); if (i) i.focus(); } return true; }
     if ((b = q('[data-fr-newpub]'))) { fr.newPublic = b.dataset.frNewpub === '1'; root.querySelectorAll('[data-fr-newpub]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); return true; }
     if (q('[data-fr-create]')) { const name = fr.newName.trim() || F.defName; b = q('[data-fr-create]'); b.disabled = true;
@@ -3745,6 +3748,7 @@
     el._kvkFixed = typeof opts.startDate === 'string';
     el._kvkStart = el._kvkFixed ? opts.startDate : '';
     el._kvkDays = opts.days;
+    el._kvkLayout = opts.map && opts.map.layout ? opts.map.layout : '';
     el._kvkEvs = el._kvkFixed ? eventsFor(startTs(opts.startDate), cleanEvents(opts.events), opts.days) : null;   // fremdes Profil: dessen Ereignisse
     el.classList.add('kvk-host');
     el.setAttribute('translate', 'no');
@@ -4182,7 +4186,7 @@
       save(); rerender(); return;
     }
     const layBtn = e.target.closest('[data-layout]');
-    if (layBtn) { state.mid.layout = validLayout(layBtn.dataset.layout); ensureMap(state.mid.layout); save(); rerender(); return; }
+    if (layBtn) { state.mid.layout = validLayout(layBtn.dataset.layout); ensureMap(state.mid.layout); save(); rerender(); applyBg(); return; }
     const styleBtn = e.target.closest('[data-mapstyle]');
     if (styleBtn) { state.mid.mapStyle = MAP_STYLES.includes(styleBtn.dataset.mapstyle) ? styleBtn.dataset.mapstyle : 'battle'; save(); rerender(); return; }
     const allyBtn = e.target.closest('[data-allycamp]');
@@ -4380,6 +4384,9 @@
   background-image:linear-gradient(180deg, rgba(7,9,15,.66) 0%, rgba(7,9,15,.42) 45%, rgba(7,9,15,.78) 100%), var(--kvk-bg, none);
   background-size:cover; background-position:center; background-repeat:no-repeat;
   image-rendering:auto; image-rendering:high-quality; }
+#kvkRoot .kvk-name, .kvk-host .kvk-name { background:linear-gradient(180deg,#fff7d1 0%,#fde68a 30%,#f5c542 60%,#b7830f 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 2px 0 rgba(40,24,2,.9)) drop-shadow(0 0 18px rgba(245,197,66,.35)); letter-spacing:.04em; line-height:1.15; }
+#kvkRoot .kvk-name:empty, .kvk-host .kvk-name:empty { display:none; }
 :is(#kvkRoot, .kvk-host) .kvk-time [data-startline] { color:#cbd5e1; text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.8); }
 :is(#kvkRoot, .kvk-host) .kvk-time [data-startline] span { color:#fff; }
 @keyframes kvk-glow { 0%, 100% { opacity:.75; } 50% { opacity:1; } }

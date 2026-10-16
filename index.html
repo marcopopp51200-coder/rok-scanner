@@ -2153,7 +2153,7 @@ window.RokAuth = (() => {
   async function saveKvkMap(m) {
     if (!user || missingCols.has('kvk_map')) return false;
     const has = m && Array.isArray(m.kds) && (m.kds.some(k => k && k.length) || m.my > 0);
-    const val = has ? { kds: m.kds.map(k => (k || []).slice(0, 60)), my: +m.my || 0, ally: +m.ally || 0, style: /^[a-z]{1,12}$/.test(m.style || '') ? m.style : 'battle', layout: /^(schema|lk1|lk2)$/.test(m.layout || '') ? m.layout : 'schema', layout: /^(schema|lk1|lk2)$/.test(m.layout || '') ? m.layout : 'schema',
+    const val = has ? { kds: m.kds.map(k => (k || []).slice(0, 60)), my: +m.my || 0, ally: +m.ally || 0, style: /^[a-z]{1,12}$/.test(m.style || '') ? m.style : 'battle', layout: /^[a-z0-9_-]{1,20}$/.test(m.layout || '') ? m.layout : 'schema', layout: /^[a-z0-9_-]{1,20}$/.test(m.layout || '') ? m.layout : 'schema',
       ev: Array.isArray(m.ev) ? m.ev.slice(0, 40) : [], days: +m.days || 60, tier: m.tier && typeof m.tier === 'object' ? m.tier : {} } : null;                      // ev: Ruinen/Altäre für Timer + Karte bei Besuchern
     if (JSON.stringify(val) === JSON.stringify(ownMeta.kvk_map || null)) return true;
     const row = { user_id: user.id, username: profile.name.slice(0, 40), kvk_map: val };
