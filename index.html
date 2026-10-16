@@ -2154,7 +2154,7 @@ window.RokAuth = (() => {
     if (!user || missingCols.has('kvk_map')) return false;
     const has = m && Array.isArray(m.kds) && (m.kds.some(k => k && k.length) || m.my > 0);
     const val = has ? { kds: m.kds.map(k => (k || []).slice(0, 60)), my: +m.my || 0, ally: +m.ally || 0, style: /^[a-z]{1,12}$/.test(m.style || '') ? m.style : 'battle', layout: /^[a-z0-9_-]{1,20}$/.test(m.layout || '') ? m.layout : 'schema', layout: /^[a-z0-9_-]{1,20}$/.test(m.layout || '') ? m.layout : 'schema',
-      ev: Array.isArray(m.ev) ? m.ev.slice(0, 40) : [], days: +m.days || 60, tier: m.tier && typeof m.tier === 'object' ? m.tier : {} } : null;                      // ev: Ruinen/Altäre für Timer + Karte bei Besuchern
+      ev: Array.isArray(m.ev) ? m.ev.slice(0, 40) : [], days: +m.days || 60, tier: m.tier && typeof m.tier === 'object' ? m.tier : {}, pa: m.pa && typeof m.pa === 'object' ? m.pa : {}, au: m.au === 2 ? 2 : 1 } : null;                      // ev: Ruinen/Altäre für Timer + Karte bei Besuchern
     if (JSON.stringify(val) === JSON.stringify(ownMeta.kvk_map || null)) return true;
     const row = { user_id: user.id, username: profile.name.slice(0, 40), kvk_map: val };
     if (lbLast == null) { row.vip_points = 0; row.vip_level = 0; row.updated_at = new Date().toISOString(); }
@@ -2178,9 +2178,17 @@ window.RokAuth = (() => {
     return true;
   }
   const KVK_USER_COLS = 'user_id,username,avatar,alliance_tag,kingdom,governor_id,kvk_start,kvk_stats';
+  // fehlt eine Spalte (z. B. kingdom oder kvk_stats), ohne sie erneut abfragen
   async function kvkUserQuery(build) {
-    let r = await build(KVK_USER_COLS);
-    if (r.error && /kvk_stats/i.test(r.error.message || '')) { missingCols.add('kvk_stats'); r = await build(KVK_USER_COLS.replace(',kvk_stats', '')); }
+    let cols = KVK_USER_COLS.split(','), r;
+    for (let i = 0; i < 6; i++) {
+      r = await build(cols.join(','));
+      if (!r.error) break;
+      const m = /column\s+(?:\w+\.)?"?(\w+)"?\s+does not exist|Could not find the '(\w+)' column/i.exec(r.error.message || '');
+      const c = m && (m[1] || m[2]);
+      if (!c || !cols.includes(c) || c === 'user_id') break;
+      missingCols.add(c); cols = cols.filter((x) => x !== c);
+    }
     if (r.error) throw new Error(germanError(r.error));
     return r.data || [];
   }
@@ -2194,7 +2202,7 @@ window.RokAuth = (() => {
   async function kvkFindId(gid) {
     const g = String(gid || '').replace(/\D/g, '');
     if (!user || g.length < 5) return [];
-    return (await kvkUserQuery((c) => sb.from('leaderboard').select(c + ',governor_id').eq('governor_id', g).limit(5))).filter((x) => x.user_id !== user.id);
+    return (await kvkUserQuery((c) => sb.from('leaderboard').select(c).eq('governor_id', g).limit(5))).filter((x) => x.user_id !== user.id);
   }
   // ---- KvK-Gruppen: public.kvk_groups (Name, öffentlich/privat) + public.kvk_group_members (invited | member) ----
   const tblErr = (e) => { const m = String(e?.message || e || ''); return /kvk_group|relation|schema cache|does not exist/i.test(m) ? new Error('NO_TABLE') : new Error(germanError(e)); };
