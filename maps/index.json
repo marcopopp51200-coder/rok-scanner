@@ -17,7 +17,8 @@
     6,
     7,
     8
-   ]
+   ],
+   "bg": "bg/s4heroic_anthem_cover.png"
   },
   {
    "id": "lk2",
@@ -36,7 +37,95 @@
     7,
     8,
     9
-   ]
+   ],
+   "bg": "bg/s21mighty_assembly_cover.png"
+  },
+  {
+   "id": "tbd",
+   "bg": "bg/Build the ultimate kingdom.jpg",
+   "name": {
+    "de": "Noch nicht offiziell",
+    "en": "Not official yet"
+   },
+   "desc": {
+    "de": "KvK-Typ noch unbekannt – Karte folgt, Zeiten wie Standard",
+    "en": "KvK type not known yet – map follows, default times"
+   },
+   "passes": [
+    4,
+    5,
+    6,
+    7,
+    8
+   ],
+   "nomap": true
+  }
+ ],
+ "bgs": [
+  {
+   "kvk": "Noch nicht offiziell",
+   "season": 0,
+   "file": "bg/Build the ultimate kingdom.jpg"
+  },
+  {
+   "kvk": "Distant Journey",
+   "season": 2,
+   "file": "bg/S2Distant-Journey.png"
+  },
+  {
+   "kvk": "Heroic Anthem",
+   "season": 4,
+   "file": "bg/s4heroic_anthem_cover.png"
+  },
+  {
+   "kvk": "King of the Nile",
+   "season": 9,
+   "file": "bg/s9king_of_the_nile_cover.png"
+  },
+  {
+   "kvk": "Siege of Orléans",
+   "season": 10,
+   "file": "bg/s10siege_of_orleans_cover.png"
+  },
+  {
+   "kvk": "Warriors Unbound",
+   "season": 11,
+   "file": "bg/s11warriors_unbound_cover.png"
+  },
+  {
+   "kvk": "Storm of Stratagems",
+   "season": 12,
+   "file": "bg/s12storm_of_stratagems_cover (1).png"
+  },
+  {
+   "kvk": "Tides of War",
+   "season": 14,
+   "file": "bg/s14tides_of_war_cover.png"
+  },
+  {
+   "kvk": "Alliance Invictus",
+   "season": 15,
+   "file": "bg/s15alliance_invictus_cover.png"
+  },
+  {
+   "kvk": "Keener Blades",
+   "season": 16,
+   "file": "bg/s16keener_blades_cover.png"
+  },
+  {
+   "kvk": "King of All Britain",
+   "season": 19,
+   "file": "bg/s19king_of_all_britain_cover (1).png"
+  },
+  {
+   "kvk": "Song of Troy",
+   "season": 20,
+   "file": "bg/s20song_of_troy_cover.png"
+  },
+  {
+   "kvk": "Mighty Assembly",
+   "season": 21,
+   "file": "bg/s21mighty_assembly_cover.png"
   }
  ]
 }
