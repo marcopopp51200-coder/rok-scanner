@@ -17,7 +17,8 @@
     6,
     7,
     8
-   ]
+   ],
+   "bg": "bg/s04-heroic-anthem.jpg"
   },
   {
    "id": "lk2",
@@ -36,7 +37,70 @@
     7,
     8,
     9
-   ]
+   ],
+   "bg": "bg/s21-mighty-assembly.jpg"
+  }
+ ],
+ "bgs": [
+  {
+   "kvk": "Distant Journey",
+   "season": 2,
+   "file": "bg/s02-distant-journey.jpg"
+  },
+  {
+   "kvk": "Heroic Anthem",
+   "season": 4,
+   "file": "bg/s04-heroic-anthem.jpg"
+  },
+  {
+   "kvk": "King of the Nile",
+   "season": 9,
+   "file": "bg/s09-king-of-the-nile.jpg"
+  },
+  {
+   "kvk": "Siege of Orléans",
+   "season": 10,
+   "file": "bg/s10-siege-of-orleans.jpg"
+  },
+  {
+   "kvk": "Warriors Unbound",
+   "season": 11,
+   "file": "bg/s11-warriors-unbound.jpg"
+  },
+  {
+   "kvk": "Storm of Stratagems",
+   "season": 12,
+   "file": "bg/s12-storm-of-stratagems.jpg"
+  },
+  {
+   "kvk": "Tides of War",
+   "season": 14,
+   "file": "bg/s14-tides-of-war.jpg"
+  },
+  {
+   "kvk": "Alliance Invictus",
+   "season": 15,
+   "file": "bg/s15-alliance-invictus.jpg"
+  },
+  {
+   "kvk": "Keener Blades",
+   "season": 16,
+   "file": "bg/s16-keener-blades.jpg"
+  },
+  {
+   "kvk": "King of All Britain",
+   "season": 19,
+   "file": "bg/s19-king-of-all-britain.jpg"
+  },
+  {
+   "kvk": "Song of Troy",
+   "season": 20,
+   "file": "bg/s20-song-of-troy.jpg"
+  },
+  {
+   "kvk": "Mighty Assembly",
+   "season": 21,
+   "file": "bg/s21-mighty-assembly.jpg"
   }
  ]
 }
