@@ -529,6 +529,8 @@ tailwind.config = {
 
       <!-- KvK-Countdown (gleiche Uhr wie im KvK-Bereich) -->
       <div id="profKvkTimer"></div>
+      <!-- KvK-Karte (4 Camps) – unter dem Countdown, für Besucher sichtbar -->
+      <div id="profKvkMap" class="hidden"></div>
 
       <!-- Bearbeiten (nur eigenes Profil) – öffnet sich als Fenster über „✎ Dein Profil“ -->
       <div id="profEditModal" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-ink-950/85 backdrop-blur-sm p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="profEditTitle">
@@ -575,7 +577,7 @@ tailwind.config = {
             <div class="mt-3 flex items-center justify-between gap-3 rounded-xl border border-ink-700 bg-ink-950/50 px-3 py-2.5">
               <div>
                 <div class="text-sm font-semibold text-white">🔒 Profil privat</div>
-                <div class="text-xs text-slate-400">Andere sehen dann nur noch den oberen Bereich (Name, Allianz-Tag, VIP, Kill-Punkte, Verdienst, Energie) – Speedups und Verlauf bleiben verborgen.</div>
+                <div class="text-xs text-slate-400">Andere sehen dann nur noch den oberen Bereich (Name, Allianz-Tag, VIP, Kill-Punkte, Verdienst, Energie) – auch dein Showcase bleibt verborgen. Speedups, Deads, AP, Gems und Verlauf siehst ohnehin nur du.</div>
               </div>
               <button id="profPrivate" type="button" role="switch" aria-checked="false"
                       class="relative shrink-0 w-14 h-8 rounded-full border border-ink-600 bg-ink-800 transition-colors aria-checked:bg-gold-500 aria-checked:border-gold-400">
@@ -999,7 +1001,7 @@ window.I18N = (() => {
         '+ grün': '+ green', 'Zuwachs seit dem letzten Scan': 'gain since the last scan', 'seit dem letzten Scan': 'since the last scan',
         'KvK-Start in': 'KvK starts in', 'KvK läuft · Tag': 'KvK running · Day', 'KvK-Start festlegen': 'Set KvK start', 'KvK öffnen': 'Open KvK',
         'Statthalter-Werte': 'Governor stats', 'Werden beim Scannen ausgefüllt – falls der Scanner danebenliegt, hier von Hand eintragen.': 'Filled in when you scan – if the scanner gets something wrong, enter it here manually.',
-        'Siege': 'Wins', 'Speedups gesamt': 'Speedups total', 'nur für dich & Admins sichtbar': 'only visible to you & admins',
+        'Siege': 'Wins', 'Speedups gesamt': 'Speedups total', 'nur für dich sichtbar': 'only visible to you', 'im Profil bearbeiten eintragen': 'enter it under edit profile',
         '✓ Gespeichert · Statthalter-Werte übernommen': '✓ Saved · governor stats updated', 'Prüfe Werte …': 'Checking values …', 'Abgebrochen – nichts übernommen.': 'Cancelled – nothing saved.',
         'z. B. 85.141.754': 'e.g. 85,141,754', 'z. B. 5.482.675.899': 'e.g. 5,482,675,899', 'z. B. 20.061.883': 'e.g. 20,061,883', 'z. B. 12.500.000': 'e.g. 12,500,000',
         'Keinen – privat': 'None – private', 'Details privat': 'Details private', 'Details öffentlich': 'Details public',
@@ -1057,6 +1059,8 @@ window.I18N = (() => {
         '50er Flaschen': '50 bottles', '100er Flaschen': '100 bottles', '500er Flaschen': '500 bottles', '1.000er Flaschen': '1,000 bottles',
         'Profil privat': 'Private profile', 'Dieses Profil ist privat': 'This profile is private',
         'Speedups und Verlauf sind nur für den Spieler selbst sichtbar.': 'Speedups and history are only visible to the player.',
+        'Andere sehen dann nur noch den oberen Bereich (Name, Allianz-Tag, VIP, Kill-Punkte, Verdienst, Energie) – auch dein Showcase bleibt verborgen. Speedups, Deads, AP, Gems und Verlauf siehst ohnehin nur du.':
+          'Others will then only see the top section (name, alliance tag, VIP, kill points, acclaim, power) – your showcase stays hidden too. Speedups, deads, AP, gems and history are only ever visible to you.',
         'Andere sehen dann nur noch den oberen Bereich (Name, Allianz-Tag, VIP, Kill-Punkte, Verdienst, Energie) – Speedups und Verlauf bleiben verborgen.':
           'Others will only see the top section (name, alliance tag, VIP, kill points, acclaim, power) – speedups and history stay hidden.',
         'Nur Ansicht': 'View only', 'Dein Profil · öffentlich': 'Your profile · public', 'Dein Profil · 🔒 privat': 'Your profile · 🔒 private',
@@ -1886,7 +1890,7 @@ window.RokAuth = (() => {
     lbArk = data?.ark_wins != null ? +data.ark_wins : null;
     lbLk = data?.lk_autarch != null ? +data.lk_autarch : null;
     ownGains = data?.gains && typeof data.gains === 'object' ? data.gains : {};
-    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', is_private: !!data?.is_private, governor_id: data?.governor_id || '', showcase: data?.showcase || null, kingdom: data?.kingdom || '', alliance_name: data?.alliance_name || '' };
+    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', is_private: !!data?.is_private, governor_id: data?.governor_id || '', showcase: data?.showcase || null, kingdom: data?.kingdom || '', alliance_name: data?.alliance_name || '', kvk_start: data?.kvk_start || '', kvk_map: data?.kvk_map || null };
   }
   // Aktuellen VIP-Stand melden. force = neuer Scan (immer aktualisieren), sonst nur bei geänderter Punktzahl.
   // Kill-Punkte aus dem Statthalter-Scan in die Rangliste schreiben (Spalte kill_points)
@@ -1911,14 +1915,13 @@ window.RokAuth = (() => {
     if (lbLast == null) lbLast = 0;
     return v;
   }
-  const govCur = () => ({ kill_points: lbKills, highest_merit: lbMerit, energy: lbEnergy, deads: lbDeads, ark_wins: lbArk, lk_autarch: lbLk });
+  const govCur = () => ({ kill_points: lbKills, highest_merit: lbMerit, energy: lbEnergy, ark_wins: lbArk, lk_autarch: lbLk });   // Deads bleiben privat (nur im eigenen Verlauf)
   // fresh = neuer Scan bzw. neue Eingabe → Zuwachs gegenüber dem bisherigen Stand merken
   async function pushGov(g, fresh = false) {
     const before = govCur();
     lbKills = await pushStat('kill_points', g?.kill_points, lbKills);
     lbMerit = await pushStat('highest_merit', g?.highest_merit, lbMerit);
     lbEnergy = await pushStat('energy', g?.energy, lbEnergy);
-    lbDeads = await pushStat('deads', g?.deads, lbDeads);
     lbArk = await pushStat('ark_wins', g?.ark_wins, lbArk);
     lbLk = await pushStat('lk_autarch', g?.lk_autarch, lbLk);
     if (!fresh) return;
@@ -1947,7 +1950,7 @@ window.RokAuth = (() => {
     // ohne city_skin laden (Bilder nur im Profil) – Fallback '*', falls Spalten fehlen
     const q = (cols) => sb.from('leaderboard').select(cols).order('vip_points', { ascending: false }).limit(500);
     // fehlt eine Spalte, meldet Supabase „column leaderboard.x does not exist“ → ohne diese Spalte erneut laden
-    let cols = ['user_id', 'username', 'vip_points', 'vip_level', 'updated_at', 'alliance_tag', 'avatar', 'kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'gains'], r;
+    let cols = ['user_id', 'username', 'vip_points', 'vip_level', 'updated_at', 'alliance_tag', 'avatar', 'kill_points', 'highest_merit', 'energy', 'ark_wins', 'lk_autarch', 'gains'], r;
     for (let i = 0; i < 12; i++) {
       r = await q(cols.join(','));
       if (!r.error) break;
@@ -1958,10 +1961,10 @@ window.RokAuth = (() => {
     if (r.error) r = await q('*');
     if (r.error) throw new Error(germanError(r.error));
     const rows = r.data || [];
-    const GOV = ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch'];
+    const GOV = ['kill_points', 'highest_merit', 'energy', 'ark_wins', 'lk_autarch'];
     rows.forEach(x => { x._g = x.gains && typeof x.gains === 'object' ? { ...x.gains } : {}; });
     // Fehlende Werte und Zuwachs aus den letzten beiden Scans des Spielers ergänzen (falls lesbar)
-    const needGov = rows.some(x => GOV.slice(0, 3).some(k => x[k] == null) || GOV.slice(0, 4).some(k => x._g[k] == null));
+    const needGov = rows.some(x => GOV.slice(0, 3).some(k => x[k] == null || x._g[k] == null));
     const needVip = rows.some(x => x._g.vip_points == null);
     const [g, v] = await Promise.all([
       needGov ? sb.from('scans').select('user_id,scanned_at,data').eq('type', 'governor').order('scanned_at', { ascending: false }).limit(2000) : null,
@@ -2021,11 +2024,7 @@ window.RokAuth = (() => {
     const lb = await sb.from('leaderboard').select('*').eq('user_id', uid).maybeSingle();
     if (lb.error) throw new Error(germanError(lb.error));
     // Privates Profil eines anderen Spielers: Verlauf gar nicht erst abrufen (nur die Kopfzeile ist sichtbar) – Admins bekommen nur die Speedups
-    if (lb.data?.is_private && uid !== user?.id) {
-      if (!opts.admin) return { row: lb.data, scans: [], scansError: false, isPrivate: true };
-      const sp = await sb.from('scans').select('id,type,scanned_at,data').eq('user_id', uid).in('type', ['speedups']).order('scanned_at', { ascending: true });
-      return { row: lb.data, scans: sp.error ? [] : (sp.data || []).map(entryOf), scansError: !!sp.error, isPrivate: true };
-    }
+    if (uid !== user?.id) return { row: lb.data, scans: [], scansError: false, isPrivate: !!lb.data?.is_private };   // fremde Profile: nur Kopf + Showcase
     const sc = await sb.from('scans').select('id,type,scanned_at,data').eq('user_id', uid).in('type', ['vip', 'speedups', 'gems', 'ap', 'resources', 'governor', 'materials']).order('scanned_at', { ascending: true });
     return { row: lb.data, scans: sc.error ? [] : (sc.data || []).map(entryOf), scansError: !!sc.error, isPrivate: !!lb.data?.is_private };
   }
@@ -2090,6 +2089,36 @@ window.RokAuth = (() => {
     } catch { return false; }
   }
 
+  // KvK-Startdatum im Profil (Spalte leaderboard.kvk_start, Text JJJJ-MM-TT) – für andere im Profil sichtbar
+  async function saveKvkStart(d) {
+    if (!user || missingCols.has('kvk_start')) return false;
+    d = /^\d{4}-\d{2}-\d{2}$/.test(d || '') ? d : null;
+    if ((d || '') === (ownMeta.kvk_start || '')) return true;
+    const row = { user_id: user.id, username: profile.name.slice(0, 40), kvk_start: d };
+    if (lbLast == null) { row.vip_points = 0; row.vip_level = 0; row.updated_at = new Date().toISOString(); }
+    const { error } = await sb.from('leaderboard').upsert(row);
+    if (error) { console.warn('KvK-Start nicht im Profil gespeichert (Spalte kvk_start in Supabase anlegen)', error); if (/kvk_start|column|schema/i.test(error.message || '')) missingCols.add('kvk_start'); return false; }
+    ownMeta = { ...ownMeta, kvk_start: d || '' };
+    if (lbLast == null) lbLast = 0;
+    return true;
+  }
+
+  // KvK-Karte im Profil (Spalte leaderboard.kvk_map, jsonb { kds: [[…]×4], my, ally }) – für andere im Profil sichtbar
+  async function saveKvkMap(m) {
+    if (!user || missingCols.has('kvk_map')) return false;
+    const has = m && Array.isArray(m.kds) && (m.kds.some(k => k && k.length) || m.my > 0);
+    const val = has ? { kds: m.kds.map(k => (k || []).slice(0, 60)), my: +m.my || 0, ally: +m.ally || 0, style: /^[a-z]{1,12}$/.test(m.style || '') ? m.style : 'battle', layout: /^(schema|lk1|lk2)$/.test(m.layout || '') ? m.layout : 'schema', layout: /^(schema|lk1|lk2)$/.test(m.layout || '') ? m.layout : 'schema',
+      ev: Array.isArray(m.ev) ? m.ev.slice(0, 40) : [], days: +m.days || 60 } : null;                      // ev: Ruinen/Altäre für Timer + Karte bei Besuchern
+    if (JSON.stringify(val) === JSON.stringify(ownMeta.kvk_map || null)) return true;
+    const row = { user_id: user.id, username: profile.name.slice(0, 40), kvk_map: val };
+    if (lbLast == null) { row.vip_points = 0; row.vip_level = 0; row.updated_at = new Date().toISOString(); }
+    const { error } = await sb.from('leaderboard').upsert(row);
+    if (error) { console.warn('KvK-Karte nicht im Profil gespeichert (Spalte kvk_map in Supabase anlegen)', error); if (/kvk_map|column|schema/i.test(error.message || '')) missingCols.add('kvk_map'); return false; }
+    ownMeta = { ...ownMeta, kvk_map: val };
+    if (lbLast == null) lbLast = 0;
+    return true;
+  }
+
   // Admin (Tabelle feature_access, feature = 'admin') – einmal pro Sitzung abfragen
   let adminP = null;
   const isAdmin = () => adminP || (adminP = hasFeature('admin'));
@@ -2104,7 +2133,7 @@ window.RokAuth = (() => {
     return r.data || [];
   }
 
-  return { pending: () => hasPending, hasFeature, isAdmin, ownGains: () => ownGains, loadGearItems, saveShowcase, uploadImage, imgBase: () => IMG_BASE, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
+  return { pending: () => hasPending, hasFeature, isAdmin, saveKvkStart, saveKvkMap, ownGains: () => ownGains, loadGearItems, saveShowcase, uploadImage, imgBase: () => IMG_BASE, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
            pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
 })();
 </script>
@@ -3516,7 +3545,7 @@ window.RokApp = () => {
   let rankLoading = false;
   // Statthalter-Ranglisten: Spalte, Beschriftung, Symbol
   const RANK_STAT = {
-    kills: { col: 'kill_points',   label: 'Kill-Punkte', icon: '⚔️', sub: 'Kill-Punkten', extra: { col: 'deads', label: 'Deads', icon: '💀' } },
+    kills: { col: 'kill_points',   label: 'Kill-Punkte', icon: '⚔️', sub: 'Kill-Punkten' },
     merit: { col: 'highest_merit', label: 'Verdienst',   icon: '🏅', sub: 'höchstem Verdienst' }
   };
   let rankSort = 'kills';   // beim Öffnen der Seite immer Kill-Punkte (Umschalten gilt nur bis zum Neuladen)
@@ -3546,7 +3575,7 @@ window.RokApp = () => {
       const rows = (await RokAuth.loadLeaderboard())
         .map(r => { const o = { ...r, vip_points: +r.vip_points || 0, _g: r._g || {} }; ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch'].forEach(k => { o[k] = r[k] == null ? null : +r[k]; }); return o; });
       const me = rows.find(r => r.user_id === RokAuth.userId());
-      if (me) { ['kill_points', 'highest_merit', 'deads'].forEach(k => { if (me[k] == null) { const g = govLatest(k); if (g != null) me[k] = g; } }); me._g = { ...me._g, ...RokAuth.ownGains() }; }
+      if (me) { ['kill_points', 'highest_merit'].forEach(k => { if (me[k] == null) { const g = govLatest(k); if (g != null) me[k] = g; } }); me._g = { ...me._g, ...RokAuth.ownGains() }; }
       rankRows = rows;
       renderRanking(rows);
     } catch (e) {
@@ -3717,13 +3746,47 @@ window.RokApp = () => {
   speedUi.profEv = speedUi.profEv || 'zenith';
 
   // KvK-Countdown im Profil: dieselbe Feuer-Uhr wie im KvK-Bereich (aus kvk-calculator.js)
-  function mountProfKvk() {
-    const el = $('profKvkTimer');
-    if (!window.KvKCalc?.mountTimer) { el.classList.add('hidden'); return; }
-    el.classList.remove('hidden');
-    try { window.KvKCalc.mountTimer(el, { onOpen: () => { view = 'kvk'; applyView(); window.KvKCalc?.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } }); }
-    catch (e) { console.warn('KvK-Countdown nicht verfügbar', e); el.classList.add('hidden'); }
+  // Jeder Spieler trägt sein Datum selbst ein (KvK-Bereich) → steht in seinem Profil, auch für Besucher sichtbar
+  const kvkDate = (d) => /^\d{4}-\d{2}-\d{2}$/.test(String(d || '').slice(0, 10)) ? String(d).slice(0, 10) : '';
+  function mountProfKvk(own, row) {
+    mountProfMap(own, row);                                                            // Karte unabhängig vom Datum
+    const el = $('profKvkTimer'), hide = () => { el.classList.add('hidden'); el.innerHTML = ''; };
+    if (!window.KvKCalc?.mountTimer) return hide();
+    try {
+      if (own) {
+        const d = kvkDate(window.KvKCalc.getState?.()?.startDate);
+        if (d !== kvkDate(RokAuth.ownMeta().kvk_start)) RokAuth.saveKvkStart(d);      // bisheriges Datum ins Profil übernehmen
+        el.classList.remove('hidden');
+        window.KvKCalc.mountTimer(el, { onOpen: () => { view = 'kvk'; applyView(); window.KvKCalc?.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
+      } else {
+        const d = kvkDate(row?.kvk_start);
+        if (!d) return hide();                                                         // Spieler hat (noch) kein Datum eingetragen
+        el.classList.remove('hidden');
+        window.KvKCalc.mountTimer(el, { startDate: d, events: row?.kvk_map?.ev || [], days: row?.kvk_map?.days });
+      }
+    } catch (e) { console.warn('KvK-Countdown nicht verfügbar', e); hide(); }
   }
+  // KvK-Karte unter dem Countdown: eigene aus dem KvK-Bereich, fremde aus dem Profil (leaderboard.kvk_map)
+  function mountProfMap(own, row) {
+    const el = $('profKvkMap');
+    if (!el) return;
+    let shown = false;
+    try {
+      if (!window.KvKCalc?.mountMap) shown = false;
+      else if (own) {
+        RokAuth.saveKvkMap(window.KvKCalc.mapData());                                   // bisherige Karte ins Profil übernehmen
+        shown = window.KvKCalc.mountMap(el, null, { onOpen: () => { const s = window.KvKCalc.getState(); s.tab = 'map'; s.open.mapCamps = true; window.KvKCalc.setState(s); view = 'kvk'; applyView(); window.KvKCalc.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
+      } else shown = window.KvKCalc.mountMap(el, row?.kvk_map || {}, { kingdom: row?.kingdom || '', startDate: kvkDate(row?.kvk_start) });
+    } catch (e) { console.warn('KvK-Karte nicht verfügbar', e); shown = false; }
+    el.classList.toggle('hidden', !shown);
+    if (!shown) el.innerHTML = '';
+  }
+  // Datum im KvK-Bereich geändert → im Profil speichern
+  let kvkMapT = null;
+  window.addEventListener('kvkcalc:change', (ev) => {
+    const d = kvkDate(ev.detail?.startDate); if (d !== kvkDate(RokAuth.ownMeta().kvk_start)) RokAuth.saveKvkStart(d);
+    clearTimeout(kvkMapT); kvkMapT = setTimeout(() => { if (window.KvKCalc?.mapData) RokAuth.saveKvkMap(window.KvKCalc.mapData()); }, 1500);   // Karte gesammelt speichern (Tippen)
+  });
 
   function openProfile(uid) {
     if (!uid) return;
@@ -3776,8 +3839,7 @@ window.RokApp = () => {
     $('profBody').classList.add('hidden');
     $('profState').classList.remove('hidden'); $('profState').textContent = 'Lade Game Profil …';
     try {
-      const admin = own ? false : await RokAuth.isAdmin().catch(() => false);
-      const [p, all] = await Promise.all([RokAuth.loadProfile(uid, { admin }), RokAuth.loadLeaderboard().catch(() => [])]);
+      const [p, all] = await Promise.all([RokAuth.loadProfile(uid), RokAuth.loadLeaderboard().catch(() => [])]);
       if (uid !== profileUid) return;                         // inzwischen anderes Profil geöffnet
       let entries;
       if (own) { await syncOwnHistory(); entries = ownEntries(); }
@@ -3788,9 +3850,9 @@ window.RokApp = () => {
       const sorted = all.map(r => ({ ...r, vip_points: +r.vip_points || 0 }))
         .sort((a, b) => (b.vip_points - a.vip_points) || (new Date(a.updated_at) - new Date(b.updated_at)) || String(a.username).localeCompare(b.username));
       const place = sorted.findIndex(r => r.user_id === uid) + 1;
-      renderGameProfile({ own, admin, row, entries, place, players: sorted.length, scansError: p.scansError, isPrivate: own ? !!RokAuth.ownMeta().is_private : !!p.isPrivate });
+      renderGameProfile({ own, row, entries, place, players: sorted.length, scansError: p.scansError, isPrivate: own ? !!RokAuth.ownMeta().is_private : !!p.isPrivate });
       $('profState').classList.add('hidden'); $('profBody').classList.remove('hidden');
-      mountProfKvk();
+      mountProfKvk(own, row);
     } catch (e) {
       $('profState').textContent = 'Profil konnte nicht geladen werden: ' + (e.message || e);
     }
@@ -3822,12 +3884,23 @@ window.RokApp = () => {
     if (!meta.governor_id) { const gi = [...govEntries].reverse().find(x => x.governor_id); if (gi) meta.governor_id = String(gi.governor_id); }
     const lvl = points != null ? lbLevel(points) : null, nx = points != null ? lbNext(points) : null;
     // Speedups gesamt: nur für den Spieler selbst und Admins
-    const canSpeed = own || !!P.admin;
+    const canSpeed = own;                                             // Speedups, Deads, AP, Gems und Verlauf: nur im eigenen Profil
     const spTotal = sp ? (sp.total != null ? +sp.total : SPEED.reduce((a, c) => a + (+sp[c.k] || 0), 0)) : null;
-    const spTile = canSpeed ? `<div class="col-span-2 sm:col-span-3 rounded-xl bg-gradient-to-r from-sky-950/50 to-ink-950/60 border border-sky-500/30 px-3 py-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-            <div class="text-[10px] uppercase tracking-widest text-sky-200/80 whitespace-nowrap">⏱ Speedups gesamt</div>
-            <div class="text-lg sm:text-xl font-extrabold text-white tabular-nums">${spTotal != null ? `${days(spTotal)} <span class="text-sm font-semibold text-slate-400">Tage</span>` : '–'}</div>
-            <div class="w-full flex flex-wrap justify-between gap-x-3 text-[11px] text-slate-500"><span>${spTotal != null ? durText(spTotal) : 'keine Daten'}</span><span>🔒 nur für dich &amp; Admins sichtbar</span></div>
+    const dv = gov?.deads;
+    const spTile = canSpeed ? `<div class="col-span-2 sm:col-span-6 rounded-xl bg-gradient-to-r from-sky-950/50 to-ink-950/60 border border-sky-500/30 px-3 py-2.5">
+            <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+              <div class="min-w-0">
+                <div class="text-[10px] uppercase tracking-wide sm:tracking-widest text-sky-200/80 truncate">⏱ Speedups gesamt</div>
+                <div class="text-lg sm:text-xl font-extrabold text-white tabular-nums">${spTotal != null ? `${days(spTotal)} <span class="text-sm font-semibold text-slate-400">Tage</span>` : '–'}</div>
+                <div class="text-[11px] text-slate-500 truncate">${spTotal != null ? durText(spTotal) : 'keine Daten'}</div>
+              </div>
+              <div class="min-w-0 text-right">
+                <div class="text-[10px] uppercase tracking-wide sm:tracking-widest text-sky-200/80 truncate">💀 Deads</div>
+                <div class="text-lg sm:text-xl font-extrabold text-white tabular-nums">${dv != null ? fmt(dv) : '–'}</div>
+                <div class="text-[11px] text-slate-500 truncate">${dv != null ? '' : 'im Profil bearbeiten eintragen'}</div>
+              </div>
+            </div>
+            <div class="mt-1 text-[11px] text-slate-500 text-right">🔒 nur für dich sichtbar</div>
           </div>` : '';
     $('profHead').innerHTML = `
       <div class="flex flex-wrap items-center gap-5">
@@ -3845,15 +3918,15 @@ window.RokApp = () => {
             ${row.updated_at ? `<span class="text-xs text-slate-500">aktualisiert ${dateLabel(new Date(row.updated_at).getTime())}</span>` : ''}
           </div>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 w-full lg:w-auto">
+        <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 sm:gap-3 w-full lg:w-auto">
           ${[['⚔️', 'Kill-Punkte', 'kill_points'], ['🏅', 'Höchster Verdienst', 'highest_merit'], ['⚡', 'Energie', 'energy'],
-             ['💀', 'Deads', 'deads'], ['🏛️', 'Ark of Osiris', 'ark_wins', 'Siege'], ['👑', 'Lost Kingdom', 'lk_autarch', '× Autarch']].map(([ic, label, k, unit]) => `
-          <div class="min-w-0 rounded-xl bg-ink-950/60 border border-ink-700 px-3 py-2.5 lg:min-w-[150px]">
+             ['🏛️', 'Ark of Osiris', 'ark_wins', 'Siege'], ['👑', 'Lost Kingdom', 'lk_autarch', '× Autarch']].map(([ic, label, k, unit], i) => `
+          <div class="${i === 2 ? 'col-span-2' : ''} ${i < 3 ? 'sm:col-span-2' : 'sm:col-span-3'} min-w-0 rounded-xl bg-ink-950/60 border border-ink-700 px-3 py-2.5 lg:min-w-[150px]">
             <div class="text-[10px] uppercase tracking-wide sm:tracking-widest text-slate-400 truncate">${ic} ${label}</div>
             <div class="text-lg sm:text-xl font-extrabold text-white tabular-nums mt-0.5">${gov && gov[k] != null ? fmt(gov[k]) + (unit ? ` <span class="text-xs font-semibold text-slate-400">${unit}</span>` : '') : '–'}</div>
           </div>`).join('')}
           ${spTile}
-          <div class="col-span-2 sm:col-span-3 text-[11px] text-slate-500 text-right">${gov ? (gov.ts ? `Statthalter-Profil vom ${dateLabel(gov.ts)}` : '') : (own ? 'Noch kein Scan – „📷 Statthalter-Profil scannen“' : 'Noch kein Statthalter-Scan')}</div>
+          <div class="col-span-2 sm:col-span-6 text-[11px] text-slate-500 text-right">${gov ? (gov.ts ? `Statthalter-Profil vom ${dateLabel(gov.ts)}` : '') : (own ? 'Noch kein Scan – „📷 Statthalter-Profil scannen“' : 'Noch kein Statthalter-Scan')}</div>
         </div>
       </div>
       ${nx ? `<div class="mt-5">
@@ -3867,7 +3940,7 @@ window.RokApp = () => {
       </div>` : ''}`;
 
     // ---- Speedups / AP / Gems (Umschalter oben im Feld, wird pro Gerät gemerkt) ----
-    const onlySpeed = !own && P.isPrivate;                            // Admin bei privatem Profil: nur Speedups
+    const onlySpeed = false;
     let pm = (() => { try { return localStorage.getItem('rok_prof_panel') || 'speed'; } catch { return 'speed'; } })();
     if (!canSpeed && pm === 'speed') pm = 'ap';
     if (onlySpeed) pm = 'speed';
@@ -3947,8 +4020,8 @@ window.RokApp = () => {
     // Privat: andere sehen nur den Kopf
     const hideBody = !own && P.isPrivate;
     $('profPrivNote').classList.toggle('hidden', !hideBody);
-    $('profSpeedPanel').classList.toggle('hidden', hideBody && !canSpeed);
-    $('profChartsPanel').classList.toggle('hidden', hideBody);
+    $('profSpeedPanel').classList.toggle('hidden', !own);              // Speedups / AP / Gems: nur im eigenen Profil
+    $('profChartsPanel').classList.toggle('hidden', !own);             // Verlauf: nur im eigenen Profil
     $('profShowcase').classList.toggle('hidden', hideBody);
     if (!hideBody) renderShowcase(own, row, { name: row.username, avatar: meta.avatar, tag: meta.alliance_tag || '', ally: meta.alliance_name || '', kd: meta.kingdom || '', vip: lvl, power: gov?.energy ?? null, kp: gov?.kill_points ?? null, merit: gov?.highest_merit ?? null });
     if (own) {
@@ -3966,7 +4039,7 @@ window.RokApp = () => {
         finally { sw.disabled = false; }
       };
     }
-    if (hideBody) return;
+    if (!own) return;
     renderProfileCharts(entries, P);
   }
 
