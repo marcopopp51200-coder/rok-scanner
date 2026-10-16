@@ -575,7 +575,7 @@
         nowSrc: 0,
         adj: { spent: 0, cur: 0, day: 0, on: 1 },
         // Karte: 4 Camps mit ihren Königreichen (Text, mit Komma getrennt); myCamp 1–4 (0 = keins)
-        camps: [{ name: '', kds: '' }, { name: '', kds: '' }, { name: '', kds: '' }, { name: '', kds: '' }], myCamp: 0, allyCamp: 0, mapStyle: 'battle', layout: 'schema', kdTier: {}                                 // Ist-Abgleich: bisher ausgegeben + jetzt im Spiel (on: 1 an, 2 aus)
+        camps: [{ name: '', kds: '' }, { name: '', kds: '' }, { name: '', kds: '' }, { name: '', kds: '' }], myCamp: 0, allyCamp: 0, mapStyle: 'battle', layout: 'lk1', kdTier: {}                                 // Ist-Abgleich: bisher ausgegeben + jetzt im Spiel (on: 1 an, 2 aus)
       },
       goals: [],
       src: { ap: 0, speed: 0, res: 0, stats: 0 },
@@ -1758,13 +1758,17 @@
   const LK_MAPS = {}, mapLoading = {};
   let MAP_INDEX = null, mapIndexLoading = null;
   const MAP_BASE = (() => { try { const sc = document.currentScript && document.currentScript.src; return sc ? new URL('maps/', sc).href : 'maps/'; } catch (e) { return 'maps/'; } })();
-  const validLayout = (v) => (typeof v === 'string' && /^[a-z0-9_-]{1,20}$/.test(v) ? v : 'schema');
+  const validLayout = (v) => (typeof v === 'string' && v !== 'schema' && /^[a-z0-9_-]{1,20}$/.test(v) ? v : 'lk1');   // Schema-Karte gibt es nicht mehr → Heroic Anthem
   function mapsChanged() { if (root) rerender(); mapHosts.forEach((h) => { if (h.isConnected && h._kvkRemount) h._kvkRemount(); }); }
+  // falls maps/index.json nicht lädt: bekannte Karten trotzdem zur Auswahl anbieten
+  const MAP_INDEX_FALLBACK = [
+    { id: 'lk1', name: { de: 'Heroic Anthem', en: 'Heroic Anthem' }, desc: { de: 'Ring aus Zonen um die Ziggurat, 4 Altar-Höfe, Pässe 4–8', en: 'ring of zones around the ziggurat, 4 altar courts, passes 4–8' } },
+    { id: 'lk2', name: { de: 'Mighty Assembly', en: 'Mighty Assembly' }, desc: { de: 'Quadratische Festung in der Mitte, Camps an den Seiten, Pässe 4–9', en: 'square fortress in the middle, camps on the sides, passes 4–9' } }];
   function loadMapIndex() {
     if (MAP_INDEX || mapIndexLoading) return;
     mapIndexLoading = fetch(MAP_BASE + 'index.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null))
-      .then((j) => { MAP_INDEX = j && Array.isArray(j.maps) ? j.maps.filter((m) => m && validLayout(m.id) === m.id) : []; mapsChanged(); })
-      .catch(() => { MAP_INDEX = []; mapsChanged(); });
+      .then((j) => { const l = j && Array.isArray(j.maps) ? j.maps.filter((m) => m && validLayout(m.id) === m.id) : []; MAP_INDEX = l.length ? l : MAP_INDEX_FALLBACK; mapsChanged(); })
+      .catch(() => { MAP_INDEX = MAP_INDEX_FALLBACK; mapsChanged(); });
   }
   function ensureMap(id) {
     if (!id || id === 'schema' || LK_MAPS[id] || mapLoading[id]) return;
@@ -1819,7 +1823,8 @@
     const now = srvNow(), fights = evs ? activeFights(evs, now) : [], hot = {};
     fights.forEach((e) => { const k = evKey(e); if (k) hot[k] = e; });
     const myKd = String(ownKd != null ? ownKd : ((window.RokAuth && window.RokAuth.ownMeta && window.RokAuth.ownMeta()) || {}).kingdom || '').replace(/[^\d]/g, '');
-    const quad = [[0, 0], [1, 0], [0, 1], [1, 1]], u = 'm' + (++mapSeq);   // eigene IDs je Karte (mehrere auf einer Seite)
+    const quad = [[0, 0], [1, 0], [0, 1], [1, 1]], u = 'm' + (++mapSeq);
+    const CAT = ((LK_MAPS[d.layout] || {}).campAt) || null;   // Camp-Lage der echten Karte: [x, y, b, h, Licht-x %, Licht-y %] je Camp (sonst Ecken)
     // Geometrie (500 × 500): Camps in den Ecken (0–175), dazwischen Zone 4, in der Mitte Zone 5 (4 Viertel) um Zone 6 (Ziggurat)
     const W = 500, CS = 150, C0 = 250, Z6R = 40;
     let seed = 7;
@@ -1885,7 +1890,7 @@
         <pattern id="${u}sc" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="1" fill="#000" fill-opacity=".18"/></pattern>
         <pattern id="${u}dm" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M12 0L24 12L12 24L0 12Z" fill="none" stroke="#d4af37" stroke-opacity=".12" stroke-width=".8"/></pattern>
         <pattern id="${u}hz" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 8L8 0" stroke="${T.zone[1]}" stroke-opacity=".12" stroke-width="1"/></pattern>
-        ${CAMPS.map((C, i) => { const [qx, qy] = quad[i], g = T.grad || [0, 0]; return `<radialGradient id="${u}c${i}" cx="${qx ? 100 : 0}%" cy="${qy ? 100 : 0}%" r="125%"><stop offset="0" stop-color="${C.col}" stop-opacity="${g[0]}"/><stop offset=".6" stop-color="${C.col}" stop-opacity="${g[1]}"/><stop offset="1" stop-color="${C.col}" stop-opacity=".06"/></radialGradient>`; }).join('')}
+        ${CAMPS.map((C, i) => { const [qx, qy] = quad[i], g = T.grad || [0, 0]; return `<radialGradient id="${u}c${i}" cx="${CAT && CAT[i] ? CAT[i][4] : qx ? 100 : 0}%" cy="${CAT && CAT[i] ? CAT[i][5] : qy ? 100 : 0}%" r="125%"><stop offset="0" stop-color="${C.col}" stop-opacity="${g[0]}"/><stop offset=".6" stop-color="${C.col}" stop-opacity="${g[1]}"/><stop offset="1" stop-color="${C.col}" stop-opacity=".06"/></radialGradient>`; }).join('')}
         <radialGradient id="${u}k" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fde68a" stop-opacity=".9"/><stop offset=".5" stop-color="#e0a91b" stop-opacity=".35"/><stop offset="1" stop-color="#e0a91b" stop-opacity="0"/></radialGradient>
         <radialGradient id="${u}o" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffd166" stop-opacity=".9"/><stop offset=".5" stop-color="#ff6a00" stop-opacity=".4"/><stop offset="1" stop-color="#ff6a00" stop-opacity="0"/></radialGradient>
         <radialGradient id="${u}p" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#6b5836"/><stop offset=".7" stop-color="#3e3322"/><stop offset="1" stop-color="#2a2218"/></radialGradient>
@@ -2010,6 +2015,14 @@
         return chip(cx, cy, k, C, myKd && k === myKd);
       }).join('');
       const w = Math.round(28 + [...M.campNames[i]].length * 7.2 + (me || al ? 15 : 0) + String(cnt).length * 6 + 22);
+      const bTxt = `${C.icon} ${M.campNames[i]}${me ? ' ⭐' : al ? ' 🤝' : ''} <tspan font-size="9" font-weight="700" fill-opacity=".8">· ${cnt} KD</tspan>`;
+      if (CAT && CAT[i]) {   // Camp liegt nicht in der Ecke: Schild oben im Bereich, Königreiche mittig darunter
+        const [bx, bY, bw] = CAT[i], per = Math.max(1, Math.floor((bw + CSTEP - CW) / CSTEP));
+        const ch2 = kds.map((k, j) => { const row = Math.floor(j / per), col = j % per, inRow = Math.min(per, kds.length - row * per);
+          const x0 = bx + (bw - (inRow * CSTEP - (CSTEP - CW))) / 2; return chip(x0 + col * CSTEP, bY + 28 + row * 25, k, C, myKd && k === myKd); }).join('');
+        return `${banner(Math.max(4, Math.min(W - 6 - w, bx + (bw - w) / 2)), bY + 2, w, C, bTxt, false, me, al)}
+        ${ch2 || `<text x="${bx + bw / 2}" y="${bY + 44}" text-anchor="middle" font-size="10" font-style="italic" fill="${T.empty}" opacity=".8">${M.mapEmpty}</text>`}`;
+      }
       const by = qy ? y + IN - 26 : y + 4;
       return `${banner(qx ? x + IN - 4 : x + 2, by, w, C, `${C.icon} ${M.campNames[i]}${me ? ' ⭐' : al ? ' 🤝' : ''} <tspan font-size="9" font-weight="700" fill-opacity=".8">· ${cnt} KD</tspan>`, !!qx, me, al)}
         ${chips || `<text x="${qx ? x + IN - 10 : x + 10}" y="${qy ? y + IN - 44 : y + 48}" text-anchor="${qx ? 'end' : 'start'}" font-size="10" font-style="italic" fill="${T.empty}" opacity=".8">${M.mapEmpty}</text>`}`;
@@ -2038,7 +2051,7 @@
     // ---- echte Karte (Karte A / B): Bereiche, Mauern, Gebäude aus LK_MAPS ----
     if (d.layout !== 'schema' && LK_MAPS[d.layout] === undefined) ensureMap(d.layout);
     const LKM = LK_MAPS[d.layout] || null, lkWait = d.layout !== 'schema' && LK_MAPS[d.layout] === undefined, lkFail = d.layout !== 'schema' && LK_MAPS[d.layout] === false;
-    let body = `${bg}${hl}${center}${camps}${gates}`;
+    let body = `<rect width="${W}" height="${W}" fill="${T.paper || T.zone[3]}"/>`;   // bis die Karte geladen ist: leere Fläche
     if (LKM) {
       const WALL = { battle: '#2c2420', parchment: '#5a4630', night: '#3a4a6b', flat: '#0f172a', holo: '#22d3ee', frost: '#6f9fc2', lava: '#ff6a00', royal: '#d4af37', pixel: '#111111', sand: '#6b4a1e', ingame: '#2f4f1e', blueprint: '#dbeafe', marble: '#9c7a2a', jungle: '#0b1f10' }[st] || '#2c2420';
       let g0 = `<rect width="${W}" height="${W}" fill="${T.paper || T.zone[3]}"/>`;
@@ -2083,7 +2096,7 @@
     <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 pt-2 pb-0.5 text-[11px] text-slate-400">
       ${d.my ? `<span>⭐ ${M.myCamp}: <b class="text-gold-300">${CAMPS[d.my - 1].icon} ${M.campNames[d.my - 1]}</b></span>` : ''}
       ${d.ally ? `<span>🤝 ${M.ally}: <b class="text-emerald-300">${CAMPS[d.ally - 1].icon} ${M.campNames[d.ally - 1]}</b></span>` : ''}
-      <span class="basis-full text-center text-slate-500">${LKM ? M.mapLegendLk : M.mapLegend}</span>
+      <span class="basis-full text-center text-slate-500">${M.mapLegendLk}</span>
     </div>`;
   }
   // Popup an einem Tor/Altar: nächste Öffnung bzw. laufender Kampf (eigene Karte und Karte im Profil)
@@ -2207,11 +2220,11 @@
   const TIER_TXT = (kd) => ({ g: '#fbbf24', s: '#d1d5db' })[(state.mid.kdTier || {})[kd]] || '#ffffff';
   function layoutName() {
     const id = validLayout(state.mid.layout), m = (MAP_INDEX || []).find((x) => x.id === id);
-    return id === 'schema' ? t().mp.layouts.schema[0] : m ? tx(m.name) : id;
+    return m ? tx(m.name) : id;
   }
   function layoutPicker() {
     const L = t();
-    return `<div class="grid gap-2 grid-cols-1 sm:grid-cols-3" role="radiogroup" aria-label="${L.mp.whichKvk}">${(loadMapIndex(), [{ id: 'schema', name: L.mp.layouts.schema[0], desc: L.mp.layouts.schema[1] }, ...(MAP_INDEX || []).map((m) => ({ id: m.id, name: tx(m.name), desc: tx(m.desc) }))]).map((m) => { const on = validLayout(state.mid.layout) === m.id; return `
+    return `<div class="grid gap-2 grid-cols-1 sm:grid-cols-2" role="radiogroup" aria-label="${L.mp.whichKvk}">${(loadMapIndex(), [...(MAP_INDEX || []).map((m) => ({ id: m.id, name: tx(m.name), desc: tx(m.desc) }))]).map((m) => { const on = validLayout(state.mid.layout) === m.id; return `
             <button type="button" data-layout="${esc(m.id)}" aria-pressed="${on}" class="text-left rounded-xl border-2 p-2.5 transition ${on ? 'border-gold-400 bg-gold-500/10' : 'border-ink-700 hover:border-gold-500/50'}">
               <div class="font-semibold text-sm ${on ? 'text-gold-300' : 'text-slate-200'}">${on ? '✓ ' : ''}${esc(m.name)}</div>
               <div class="text-[11px] text-slate-500">${esc(m.desc)}</div>
