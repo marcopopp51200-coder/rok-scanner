@@ -313,7 +313,7 @@
           bgTitle: 'Hintergrund', bgUpload: 'Eigenes Bild hochladen', bgDel: 'Eigenes Bild entfernen', bg: { timer: 'Countdown', gold: 'Gold', blood: 'Blut', night: 'Nacht', frost: 'Frost', own: 'Eigenes' }
         },
         mapFold: 'Karte', mapHint: '4 Camps und ihre Königreiche', camp: 'Camp', campName: 'Name', campKds: 'Königreiche (mit Komma getrennt)',
-        myCamp: 'Mein Camp', ally: 'Verbündet', mapDesign: 'Design der Karte', tierG: 'Imperium', tierS: 'Silber', tierN: 'normal', tierHint: 'Antippen wechselt die Schrift: Gold = Imperium, Silber = Silberimperium, sonst weiß · dein Königreich hat immer einen ★', roster: 'Wer ist in welchem Camp', timeline: 'Timeline · Pass 4, 7, 8 & Altäre', noTimeline: 'Keine kommenden Pass-4/7/8- oder Altar-Termine', running: 'läuft', mapEmptyOwn: 'Noch keine Königreiche eingetragen – über „✎ Bearbeiten“ im Reiter Karte nachtragen', mapEmptyOther: 'Dieser Spieler hat noch keine Camps eingetragen', zoneN: 'Zone {n}', altar: 'Altar', mapLegendLk: '🏯 Pass mit Stufe (4–9) · ⛩️ Altar · Zahl im Kreis = Schrein/Tempel/Sanktum-Stufe · kleine Burgen = Forts · Tore und Altäre antippen für Zeiten', mapLegend: 'P4 → Zone 4 · P5 → Zone 5 · P6 = Altar (Camp → Zone 5) · P7 = Zone 5 ↔ Zone 5 · P8 → Ziggurat (Zone 6) · Testanordnung', mapStyles: { battle: 'Schlachtfeld', parchment: 'Pergament', night: 'Nacht', flat: 'Klar', holo: 'Taktik', frost: 'Frost', lava: 'Glut', royal: 'Royal', pixel: 'Pixel', sand: 'Wüste', ingame: 'Spielkarte', blueprint: 'Blaupause', marble: 'Marmor', jungle: 'Dschungel' }, mapTitle: 'KvK-Karte', center: 'Ziggurat', mapEmpty: 'noch keine Königreiche', campNames: ['Feuer', 'Erde', 'Wasser', 'Wind'], kdShort: 'KD',
+        myCamp: 'Mein Camp', ally: 'Verbündet', mapDesign: 'Design der Karte', tierG: 'Imperium', tierS: 'Silber', tierN: 'normal', tierHint: 'Antippen wechselt die Schrift: Gold = Imperium, Silber = Silberimperium, sonst weiß · dein Königreich hat immer einen ★', roster: 'Wer ist in welchem Camp', timeline: 'Timeline · Pass 4, 7, 8 & Altäre', noTimeline: 'Keine kommenden Pass-4/7/8- oder Altar-Termine', running: 'läuft', mapEmptyOwn: 'Noch keine Königreiche eingetragen – über „✎ Bearbeiten“ im Reiter Karte nachtragen', mapEmptyOther: 'Dieser Spieler hat noch keine Camps eingetragen', zoneN: 'Zone {n}', altar: 'Altar', mapLegendLk: '🏯 Pass mit Stufe (4–9) · ⛩️ Altar · Zahl im Kreis = Schrein/Tempel/Sanktum-Stufe · kleine Burgen = Forts · Tore und Altäre antippen für Zeiten', mapLegend: 'P4 → Zone 4 · P5 → Zone 5 · P6 = Altar (Camp → Zone 5) · P7 = Zone 5 ↔ Zone 5 · P8 → Ziggurat (Zone 6) · Testanordnung – echte Karte: ✎ Bearbeiten → Welches KvK?', mapStyles: { battle: 'Schlachtfeld', parchment: 'Pergament', night: 'Nacht', flat: 'Klar', holo: 'Taktik', frost: 'Frost', lava: 'Glut', royal: 'Royal', pixel: 'Pixel', sand: 'Wüste', ingame: 'Spielkarte', blueprint: 'Blaupause', marble: 'Marmor', jungle: 'Dschungel' }, mapTitle: 'KvK-Karte', center: 'Ziggurat', mapEmpty: 'noch keine Königreiche', campNames: ['Feuer', 'Erde', 'Wasser', 'Wind'], kdShort: 'KD',
         title: 'KvK Mitte', hint: 'Kristall-Verlauf, Ziele, Barbaren & Zwischenstand',
         flow: 'Kristall-Verlauf', flowHint: 'Was du wann erwirtschaftest – über die ganze KvK-Dauer',
         goal: 'Roadmap: Ziele je Pass', goalHint: 'Pass 4–8 anklicken, Technologien eintragen – was fehlt und wie viele Barbaren/Forts dafür',
@@ -438,7 +438,7 @@
           bgTitle: 'Background', bgUpload: 'Upload own image', bgDel: 'Remove own image', bg: { timer: 'Countdown', gold: 'Gold', blood: 'Blood', night: 'Night', frost: 'Frost', own: 'Own' }
         },
         mapFold: 'Map', mapHint: '4 camps and their kingdoms', camp: 'Camp', campName: 'Name', campKds: 'Kingdoms (comma separated)',
-        campNames: ['Fire', 'Earth', 'Water', 'Wind'], kdShort: 'KD', myCamp: 'My camp', ally: 'Ally', mapDesign: 'Map design', tierG: 'Empire', tierS: 'Silver', tierN: 'normal', tierHint: 'Tap to change the text: gold = empire, silver = silver empire, otherwise white · your kingdom always has a ★', roster: 'Who is in which camp', timeline: 'Timeline · pass 4, 7, 8 & altars', noTimeline: 'No upcoming pass 4/7/8 or altar dates', running: 'running', mapEmptyOwn: 'No kingdoms entered yet – add them via “✎ Edit” in the Map tab', mapEmptyOther: 'This player has not entered any camps yet', zoneN: 'Zone {n}', altar: 'Altar', mapLegendLk: '🏯 pass with level (4–9) · ⛩️ altar · number in circle = shrine/temple/sanctum level · small castles = forts · tap gates and altars for times', mapLegend: 'P4 → zone 4 · P5 → zone 5 · P6 = altar (camp → zone 5) · P7 = zone 5 ↔ zone 5 · P8 → ziggurat (zone 6) · test layout', mapStyles: { battle: 'Battlefield', parchment: 'Parchment', night: 'Night', flat: 'Clean', holo: 'Tactical', frost: 'Frost', lava: 'Ember', royal: 'Royal', pixel: 'Pixel', sand: 'Desert', ingame: 'Game map', blueprint: 'Blueprint', marble: 'Marble', jungle: 'Jungle' }, mapTitle: 'KvK map', center: 'Ziggurat', mapEmpty: 'no kingdoms yet',
+        campNames: ['Fire', 'Earth', 'Water', 'Wind'], kdShort: 'KD', myCamp: 'My camp', ally: 'Ally', mapDesign: 'Map design', tierG: 'Empire', tierS: 'Silver', tierN: 'normal', tierHint: 'Tap to change the text: gold = empire, silver = silver empire, otherwise white · your kingdom always has a ★', roster: 'Who is in which camp', timeline: 'Timeline · pass 4, 7, 8 & altars', noTimeline: 'No upcoming pass 4/7/8 or altar dates', running: 'running', mapEmptyOwn: 'No kingdoms entered yet – add them via “✎ Edit” in the Map tab', mapEmptyOther: 'This player has not entered any camps yet', zoneN: 'Zone {n}', altar: 'Altar', mapLegendLk: '🏯 pass with level (4–9) · ⛩️ altar · number in circle = shrine/temple/sanctum level · small castles = forts · tap gates and altars for times', mapLegend: 'P4 → zone 4 · P5 → zone 5 · P6 = altar (camp → zone 5) · P7 = zone 5 ↔ zone 5 · P8 → ziggurat (zone 6) · test layout – real map: ✎ Edit → Which KvK?', mapStyles: { battle: 'Battlefield', parchment: 'Parchment', night: 'Night', flat: 'Clean', holo: 'Tactical', frost: 'Frost', lava: 'Ember', royal: 'Royal', pixel: 'Pixel', sand: 'Desert', ingame: 'Game map', blueprint: 'Blueprint', marble: 'Marble', jungle: 'Jungle' }, mapTitle: 'KvK map', center: 'Ziggurat', mapEmpty: 'no kingdoms yet',
         title: 'KvK Mid', hint: 'Crystal timeline, goals, barbarians & interim status',
         flow: 'Crystal timeline', flowHint: 'What you earn when – over the whole KvK',
         goal: 'Roadmap: goals per pass', goalHint: 'Pick pass 4–8, enter technologies – what is missing and how many barbarians/forts for it',
@@ -554,7 +554,7 @@
       buildSpeed: 0,                                                              // Bau-Tempo in % (für die Bauzeit der Kristallgebäude)
       helps: 30,                                                                  // Allianz-Hilfen je Ausbaustufe (max. 30)
       mapEv: [],                                                              // Ruinen/Altäre/Eigenes: { id, kind, name, day, time 'HH:MM' UTC, rep (Tage, 0 = einmal) }
-      open: { mapCamps: false, mapTimes: false, mapDesign: false, calc: false, bundles: false, res: false, stats: false, rmStart: false, midFlow: false, midGoal: false, midAp: false, midHon: false, midStats: false, midMap: false, endSum: false, endImg: false },                                       // eingeklappte Fenster
+      open: { mapCamps: false, mapTimes: false, mapDesign: false, mapLayout: false, calc: false, bundles: false, res: false, stats: false, rmStart: false, midFlow: false, midGoal: false, midAp: false, midHon: false, midStats: false, midMap: false, endSum: false, endImg: false },                                       // eingeklappte Fenster
       buy: {},                                                                    // Stufen-ID → Anzahl
       budget: 0,
       planPass: 8,                                                                // Planung bis zu diesem Pass (MW je Pass + Conquer's Will je Tag)
@@ -1650,7 +1650,7 @@
         ${state.mapEv.map(evRow).join('')}
         <div class="flex flex-wrap gap-2">${['ruin', 'altar', 'other'].map((k) => `<button type="button" data-ev-add="${k}" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">＋ ${EV_ICON[k][0]} ${MP.kinds[k]}</button>`).join('')}</div>
       </div>`;
-    const mapEditOn = !!(state.open.mapCamps || state.open.mapTimes || state.open.mapDesign);
+    const mapEditOn = !!(state.open.mapCamps || state.open.mapTimes || state.open.mapDesign || state.open.mapLayout);
     const mapTile = `
       <section class="panel rounded-2xl p-5 flex flex-col gap-4">
         ${tileHead('🗺️', MP.title, MP.hint, null, `<button type="button" data-map-edit class="shrink-0 text-xs px-2.5 py-1 rounded-lg border ${mapEditOn ? 'border-gold-500 bg-gold-500 text-ink-950 font-semibold' : 'border-ink-600 hover:border-gold-500/60 hover:text-gold-300'}">${mapEditOn ? '✓ ' + L.done : '✎ ' + L.edit}</button>`)}
@@ -1662,6 +1662,7 @@
             ${card(`<div data-out="mapSched"></div>`)}
           </div>
         </div>
+        ${fold('mapLayout', '🗺️', L.mp.whichKvk, L.mp.whichHint, `<div class="pt-3">${layoutPicker()}</div>`)}
         ${fold('mapDesign', '🎨', M.mapDesign, MP.designHint.replace('{n}', MAP_STYLES.length), `<div class="pt-3">${mapStylePicker()}</div>`)}
         ${fold('mapCamps', '🏕️', MP.campsFold, MP.campsHint, campBody)}
         ${fold('mapTimes', '⏰', MP.timesFold, MP.timesHint, timesBody)}
@@ -1695,11 +1696,7 @@
         ${lockBar()}
         <section class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
           <div><h3 class="font-display text-lg text-gold-300">🗺️ ${L.mp.whichKvk}</h3><p class="text-xs text-slate-400 mt-0.5">${L.mp.whichHint}</p></div>
-          <div class="grid gap-2 grid-cols-1 sm:grid-cols-3" role="radiogroup" aria-label="${L.mp.whichKvk}">${(loadMapIndex(), [{ id: 'schema', name: L.mp.layouts.schema[0], desc: L.mp.layouts.schema[1] }, ...(MAP_INDEX || []).map((m) => ({ id: m.id, name: tx(m.name), desc: tx(m.desc) }))]).map((m) => { const on = validLayout(state.mid.layout) === m.id; return `
-            <button type="button" data-layout="${esc(m.id)}" aria-pressed="${on}" class="text-left rounded-xl border-2 p-2.5 transition ${on ? 'border-gold-400 bg-gold-500/10' : 'border-ink-700 hover:border-gold-500/50'}">
-              <div class="font-semibold text-sm ${on ? 'text-gold-300' : 'text-slate-200'}">${on ? '✓ ' : ''}${esc(m.name)}</div>
-              <div class="text-[11px] text-slate-500">${esc(m.desc)}</div>
-            </button>`; }).join('')}${MAP_INDEX ? '' : `<div class="text-xs text-slate-500 self-center">⏳ ${L.mp.mapsLoading}</div>`}</div>
+          ${layoutPicker()}
         </section>
         ${crystalTile}
         <div class="text-right">
@@ -2201,6 +2198,19 @@
     if (el.hasAttribute('data-cd-up')) { el.textContent = cdText(now - ts); return el.dataset.cdEnd ? +el.dataset.cdEnd <= now : false; }
     const ms = ts - now; el.textContent = cdText(ms, el.hasAttribute('data-cd-big')); return ms <= 0;
   }
+  // Auswahl „Welches KvK?“ (Reiter Start und Reiter Karte)
+  function layoutName() {
+    const id = validLayout(state.mid.layout), m = (MAP_INDEX || []).find((x) => x.id === id);
+    return id === 'schema' ? t().mp.layouts.schema[0] : m ? tx(m.name) : id;
+  }
+  function layoutPicker() {
+    const L = t();
+    return `<div class="grid gap-2 grid-cols-1 sm:grid-cols-3" role="radiogroup" aria-label="${L.mp.whichKvk}">${(loadMapIndex(), [{ id: 'schema', name: L.mp.layouts.schema[0], desc: L.mp.layouts.schema[1] }, ...(MAP_INDEX || []).map((m) => ({ id: m.id, name: tx(m.name), desc: tx(m.desc) }))]).map((m) => { const on = validLayout(state.mid.layout) === m.id; return `
+            <button type="button" data-layout="${esc(m.id)}" aria-pressed="${on}" class="text-left rounded-xl border-2 p-2.5 transition ${on ? 'border-gold-400 bg-gold-500/10' : 'border-ink-700 hover:border-gold-500/50'}">
+              <div class="font-semibold text-sm ${on ? 'text-gold-300' : 'text-slate-200'}">${on ? '✓ ' : ''}${esc(m.name)}</div>
+              <div class="text-[11px] text-slate-500">${esc(m.desc)}</div>
+            </button>`; }).join('')}${MAP_INDEX ? '' : `<div class="text-xs text-slate-500 self-center">⏳ ${L.mp.mapsLoading}</div>`}</div>`;
+  }
   function tickNext() {
     if (!root) return;
     let due = false;
@@ -2217,7 +2227,7 @@
   }
   function mapOutputs() {
     const L = t(), MP = L.mp, s = startTs();
-    const fsum = { mapCamps: '', mapDesign: `<span class="text-slate-400">${L.m.mapStyles[mapData().style] || ''}</span>`, mapTimes: (state.mapEv || []).length ? `<span class="text-slate-400">${(state.mapEv || []).length}×</span>` : '' };
+    const fsum = { mapLayout: `<span class="text-slate-400">${esc(layoutName())}</span>`, mapCamps: '', mapDesign: `<span class="text-slate-400">${L.m.mapStyles[mapData().style] || ''}</span>`, mapTimes: (state.mapEv || []).length ? `<span class="text-slate-400">${(state.mapEv || []).length}×</span>` : '' };
     const d0 = mapData(), nKd = d0.kds.reduce((a, k) => a + k.length, 0);
     if (nKd || d0.my) fsum.mapCamps = `<span class="text-slate-400">${nKd} KD${d0.my ? ` · ⭐ ${CAMPS[d0.my - 1].icon}` : ''}${d0.ally ? ` · 🤝 ${CAMPS[d0.ally - 1].icon}` : ''}</span>`;
     if (s == null) return { mapNext: `<div class="rounded-xl border border-gold-500/30 bg-gold-500/5 px-4 py-3 text-sm text-slate-300">🕒 ${MP.needStart}</div>`, mapUpcoming: `<p class="text-sm text-slate-500">–</p>`, mapSched: '', _fsum: fsum };
@@ -3766,8 +3776,8 @@
     if (myCampBtn) { const v = +myCampBtn.dataset.mycamp; state.mid.myCamp = state.mid.myCamp === v ? 0 : v; if (state.mid.allyCamp === state.mid.myCamp) state.mid.allyCamp = 0; save(); rerender(); return; }
     if (mapClick(e, mapEvents())) return;
     if (e.target.closest('[data-map-edit]')) {
-      const on = !(state.open.mapCamps || state.open.mapTimes || state.open.mapDesign);
-      state.open.mapCamps = on; state.open.mapTimes = on; state.open.mapDesign = on; save(); rerender();
+      const on = !(state.open.mapCamps || state.open.mapTimes || state.open.mapDesign || state.open.mapLayout);
+      state.open.mapCamps = on; state.open.mapTimes = on; state.open.mapDesign = on; state.open.mapLayout = on; save(); rerender();
       if (on) { const f = root.querySelector('[data-fold="mapDesign"]'); if (f && f.scrollIntoView) f.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
       return;
     }
