@@ -4,8 +4,8 @@
   {
    "id": "lk1",
    "name": {
-    "de": "Karte A · Ring",
-    "en": "Map A · Ring"
+    "de": "Heroic Anthem",
+    "en": "Heroic Anthem"
    },
    "desc": {
     "de": "Ring aus Zonen um die Ziggurat, 4 Altar-Höfe, Pässe 4–8",
@@ -22,12 +22,12 @@
   {
    "id": "lk2",
    "name": {
-    "de": "Karte B · Festung",
-    "en": "Map B · Fortress"
+    "de": "Mighty Assembly",
+    "en": "Mighty Assembly"
    },
    "desc": {
-    "de": "Quadratische Festung in der Mitte, Altar-Höfe, Pässe 4–9",
-    "en": "square fortress in the middle, altar courts, passes 4–9"
+    "de": "Quadratische Festung in der Mitte, Camps an den Seiten, Pässe 4–9",
+    "en": "square fortress in the middle, camps on the sides, passes 4–9"
    },
    "passes": [
     4,
