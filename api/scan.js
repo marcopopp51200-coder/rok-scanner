@@ -124,28 +124,57 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
   "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
 }`;
 
-// ---------- Statthalter-Profil (Kill-Punkte, Höchster Verdienst, Energie) ----------
+// ---------- Statthalter-Profil (Energie, Kill-Punkte, Höchster Verdienst, Tote, Ark of Osiris, Lost Kingdom) ----------
 const PROMPT_GOVERNOR = `${INTRO}
 
-MODUS: Statthalter-Profil. Der Screenshot zeigt das Profil des Statthalters (Governor) mit Zeilen wie:
-  Energie               84.895.038      (englisch: "Power")
-  Kill-Punkte           5.482.675.899   (englisch: "Kill Points")
-  Verdienst             0               (englisch: "Merit") – NICHT verwenden
-  Höchster Verdienst    20.061.883      (englisch: "Highest Merit")
+MODUS: Statthalter-Profil (Governor Profile). Es gibt drei mögliche Ansichten:
 
-Lies genau diese drei Werte als ganze Zahlen:
-- "energy"        = Energie / Power
+A) EIGENES PROFIL (hochkant): Oben eine Leiste "Aktionspunkte / Action Points 1,001/1,700" – das ist KEIN Wert, ignorieren.
+   Darunter Zeilen mit Beschriftung links und Wert rechts in GENAU dieser Reihenfolge:
+     Statthalter / Governor      (ID: 148759624)   und darunter der Name
+     Zivilisation / Civilization
+     Bündnis / Alliance          [S79]Saints of 79
+     Macht / Energie / Power     85,141,754
+     Kill-Punkte / Kill Points   5,482,675,899
+     Verdienst / Acclaim         0                 ← NICHT verwenden
+     Höchster Verdienst / Highest Acclaim   20,061,883
+   Ganz unten drei Abzeichen: "Champions of Olympia", "Ark of Osiris – 9 Wins", "Lost Kingdom – 4x Autarch".
+
+B) FREMDES PROFIL (quer, Banner links): rechts oben "Governor(ID: 149655218)" und der Name. Darunter ein Raster aus 2 Zeilen × 3 Spalten,
+   der Wert steht jeweils DIREKT UNTER seiner Beschriftung:
+     Alliance [S79]Saints of 79 | Kill Points 48,173,763 | Power 26,616,910
+     Civilization Spain         | Acclaim 0              | Highest Acclaim 224,895
+   Unten drei Abzeichen: "Champions of Olympia N/A", "Ark of Osiris 2 Wins", "Lost Kingdom 0x Autarch".
+
+C) "WEITERE INFOS / MORE INFO": Liste mit u. a. "Tote / Dead" (gefallene Einheiten), ggf. auch Kill-Punkte und Macht.
+
+Ordne jeden Wert seiner Beschriftung zu (Ansicht A: gleiche Zeile rechts, Ansicht B: direkt darunter) – nicht nach Größe raten.
+- "governor_id"   = Ziffern hinter "ID:" (als Text, z. B. "148759624")
+- "name"          = Name des Statthalters
+- "alliance_tag"  = Kürzel in eckigen Klammern vor dem Bündnisnamen (z. B. "S79"); "alliance_name" = Rest (z. B. "Saints of 79")
+- "energy"        = Macht / Energie / Power
 - "kill_points"   = Kill-Punkte / Kill Points
-- "highest_merit" = Höchster Verdienst / Highest Merit (nicht den normalen "Verdienst")
-Punkt oder Komma sind Tausendertrennzeichen: "5.482.675.899" = 5482675899. Abkürzungen umrechnen ("84.9M" = 84900000).
-Ignoriere alles andere (Aktionspunkte-Leiste, ID, Kultur, Bündnis, Abzeichen). Fehlt ein Wert, nutze null.
+- "highest_merit" = Höchster Verdienst / Highest Acclaim (NIEMALS der normale "Verdienst"/"Acclaim", der oft 0 ist)
+- "deads"         = Tote / Dead (nur wenn sichtbar, sonst null)
+- "ark_wins"      = Zahl vor "Wins"/"Siege" beim Abzeichen Ark of Osiris / Arche des Osiris
+- "lk_autarch"    = Zahl vor "x Autarch" beim Abzeichen Lost Kingdom / Verlorenes Königreich ("0x Autarch" = 0)
+Punkt oder Komma sind Tausendertrennzeichen: "5.482.675.899" und "5,482,675,899" = 5482675899. Abkürzungen umrechnen ("84.9M" = 84900000).
+Lies jede Ziffer einzeln und genau ab – lieber null als geraten. Fehlt ein Wert oder ist er nicht lesbar, nutze null.
 
 Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
 {
   "type": "governor",
+  "view": "own" | "other" | "more_info",
+  "governor_id": string|null,
+  "name": string|null,
+  "alliance_tag": string|null,
+  "alliance_name": string|null,
   "energy": number|null,
   "kill_points": number|null,
   "highest_merit": number|null,
+  "deads": number|null,
+  "ark_wins": number|null,
+  "lk_autarch": number|null,
   "confidence": "hoch" | "mittel" | "niedrig",
   "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
 }`;
