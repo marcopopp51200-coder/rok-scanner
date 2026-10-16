@@ -39,6 +39,26 @@
     9
    ],
    "bg": "bg/s21-mighty-assembly.jpg"
+  },
+  {
+   "id": "tbd",
+   "bg": "bg/tbd-not-official.jpg",
+   "name": {
+    "de": "Noch nicht offiziell",
+    "en": "Not official yet"
+   },
+   "desc": {
+    "de": "KvK-Typ noch unbekannt – Karte folgt, Zeiten wie Standard",
+    "en": "KvK type not known yet – map follows, default times"
+   },
+   "passes": [
+    4,
+    5,
+    6,
+    7,
+    8
+   ],
+   "nomap": true
   }
  ],
  "bgs": [
