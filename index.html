@@ -638,8 +638,14 @@ tailwind.config = {
       <div id="profKvkCard" class="hidden"></div>
 
       <!-- Showcase (aufklappbar): mehrere Showcases mit je bis zu 7 Sets -->
-      <div id="profShowcase" class="panel rounded-2xl overflow-hidden">
-        <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+      <div id="profShowcase" class="panel rounded-2xl overflow-hidden relative">
+        <!-- Mini-Knopf (wie beim Countdown): blendet die Showcase-Leiste ein/aus – standardmäßig nur das Bild -->
+        <button id="scBarBtn" type="button" aria-expanded="false" title="Showcase bearbeiten" aria-label="Showcase bearbeiten"
+          class="absolute right-3 top-3 z-30 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-ink-600 bg-ink-950/70 backdrop-blur-sm hover:border-gold-500/60 hover:text-gold-300 text-xs sm:text-sm">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>
+          <span id="scBarLbl" class="hidden sm:inline">Bearbeiten</span>
+        </button>
+        <div id="scHead" class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 pr-16 sm:pr-40">
           <button id="scToggle" type="button" aria-expanded="true" aria-controls="scBody" class="flex items-center gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 rounded-lg" title="Aufklappen / zuklappen">
             <svg id="scChevron" class="w-5 h-5 text-gold-400 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
             <h3 class="font-display text-xl gold-text">Showcase</h3>
@@ -5335,7 +5341,24 @@ window.RokApp = () => {
       if (scFitSets(D(), true)) { drawShowcase(); if (sc.own) scSaveSoon(); }
     }));
   }
+  // Showcase-Leiste (Titel, Knöpfe, Liste) standardmäßig aus → nur das Bild; Mini-Knopf ✎ oben rechts blendet sie ein
+  let scBar = false;
+  const scBarEff = () => scBar || !!sc.edit;
+  function scApplyBar() {
+    const on = scBarEff();
+    $('scHead').classList.toggle('hidden', !on);
+    $('scListBar').classList.toggle('hidden', !on);
+    if (!on) { $('scBgPick').classList.add('hidden'); $('scHint').classList.add('hidden'); }
+    $('scBody').classList.toggle('pt-5', !on);
+    $('scBarBtn').setAttribute('aria-expanded', String(on));
+    $('scBarBtn').classList.toggle('hidden', !!sc.edit);                 // im Bearbeitungsmodus gibt es „✓ Fertig“
+    $('scBarLbl').textContent = on ? 'Schließen' : (sc.own ? 'Bearbeiten' : 'Optionen');
+    $('scBarBtn').title = on ? 'Leiste ausblenden' : (sc.own ? 'Showcase bearbeiten' : 'Showcase-Optionen');
+  }
+  $('scBarBtn').onclick = () => { scBar = !scBar; drawShowcase(); if (!scBarEff()) scFitOnLoad(); };
   function scApplyOpen() {
+    scApplyBar();
+    if (!scBarEff()) { $('scBody').classList.remove('hidden'); return; }   // ohne Leiste kein Zuklappen → Bild immer sichtbar
     $('scBody').classList.toggle('hidden', !scOpen);
     $('scToggle').setAttribute('aria-expanded', String(scOpen));
     $('scChevron').classList.toggle('-rotate-90', !scOpen);
@@ -6169,7 +6192,7 @@ window.RokApp = () => {
     </div>`;
     scDrawPreview();
   }
-  const scImgEff = () => scImgOnly || (!sc.own && !!sc.doc?.detPriv);   // „Nur Bild“: selbst gewählt oder vom Besitzer erzwungen
+  const scImgEff = () => scImgOnly || !scBarEff() || (!sc.own && !!sc.doc?.detPriv);   // ohne Leiste: nur das Bild   // „Nur Bild“: selbst gewählt oder vom Besitzer erzwungen
   function drawSetBar() {
     const d = D(), many = d.sets.length > 1;
     $('scSetBar').classList.toggle('hidden', (!sc.own && !many) || scImgEff());
