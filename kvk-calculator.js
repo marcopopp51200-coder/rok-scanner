@@ -286,7 +286,7 @@
       lockOn: 'Startwerte fixiert', lockSince: 'seit KvK-Start', lockInfo: 'neue Scans ändern sie nicht mehr', lockEdit: 'Startwerte bearbeiten',
       lockMode: 'Bearbeitungsmodus', lockModeInfo: 'Änderungen werden sofort gespeichert · Scan nimmt nur Daten von vor dem KvK-Start', lockDone: 'Fertig', lockUndo: 'Verwerfen',
       lockTip: 'Fixiert seit KvK-Start – zum Ändern „Startwerte bearbeiten“', noPreScan: 'Kein Scan von vor dem KvK-Start vorhanden',
-      openKvk: 'KvK öffnen', countdown: 'KvK Countdown', edit: 'Bearbeiten', bgLabel: 'Hintergrundbild', bgPick: 'Bild wählen', bgReset: 'Standard',
+      showMap: 'Karte zeigen', openKvk: 'KvK öffnen', countdown: 'KvK Countdown', edit: 'Bearbeiten', bgLabel: 'Hintergrundbild', bgPick: 'Bild wählen', bgReset: 'Standard',
       bgBusy: 'Bild wird verarbeitet …', bgDone: 'Hintergrund gespeichert', bgTooBig: 'Bild ist zu groß für den Browser-Speicher', bgFail: 'Bild konnte nicht gelesen werden', calTitle: 'KvK-Kalender', done: 'Fertig', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End', map: 'Karte' },
       mp: { whichKvk: 'Welches KvK?', whichHint: 'Bestimmt, welche Karte im Reiter Karte und in deinem Profil erscheint', layouts: { schema: ['Schema', 'vereinfachte Zonen-Übersicht (Testanordnung)'] }, mapsLoading: 'Karten werden geladen …', mapLoading: 'Karte wird geladen …', mapFail: 'Karte konnte nicht geladen werden – Schema wird gezeigt', title: 'Karte & Zeiten', hint: 'Camps, Pässe, Ruinen und Altäre – mit Timer bis zum nächsten Ereignis', next: 'Nächstes Ereignis', none: 'Keine kommenden Ereignisse im KvK', noTime: 'Für diesen Pass ist noch keine Zeit hinterlegt', fightOn: 'Kampf läuft noch', fightSince: 'seit', fightLen: 'Kampfdauer {h} Std', nextOne: 'danach', altarNext: 'Nächster Altar', passNext: 'Öffnet', fightNow: 'Kampf', nextShort: 'Nächstes', needStart: 'Trag oben über ✎ das KvK-Startdatum ein – dann erscheinen alle Zeiten und der Timer.', upcoming: 'Als Nächstes', passes: 'Pässe', rules: 'Ruinen & Altäre', kinds: { pass: 'Pass', ruin: 'Ruine', altar: 'Altar', other: 'Sonstiges' }, passOpen: 'Pass {n} öffnet', campsFold: 'Camps bearbeiten', campsHint: 'Bis zu 10 Königreiche je Camp, eigenes und verbündetes Camp', designHint: '{n} Designs zur Auswahl – gilt auch für die Karte im Profil', timesFold: 'Zeiten bearbeiten', timesHint: 'Ruinen, Altäre und eigene Ereignisse – Datum oder KvK-Tag, Uhrzeit UTC, Abstand in Stunden', day: 'KvK-Tag', time: 'Uhrzeit (UTC)', date: 'Datum (UTC)', rep: 'alle … Std', repHint: '0 = einmal · 24 = täglich · Ruinen alle 40 Std · Altar alle 86 Std · Datum gesetzt → KvK-Tag wird ignoriert', once: 'einmal', daily: 'täglich', every: 'alle {n}', everyH: 'Std', add: 'hinzufügen', name: 'Name (optional)', past: 'vorbei', dayN: 'Tag', noRules: 'Noch keine Ruinen- oder Altarzeiten eingetragen', soon: 'Die echten Ruinen- und Altarzeiten kommen noch – bis dahin kannst du sie unten selbst eintragen.', allDone: 'alle vorbei', del: 'Entfernen' },
@@ -411,7 +411,7 @@
       lockOn: 'Start values locked', lockSince: 'since KvK start', lockInfo: 'new scans no longer change them', lockEdit: 'Edit start values',
       lockMode: 'Edit mode', lockModeInfo: 'Changes are saved right away · scan only uses data from before KvK start', lockDone: 'Done', lockUndo: 'Discard',
       lockTip: 'Locked since KvK start – use “Edit start values” to change', noPreScan: 'No scan from before KvK start',
-      openKvk: 'Open KvK', countdown: 'KvK Countdown', edit: 'Edit', bgLabel: 'Background image', bgPick: 'Choose image', bgReset: 'Default',
+      showMap: 'Show map', openKvk: 'Open KvK', countdown: 'KvK Countdown', edit: 'Edit', bgLabel: 'Background image', bgPick: 'Choose image', bgReset: 'Default',
       bgBusy: 'Processing image …', bgDone: 'Background saved', bgTooBig: 'Image is too large for browser storage', bgFail: 'Image could not be read', calTitle: 'KvK calendar', done: 'Done', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End', map: 'Map' },
       mp: { whichKvk: 'Which KvK?', whichHint: 'Decides which map shows in the Map tab and in your profile', layouts: { schema: ['Schematic', 'simplified zone overview (test layout)'] }, mapsLoading: 'Loading maps …', mapLoading: 'Loading map …', mapFail: 'Map could not be loaded – showing the schematic', title: 'Map & times', hint: 'Camps, passes, ruins and altars – with a timer to the next event', next: 'Next event', none: 'No upcoming events in this KvK', noTime: 'No time stored for this pass yet', fightOn: 'Fight still on', fightSince: 'since', fightLen: 'fight lasts {h} h', nextOne: 'then', altarNext: 'Next altar', passNext: 'Opens', fightNow: 'Fight', nextShort: 'Next', needStart: 'Set the KvK start date via ✎ above – then all times and the timer appear.', upcoming: 'Coming up', passes: 'Passes', rules: 'Ruins & altars', kinds: { pass: 'Pass', ruin: 'Ruin', altar: 'Altar', other: 'Other' }, passOpen: 'Pass {n} opens', campsFold: 'Edit camps', campsHint: 'Up to 10 kingdoms per camp, own and allied camp', designHint: '{n} designs to choose from – also used for the map in your profile', timesFold: 'Edit times', timesHint: 'Ruins, altars and your own events – date or KvK day, time in UTC, interval in hours', day: 'KvK day', time: 'Time (UTC)', date: 'Date (UTC)', rep: 'every … h', repHint: '0 = once · 24 = daily · ruins every 40 h · altar every 86 h · with a date set, the KvK day is ignored', once: 'once', daily: 'daily', every: 'every {n}', everyH: 'h', add: 'add', name: 'Name (optional)', past: 'over', dayN: 'Day', noRules: 'No ruin or altar times entered yet', soon: 'The real ruin and altar times are still coming – until then you can enter them below.', allDone: 'all over', del: 'Remove' },
@@ -1148,13 +1148,16 @@
    * Ansicht
    * ================================================================== */
   // Timer-Feld (Feuer-Countdown mit Hintergrundbild und Flammen) – im KvK-Bereich und z. B. im Profil
-  function timePanelHTML(openBtn) {
+  function timePanelHTML(openBtn, mapBtn) {
     const L = t();
     return `
       <section class="kvk-time panel relative overflow-hidden rounded-2xl px-4 pt-4 sm:pt-5 pb-[72px] sm:pb-20">
         <div class="kvk-flame-glow" aria-hidden="true"></div>
         <canvas data-flames class="kvk-flames" aria-hidden="true"></canvas>
-        ${openBtn ? `<button type="button" data-kvk-open class="absolute right-3 top-3 z-20 text-xs px-3 py-1.5 rounded-lg border border-gold-500/40 bg-ink-950/60 text-gold-300 hover:border-gold-400 hover:bg-ink-950/80 backdrop-blur-sm">${L.openKvk} ›</button>` : ''}
+        ${openBtn || mapBtn ? `<div class="absolute right-3 top-3 z-20 flex flex-col items-end gap-1.5">
+          ${openBtn ? `<button type="button" data-kvk-open class="text-xs px-3 py-1.5 rounded-lg border border-gold-500/40 bg-ink-950/60 text-gold-300 hover:border-gold-400 hover:bg-ink-950/80 backdrop-blur-sm">${L.openKvk} ›</button>` : ''}
+          ${mapBtn ? `<button type="button" data-kvk-map class="text-xs px-3 py-1.5 rounded-lg border border-gold-500/40 bg-ink-950/60 text-gold-300 hover:border-gold-400 hover:bg-ink-950/80 backdrop-blur-sm">🗺️ ${L.showMap}</button>` : ''}
+        </div>` : ''}
         <div class="relative z-10 flex flex-col items-center text-center gap-2.5">
           <div class="font-display text-sm sm:text-base uppercase tracking-[.3em] text-gold-300/90">${L.countdown}</div>
           <div data-phase></div>
@@ -3242,6 +3245,27 @@
     return true;
   }
 
+  // Karte als Fenster über der Seite (Profil: „Karte zeigen“ im Countdown)
+  function openMapModal(data, opts = {}) {
+    let ov = document.getElementById('kvkMapModal');
+    if (ov) ov.remove();
+    ov = document.createElement('div');
+    ov.id = 'kvkMapModal';
+    ov.className = 'kvk-host p-3 sm:p-6';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:70;overflow-y:auto;background:rgba(7,9,15,.88);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)';
+    ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true');
+    ov.innerHTML = `<div class="relative max-w-3xl mx-auto sm:my-6 ui-pop">
+        <button type="button" data-map-close class="absolute -top-1 right-0 z-30 text-sm px-3 py-1.5 rounded-lg border border-ink-600 bg-ink-900 text-slate-300 hover:text-white" aria-label="${t().done}">✕</button>
+        <div data-map-host class="pt-9"></div></div>`;
+    document.body.appendChild(ov);
+    const host = ov.querySelector('[data-map-host]');
+    const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    ov.addEventListener('click', (e) => { if (e.target === ov || e.target.closest('[data-map-close]')) close(); });
+    mountMap(host, data, { ...opts, onOpen: opts.onOpen ? () => { close(); opts.onOpen(); } : undefined });
+  }
+
   /* ----- Timer auf anderen Seiten (z. B. Game Profil): gleiche Uhr, gleiche Flammen ----- */
   const hosts = [], mapHosts = [];
   function mountTimer(el, opts = {}) {
@@ -3255,9 +3279,14 @@
     el._kvkEvs = el._kvkFixed ? eventsFor(startTs(opts.startDate), cleanEvents(opts.events), opts.days) : null;   // fremdes Profil: dessen Ereignisse
     el.classList.add('kvk-host');
     el.setAttribute('translate', 'no');
-    el.innerHTML = timePanelHTML(!!opts.onOpen);
+    // Karte-Knopf: eigene Karte (map === null) oder die des Profilbesitzers (Objekt); nur wenn es etwas zu zeigen gibt
+    const mapSrc = opts.map === undefined ? undefined : opts.map;
+    const hasMap = mapSrc !== undefined && mapHasData(mapSrc === null ? mapData() : cleanMap(mapSrc));
+    el.innerHTML = timePanelHTML(!!opts.onOpen, hasMap);
     const b = el.querySelector('[data-kvk-open]');
     if (b) b.onclick = () => opts.onOpen();
+    const mb = el.querySelector('[data-kvk-map]');
+    if (mb) mb.onclick = () => openMapModal(mapSrc, { kingdom: opts.kingdom, startDate: opts.startDate, onOpen: opts.onMapEdit });
     for (let i = hosts.length - 1; i >= 0; i--) if (!hosts[i].isConnected || hosts[i] === el) hosts.splice(i, 1);
     hosts.push(el);
     applyBg();
@@ -3948,6 +3977,7 @@
     mineOutput,
     mountTimer,                                     // KvKCalc.mountTimer(element, { onOpen }) – Countdown z. B. im Profil
     mapData: () => { if (!state) state = load(); return mapData(); },   // eigene Karte { kds: [[…]×4], my, ally } – fürs Profil speichern
+    openMapModal,                                   // KvKCalc.openMapModal(daten | null, { kingdom, startDate }) – Karte als Fenster
     mountMap,                                       // KvKCalc.mountMap(element, daten | null, { kingdom, onOpen }) – Karte im Profil; false = nichts zu zeigen
     getState: () => clone(state),
     setState(obj) { loadedNs = ns(); state = mergeInto(freshState(), obj); save(); rerender(); },

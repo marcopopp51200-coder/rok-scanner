@@ -3749,20 +3749,22 @@ window.RokApp = () => {
   // Jeder Spieler trägt sein Datum selbst ein (KvK-Bereich) → steht in seinem Profil, auch für Besucher sichtbar
   const kvkDate = (d) => /^\d{4}-\d{2}-\d{2}$/.test(String(d || '').slice(0, 10)) ? String(d).slice(0, 10) : '';
   function mountProfKvk(own, row) {
-    mountProfMap(own, row);                                                            // Karte unabhängig vom Datum
-    const el = $('profKvkTimer'), hide = () => { el.classList.add('hidden'); el.innerHTML = ''; };
+    const el = $('profKvkTimer'), hide = () => { el.classList.add('hidden'); el.innerHTML = ''; mountProfMap(own, row); };   // ohne Timer: Karte direkt zeigen
+    const mapEl = $('profKvkMap'); if (mapEl) { mapEl.classList.add('hidden'); mapEl.innerHTML = ''; }                       // mit Timer: Karte über „Karte zeigen“
+    const editMap = () => { const s = window.KvKCalc.getState(); s.tab = 'map'; s.open.mapCamps = true; window.KvKCalc.setState(s); view = 'kvk'; applyView(); window.KvKCalc.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
     if (!window.KvKCalc?.mountTimer) return hide();
     try {
       if (own) {
         const d = kvkDate(window.KvKCalc.getState?.()?.startDate);
         if (d !== kvkDate(RokAuth.ownMeta().kvk_start)) RokAuth.saveKvkStart(d);      // bisheriges Datum ins Profil übernehmen
         el.classList.remove('hidden');
-        window.KvKCalc.mountTimer(el, { onOpen: () => { view = 'kvk'; applyView(); window.KvKCalc?.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
+        RokAuth.saveKvkMap(window.KvKCalc.mapData());                                   // Karte fürs Profil aktuell halten
+        window.KvKCalc.mountTimer(el, { onOpen: () => { view = 'kvk'; applyView(); window.KvKCalc?.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }, map: null, onMapEdit: editMap });
       } else {
         const d = kvkDate(row?.kvk_start);
         if (!d) return hide();                                                         // Spieler hat (noch) kein Datum eingetragen
         el.classList.remove('hidden');
-        window.KvKCalc.mountTimer(el, { startDate: d, events: row?.kvk_map?.ev || [], days: row?.kvk_map?.days });
+        window.KvKCalc.mountTimer(el, { startDate: d, events: row?.kvk_map?.ev || [], days: row?.kvk_map?.days, map: row?.kvk_map || {}, kingdom: row?.kingdom || '' });
       }
     } catch (e) { console.warn('KvK-Countdown nicht verfügbar', e); hide(); }
   }
