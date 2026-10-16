@@ -301,7 +301,7 @@
         cmpTitle: 'KvK-Vergleich', cmpHint: 'Alle Mitglieder · Spalte antippen = sortieren', noStats: 'noch keine Werte',
         k: { kp: 'Kill-Punkte', acclaim: 'Verdienst', honor: 'Ehre', crystal: 'Kristalle', mb: 'Kristall-Boost' }, kSub: { kp: 'Gewinn seit KvK-Start', acclaim: 'im KvK', honor: 'Stand', crystal: 'gesammelt', mb: 'Minen-Boost %' },
         player: 'Spieler', full: 'Vollbild', ranking: 'Rangliste', sortHint: 'Spalte antippen = sortieren', inviteBtnLong: 'Spieler einladen – Name, Governor-ID oder Königreich', remove: 'Entfernen', cancel: 'Zurückziehen' },
-      mp: { whichKvk: 'Welches KvK?', autoShort: 'automatisch', leftN: 'übrig', dlMap: 'Nur Karte herunterladen', noMapYet: 'Karte noch nicht bekannt', noMapYetSub: 'Sobald das KvK offiziell ist, kommt die Karte dazu', whichHint: 'Bestimmt, welche Karte im Reiter Karte und in deinem Profil erscheint', layouts: { schema: ['Schema', 'vereinfachte Zonen-Übersicht (Testanordnung)'] }, mapsLoading: 'Karten werden geladen …', mapLoading: 'Karte wird geladen …', mapFail: 'Karte konnte nicht geladen werden – Schema wird gezeigt', title: 'Karte & Zeiten', hint: 'Camps, Pässe, Ruinen und Altäre – mit Timer bis zum nächsten Ereignis', next: 'Nächstes Ereignis', none: 'Keine kommenden Ereignisse im KvK', noTime: 'Für diesen Pass ist noch keine Zeit hinterlegt', fightSinceLbl: 'Kampf läuft seit', fightOn: 'Kampf läuft noch', fightSince: 'seit', fightLen: 'Kampfdauer {h} Std', nextOne: 'danach', altarNext: 'Nächster Altar', passNext: 'Öffnet', fightNow: 'Kampf', nextShort: 'Nächstes', needStart: 'Trag oben über ✎ das KvK-Startdatum ein – dann erscheinen alle Zeiten und der Timer.', upcoming: 'Als Nächstes', passes: 'Pässe', rules: 'Ruinen & Altäre', kinds: { pass: 'Pass', ruin: 'Ruine', altar: 'Altar', other: 'Sonstiges' }, passOpen: 'Pass {n} öffnet', campsFold: 'Camps bearbeiten', campsHint: 'Bis zu 10 Königreiche je Camp, eigenes und verbündetes Camp', designHint: '{n} Designs zur Auswahl – gilt auch für die Karte im Profil', timesFold: 'Zeiten bearbeiten', timesHint: 'Pass-Zeiten, Ruinen, Altäre und eigene Ereignisse – Datum und Uhrzeit in UTC', day: 'KvK-Tag', time: 'Uhrzeit (UTC)', date: 'Datum (UTC)', rep: 'alle … Std', repHint: 'Datum + Uhrzeit in UTC · alle … Std: 0 = einmal, 24 = täglich, Ruinen 40, Altar 86', paTitle: 'Pass-Zeiten (UTC)', paHint: 'Pass 4 eintragen – alle späteren Pässe, Ruinen und Altäre werden ab da neu berechnet (Quests können verschieben). Einzelne spätere Pässe kannst du zusätzlich setzen.', paClear: 'Wieder berechnen', autoEv: 'Ruinen & Altäre automatisch aus den Pass-Zeiten', from: 'ab', autoNote: 'eigene Ruinen/Altäre unten werden ignoriert, solange automatisch an ist', once: 'einmal', daily: 'täglich', every: 'alle {n}', everyH: 'Std', add: 'hinzufügen', name: 'Name (optional)', past: 'vorbei', dayN: 'Tag', noRules: 'Noch keine Ruinen- oder Altarzeiten eingetragen', soon: 'Die echten Ruinen- und Altarzeiten kommen noch – bis dahin kannst du sie unten selbst eintragen.', allDone: 'alle vorbei', del: 'Entfernen' },
+      mp: { whichKvk: 'Welches KvK?', ruinsAll: 'Alle Ruinen', altarsAll: 'Alle Altäre', autoShort: 'automatisch', leftN: 'übrig', dlMap: 'Nur Karte herunterladen', noMapYet: 'Karte noch nicht bekannt', noMapYetSub: 'Sobald das KvK offiziell ist, kommt die Karte dazu', whichHint: 'Bestimmt, welche Karte im Reiter Karte und in deinem Profil erscheint', layouts: { schema: ['Schema', 'vereinfachte Zonen-Übersicht (Testanordnung)'] }, mapsLoading: 'Karten werden geladen …', mapLoading: 'Karte wird geladen …', mapFail: 'Karte konnte nicht geladen werden – Schema wird gezeigt', title: 'Karte & Zeiten', hint: 'Camps, Pässe, Ruinen und Altäre – mit Timer bis zum nächsten Ereignis', next: 'Nächstes Ereignis', none: 'Keine kommenden Ereignisse im KvK', noTime: 'Für diesen Pass ist noch keine Zeit hinterlegt', fightSinceLbl: 'Kampf läuft seit', fightOn: 'Kampf läuft noch', fightSince: 'seit', fightLen: 'Kampfdauer {h} Std', nextOne: 'danach', altarNext: 'Nächster Altar', passNext: 'Öffnet', fightNow: 'Kampf', nextShort: 'Nächstes', needStart: 'Trag oben über ✎ das KvK-Startdatum ein – dann erscheinen alle Zeiten und der Timer.', upcoming: 'Als Nächstes', passes: 'Pässe', rules: 'Ruinen & Altäre', kinds: { pass: 'Pass', ruin: 'Ruine', altar: 'Altar', other: 'Sonstiges' }, passOpen: 'Pass {n} öffnet', campsFold: 'Camps bearbeiten', campsHint: 'Bis zu 10 Königreiche je Camp, eigenes und verbündetes Camp', designHint: '{n} Designs zur Auswahl – gilt auch für die Karte im Profil', timesFold: 'Zeiten bearbeiten', timesHint: 'Pass-Zeiten, Ruinen, Altäre und eigene Ereignisse – Datum und Uhrzeit in UTC', day: 'KvK-Tag', time: 'Uhrzeit (UTC)', date: 'Datum (UTC)', rep: 'alle … Std', repHint: 'Datum + Uhrzeit in UTC · alle … Std: 0 = einmal, 24 = täglich, Ruinen 40, Altar 86', paTitle: 'Pass-Zeiten (UTC)', paHint: 'Pass 4 eintragen – alle späteren Pässe, Ruinen und Altäre werden ab da neu berechnet (Quests können verschieben). Einzelne spätere Pässe kannst du zusätzlich setzen.', paClear: 'Wieder berechnen', autoEv: 'Ruinen & Altäre automatisch aus den Pass-Zeiten', from: 'ab', autoNote: 'eigene Ruinen/Altäre unten werden ignoriert, solange automatisch an ist', once: 'einmal', daily: 'täglich', every: 'alle {n}', everyH: 'Std', add: 'hinzufügen', name: 'Name (optional)', past: 'vorbei', dayN: 'Tag', noRules: 'Noch keine Ruinen- oder Altarzeiten eingetragen', soon: 'Die echten Ruinen- und Altarzeiten kommen noch – bis dahin kannst du sie unten selbst eintragen.', allDone: 'alle vorbei', del: 'Entfernen' },
       calc: 'Berechnung', calcHint: 'Kisten, Bundles, Kosten Mine & Kristall-Tech-Gebäude', costMine: 'Kristallmine – Ziel-Stufe', costTech: 'Kristall-Tech-Gebäude – Ziel-Stufe', lv: 'Stufe', costTotal: 'Kristall-Kosten gesamt', left: 'Übrig', resOnly: 'nur Rohstoffe',
       income: 'Ertrag pro Tag', avail: 'Verfügbar', need: 'Benötigt', diff: 'Differenz', chestsNeed: 'Kisten nötig', chestsUnit: 'Kisten',
       enough: 'Reicht', missingTxt: 'Fehlen', availTotal: 'Verfügbar gesamt', inclSupply: 'inkl. Premium Supply', mineTech: 'Mine + Tech', bundlesFold: 'Bundles', bundlesHint: 'Echtgeld-Angebote, Statistik & Budget-Planer',
@@ -445,7 +445,7 @@
         cmpTitle: 'KvK comparison', cmpHint: 'All members · tap a column to sort', noStats: 'no values yet',
         k: { kp: 'Kill points', acclaim: 'Acclaim', honor: 'Honor', crystal: 'Crystals', mb: 'Crystal boost' }, kSub: { kp: 'gain since KvK start', acclaim: 'in KvK', honor: 'current', crystal: 'collected', mb: 'mine boost %' },
         player: 'Player', full: 'Full view', ranking: 'Ranking', sortHint: 'tap a column to sort', inviteBtnLong: 'Invite players – name, governor ID or kingdom', remove: 'Remove', cancel: 'Withdraw' },
-      mp: { whichKvk: 'Which KvK?', autoShort: 'automatic', leftN: 'left', dlMap: 'Download map only', noMapYet: 'Map not known yet', noMapYetSub: 'The map follows once the KvK is official', whichHint: 'Decides which map shows in the Map tab and in your profile', layouts: { schema: ['Schematic', 'simplified zone overview (test layout)'] }, mapsLoading: 'Loading maps …', mapLoading: 'Loading map …', mapFail: 'Map could not be loaded – showing the schematic', title: 'Map & times', hint: 'Camps, passes, ruins and altars – with a timer to the next event', next: 'Next event', none: 'No upcoming events in this KvK', noTime: 'No time stored for this pass yet', fightSinceLbl: 'fight running for', fightOn: 'Fight still on', fightSince: 'since', fightLen: 'fight lasts {h} h', nextOne: 'then', altarNext: 'Next altar', passNext: 'Opens', fightNow: 'Fight', nextShort: 'Next', needStart: 'Set the KvK start date via ✎ above – then all times and the timer appear.', upcoming: 'Coming up', passes: 'Passes', rules: 'Ruins & altars', kinds: { pass: 'Pass', ruin: 'Ruin', altar: 'Altar', other: 'Other' }, passOpen: 'Pass {n} opens', campsFold: 'Edit camps', campsHint: 'Up to 10 kingdoms per camp, own and allied camp', designHint: '{n} designs to choose from – also used for the map in your profile', timesFold: 'Edit times', timesHint: 'Pass times, ruins, altars and your own events – date and time in UTC', day: 'KvK day', time: 'Time (UTC)', date: 'Date (UTC)', rep: 'every … h', repHint: 'date + time in UTC · every … h: 0 = once, 24 = daily, ruins 40, altar 86', paTitle: 'Pass times (UTC)', paHint: 'Enter pass 4 – all later passes, ruins and altars are recalculated from there (quests can shift them). You can also set single later passes.', paClear: 'Calculate again', autoEv: 'Ruins & altars automatically from the pass times', from: 'from', autoNote: 'your own ruins/altars below are ignored while automatic is on', once: 'once', daily: 'daily', every: 'every {n}', everyH: 'h', add: 'add', name: 'Name (optional)', past: 'over', dayN: 'Day', noRules: 'No ruin or altar times entered yet', soon: 'The real ruin and altar times are still coming – until then you can enter them below.', allDone: 'all over', del: 'Remove' },
+      mp: { whichKvk: 'Which KvK?', ruinsAll: 'All ruins', altarsAll: 'All altars', autoShort: 'automatic', leftN: 'left', dlMap: 'Download map only', noMapYet: 'Map not known yet', noMapYetSub: 'The map follows once the KvK is official', whichHint: 'Decides which map shows in the Map tab and in your profile', layouts: { schema: ['Schematic', 'simplified zone overview (test layout)'] }, mapsLoading: 'Loading maps …', mapLoading: 'Loading map …', mapFail: 'Map could not be loaded – showing the schematic', title: 'Map & times', hint: 'Camps, passes, ruins and altars – with a timer to the next event', next: 'Next event', none: 'No upcoming events in this KvK', noTime: 'No time stored for this pass yet', fightSinceLbl: 'fight running for', fightOn: 'Fight still on', fightSince: 'since', fightLen: 'fight lasts {h} h', nextOne: 'then', altarNext: 'Next altar', passNext: 'Opens', fightNow: 'Fight', nextShort: 'Next', needStart: 'Set the KvK start date via ✎ above – then all times and the timer appear.', upcoming: 'Coming up', passes: 'Passes', rules: 'Ruins & altars', kinds: { pass: 'Pass', ruin: 'Ruin', altar: 'Altar', other: 'Other' }, passOpen: 'Pass {n} opens', campsFold: 'Edit camps', campsHint: 'Up to 10 kingdoms per camp, own and allied camp', designHint: '{n} designs to choose from – also used for the map in your profile', timesFold: 'Edit times', timesHint: 'Pass times, ruins, altars and your own events – date and time in UTC', day: 'KvK day', time: 'Time (UTC)', date: 'Date (UTC)', rep: 'every … h', repHint: 'date + time in UTC · every … h: 0 = once, 24 = daily, ruins 40, altar 86', paTitle: 'Pass times (UTC)', paHint: 'Enter pass 4 – all later passes, ruins and altars are recalculated from there (quests can shift them). You can also set single later passes.', paClear: 'Calculate again', autoEv: 'Ruins & altars automatically from the pass times', from: 'from', autoNote: 'your own ruins/altars below are ignored while automatic is on', once: 'once', daily: 'daily', every: 'every {n}', everyH: 'h', add: 'add', name: 'Name (optional)', past: 'over', dayN: 'Day', noRules: 'No ruin or altar times entered yet', soon: 'The real ruin and altar times are still coming – until then you can enter them below.', allDone: 'all over', del: 'Remove' },
       calc: 'Calculation', calcHint: 'Chests, bundles, mine & crystal tech building cost', costMine: 'Crystal mine – target level', costTech: 'Crystal tech building – target level', lv: 'Level', costTotal: 'Total crystal cost', left: 'Left over', resOnly: 'resources only',
       income: 'Income per day', avail: 'Available', need: 'Needed', diff: 'Difference', chestsNeed: 'Chests needed', chestsUnit: 'chests',
       enough: 'Enough', missingTxt: 'Missing', availTotal: 'Available total', inclSupply: 'incl. Premium Supply', mineTech: 'Mine + tech', bundlesFold: 'Bundles', bundlesHint: 'Real-money offers, statistics & budget planner',
@@ -592,7 +592,7 @@
       buildSpeed: 0,                                                              // Bau-Tempo in % (für die Bauzeit der Kristallgebäude)
       helps: 30,                                                                  // Allianz-Hilfen je Ausbaustufe (max. 30)
       mapEv: [],                                                              // Ruinen/Altäre/Eigenes: { id, kind, name, day, time 'HH:MM' UTC, rep (Tage, 0 = einmal) }
-      open: { mapCamps: false, mapTimes: false, mapDesign: false, mapLayout: false, calc: false, bundles: false, res: false, stats: false, rmStart: false, midFlow: false, midGoal: false, midAp: false, midHon: false, midStats: false, midMap: false, endSum: false, endImg: false },                                       // eingeklappte Fenster
+      open: { mapCamps: false, mapTimes: false, mapDesign: false, mapLayout: false, calc: false, bundles: false, res: false, stats: false, rmStart: false, midFlow: false, midGoal: false, midAp: false, midHon: false, midStats: false, midMap: false, endSum: false, endImg: false, ev_ruin: false, ev_altar: false },                                       // eingeklappte Fenster
       buy: {},                                                                    // Stufen-ID → Anzahl
       passAt: {}, autoEv: 1,                                                    // Pass-Zeiten von Hand (UTC, 'JJJJ-MM-TTTHH:MM') · autoEv 2 = Ruinen/Altäre nicht automatisch
       budget: 0, budgetOn: 0,                                                   // budgetOn 1 = Budget eingetragen (auch 0 $ = nur kostenlos)
@@ -1763,11 +1763,9 @@
     // ---- Reiter Karte: Timer bis zum nächsten Ereignis, Karte, Zeitplan ----
     const MP = L.mp;
     const evRow = (e) => `
-      <div data-ev="${e.id}" class="grid gap-2 grid-cols-2 sm:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,.8fr)_minmax(0,.65fr)_auto] items-end rounded-lg border border-ink-700 bg-ink-950/40 p-2.5">
+      <div data-ev="${e.id}" class="grid gap-2 grid-cols-2 sm:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,.65fr)_auto] items-end rounded-lg border border-ink-700 bg-ink-950/40 p-2.5">
         <label class="flex flex-col gap-1 text-[11px] text-slate-500"><span>&nbsp;</span>
           <select data-ev-field="kind" class="${INPUT_SM} !text-left">${['ruin', 'altar', 'other'].map((k) => `<option value="${k}" ${e.kind === k ? 'selected' : ''}>${EV_ICON[k][0]} ${MP.kinds[k]}</option>`).join('')}</select></label>
-        <label class="flex flex-col gap-1 text-[11px] text-slate-500"><span>${MP.name}</span>
-          <input type="text" data-ev-field="name" value="${esc(e.name)}" maxlength="40" placeholder="${MP.kinds[e.kind] || ''}" class="${INPUT_SM} !text-left"></label>
         <label class="flex flex-col gap-1 text-[11px] text-slate-500"><span>${MP.date}</span>
           <input type="date" data-ev-field="date" value="${esc(e.date || evDateOf(e))}" class="${INPUT_SM} [color-scheme:dark]"></label>
         <label class="flex flex-col gap-1 text-[11px] text-slate-500"><span>${MP.time}</span>
@@ -1785,7 +1783,7 @@
         <div class="grid gap-2 grid-cols-1 sm:grid-cols-5">${schNow.passes.map((p) => `
           <label class="flex flex-col gap-1 text-[11px] ${p.set ? 'text-gold-300' : 'text-slate-500'}">
             <span class="flex items-center justify-between gap-1">${L.pass} ${p.n}${p.set ? ` <button type="button" data-pa-clear="${p.n}" class="text-slate-500 hover:text-red-300" title="${MP.paClear}">✕</button>` : ''}</span>
-            <input type="datetime-local" data-pa="${p.n}" value="${esc(state.passAt[p.n] || '')}" class="${INPUT_SM} [color-scheme:dark] ${p.set ? '!border-gold-500/70' : ''}">
+            <input type="datetime-local" data-pa="${p.n}" value="${esc(state.passAt[p.n] || (p.ts != null && startTs() != null ? new Date(p.ts).toISOString().slice(0, 16) : ''))}" class="${INPUT_SM} [color-scheme:dark] ${p.set ? '!border-gold-500/70' : ''}">
             <span class="${p.set ? 'text-gold-300/80' : 'text-slate-500'} tabular-nums">${startTs() != null ? (p.set ? '✎ ' : '≈ ') + utcTxt(p.ts) : '–'}</span>
           </label>`).join('')}</div>
         ${autoOk ? `<label class="flex items-start gap-2.5 text-sm text-slate-200 cursor-pointer rounded-lg border border-ink-700 px-3 py-2 ${autoOn ? 'bg-gold-500/5 border-gold-500/40' : ''}">
@@ -1805,13 +1803,12 @@
       <section class="panel rounded-2xl p-5 flex flex-col gap-4">
         ${tileHead('🗺️', MP.title, MP.hint, null, `<button type="button" data-map-edit class="shrink-0 text-xs px-2.5 py-1 rounded-lg border ${mapEditOn ? 'border-gold-500 bg-gold-500 text-ink-950 font-semibold' : 'border-ink-600 hover:border-gold-500/60 hover:text-gold-300'}">${mapEditOn ? '✓ ' + L.done : '✎ ' + L.edit}</button>`)}
         <div data-out="mapNext"></div>
-        <div class="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-start">
-          <div data-out="midMap"></div>
-          <div class="flex flex-col gap-4">
-            ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">📅 ${MP.upcoming}</div><div data-out="mapUpcoming"></div>`)}
-            ${card(`<div data-out="mapSched"></div>`)}
-          </div>
+        <div class="kvk-map-wide w-full mx-auto" style="max-width:1100px"><div data-out="midMap"></div></div>
+        <div class="grid gap-4 lg:grid-cols-2 items-start">
+          ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">📅 ${MP.upcoming}</div><div data-out="mapUpcoming"></div>`)}
+          ${card(`<div data-out="mapSched"></div>`)}
         </div>
+        <div data-out="mapEvLists"></div>
         ${fold('mapLayout', '🗺️', L.mp.whichKvk, L.mp.whichHint, `<div class="pt-3">${layoutPicker()}</div>`)}
         ${fold('mapDesign', '🎨', M.mapDesign, MP.designHint.replace('{n}', MAP_STYLES.length), `<div class="pt-3">${mapStylePicker()}</div>`)}
         ${fold('mapCamps', '🏕️', MP.campsFold, MP.campsHint, campBody)}
@@ -2503,7 +2500,7 @@
     const fsum = { mapLayout: `<span class="text-slate-400">${esc(layoutName())}</span>`, mapCamps: '', mapDesign: `<span class="text-slate-400">${L.m.mapStyles[mapData().style] || ''}</span>`, mapTimes: (state.mapEv || []).length ? `<span class="text-slate-400">${(state.mapEv || []).length}×</span>` : '' };
     const d0 = mapData(), nKd = d0.kds.reduce((a, k) => a + k.length, 0);
     if (nKd || d0.my) fsum.mapCamps = `<span class="text-slate-400">${nKd} KD${d0.my ? ` · ⭐ ${CAMPS[d0.my - 1].icon}` : ''}${d0.ally ? ` · 🤝 ${CAMPS[d0.ally - 1].icon}` : ''}</span>`;
-    if (s == null) return { mapNext: `<div class="rounded-xl border border-gold-500/30 bg-gold-500/5 px-4 py-3 text-sm text-slate-300">🕒 ${MP.needStart}</div>`, mapUpcoming: `<p class="text-sm text-slate-500">–</p>`, mapSched: '', _fsum: fsum };
+    if (s == null) return { mapNext: `<div class="rounded-xl border border-gold-500/30 bg-gold-500/5 px-4 py-3 text-sm text-slate-300">🕒 ${MP.needStart}</div>`, mapUpcoming: `<p class="text-sm text-slate-500">–</p>`, mapSched: '', mapEvLists: '', _fsum: fsum };
     const now = srvNow(), evs = mapEvents(), up = evs.filter((e) => e.ts > now), nx = up[0];
     const when = (ts) => new Date(ts).toLocaleString(locale(), { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     const utc = (ts) => new Date(ts).toISOString().slice(11, 16) + ' UTC';
@@ -2555,7 +2552,22 @@
       <div class="text-xs uppercase tracking-widest text-slate-400 pt-2 border-t border-ink-700">🏚️ ${MP.rules}</div>
       ${rules ? `<div class="flex flex-col">${rules}</div>` : `<p class="text-sm text-slate-500">${MP.noRules}</p>`}`;
     if (nx) fsum.mapTimes = `<span class="text-slate-400">${ic(nx.kind)[0]} <span data-cd-ts="${nx.ts}">${cdText(nx.ts - now)}</span></span>`;
-    return { mapNext, mapUpcoming, mapSched, _fsum: fsum };
+    // alle Ruinen- und Altarzeiten, je aufklappbar (vorbei = grau, nächster hervorgehoben)
+    const evList = (k) => { const occ = evs.filter((x) => x.kind === k); if (!occ.length) return '';
+      const left = occ.filter((x) => x.ts > now).length, nxt = occ.find((x) => x.ts > now);
+      return `<details data-evlist="${k}" ${state.open['ev_' + k] ? 'open' : ''} class="rounded-xl border border-ink-700 bg-ink-950/50 group">
+        <summary class="cursor-pointer list-none flex items-center justify-between gap-3 px-4 py-3">
+          <span class="flex items-center gap-2 font-semibold text-slate-100">${ic(k)[0]} ${k === 'ruin' ? MP.ruinsAll : MP.altarsAll} <span class="text-xs font-normal text-slate-500">${fmt(left)}/${fmt(occ.length)} ${MP.leftN}</span></span>
+          <span class="flex items-center gap-2 text-xs tabular-nums">${nxt ? `<span class="text-slate-400">${MP.nextShort}: ${when(nxt.ts)}</span> <span data-cd-ts="${nxt.ts}" style="color:${ic(k)[1]}">${cdText(nxt.ts - now)}</span>` : MP.allDone}<span class="text-slate-500 transition group-open:rotate-180">▾</span></span>
+        </summary>
+        <div class="px-4 pb-3 grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">${occ.map((x, i) => { const past = x.ts <= now, isN = nxt && x.ts === nxt.ts; return `
+          <div class="flex items-center justify-between gap-3 py-1 text-sm border-b border-ink-700/50 ${past ? 'text-slate-600' : isN ? 'text-slate-50 font-semibold' : 'text-slate-300'}">
+            <span class="tabular-nums"><span class="text-slate-500 text-xs mr-1.5">#${i + 1}</span>${when(x.ts)} <span class="text-[11px] text-slate-500">${utc(x.ts)}</span></span>
+            <span class="text-xs tabular-nums shrink-0">${past ? '✓' : `<span data-cd-ts="${x.ts}" style="color:${ic(k)[1]}">${cdText(x.ts - now)}</span>`}</span>
+          </div>`; }).join('')}</div>
+      </details>`; };
+    const mapEvLists = `<div class="grid gap-3">${evList('ruin')}${evList('altar')}</div>`;
+    return { mapNext, mapUpcoming, mapSched, mapEvLists, _fsum: fsum };
   }
 
   // Camps fest: 0 Feuer oben links, 1 Erde oben rechts, 2 Wasser unten links, 3 Wind unten rechts
@@ -3412,7 +3424,7 @@
           <div class="mt-2">${sumBox(left >= 0 ? `✓ ${L.buildLeft}` : `⚠️ ${L.buildMissing}`, `<span class="${left >= 0 ? 'text-emerald-400' : 'text-red-300'}">${dur(Math.abs(left))}</span>`,
             left < 0 ? `${L.withUni}: ${leftU >= 0 ? `✓ ${L.buildLeft} ${dur(leftU)}` : `${L.buildMissing} ${dur(-leftU)}`}` : '')}</div>`;
       })(),
-      ...(() => { const po = mapOutputs(); Object.assign(fsum, po._fsum); return { mapNext: po.mapNext, mapUpcoming: po.mapUpcoming, mapSched: po.mapSched }; })(),
+      ...(() => { const po = mapOutputs(); Object.assign(fsum, po._fsum); return { mapNext: po.mapNext, mapUpcoming: po.mapUpcoming, mapSched: po.mapSched, mapEvLists: po.mapEvLists }; })(),
       ...(() => { const eo = endOutputs(r); Object.assign(fsum, eo._fsum); return { endSum: eo.endSum, endImg: eo.endImg }; })(),
       ...(() => { const mo = midOutputs(r); Object.assign(fsum, mo._fsum); return { midMap: mo.midMap, midAdj: mo.midAdj, midFlow: mo.midFlow, midGoal: mo.midGoal, midEndGoal: mo.midEndGoal, midRoad: mo.midRoad, midAp: mo.midAp, midHonor: mo.midHonor, midStats: mo.midStats }; })(),
       crystal, shop, stats, budget, roadmap, _fsum: fsum
@@ -4266,7 +4278,11 @@
     }
     if (el.dataset && el.dataset.pa) {                                       // Pass-Zeit von Hand (UTC)
       const n = +el.dataset.pa; state.passAt = { ...(state.passAt || {}) };
-      if (parseUtc(el.value) != null) state.passAt[n] = el.value; else delete state.passAt[n];
+      // gleich wie berechnet → nicht festschreiben (bleibt automatisch); sonst von Hand gesetzt
+      const rest = { ...state.passAt }; delete rest[n];
+      const calcP = (schedFor(startTs(), validLayout(state.mid.layout), rest).passes || []).find((x) => x.n === n);
+      const calcV = calcP && calcP.ts != null ? new Date(calcP.ts).toISOString().slice(0, 16) : '';
+      if (parseUtc(el.value) != null && el.value !== calcV) state.passAt[n] = el.value; else delete state.passAt[n];
       save(); if (e.type === 'change') rerender(); else refresh(); return;            // neu aufbauen erst nach fertiger Eingabe
     }
     if (el.hasAttribute && el.hasAttribute('data-fr-q')) { fr.q = el.value; const o = root.querySelector('[data-out="frSearch"]'); if (o) o.innerHTML = frSearchHTML(); return; }
@@ -4798,6 +4814,7 @@
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDropdowns(); });
     root.addEventListener('toggle', (e) => {
       const d = e.target;
+      if (d && d.dataset && d.dataset.evlist) { const k = 'ev_' + d.dataset.evlist; if (state.open[k] !== d.open) { state.open[k] = d.open; save(); } return; }
       if (!d || !d.dataset || !d.dataset.fold) return;
       if (state.open[d.dataset.fold] !== d.open) { state.open[d.dataset.fold] = d.open; save(); }
     }, true);

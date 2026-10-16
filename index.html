@@ -2073,7 +2073,7 @@ window.RokAuth = (() => {
     if (lbLast == null) { row.vip_points = 0; row.vip_level = 0; row.updated_at = new Date().toISOString(); }
     const { error } = await sb.from('leaderboard').upsert(row);
     if (error) {
-      if (/kvk_card|column|schema/i.test(error.message || '')) { missingCols.add('kvk_card'); return false; }
+      if (/kvk_card/i.test(error.message || '')) { missingCols.add('kvk_card'); return false; }   // Spalte fehlt (sonst echten Fehler zeigen)
       throw new Error(germanError(error));
     }
     ownMeta = { ...ownMeta, kvk_card: img || '' };
