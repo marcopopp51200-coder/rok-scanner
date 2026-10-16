@@ -289,7 +289,7 @@
       showMap: 'Karte zeigen', openKvk: 'KvK öffnen', countdown: 'KvK Countdown', edit: 'Bearbeiten', bgLabel: 'Hintergrundbild', bgPick: 'Bild wählen', bgReset: 'Standard',
       bgBusy: 'Bild wird verarbeitet …', bgDone: 'Hintergrund gespeichert', bgTooBig: 'Bild ist zu groß für den Browser-Speicher', bgFail: 'Bild konnte nicht gelesen werden', calTitle: 'KvK-Kalender', done: 'Fertig', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End', map: 'Karte' },
-      mp: { whichKvk: 'Welches KvK?', whichHint: 'Bestimmt, welche Karte im Reiter Karte und in deinem Profil erscheint', layouts: { schema: ['Schema', 'vereinfachte Zonen-Übersicht (Testanordnung)'] }, mapsLoading: 'Karten werden geladen …', mapLoading: 'Karte wird geladen …', mapFail: 'Karte konnte nicht geladen werden – Schema wird gezeigt', title: 'Karte & Zeiten', hint: 'Camps, Pässe, Ruinen und Altäre – mit Timer bis zum nächsten Ereignis', next: 'Nächstes Ereignis', none: 'Keine kommenden Ereignisse im KvK', noTime: 'Für diesen Pass ist noch keine Zeit hinterlegt', fightOn: 'Kampf läuft noch', fightSince: 'seit', fightLen: 'Kampfdauer {h} Std', nextOne: 'danach', altarNext: 'Nächster Altar', passNext: 'Öffnet', fightNow: 'Kampf', nextShort: 'Nächstes', needStart: 'Trag oben über ✎ das KvK-Startdatum ein – dann erscheinen alle Zeiten und der Timer.', upcoming: 'Als Nächstes', passes: 'Pässe', rules: 'Ruinen & Altäre', kinds: { pass: 'Pass', ruin: 'Ruine', altar: 'Altar', other: 'Sonstiges' }, passOpen: 'Pass {n} öffnet', campsFold: 'Camps bearbeiten', campsHint: 'Bis zu 10 Königreiche je Camp, eigenes und verbündetes Camp', designHint: '{n} Designs zur Auswahl – gilt auch für die Karte im Profil', timesFold: 'Zeiten bearbeiten', timesHint: 'Ruinen, Altäre und eigene Ereignisse – Datum oder KvK-Tag, Uhrzeit UTC, Abstand in Stunden', day: 'KvK-Tag', time: 'Uhrzeit (UTC)', date: 'Datum (UTC)', rep: 'alle … Std', repHint: '0 = einmal · 24 = täglich · Ruinen alle 40 Std · Altar alle 86 Std · Datum gesetzt → KvK-Tag wird ignoriert', once: 'einmal', daily: 'täglich', every: 'alle {n}', everyH: 'Std', add: 'hinzufügen', name: 'Name (optional)', past: 'vorbei', dayN: 'Tag', noRules: 'Noch keine Ruinen- oder Altarzeiten eingetragen', soon: 'Die echten Ruinen- und Altarzeiten kommen noch – bis dahin kannst du sie unten selbst eintragen.', allDone: 'alle vorbei', del: 'Entfernen' },
+      mp: { whichKvk: 'Welches KvK?', whichHint: 'Bestimmt, welche Karte im Reiter Karte und in deinem Profil erscheint', layouts: { schema: ['Schema', 'vereinfachte Zonen-Übersicht (Testanordnung)'] }, mapsLoading: 'Karten werden geladen …', mapLoading: 'Karte wird geladen …', mapFail: 'Karte konnte nicht geladen werden – Schema wird gezeigt', title: 'Karte & Zeiten', hint: 'Camps, Pässe, Ruinen und Altäre – mit Timer bis zum nächsten Ereignis', next: 'Nächstes Ereignis', none: 'Keine kommenden Ereignisse im KvK', noTime: 'Für diesen Pass ist noch keine Zeit hinterlegt', fightSinceLbl: 'Kampf läuft seit', fightOn: 'Kampf läuft noch', fightSince: 'seit', fightLen: 'Kampfdauer {h} Std', nextOne: 'danach', altarNext: 'Nächster Altar', passNext: 'Öffnet', fightNow: 'Kampf', nextShort: 'Nächstes', needStart: 'Trag oben über ✎ das KvK-Startdatum ein – dann erscheinen alle Zeiten und der Timer.', upcoming: 'Als Nächstes', passes: 'Pässe', rules: 'Ruinen & Altäre', kinds: { pass: 'Pass', ruin: 'Ruine', altar: 'Altar', other: 'Sonstiges' }, passOpen: 'Pass {n} öffnet', campsFold: 'Camps bearbeiten', campsHint: 'Bis zu 10 Königreiche je Camp, eigenes und verbündetes Camp', designHint: '{n} Designs zur Auswahl – gilt auch für die Karte im Profil', timesFold: 'Zeiten bearbeiten', timesHint: 'Ruinen, Altäre und eigene Ereignisse – Datum oder KvK-Tag, Uhrzeit UTC, Abstand in Stunden', day: 'KvK-Tag', time: 'Uhrzeit (UTC)', date: 'Datum (UTC)', rep: 'alle … Std', repHint: '0 = einmal · 24 = täglich · Ruinen alle 40 Std · Altar alle 86 Std · Datum gesetzt → KvK-Tag wird ignoriert', once: 'einmal', daily: 'täglich', every: 'alle {n}', everyH: 'Std', add: 'hinzufügen', name: 'Name (optional)', past: 'vorbei', dayN: 'Tag', noRules: 'Noch keine Ruinen- oder Altarzeiten eingetragen', soon: 'Die echten Ruinen- und Altarzeiten kommen noch – bis dahin kannst du sie unten selbst eintragen.', allDone: 'alle vorbei', del: 'Entfernen' },
       calc: 'Berechnung', calcHint: 'Kisten, Bundles, Kosten Mine & Kristall-Tech-Gebäude', costMine: 'Kristallmine – Ziel-Stufe', costTech: 'Kristall-Tech-Gebäude – Ziel-Stufe', lv: 'Stufe', costTotal: 'Kristall-Kosten gesamt', left: 'Übrig', resOnly: 'nur Rohstoffe',
       income: 'Ertrag pro Tag', avail: 'Verfügbar', need: 'Benötigt', diff: 'Differenz', chestsNeed: 'Kisten nötig', chestsUnit: 'Kisten',
       enough: 'Reicht', missingTxt: 'Fehlen', availTotal: 'Verfügbar gesamt', inclSupply: 'inkl. Premium Supply', mineTech: 'Mine + Tech', bundlesFold: 'Bundles', bundlesHint: 'Echtgeld-Angebote, Statistik & Budget-Planer',
@@ -299,24 +299,24 @@
           sum: 'KvK-Bilanz', sumHint: 'KvK-Start gegen KvK-Ende – Gewinn, Verlust und Trade',
           img: 'Bild für dein Profil', imgHint: 'Vorgefertigtes Bild zum Herunterladen und im Profil zeigen',
           result: 'Ergebnis', win: 'Gewonnen', lose: 'Verloren', open: 'Offen',
-          start: 'KvK-Start', end: 'KvK-Ende', change: 'Veränderung', endScan: 'Ende aus Scan', endScanHint: 'Statthalter-Profil, Speedups, Ressourcen und AP aus deinen letzten Scans',
+          start: 'KvK-Start', end: 'KvK-Ende', change: 'Veränderung', endScan: 'Ende aus Scan', startScan: 'Start aus Scan', endScanHint: 'Aus deinen letzten Scans übernehmen', startLockedTip: 'KvK läuft – Startwerte sind fixiert (Start-Tab → Bearbeiten)', zeroTip: 'Startet im KvK immer bei 0', honorRow: 'Ehre', crystalRow: 'Kristalle', star: 'Star', starHint: 'Ziggurat am KvK-Ende gehalten', yes: 'Ja', no: 'Nein', tradeNote: 'Trade % wird aus Kills und Geheilt (plus Deads) berechnet',
           fight: 'Kampf im KvK', kills: 'Kills (getötete Einheiten)', heal: 'Geheilt (Einheiten)', deadsKvk: 'Deads im KvK', deadsHint: 'von Hand eingetragen, sonst Deads Ende − Start', autarch: 'Autarch bekommen',
           trade: 'Trade', tradeHint: 'Kills ÷ (Deads + Geheilt)', apTotal: 'AP gesamt',
-          ik: { kp: 'Kill-Punkte', power: 'Macht', acclaim: 'Verdienst', kdh: 'Kampf', speed: 'Speedups', res: 'Ressourcen', ap: 'AP', autarch: 'Autarch', trade: 'Trade' },
-          imgMiss: 'nicht eingetragen', imgKills: 'Kills', imgDeads: 'Deads', imgHealed: 'Geheilt', imgDay: 'T', imgNo: 'Nein',
-          k: { kp: 'Kill-Punkte gewonnen', power: 'Macht-Veränderung', acclaim: 'Verdienst gewonnen', kdh: 'Kills / Deads / Geheilt', speed: 'Speedups verbraucht',
+          ik: { kp: 'Kill-Punkte', power: 'Macht', acclaim: 'Verdienst', honor: 'Ehre', crystal: 'Kristalle', kdh: 'Kampf', speed: 'Speedups', res: 'Ressourcen', ap: 'AP', autarch: 'Autarch', trade: 'Trade' },
+          imgMiss: 'nicht eingetragen', imgKills: 'Kills', imgDeads: 'Deads', imgHealed: 'Geheilt', imgDay: 'T', imgNo: 'Nein', imgYes: 'Ja', imgStar: 'Star',
+          k: { kp: 'Kill-Punkte gewonnen', power: 'Macht-Veränderung', acclaim: 'Verdienst gewonnen', honor: 'Ehre gesammelt', crystal: 'Kristalle gesammelt', kdh: 'Kills / Deads / Geheilt', speed: 'Speedups verbraucht',
                res: 'Ressourcen verbraucht', ap: 'AP verbraucht / dazu', autarch: 'Autarch bekommen', trade: 'Trade %', result: 'Gewonnen / Verloren' },
           imgSoon: 'Hier entsteht dein KvK-Bild', imgSoonSub: 'Vorschau, Download und „Im Profil zeigen“ kommen als Nächstes',
           imgData: 'Im Bild zeigen', download: 'Bild herunterladen', toProfile: 'Im Profil zeigen', soonBadge: 'bald',
           used: 'verbraucht', gained: 'dazu', lost: 'weniger', none: '–',
           optAvatar: 'Profilbild', optKingdom: 'Königreich & Allianz', imgOpts: 'Profil im Bild', imgTitle: 'KvK-Bilanz', imgWin: 'Sieg', imgLose: 'Niederlage', imgPreview: 'Vorschau',
-          bgTitle: 'Hintergrund', bgUpload: 'Eigenes Bild hochladen', bgDel: 'Eigenes Bild entfernen', bg: { timer: 'Countdown', gold: 'Gold', blood: 'Blut', night: 'Nacht', frost: 'Frost', own: 'Eigenes' }
+          bgTitle: 'Hintergrund', bgUpload: 'Eigenes Bild hochladen', bgChange: 'Bild ändern', bgDel: 'Eigenes Bild entfernen', bg: { timer: 'Countdown', gold: 'Gold', blood: 'Blut', night: 'Nacht', frost: 'Frost', own: 'Eigenes' }
         },
         mapFold: 'Karte', mapHint: '4 Camps und ihre Königreiche', camp: 'Camp', campName: 'Name', campKds: 'Königreiche (mit Komma getrennt)',
-        myCamp: 'Mein Camp', ally: 'Verbündet', mapDesign: 'Design der Karte', zoneN: 'Zone {n}', altar: 'Altar', mapLegendLk: '🏯 Pass mit Stufe (4–9) · ⛩️ Altar · Zahl im Kreis = Schrein/Tempel/Sanktum-Stufe · kleine Burgen = Forts · Tore und Altäre antippen für Zeiten', mapLegend: 'P4 → Zone 4 · P5 → Zone 5 · P6 = Altar (Camp → Zone 5) · P7 = Zone 5 ↔ Zone 5 · P8 → Ziggurat (Zone 6) · Testanordnung', mapStyles: { battle: 'Schlachtfeld', parchment: 'Pergament', night: 'Nacht', flat: 'Klar', holo: 'Taktik', frost: 'Frost', lava: 'Glut', royal: 'Royal', pixel: 'Pixel', sand: 'Wüste', ingame: 'Spielkarte', blueprint: 'Blaupause', marble: 'Marmor', jungle: 'Dschungel' }, mapTitle: 'KvK-Karte', center: 'Ziggurat', mapEmpty: 'noch keine Königreiche', campNames: ['Feuer', 'Erde', 'Wasser', 'Wind'], kdShort: 'KD',
+        myCamp: 'Mein Camp', ally: 'Verbündet', mapDesign: 'Design der Karte', tierG: 'Imperium', tierS: 'Silber', tierN: 'normal', tierHint: 'Antippen wechselt die Schrift: Gold = Imperium, Silber = Silberimperium, sonst weiß · dein Königreich hat immer einen ★', roster: 'Wer ist in welchem Camp', timeline: 'Timeline · Pass 4, 7, 8 & Altäre', noTimeline: 'Keine kommenden Pass-4/7/8- oder Altar-Termine', running: 'läuft', mapEmptyOwn: 'Noch keine Königreiche eingetragen – über „✎ Bearbeiten“ im Reiter Karte nachtragen', mapEmptyOther: 'Dieser Spieler hat noch keine Camps eingetragen', zoneN: 'Zone {n}', altar: 'Altar', mapLegendLk: '🏯 Pass mit Stufe (4–9) · ⛩️ Altar · Zahl im Kreis = Schrein/Tempel/Sanktum-Stufe · kleine Burgen = Forts · Tore und Altäre antippen für Zeiten', mapLegend: 'P4 → Zone 4 · P5 → Zone 5 · P6 = Altar (Camp → Zone 5) · P7 = Zone 5 ↔ Zone 5 · P8 → Ziggurat (Zone 6) · Testanordnung – echte Karte: ✎ Bearbeiten → Welches KvK?', mapStyles: { battle: 'Schlachtfeld', parchment: 'Pergament', night: 'Nacht', flat: 'Klar', holo: 'Taktik', frost: 'Frost', lava: 'Glut', royal: 'Royal', pixel: 'Pixel', sand: 'Wüste', ingame: 'Spielkarte', blueprint: 'Blaupause', marble: 'Marmor', jungle: 'Dschungel' }, mapTitle: 'KvK-Karte', center: 'Ziggurat', mapEmpty: 'noch keine Königreiche', campNames: ['Feuer', 'Erde', 'Wasser', 'Wind'], kdShort: 'KD',
         title: 'KvK Mitte', hint: 'Kristall-Verlauf, Ziele, Barbaren & Zwischenstand',
         flow: 'Kristall-Verlauf', flowHint: 'Was du wann erwirtschaftest – über die ganze KvK-Dauer',
-        goal: 'Roadmap: Ziele je Pass', goalHint: 'Pass 4–8 anklicken, Technologien eintragen – was fehlt und wie viele Barbaren/Forts dafür',
+        goal: 'Roadmap: Ziele je Pass', goalHint: 'Ziele je Pass und am KvK-Ende – was fehlt und wie viele Barbaren dafür',
         apFold: 'AP & Barbaren', apFoldHint: 'Wie viele Barbaren und Forts deine AP schaffen',
         statsFold: 'Zwischenstand', statsFoldHint: 'Kill-Punkte, Macht, Verdienst, Deads und verbrauchte Speedups seit KvK-Start',
         base: 'Grundlagen', days: 'KvK-Dauer (Tage)', psup: 'Premium Supply: 60.000 💎 pro Tag (50 Tage) · +50 % Mine',
@@ -327,31 +327,38 @@
         maudara: 'Maudara: Kristalle pro Tag', other: 'Sonstiges: Kristalle pro Tag',
         kk: 'Trial of Kau Karuak', kkLv: 'bis Stufe', kkDay: 'an Tag', kkDiff: { easy: 'Easy', normal: 'Normal', hard: 'Hard' }, kkWhen: { easy: 'Kristalle vor Pass 4 (bis Tag 7)', normal: 'zwischen Pass 4 und 5 (Tag 8–14)', hard: 'zwischen Pass 7 und 8 (Tag 25–28) · Nightmare gibt Season Coins, nach Pass 9' },
         kkBoost: 'Karuak-Boost (Kristalle pro Std.)', kkBoostDay: 'Boost ab Tag',
-        roadTitle: 'Roadmap', roadHint: 'Was an welcher Station passiert – auf einen Pass tippen, um seine Ziele zu bearbeiten',
+        roadTitle: 'Roadmap', roadHint: 'Pass antippen = Ziele bearbeiten',
         rStart: 'Start-Bestand', rStand: 'Stand', rElite: 'Elite-Ertrag', rBoost: 'Karuak-Boost', rFrom: 'ab Tag', rUpTo: 'bis Stufe', rGoals: 'Ziele',
         kkHint: 'Elite-Stufen 5 · 10 · 15 bringen je +500 💎 pro Std.', barbsFrom: 'Barbaren & Forts kommen aus „AP & Barbaren“.',
         src: { start: 'Start (übrig)', mine: 'Kristallmine', supply: 'Premium Supply', bundles: 'Mountain Warfare & Conquer\'s Will', barbs: 'Barbaren, Forts & Kahar', bastion: 'Bastion-Quests', karuak: 'Kau Karuak', maudara: 'Maudara', other: 'Sonstiges' },
-        startLeft: 'Start (übrig)', startHint: 'Verfügbar laut Start-Tab minus Mine & Forschungszentrum (Premium Supply, Mountain Warfare und Conquer\'s Will kommen erst an ihrem Tag)',
+        startLeft: 'Start (übrig)', startHint: 'Start-Tab minus Mine & Forschungszentrum',
         earned: 'Einnahmen gesamt', perDayAvg: 'Ø pro Tag', endBal: 'Stand am Ende', balance: 'Kontostand',
-        day: 'Tag', today: 'heute', milestones: 'Meilensteine', mEnd: 'KvK-Ende', chartTitle: 'Kristalle über die KvK-Dauer (gestapelt nach Quelle)',
+        day: 'Tag', today: 'heute', milestones: 'Meilensteine', mEnd: 'KvK-Ende', chartTitle: 'Kristalle über die KvK-Dauer · weiß = Kontostand, Farben = je Quelle',
         tableView: 'Tabelle', noData: 'Noch keine Einnahmen – trag oben Quellen ein.', goalLine: 'Ziel',
         goalsTitle: 'Ziele in Reihenfolge', goalAdd: '+ Ziel-Technologie', goalName: 'z. B. Treaties III', goalCost: 'Kristalle',
         goalNone: 'Noch keine Ziele – füge eine Technologie mit ihren Kristallkosten hinzu.', reached: 'erreicht', reachedDay: 'erreicht an Tag',
-        simple: 'Vereinfacht', simpleHint: 'Nur eine Zahl: wie viele Kristalle du bis zu diesem Pass haben willst',
-        simpleCr: 'Ziel-Kristalle bis Pass', simpleKahar: 'Kahar bis dahin (je 45.000)', simplePassive: 'Passiv bis dahin',
-        simplePassiveHint: 'Start, Mine, Supply, Bundles, Bastion, Kau Karuak, Maudara, Sonstiges – ohne Barbaren',
+        simple: 'Vereinfacht', simpleHint: 'oder nur eine Zahl bis zu diesem Pass',
+        simpleCr: 'Ziel bis Pass', simpleKahar: 'Kahar bis dahin', simplePassive: 'Passiv bis dahin',
+        simplePassiveHint: 'Passiv = alles außer Barbaren',
         simpleKaharOut: 'Kahar', simpleRest: 'Rest über Barbaren', simpleOk: 'Schaffst du schon passiv', simpleApBy: 'AP bis dahin', simpleApShort: 'AP reichen nicht',
         adjTitle: 'Ist-Abgleich', adjHint: 'Bastion-Quests und Allianz-Chains schwanken – trag deinen echten Stand ein, ab dann rechnet alles damit weiter',
         adjSpent: 'Bisher ausgegeben', adjCur: 'Kristalle jetzt (im Spiel)', adjDay: 'Stand vom KvK-Tag', adjDayHint: 'leer = heute', adjOn: 'In die Berechnung übernehmen',
         adjPlan: 'Plan bis Tag', adjReal: 'Ist (jetzt + ausgegeben)', adjDiff: 'Abweichung', adjNoDay: 'KvK-Tag fehlt – Start-Datum festlegen oder Tag eintragen',
-        adjActive: 'Abgleich aktiv', presets: 'Ziel-Stufen', presetsHint: 'antippen = zum gewählten Pass hinzufügen', passPick: 'Pass wählen', pgTitle: 'Ziele bis Pass', pgAdd: '+ Ziel für Pass', pgNone: 'Für diesen Pass noch kein Ziel – füge eine Technologie mit ihren Kristallkosten hinzu.',
+        adjActive: 'Abgleich aktiv', presets: 'Schnell hinzufügen', presetsHint: 'antippen', passPick: 'Pass wählen', pgTitle: 'Ziele bis Pass', pgAdd: '+ Ziel für Pass', pgNone: 'Noch kein Ziel – Technologie mit Kosten hinzufügen.',
         pgAvail: 'Verfügbar bis Pass', pgNeed: 'Benötigt (inkl. vorherige Pässe)', pgLeft: 'Übrig', pgMiss: 'Fehlt', pgExtra: 'Zusätzlich nötig',
         pgBarbs: '{b} Barbaren · {a} Angriffe · {ap} AP', pgForts: 'oder {f} Forts · {ap} AP', pgOverview: 'Alle Pässe', pgEmpty: 'kein Ziel',
-        pgAvailHint: 'Kontostand am Tag der Pass-Öffnung (Barbaren aus deinem AP-Plan schon eingerechnet)',
-        honFold: 'Ehre', honFoldHint: 'Timeline mit Ruinen, Altären und Barbaren – wann du 80.000 und 120.000 erreichst',
+        pgAvailHint: 'Stand am Öffnungstag, AP-Plan schon drin',
+        endGoalLbl: 'Ziel am KvK-Ende', endGoalHint: 'so viele Kristalle willst du am Ende haben', endGoalMiss: 'Ziel Ende', apSpendLbl: 'AP ausgeben', apAll: 'Max (alles)', apSpendHint: 'leer oder Max = alle verfügbaren AP', apUntilLbl: 'AP bis', apUntilHint: 'Barbaren/Forts werden bis zu diesem Tag gefarmt', apSpendKpi: 'AP ausgegeben', apAvailBy: 'verfügbar bis',
+        honFold: 'Ehre', honFoldHint: 'Ruinen & Altäre aus der Timeline, dein Ziel und was noch fehlt',
+        hn: { nowSub: 'Stand heute – zum Neu-Rechnen eintragen', preSub: 'startet im KvK bei 0', avg7: 'Ø pro Tag', avg7Sub: 'Durchschnitt der nächsten 7 Tage', atEnd: 'Stand am Ende', fromNow: 'ab jetzt',
+          goal: 'Ziel', notReached: 'mit Ruinen, Altären & AP-Plan nicht erreicht', noEv: 'Noch keine Ruinen- oder Altarzeiten – im Reiter 🗺️ Karte unter „✎ Bearbeiten → Zeiten“ eintragen (Ruinen alle 40 Std, Altar alle 86 Std).',
+          half: 'Halbzeit vorbei', halfTxt: 'noch machbar: {r} Ruinen + {a} Altäre = {h} Ehre', srcAll: 'Ehre im ganzen KvK', srcLeft: 'Ehre ab jetzt (noch machbar)', both: 'Ruinen + Altäre zusammen',
+          apPlan: 'Barbaren & Forts (AP-Plan)', restOnly: 'Rest ab heute', noGoal: 'Trag unten ein Ehre-Ziel ein', needAltars: '⛩️ Altäre nötig', needRuins: '🏛️ Ruinen nötig', enough: 'Reicht – Ziel wird erreicht',
+          missing: 'Fehlt trotzdem', xBarbs: '{b} Barbaren · {a} Angriffe · {ap} AP', xForts: 'oder {f} Forts · {ap} AP', goalHint: 'Zuerst Altäre (mehr Ehre), dann Ruinen – der Rest über Barbaren oder Forts (zusätzlich zum AP-Plan)',
+          inHint: 'Ruinen und Altäre kommen aus der Timeline im Reiter Karte', startHint: 'startet bei 0 · später Stand eintragen', share: 'Altar teilen (50 %)', shareHint: 'Wenn ihr Altäre mit einem anderen Camp teilt, zählt nur die halbe Ehre' },
         honStart: 'Ehre jetzt', ruinsDay: 'Ruinen pro Tag', altarsDay: 'Altäre pro Tag', honPerDay: 'Ehre pro Tag',
         honReach: 'erreicht an Tag', honNow: 'schon erreicht', honMiss: 'fehlen am KvK-Ende', honExtra: 'dafür zusätzlich pro Tag', honOr: 'oder',
-        honChart: 'Ehre über die KvK-Dauer', honBarbsSrc: 'Barbaren & Forts aus deinem AP-Plan', pgMw: 'Mountain Warfare bei diesem Pass', pgMwNone: 'kein Mountain Warfare gewählt (Start-Tab → Bundles)',
+        honChart: 'Ehre über die KvK-Dauer', honBarbsSrc: 'Barbaren & Forts aus deinem AP-Plan', pgMw: 'Mountain Warfare · Pass', pgMwNone: 'keins (Start-Tab → Bundles)',
         reachedNow: 'sofort machbar', missing: 'fehlt', missingEnd: 'fehlen am KvK-Ende', goalsSum: 'Alle Ziele', leftEnd: 'übrig am KvK-Ende',
         apSrc: 'AP aus deinen Flaschen (Start-Tab / Scan)', apRegen: 'AP-Regeneration pro Tag', chain: 'Ø Chain (Barbaren je Angriff, 1–10)',
         barbAp: 'AP pro Barbaren-Angriff', barbCr: 'Kristalle pro Barbar', forts: 'Forts (Anzahl, je Angriff 1 Fort)', fortAp: 'AP pro Fort', fortCr: 'Kristalle pro Fort',
@@ -365,7 +372,7 @@
         spent: 'verbraucht', gained: 'dazu', lost: 'verloren', noScan: 'Noch kein Scan'
       },
       soon: { mid: 'Hier entsteht die Planung für die Mitte des KvK.', end: 'Hier entsteht die Planung für das Ende des KvK.' }, soonSub: 'Kommt als Nächstes',
-      noStart: 'Start-Datum festlegen', pre: 'Pre-KvK', day: 'Tag', untilStart: 'bis zum Start', sinceStart: 'seit Start',
+      noStart: 'Start-Datum festlegen', pre: 'Pre-KvK', day: 'Tag', untilStart: 'bis zum Start', sinceStart: 'seit Start', untilEnd: 'bis KvK-Ende', endShort: 'Ende', kvkOver: 'KvK vorbei', fightAltar: 'Altar-Kampf', fightPass: 'Pass-Kampf', endLabel: 'KvK-Ende (optional)', endHint: 'leer = Start + KvK-Dauer',
       u: { d: 'Tage', h: 'Std', m: 'Min', s: 'Sek' },
       apTitle: 'AP', apHint: 'Aus deinem letzten AP-Scan', noData: 'Noch kein Scan – im Scanner scannen oder „Aus Scan“ klicken', bottles: 'er Flaschen', apPerDay: 'Geplant pro Tag',
       total: 'Gesamt', lasts: 'Reicht für', days: 'Tage', dayOne: 'Tag',
@@ -414,7 +421,7 @@
       showMap: 'Show map', openKvk: 'Open KvK', countdown: 'KvK Countdown', edit: 'Edit', bgLabel: 'Background image', bgPick: 'Choose image', bgReset: 'Default',
       bgBusy: 'Processing image …', bgDone: 'Background saved', bgTooBig: 'Image is too large for browser storage', bgFail: 'Image could not be read', calTitle: 'KvK calendar', done: 'Done', startShort: 'Start',
       tabs: { start: 'Start', mid: 'Mid', end: 'End', map: 'Map' },
-      mp: { whichKvk: 'Which KvK?', whichHint: 'Decides which map shows in the Map tab and in your profile', layouts: { schema: ['Schematic', 'simplified zone overview (test layout)'] }, mapsLoading: 'Loading maps …', mapLoading: 'Loading map …', mapFail: 'Map could not be loaded – showing the schematic', title: 'Map & times', hint: 'Camps, passes, ruins and altars – with a timer to the next event', next: 'Next event', none: 'No upcoming events in this KvK', noTime: 'No time stored for this pass yet', fightOn: 'Fight still on', fightSince: 'since', fightLen: 'fight lasts {h} h', nextOne: 'then', altarNext: 'Next altar', passNext: 'Opens', fightNow: 'Fight', nextShort: 'Next', needStart: 'Set the KvK start date via ✎ above – then all times and the timer appear.', upcoming: 'Coming up', passes: 'Passes', rules: 'Ruins & altars', kinds: { pass: 'Pass', ruin: 'Ruin', altar: 'Altar', other: 'Other' }, passOpen: 'Pass {n} opens', campsFold: 'Edit camps', campsHint: 'Up to 10 kingdoms per camp, own and allied camp', designHint: '{n} designs to choose from – also used for the map in your profile', timesFold: 'Edit times', timesHint: 'Ruins, altars and your own events – date or KvK day, time in UTC, interval in hours', day: 'KvK day', time: 'Time (UTC)', date: 'Date (UTC)', rep: 'every … h', repHint: '0 = once · 24 = daily · ruins every 40 h · altar every 86 h · with a date set, the KvK day is ignored', once: 'once', daily: 'daily', every: 'every {n}', everyH: 'h', add: 'add', name: 'Name (optional)', past: 'over', dayN: 'Day', noRules: 'No ruin or altar times entered yet', soon: 'The real ruin and altar times are still coming – until then you can enter them below.', allDone: 'all over', del: 'Remove' },
+      mp: { whichKvk: 'Which KvK?', whichHint: 'Decides which map shows in the Map tab and in your profile', layouts: { schema: ['Schematic', 'simplified zone overview (test layout)'] }, mapsLoading: 'Loading maps …', mapLoading: 'Loading map …', mapFail: 'Map could not be loaded – showing the schematic', title: 'Map & times', hint: 'Camps, passes, ruins and altars – with a timer to the next event', next: 'Next event', none: 'No upcoming events in this KvK', noTime: 'No time stored for this pass yet', fightSinceLbl: 'fight running for', fightOn: 'Fight still on', fightSince: 'since', fightLen: 'fight lasts {h} h', nextOne: 'then', altarNext: 'Next altar', passNext: 'Opens', fightNow: 'Fight', nextShort: 'Next', needStart: 'Set the KvK start date via ✎ above – then all times and the timer appear.', upcoming: 'Coming up', passes: 'Passes', rules: 'Ruins & altars', kinds: { pass: 'Pass', ruin: 'Ruin', altar: 'Altar', other: 'Other' }, passOpen: 'Pass {n} opens', campsFold: 'Edit camps', campsHint: 'Up to 10 kingdoms per camp, own and allied camp', designHint: '{n} designs to choose from – also used for the map in your profile', timesFold: 'Edit times', timesHint: 'Ruins, altars and your own events – date or KvK day, time in UTC, interval in hours', day: 'KvK day', time: 'Time (UTC)', date: 'Date (UTC)', rep: 'every … h', repHint: '0 = once · 24 = daily · ruins every 40 h · altar every 86 h · with a date set, the KvK day is ignored', once: 'once', daily: 'daily', every: 'every {n}', everyH: 'h', add: 'add', name: 'Name (optional)', past: 'over', dayN: 'Day', noRules: 'No ruin or altar times entered yet', soon: 'The real ruin and altar times are still coming – until then you can enter them below.', allDone: 'all over', del: 'Remove' },
       calc: 'Calculation', calcHint: 'Chests, bundles, mine & crystal tech building cost', costMine: 'Crystal mine – target level', costTech: 'Crystal tech building – target level', lv: 'Level', costTotal: 'Total crystal cost', left: 'Left over', resOnly: 'resources only',
       income: 'Income per day', avail: 'Available', need: 'Needed', diff: 'Difference', chestsNeed: 'Chests needed', chestsUnit: 'chests',
       enough: 'Enough', missingTxt: 'Missing', availTotal: 'Available total', inclSupply: 'incl. Premium Supply', mineTech: 'Mine + tech', bundlesFold: 'Bundles', bundlesHint: 'Real-money offers, statistics & budget planner',
@@ -424,24 +431,24 @@
           sum: 'KvK summary', sumHint: 'KvK start vs. KvK end – gains, losses and trade',
           img: 'Image for your profile', imgHint: 'Ready-made image to download and show in your profile',
           result: 'Result', win: 'Won', lose: 'Lost', open: 'Open',
-          start: 'KvK start', end: 'KvK end', change: 'Change', endScan: 'End from scan', endScanHint: 'Governor profile, speedups, resources and AP from your latest scans',
+          start: 'KvK start', end: 'KvK end', change: 'Change', endScan: 'End from scan', startScan: 'Start from scan', endScanHint: 'Take values from your latest scans', startLockedTip: 'KvK running – start values are locked (Start tab → Edit)', zeroTip: 'Always starts at 0 in KvK', honorRow: 'Honor', crystalRow: 'Crystals', star: 'Star', starHint: 'held the ziggurat at KvK end', yes: 'Yes', no: 'No', tradeNote: 'Trade % is calculated from kills and healed (plus deads)',
           fight: 'Fighting in KvK', kills: 'Kills (units killed)', heal: 'Healed (units)', deadsKvk: 'Deads in KvK', deadsHint: 'entered by hand, otherwise deads end − start', autarch: 'Autarch received',
           trade: 'Trade', tradeHint: 'Kills ÷ (deads + healed)', apTotal: 'Total AP',
-          ik: { kp: 'Kill points', power: 'Power', acclaim: 'Acclaim', kdh: 'Battle', speed: 'Speedups', res: 'Resources', ap: 'AP', autarch: 'Autarch', trade: 'Trade' },
-          imgMiss: 'not entered', imgKills: 'Kills', imgDeads: 'Deads', imgHealed: 'Healed', imgDay: 'd', imgNo: 'No',
-          k: { kp: 'Kill points gained', power: 'Power change', acclaim: 'Acclaim gained', kdh: 'Kills / deads / healed', speed: 'Speedups used',
+          ik: { kp: 'Kill points', power: 'Power', acclaim: 'Acclaim', honor: 'Honor', crystal: 'Crystals', kdh: 'Battle', speed: 'Speedups', res: 'Resources', ap: 'AP', autarch: 'Autarch', trade: 'Trade' },
+          imgMiss: 'not entered', imgKills: 'Kills', imgDeads: 'Deads', imgHealed: 'Healed', imgDay: 'd', imgNo: 'No', imgYes: 'Yes', imgStar: 'Star',
+          k: { kp: 'Kill points gained', power: 'Power change', acclaim: 'Acclaim gained', honor: 'Honor collected', crystal: 'Crystals collected', kdh: 'Kills / deads / healed', speed: 'Speedups used',
                res: 'Resources used', ap: 'AP used / gained', autarch: 'Autarch received', trade: 'Trade %', result: 'Won / lost' },
           imgSoon: 'Your KvK image will live here', imgSoonSub: 'Preview, download and “show in profile” come next',
           imgData: 'Show in image', download: 'Download image', toProfile: 'Show in profile', soonBadge: 'soon',
           used: 'used', gained: 'gained', lost: 'less', none: '–',
           optAvatar: 'Profile picture', optKingdom: 'Kingdom & alliance', imgOpts: 'Profile in the image', imgTitle: 'KvK summary', imgWin: 'Victory', imgLose: 'Defeat', imgPreview: 'Preview',
-          bgTitle: 'Background', bgUpload: 'Upload own image', bgDel: 'Remove own image', bg: { timer: 'Countdown', gold: 'Gold', blood: 'Blood', night: 'Night', frost: 'Frost', own: 'Own' }
+          bgTitle: 'Background', bgUpload: 'Upload own image', bgChange: 'Change image', bgDel: 'Remove own image', bg: { timer: 'Countdown', gold: 'Gold', blood: 'Blood', night: 'Night', frost: 'Frost', own: 'Own' }
         },
         mapFold: 'Map', mapHint: '4 camps and their kingdoms', camp: 'Camp', campName: 'Name', campKds: 'Kingdoms (comma separated)',
-        campNames: ['Fire', 'Earth', 'Water', 'Wind'], kdShort: 'KD', myCamp: 'My camp', ally: 'Ally', mapDesign: 'Map design', zoneN: 'Zone {n}', altar: 'Altar', mapLegendLk: '🏯 pass with level (4–9) · ⛩️ altar · number in circle = shrine/temple/sanctum level · small castles = forts · tap gates and altars for times', mapLegend: 'P4 → zone 4 · P5 → zone 5 · P6 = altar (camp → zone 5) · P7 = zone 5 ↔ zone 5 · P8 → ziggurat (zone 6) · test layout', mapStyles: { battle: 'Battlefield', parchment: 'Parchment', night: 'Night', flat: 'Clean', holo: 'Tactical', frost: 'Frost', lava: 'Ember', royal: 'Royal', pixel: 'Pixel', sand: 'Desert', ingame: 'Game map', blueprint: 'Blueprint', marble: 'Marble', jungle: 'Jungle' }, mapTitle: 'KvK map', center: 'Ziggurat', mapEmpty: 'no kingdoms yet',
+        campNames: ['Fire', 'Earth', 'Water', 'Wind'], kdShort: 'KD', myCamp: 'My camp', ally: 'Ally', mapDesign: 'Map design', tierG: 'Empire', tierS: 'Silver', tierN: 'normal', tierHint: 'Tap to change the text: gold = empire, silver = silver empire, otherwise white · your kingdom always has a ★', roster: 'Who is in which camp', timeline: 'Timeline · pass 4, 7, 8 & altars', noTimeline: 'No upcoming pass 4/7/8 or altar dates', running: 'running', mapEmptyOwn: 'No kingdoms entered yet – add them via “✎ Edit” in the Map tab', mapEmptyOther: 'This player has not entered any camps yet', zoneN: 'Zone {n}', altar: 'Altar', mapLegendLk: '🏯 pass with level (4–9) · ⛩️ altar · number in circle = shrine/temple/sanctum level · small castles = forts · tap gates and altars for times', mapLegend: 'P4 → zone 4 · P5 → zone 5 · P6 = altar (camp → zone 5) · P7 = zone 5 ↔ zone 5 · P8 → ziggurat (zone 6) · test layout – real map: ✎ Edit → Which KvK?', mapStyles: { battle: 'Battlefield', parchment: 'Parchment', night: 'Night', flat: 'Clean', holo: 'Tactical', frost: 'Frost', lava: 'Ember', royal: 'Royal', pixel: 'Pixel', sand: 'Desert', ingame: 'Game map', blueprint: 'Blueprint', marble: 'Marble', jungle: 'Jungle' }, mapTitle: 'KvK map', center: 'Ziggurat', mapEmpty: 'no kingdoms yet',
         title: 'KvK Mid', hint: 'Crystal timeline, goals, barbarians & interim status',
         flow: 'Crystal timeline', flowHint: 'What you earn when – over the whole KvK',
-        goal: 'Roadmap: goals per pass', goalHint: 'Pick pass 4–8, enter technologies – what is missing and how many barbarians/forts for it',
+        goal: 'Roadmap: goals per pass', goalHint: 'Goals per pass and at KvK end – what is missing and how many barbarians',
         apFold: 'AP & barbarians', apFoldHint: 'How many barbarians and forts your AP can take',
         statsFold: 'Interim status', statsFoldHint: 'Kill points, power, acclaim, deads and speedups used since KvK start',
         base: 'Basics', days: 'KvK length (days)', psup: 'Premium Supply: 60,000 💎 per day (50 days) · +50% mine',
@@ -452,31 +459,38 @@
         maudara: 'Maudara: crystals per day', other: 'Other: crystals per day',
         kk: 'Trial of Kau Karuak', kkLv: 'up to level', kkDay: 'on day', kkDiff: { easy: 'Easy', normal: 'Normal', hard: 'Hard' }, kkWhen: { easy: 'crystals before pass 4 (by day 7)', normal: 'between pass 4 and 5 (day 8–14)', hard: 'between pass 7 and 8 (day 25–28) · Nightmare gives season coins, after pass 9' },
         kkBoost: 'Karuak boost (crystals per hour)', kkBoostDay: 'Boost from day',
-        roadTitle: 'Roadmap', roadHint: 'What happens at which station – tap a pass to edit its goals',
+        roadTitle: 'Roadmap', roadHint: 'Tap a pass to edit its goals',
         rStart: 'Starting stock', rStand: 'Balance', rElite: 'Elite income', rBoost: 'Karuak boost', rFrom: 'from day', rUpTo: 'up to level', rGoals: 'Goals',
         kkHint: 'Elite levels 5 · 10 · 15 give +500 💎 per hour each', barbsFrom: 'Barbarians & forts come from “AP & barbarians”.',
         src: { start: 'Start (left)', mine: 'Crystal mine', supply: 'Premium Supply', bundles: 'Mountain Warfare & Conquer\'s Will', barbs: 'Barbarians, forts & Kahar', bastion: 'Bastion quests', karuak: 'Kau Karuak', maudara: 'Maudara', other: 'Other' },
-        startLeft: 'Start (left)', startHint: 'Available per Start tab minus mine & research center (Premium Supply, Mountain Warfare and Conquer\'s Will arrive on their day)',
+        startLeft: 'Start (left)', startHint: 'Start tab minus mine & research center',
         earned: 'Total income', perDayAvg: 'Avg per day', endBal: 'Balance at the end', balance: 'Balance',
-        day: 'Day', today: 'today', milestones: 'Milestones', mEnd: 'KvK end', chartTitle: 'Crystals over the KvK (stacked by source)',
+        day: 'Day', today: 'today', milestones: 'Milestones', mEnd: 'KvK end', chartTitle: 'Crystals over the KvK · white = balance, colours = per source',
         tableView: 'Table', noData: 'No income yet – enter sources above.', goalLine: 'Goal',
         goalsTitle: 'Goals in order', goalAdd: '+ Target technology', goalName: 'e.g. Treaties III', goalCost: 'Crystals',
         goalNone: 'No goals yet – add a technology with its crystal cost.', reached: 'reached', reachedDay: 'reached on day',
-        simple: 'Simple', simpleHint: 'Just one number: how many crystals you want by this pass',
-        simpleCr: 'Target crystals by pass', simpleKahar: 'Kahar by then (45,000 each)', simplePassive: 'Passive by then',
-        simplePassiveHint: 'Start, mine, supply, bundles, bastion, Kau Karuak, Maudara, other – without barbarians',
+        simple: 'Simple', simpleHint: 'or just one number by this pass',
+        simpleCr: 'Goal by pass', simpleKahar: 'Kahar by then', simplePassive: 'Passive by then',
+        simplePassiveHint: 'Passive = everything except barbarians',
         simpleKaharOut: 'Kahar', simpleRest: 'Rest via barbarians', simpleOk: 'Covered passively', simpleApBy: 'AP by then', simpleApShort: 'not enough AP',
         adjTitle: 'Reality check', adjHint: 'Bastion quests and alliance chains vary – enter your real numbers, everything from then on uses them',
         adjSpent: 'Spent so far', adjCur: 'Crystals now (in game)', adjDay: 'As of KvK day', adjDayHint: 'empty = today', adjOn: 'Use in the calculation',
         adjPlan: 'Plan up to day', adjReal: 'Real (now + spent)', adjDiff: 'Difference', adjNoDay: 'KvK day missing – set the start date or enter a day',
-        adjActive: 'Reality check on', presets: 'Goal tiers', presetsHint: 'tap = add to the selected pass', passPick: 'Choose pass', pgTitle: 'Goals by pass', pgAdd: '+ Goal for pass', pgNone: 'No goal for this pass yet – add a technology with its crystal cost.',
+        adjActive: 'Reality check on', presets: 'Quick add', presetsHint: 'tap', passPick: 'Choose pass', pgTitle: 'Goals by pass', pgAdd: '+ Goal for pass', pgNone: 'No goal yet – add a technology with its cost.',
         pgAvail: 'Available by pass', pgNeed: 'Needed (incl. earlier passes)', pgLeft: 'Left', pgMiss: 'Missing', pgExtra: 'Additionally needed',
         pgBarbs: '{b} barbarians · {a} attacks · {ap} AP', pgForts: 'or {f} forts · {ap} AP', pgOverview: 'All passes', pgEmpty: 'no goal',
-        pgAvailHint: 'Balance on the day the pass opens (barbarians from your AP plan already included)',
-        honFold: 'Honor', honFoldHint: 'Timeline with ruins, altars and barbarians – when you reach 80,000 and 120,000',
+        pgAvailHint: 'Balance on opening day, AP plan included',
+        endGoalLbl: 'Goal at KvK end', endGoalHint: 'crystals you want to have at the end', endGoalMiss: 'End goal', apSpendLbl: 'AP to spend', apAll: 'Max (all)', apSpendHint: 'empty or Max = all available AP', apUntilLbl: 'AP until', apUntilHint: 'barbarians/forts are farmed until this day', apSpendKpi: 'AP spent', apAvailBy: 'available until',
+        honFold: 'Honor', honFoldHint: 'Ruins & altars from the timeline, your goal and what is missing',
+        hn: { nowSub: 'today – enter to recalculate', preSub: 'starts at 0 in KvK', avg7: 'Ø per day', avg7Sub: 'average of the next 7 days', atEnd: 'At the end', fromNow: 'from now',
+          goal: 'Goal', notReached: 'not reached with ruins, altars & AP plan', noEv: 'No ruin or altar times yet – add them in the 🗺️ Map tab under “✎ Edit → Times” (ruins every 40 h, altar every 86 h).',
+          half: 'Half-time passed', halfTxt: 'still possible: {r} ruins + {a} altars = {h} honor', srcAll: 'Honor in the whole KvK', srcLeft: 'Honor from now (still possible)', both: 'Ruins + altars together',
+          apPlan: 'Barbarians & forts (AP plan)', restOnly: 'rest from today', noGoal: 'Enter a honor goal below', needAltars: '⛩️ Altars needed', needRuins: '🏛️ Ruins needed', enough: 'Enough – goal reached',
+          missing: 'Still missing', xBarbs: '{b} barbarians · {a} attacks · {ap} AP', xForts: 'or {f} forts · {ap} AP', goalHint: 'Altars first (more honor), then ruins – the rest via barbarians or forts (on top of the AP plan)',
+          inHint: 'Ruins and altars come from the timeline in the Map tab', startHint: 'starts at 0 · enter your value later', share: 'Share altar (50 %)', shareHint: 'If you share altars with another camp, only half the honor counts' },
         honStart: 'Honor now', ruinsDay: 'Ruins per day', altarsDay: 'Altars per day', honPerDay: 'Honor per day',
         honReach: 'reached on day', honNow: 'already reached', honMiss: 'missing at KvK end', honExtra: 'additionally per day', honOr: 'or',
-        honChart: 'Honor over the KvK', honBarbsSrc: 'Barbarians & forts from your AP plan', pgMw: 'Mountain Warfare at this pass', pgMwNone: 'no Mountain Warfare chosen (Start tab → Bundles)',
+        honChart: 'Honor over the KvK', honBarbsSrc: 'Barbarians & forts from your AP plan', pgMw: 'Mountain Warfare · pass', pgMwNone: 'none (Start tab → Bundles)',
         reachedNow: 'possible right away', missing: 'missing', missingEnd: 'missing at KvK end', goalsSum: 'All goals', leftEnd: 'left at KvK end',
         apSrc: 'AP from your bottles (Start tab / scan)', apRegen: 'AP regeneration per day', chain: 'Avg chain (barbarians per attack, 1–10)',
         barbAp: 'AP per barbarian attack', barbCr: 'Crystals per barbarian', forts: 'Forts (count, 1 fort per attack)', fortAp: 'AP per fort', fortCr: 'Crystals per fort',
@@ -490,7 +504,7 @@
         spent: 'used', gained: 'gained', lost: 'lost', noScan: 'No scan yet'
       },
       soon: { mid: 'Planning for the middle of KvK will live here.', end: 'Planning for the end of KvK will live here.' }, soonSub: 'Coming next',
-      noStart: 'Set start date', pre: 'Pre-KvK', day: 'Day', untilStart: 'until start', sinceStart: 'since start',
+      noStart: 'Set start date', pre: 'Pre-KvK', day: 'Day', untilStart: 'until start', sinceStart: 'since start', untilEnd: 'until KvK end', endShort: 'End', kvkOver: 'KvK over', fightAltar: 'Altar fight', fightPass: 'Pass fight', endLabel: 'KvK end (optional)', endHint: 'empty = start + KvK duration',
       u: { d: 'Days', h: 'Hrs', m: 'Min', s: 'Sec' },
       apTitle: 'AP', apHint: 'From your last AP scan', noData: 'No scan yet – scan in the scanner or click “From scan”', bottles: ' potions', apPerDay: 'Planned per day',
       total: 'Total', lasts: 'Lasts', days: 'days', dayOne: 'day',
@@ -546,7 +560,7 @@
   function freshState() {
     return {
       v: 3,
-      startDate: '',
+      startDate: '', endDate: '',                                             // endDate leer = Start + KvK-Dauer (mid.days)
       tab: 'start',                                                               // start | mid | end                                                              // YYYY-MM-DD (UTC-Tag, Start 00:00 UTC)
       ap: { b50: 0, b100: 0, b500: 0, b1000: 0, perDay: 0 },
       speed: { universal: 0, training: 0, healing: 0, research: 0, building: 0 },   // Minuten
@@ -554,7 +568,7 @@
       buildSpeed: 0,                                                              // Bau-Tempo in % (für die Bauzeit der Kristallgebäude)
       helps: 30,                                                                  // Allianz-Hilfen je Ausbaustufe (max. 30)
       mapEv: [],                                                              // Ruinen/Altäre/Eigenes: { id, kind, name, day, time 'HH:MM' UTC, rep (Tage, 0 = einmal) }
-      open: { mapCamps: false, mapTimes: false, mapDesign: false, calc: false, bundles: false, res: false, stats: false, rmStart: false, midFlow: false, midGoal: false, midAp: false, midHon: false, midStats: false, midMap: false, endSum: false, endImg: false },                                       // eingeklappte Fenster
+      open: { mapCamps: false, mapTimes: false, mapDesign: false, mapLayout: false, calc: false, bundles: false, res: false, stats: false, rmStart: false, midFlow: false, midGoal: false, midAp: false, midHon: false, midStats: false, midMap: false, endSum: false, endImg: false },                                       // eingeklappte Fenster
       buy: {},                                                                    // Stufen-ID → Anzahl
       budget: 0,
       planPass: 8,                                                                // Planung bis zu diesem Pass (MW je Pass + Conquer's Will je Tag)
@@ -567,7 +581,10 @@
         bastionPerDay: 0, bastionCr: 1500, maudaraPerDay: 0, otherPerDay: 0,
         kk: { easy: 0, normal: 0, hard: 0, easyDay: 7, normalDay: 14, hardDay: 28, boost: 0, boostDay: 1 },   // boost = zusätzliche Kristalle pro Std.
         apRegen: 0, chain: 1, barbAp: 60, barbCr: 500, forts: 0, fortAp: 150, fortCr: 3000, kahar: 0,   // kahar = Anzahl Kahar the Hidden
-        hon: { start: 0, barb: 0, fort: 0, altar: 0, ruin: 0, altarsDay: 0, ruinsDay: 0 },
+        apSpend: 0, apUntil: 0,                                                   // AP ausgeben (0 = alles) · bis Pass n (0 = KvK-Ende)
+        // Ehre: Ruinen/Altäre kommen aus der Timeline (Reiter Karte); share 1 = Altar geteilt (50 %); v = Version der Standardwerte
+        hon: { start: 0, goal: 120000, ruin: 2000, altar: 4000, share: 2, barb: 8, fort: 100, v: 2 },
+        endGoal: 100000000,                                                       // Ziel-Kristalle am KvK-Ende
         pass: 4, pg: { 4: [], 5: [], 6: [], 7: [], 8: [] },
         // Vereinfacht: Ziel-Kristalle bis zum Pass + geplante Kahar bis dahin
         pt: { 4: { cr: 0, kahar: 0 }, 5: { cr: 0, kahar: 0 }, 6: { cr: 0, kahar: 0 }, 7: { cr: 0, kahar: 0 }, 8: { cr: 0, kahar: 0 } },                     // Roadmap: Ziele je Pass (Name + Kristallkosten)
@@ -575,16 +592,16 @@
         nowSrc: 0,
         adj: { spent: 0, cur: 0, day: 0, on: 1 },
         // Karte: 4 Camps mit ihren Königreichen (Text, mit Komma getrennt); myCamp 1–4 (0 = keins)
-        camps: [{ name: '', kds: '' }, { name: '', kds: '' }, { name: '', kds: '' }, { name: '', kds: '' }], myCamp: 0, allyCamp: 0, mapStyle: 'battle', layout: 'schema'                                 // Ist-Abgleich: bisher ausgegeben + jetzt im Spiel (on: 1 an, 2 aus)
+        camps: [{ name: '', kds: '' }, { name: '', kds: '' }, { name: '', kds: '' }, { name: '', kds: '' }], myCamp: 0, allyCamp: 0, mapStyle: 'battle', layout: 'lk1', kdTier: {}                                 // Ist-Abgleich: bisher ausgegeben + jetzt im Spiel (on: 1 an, 2 aus)
       },
       goals: [],
       src: { ap: 0, speed: 0, res: 0, stats: 0 },
       mwPass: { 4: 0, 5: 0, 6: 0, 7: 0, 8: 0 },
       // KvK Ende: Werte am Ende, Kampf, Ergebnis und was im Bild gezeigt wird (1 = an, 2 = aus)
       end: {
-        now: { power: 0, kp: 0, acclaim: 0, deads: 0, universal: 0, training: 0, healing: 0, food: 0, wood: 0, stone: 0, gold: 0, ap: 0 },
-        kills: 0, heal: 0, deads: 0, autarch: 0, result: 0, nowSrc: 0, bg: 'timer',   // deads: Deads im KvK von Hand (Vorrang vor Ende − Start)         // result: 0 offen, 1 gewonnen, 2 verloren · bg: Hintergrund des Bilds
-        show: { kp: 1, power: 1, acclaim: 1, kdh: 1, speed: 1, res: 1, ap: 1, autarch: 1, trade: 1, result: 1, avatar: 1, kingdom: 1 }
+        now: { power: 0, kp: 0, acclaim: 0, honor: 0, crystal: 0, deads: 0, universal: 0, training: 0, healing: 0, food: 0, wood: 0, stone: 0, gold: 0, ap: 0 },
+        kills: 0, heal: 0, deads: 0, autarch: 0, star: 0, result: 0, nowSrc: 0, bg: 'timer',   // deads: Deads im KvK von Hand (Vorrang vor Ende − Start)         // result: 0 offen, 1 gewonnen, 2 verloren · bg: Hintergrund des Bilds
+        show: { kp: 1, power: 1, acclaim: 1, honor: 1, crystal: 1, kdh: 1, speed: 1, res: 1, ap: 1, autarch: 1, trade: 1, result: 1, avatar: 1, kingdom: 1 }
       }                                    // Mountain Warfare: bis zu welcher Stufe je Pass (0 = nichts)
     };
   }
@@ -594,7 +611,7 @@
       if (!(k in src)) return;
       const b = base[k], s = src[k];
       if (Array.isArray(b)) { if (Array.isArray(s)) base[k] = s; }
-      else if (k === 'buy') { if (s && typeof s === 'object') base[k] = s; }
+      else if (k === 'buy' || k === 'kdTier') { if (s && typeof s === 'object') base[k] = s; }   // freie Schlüssel (Bundle-IDs, Königreich-Nummern)
       else if (b && typeof b === 'object') mergeInto(b, s);
       else if (typeof b === typeof s) base[k] = s;
     });
@@ -635,6 +652,11 @@
       const mwT = BUNDLES.find((b) => b.id === 'mw').tiers;
       MW_PASSES.forEach((n) => { st.mwPass[n] = Math.max(0, Math.min(5, Math.round(+st.mwPass[n] || 0))); });
       if (!(parsed && parsed.mwPass) && mwT.some((x) => st.buy[x.id])) MW_PASSES.forEach((n, j) => { st.mwPass[n] = mwT.filter((x) => (st.buy[x.id] || 0) > j).length; });
+      // Ehre: alte Stände ohne Werte bekommen die neuen Standardwerte (Ruine 2.000, Altar 4.000, Barbar 8, Fort 100)
+      const ph0 = parsed && parsed.mid && parsed.mid.hon;
+      if (ph0 && ph0.v !== 2) { const H = freshState().mid.hon; ['ruin', 'altar', 'barb', 'fort', 'goal'].forEach((k) => { if (!(+st.mid.hon[k] > 0)) st.mid.hon[k] = H[k]; }); st.mid.hon.v = 2; }
+      // Autarch war früher eine Anzahl → jetzt Ja/Nein
+      if (parsed && parsed.end && parsed.end.star == null && +parsed.end.autarch > 0) st.end.autarch = 1;
       mwToBuy(st);
       return st;
     } catch (e) { return freshState(); }
@@ -818,12 +840,15 @@
     return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], 0, 0, 0) : null;
   }
   // Timer eines anderen Spielers (Datum aus seinem Profil) oder der eigene (state)
-  const phaseFor = (el) => { const h = el && el.closest && el.closest('.kvk-host'); return h && h._kvkFixed ? phase(h._kvkStart) : phase(); };
-  function phase(d) {
-    const ts = startTs(d === undefined ? state.startDate : d);
+  const phaseFor = (el) => { const h = el && el.closest && el.closest('.kvk-host'); return h && h._kvkFixed ? phase(h._kvkStart, h._kvkDays) : phase(); };
+  // Phase: vor dem Start → Countdown bis Start; im KvK → Countdown bis Ende (Tag zählt weiter); danach 0
+  function phase(d, days) {
+    const own = d === undefined, ts = startTs(own ? state.startDate : d);
     if (ts == null) return null;
-    const diff = ts - srvNow();
-    return { ts, before: diff > 0, ms: Math.abs(diff), day: diff > 0 ? 0 : Math.floor(-diff / 86400000) + 1 };
+    const endTs = own && startTs(state.endDate) > ts ? startTs(state.endDate) : ts + Math.max(1, Math.round(+(own ? state.mid.days : days) || 60)) * 86400000;
+    const now = srvNow(), diff = ts - now;
+    const over = now >= endTs;
+    return { ts, end: endTs, before: diff > 0, over, ms: diff > 0 ? diff : Math.max(0, endTs - now), day: diff > 0 ? 0 : Math.min(Math.floor(-diff / 86400000) + 1, Math.round((endTs - ts) / 86400000)) };
   }
 
   /* ================================================================== *
@@ -1185,6 +1210,12 @@
                  class="w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 [color-scheme:dark]">
           <span data-utc class="text-slate-500 leading-snug"></span>
         </label>
+        <label class="flex flex-col gap-1.5 text-xs text-slate-400 mt-3">
+          <span>${L.endLabel}</span>
+          <input type="date" data-path="endDate" data-kind="raw" value="${esc(state.endDate || '')}" min="${esc(state.startDate)}"
+                 class="w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 [color-scheme:dark]">
+          <span class="text-slate-500 leading-snug">${L.endHint}${startTs() != null ? ` · ${L.endShort}: ${new Date(phase().end).toLocaleDateString(locale(), { day: '2-digit', month: '2-digit', year: 'numeric' })}` : ''}</span>
+        </label>
         <div class="mt-3 pt-3 border-t border-ink-700">
           <div class="text-xs text-slate-400 mb-1.5">🖼️ ${L.bgLabel}</div>
           <div class="flex gap-2">
@@ -1419,9 +1450,11 @@
             <p class="text-[11px] text-slate-500">${M.kkHint}</p>`)}
         </div>
       </div>`;
-    const pSel = PASS_SCHEDULE.some((p) => p.n === +md.pass) ? +md.pass : 4;
+    const pHas = (n) => (md.pg[n] || []).some((g) => g && g.cost > 0) || ((md.pt[n] || {}).cr > 0) || (state.mwPass[n] || 0) > 0;
+    const PICK = PASS_SCHEDULE.filter((p) => p.n !== 5 || pHas(5) || +md.pass === 5);   // Pass 5 ist meist leer → ausgeblendet
+    const pSel = PICK.some((p) => p.n === +md.pass) ? +md.pass : 4;
     const pgList = md.pg[pSel] || [];
-    const passPick = PASS_SCHEDULE.map((p) => { const dt = passDate(p.n), n = (md.pg[p.n] || []).filter((g) => g.cost > 0).length, mwOn = (state.mwPass[p.n] || 0) > 0; return `
+    const passPick = PICK.map((p) => { const dt = passDate(p.n), n = (md.pg[p.n] || []).filter((g) => g.cost > 0).length, mwOn = (state.mwPass[p.n] || 0) > 0; return `
       <button type="button" data-mpass="${p.n}" aria-pressed="${p.n === pSel}" class="seg-btn rounded-lg py-1.5 px-1 border border-ink-600 transition leading-tight">
         <span class="block text-xs sm:text-sm font-semibold whitespace-nowrap"><span class="sm:hidden">P${p.n}</span><span class="hidden sm:inline">${L.pass} ${p.n}</span>${n ? ` · ${n}` : ''}${mwOn ? ' ⛰️' : ''}</span>
         <span class="block text-[10px] opacity-75 tabular-nums">${dt ? shortDate(dt) : `${L.dayN} ${p.day}`}</span>
@@ -1440,7 +1473,11 @@
         </div>
         <div>
           <div class="text-xs text-slate-400 mb-1">🎯 ${M.passPick}</div>
-          <div class="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label="${M.passPick}">${passPick}</div>
+          <div class="grid gap-1.5" style="grid-template-columns:repeat(${PICK.length},minmax(0,1fr))" role="radiogroup" aria-label="${M.passPick}">${passPick}</div>
+        </div>
+        <div class="flex flex-wrap items-end gap-3 rounded-xl border border-gold-500/25 bg-gold-500/5 px-3 py-2.5">
+          <div class="w-full sm:w-64">${midSmall('🏁 ' + M.endGoalLbl, 'mid.endGoal', inVal(md.endGoal), null)}</div>
+          <div class="flex-1 min-w-[12rem] text-sm" data-out="midEndGoal"></div>
         </div>
         <div class="grid gap-4 lg:grid-cols-2 items-start">
           ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">🎯 ${M.pgTitle} ${pSel}</div>
@@ -1466,6 +1503,24 @@
       <div class="flex flex-col gap-4 pt-3">
         ${card(`${tileHead('🧪', L.apTitle, M.apSrc, 'ap')}
           <div data-out="midAp"></div>
+          <div class="grid gap-3 sm:grid-cols-2 rounded-xl border border-gold-500/25 bg-gold-500/5 p-3">
+            <label class="flex flex-col gap-1 text-xs text-slate-400">
+              <span>🧪 ${M.apSpendLbl}</span>
+              <span class="flex gap-1.5">
+                <input type="text" inputmode="decimal" autocomplete="off" data-path="mid.apSpend" value="${esc(inVal(md.apSpend))}" placeholder="${M.apAll}" class="${INPUT}">
+                <button type="button" data-ap-max class="shrink-0 text-[11px] font-semibold px-2.5 rounded-lg border ${+md.apSpend > 0 ? 'border-gold-500/40 text-gold-300 hover:bg-gold-500/10' : 'border-gold-400 bg-gold-500 text-ink-950'}">${L.max}</button>
+              </span>
+              <span class="text-[10px] text-slate-600">${M.apSpendHint}</span>
+            </label>
+            <label class="flex flex-col gap-1 text-xs text-slate-400">
+              <span>📅 ${M.apUntilLbl}</span>
+              <select data-path="mid.apUntil" class="${INPUT} !text-left">
+                <option value="0" ${!+md.apUntil ? 'selected' : ''}>🏁 ${M.mEnd}</option>
+                ${PASS_SCHEDULE.map((p) => { const dt = passDate(p.n); return `<option value="${p.n}" ${+md.apUntil === p.n ? 'selected' : ''}>${L.pass} ${p.n}${dt ? ' · ' + shortDate(dt) : ''}</option>`; }).join('')}
+              </select>
+              <span class="text-[10px] text-slate-600">${M.apUntilHint}</span>
+            </label>
+          </div>
           <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             ${midSmall('🔋 ' + M.apRegen, 'mid.apRegen', inVal(md.apRegen), null)}
             ${midSmall('🔗 ' + M.chain, 'mid.chain', inVal(md.chain), 10)}
@@ -1480,16 +1535,18 @@
     const honBody = `
       <div class="flex flex-col gap-4 pt-3">
         <div data-out="midHonor"></div>
-        ${card(`<div><div class="text-xs uppercase tracking-widest text-slate-400">🏅 ${M.honor}</div><p class="text-xs text-slate-500 mt-0.5">${M.honorHint}</p></div>
+        ${card(`<div><div class="text-xs uppercase tracking-widest text-slate-400">🏅 ${M.honor}</div><p class="text-xs text-slate-500 mt-0.5">${M.hn.inHint}</p></div>
           <div class="grid gap-3 grid-cols-2 lg:grid-cols-4">
-            ${midSmall('🏅 ' + M.honStart, 'mid.hon.start', inVal(md.hon.start), null)}
-            ${midSmall('🏛️ ' + M.ruinsDay, 'mid.hon.ruinsDay', inVal(md.hon.ruinsDay), null)}
-            ${midSmall('⛩️ ' + M.altarsDay, 'mid.hon.altarsDay', inVal(md.hon.altarsDay), null)}
-            <span class="hidden lg:block"></span>
-            ${midSmall(M.hRuin, 'mid.hon.ruin', inVal(md.hon.ruin), null)}
-            ${midSmall(M.hAltar, 'mid.hon.altar', inVal(md.hon.altar), null)}
-            ${midSmall(M.hBarb, 'mid.hon.barb', inVal(md.hon.barb), null)}
-            ${midSmall(M.hFort, 'mid.hon.fort', inVal(md.hon.fort), null)}
+            ${midSmall('🏅 ' + M.honStart, 'mid.hon.start', inVal(md.hon.start), null, M.hn.startHint)}
+            ${midSmall('🎯 ' + M.hn.goal, 'mid.hon.goal', inVal(md.hon.goal), null)}
+            ${midSmall('🏛️ ' + M.hRuin, 'mid.hon.ruin', inVal(md.hon.ruin), null)}
+            ${midSmall('⛩️ ' + M.hAltar, 'mid.hon.altar', inVal(md.hon.altar), null)}
+            ${midSmall('🪓 ' + M.hBarb, 'mid.hon.barb', inVal(md.hon.barb), null)}
+            ${midSmall('🏰 ' + M.hFort, 'mid.hon.fort', inVal(md.hon.fort), null)}
+            <label class="col-span-2 flex items-start gap-2.5 text-sm text-slate-200 cursor-pointer rounded-lg border border-ink-700 px-3 py-2 self-end ${+md.hon.share === 1 ? 'bg-gold-500/5 border-gold-500/40' : ''}">
+              <input type="checkbox" data-path="mid.hon.share" ${+md.hon.share === 1 ? 'checked' : ''} class="mt-0.5 w-4 h-4 accent-yellow-500">
+              <span>⛩️ ${M.hn.share}<span class="block text-[11px] text-slate-500">${M.hn.shareHint}</span></span>
+            </label>
           </div>`)}
       </div>`;
     const sIn = (path, val, unit) => `<input type="text" inputmode="decimal" autocomplete="off" data-path="${path}" ${unit ? `data-unit="${unit}"` : ''} value="${esc(val)}" placeholder="0" class="${INPUT_SM}">`;
@@ -1515,47 +1572,66 @@
     const r0 = calc();
     const E = L.m.e, ed = state.end;
     const eIn = (path, val, unit) => `<input type="text" inputmode="decimal" autocomplete="off" data-path="${path}" ${unit ? `data-unit="${unit}"` : ''} value="${esc(val)}" placeholder="0" class="${INPUT_SM}">`;
-    const endRows = [['💪', M.power, 'stats.power', 'end.now.power'], ['⚔️', M.kp, 'stats.kp', 'end.now.kp'], ['🏅', M.acclaim, 'stats.acclaim', 'end.now.acclaim'],
+    // Start null = startet im KvK immer bei 0 (Verdienst, Ehre, Kristalle)
+    const endRows = [['💪', M.power, 'stats.power', 'end.now.power'], ['⚔️', M.kp, 'stats.kp', 'end.now.kp'], ['🏅', M.acclaim, null, 'end.now.acclaim'],
+      ['🎖️', E.honorRow, null, 'end.now.honor'], ['💎', E.crystalRow, null, 'end.now.crystal'],
       ['💀', M.deads, 'stats.deads', 'end.now.deads'],
       ['⏱️', L.cats.universal + ` (${M.inDays})`, 'speed.universal', 'end.now.universal', 'days'], ['⚔️', L.cats.training + ` (${M.inDays})`, 'speed.training', 'end.now.training', 'days'],
       ['❤️', L.cats.healing + ` (${M.inDays})`, 'speed.healing', 'end.now.healing', 'days'],
       ...RES.map((x) => [x.icon, L.res[x.k], 'res.' + x.k, 'end.now.' + x.k])];
     const endHasScan = !!(lastScan('governor') || lastScan('speedups') || lastScan('resources') || lastScan('ap'));
+    const startHasScan = ['stats', 'speed', 'res', 'ap'].some((p0) => lastScan(SCAN_TYPE[p0], scanCut()));
+    const scanBtn = (attr, lab, on, tip) => `<button type="button" ${attr} ${on ? '' : 'disabled'} title="${esc(tip || '')}" class="text-xs px-2.5 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 disabled:opacity-40 disabled:pointer-events-none">↻ ${lab}</button>`;
     const resBtn = (v, lab, cls) => `<button type="button" data-end-result="${v}" aria-pressed="${ed.result === v}" class="seg-btn rounded-lg py-2 px-2 text-sm font-semibold border border-ink-600 transition ${cls}">${lab}</button>`;
     const endSumBody = `
       <div class="flex flex-col gap-4 pt-3">
         ${lockBar()}
         <div data-out="endSum"></div>
         <div class="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start">
-          ${card(`<div class="flex items-start justify-between gap-3">
+          ${card(`<div class="flex flex-wrap items-center justify-between gap-2">
               <p class="text-xs text-slate-400">${E.endScanHint}${ed.nowSrc ? ` · <span class="text-slate-500">${L.scanFrom}: ${dateLabel(ed.nowSrc)}</span>` : ''}</p>
-              <button type="button" data-end-scan ${endHasScan ? '' : 'disabled'} title="${endHasScan ? '' : M.noScan}" class="shrink-0 text-xs px-2.5 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 disabled:opacity-40 disabled:pointer-events-none">${E.endScan}</button>
+              <div class="flex gap-1.5">
+                ${scanBtn('data-start-scan', E.startScan, startHasScan && !startLocked(), startLocked() ? E.startLockedTip : startHasScan ? '' : M.noScan)}
+                ${scanBtn('data-end-scan', E.endScan, endHasScan, endHasScan ? '' : M.noScan)}
+              </div>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)] gap-x-2 gap-y-1.5 sm:gap-y-2 items-center text-sm">
               <span class="hidden sm:block"></span><span class="text-[10px] uppercase tracking-widest text-slate-500 text-right">${E.start}</span><span class="text-[10px] uppercase tracking-widest text-slate-500 text-right">${E.end}</span>
               ${endRows.map(([ic, lab, a, b, unit]) => {
-                const va = getPath(state, a), vb = getPath(state, b);
-                return `<span class="col-span-2 sm:col-span-1 text-slate-300 truncate pt-1 sm:pt-0">${ic} ${lab}</span>${eIn(a, unit ? inVal(va / 1440, 1) : inVal(va), unit)}${eIn(b, unit ? inVal(vb / 1440, 1) : inVal(vb), unit)}`;
+                const va = a ? getPath(state, a) : 0, vb = getPath(state, b);
+                const startCell = a ? eIn(a, unit ? inVal(va / 1440, 1) : inVal(va), unit) : `<span class="text-right text-slate-500 tabular-nums text-sm pr-2" title="${esc(E.zeroTip)}">0 <span class="text-[10px]">🔒</span></span>`;
+                return `<span class="col-span-2 sm:col-span-1 text-slate-300 truncate pt-1 sm:pt-0">${ic} ${lab}</span>${startCell}${eIn(b, unit ? inVal(vb / 1440, 1) : inVal(vb), unit)}`;
               }).join('')}
               <span class="col-span-2 sm:col-span-1 text-slate-300 truncate pt-1 sm:pt-0">🧪 ${E.apTotal}</span>
               <span class="text-right text-slate-400 tabular-nums text-sm pr-2">${fmt(r0.apTotal)}</span>${eIn('end.now.ap', inVal(ed.now.ap))}
             </div>`)}
           <div class="flex flex-col gap-4">
             ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">🏁 ${E.result}</div>
-              <div class="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="${E.result}">${resBtn(1, '🏆 ' + E.win)}${resBtn(2, '💀 ' + E.lose)}${resBtn(0, E.open)}</div>`)}
+              <div class="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="${E.result}">${resBtn(1, '🏆 ' + E.win)}${resBtn(2, '💀 ' + E.lose)}${resBtn(0, E.open)}</div>
+              ${[['star', '⭐ ' + E.star, E.starHint], ['autarch', '👑 ' + E.autarch, '']].map(([k, lab, hint]) => `
+              <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-ink-700">
+                <span class="text-sm text-slate-200">${lab}${hint ? `<span class="block text-[11px] text-slate-500">${hint}</span>` : ''}</span>
+                <span class="grid grid-cols-2 gap-1.5 w-40" role="radiogroup" aria-label="${esc(lab)}">${[[1, E.yes], [2, E.no]].map(([v, t0]) => `<button type="button" data-end-set="${k}:${v}" aria-pressed="${(+ed[k] > 0 && +ed[k] !== 2 ? 1 : +ed[k] === 2 ? 2 : 0) === v}" class="seg-btn rounded-lg py-1.5 text-sm font-semibold border border-ink-600">${t0}</button>`).join('')}</span>
+              </div>`).join('')}`)}
             ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">🗡️ ${E.fight}</div>
               <div class="grid gap-3 grid-cols-2">
                 ${midSmall('🗡️ ' + E.kills, 'end.kills', inVal(ed.kills), null)}
                 ${midSmall('💀 ' + E.deadsKvk, 'end.deads', inVal(ed.deads), null)}
                 ${midSmall('❤️ ' + E.heal, 'end.heal', inVal(ed.heal), null)}
-                ${midSmall('👑 ' + E.autarch, 'end.autarch', inVal(ed.autarch), null)}
               </div>
-              <p class="text-[11px] text-slate-500">⚖️ ${E.trade} = ${E.tradeHint} · 💀 ${E.deadsKvk}: ${E.deadsHint}</p>`)}
+              <p class="text-xs text-slate-300">⚖️ ${E.tradeNote}</p>
+              <p class="text-[11px] text-slate-500">${E.trade} = ${E.tradeHint} · 💀 ${E.deadsKvk}: ${E.deadsHint}</p>`)}
           </div>
         </div>
       </div>`;
+    const bgSel = ed.bg === 'own' && !endOwnBg() ? 'timer' : ed.bg || 'timer';
+    const bgTile = (k) => `<button type="button" data-endbg="${k}" aria-pressed="${bgSel === k}" class="relative aspect-[16/9] rounded-lg overflow-hidden border-2 ${bgSel === k ? 'border-gold-400 shadow-[0_0_14px_rgba(245,197,66,.35)]' : 'border-ink-600 hover:border-gold-500/60'} transition" style="background:${endBgCss(k).replace(/"/g, '&quot;')}">
+              <span class="absolute inset-x-0 bottom-0 text-[10px] font-semibold py-0.5 px-1 text-center truncate bg-ink-950/75 ${bgSel === k ? 'text-gold-300' : 'text-slate-300'}">${bgSel === k ? '✓ ' : ''}${E.bg[k]}</span></button>`;
+    const chk = (k, lab) => `<label class="flex items-center gap-2.5 text-sm text-slate-200 cursor-pointer rounded-lg px-2 py-1.5 hover:bg-ink-800/60">
+              <input type="checkbox" data-path="end.show.${k}" ${ed.show[k] !== 2 ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${lab}</label>`;
+    // Bild oben über die ganze Breite, Einstellungen darunter
     const endImgBody = `
-      <div class="grid gap-4 pt-3 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start">
+      <div class="flex flex-col gap-4 pt-3">
         <div class="flex flex-col gap-3">
           <div class="text-[10px] uppercase tracking-widest text-slate-500">👁 ${E.imgPreview}</div>
           <div data-out="endImg"></div>
@@ -1564,29 +1640,23 @@
             <button type="button" disabled class="text-sm px-3 py-2 rounded-lg border border-ink-600 text-slate-400 opacity-60 cursor-not-allowed">👤 ${E.toProfile} <span class="text-[10px] uppercase tracking-widest text-slate-500">· ${E.soonBadge}</span></button>
           </div>
         </div>
-        ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">✅ ${E.imgData}</div>
-          <div class="flex flex-col gap-1">${END_KEYS.map((k) => `
-            <label class="flex items-center gap-2.5 text-sm text-slate-200 cursor-pointer rounded-lg px-2 py-1.5 hover:bg-ink-800/60">
-              <input type="checkbox" data-path="end.show.${k}" ${ed.show[k] !== 2 ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${E.k[k]}</label>`).join('')}
-          </div>
-          <div class="text-xs uppercase tracking-widest text-slate-400 pt-2 border-t border-ink-700">👤 ${E.imgOpts}</div>
-          <div class="flex flex-col gap-1">${[['avatar', E.optAvatar], ['kingdom', E.optKingdom]].map(([k, lab]) => `
-            <label class="flex items-center gap-2.5 text-sm text-slate-200 cursor-pointer rounded-lg px-2 py-1.5 hover:bg-ink-800/60">
-              <input type="checkbox" data-path="end.show.${k}" ${ed.show[k] !== 2 ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${lab}</label>`).join('')}
-          </div>
-          <div class="text-xs uppercase tracking-widest text-slate-400 pt-2 border-t border-ink-700">🖼️ ${E.bgTitle}</div>
-          <div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="${E.bgTitle}">${['timer', 'gold', 'blood', 'night', 'frost', ...(endOwnBg() ? ['own'] : [])].map((k) => {
-            const sel = (ed.bg === 'own' && !endOwnBg() ? 'timer' : ed.bg || 'timer') === k;
-            return `<button type="button" data-endbg="${k}" aria-pressed="${sel}" class="relative aspect-[16/9] rounded-lg overflow-hidden border-2 ${sel ? 'border-gold-400 shadow-[0_0_14px_rgba(245,197,66,.35)]' : 'border-ink-600 hover:border-gold-500/60'} transition" style="background:${endBgCss(k).replace(/"/g, '&quot;')}">
-              <span class="absolute inset-x-0 bottom-0 text-[10px] font-semibold py-0.5 px-1 text-center truncate bg-ink-950/75 ${sel ? 'text-gold-300' : 'text-slate-300'}">${sel ? '✓ ' : ''}${E.bg[k]}</span></button>`;
-          }).join('')}</div>
-          <div class="flex gap-2">
-            <label class="flex-1 text-center cursor-pointer text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">
-              ⬆ ${E.bgUpload}<input type="file" accept="image/*" data-endbg-file class="hidden">
-            </label>
-            ${endOwnBg() ? `<button type="button" data-endbg-del class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-red-400/60 hover:text-red-300">✕ ${E.bgDel}</button>` : ''}
-          </div>
-          <div data-endbg-msg class="text-[11px] text-slate-500 min-h-[1em]"></div>`)}
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 items-start">
+          ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">✅ ${E.imgData}</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-x-2">${END_KEYS.map((k) => chk(k, E.k[k])).join('')}</div>`)}
+          ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">👤 ${E.imgOpts}</div>
+            <div class="flex flex-col gap-1">${chk('avatar', E.optAvatar)}${chk('kingdom', E.optKingdom)}</div>`)}
+          ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">🖼️ ${E.bgTitle}</div>
+            <div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="${E.bgTitle}">
+              ${['timer', 'gold', 'blood', 'night', 'frost'].map(bgTile).join('')}
+              ${endOwnBg() ? bgTile('own') : `<label class="relative aspect-[16/9] rounded-lg border-2 border-dashed border-gold-500/50 hover:border-gold-400 hover:bg-gold-500/5 grid place-items-center text-center cursor-pointer transition">
+                <span class="text-[11px] font-semibold text-gold-300 leading-tight px-1">⬆<br>${E.bgUpload}</span><input type="file" accept="image/*" data-endbg-file class="hidden"></label>`}
+            </div>
+            ${endOwnBg() ? `<div class="flex gap-2">
+              <label class="flex-1 text-center cursor-pointer text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⬆ ${E.bgChange}<input type="file" accept="image/*" data-endbg-file class="hidden"></label>
+              <button type="button" data-endbg-del class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-red-400/60 hover:text-red-300">✕ ${E.bgDel}</button>
+            </div>` : ''}
+            <div data-endbg-msg class="text-[11px] text-slate-500 min-h-[1em]"></div>`)}
+        </div>
       </div>`;
     const endTile = `
       <section class="panel rounded-2xl p-5 flex flex-col gap-4">
@@ -1608,8 +1678,12 @@
               </span>
             </div>
             <div class="grid grid-cols-5 gap-1.5" data-camp-kds="${i}">${(() => { const ks = parseKds(c.kds).slice(0, 10); return Array.from({ length: 10 }, (_, j) => `
-              <input type="text" inputmode="numeric" maxlength="6" data-camp-kd="${i}:${j}" value="${esc(ks[j] || '')}" placeholder="${j + 1}" class="${INPUT_SM} !px-1 !text-center" aria-label="${M.campNames[i]} ${j + 1}">`).join(''); })()}</div>
-          </div>`; }).join('')}</div>`)}
+              <div class="flex flex-col gap-1">
+                <input type="text" inputmode="numeric" maxlength="4" pattern="[0-9]*" data-camp-kd="${i}:${j}" value="${esc(ks[j] || '')}" placeholder="${j + 1}" class="${INPUT_SM} !px-1 !text-center" style="color:${({ g: '#fbbf24', s: '#d1d5db' })[(md.kdTier || {})[ks[j]]] || '#ffffff'}" aria-label="${M.campNames[i]} ${j + 1}">
+                ${ks[j] ? tierBtnHTML(ks[j]) : ''}
+              </div>`).join(''); })()}</div>
+          </div>`; }).join('')}</div>
+        <p class="text-[11px] text-slate-500">🥇🥈 ${M.tierHint}</p>`)}
       </div>`;
 
 
@@ -1637,7 +1711,7 @@
         ${state.mapEv.map(evRow).join('')}
         <div class="flex flex-wrap gap-2">${['ruin', 'altar', 'other'].map((k) => `<button type="button" data-ev-add="${k}" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">＋ ${EV_ICON[k][0]} ${MP.kinds[k]}</button>`).join('')}</div>
       </div>`;
-    const mapEditOn = !!(state.open.mapCamps || state.open.mapTimes || state.open.mapDesign);
+    const mapEditOn = !!(state.open.mapCamps || state.open.mapTimes || state.open.mapDesign || state.open.mapLayout);
     const mapTile = `
       <section class="panel rounded-2xl p-5 flex flex-col gap-4">
         ${tileHead('🗺️', MP.title, MP.hint, null, `<button type="button" data-map-edit class="shrink-0 text-xs px-2.5 py-1 rounded-lg border ${mapEditOn ? 'border-gold-500 bg-gold-500 text-ink-950 font-semibold' : 'border-ink-600 hover:border-gold-500/60 hover:text-gold-300'}">${mapEditOn ? '✓ ' + L.done : '✎ ' + L.edit}</button>`)}
@@ -1649,6 +1723,7 @@
             ${card(`<div data-out="mapSched"></div>`)}
           </div>
         </div>
+        ${fold('mapLayout', '🗺️', L.mp.whichKvk, L.mp.whichHint, `<div class="pt-3">${layoutPicker()}</div>`)}
         ${fold('mapDesign', '🎨', M.mapDesign, MP.designHint.replace('{n}', MAP_STYLES.length), `<div class="pt-3">${mapStylePicker()}</div>`)}
         ${fold('mapCamps', '🏕️', MP.campsFold, MP.campsHint, campBody)}
         ${fold('mapTimes', '⏰', MP.timesFold, MP.timesHint, timesBody)}
@@ -1657,6 +1732,10 @@
     const midTile = `
       <section class="panel rounded-2xl p-5 flex flex-col gap-4">
         ${tileHead('⚔️', M.title, M.hint, null)}
+        <div class="rounded-xl border border-gold-500/25 bg-ink-950/60 p-4 flex flex-col gap-3">
+          <div>${subTitle('🗺️ ' + M.roadTitle)}<p class="text-xs text-slate-500 mt-0.5">${M.roadHint}</p></div>
+          <div data-out="midRoad"></div>
+        </div>
         ${fold('midFlow', '💎', M.flow, M.flowHint, flowBody)}
         ${fold('midGoal', '🎯', M.goal, M.goalHint, goalBody)}
         ${fold('midAp', '🪓', M.apFold, M.apFoldHint, apBody)}
@@ -1682,11 +1761,11 @@
         ${lockBar()}
         <section class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
           <div><h3 class="font-display text-lg text-gold-300">🗺️ ${L.mp.whichKvk}</h3><p class="text-xs text-slate-400 mt-0.5">${L.mp.whichHint}</p></div>
-          <div class="grid gap-2 grid-cols-1 sm:grid-cols-3" role="radiogroup" aria-label="${L.mp.whichKvk}">${(loadMapIndex(), [{ id: 'schema', name: L.mp.layouts.schema[0], desc: L.mp.layouts.schema[1] }, ...(MAP_INDEX || []).map((m) => ({ id: m.id, name: tx(m.name), desc: tx(m.desc) }))]).map((m) => { const on = validLayout(state.mid.layout) === m.id; return `
-            <button type="button" data-layout="${esc(m.id)}" aria-pressed="${on}" class="text-left rounded-xl border-2 p-2.5 transition ${on ? 'border-gold-400 bg-gold-500/10' : 'border-ink-700 hover:border-gold-500/50'}">
-              <div class="font-semibold text-sm ${on ? 'text-gold-300' : 'text-slate-200'}">${on ? '✓ ' : ''}${esc(m.name)}</div>
-              <div class="text-[11px] text-slate-500">${esc(m.desc)}</div>
-            </button>`; }).join('')}${MAP_INDEX ? '' : `<div class="text-xs text-slate-500 self-center">⏳ ${L.mp.mapsLoading}</div>`}</div>
+          ${layoutPicker()}
+        </section>
+        <section class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
+          <div>${subTitle('🗺️ ' + L.roadmap)}<p class="text-xs text-slate-500 mt-0.5">${L.roadmapHint}</p></div>
+          <div data-out="roadmap"></div>
         </section>
         ${crystalTile}
         <div class="text-right">
@@ -1705,7 +1784,7 @@
    * KvK Ende: Bilanz Start → Ende
    * ================================================================== */
   // Karte als eigenständige Funktion – auch fürs Profil (fremde Daten aus leaderboard.kvk_map)
-  const parseKds = (txt) => [...new Set(String(txt || '').split(/[,;\s]+/).map((k) => k.replace(/[^\d]/g, '').slice(0, 6)).filter(Boolean))];
+  const parseKds = (txt) => [...new Set(String(txt || '').split(/[,;\s]+/).map((k) => k.replace(/[^\d]/g, '').slice(0, 4)).filter(Boolean))];
   // Ereignisse (Ruinen/Altäre/Eigenes) kompakt fürs Profil – nur geprüfte Felder
   function cleanEvents(list) {
     if (!Array.isArray(list)) return [];
@@ -1715,20 +1794,27 @@
       time: /^\d{2}:\d{2}$/.test(e.time || '') ? e.time : '00:00', repH: Math.max(0, Math.min(24 * 60, Math.round(e.repH != null ? +e.repH || 0 : (+e.rep || 0) * 24)))
     } : null).filter(Boolean);
   }
+  // Königreich-Rang: 'g' = Imperium (Gold), 's' = Silberimperium (Silber), sonst weiß
+  function cleanTier(t0) {
+    const out = {};
+    if (t0 && typeof t0 === 'object') Object.keys(t0).slice(0, 80).forEach((k) => { const kd = String(k).replace(/[^\d]/g, '').slice(0, 6); if (kd && (t0[k] === 'g' || t0[k] === 's')) out[kd] = t0[k]; });
+    return out;
+  }
+  const TIER_COL = { g: '#fbbf24', s: '#d1d5db' }, TIER_COL_LIGHT = { g: '#a16207', s: '#64748b' };
   function mapData() {
     const m = state.mid;
     return { kds: [0, 1, 2, 3].map((i) => parseKds((m.camps[i] || {}).kds)), my: +m.myCamp || 0, ally: +m.allyCamp || 0, style: MAP_STYLES.includes(m.mapStyle) ? m.mapStyle : 'battle', layout: validLayout(m.layout),
-      ev: cleanEvents(state.mapEv), days: Math.max(1, Math.min(120, Math.round(+m.days) || 60)) };
+      ev: cleanEvents(state.mapEv), days: Math.max(1, Math.min(120, Math.round(+m.days) || 60)), tier: cleanTier(m.kdTier) };
   }
   function cleanMap(raw) {
     if (!raw || typeof raw !== 'object' || !Array.isArray(raw.kds)) return null;
     const kds = [0, 1, 2, 3].map((i) => parseKds((Array.isArray(raw.kds[i]) ? raw.kds[i] : []).join(',')).slice(0, 60));
     const cl = (v) => ([1, 2, 3, 4].includes(+v) ? +v : 0);
     return { kds, my: cl(raw.my), ally: cl(raw.ally) === cl(raw.my) ? 0 : cl(raw.ally), style: MAP_STYLES.includes(raw.style) ? raw.style : 'battle', layout: validLayout(raw.layout),
-      ev: cleanEvents(raw.ev), days: Math.max(1, Math.min(120, Math.round(+raw.days) || 60)) };
+      ev: cleanEvents(raw.ev), days: Math.max(1, Math.min(120, Math.round(+raw.days) || 60)), tier: cleanTier(raw.tier) };
   }
-  // Kampfdauer je Ereignis (Testwerte): Altar 2 Std, Pass-Kampf 1 Tag
-  const FIGHT_MS = { altar: 2 * 3600000, pass: 24 * 3600000 };
+  // Kampfdauer je Ereignis: Altar 2 Std, Pass-Kampf 3 Tage
+  const FIGHT_MS = { altar: 2 * 3600000, pass: 72 * 3600000 };   // Altar 2 Std, Pass-Kampf 3 Tage ab Öffnung
   const fightEnd = (e) => e.ts + (FIGHT_MS[e.kind] || 0);
   const activeFights = (evs, now) => evs.filter((e) => FIGHT_MS[e.kind] && e.ts <= now && now < fightEnd(e));
   // Ereignis-Schlüssel auf der Karte: 'p4'…'p8' (Pass-Tore) und 'altar'
@@ -1741,13 +1827,17 @@
   const LK_MAPS = {}, mapLoading = {};
   let MAP_INDEX = null, mapIndexLoading = null;
   const MAP_BASE = (() => { try { const sc = document.currentScript && document.currentScript.src; return sc ? new URL('maps/', sc).href : 'maps/'; } catch (e) { return 'maps/'; } })();
-  const validLayout = (v) => (typeof v === 'string' && /^[a-z0-9_-]{1,20}$/.test(v) ? v : 'schema');
+  const validLayout = (v) => (typeof v === 'string' && v !== 'schema' && /^[a-z0-9_-]{1,20}$/.test(v) ? v : 'lk1');   // Schema-Karte gibt es nicht mehr → Heroic Anthem
   function mapsChanged() { if (root) rerender(); mapHosts.forEach((h) => { if (h.isConnected && h._kvkRemount) h._kvkRemount(); }); }
+  // falls maps/index.json nicht lädt: bekannte Karten trotzdem zur Auswahl anbieten
+  const MAP_INDEX_FALLBACK = [
+    { id: 'lk1', name: { de: 'Heroic Anthem', en: 'Heroic Anthem' }, desc: { de: 'Ring aus Zonen um die Ziggurat, 4 Altar-Höfe, Pässe 4–8', en: 'ring of zones around the ziggurat, 4 altar courts, passes 4–8' } },
+    { id: 'lk2', name: { de: 'Mighty Assembly', en: 'Mighty Assembly' }, desc: { de: 'Quadratische Festung in der Mitte, Camps an den Seiten, Pässe 4–9', en: 'square fortress in the middle, camps on the sides, passes 4–9' } }];
   function loadMapIndex() {
     if (MAP_INDEX || mapIndexLoading) return;
     mapIndexLoading = fetch(MAP_BASE + 'index.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null))
-      .then((j) => { MAP_INDEX = j && Array.isArray(j.maps) ? j.maps.filter((m) => m && validLayout(m.id) === m.id) : []; mapsChanged(); })
-      .catch(() => { MAP_INDEX = []; mapsChanged(); });
+      .then((j) => { const l = j && Array.isArray(j.maps) ? j.maps.filter((m) => m && validLayout(m.id) === m.id) : []; MAP_INDEX = l.length ? l : MAP_INDEX_FALLBACK; mapsChanged(); })
+      .catch(() => { MAP_INDEX = MAP_INDEX_FALLBACK; mapsChanged(); });
   }
   function ensureMap(id) {
     if (!id || id === 'schema' || LK_MAPS[id] || mapLoading[id]) return;
@@ -1802,7 +1892,8 @@
     const now = srvNow(), fights = evs ? activeFights(evs, now) : [], hot = {};
     fights.forEach((e) => { const k = evKey(e); if (k) hot[k] = e; });
     const myKd = String(ownKd != null ? ownKd : ((window.RokAuth && window.RokAuth.ownMeta && window.RokAuth.ownMeta()) || {}).kingdom || '').replace(/[^\d]/g, '');
-    const quad = [[0, 0], [1, 0], [0, 1], [1, 1]], u = 'm' + (++mapSeq);   // eigene IDs je Karte (mehrere auf einer Seite)
+    const quad = [[0, 0], [1, 0], [0, 1], [1, 1]], u = 'm' + (++mapSeq);
+    const CAT = ((LK_MAPS[d.layout] || {}).campAt) || null;   // Camp-Lage der echten Karte: [x, y, b, h, Licht-x %, Licht-y %] je Camp (sonst Ecken)
     // Geometrie (500 × 500): Camps in den Ecken (0–175), dazwischen Zone 4, in der Mitte Zone 5 (4 Viertel) um Zone 6 (Ziggurat)
     const W = 500, CS = 150, C0 = 250, Z6R = 40;
     let seed = 7;
@@ -1868,7 +1959,7 @@
         <pattern id="${u}sc" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="1" fill="#000" fill-opacity=".18"/></pattern>
         <pattern id="${u}dm" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M12 0L24 12L12 24L0 12Z" fill="none" stroke="#d4af37" stroke-opacity=".12" stroke-width=".8"/></pattern>
         <pattern id="${u}hz" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 8L8 0" stroke="${T.zone[1]}" stroke-opacity=".12" stroke-width="1"/></pattern>
-        ${CAMPS.map((C, i) => { const [qx, qy] = quad[i], g = T.grad || [0, 0]; return `<radialGradient id="${u}c${i}" cx="${qx ? 100 : 0}%" cy="${qy ? 100 : 0}%" r="125%"><stop offset="0" stop-color="${C.col}" stop-opacity="${g[0]}"/><stop offset=".6" stop-color="${C.col}" stop-opacity="${g[1]}"/><stop offset="1" stop-color="${C.col}" stop-opacity=".06"/></radialGradient>`; }).join('')}
+        ${CAMPS.map((C, i) => { const [qx, qy] = quad[i], g = T.grad || [0, 0]; return `<radialGradient id="${u}c${i}" cx="${CAT && CAT[i] ? CAT[i][4] : qx ? 100 : 0}%" cy="${CAT && CAT[i] ? CAT[i][5] : qy ? 100 : 0}%" r="125%"><stop offset="0" stop-color="${C.col}" stop-opacity="${g[0]}"/><stop offset=".6" stop-color="${C.col}" stop-opacity="${g[1]}"/><stop offset="1" stop-color="${C.col}" stop-opacity=".06"/></radialGradient>`; }).join('')}
         <radialGradient id="${u}k" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fde68a" stop-opacity=".9"/><stop offset=".5" stop-color="#e0a91b" stop-opacity=".35"/><stop offset="1" stop-color="#e0a91b" stop-opacity="0"/></radialGradient>
         <radialGradient id="${u}o" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffd166" stop-opacity=".9"/><stop offset=".5" stop-color="#ff6a00" stop-opacity=".4"/><stop offset="1" stop-color="#ff6a00" stop-opacity="0"/></radialGradient>
         <radialGradient id="${u}p" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#6b5836"/><stop offset=".7" stop-color="#3e3322"/><stop offset="1" stop-color="#2a2218"/></radialGradient>
@@ -1970,10 +2061,13 @@
       if (k[0] === '+') return `<rect x="${cx}" y="${cy}" width="${CW}" height="20" rx="${CH.rx}" fill="${CH.bg}" fill-opacity=".75" stroke="${stc === 'none' ? CH.mbg : stc}" stroke-dasharray="3 2"/><text x="${cx + CW / 2}" y="${cy + 14}" text-anchor="middle" font-size="10.5" font-weight="700" fill="${CH.tx}">${k}</text>`;
       const cc = CH.castle === 'camp' ? C.col : CH.castle;
       const castle = cc ? `<path d="M${cx + 3} ${cy + 15}v-7l2 -2l2 2v7Z M${cx + 7} ${cy + 15}v-5h4v5Z" fill="${mine ? '#7a5508' : cc}"/>` : '';
-      return `${mine && CH.glow ? `<rect x="${cx - 3}" y="${cy - 3}" width="${CW + 6}" height="26" rx="6" fill="${CH.mbg}" opacity=".55" filter="url(#${u}g)"/>` : ''}
+      // Schriftfarbe: Gold = Imperium, Silber = Silberimperium, sonst weiß (bei hellen Schildern dunkel); eigenes Königreich mit Stern
+      const lightBg = /^#(f|e|d)/i.test(CH.bg), tr = (d.tier || {})[k];
+      const txc = tr ? (lightBg ? TIER_COL_LIGHT : TIER_COL)[tr] : lightBg ? CH.tx : '#ffffff';
+      return `${mine ? `<rect x="${cx - 3}" y="${cy - 3}" width="${CW + 6}" height="26" rx="6" fill="#f5c542" opacity=".45" filter="url(#${u}g)"/>` : ''}
         ${CH.shadow ? `<rect x="${cx}" y="${cy + 1.5}" width="${CW}" height="20" rx="${CH.rx}" fill="#000" opacity=".4"/>` : ''}
-        <rect x="${cx}" y="${cy}" width="${CW}" height="20" rx="${CH.rx}" fill="${mine ? CH.mbg : CH.bg}" fill-opacity="${mine || CH.st === 'none' ? 1 : 0.92}" stroke="${mine ? CH.mst : stc}" stroke-width="${CH.rx === 0 ? 2 : 1.2}"/>
-        ${castle}<text x="${cx + (castle ? 25 : 20)}" y="${cy + 14}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${mine ? CH.mtx : CH.tx}">${mine ? '★' : castle ? '' : '#'}${esc(k)}</text>`;
+        <rect x="${cx}" y="${cy}" width="${CW}" height="20" rx="${CH.rx}" fill="${CH.bg}" fill-opacity="${CH.st === 'none' ? 1 : 0.92}" stroke="${mine ? '#f5c542' : tr === 'g' ? '#fbbf24' : tr === 's' ? '#d1d5db' : stc}" stroke-width="${mine || tr ? 1.6 : CH.rx === 0 ? 2 : 1.2}"/>
+        ${mine ? '' : castle}<text x="${cx + (castle && !mine ? 25 : 20)}" y="${cy + 14}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${txc}">${mine ? '<tspan fill="#f5c542">★</tspan>' : castle ? '' : '#'}${esc(k)}</text>`;
     };
     const camps = quad.map(([qx, qy], i) => {
       const C = CAMPS[i], b0 = campBox(qx, qy), x = b0.x + 6, y = b0.y + 6, IN = CS - 12, me = d.my === i + 1, al = !me && d.ally === i + 1;
@@ -1990,6 +2084,14 @@
         return chip(cx, cy, k, C, myKd && k === myKd);
       }).join('');
       const w = Math.round(28 + [...M.campNames[i]].length * 7.2 + (me || al ? 15 : 0) + String(cnt).length * 6 + 22);
+      const bTxt = `${C.icon} ${M.campNames[i]}${me ? ' ⭐' : al ? ' 🤝' : ''} <tspan font-size="9" font-weight="700" fill-opacity=".8">· ${cnt} KD</tspan>`;
+      if (CAT && CAT[i]) {   // Camp liegt nicht in der Ecke: Schild oben im Bereich, Königreiche mittig darunter
+        const [bx, bY, bw] = CAT[i], per = Math.max(1, Math.floor((bw + CSTEP - CW) / CSTEP));
+        const ch2 = kds.map((k, j) => { const row = Math.floor(j / per), col = j % per, inRow = Math.min(per, kds.length - row * per);
+          const x0 = bx + (bw - (inRow * CSTEP - (CSTEP - CW))) / 2; return chip(x0 + col * CSTEP, bY + 28 + row * 25, k, C, myKd && k === myKd); }).join('');
+        return `${banner(Math.max(4, Math.min(W - 6 - w, bx + (bw - w) / 2)), bY + 2, w, C, bTxt, false, me, al)}
+        ${ch2 || `<text x="${bx + bw / 2}" y="${bY + 44}" text-anchor="middle" font-size="10" font-style="italic" fill="${T.empty}" opacity=".8">${M.mapEmpty}</text>`}`;
+      }
       const by = qy ? y + IN - 26 : y + 4;
       return `${banner(qx ? x + IN - 4 : x + 2, by, w, C, `${C.icon} ${M.campNames[i]}${me ? ' ⭐' : al ? ' 🤝' : ''} <tspan font-size="9" font-weight="700" fill-opacity=".8">· ${cnt} KD</tspan>`, !!qx, me, al)}
         ${chips || `<text x="${qx ? x + IN - 10 : x + 10}" y="${qy ? y + IN - 44 : y + 48}" text-anchor="${qx ? 'end' : 'start'}" font-size="10" font-style="italic" fill="${T.empty}" opacity=".8">${M.mapEmpty}</text>`}`;
@@ -2018,7 +2120,7 @@
     // ---- echte Karte (Karte A / B): Bereiche, Mauern, Gebäude aus LK_MAPS ----
     if (d.layout !== 'schema' && LK_MAPS[d.layout] === undefined) ensureMap(d.layout);
     const LKM = LK_MAPS[d.layout] || null, lkWait = d.layout !== 'schema' && LK_MAPS[d.layout] === undefined, lkFail = d.layout !== 'schema' && LK_MAPS[d.layout] === false;
-    let body = `${bg}${hl}${center}${camps}${gates}`;
+    let body = `<rect width="${W}" height="${W}" fill="${T.paper || T.zone[3]}"/>`;   // bis die Karte geladen ist: leere Fläche
     if (LKM) {
       const WALL = { battle: '#2c2420', parchment: '#5a4630', night: '#3a4a6b', flat: '#0f172a', holo: '#22d3ee', frost: '#6f9fc2', lava: '#ff6a00', royal: '#d4af37', pixel: '#111111', sand: '#6b4a1e', ingame: '#2f4f1e', blueprint: '#dbeafe', marble: '#9c7a2a', jungle: '#0b1f10' }[st] || '#2c2420';
       let g0 = `<rect width="${W}" height="${W}" fill="${T.paper || T.zone[3]}"/>`;
@@ -2063,7 +2165,7 @@
     <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 pt-2 pb-0.5 text-[11px] text-slate-400">
       ${d.my ? `<span>⭐ ${M.myCamp}: <b class="text-gold-300">${CAMPS[d.my - 1].icon} ${M.campNames[d.my - 1]}</b></span>` : ''}
       ${d.ally ? `<span>🤝 ${M.ally}: <b class="text-emerald-300">${CAMPS[d.ally - 1].icon} ${M.campNames[d.ally - 1]}</b></span>` : ''}
-      <span class="basis-full text-center text-slate-500">${LKM ? M.mapLegendLk : M.mapLegend}</span>
+      <span class="basis-full text-center text-slate-500">${M.mapLegendLk}</span>
     </div>`;
   }
   // Popup an einem Tor/Altar: nächste Öffnung bzw. laufender Kampf (eigene Karte und Karte im Profil)
@@ -2076,7 +2178,7 @@
     const utc = (ts) => new Date(ts).toISOString().slice(11, 16) + ' UTC';
     const dur = FIGHT_MS[key === 'altar' ? 'altar' : 'pass'] / 3600000;
     const body = act
-      ? `<div class="text-xs text-slate-300">⚔️ ${MP.fightOn} · <span data-cd-ts="${fightEnd(act)}" class="font-semibold" style="color:${col}">${cdText(fightEnd(act) - now)}</span></div>
+      ? `<div class="text-xs text-slate-300">⚔️ ${MP.fightSinceLbl} <span data-cd-ts="${act.ts}" data-cd-up data-cd-end="${fightEnd(act)}" class="font-semibold" style="color:${col}">${cdText(now - act.ts)}</span></div>
          <div class="text-[11px] text-slate-500">${MP.fightSince} ${when(act.ts)} · ${MP.fightLen.replace('{h}', dur)}</div>
          ${nx ? `<div class="text-[11px] text-slate-500 mt-1">${MP.nextOne}: ${when(nx.ts)}</div>` : ''}`
       : nx
@@ -2152,6 +2254,11 @@
     return out.filter((x) => x.ts <= end).sort((a, b) => a.ts - b.ts);
   }
   const mapEvents = () => eventsFor(startTs(), state.mapEv, state.mid.days);
+  // Kampf, der gerade läuft (für Countdown-Farbe): Altar hat Vorrang vor Pass
+  function currentFight(evs) {
+    const act = activeFights(evs || [], srvNow());
+    return act.some((e) => e.kind === 'altar') ? 'altar' : act.some((e) => e.kind === 'pass') ? 'pass' : '';
+  }
   // Nächstes Ereignis fürs Countdown-Feld: Pass 4/7/8 und Altäre; laufender Kampf hat Vorrang
   function nextKeyEvent(evs, now) {
     const keyOf = (e) => e.kind === 'altar' || (e.kind === 'pass' && [4, 7, 8].includes(e.n));
@@ -2167,23 +2274,48 @@
     return d ? `${d} ${dl} ${h} h` : h ? `${h} h ${p2(m)} m` : `${m} m ${p2(x)} s`;
   }
   // Sekundentakt: alle sichtbaren Countdowns im Reiter Karte; ist eins abgelaufen → neu berechnen
+  // ein Zähler: data-cd-ts = Zielzeit (läuft runter) · mit data-cd-up läuft er seit dieser Zeit hoch; true = abgelaufen
+  function cdTick(el) {
+    const now = srvNow(), ts = +el.dataset.cdTs;
+    if (el.hasAttribute('data-cd-up')) { el.textContent = cdText(now - ts); return el.dataset.cdEnd ? +el.dataset.cdEnd <= now : false; }
+    const ms = ts - now; el.textContent = cdText(ms, el.hasAttribute('data-cd-big')); return ms <= 0;
+  }
+  // Auswahl „Welches KvK?“ (Reiter Start und Reiter Karte)
+  // Knopf unter einem Königreich-Feld: Schrift Imperium (Gold) / Silber / normal
+  function tierBtnHTML(kd) {
+    const M = t().m, md = state.mid;
+    const tr = (md.kdTier || {})[kd] || ''; return `<button type="button" data-kd-tier="${esc(kd)}" title="${M.tierHint}" class="text-[10px] leading-none py-1 rounded-md border transition ${tr === 'g' ? 'border-amber-400/70 text-amber-300 bg-amber-400/10' : tr === 's' ? 'border-slate-300/70 text-slate-200 bg-slate-300/10' : 'border-ink-600 text-slate-500 hover:text-slate-300'}">${tr === 'g' ? '🥇 ' + M.tierG : tr === 's' ? '🥈 ' + M.tierS : '○ ' + M.tierN}</button>`;
+  }
+  const TIER_TXT = (kd) => ({ g: '#fbbf24', s: '#d1d5db' })[(state.mid.kdTier || {})[kd]] || '#ffffff';
+  function layoutName() {
+    const id = validLayout(state.mid.layout), m = (MAP_INDEX || []).find((x) => x.id === id);
+    return m ? tx(m.name) : id;
+  }
+  function layoutPicker() {
+    const L = t();
+    return `<div class="grid gap-2 grid-cols-1 sm:grid-cols-2" role="radiogroup" aria-label="${L.mp.whichKvk}">${(loadMapIndex(), [...(MAP_INDEX || []).map((m) => ({ id: m.id, name: tx(m.name), desc: tx(m.desc) }))]).map((m) => { const on = validLayout(state.mid.layout) === m.id; return `
+            <button type="button" data-layout="${esc(m.id)}" aria-pressed="${on}" class="text-left rounded-xl border-2 p-2.5 transition ${on ? 'border-gold-400 bg-gold-500/10' : 'border-ink-700 hover:border-gold-500/50'}">
+              <div class="font-semibold text-sm ${on ? 'text-gold-300' : 'text-slate-200'}">${on ? '✓ ' : ''}${esc(m.name)}</div>
+              <div class="text-[11px] text-slate-500">${esc(m.desc)}</div>
+            </button>`; }).join('')}${MAP_INDEX ? '' : `<div class="text-xs text-slate-500 self-center">⏳ ${L.mp.mapsLoading}</div>`}</div>`;
+  }
   function tickNext() {
     if (!root) return;
     let due = false;
-    root.querySelectorAll('[data-cd-ts]').forEach((el) => { const ms = +el.dataset.cdTs - srvNow(); if (ms <= 0) due = true; el.textContent = cdText(ms, el.hasAttribute('data-cd-big')); });
+    root.querySelectorAll('[data-cd-ts]').forEach((el) => { if (cdTick(el)) due = true; });
     if (due) { hideMapPopups(root); refresh(); }
   }
   function tickHosts() {
     [...hosts, ...mapHosts].forEach((h) => {
       if (!h.isConnected) return;
       let due = false;
-      h.querySelectorAll('[data-cd-ts]').forEach((el) => { const ms = +el.dataset.cdTs - srvNow(); if (ms <= 0) due = true; el.textContent = cdText(ms, el.hasAttribute('data-cd-big')); });
+      h.querySelectorAll('[data-cd-ts]').forEach((el) => { if (cdTick(el)) due = true; });
       if (due && h._kvkRemount) h._kvkRemount();
     });
   }
   function mapOutputs() {
     const L = t(), MP = L.mp, s = startTs();
-    const fsum = { mapCamps: '', mapDesign: `<span class="text-slate-400">${L.m.mapStyles[mapData().style] || ''}</span>`, mapTimes: (state.mapEv || []).length ? `<span class="text-slate-400">${(state.mapEv || []).length}×</span>` : '' };
+    const fsum = { mapLayout: `<span class="text-slate-400">${esc(layoutName())}</span>`, mapCamps: '', mapDesign: `<span class="text-slate-400">${L.m.mapStyles[mapData().style] || ''}</span>`, mapTimes: (state.mapEv || []).length ? `<span class="text-slate-400">${(state.mapEv || []).length}×</span>` : '' };
     const d0 = mapData(), nKd = d0.kds.reduce((a, k) => a + k.length, 0);
     if (nKd || d0.my) fsum.mapCamps = `<span class="text-slate-400">${nKd} KD${d0.my ? ` · ⭐ ${CAMPS[d0.my - 1].icon}` : ''}${d0.ally ? ` · 🤝 ${CAMPS[d0.ally - 1].icon}` : ''}</span>`;
     if (s == null) return { mapNext: `<div class="rounded-xl border border-gold-500/30 bg-gold-500/5 px-4 py-3 text-sm text-slate-300">🕒 ${MP.needStart}</div>`, mapUpcoming: `<p class="text-sm text-slate-500">–</p>`, mapSched: '', _fsum: fsum };
@@ -2237,7 +2369,7 @@
 
   // Camps fest: 0 Feuer oben links, 1 Erde oben rechts, 2 Wasser unten links, 3 Wind unten rechts
   const CAMPS = [{ icon: '🔥', col: '#e5484d', txt: '#f87171' }, { icon: '🪨', col: '#a0703c', txt: '#d6a46b' }, { icon: '💧', col: '#3987e5', txt: '#60a5fa' }, { icon: '🌪️', col: '#9b6bdf', txt: '#b794f4' }];
-  const END_KEYS = ['kp', 'power', 'acclaim', 'kdh', 'speed', 'res', 'ap', 'autarch', 'trade', 'result'];
+  const END_KEYS = ['kp', 'power', 'acclaim', 'honor', 'crystal', 'kdh', 'speed', 'res', 'ap', 'autarch', 'trade', 'result'];
   function endCalc(r) {
     const e = state.end, n = e.now, st = state.stats, sp = state.speed, rs = state.res;
     const has = (a, b) => (+a || 0) > 0 && (+b || 0) > 0;
@@ -2249,25 +2381,27 @@
     return {
       kp: has(st.kp, n.kp) ? n.kp - st.kp : null,
       power: has(st.power, n.power) ? n.power - st.power : null,
-      acclaim: has(st.acclaim, n.acclaim) ? n.acclaim - st.acclaim : null,
+      acclaim: +n.acclaim > 0 ? +n.acclaim : null,          // Verdienst, Ehre, Kristalle starten im KvK bei 0
+      honor: +n.honor > 0 ? +n.honor : null, crystal: +n.crystal > 0 ? +n.crystal : null,
       deadsKvk, kills: killsN, heal: healN, trade,
       spUsed, spTotal: spUsed.reduce((a, x) => a + (x.v || 0), 0),
       resUsed, resTotal: resUsed.reduce((a, x) => a + (x.v || 0), 0),
       ap: r.apTotal && n.ap ? n.ap - r.apTotal : null,
-      autarch: +e.autarch || 0, result: e.result
+      autarch: +e.autarch === 2 ? 0 : +e.autarch > 0 ? 1 : 0, autarchSet: +e.autarch > 0, star: +e.star === 1, starSet: +e.star > 0, result: e.result
     };
   }
   function endOutputs(r) {
     const L = t(), E = L.m.e, ec = endCalc(r);
     const sg = (v, f = short, goodUp = true) => v == null ? `<span class="text-slate-600">${E.none}</span>`
       : `<span class="${v === 0 ? 'text-slate-400' : (v > 0) === goodUp ? 'text-emerald-400' : 'text-red-300'}">${v > 0 ? '+' : v < 0 ? '−' : '±'}${f(Math.abs(v))}</span>`;
-    const resTxt = ec.result === 1 ? `<span class="text-emerald-400">🏆 ${E.win}</span>` : ec.result === 2 ? `<span class="text-red-300">💀 ${E.lose}</span>` : `<span class="text-slate-500">${E.open}</span>`;
+    const resTxt = (ec.result === 1 ? `<span class="text-emerald-400">🏆 ${E.win}</span>` : ec.result === 2 ? `<span class="text-red-300">💀 ${E.lose}</span>` : `<span class="text-slate-500">${E.open}</span>`)
+      + (ec.star ? ` <span class="text-gold-300">· ⭐ ${E.star}</span>` : '');
     const tiles = {
-      kp: ['⚔️', sg(ec.kp)], power: ['💪', sg(ec.power)], acclaim: ['🏅', sg(ec.acclaim)],
+      kp: ['⚔️', sg(ec.kp)], power: ['💪', sg(ec.power)], acclaim: ['🏅', sg(ec.acclaim)], honor: ['🎖️', sg(ec.honor)], crystal: ['💎', sg(ec.crystal)],
       kdh: ['🗡️', ec.kills || ec.deadsKvk || ec.heal ? `<span class="text-slate-100">${short(ec.kills)}</span> <span class="text-slate-500">/</span> <span class="text-red-300">${short(ec.deadsKvk)}</span> <span class="text-slate-500">/</span> <span class="text-sky-300">${short(ec.heal)}</span>` : `<span class="text-slate-600">${E.none}</span>`],
       speed: ['⏱️', ec.spUsed.some((x) => x.v != null) ? (ec.spTotal >= 0 ? `<span class="text-amber-300">${dur(ec.spTotal)}</span>` : `<span class="text-emerald-400">+${dur(-ec.spTotal)}</span>`) : `<span class="text-slate-600">${E.none}</span>`],
       res: ['🌾', ec.resUsed.some((x) => x.v != null) ? (ec.resTotal >= 0 ? `<span class="text-amber-300">${short(ec.resTotal)}</span>` : `<span class="text-emerald-400">+${short(-ec.resTotal)}</span>`) : `<span class="text-slate-600">${E.none}</span>`],
-      ap: ['🧪', sg(ec.ap)], autarch: ['👑', ec.autarch ? `<span class="text-gold-300">${fmt(ec.autarch)}×</span>` : `<span class="text-slate-600">${E.none}</span>`],
+      ap: ['🧪', sg(ec.ap)], autarch: ['👑', ec.autarch ? `<span class="text-gold-300">${E.yes}</span>` : ec.autarchSet ? `<span class="text-slate-400">${E.no}</span>` : `<span class="text-slate-600">${E.none}</span>`],
       trade: ['⚖️', ec.trade == null ? `<span class="text-slate-600">${E.none}</span>` : `<span class="${ec.trade >= 100 ? 'text-emerald-400' : 'text-red-300'}">${fmt(ec.trade, 1)} %</span>`],
       result: ['🏁', resTxt]
     };
@@ -2302,11 +2436,11 @@
     const signed = (v, f = cs, good = true) => v == null ? MISS : { t: (v > 0 ? '+' : v < 0 ? '−' : '±') + f(Math.abs(v)), c: v === 0 ? '#cbd5e1' : (v > 0) === good ? '#34d399' : '#f87171' };
     const usedV = (has, tot, f) => !has ? MISS : tot >= 0 ? { t: f(tot), c: '#fbbf24' } : { t: '+' + f(-tot), c: '#34d399' };
     const IV = {
-      kp: signed(ec.kp), power: signed(ec.power), acclaim: signed(ec.acclaim),
+      kp: signed(ec.kp), power: signed(ec.power), acclaim: signed(ec.acclaim), honor: signed(ec.honor), crystal: signed(ec.crystal),
       speed: usedV(ec.spUsed.some((x) => x.v != null), ec.spTotal, cd),
       res: usedV(ec.resUsed.some((x) => x.v != null), ec.resTotal, cs),
       ap: ec.ap == null ? MISS : { t: (ec.ap < 0 ? '−' : '+') + cs(Math.abs(ec.ap)), c: ec.ap < 0 ? '#fbbf24' : '#34d399' },
-      autarch: ec.autarch ? { t: `${fmt(ec.autarch)}×`, c: '#fde68a' } : { t: E.imgNo, c: '#94a3b8' },
+      autarch: ec.autarch ? { t: E.imgYes, c: '#fde68a' } : { t: E.imgNo, c: '#94a3b8' },
       trade: ec.trade == null ? MISS : { t: fmt(ec.trade, ec.trade >= 1000 ? 0 : 1) + ' %', c: ec.trade >= 100 ? '#34d399' : '#f87171' }
     };
     const ISUB = {
@@ -2315,7 +2449,7 @@
       ap: ec.ap == null ? '' : ec.ap < 0 ? E.used : E.gained
     };
     // Raster: Kacheln je Reihe, letzte Reihe mittig
-    const n = keys.length, PER = [0, 1, 2, 3, 2, 3, 3, 4, 4, 3], per = PER[n] || 3, rows = n ? Math.ceil(n / per) : 0;
+    const n = keys.length, PER = [0, 1, 2, 3, 2, 3, 3, 4, 4, 3, 4, 4], per = PER[n] || 3, rows = n ? Math.ceil(n / per) : 0;
     const GAP = 1.2, INNER = 94;
     const tileW = per === 1 ? 56 : (INNER - (per - 1) * GAP) / per;
     const fsRows = [0, 5.2, 3.5, 2.6][rows] || 2.6;
@@ -2360,6 +2494,7 @@
             <div class="shrink-0 text-right" style="max-width:40%">
               <div style="font-family:Cinzel,Georgia,serif;font-size:1.5cqw;letter-spacing:.3cqw;color:#fde68a;text-transform:uppercase">${E.imgTitle}</div>
               ${showRes && n ? `<div style="font-size:2.8cqw;font-weight:800;line-height:1.2">${resBig}</div>` : ''}
+              ${ec.star && sh.result !== 2 ? `<div style="font-size:1.7cqw;font-weight:800;color:#fde68a;margin-top:.2cqw">⭐ ${E.imgStar}</div>` : ''}
               ${dateTxt && n ? `<div style="font-size:1.2cqw;color:#94a3b8">${dateTxt}</div>` : ''}
             </div>
           </div>
@@ -2461,7 +2596,11 @@
     const supplyDays = psupOn ? 50 : 0;
 
     // AP → Forts und Barbaren (Chain: n Barbaren je Angriff zum gleichen AP-Preis)
-    const apRegen = cl(m.apRegen, 0, 1e6), apTotal = r.apTotal + apRegen * D;
+    // AP bis zum gewählten Pass (0 = KvK-Ende) · „AP ausgeben“ begrenzt, 0 = alles (Max)
+    const apUntil = PASS_SCHEDULE.some((p) => p.n === +m.apUntil) ? +m.apUntil : 0;
+    const apDays = apUntil ? Math.max(1, Math.min(D, passDay(apUntil))) : D;
+    const apRegen = cl(m.apRegen, 0, 1e6), apAvail = r.apTotal + apRegen * apDays;
+    const apSpend = Math.floor(cl(m.apSpend, 0, 1e10)), apTotal = apSpend > 0 ? Math.min(apSpend, apAvail) : apAvail;
     const barbAp = Math.max(1, cl(m.barbAp, 0, 1e5) || 60), fortAp = Math.max(1, cl(m.fortAp, 0, 1e5) || 150);
     const chain = Math.round(cl(m.chain || 1, 1, 10));
     const fortsWanted = Math.floor(cl(m.forts, 0, 1e6));
@@ -2509,7 +2648,7 @@
         mine: mineDay,
         supply: d <= supplyDays ? 60000 : 0,
         bundles: (mwAt[d] || 0) + cwOn(d),
-        barbs: (barbCr + fortCr + kaharCr) / D,
+        barbs: (d <= apDays ? (barbCr + fortCr) / apDays : 0) + kaharCr / D,   // Barbaren/Forts verteilt bis zum AP-Pass
         bastion: bastionDay,
         karuak: (kkOnce[d] || 0) + kauKaruakHourly(elitesAt(d), 24) + (d >= kkBoostFrom ? kkBoostDay : 0),
         maudara: cl(m.maudaraPerDay, 0, 1e8),
@@ -2550,23 +2689,47 @@
       return { simple, n: p.n, day: p.day, kday: p.day + 1, mwTiers, mwCr: mwTiers.reduce((a, x) => a + x.cr, 0), mwUsd: mwTiers.reduce((a, x) => a + x.usd, 0), list, cost, need, avail, left, miss, xb, xa, xap: xa * barbAp, xf, xfap: xf * fortAp };
     });
     const goalSum = need;
+    // Ziel am KvK-Ende (Standard 100 Mio): Stand nach Tag D gegen das Ziel, Rest über Barbaren/Forts
+    const endGoal = cl(m.endGoal, 0, 1e11), endRest = Math.max(0, endGoal - bal[D]);
+    const eXb = perBarb > 0 ? Math.ceil(endRest / perBarb) : 0, eXa = Math.ceil(eXb / chain), eXf = perFort > 0 ? Math.ceil(endRest / perFort) : 0;
+    const endG = { T: endGoal, rest: endRest, xb: eXb, xa: eXa, xap: eXa * barbAp, xf: eXf, xfap: eXf * fortAp };
 
-    // Ehre: Ruinen + Altäre pro Tag, Barbaren/Forts aus dem AP-Plan gleichmäßig verteilt
-    const hn = m.hon, honStart = cl(hn.start, 0, 1e9);
-    const honDay = cl(hn.ruinsDay, 0, 1e4) * cl(hn.ruin, 0, 1e7) + cl(hn.altarsDay, 0, 1e4) * cl(hn.altar, 0, 1e7)
-      + (barbs * cl(hn.barb, 0, 1e6) + forts * cl(hn.fort, 0, 1e7)) / D;
-    const hon = [honStart];
-    for (let d = 1; d <= D; d++) hon.push(hon[d - 1] + honDay);
-    const honMiles = HONOR_MILES.map((v) => {
-      let day = -1;
-      for (let d = 0; d <= D; d++) if (hon[d] >= v) { day = d; break; }
-      const miss = day < 0 ? v - hon[D] : 0, perDay = miss / D;
-      return { v, day, miss, perDay,
-        ruins: hn.ruin > 0 ? Math.ceil(perDay / hn.ruin) : null, altars: hn.altar > 0 ? Math.ceil(perDay / hn.altar) : null,
-        barbs: hn.barb > 0 ? Math.ceil(miss / hn.barb) : null };
-    });
+    // Ehre: Ruinen und Altäre aus der Timeline (Reiter Karte), Barbaren/Forts aus dem AP-Plan.
+    // „Ehre jetzt“ = Stand heute → gerechnet wird nur mit dem, was ab jetzt noch kommt (vor dem KvK: alles).
+    const hn = m.hon, honStart = cl(hn.start, 0, 1e9), honGoal = cl(hn.goal, 0, 1e9);
+    const hR = cl(hn.ruin, 0, 1e7), hShare = +hn.share === 1, hA = cl(hn.altar, 0, 1e7) * (hShare ? 0.5 : 1), hB = cl(hn.barb, 0, 1e6), hF = cl(hn.fort, 0, 1e7);
+    const s0 = startTs(), nowT = srvNow(), honRun = s0 != null && nowT >= s0;
+    const nowDay = honRun ? Math.max(0, Math.min(D, Math.floor((nowT - s0) / 86400000))) : 0;   // volle KvK-Tage vorbei
+    const evH = s0 == null ? [] : eventsFor(s0, state.mapEv, D).filter((e) => e.kind === 'ruin' || e.kind === 'altar');
+    const evDay = (e) => Math.max(1, Math.min(D, Math.floor((e.ts - s0) / 86400000) + 1));
+    const ruinsAll = evH.filter((e) => e.kind === 'ruin').length, altarsAll = evH.filter((e) => e.kind === 'altar').length;
+    const evLeft = evH.filter((e) => !honRun || e.ts > nowT);
+    const ruinsLeft = evLeft.filter((e) => e.kind === 'ruin').length, altarsLeft = evLeft.filter((e) => e.kind === 'altar').length;
+    const apHonAll = barbs * hB + forts * hF;                                        // ganze AP-Planung
+    const apHonDay = apHonAll / apDays, apHonLeft = apHonDay * Math.max(0, apDays - nowDay);
+    const ruinHon = ruinsLeft * hR, altarHon = altarsLeft * hA;
+    const hon = [];
+    for (let d = 0; d <= D; d++) {
+      const evs0 = evLeft.filter((e) => evDay(e) <= d);
+      const fromEv = evs0.reduce((a, e) => a + (e.kind === 'ruin' ? hR : hA), 0);
+      hon.push(honStart + fromEv + apHonDay * Math.max(0, Math.min(d, apDays) - nowDay));
+    }
+    const honEnd = hon[D], honReach = honEnd;
+    // Ø pro Tag über die nächsten 7 Tage (vor dem KvK: die ersten 7)
+    const w7 = Math.min(D, nowDay + 7), honAvg7 = (hon[w7] - hon[nowDay]) / Math.max(1, w7 - nowDay);
+    // Ziel: erst Altäre (mehr Ehre), dann Ruinen – den Rest über Barbaren oder Forts (+ AP)
+    const restG = Math.max(0, honGoal - honStart - apHonLeft);
+    const needA = hA > 0 ? Math.min(altarsLeft, Math.ceil(restG / hA)) : 0;
+    const restA = Math.max(0, restG - needA * hA);
+    const needR = hR > 0 ? Math.min(ruinsLeft, Math.ceil(restA / hR)) : 0;
+    const honMiss = Math.max(0, restA - needR * hR);
+    const xBarbs = hB > 0 ? Math.ceil(honMiss / hB) : 0, xAtt = Math.ceil(xBarbs / chain), xForts = hF > 0 ? Math.ceil(honMiss / hF) : 0;
+    let honGoalDay = -1; for (let d = nowDay; d <= D; d++) if (honGoal && hon[d] >= honGoal) { honGoalDay = d; break; }
+    const honInfo = { goal: honGoal, run: honRun, nowDay, half: honRun && nowDay >= D / 2, ruinsAll, altarsAll, ruinsLeft, altarsLeft, hR, hA, hB, hF, share: hShare,
+      ruinHon, altarHon, apHonAll, apHonLeft, end: honEnd, avg7: honAvg7, needA, needR, miss: honMiss, xBarbs, xAtt, xBarbAp: xAtt * barbAp, xForts, xFortAp: xForts * fortAp, goalDay: honGoalDay, hasEv: evH.length > 0 };
+    const honDay = honAvg7, honMiles = [];
 
-    return { adjDay, adjHas, adjReal, adjPlan, adjDiff, adjOn, planBal, kahar, kaharCr, kkEvents, passes, perBarb, perFort, hon, honDay, honStart, honMiles, D, psupOn, lv, mo, mineDay, supplyDays, apRegen, apTotal, barbAp, fortAp, chain, fortsWanted, forts, attacks, barbs, apUsed,
+    return { endG, apUntil, apDays, apAvail, apSpend, adjDay, adjHas, adjReal, adjPlan, adjDiff, adjOn, planBal, kahar, kaharCr, kkEvents, passes, perBarb, perFort, hon, honDay, honStart, honMiles, honInfo, D, psupOn, lv, mo, mineDay, supplyDays, apRegen, apTotal, barbAp, fortAp, chain, fortsWanted, forts, attacks, barbs, apUsed,
       barbCr, fortCr, barbBonus, bastionDay, kkTrial, kkHourlyDay, elites, kkFirst: kkEl.length ? Math.min(...kkEl.map((e) => e.day)) : Infinity, start, daily, cum, bal, totals, earned, goalSum };
   }
 
@@ -2574,27 +2737,22 @@
   let lastMid = null;
   function midChart(mc) {
     const L = t(), M = L.m;
-    const W = 760, H = 280, pl = 58, pr = 14, pt = 14, pb = 30, D = mc.D;
-    const top = Math.max(...mc.bal, ...mc.planBal), hi = Math.max(top, mc.goalSum, mc.start, 1);
+    const W = 760, H = 320, pl = 58, pr = 14, pt = 14, pb = 30, D = mc.D;
+    const top = Math.max(...mc.bal, ...mc.planBal), hi = Math.max(top, mc.goalSum, mc.start, mc.endG.T, 1);
     let lo = Math.min(0, mc.start, ...mc.bal); if (lo > -0.03 * hi) lo = 0;            // winziges Minus → Achse bei 0 lassen   // Ziel-Kosten gesamt passen immer ins Bild
     const nice = (v) => { const p = Math.pow(10, Math.floor(Math.log10(v))); return [1, 2, 2.5, 5, 10].map((k) => k * p).find((x) => x >= v); };
     const step = nice((hi - lo) / 4), y0 = Math.floor(lo / step) * step, y1 = Math.ceil(hi / step) * step;
     const X = (d) => pl + (d / D) * (W - pl - pr), Y = (v) => pt + (1 - (v - y0) / (y1 - y0)) * (H - pt - pb);
-    const base = Math.max(0, mc.start);                          // Sockel = Start-Bestand (falls positiv)
-    const layers = [];
-    let lower = Array.from({ length: D + 1 }, () => (mc.start > 0 ? base : mc.start));
-    if (mc.start > 0) layers.push({ k: 'start', lower: Array(D + 1).fill(0), upper: lower.slice() });
-    MID_SRC.forEach((k) => {
-      if (!mc.totals[k]) return;
-      const upper = lower.map((v, d) => v + mc.cum[k][d]);
-      layers.push({ k, lower, upper });
-      lower = upper;
-    });
-    const area = (ly) => {
-      const up = ly.upper.map((v, d) => `${X(d).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
-      const dn = ly.lower.map((v, d) => `${X(d).toFixed(1)},${Y(v).toFixed(1)}`).reverse().join(' ');
-      return `<polygon points="${up} ${dn}" fill="${MID_COL[ly.k]}" fill-opacity="${ly.k === 'start' ? 0.35 : 0.82}" stroke="#0c1019" stroke-width="1" stroke-linejoin="round"/>`;
-    };
+    // Linien statt Flächen: jede Quelle zählt ab 0 hoch, weiß = Kontostand (inkl. Start)
+    const pts = (arr) => arr.map((v, d) => `${X(d).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+    const srcK = MID_SRC.filter((k) => mc.totals[k]);
+    const srcLines = srcK.map((k) => `<polyline points="${pts(mc.cum[k])}" fill="none" stroke="${MID_COL[k]}" stroke-width="${k === 'mine' || k === 'karuak' ? 2.4 : 1.8}" stroke-linejoin="round" stroke-linecap="round"/>`).join('');
+    // Beschriftung am rechten Rand (nur wenn nicht zu eng)
+    const ends = srcK.map((k) => ({ k, y: Y(mc.cum[k][D]) })).sort((a, b) => a.y - b.y), lab = [];
+    ends.forEach((e) => { if (!lab.some((x) => Math.abs(x.y - e.y) < 11)) lab.push(e); });
+    const srcLabels = lab.map((e) => `<text x="${W - pr - 4}" y="${(e.y - 4).toFixed(1)}" text-anchor="end" font-size="10" font-weight="700" fill="${MID_COL[e.k]}" paint-order="stroke" stroke="#0c1019" stroke-width="3">${M.src[e.k]}</text>`).join('');
+    const endGoalLine = mc.endG.T ? `<line x1="${pl}" x2="${W - pr}" y1="${Y(mc.endG.T).toFixed(1)}" y2="${Y(mc.endG.T).toFixed(1)}" stroke="#fde68a" stroke-opacity=".7" stroke-dasharray="3 5" stroke-width="1.2"/>
+      <text x="${pl + 6}" y="${(Y(mc.endG.T) - 5).toFixed(1)}" font-size="10" font-weight="700" fill="#fde68a" paint-order="stroke" stroke="#0c1019" stroke-width="3">🏁 ${short(mc.endG.T)}</text>` : '';
     const grid = [];
     for (let v = y0; v <= y1 + 1e-6; v += step) grid.push(`<line x1="${pl}" x2="${W - pr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="${v === 0 ? '#475569' : '#212b40'}" stroke-width="1"/>
       <text x="${pl - 8}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end" font-size="11" fill="#94a3b8">${v < 0 ? '−' + short(-v) : short(v)}</text>`);
@@ -2619,12 +2777,13 @@
       goalLines = `<polyline points="${pts}" fill="none" stroke="#fde68a" stroke-opacity=".85" stroke-dasharray="6 4" stroke-width="1.5"/>`
         + withGoals.map((p) => `<circle cx="${X(p.day).toFixed(1)}" cy="${Y(p.need).toFixed(1)}" r="5" fill="${p.left >= 0 ? '#34d399' : '#f87171'}" stroke="#0c1019" stroke-width="2"/>`).join('');
     }
-    const balLine = `<polyline points="${mc.bal.map((v, d) => `${X(d).toFixed(1)},${Y(v).toFixed(1)}`).join(' ')}" fill="none" stroke="#f0efec" stroke-width="2" stroke-linejoin="round"/>`;
+    const balLine = `<polyline points="${pts(mc.bal)}" fill="none" stroke="#f0efec" stroke-width="3" stroke-linejoin="round"/>
+      <text x="${W - pr - 4}" y="${(Y(mc.bal[D]) - 6).toFixed(1)}" text-anchor="end" font-size="11" font-weight="800" fill="#f0efec" paint-order="stroke" stroke="#0c1019" stroke-width="3">${M.balance} ${short(mc.bal[D])}</text>`;
     lastMid = { mc, X, Y, W, H, pl, pr, pt, pb };
     return `
       <div class="overflow-x-auto"><div class="relative min-w-[600px]" data-midchart>
         <svg viewBox="0 0 ${W} ${H}" class="w-full h-auto select-none" role="img" aria-label="${M.chartTitle}">
-          ${grid.join('')}${layers.map(area).join('')}${passes}${goalLines}${balLine}${todayMark}${xt.join('')}
+          ${grid.join('')}${passes}${endGoalLine}${srcLines}${goalLines}${balLine}${srcLabels}${todayMark}${xt.join('')}
           <line data-mid-cross x1="0" x2="0" y1="${pt}" y2="${H - pb}" stroke="#f0efec" stroke-opacity=".6" stroke-width="1" visibility="hidden"/>
           <rect x="${pl}" y="${pt}" width="${W - pl - pr}" height="${H - pt - pb}" fill="transparent" data-mid-hit/>
         </svg>
@@ -2663,7 +2822,7 @@
     // ---- Verlauf ----
     const legend = [...(mc.start > 0 ? ['start'] : []), ...MID_SRC.filter((k) => mc.totals[k])].map((k) => `
       <div class="flex items-center justify-between gap-3 text-sm py-1 border-b border-ink-700/60 last:border-0">
-        <span class="flex items-center gap-2 text-slate-300"><i class="inline-block w-3 h-3 rounded-sm" style="background:${MID_COL[k]}"></i>${M.src[k]}</span>
+        <span class="flex items-center gap-2 text-slate-300">${k === 'start' ? '<i class="inline-block w-3 h-3 rounded-sm" style="background:#5b6478"></i>' : `<i class="inline-block w-4 h-[3px] rounded-full" style="background:${MID_COL[k]}"></i>`}${M.src[k]}</span>
         <span class="tabular-nums text-slate-100 font-semibold text-right shrink-0">${short(k === 'start' ? mc.start : mc.totals[k])}${k === 'start' ? '' : `<span class="block sm:inline text-xs font-normal text-slate-500"><span class="hidden sm:inline"> · </span>${short(mc.totals[k] / mc.D)}/${M.day}</span>`}</span>
       </div>`).join('');
     // Pässe: Stand bei Öffnung = bal[p.day], angezeigt als KvK-Tag p.day+1 (wie Karte und Roadmap); Ende: Stand nach Tag D
@@ -2681,7 +2840,7 @@
         ${kpi('💎 ' + M.startLeft, sgn(mc.start), M.startHint)}
         ${kpi('📈 ' + M.earned, short(mc.earned), `${mc.D} ${L.daysN || M.inDays}`)}
         ${kpi('⏱ ' + M.perDayAvg, short(mc.earned / mc.D), `⛏️ ${M.mineInfo} ${mc.lv}: ${fmt(mc.mo.perHour)} ${M.perHour}`)}
-        ${kpi('🏁 ' + M.endBal, sgn(mc.bal[mc.D]), mc.goalSum ? `${M.goalsSum}: ${short(mc.goalSum)}` : '')}
+        ${kpi('🏁 ' + M.endBal, sgn(mc.bal[mc.D]), [mc.endG.T ? `${M.endGoalMiss}: ${short(mc.endG.T)}${mc.endG.rest > 0 ? ` <span class="text-red-300">(−${short(mc.endG.rest)})</span>` : ' ✓'}` : '', mc.goalSum ? `${M.goalsSum}: ${short(mc.goalSum)}` : ''].filter(Boolean).join(' · '))}
       </div>
       <div class="mt-3 rounded-xl border border-ink-700 bg-ink-950/60 p-3">
         <div class="text-xs uppercase tracking-widest text-slate-400 mb-2">${M.chartTitle}</div>
@@ -2707,41 +2866,40 @@
     const sel = mc.passes.find((p) => p.n === +state.mid.pass) || mc.passes[0];
     const passDt = (p) => (s != null ? ` · ${shortDate(new Date(s + p.day * 86400000))}` : '');
     const tpl = (str, o) => str.replace(/\{(\w+)\}/g, (_, k) => o[k]);
+    const barbLine = (o) => `<div class="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-x-1 text-slate-200 tabular-nums mt-1">
+          <span>🪓</span><span>${tpl(M.pgBarbs, { b: fmt(o.xb), a: fmt(o.xa), ap: fmt(o.xap) })}</span>
+          <span>🏰</span><span class="text-slate-400">${tpl(M.pgForts, { f: fmt(o.xf), ap: fmt(o.xfap) })}</span></div>`;
     const midGoal = `
-      <div class="grid gap-2 grid-cols-2 sm:grid-cols-3">
+      <div class="grid gap-2 grid-cols-3">
         ${kpi('💎 ' + M.pgAvail + ' ' + sel.n, sgn(sel.avail), `${M.day} ${sel.kday}${passDt(sel)}`)}
         ${kpi('🎯 ' + M.pgNeed, short(sel.need), sel.cost ? `${L.pass} ${sel.n}: ${short(sel.cost)}` : M.pgEmpty)}
-        <div class="col-span-2 sm:col-span-1">${kpi((sel.left >= 0 ? '✓ ' + M.pgLeft : '⚠ ' + M.pgMiss), sgn(sel.left), '')}</div>
+        ${kpi((sel.left >= 0 ? '✓ ' + M.pgLeft : '⚠ ' + M.pgMiss), sgn(sel.left), '')}
       </div>
-      <p class="text-[11px] text-slate-500 mt-1.5">${M.pgAvailHint}</p>
-      <div class="mt-3 rounded-lg border ${sel.mwCr ? 'border-gold-500/40 bg-gold-500/5' : 'border-ink-700'} px-3 py-2 text-sm">
-        <div class="text-xs uppercase tracking-widest text-slate-400">⛰️ ${M.pgMw} ${sel.n}</div>
-        ${sel.mwCr ? `<div class="flex flex-wrap items-center justify-between gap-x-3 mt-0.5"><span class="text-slate-200">${sel.mwTiers.map((x) => esc(tx(x.label))).join(' → ')}</span>
-          <span class="tabular-nums"><span class="text-slate-400">${usd(sel.mwUsd)}</span> · <span class="text-gold-300 font-semibold">+${short(sel.mwCr)} 💎</span></span></div>`
-          : `<div class="text-xs text-slate-500 mt-0.5">${M.pgMwNone}</div>`}
-      </div>
+      <p class="text-[11px] text-slate-500 mt-1.5">${M.pgAvailHint}${sel.mwCr ? ` · ⛰️ ${sel.mwTiers.map((x) => esc(tx(x.label))).join(' → ')} <span class="text-gold-300">+${short(sel.mwCr)}</span>` : ` · ⛰️ ${M.pgMwNone}`}</p>
       ${sel.simple.T ? (() => { const q = sel.simple, ok = q.rest <= 0; return `
       <div class="mt-3 rounded-lg border ${ok ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-sky-500/30 bg-sky-500/5'} px-3 py-2.5 text-sm">
-        <div class="text-xs uppercase tracking-widest text-slate-400 mb-1">🎯 ${M.simple} · ${M.simpleCr} ${sel.n}: <span class="text-gold-300">${short(q.T)}</span></div>
+        <div class="flex items-center justify-between gap-2 mb-1"><span class="text-xs uppercase tracking-widest text-slate-400">🎯 ${M.simpleCr} ${sel.n}</span><span class="font-bold text-gold-300 tabular-nums">${short(q.T)}</span></div>
         ${line(M.simplePassive, short(q.passive))}
-        ${q.K ? line('👹 ' + M.simpleKaharOut + ' × ' + fmt(q.K), '+' + short(q.Kcr)) : ''}
+        ${q.K ? line('👹 Kahar × ' + fmt(q.K), '+' + short(q.Kcr)) : ''}
         ${ok ? `<div class="text-emerald-400 font-semibold mt-1">✓ ${M.simpleOk} · +${short(q.passive + q.Kcr - q.T)}</div>` : `
           ${line(M.simpleRest, short(q.rest), 'text-amber-300')}
-          <div class="text-slate-200 tabular-nums mt-1">🪓 ${tpl(M.pgBarbs, { b: fmt(q.xb), a: fmt(q.xa), ap: fmt(q.xap) })}</div>
-          <div class="text-slate-300 tabular-nums">🏰 ${tpl(M.pgForts, { f: fmt(q.xf), ap: fmt(q.xfap) })}</div>
-          <div class="text-[11px] mt-1 ${q.xap > q.apBy ? 'text-red-300' : 'text-slate-500'}">🧪 ${M.simpleApBy}: ${fmt(q.apBy)}${q.xap > q.apBy ? ' · ⚠ ' + M.simpleApShort : ''}</div>`}
-        <div class="text-[10px] text-slate-500 mt-1">${M.simplePassiveHint}</div>
+          ${barbLine(q)}
+          <div class="text-[11px] mt-1 ${q.xap > q.apBy ? 'text-red-300' : 'text-slate-500'}">🧪 ${M.simpleApBy}: ${fmt(q.apBy)}${q.xap > q.apBy ? ' · ⚠ ' + M.simpleApShort : ''} · ${M.simplePassiveHint}</div>`}
       </div>`; })() : ''}
       ${sel.miss > 0 ? `<div class="mt-3 rounded-lg border border-red-400/30 bg-red-500/5 px-3 py-2.5 text-sm">
-        <div class="text-xs uppercase tracking-widest text-red-300/80 mb-1">${M.pgExtra} · ${short(sel.miss)} 💎</div>
-        <div class="text-slate-200 tabular-nums">🪓 ${tpl(M.pgBarbs, { b: fmt(sel.xb), a: fmt(sel.xa), ap: fmt(sel.xap) })}</div>
-        <div class="text-slate-300 tabular-nums">🏰 ${tpl(M.pgForts, { f: fmt(sel.xf), ap: fmt(sel.xfap) })}</div>
+        <div class="flex items-center justify-between gap-2"><span class="text-xs uppercase tracking-widest text-red-300/80">${M.pgExtra}</span><span class="font-bold text-red-300 tabular-nums">${short(sel.miss)} 💎</span></div>
+        ${barbLine(sel)}
       </div>` : ''}
 `;
+    const eg = mc.endG;
+    const midEndGoal = !eg.T ? `<span class="text-slate-500">${M.endGoalHint}</span>` : eg.rest <= 0
+      ? `<span class="text-emerald-400 font-semibold">✓ ${M.endBal}: ${short(mc.bal[mc.D])}</span> <span class="text-slate-500">· +${short(mc.bal[mc.D] - eg.T)}</span>`
+      : `<div><span class="text-slate-400">${M.endBal}: ${short(mc.bal[mc.D])} ·</span> <span class="text-red-300 font-semibold">${M.pgMiss} ${short(eg.rest)}</span></div>${barbLine(eg)}`;
 
     // ---- Roadmap (wie im Start-Tab): Start ● — Pass 4 ● — … — Ende ●
     const dayDt = (d) => (s != null ? shortDate(new Date(s + (d - 1) * 86400000)) : '');
-    const stations = [{ k: 'start', day: 0 }, ...mc.passes.filter((p) => p.day < mc.D).map((p) => ({ k: 'pass', day: p.day, p })), { k: 'end', day: mc.D }];
+    const pPlanned = (p) => p.cost > 0 || p.simple.T > 0 || p.mwCr > 0;
+    const stations = [{ k: 'start', day: 0 }, ...mc.passes.filter((p) => p.day < mc.D && (p.n !== 5 || pPlanned(p))).map((p) => ({ k: 'pass', day: p.day, p })), { k: 'end', day: mc.D }];
     const roadItem = (title, sub, val, tone) => `
       <div class="rounded-lg border ${tone === 'hot' ? 'border-gold-500/40 bg-gold-500/5' : tone === 'bad' ? 'border-red-400/40 bg-red-500/5' : tone === 'good' ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-ink-700 bg-ink-900/70'} px-2 py-1.5">
         <div class="text-[11px] font-semibold text-slate-200 leading-tight">${title}</div>
@@ -2771,7 +2929,10 @@
       }
       if (st.k === 'end') {
         const left = mc.bal[mc.D] - mc.goalSum;
-        items.push(roadItem(left >= 0 ? '✓ ' + M.leftEnd : '⚠ ' + M.missingEnd, mc.goalSum ? `${M.goalsSum}: ${short(mc.goalSum)}` : '', sgn(left), left >= 0 ? 'good' : 'bad'));
+        if (mc.goalSum) items.push(roadItem(left >= 0 ? '✓ ' + M.leftEnd : '⚠ ' + M.missingEnd, `${M.goalsSum}: ${short(mc.goalSum)}`, sgn(left), left >= 0 ? 'good' : 'bad'));
+        if (mc.endG.T) items.push(mc.endG.rest <= 0
+          ? roadItem(`🏁 ${M.endGoalMiss}: ${short(mc.endG.T)}`, '', `<span class="text-emerald-400">✓ ${short(mc.bal[mc.D])}</span>`, 'good')
+          : roadItem(`🏁 ${M.endGoalMiss}: ${short(mc.endG.T)}`, `🪓 ${fmt(mc.endG.xb)} ${M.barbs} · ${fmt(mc.endG.xap)} AP`, `<span class="text-red-300">−${short(mc.endG.rest)}</span>`, 'bad'));
       }
       const bal = mc.bal[Math.min(st.day, mc.D)] - mc.passes.filter((p) => p.day <= st.day && st.k !== 'start').reduce((a, p) => a + p.cost, 0);
       prevDay = st.day;
@@ -2802,39 +2963,67 @@
     // ---- AP & Barbaren ----
     const midAp = `
       <div class="grid gap-2 grid-cols-2 sm:grid-cols-4">
-        ${kpi('🧪 ' + M.apTotalLbl, fmt(mc.apTotal), mc.apRegen ? `${fmt(r.apTotal)} + ${fmt(mc.apRegen)} × ${mc.D}` : M.apSrc)}
+        ${kpi('🧪 ' + (mc.apSpend > 0 ? M.apSpendKpi : M.apTotalLbl), fmt(mc.apTotal), `${M.apAvailBy} ${mc.apUntil ? L.pass + ' ' + mc.apUntil : M.mEnd}: ${fmt(mc.apAvail)}${mc.apRegen ? ` (${fmt(r.apTotal)} + ${fmt(mc.apRegen)} × ${mc.apDays})` : ''}`)}
         ${kpi('⚔️ ' + M.attacks, fmt(mc.attacks), M.chainInfo.replace(/\{n\}/g, mc.chain).replace('{ap}', fmt(mc.barbAp)))}
         ${kpi('🪓 ' + M.barbs, fmt(mc.barbs), `+ ${fmt(mc.forts)} ${M.fortsDone}${mc.forts < mc.fortsWanted ? ` · <span class="text-red-300">${M.apNoFort}</span>` : ''}`)}
         ${kpi('💎 ' + M.crystals, short(mc.barbCr + mc.fortCr + mc.kaharCr), [mc.barbBonus > 1 ? `${M.withRs} +${fmt((mc.barbBonus - 1) * 100)} %` : '', mc.kahar ? `👹 ${fmt(mc.kahar)} ${M.kaharShort}: ${short(mc.kaharCr)}` : ''].filter(Boolean).join(' · '))}
       </div>`;
-    // ---- Ehre-Timeline ----
+    // ---- Ehre ----
+    const hi = mc.honInfo, H = M.hn;
+    const hTop = Math.max(mc.hon[mc.D], hi.goal, 1000);
     const hW = 760, hH = 200, hpl = 58, hpr = 14, hpt = 12, hpb = 28;
-    const hStep = (() => { const v = Math.max(mc.hon[mc.D], ...HONOR_MILES) / 5, p = Math.pow(10, Math.floor(Math.log10(v))); return [1, 2, 2.5, 4, 5, 10].map((k) => k * p).find((x) => x >= v); })();
-    const hMax = Math.ceil(Math.max(mc.hon[mc.D], ...HONOR_MILES) * 1.04 / hStep) * hStep;
+    const hStep = (() => { const v = hTop / 5, p = Math.pow(10, Math.floor(Math.log10(v))); return [1, 2, 2.5, 4, 5, 10].map((k) => k * p).find((x) => x >= v); })();
+    const hMax = Math.ceil(hTop * 1.06 / hStep) * hStep;
     const hX = (d) => hpl + (d / mc.D) * (hW - hpl - hpr), hY = (v) => hpt + (1 - v / hMax) * (hH - hpt - hpb);
     const hGrid = Array.from({ length: Math.round(hMax / hStep) + 1 }, (_, i) => i * hStep).map((v) => `<line x1="${hpl}" x2="${hW - hpr}" y1="${hY(v).toFixed(1)}" y2="${hY(v).toFixed(1)}" stroke="#212b40"/>
-      <text x="${hpl - 8}" y="${(hY(v) + 4).toFixed(1)}" text-anchor="end" font-size="11" fill="#94a3b8">${fmt(v)}</text>`).join('');
-    const hMarks = mc.honMiles.map((x) => `<line x1="${hpl}" x2="${hW - hpr}" y1="${hY(x.v).toFixed(1)}" y2="${hY(x.v).toFixed(1)}" stroke="#fde68a" stroke-opacity=".8" stroke-dasharray="6 4" stroke-width="1.5"/>
-      <text x="${hpl + 6}" y="${(hY(x.v) - 5).toFixed(1)}" font-size="11" font-weight="600" fill="#fde68a" paint-order="stroke" stroke="#0c1019" stroke-width="3">${fmt(x.v)}</text>
-      ${x.day >= 0 ? `<circle cx="${hX(x.day).toFixed(1)}" cy="${hY(x.v).toFixed(1)}" r="5" fill="#34d399" stroke="#0c1019" stroke-width="2"/>` : ''}`).join('');
+      <text x="${hpl - 8}" y="${(hY(v) + 4).toFixed(1)}" text-anchor="end" font-size="11" fill="#94a3b8">${short(v)}</text>`).join('');
+    const hMarks = hi.goal ? `<line x1="${hpl}" x2="${hW - hpr}" y1="${hY(hi.goal).toFixed(1)}" y2="${hY(hi.goal).toFixed(1)}" stroke="#fde68a" stroke-opacity=".85" stroke-dasharray="6 4" stroke-width="1.5"/>
+      <text x="${hpl + 6}" y="${(hY(hi.goal) - 5).toFixed(1)}" font-size="11" font-weight="600" fill="#fde68a" paint-order="stroke" stroke="#0c1019" stroke-width="3">🎯 ${fmt(hi.goal)}</text>
+      ${hi.goalDay >= 0 ? `<circle cx="${hX(hi.goalDay).toFixed(1)}" cy="${hY(hi.goal).toFixed(1)}" r="5" fill="#34d399" stroke="#0c1019" stroke-width="2"/>` : ''}` : '';
     const hEvery = mc.D <= 30 ? 5 : mc.D <= 70 ? 10 : 20, hXt = [];
     for (let d = 0; d <= mc.D; d += hEvery) hXt.push(`<text x="${hX(d).toFixed(1)}" y="${hH - 8}" text-anchor="${d === 0 ? 'start' : mc.D - d < hEvery / 2 ? 'end' : 'middle'}" font-size="11" fill="#94a3b8">${d === 0 ? 'Start' : `${M.day} ${d}`}</text>`);
-    const hArea = `<polygon points="${mc.hon.map((v, d) => `${hX(d).toFixed(1)},${hY(v).toFixed(1)}`).join(' ')} ${hX(mc.D).toFixed(1)},${hY(0).toFixed(1)} ${hX(0).toFixed(1)},${hY(0).toFixed(1)}" fill="#c98500" fill-opacity=".25"/>
-      <polyline points="${mc.hon.map((v, d) => `${hX(d).toFixed(1)},${hY(v).toFixed(1)}`).join(' ')}" fill="none" stroke="#e0a91b" stroke-width="2"/>`;
+    const hPts = mc.hon.map((v, d) => `${hX(d).toFixed(1)},${hY(v).toFixed(1)}`).join(' ');
+    const hArea = `<polygon points="${hPts} ${hX(mc.D).toFixed(1)},${hY(0).toFixed(1)} ${hX(0).toFixed(1)},${hY(0).toFixed(1)}" fill="#c98500" fill-opacity=".2"/>
+      <polyline points="${hPts}" fill="none" stroke="#e0a91b" stroke-width="2.2" stroke-linejoin="round"/>
+      ${hi.run ? `<line x1="${hX(hi.nowDay).toFixed(1)}" x2="${hX(hi.nowDay).toFixed(1)}" y1="${hpt}" y2="${hH - hpb}" stroke="#f5c542" stroke-width="1.5"/><text x="${(hX(hi.nowDay) + 4).toFixed(1)}" y="${hH - hpb - 6}" font-size="10" font-weight="700" fill="#fde68a">${M.today}</text>` : ''}`;
     const honChart = `<div class="overflow-x-auto"><svg viewBox="0 0 ${hW} ${hH}" class="w-full min-w-[560px] h-auto" role="img" aria-label="${M.honChart}">${hGrid}${hArea}${hMarks}${hXt.join('')}</svg></div>`;
-    const h = state.mid.hon;
-    const honTotal = mc.hon[mc.D] - mc.honStart;
+    const tplH = (str, o) => str.replace(/\{(\w+)\}/g, (_, k) => o[k]);
+    const srcRow = (ic, lab, calc0, v) => `<div class="flex items-center justify-between gap-3 text-sm py-1.5 border-b border-ink-700/60 last:border-0">
+        <span class="text-slate-300">${ic} ${lab}<span class="block text-[11px] text-slate-500 tabular-nums">${calc0}</span></span><span class="tabular-nums font-semibold text-slate-100 shrink-0">${fmt(v)}</span></div>`;
+    const goalOk = hi.goal > 0 && hi.miss <= 0;
     const midHonor = `
       <div class="grid gap-2 grid-cols-2 lg:grid-cols-4">
-        ${kpi('🏅 ' + M.honStart, fmt(mc.honStart), '')}
-        ${kpi('📈 ' + M.honPerDay, fmt(mc.honDay), `${fmt(h.ruinsDay)} × ${M.ruins} · ${fmt(h.altarsDay)} × ${M.altars}`)}
-        ${mc.honMiles.map((x) => kpi(`🎯 ${fmt(x.v)}`, x.day === 0 ? `<span class="text-emerald-400">✓ ${M.honNow}</span>` : x.day > 0 ? `<span class="text-emerald-400">${M.day} ${x.day}</span>` : `<span class="text-red-300">−${short(x.miss)}</span>`,
-          x.day > 0 ? `${M.honReach} ${x.day}${s != null ? ` · ${shortDate(new Date(s + (x.day - 1) * 86400000))}` : ''}`
-          : x.day < 0 ? `${M.honMiss} · ${M.honExtra}: ${[x.ruins != null ? `${fmt(x.ruins)} ${M.ruins}` : '', x.altars != null ? `${fmt(x.altars)} ${M.altars}` : ''].filter(Boolean).join(` ${M.honOr} `) || '—'}` : '')).join('')}
+        ${kpi('🏅 ' + M.honStart, fmt(mc.honStart), hi.run ? H.nowSub : H.preSub)}
+        ${kpi('📈 ' + H.avg7, fmt(Math.round(hi.avg7)), H.avg7Sub)}
+        ${kpi('🏁 ' + H.atEnd, fmt(Math.round(hi.end)), `+${fmt(Math.round(hi.end - mc.honStart))} ${hi.run ? H.fromNow : ''}`)}
+        ${kpi('🎯 ' + H.goal + ' ' + fmt(hi.goal), !hi.goal ? '–' : hi.goalDay >= 0 ? `<span class="text-emerald-400">✓ ${M.day} ${hi.goalDay}</span>` : `<span class="text-red-300">−${short(Math.max(0, hi.goal - hi.end))}</span>`,
+          !hi.goal ? '' : hi.goalDay >= 0 ? `${M.honReach} ${hi.goalDay}${s != null ? ` · ${shortDate(new Date(s + (hi.goalDay - 1) * 86400000))}` : ''}` : H.notReached)}
+      </div>
+      ${!hi.hasEv ? `<p class="mt-3 text-sm text-amber-300 rounded-lg border border-amber-400/30 bg-amber-500/5 px-3 py-2">⏰ ${H.noEv}</p>` : ''}
+      ${hi.half ? `<div class="mt-3 rounded-lg border border-sky-400/40 bg-sky-500/5 px-3 py-2 text-sm"><span class="font-semibold text-sky-300">⏳ ${H.half}</span>
+        <span class="text-slate-200"> · ${tplH(H.halfTxt, { r: fmt(hi.ruinsLeft), a: fmt(hi.altarsLeft), h: fmt(hi.ruinHon + hi.altarHon) })}</span></div>` : ''}
+      <div class="mt-3 grid gap-3 lg:grid-cols-2 items-start">
+        <div class="rounded-xl border border-ink-700 bg-ink-950/60 p-3">
+          <div class="text-xs uppercase tracking-widest text-slate-400 mb-1">🧮 ${hi.run ? H.srcLeft : H.srcAll}</div>
+          ${srcRow('🏛️', M.ruins, `${fmt(hi.ruinsLeft)}${hi.run ? ' / ' + fmt(hi.ruinsAll) : ''} × ${fmt(hi.hR)}`, hi.ruinHon)}
+          ${srcRow('⛩️', M.altars, `${fmt(hi.altarsLeft)}${hi.run ? ' / ' + fmt(hi.altarsAll) : ''} × ${fmt(hi.hA)}${hi.share ? ' (50 %)' : ''}`, hi.altarHon)}
+          <div class="flex items-center justify-between gap-3 text-sm py-1.5 border-b border-ink-700/60"><span class="font-semibold text-gold-300">${H.both}</span><span class="tabular-nums font-bold text-gold-300">${fmt(hi.ruinHon + hi.altarHon)}</span></div>
+          ${srcRow('🪓', H.apPlan, `${fmt(mc.barbs)} × ${fmt(hi.hB)} + ${fmt(mc.forts)} × ${fmt(hi.hF)}${hi.run ? ' · ' + H.restOnly : ''}`, Math.round(hi.apHonLeft))}
+        </div>
+        <div class="rounded-xl border ${!hi.goal ? 'border-ink-700' : goalOk ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-red-400/30 bg-red-500/5'} p-3 text-sm">
+          <div class="text-xs uppercase tracking-widest text-slate-400 mb-1">🎯 ${H.goal}: <span class="text-gold-300">${fmt(hi.goal)}</span></div>
+          ${!hi.goal ? `<p class="text-slate-500">${H.noGoal}</p>` : `
+          ${line(H.needAltars, `${fmt(hi.needA)} / ${fmt(hi.altarsLeft)}`)}
+          ${line(H.needRuins, `${fmt(hi.needR)} / ${fmt(hi.ruinsLeft)}`)}
+          ${goalOk ? `<div class="text-emerald-400 font-semibold mt-1">✓ ${H.enough}</div>` : `
+            ${line(H.missing, fmt(Math.ceil(hi.miss)), 'text-red-300')}
+            <div class="text-slate-200 tabular-nums mt-1">🪓 ${tplH(H.xBarbs, { b: fmt(hi.xBarbs), a: fmt(hi.xAtt), ap: fmt(hi.xBarbAp) })}</div>
+            <div class="text-slate-300 tabular-nums">🏰 ${tplH(H.xForts, { f: fmt(hi.xForts), ap: fmt(hi.xFortAp) })}</div>`}
+          <p class="text-[11px] text-slate-500 mt-1">${H.goalHint}</p>`}
+        </div>
       </div>
       <div class="mt-3 rounded-xl border border-ink-700 bg-ink-950/60 p-3">
         <div class="text-xs uppercase tracking-widest text-slate-400 mb-2">${M.honChart}</div>${honChart}
-        <div class="mt-1 text-[11px] text-slate-500">🪓 ${M.honBarbsSrc}: ${fmt(mc.barbs)} × ${fmt(h.barb)} + ${fmt(mc.forts)} × ${fmt(h.fort)} = ${fmt(mc.barbs * h.barb + mc.forts * h.fort)}</div>
       </div>`;
 
     // ---- Zwischenstand ----
@@ -2860,10 +3049,10 @@
       midGoal: (() => { const g = mc.passes.filter((p) => p.cost); if (!g.length) return ''; const bad = g.filter((p) => p.left < 0);
         return bad.length ? `<span class="text-red-300">⚠ ${L.pass} ${bad.map((p) => p.n).join(', ')} · −${short(Math.max(...bad.map((p) => p.miss)))}</span>` : `<span class="text-emerald-400">✓ ${g.length}/${g.length}</span>`; })(),
       midAp: mc.barbs || mc.forts ? `<span class="text-slate-300">🪓 ${fmt(mc.barbs)} · 🏰 ${fmt(mc.forts)}</span>` : '',
-      midHon: mc.honDay || mc.honStart ? mc.honMiles.map((x) => `<span class="${x.day >= 0 ? 'text-emerald-400' : 'text-red-300'}">${fmt(x.v)} ${x.day >= 0 ? `✓ ${M.day} ${x.day}` : '✗'}</span>`).join(' <span class="text-slate-600">·</span> ') : '',
+      midHon: mc.honInfo.goal ? `<span class="${mc.honInfo.goalDay >= 0 ? 'text-emerald-400' : 'text-red-300'}">🎯 ${short(mc.honInfo.goal)} ${mc.honInfo.goalDay >= 0 ? `✓ ${M.day} ${mc.honInfo.goalDay}` : '✗'}</span>` : '',
       midStats: now.kp && st.kp ? `<span class="${kpGain >= 0 ? 'text-emerald-400' : 'text-red-300'}">⚔️ ${kpGain >= 0 ? '+' : '−'}${short(Math.abs(kpGain))}</span>` : ''
     };
-    return { midMap, midAdj, midFlow, midGoal, midRoad, midAp, midHonor, midStats, _fsum: fsum };
+    return { midMap, midAdj, midFlow, midGoal, midEndGoal, midRoad, midAp, midHonor, midStats, _fsum: fsum };
   }
 
   function outputs(r) {
@@ -3004,7 +3193,7 @@
       })(),
       ...(() => { const po = mapOutputs(); Object.assign(fsum, po._fsum); return { mapNext: po.mapNext, mapUpcoming: po.mapUpcoming, mapSched: po.mapSched }; })(),
       ...(() => { const eo = endOutputs(r); Object.assign(fsum, eo._fsum); return { endSum: eo.endSum, endImg: eo.endImg }; })(),
-      ...(() => { const mo = midOutputs(r); Object.assign(fsum, mo._fsum); return { midMap: mo.midMap, midAdj: mo.midAdj, midFlow: mo.midFlow, midGoal: mo.midGoal, midRoad: mo.midRoad, midAp: mo.midAp, midHonor: mo.midHonor, midStats: mo.midStats }; })(),
+      ...(() => { const mo = midOutputs(r); Object.assign(fsum, mo._fsum); return { midMap: mo.midMap, midAdj: mo.midAdj, midFlow: mo.midFlow, midGoal: mo.midGoal, midEndGoal: mo.midEndGoal, midRoad: mo.midRoad, midAp: mo.midAp, midHonor: mo.midHonor, midStats: mo.midStats }; })(),
       crystal, shop, stats, budget, roadmap, _fsum: fsum
     };
   }
@@ -3015,7 +3204,10 @@
     hosts.forEach((h) => { if (h.isConnected && h.offsetParent !== null) renderClockIn(h); });
   }
   function renderClockIn(scope) {
-    const L = t(), ph = scope._kvkFixed ? phase(scope._kvkStart) : phase();
+    const L = t(), ph = scope._kvkFixed ? phase(scope._kvkStart, scope._kvkDays) : phase();
+    // Kampf läuft → Zahlen und Flammen grün (Altar) bzw. lila (Pass)
+    const sec = scope.querySelector('.kvk-time'), fight = ph && !ph.before && !ph.over ? currentFight(scope._kvkFixed ? scope._kvkEvs : mapEvents()) : '';
+    if (sec && (sec.dataset.fight || '') !== fight) { if (fight) sec.dataset.fight = fight; else delete sec.dataset.fight; }
     const phEl = scope.querySelector('[data-phase]'), cdEl = scope.querySelector('[data-countdown]');
     const utcEl = scope.querySelector('[data-utc]'), lineEl = scope.querySelector('[data-startline]'), phasesEl = scope.querySelector('[data-phases]');
     if (!phEl || !cdEl) return;
@@ -3026,7 +3218,7 @@
       const inner = nxEl.firstElementChild; nxEl.dataset.ts = inner ? inner.dataset.ts : String(srvNow() + 60000);
       nxEl.dataset.key = scope._kvkFixed ? scope._kvkStart : state.startDate + '|' + (state.mapEv || []).length;
     }
-    if (nxEl) nxEl.querySelectorAll('[data-cd-ts]').forEach((x) => { x.textContent = cdText(+x.dataset.cdTs - srvNow()); });
+    if (nxEl) nxEl.querySelectorAll('[data-cd-ts]').forEach((x) => cdTick(x));
     const badge = (txt, cls) => `<span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full border ${cls}">${txt}</span>`;
 
     if (!ph) {
@@ -3036,12 +3228,17 @@
       if (lineEl) lineEl.textContent = L.utcNote;
       return;
     }
-    phEl.innerHTML = ph.before
+    const fBadge = fight === 'altar' ? badge(`⛩️ ${L.fightAltar}`, 'border-emerald-400/50 text-emerald-300 bg-emerald-500/10') : fight === 'pass' ? badge(`🚪 ${L.fightPass}`, 'border-purple-400/50 text-purple-300 bg-purple-500/10') : '';
+    phEl.innerHTML = (ph.before
       ? badge('⏳ ' + L.pre, 'border-gold-500/40 text-gold-300 bg-gold-500/5')
-      : badge(`⚔️ KvK · ${L.day} ${fmt(ph.day)}`, 'border-red-400/40 text-red-300 bg-red-500/10');
-    fireClock(cdEl, ph.ms, false);
-    const local = new Date(ph.ts).toLocaleString(locale(), { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    if (lineEl) lineEl.innerHTML = `${ph.before ? L.untilStart : L.sinceStart} · ${L.startShort}: <span class="text-slate-300">${local}</span> (00:00 UTC)`;
+      : ph.over ? badge(`🏁 ${L.kvkOver}`, 'border-slate-500/40 text-slate-300 bg-slate-500/10')
+      : badge(`⚔️ KvK · ${L.day} ${fmt(ph.day)}`, 'border-red-400/40 text-red-300 bg-red-500/10')) + (fBadge ? ' ' + fBadge : '');
+    fireClock(cdEl, ph.ms, ph.over);
+    const dtf = { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+    const local = new Date(ph.ts).toLocaleString(locale(), dtf), localEnd = new Date(ph.end).toLocaleString(locale(), dtf);
+    if (lineEl) lineEl.innerHTML = ph.before
+      ? `${L.untilStart} · ${L.startShort}: <span class="text-slate-300">${local}</span> (00:00 UTC)`
+      : `${ph.over ? L.kvkOver : L.untilEnd} · ${L.endShort}: <span class="text-slate-300">${localEnd}</span> · ${L.startShort}: <span class="text-slate-300">${new Date(ph.ts).toLocaleDateString(locale(), { day: '2-digit', month: '2-digit' })}</span>`;
     if (utcEl) {
       const tz = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { return ''; } })();
       utcEl.innerHTML = `00:00 UTC = <span class="text-slate-300">${local}</span> ${L.localIs}${tz ? ` (${esc(tz)})` : ''}`;
@@ -3058,8 +3255,9 @@
     return `<span class="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 rounded-full border px-3 py-1 bg-ink-950/60 backdrop-blur-sm" style="border-color:${col}66" data-ts="${endTs}">
         <span class="text-slate-400">${n.fighting ? '⚔️ ' + MP.fightNow : '⏭ ' + MP.nextShort}:</span>
         <span class="font-semibold" style="color:${col}">${ic[0]} ${esc(n.e.name)}</span>
-        <span class="text-slate-300">${n.fighting ? MP.fightOn : when}</span>
-        <span class="font-bold tabular-nums" style="color:${col}" data-cd-ts="${endTs}">${cdText(endTs - now)}</span>
+        <span class="text-slate-300">${n.fighting ? MP.fightSinceLbl : when}</span>
+        ${n.fighting ? `<span class="font-bold tabular-nums" style="color:${col}" data-cd-ts="${n.e.ts}" data-cd-up data-cd-end="${endTs}">${cdText(now - n.e.ts)}</span>`
+          : `<span class="font-bold tabular-nums" style="color:${col}" data-cd-ts="${endTs}">${cdText(endTs - now)}</span>`}
       </span>`;
   }
   // Phasen vor dem KvK-Start (immer gleicher Abstand zum Start): Registrierung −11 Tage, Team-up −9, Matchmaking −7,
@@ -3134,10 +3332,10 @@
   function refresh() {
     if (!root) return;
     const out = outputs(calc());
-    const oldRoad = root.querySelector('[data-road-scroll]'), roadX = oldRoad ? oldRoad.scrollLeft : 0;
-    Object.keys(out).forEach((k) => { const el = root.querySelector(`[data-out="${k}"]`); if (el) el.innerHTML = out[k]; });
-    const newRoad = root.querySelector('[data-road-scroll]');
-    if (newRoad) { newRoad.style.scrollBehavior = 'auto'; newRoad.scrollLeft = roadX; newRoad.style.scrollBehavior = ''; roadArrows(); }
+    const roadX = [...root.querySelectorAll('[data-road-scroll]')].map((x) => x.scrollLeft);   // Roadmap gibt es oben und im Klappfeld
+    Object.keys(out).forEach((k) => { root.querySelectorAll(`[data-out="${k}"]`).forEach((el) => { el.innerHTML = out[k]; }); });
+    root.querySelectorAll('[data-road-scroll]').forEach((x, i) => { x.style.scrollBehavior = 'auto'; x.scrollLeft = roadX[i] || 0; x.style.scrollBehavior = ''; });
+    roadArrows();
     Object.keys(out._fsum).forEach((k) => { const el = root.querySelector(`[data-fsum="${k}"]`); if (el) el.innerHTML = out._fsum[k]; });
     // Summe je Bundle in der Kopfzeile
     BUNDLES.forEach((b) => {
@@ -3158,12 +3356,13 @@
 
   // Roadmap: Pfeile nur zeigen, wenn es in die Richtung noch etwas gibt
   function roadArrows() {
-    const sc = root && root.querySelector('[data-road-scroll]');
-    if (!sc) return;
-    const max = sc.scrollWidth - sc.clientWidth;
-    const l = root.querySelector('[data-road="-1"]'), r = root.querySelector('[data-road="1"]');
-    if (l) l.disabled = sc.scrollLeft <= 2;
-    if (r) r.disabled = sc.scrollLeft >= max - 2 || max <= 2;
+    if (!root) return;
+    root.querySelectorAll('[data-road-scroll]').forEach((sc) => {
+      const box = sc.parentElement, max = sc.scrollWidth - sc.clientWidth;
+      const l = box.querySelector(':scope > [data-road="-1"]'), r = box.querySelector(':scope > [data-road="1"]');
+      if (l) l.disabled = sc.scrollLeft <= 2;
+      if (r) r.disabled = sc.scrollLeft >= max - 2 || max <= 2;
+    });
   }
   // Roadmap mit Maus/Finger ziehen
   let roadDrag = null;
@@ -3223,8 +3422,10 @@
     if (!root) init();
     injectStyles();
     if (data == null) state = load();
-    const d = data == null ? mapData() : cleanMap(data);
-    if (!mapHasData(d)) { el.innerHTML = ''; return false; }
+    let d = data == null ? mapData() : cleanMap(data);
+    const empty = !mapHasData(d);
+    if (empty && !opts.force) { el.innerHTML = ''; return false; }
+    if (!d) d = cleanMap({ kds: [[], [], [], []] });
     const M = t().m;
     const s0 = data == null ? startTs() : startTs(opts.startDate), evs = eventsFor(s0, d.ev, d.days);
     el._kvkEvs = evs; el._kvkRemount = () => mountMap(el, data, opts);
@@ -3238,11 +3439,49 @@
           <h3 class="font-display text-lg text-gold-300">🗺️ ${M.mapTitle}</h3>
           ${opts.onOpen ? `<button type="button" data-map-open class="text-xs px-2.5 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">✎ ${t().edit}</button>` : ''}
         </div>
-        <div class="max-w-[30rem] mx-auto">${mapSVG(d, opts.kingdom, evs)}</div>
+        ${empty ? `<p class="text-xs text-slate-400 mb-2 text-center">ℹ️ ${data == null ? M.mapEmptyOwn : M.mapEmptyOther}</p>` : ''}
+        <div class="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] items-start">
+          <div class="max-w-[34rem] w-full mx-auto">${mapSVG(d, opts.kingdom, evs)}</div>
+          ${mapTimelineHTML(evs)}
+        </div>
+        ${mapRosterHTML(d, opts.kingdom)}
       </section>`;
     const b = el.querySelector('[data-map-open]');
     if (b) b.onclick = () => opts.onOpen();
     return true;
+  }
+
+  // Timeline neben der Karte: nur Pass 4, 7, 8 und Altäre – laufende Kämpfe oben, dann die nächsten Termine
+  function mapTimelineHTML(evs) {
+    const L = t(), M = L.m, now = srvNow();
+    const key = (e) => e.kind === 'altar' || (e.kind === 'pass' && [4, 7, 8].includes(e.n));
+    const list = (evs || []).filter(key), act = list.filter((e) => e.ts <= now && now < fightEnd(e)), up = list.filter((e) => e.ts > now).slice(0, 10);
+    const when = (ts) => new Date(ts).toLocaleString(locale(), { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const row = (e, on) => { const col = e.kind === 'altar' ? '#4ade80' : '#c084fc', ic = e.kind === 'altar' ? '⛩️' : '🚪', end = on ? fightEnd(e) : e.ts;
+      return `<div class="flex items-center justify-between gap-3 py-1.5 border-b border-ink-700/60 last:border-0">
+        <span class="flex items-center gap-2 min-w-0"><span>${ic}</span><span class="truncate text-sm font-semibold" style="color:${col}">${esc(e.kind === 'altar' ? M.altar : `${L.pass} ${e.n}`)}</span>${on ? `<span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full" style="background:${col}22;color:${col}">⚔️ ${M.running}</span>` : ''}</span>
+        <span class="shrink-0 text-right text-xs tabular-nums"><span class="text-slate-400">${on ? t().mp.fightSinceLbl + ' ' : when(e.ts) + ' · '}</span>${on ? `<span data-cd-ts="${e.ts}" data-cd-up data-cd-end="${end}" class="font-semibold" style="color:${col}">${cdText(now - e.ts)}</span>` : `<span data-cd-ts="${end}" class="font-semibold" style="color:${col}">${cdText(end - now)}</span>`}</span>
+      </div>`; };
+    return `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3">
+        <div class="text-xs uppercase tracking-widest text-slate-400 mb-1">📅 ${M.timeline}</div>
+        ${act.length || up.length ? act.map((e) => row(e, true)).join('') + up.map((e) => row(e, false)).join('') : `<p class="text-sm text-slate-500 py-2">${evs && evs.length ? M.noTimeline : t().mp.needStart}</p>`}
+      </div>`;
+  }
+  // Wer ist in welchem Camp: 4 Kästen in den Camp-Farben, Königreiche mit Rang-Farbe, eigenes mit ★
+  function mapRosterHTML(d, ownKd) {
+    const M = t().m, myKd = String(ownKd != null ? ownKd : ((window.RokAuth && window.RokAuth.ownMeta && window.RokAuth.ownMeta()) || {}).kingdom || '').replace(/[^\d]/g, '');
+    return `<div class="mt-4">
+        <div class="text-xs uppercase tracking-widest text-slate-400 mb-2">🏕️ ${M.roster}</div>
+        <div class="grid gap-2 grid-cols-1 sm:grid-cols-2">${CAMPS.map((C, i) => { const kds = d.kds[i] || [], me = d.my === i + 1, al = !me && d.ally === i + 1; return `
+          <div class="rounded-xl border p-2.5" style="border-color:${me ? '#f5c542' : al ? '#34d399' : C.col + '88'};background:linear-gradient(135deg,${C.col}33,${C.col}0d 60%,transparent)">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <span class="flex items-center gap-2 text-sm font-bold" style="color:${C.txt}"><span class="text-base">${C.icon}</span>${M.campNames[i]}${me ? ` <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gold-500/15 text-gold-300">⭐ ${M.myCamp}</span>` : al ? ` <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300">🤝 ${M.ally}</span>` : ''}</span>
+              <span class="text-[11px] text-slate-400">${kds.length} KD</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">${kds.length ? kds.map((k) => { const tr = (d.tier || {})[k], mine = myKd && k === myKd; return `
+              <span class="inline-flex items-center gap-1 text-xs font-bold tabular-nums px-2 py-0.5 rounded-md bg-ink-950/70 border" style="color:${tr ? TIER_COL[tr] : '#ffffff'};border-color:${mine ? '#f5c542' : tr ? TIER_COL[tr] + '99' : C.col + '66'}">${mine ? '<span style="color:#f5c542">★</span>' : ''}#${esc(k)}${tr === 'g' ? ' <span class="text-[10px]">🥇</span>' : tr === 's' ? ' <span class="text-[10px]">🥈</span>' : ''}</span>`; }).join('') : `<span class="text-xs italic text-slate-500">${M.mapEmpty}</span>`}</div>
+          </div>`; }).join('')}</div>
+      </div>`;
   }
 
   // Karte als Fenster über der Seite (Profil: „Karte zeigen“ im Countdown)
@@ -3254,7 +3493,7 @@
     ov.className = 'kvk-host p-3 sm:p-6';
     ov.style.cssText = 'position:fixed;inset:0;z-index:70;overflow-y:auto;background:rgba(7,9,15,.88);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)';
     ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true');
-    ov.innerHTML = `<div class="relative max-w-3xl mx-auto sm:my-6 ui-pop">
+    ov.innerHTML = `<div class="relative max-w-6xl mx-auto sm:my-6 ui-pop">
         <button type="button" data-map-close class="absolute -top-1 right-0 z-30 text-sm px-3 py-1.5 rounded-lg border border-ink-600 bg-ink-900 text-slate-300 hover:text-white" aria-label="${t().done}">✕</button>
         <div data-map-host class="pt-9"></div></div>`;
     document.body.appendChild(ov);
@@ -3263,7 +3502,7 @@
     const onKey = (e) => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onKey);
     ov.addEventListener('click', (e) => { if (e.target === ov || e.target.closest('[data-map-close]')) close(); });
-    mountMap(host, data, { ...opts, onOpen: opts.onOpen ? () => { close(); opts.onOpen(); } : undefined });
+    mountMap(host, data, { ...opts, force: true, onOpen: opts.onOpen ? () => { close(); opts.onOpen(); } : undefined });
   }
 
   /* ----- Timer auf anderen Seiten (z. B. Game Profil): gleiche Uhr, gleiche Flammen ----- */
@@ -3276,12 +3515,13 @@
     // opts.startDate (YYYY-MM-DD): fremdes Profil → dessen Datum zeigen statt des eigenen
     el._kvkFixed = typeof opts.startDate === 'string';
     el._kvkStart = el._kvkFixed ? opts.startDate : '';
+    el._kvkDays = opts.days;
     el._kvkEvs = el._kvkFixed ? eventsFor(startTs(opts.startDate), cleanEvents(opts.events), opts.days) : null;   // fremdes Profil: dessen Ereignisse
     el.classList.add('kvk-host');
     el.setAttribute('translate', 'no');
     // Karte-Knopf: eigene Karte (map === null) oder die des Profilbesitzers (Objekt); nur wenn es etwas zu zeigen gibt
     const mapSrc = opts.map === undefined ? undefined : opts.map;
-    const hasMap = mapSrc !== undefined && mapHasData(mapSrc === null ? mapData() : cleanMap(mapSrc));
+    const hasMap = mapSrc !== undefined;                       // Knopf immer zeigen – leere Karte zeigt trotzdem Pässe & Zeiten
     el.innerHTML = timePanelHTML(!!opts.onOpen, hasMap);
     const b = el.querySelector('[data-kvk-open]');
     if (b) b.onclick = () => opts.onOpen();
@@ -3359,6 +3599,13 @@
   }
   // Farbe je nach Lebensalter: weiß-heiß an der Basis → gelb → orange → dunkelrot an der Spitze
   const STAGES = [[0.1, '255,244,214'], [0.28, '255,206,72'], [0.5, '255,140,22'], [0.75, '235,72,4'], [1, '150,24,0']];
+  // Kampf-Farben: Altar grün, Pass lila (gleicher Verlauf, andere Töne)
+  const STAGES_FX = {
+    altar: [[0.1, '230,255,236'], [0.28, '140,255,170'], [0.5, '40,220,110'], [0.75, '10,150,70'], [1, '0,70,30']],
+    pass: [[0.1, '250,236,255'], [0.28, '216,170,255'], [0.5, '168,85,247'], [0.75, '110,40,200'], [1, '50,10,110']]
+  };
+  const BED_FX = { altar: ['40,220,110', '0,140,60'], pass: ['168,85,247', '90,20,180'] };
+  const SPARK_FX = { altar: '170,255,190', pass: '225,190,255' };
   // Glatte Pseudo-Zufallskurve (Summe von Sinuswellen) für unruhiges, aber weiches Flackern
   const noise = (t, sd) => 0.5 + 0.22 * Math.sin(t * 1.7 + sd) + 0.16 * Math.sin(t * 3.3 + sd * 1.7) + 0.12 * Math.sin(t * 7.9 + sd * 2.3);
   function setupEmitters(fx, w) {
@@ -3399,6 +3646,8 @@
     ctx.clearRect(0, 0, w, h);
 
     const ph = phaseFor(cv);
+    const tsec = cv.closest && cv.closest('.kvk-time'), fk = tsec && tsec.dataset.fight;
+    const ST = STAGES_FX[fk] || STAGES;
     const heat = !ph ? 0.3 : ph.before ? 1 : 1.2;   // ohne Datum nur Glut, im KvK stärker
     const sc = h / 90, t = ts / 1000;
     const gust = Math.sin(t * 0.7) * 0.5 + Math.sin(t * 1.9) * 0.25;   // gemeinsamer Luftzug
@@ -3425,7 +3674,8 @@
     ctx.globalCompositeOperation = 'lighter';
     // Glutbett am Boden
     const bed = ctx.createLinearGradient(0, h, 0, h - 16 * sc);
-    bed.addColorStop(0, `rgba(255,120,20,${0.55 * Math.min(1, heat)})`); bed.addColorStop(1, 'rgba(255,60,0,0)');
+    const bc = BED_FX[fk] || ['255,120,20', '255,60,0'];
+    bed.addColorStop(0, `rgba(${bc[0]},${0.55 * Math.min(1, heat)})`); bed.addColorStop(1, `rgba(${bc[1]},0)`);
     ctx.fillStyle = bed; ctx.fillRect(0, h - 16 * sc, w, 16 * sc);
 
     const keep = [];
@@ -3445,9 +3695,9 @@
       if (p.spark) {
         ctx.globalAlpha = Math.min(1, k * 1.5) * (0.7 + Math.random() * 0.3);
         const r = p.r * 2.2;
-        ctx.drawImage(sprite('255,190,80'), p.x - r, p.y - r, r * 2, r * 2);
+        ctx.drawImage(sprite(SPARK_FX[fk] || '255,190,80'), p.x - r, p.y - r, r * 2, r * 2);
       } else {
-        const stage = STAGES.find((st) => p.life <= st[0])[1];
+        const stage = ST.find((st) => p.life <= st[0])[1];
         const rw = p.r * Math.pow(k, 0.7) + 0.5;                  // nach oben schmaler
         const rh = rw * (1.5 + p.life * 1.4);                      // und länger gezogen
         ctx.globalAlpha = Math.pow(k, 1.4) * 0.42 * (0.85 + Math.random() * 0.3);
@@ -3490,8 +3740,14 @@
     // Reiter Karte: Königreich-Felder je Camp → als Liste gespeichert
     if (el.dataset && el.dataset.campKd) {
       const i = +el.dataset.campKd.split(':')[0], box = el.closest('[data-camp-kds]');
+      const v = el.value.replace(/[^\d]/g, '').slice(0, 4);
+      if (el.value !== v) el.value = v;
+      el.style.color = TIER_TXT(v);
+      const wrap = el.parentElement, old = wrap && wrap.querySelector('[data-kd-tier]');
+      if (old) old.remove();
+      if (wrap && v) wrap.insertAdjacentHTML('beforeend', tierBtnHTML(v));
       if (box && state.mid.camps[i]) {
-        state.mid.camps[i].kds = [...box.querySelectorAll('[data-camp-kd]')].map((x) => x.value.replace(/[^\d]/g, '').slice(0, 6)).filter(Boolean).join(', ');
+        state.mid.camps[i].kds = [...box.querySelectorAll('[data-camp-kd]')].map((x) => x.value.replace(/[^\d]/g, '').slice(0, 4)).filter(Boolean).join(', ');
         save(); refresh();
       }
       return;
@@ -3558,8 +3814,14 @@
       onInput._bt = setTimeout(() => { applyPlan(); save(); refresh(); }, 220);
       return;
     }
+    // Ende von Hand: KvK-Dauer (Tage) daraus ableiten, damit Mid-Planung und Karte dazu passen
+    if (el.dataset.path === 'endDate' || el.dataset.path === 'startDate') {
+      const s0 = startTs(), e0 = startTs(state.endDate);
+      if (s0 != null && e0 != null && e0 > s0) state.mid.days = Math.max(1, Math.min(120, Math.round((e0 - s0) / 86400000)));
+      else if (el.dataset.path === 'endDate' && !state.endDate) state.endDate = '';
+    }
     save(); refresh();
-    if (el.dataset.path === 'startDate') renderClock();
+    if (el.dataset.path === 'startDate' || el.dataset.path === 'endDate') renderClock();
   }
 
   function lvLabel(type, l, compact) {
@@ -3641,7 +3903,7 @@
     }
     const arrow = e.target.closest('[data-road]');
     if (arrow) {
-      const sc = root.querySelector('[data-road-scroll]');
+      const sc = arrow.parentElement.querySelector('[data-road-scroll]');
       if (sc) sc.scrollBy({ left: +arrow.dataset.road * Math.max(200, sc.clientWidth * 0.7), behavior: 'smooth' });
       return;
     }
@@ -3666,8 +3928,8 @@
     if (myCampBtn) { const v = +myCampBtn.dataset.mycamp; state.mid.myCamp = state.mid.myCamp === v ? 0 : v; if (state.mid.allyCamp === state.mid.myCamp) state.mid.allyCamp = 0; save(); rerender(); return; }
     if (mapClick(e, mapEvents())) return;
     if (e.target.closest('[data-map-edit]')) {
-      const on = !(state.open.mapCamps || state.open.mapTimes || state.open.mapDesign);
-      state.open.mapCamps = on; state.open.mapTimes = on; state.open.mapDesign = on; save(); rerender();
+      const on = !(state.open.mapCamps || state.open.mapTimes || state.open.mapDesign || state.open.mapLayout);
+      state.open.mapCamps = on; state.open.mapTimes = on; state.open.mapDesign = on; state.open.mapLayout = on; save(); rerender();
       if (on) { const f = root.querySelector('[data-fold="mapDesign"]'); if (f && f.scrollIntoView) f.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
       return;
     }
@@ -3679,6 +3941,14 @@
     }
     const evDel = e.target.closest('[data-ev-del]');
     if (evDel) { state.mapEv = (state.mapEv || []).filter((x) => x.id !== evDel.dataset.evDel); save(); rerender(); return; }
+    const tierBtn = e.target.closest('[data-kd-tier]');
+    if (tierBtn) {
+      const kd = tierBtn.dataset.kdTier, cur = (state.mid.kdTier || {})[kd] || '';
+      state.mid.kdTier = { ...(state.mid.kdTier || {}) };
+      const nx = cur === '' ? 'g' : cur === 'g' ? 's' : '';
+      if (nx) state.mid.kdTier[kd] = nx; else delete state.mid.kdTier[kd];
+      save(); rerender(); return;
+    }
     const layBtn = e.target.closest('[data-layout]');
     if (layBtn) { state.mid.layout = validLayout(layBtn.dataset.layout); ensureMap(state.mid.layout); save(); rerender(); return; }
     const styleBtn = e.target.closest('[data-mapstyle]');
@@ -3694,13 +3964,25 @@
     }
     const endRes = e.target.closest('[data-end-result]');
     if (endRes) { state.end.result = +endRes.dataset.endResult; save(); rerender(); return; }
+    if (e.target.closest('[data-ap-max]')) { state.mid.apSpend = 0; save(); rerender(); return; }
+    if (e.target.closest('[data-start-scan]')) {
+      if (startLocked()) return;
+      let ok = false; ['stats', 'speed', 'res', 'ap'].forEach((p0) => { if (importScan(p0)) ok = true; });
+      if (ok) { save(); rerender(); }
+      return;
+    }
+    const endSet = e.target.closest('[data-end-set]');
+    if (endSet) {
+      const [k, v] = endSet.dataset.endSet.split(':');
+      if (k === 'star' || k === 'autarch') { state.end[k] = +state.end[k] === +v ? 0 : +v; save(); rerender(); }
+      return;
+    }
     if (e.target.closest('[data-end-scan]')) {
       const g = lastScan('governor'), sp = lastScan('speedups'), rs = lastScan('resources'), ap = lastScan('ap'), n = state.end.now;
       if (g) {
         if (g.energy != null) n.power = Math.max(0, Math.round(+g.energy || 0));
         if (g.kill_points != null) n.kp = Math.max(0, Math.round(+g.kill_points || 0));
-        if (g.highest_merit != null) n.acclaim = Math.max(0, Math.round(+g.highest_merit || 0));
-        if (g.deads != null) n.deads = Math.max(0, Math.round(+g.deads || 0));
+        if (g.deads != null) n.deads = Math.max(0, Math.round(+g.deads || 0));   // Verdienst im KvK startet bei 0 → nicht aus „Höchster Verdienst“
       }
       if (sp) ['universal', 'training', 'healing'].forEach((k) => { n[k] = Math.max(0, Math.round(+sp[k] || 0)); });
       if (rs) { const bar = (rs.resources && rs.resources.bar) || {}; RES.forEach((x) => { n[x.k] = Math.max(0, Math.round(+bar[x.k] || 0)); }); }
@@ -3914,7 +4196,20 @@
 :is(#kvkRoot, .kvk-host) .kvk-fire-wrap.is-dim .kvk-fire-lab { color:#64748b; }
 @media (prefers-reduced-motion: reduce) {
   :is(#kvkRoot, .kvk-host) .kvk-fire::after, :is(#kvkRoot, .kvk-host) .kvk-fire::before, :is(#kvkRoot, .kvk-host) .kvk-fire-tile { animation:none; }
-}`;
+}
+/* Kampf läuft: Altar grün, Pass lila (Zahlen, Glut, Kacheln) */
+:is(#kvkRoot, .kvk-host) .kvk-time[data-fight="altar"] .kvk-fire::after { background:linear-gradient(to bottom, #eafff0 15%, #4ade80 50%, #15803d 92%); background-size:100% 125%; -webkit-background-clip:text; background-clip:text; }
+:is(#kvkRoot, .kvk-host) .kvk-time[data-fight="altar"] .kvk-fire::before { text-shadow:0 0 4px #bbf7d0, 0 -2px 10px #22c55e, 0 -8px 20px #16a34a, 0 -15px 40px #065f46; animation:none; }
+:is(#kvkRoot, .kvk-host) .kvk-time[data-fight="altar"] .kvk-fire-tile { border-color:rgba(34,197,94,.45); background:radial-gradient(120% 70% at 50% 115%, rgba(34,197,94,.28), rgba(22,163,74,.07) 45%, transparent 70%), #0c1019; box-shadow:inset 0 0 20px rgba(0,0,0,.9), inset 0 -12px 26px -8px rgba(34,197,94,.35), 0 8px 24px -10px rgba(34,197,94,.45); animation:none; }
+:is(#kvkRoot, .kvk-host) .kvk-time[data-fight="altar"] .kvk-fire-lab { color:#86efac; }
+:is(#kvkRoot, .kvk-host) .kvk-time[data-fight="altar"] .kvk-flame-glow { background:radial-gradient(60% 100% at 50% 100%, rgba(34,197,94,.5), transparent 70%); }
+:is(#kvkRoot, .kvk-host) .kvk-time[data-fight="altar"] { border-bottom-color:rgba(34,197,94,.5); }
+:is(#kvkRoot, .kvk-host) .kvk-time[data-fight="pass"] .kvk-fire::after { background:linear-gradient(to bottom, #f5e8ff 15%, #c084fc 50%, #6d28d9 92%); background-size:100% 125%; -webkit-background-clip:text; background-clip:text; }
+:is(#kvkRoot, .kvk-host) .kvk-time[data-fight="pass"] .kvk-fire::before { text-shadow:0 0 4px #e9d5ff, 0 -2px 10px #a855f7, 0 -8px 20px #7c3aed, 0 -15px 40px #4c1d95; animation:none; }
+:is(#kvkRoot, .kvk-host) .kvk-time[data-fight="pass"] .kvk-fire-tile { border-color:rgba(168,85,247,.45); background:radial-gradient(120% 70% at 50% 115%, rgba(168,85,247,.28), rgba(124,58,237,.07) 45%, transparent 70%), #0c1019; box-shadow:inset 0 0 20px rgba(0,0,0,.9), inset 0 -12px 26px -8px rgba(168,85,247,.35), 0 8px 24px -10px rgba(168,85,247,.45); animation:none; }
+:is(#kvkRoot, .kvk-host) .kvk-time[data-fight="pass"] .kvk-fire-lab { color:#d8b4fe; }
+:is(#kvkRoot, .kvk-host) .kvk-time[data-fight="pass"] .kvk-flame-glow { background:radial-gradient(60% 100% at 50% 100%, rgba(168,85,247,.5), transparent 70%); }
+:is(#kvkRoot, .kvk-host) .kvk-time[data-fight="pass"] { border-bottom-color:rgba(168,85,247,.5); }`;
     document.head.appendChild(st);
   }
 

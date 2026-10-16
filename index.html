@@ -574,6 +574,14 @@ tailwind.config = {
             <div class="text-xs text-slate-400">Profilbild <span class="text-slate-500">– eigenes Bild hochladen oder Symbol wählen</span></div>
             <input id="profAvatarFile" type="file" accept="image/*" class="hidden">
             <div id="profAvatars" class="mt-1 flex flex-wrap gap-1.5"></div>
+            <div class="mt-3 text-xs text-slate-400">🖼️ Hintergrundbild <span class="text-slate-500">– oben im Profil, für alle sichtbar</span></div>
+            <div class="mt-1 flex items-stretch gap-2">
+              <label id="profBgPrev" class="relative flex-1 h-16 rounded-xl border border-dashed border-gold-500/50 bg-ink-950 grid place-items-center cursor-pointer overflow-hidden hover:border-gold-400" style="background-size:cover;background-position:center">
+                <span id="profBgLbl" class="text-xs font-semibold text-gold-300 bg-ink-950/70 rounded-md px-2 py-1">⬆ Bild hochladen</span>
+                <input id="profBgFile" type="file" accept="image/*" class="hidden">
+              </label>
+              <button id="profBgDel" type="button" class="hidden shrink-0 px-3 rounded-xl border border-ink-600 text-xs text-slate-300 hover:border-red-400/60 hover:text-red-300">✕ Entfernen</button>
+            </div>
             <div class="mt-3 flex items-center justify-between gap-3 rounded-xl border border-ink-700 bg-ink-950/50 px-3 py-2.5">
               <div>
                 <div class="text-sm font-semibold text-white">🔒 Profil privat</div>
@@ -592,7 +600,7 @@ tailwind.config = {
             <div class="text-sm font-semibold text-white">Statthalter-Werte</div>
             <div class="text-[11px] text-slate-500">Werden beim Scannen ausgefüllt – falls der Scanner danebenliegt, hier von Hand eintragen.</div>
           </div>
-          <div id="profGovFields" class="mt-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div id="profGovFields" class="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-3">
             <label class="min-w-0"><span class="text-xs text-slate-400">⚡ Energie</span>
               <input data-gov="energy" inputmode="numeric" autocomplete="off" placeholder="z. B. 85.141.754" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
             <label class="min-w-0"><span class="text-xs text-slate-400">⚔️ Kill-Punkte</span>
@@ -605,6 +613,12 @@ tailwind.config = {
               <input data-gov="ark_wins" inputmode="numeric" autocomplete="off" placeholder="Siege" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
             <label class="min-w-0"><span class="text-xs text-slate-400">👑 Lost Kingdom</span>
               <input data-gov="lk_autarch" inputmode="numeric" autocomplete="off" placeholder="× Autarch" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+            <label class="min-w-0"><span class="text-xs text-slate-400">🗡️ Most Units Killed</span>
+              <input data-gov="units_killed" inputmode="numeric" autocomplete="off" placeholder="Einheiten" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+            <label class="min-w-0"><span class="text-xs text-slate-400">🩸 Most Units Lost</span>
+              <input data-gov="units_lost" inputmode="numeric" autocomplete="off" placeholder="Einheiten" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+            <label class="min-w-0"><span class="text-xs text-slate-400">💚 Most Units Healed</span>
+              <input data-gov="units_healed" inputmode="numeric" autocomplete="off" placeholder="Einheiten" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
           </div>
         </div>
         <div class="mt-4 flex flex-wrap items-center gap-3">
@@ -1647,7 +1661,7 @@ window.RokAuth = (() => {
       return d;
     }
     if (e.type === 'governor') { const nn = (v) => v == null || v === '' || isNaN(+v) ? null : n0(v);
-      return { kill_points: n0(e.kill_points), highest_merit: n0(e.highest_merit), energy: n0(e.energy), deads: nn(e.deads), ark_wins: nn(e.ark_wins), lk_autarch: nn(e.lk_autarch),
+      return { kill_points: n0(e.kill_points), highest_merit: n0(e.highest_merit), energy: n0(e.energy), deads: nn(e.deads), ark_wins: nn(e.ark_wins), lk_autarch: nn(e.lk_autarch), units_killed: nn(e.units_killed), units_lost: nn(e.units_lost), units_healed: nn(e.units_healed),
                ...(e.governor_id ? { governor_id: String(e.governor_id) } : {}), ...(e.src ? { src: String(e.src).slice(0, 10) } : {}) }; }
     if (e.type === 'speedups') return { training: n0(e.training), heal: n0(e.healing), universal: n0(e.universal),
                                         building: n0(e.building), research: n0(e.research), total: n0(e.total) };
@@ -1889,13 +1903,14 @@ window.RokAuth = (() => {
     lbDeads = data?.deads != null ? +data.deads : null;
     lbArk = data?.ark_wins != null ? +data.ark_wins : null;
     lbLk = data?.lk_autarch != null ? +data.lk_autarch : null;
+    lbUk = data?.units_killed != null ? +data.units_killed : null; lbUl = data?.units_lost != null ? +data.units_lost : null; lbUh = data?.units_healed != null ? +data.units_healed : null;
     ownGains = data?.gains && typeof data.gains === 'object' ? data.gains : {};
-    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', is_private: !!data?.is_private, governor_id: data?.governor_id || '', showcase: data?.showcase || null, kingdom: data?.kingdom || '', alliance_name: data?.alliance_name || '', kvk_start: data?.kvk_start || '', kvk_map: data?.kvk_map || null };
+    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', prof_bg: data?.prof_bg || '', prof_order: data?.prof_order || '', is_private: !!data?.is_private, governor_id: data?.governor_id || '', showcase: data?.showcase || null, kingdom: data?.kingdom || '', alliance_name: data?.alliance_name || '', kvk_start: data?.kvk_start || '', kvk_map: data?.kvk_map || null };
   }
   // Aktuellen VIP-Stand melden. force = neuer Scan (immer aktualisieren), sonst nur bei geänderter Punktzahl.
   // Kill-Punkte aus dem Statthalter-Scan in die Rangliste schreiben (Spalte kill_points)
   // Statthalter-Werte in die Rangliste schreiben: kill_points und highest_merit (je eigene Spalte, einzeln gesendet)
-  let lbKills = null, lbMerit = null, lbEnergy = null, lbDeads = null, lbArk = null, lbLk = null, ownGains = {};
+  let lbKills = null, lbMerit = null, lbEnergy = null, lbDeads = null, lbArk = null, lbLk = null, lbUk = null, lbUl = null, lbUh = null, ownGains = {};
   // Zuwachs seit dem letzten Scan (Spalte leaderboard.gains, jsonb: { kill_points: { d, at }, … })
   async function saveGains(patch) {
     if (!user || missingCols.has('gains') || !Object.keys(patch).length) return;
@@ -1924,6 +1939,9 @@ window.RokAuth = (() => {
     lbEnergy = await pushStat('energy', g?.energy, lbEnergy);
     lbArk = await pushStat('ark_wins', g?.ark_wins, lbArk);
     lbLk = await pushStat('lk_autarch', g?.lk_autarch, lbLk);
+    if (!missingCols.has('units_killed')) lbUk = await pushStat('units_killed', g?.units_killed, lbUk);
+    if (!missingCols.has('units_lost')) lbUl = await pushStat('units_lost', g?.units_lost, lbUl);
+    if (!missingCols.has('units_healed')) lbUh = await pushStat('units_healed', g?.units_healed, lbUh);
     if (!fresh) return;
     const after = govCur(), at = Date.now(), patch = {};
     Object.keys(after).forEach(k => { if (g?.[k] != null && before[k] != null && after[k] === Math.round(+g[k])) patch[k] = { d: after[k] - before[k], at }; });
@@ -2019,6 +2037,27 @@ window.RokAuth = (() => {
     if (lbLast == null) lbLast = row.vip_points;
     return true;
   }
+  // Hintergrundbild im Profilkopf in public.leaderboard.prof_bg (für andere sichtbar). false = Spalte fehlt noch.
+  async function saveProfBg(img, points) {
+    const row = { user_id: user.id, username: profile.name.slice(0, 40), prof_bg: img || null };
+    if (lbLast == null) { row.vip_points = Math.max(0, Math.round(points || 0)); row.vip_level = 0; row.updated_at = new Date().toISOString(); }
+    const { error } = await sb.from('leaderboard').upsert(row);
+    if (error) {
+      if (/prof_bg|column/i.test(error.message || '')) return false;
+      throw new Error(germanError(error));
+    }
+    ownMeta = { ...ownMeta, prof_bg: img || '' };
+    if (lbLast == null) lbLast = row.vip_points;
+    return true;
+  }
+  // Reihenfolge der Profil-Kacheln in public.leaderboard.prof_order (Text, mit Komma). false = Spalte fehlt noch.
+  async function saveProfOrder(order) {
+    if (!user || lbLast == null) return false;
+    const { error } = await sb.from('leaderboard').upsert({ user_id: user.id, username: profile.name.slice(0, 40), prof_order: order || null });
+    if (error) { if (/prof_order|column/i.test(error.message || '')) return false; throw new Error(germanError(error)); }
+    ownMeta = { ...ownMeta, prof_order: order || '' };
+    return true;
+  }
   // Öffentliches Profil eines Spielers: Kopfzeile + VIP-/Speedup-Verlauf
   async function loadProfile(uid, opts = {}) {
     const lb = await sb.from('leaderboard').select('*').eq('user_id', uid).maybeSingle();
@@ -2108,7 +2147,7 @@ window.RokAuth = (() => {
     if (!user || missingCols.has('kvk_map')) return false;
     const has = m && Array.isArray(m.kds) && (m.kds.some(k => k && k.length) || m.my > 0);
     const val = has ? { kds: m.kds.map(k => (k || []).slice(0, 60)), my: +m.my || 0, ally: +m.ally || 0, style: /^[a-z]{1,12}$/.test(m.style || '') ? m.style : 'battle', layout: /^(schema|lk1|lk2)$/.test(m.layout || '') ? m.layout : 'schema', layout: /^(schema|lk1|lk2)$/.test(m.layout || '') ? m.layout : 'schema',
-      ev: Array.isArray(m.ev) ? m.ev.slice(0, 40) : [], days: +m.days || 60 } : null;                      // ev: Ruinen/Altäre für Timer + Karte bei Besuchern
+      ev: Array.isArray(m.ev) ? m.ev.slice(0, 40) : [], days: +m.days || 60, tier: m.tier && typeof m.tier === 'object' ? m.tier : {} } : null;                      // ev: Ruinen/Altäre für Timer + Karte bei Besuchern
     if (JSON.stringify(val) === JSON.stringify(ownMeta.kvk_map || null)) return true;
     const row = { user_id: user.id, username: profile.name.slice(0, 40), kvk_map: val };
     if (lbLast == null) { row.vip_points = 0; row.vip_level = 0; row.updated_at = new Date().toISOString(); }
@@ -2134,7 +2173,7 @@ window.RokAuth = (() => {
   }
 
   return { pending: () => hasPending, hasFeature, isAdmin, saveKvkStart, saveKvkMap, ownGains: () => ownGains, loadGearItems, saveShowcase, uploadImage, imgBase: () => IMG_BASE, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
-           pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
+           pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, saveProfBg, saveProfOrder, loadProfile, setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
 })();
 </script>
 
@@ -2774,7 +2813,7 @@ window.RokApp = () => {
   // Altdaten-Schutz: nur bekannte Zahlenfelder übernehmen
   const sanitize = (e) => {
     const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups', 'ap', 'governor', 'materials'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
-    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'materials' ? [...ALL_MAT_KEYS, 'total_leg'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'governor_id']
+    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'materials' ? [...ALL_MAT_KEYS, 'total_leg'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'units_killed', 'units_lost', 'units_healed', 'governor_id']
       : out.type === 'speedups' ? ['universal', 'building', 'research', 'training', 'healing', 'total']
       : ['food', 'wood', 'stone', 'gold', 'total', 'farmFood', 'farmWood', 'farmStone', 'farmGold', 'bagFood', 'bagWood', 'bagStone', 'bagGold'];
     keys.forEach(k => out[k] = (e[k] === null || e[k] === undefined || isNaN(+e[k])) ? null : +e[k]);
@@ -3573,7 +3612,7 @@ window.RokApp = () => {
     $('rankState').classList.remove('hidden'); $('rankState').textContent = 'Lade Rangliste …';
     try {
       const rows = (await RokAuth.loadLeaderboard())
-        .map(r => { const o = { ...r, vip_points: +r.vip_points || 0, _g: r._g || {} }; ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch'].forEach(k => { o[k] = r[k] == null ? null : +r[k]; }); return o; });
+        .map(r => { const o = { ...r, vip_points: +r.vip_points || 0, _g: r._g || {} }; ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'units_killed', 'units_lost', 'units_healed'].forEach(k => { o[k] = r[k] == null ? null : +r[k]; }); return o; });
       const me = rows.find(r => r.user_id === RokAuth.userId());
       if (me) { ['kill_points', 'highest_merit'].forEach(k => { if (me[k] == null) { const g = govLatest(k); if (g != null) me[k] = g; } }); me._g = { ...me._g, ...RokAuth.ownGains() }; }
       rankRows = rows;
@@ -3730,6 +3769,25 @@ window.RokApp = () => {
   const SKIN = 'rok_scanner_city_skin';   // eigener City-Skin (lokal + Cloud user_state)
   const safeSkin = (v) => typeof v === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v) ? v : '';
   const ownSkin = () => safeSkin(LS.get(SKIN, null) ?? RokAuth.ownMeta().city_skin);
+  // Reihenfolge der Werte-Kacheln im Profilkopf (lokal + leaderboard.prof_order, damit Freunde sie auch so sehen)
+  const PROF_ORDER_DEF = ['kill_points', 'highest_merit', 'energy', 'ark_wins', 'units_killed', 'units_healed', 'units_lost', 'lk_autarch', 'deads'];
+  const PROF_ORDER = 'rok_scanner_prof_order';
+  let profTileEdit = false;
+  const profOrder = (v) => { const a = String(v || '').split(',').map((x) => x.trim()).filter((x, i, l) => PROF_ORDER_DEF.includes(x) && l.indexOf(x) === i);
+    return [...a, ...PROF_ORDER_DEF.filter((x) => !a.includes(x))]; };
+  const ownProfOrder = () => LS.get(PROF_ORDER, null) ?? RokAuth.ownMeta().prof_order ?? '';
+  const PROF_BG = 'rok_scanner_prof_bg';    // eigenes Hintergrundbild für den Profilkopf (lokal + leaderboard.prof_bg)
+  const ownProfBg = () => safeSkin(LS.get(PROF_BG, null) ?? RokAuth.ownMeta().prof_bg);
+  // Bild auf max. 1280 px Breite verkleinern, als JPEG (unter ~350 KB, damit es schnell lädt)
+  async function shrinkBg(file) {
+    const img = await hqLoadImage(file);
+    const k = Math.min(1, 1280 / img.width, 720 / img.height * 1.6);
+    const c = hqResize(img, Math.round(img.width * k), Math.round(img.height * k));
+    img.close?.();
+    let q = 0.78, url = c.toDataURL('image/jpeg', q);
+    while (url.length > 350000 && q > 0.4) { q -= 0.1; url = c.toDataURL('image/jpeg', q); }
+    return url;
+  }
   // Bild mittig quadratisch zuschneiden (leicht gezoomt) und als kleines JPEG speichern
   async function cropSquare(file, size = 192, zoom = 0.8) {
     const img = await hqLoadImage(file);
@@ -3877,7 +3935,7 @@ window.RokApp = () => {
     // ---- Kopf ----
     const govEntries = entries.filter(e => e.type === 'governor');
     // Statthalter-Werte: je Feld der neueste Scan, der es enthält – sonst (z. B. private Profile) aus der Rangliste
-    const GOV_KEYS = ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch'];
+    const GOV_KEYS = ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'units_killed', 'units_lost', 'units_healed'];
     const gov = (() => {
       const o = { ts: govEntries.length ? govEntries[govEntries.length - 1].ts : null }; let any = false;
       GOV_KEYS.forEach(k => { const v = govLatest(k, govEntries); o[k] = v != null ? v : (row[k] != null ? +row[k] : null); if (o[k] != null) any = true; });
@@ -3889,21 +3947,41 @@ window.RokApp = () => {
     const canSpeed = own;                                             // Speedups, Deads, AP, Gems und Verlauf: nur im eigenen Profil
     const spTotal = sp ? (sp.total != null ? +sp.total : SPEED.reduce((a, c) => a + (+sp[c.k] || 0), 0)) : null;
     const dv = gov?.deads;
-    const spTile = canSpeed ? `<div class="col-span-2 sm:col-span-6 rounded-xl bg-gradient-to-r from-sky-950/50 to-ink-950/60 border border-sky-500/30 px-3 py-2.5">
-            <div class="grid grid-cols-2 gap-x-4 gap-y-1">
-              <div class="min-w-0">
-                <div class="text-[10px] uppercase tracking-wide sm:tracking-widest text-sky-200/80 truncate">⏱ Speedups gesamt</div>
-                <div class="text-lg sm:text-xl font-extrabold text-white tabular-nums">${spTotal != null ? `${days(spTotal)} <span class="text-sm font-semibold text-slate-400">Tage</span>` : '–'}</div>
-                <div class="text-[11px] text-slate-500 truncate">${spTotal != null ? durText(spTotal) : 'keine Daten'}</div>
+    // Speedups nur Universal / Heilung / Training (privat), Deads als eigene Kachel
+    const spv = (k) => sp ? (+sp[k] || (k === 'healing' ? +sp.heal || 0 : 0)) : null;
+    const spParts = [['⏱️', 'Universal', 'universal', 'text-sky-300'], ['❤️', 'Heilung', 'healing', 'text-rose-300'], ['⚔️', 'Training', 'training', 'text-amber-300']];
+    const spSum = sp ? spParts.reduce((a, [, , k]) => a + spv(k), 0) : null;
+    const spTile = canSpeed ? `<div class="col-span-2 sm:col-span-9 rounded-xl bg-gradient-to-br from-sky-950/60 to-ink-950/70 border border-sky-500/30 px-3 py-2.5">
+            <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <div class="min-w-[9rem]">
+                <div class="text-[10px] uppercase tracking-wide sm:tracking-widest text-sky-200/80 truncate">⏱ Speedups <span class="normal-case tracking-normal text-slate-500">· 🔒 nur für dich</span></div>
+                <div class="text-[15px] sm:text-2xl font-extrabold text-white tabular-nums">${spSum != null ? `${days(spSum)} <span class="text-sm font-semibold text-slate-400">Tage</span>` : '–'}</div>
               </div>
-              <div class="min-w-0 text-right">
-                <div class="text-[10px] uppercase tracking-wide sm:tracking-widest text-sky-200/80 truncate">💀 Deads</div>
-                <div class="text-lg sm:text-xl font-extrabold text-white tabular-nums">${dv != null ? fmt(dv) : '–'}</div>
-                <div class="text-[11px] text-slate-500 truncate">${dv != null ? '' : 'im Profil bearbeiten eintragen'}</div>
-              </div>
+              <div class="flex-1 min-w-[14rem] grid grid-cols-3 gap-1.5">${spParts.map(([ic, lab, k, col]) => `
+                <div class="min-w-0 rounded-lg bg-ink-950/60 border border-ink-700 px-2 py-1.5">
+                  <div class="text-[10px] text-slate-400 truncate">${ic} ${lab}</div>
+                  <div class="text-sm font-bold tabular-nums ${col}">${sp ? days(spv(k)) : '–'} <span class="text-[10px] font-medium text-slate-500">T</span></div>
+                </div>`).join('')}</div>
             </div>
-            <div class="mt-1 text-[11px] text-slate-500 text-right">🔒 nur für dich sichtbar</div>
           </div>` : '';
+    // Werte-Kacheln (gleicher Stil für alle, auch Deads) · Reihenfolge frei wählbar (Felder 1 … n)
+    const TILE_DEF = {
+      kill_points: ['⚔️', 'Kill-Punkte', '', 'bg-red-400/80'], highest_merit: ['🏅', 'Höchster Verdienst', '', 'bg-amber-400/80'], energy: ['⚡', 'Energie', '', 'bg-yellow-300/80'],
+      ark_wins: ['🏛️', 'Ark of Osiris', 'Siege', 'bg-sky-400/80'], units_killed: ['🗡️', 'Most Units Killed', '', 'bg-rose-400/80'], units_healed: ['💚', 'Most Units Healed', '', 'bg-emerald-400/80'],
+      units_lost: ['🩸', 'Most Units Lost', '', 'bg-slate-400/80'], lk_autarch: ['👑', 'Lost Kingdom', '× Autarch', 'bg-gold-400/90'], deads: ['💀', 'Deads', '', 'bg-red-600/80'] };
+    const order = profOrder(own ? ownProfOrder() : row.prof_order).filter((k) => k !== 'deads' || canSpeed);   // Deads nur für dich
+    const editT = own && profTileEdit;
+    const statTile = (k, idx) => { const [ic, label, unit, acc] = TILE_DEF[k], v = gov && gov[k] != null ? gov[k] : null; return `
+          <div class="${idx === 8 ? 'col-span-2 ' : ''}sm:col-span-3 min-w-0 relative overflow-hidden rounded-xl bg-ink-950/70 border ${editT ? 'border-gold-500/50' : 'border-ink-700'} pl-3.5 pr-2 sm:pr-3 py-3">
+            <span class="absolute inset-y-0 left-0 w-1 ${acc}"></span>
+            ${editT ? `<div class="flex items-center gap-1.5 mb-1.5"><span class="shrink-0 w-6 h-6 rounded-md grid place-items-center text-[11px] font-bold bg-gold-500 text-ink-950">${idx + 1}</span>
+              <select data-prof-slot="${idx}" class="min-w-0 flex-1 bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-gold-500">${order.map((o) => `<option value="${o}" ${o === k ? 'selected' : ''}>${TILE_DEF[o][0]} ${TILE_DEF[o][1]}</option>`).join('')}</select></div>` : ''}
+            <div class="text-[10px] uppercase tracking-wide sm:tracking-widest text-slate-400 truncate">${ic} ${label}${k === 'deads' ? ' <span class="normal-case tracking-normal text-slate-500">· 🔒</span>' : ''}</div>
+            <div class="text-[15px] sm:text-2xl font-extrabold text-white tabular-nums mt-0.5 truncate">${v != null ? fmt(v) + (unit ? ` <span class="text-xs font-semibold text-slate-400">${unit}</span>` : '') : '–'}</div>
+          </div>`; };
+    // eigenes Hintergrundbild im Profilkopf (für alle sichtbar, Spalte leaderboard.prof_bg)
+    const pBg = own ? ownProfBg() : safeSkin(row.prof_bg);
+    $('profHead').style.background = pBg ? `linear-gradient(180deg,rgba(7,9,15,.72),rgba(7,9,15,.9)),url("${pBg}") center/cover no-repeat` : '';
     $('profHead').innerHTML = `
       <div class="flex flex-wrap items-center gap-5">
         ${avatarHtml(row.username, meta.avatar, 'w-20 h-20 text-4xl rounded-2xl')}
@@ -3920,15 +3998,14 @@ window.RokApp = () => {
             ${row.updated_at ? `<span class="text-xs text-slate-500">aktualisiert ${dateLabel(new Date(row.updated_at).getTime())}</span>` : ''}
           </div>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 sm:gap-3 w-full lg:w-auto">
-          ${[['⚔️', 'Kill-Punkte', 'kill_points'], ['🏅', 'Höchster Verdienst', 'highest_merit'], ['⚡', 'Energie', 'energy'],
-             ['🏛️', 'Ark of Osiris', 'ark_wins', 'Siege'], ['👑', 'Lost Kingdom', 'lk_autarch', '× Autarch']].map(([ic, label, k, unit], i) => `
-          <div class="${i === 2 ? 'col-span-2' : ''} ${i < 3 ? 'sm:col-span-2' : 'sm:col-span-3'} min-w-0 rounded-xl bg-ink-950/60 border border-ink-700 px-3 py-2.5 lg:min-w-[150px]">
-            <div class="text-[10px] uppercase tracking-wide sm:tracking-widest text-slate-400 truncate">${ic} ${label}</div>
-            <div class="text-lg sm:text-xl font-extrabold text-white tabular-nums mt-0.5">${gov && gov[k] != null ? fmt(gov[k]) + (unit ? ` <span class="text-xs font-semibold text-slate-400">${unit}</span>` : '') : '–'}</div>
-          </div>`).join('')}
+        <div class="grid grid-cols-2 sm:grid-cols-12 gap-2 sm:gap-3 w-full">
+          ${order.map(statTile).join('')}
           ${spTile}
-          <div class="col-span-2 sm:col-span-6 text-[11px] text-slate-500 text-right">${gov ? (gov.ts ? `Statthalter-Profil vom ${dateLabel(gov.ts)}` : '') : (own ? 'Noch kein Scan – „📷 Statthalter-Profil scannen“' : 'Noch kein Statthalter-Scan')}</div>
+          <div class="col-span-2 sm:col-span-12 flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-[11px] text-slate-500">
+            ${editT ? `<span class="text-gold-300">Feld 1 – ${order.length}: wähle, was in welches Feld kommt</span><button type="button" data-prof-order-reset class="px-2 py-1 rounded-md border border-ink-600 hover:text-slate-200">↺ Standard</button>` : ''}
+            ${own ? `<button type="button" data-prof-order-edit class="px-2.5 py-1 rounded-md border ${editT ? 'border-gold-400 bg-gold-500 text-ink-950 font-semibold' : 'border-ink-600 hover:border-gold-500/60 hover:text-gold-300'}">${editT ? '✓ Fertig' : '✎ Felder anordnen'}</button>` : ''}
+            <span>${gov ? (gov.ts ? `Statthalter-Profil vom ${dateLabel(gov.ts)}` : '') : (own ? 'Noch kein Scan – „📷 Statthalter-Profil scannen“' : 'Noch kein Statthalter-Scan')}</span>
+          </div>
         </div>
       </div>
       ${nx ? `<div class="mt-5">
@@ -3940,6 +4017,27 @@ window.RokApp = () => {
           <div class="h-full rounded-full bg-gradient-to-r from-gold-400 to-gold-600" style="width:${nx.max ? 100 : nx.pct}%"></div>
         </div>
       </div>` : ''}`;
+
+    // Felder anordnen: Feld n bekommt den gewählten Wert, der bisherige rutscht auf dessen alten Platz
+    if (own) {
+      $('profHead').onclick = (ev) => {
+        if (ev.target.closest('[data-prof-order-edit]')) {
+          profTileEdit = !profTileEdit;
+          if (!profTileEdit) RokAuth.saveProfOrder(profOrder(ownProfOrder()).join(',')).catch(() => {});
+          renderGameProfile(lastProfileP); return;
+        }
+        if (ev.target.closest('[data-prof-order-reset]')) { LS.set(PROF_ORDER, PROF_ORDER_DEF.join(',')); renderGameProfile(lastProfileP); }
+      };
+      $('profHead').onchange = (ev) => {
+        const sel = ev.target.closest('[data-prof-slot]'); if (!sel) return;
+        const cur = profOrder(ownProfOrder()), vis = cur.filter((k) => k !== 'deads' || canSpeed);
+        const a = vis[+sel.dataset.profSlot], b = sel.value, ia = cur.indexOf(a), ib = cur.indexOf(b);
+        if (ia < 0 || ib < 0 || a === b) return;
+        cur[ia] = b; cur[ib] = a;
+        LS.set(PROF_ORDER, cur.join(','));
+        renderGameProfile(lastProfileP);
+      };
+    } else { $('profHead').onclick = null; $('profHead').onchange = null; }
 
     // ---- Speedups / AP / Gems (Umschalter oben im Feld, wird pro Gerät gemerkt) ----
     const onlySpeed = false;
@@ -4015,6 +4113,25 @@ window.RokApp = () => {
         $('profAvatars').querySelectorAll('[data-av]').forEach(b => b.onclick = () => { chosen = b.dataset.av === 'custom' ? own : b.dataset.av; drawAv(); });
       };
       drawAv();
+      // Hintergrundbild: sofort speichern (lokal + Rangliste, damit Freunde es sehen)
+      const drawBg = () => { const b = ownProfBg(); $('profBgPrev').style.backgroundImage = b ? `url("${b}")` : ''; $('profBgLbl').textContent = b ? '⬆ Bild ändern' : '⬆ Bild hochladen'; $('profBgDel').classList.toggle('hidden', !b); };
+      const putBg = async (img) => {
+        LS.set(PROF_BG, img || '');
+        drawBg();
+        $('profHead').style.background = img ? `linear-gradient(180deg,rgba(7,9,15,.72),rgba(7,9,15,.9)),url("${img}") center/cover no-repeat` : '';
+        try {
+          const ok = await RokAuth.saveProfBg(img, vipNumbers().after);
+          $('profMsg').textContent = ok ? (img ? '✓ Hintergrundbild gespeichert' : '✓ Hintergrundbild entfernt') : '✓ Lokal gespeichert · für andere erst sichtbar, wenn die Spalte prof_bg in Supabase angelegt ist';
+          $('profMsg').className = 'text-sm ' + (ok ? 'text-emerald-400' : 'text-amber-300');
+        } catch (x) { $('profMsg').textContent = x.message || String(x); $('profMsg').className = 'text-sm text-red-300'; }
+      };
+      $('profBgFile').onchange = async (ev) => {
+        const f = ev.target.files?.[0]; ev.target.value = '';
+        if (!f || !f.type.startsWith('image/')) return;
+        try { await putBg(await shrinkBg(f)); } catch { $('profMsg').textContent = 'Bild konnte nicht gelesen werden.'; $('profMsg').className = 'text-sm text-red-300'; }
+      };
+      $('profBgDel').onclick = () => putBg('');
+      drawBg();
       $('profSave').onclick = () => saveOwnProfile(() => chosen);
     }
 
@@ -4075,7 +4192,7 @@ window.RokApp = () => {
   }
   // Statthalter-Werte von Hand: geänderte Felder → neuer Statthalter-Eintrag (zählt wie ein Scan, inkl. Zuwachs)
   let profGov = null;                                        // angezeigte eigene Statthalter-Werte (Vergleich beim Speichern)
-  const GOV_LABEL = { energy: 'Energie', kill_points: 'Kill-Punkte', highest_merit: 'Höchster Verdienst', deads: 'Deads', ark_wins: 'Ark of Osiris', lk_autarch: 'Lost Kingdom' };
+  const GOV_LABEL = { energy: 'Energie', kill_points: 'Kill-Punkte', highest_merit: 'Höchster Verdienst', deads: 'Deads', ark_wins: 'Ark of Osiris', lk_autarch: 'Lost Kingdom', units_killed: 'Most Units Killed', units_lost: 'Most Units Lost', units_healed: 'Most Units Healed' };
   async function saveManualGov(gid) {
     const cur = {}, next = {}, bad = [];
     let changed = false;
@@ -4213,8 +4330,9 @@ window.RokApp = () => {
         raw = String(data.text || ''); r = parseJson(raw) || {};
       } catch (x) { serverErr = x.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : x.message; }
       const e = { kill_points: govBig(r.kill_points ?? r.killpoints), highest_merit: govBig(r.highest_merit ?? r.highest_acclaim ?? r.highestMerit), energy: govBig(r.energy ?? r.power),
-                  deads: govBig(r.deads ?? r.dead), ark_wins: govBig(r.ark_wins ?? r.ark), lk_autarch: govBig(r.lk_autarch ?? r.autarch) };
-      const GK = ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch'], hasVal = () => GK.some(k => e[k] != null);
+                  deads: govBig(r.deads ?? r.dead), ark_wins: govBig(r.ark_wins ?? r.ark), lk_autarch: govBig(r.lk_autarch ?? r.autarch),
+                  units_killed: govBig(r.units_killed), units_lost: govBig(r.units_lost), units_healed: govBig(r.units_healed) };
+      const GK = ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'units_killed', 'units_lost', 'units_healed'], hasVal = () => GK.some(k => e[k] != null);
       let gid = String(r.governor_id ?? r.governorId ?? r.id ?? '').replace(/\D/g, '').slice(0, 12);
       if (!gid) { const m = raw.match(/ID\s*[:：]?\s*(\d{5,12})/i); if (m) gid = m[1]; }
       let ally = String(r.alliance_name ?? r.allianceName ?? (String(r.alliance ?? '').includes(']') ? String(r.alliance).replace(/^\s*\[[^\]]*\]\s*/, '') : '')).trim().slice(0, 40);
