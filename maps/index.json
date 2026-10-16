@@ -1,1 +1,42 @@
-
+{
+ "version": 1,
+ "maps": [
+  {
+   "id": "lk1",
+   "name": {
+    "de": "Karte A · Ring",
+    "en": "Map A · Ring"
+   },
+   "desc": {
+    "de": "Ring aus Zonen um die Ziggurat, 4 Altar-Höfe, Pässe 4–8",
+    "en": "ring of zones around the ziggurat, 4 altar courts, passes 4–8"
+   },
+   "passes": [
+    4,
+    5,
+    6,
+    7,
+    8
+   ]
+  },
+  {
+   "id": "lk2",
+   "name": {
+    "de": "Karte B · Festung",
+    "en": "Map B · Fortress"
+   },
+   "desc": {
+    "de": "Quadratische Festung in der Mitte, Altar-Höfe, Pässe 4–9",
+    "en": "square fortress in the middle, altar courts, passes 4–9"
+   },
+   "passes": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ]
+  }
+ ]
+}
