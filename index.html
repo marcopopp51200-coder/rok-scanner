@@ -614,10 +614,10 @@ tailwind.config = {
               <input data-gov="highest_merit" inputmode="numeric" autocomplete="off" placeholder="z. B. 20.061.883" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
             <label class="min-w-0"><span class="text-xs text-slate-400">💀 Deads</span>
               <input data-gov="deads" inputmode="numeric" autocomplete="off" placeholder="z. B. 12.500.000" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
-            <label class="min-w-0"><span class="text-xs text-slate-400">🏛️ Ark of Osiris</span>
+            <label class="min-w-0"><span class="text-xs text-slate-400">🏛️ Truhe des Osiris</span>
               <input data-gov="ark_wins" inputmode="numeric" autocomplete="off" placeholder="Siege" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
-            <label class="min-w-0"><span class="text-xs text-slate-400">👑 Lost Kingdom</span>
-              <input data-gov="lk_autarch" inputmode="numeric" autocomplete="off" placeholder="× Autarch" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+            <label class="min-w-0"><span class="text-xs text-slate-400">👑 Verlorenes Königreich</span>
+              <input data-gov="lk_autarch" inputmode="numeric" autocomplete="off" placeholder="× Alleinherrscher" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
             <label class="min-w-0"><span class="text-xs text-slate-400">🗡️ Most Units Killed</span>
               <input data-gov="units_killed" inputmode="numeric" autocomplete="off" placeholder="Einheiten" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
             <label class="min-w-0"><span class="text-xs text-slate-400">🩸 Most Units Lost</span>
@@ -633,6 +633,9 @@ tailwind.config = {
       </div>
       </div>
       </div>
+
+      <!-- KvK-Bilanz (Bild aus dem KvK-Reiter Stats → „Im Profil zeigen“) – zwischen Countdown und Showcase -->
+      <div id="profKvkCard" class="hidden"></div>
 
       <!-- Showcase (aufklappbar): mehrere Showcases mit je bis zu 7 Sets -->
       <div id="profShowcase" class="panel rounded-2xl overflow-hidden">
@@ -1020,7 +1023,7 @@ window.I18N = (() => {
         '+ grün': '+ green', 'Zuwachs seit dem letzten Scan': 'gain since the last scan', 'seit dem letzten Scan': 'since the last scan',
         'KvK-Start in': 'KvK starts in', 'KvK läuft · Tag': 'KvK running · Day', 'KvK-Start festlegen': 'Set KvK start', 'KvK öffnen': 'Open KvK',
         'Statthalter-Werte': 'Governor stats', 'Werden beim Scannen ausgefüllt – falls der Scanner danebenliegt, hier von Hand eintragen.': 'Filled in when you scan – if the scanner gets something wrong, enter it here manually.',
-        'Siege': 'Wins', 'Speedups gesamt': 'Speedups total', 'nur für dich sichtbar': 'only visible to you', 'im Profil bearbeiten eintragen': 'enter it under edit profile',
+        'Siege': 'Wins', 'Truhe des Osiris': 'Ark of Osiris', 'Verlorenes Königreich': 'Lost Kingdom', '× Alleinherrscher': '× Autarch', 'Alleinherrscher': 'Autarch', 'Speedups gesamt': 'Speedups total', 'nur für dich sichtbar': 'only visible to you', 'im Profil bearbeiten eintragen': 'enter it under edit profile',
         '✓ Gespeichert · Statthalter-Werte übernommen': '✓ Saved · governor stats updated', 'Prüfe Werte …': 'Checking values …', 'Abgebrochen – nichts übernommen.': 'Cancelled – nothing saved.',
         'z. B. 85.141.754': 'e.g. 85,141,754', 'z. B. 5.482.675.899': 'e.g. 5,482,675,899', 'z. B. 20.061.883': 'e.g. 20,061,883', 'z. B. 12.500.000': 'e.g. 12,500,000',
         'Keinen – privat': 'None – private', 'Details privat': 'Details private', 'Details öffentlich': 'Details public',
@@ -1666,7 +1669,7 @@ window.RokAuth = (() => {
       return d;
     }
     if (e.type === 'governor') { const nn = (v) => v == null || v === '' || isNaN(+v) ? null : n0(v);
-      return { kill_points: n0(e.kill_points), highest_merit: n0(e.highest_merit), energy: n0(e.energy), deads: nn(e.deads), ark_wins: nn(e.ark_wins), lk_autarch: nn(e.lk_autarch), units_killed: nn(e.units_killed), units_lost: nn(e.units_lost), units_healed: nn(e.units_healed),
+      return { kill_points: n0(e.kill_points), highest_merit: n0(e.highest_merit), energy: n0(e.energy), deads: nn(e.deads), acclaim: nn(e.acclaim), ark_wins: nn(e.ark_wins), lk_autarch: nn(e.lk_autarch), units_killed: nn(e.units_killed), units_lost: nn(e.units_lost), units_healed: nn(e.units_healed),
                ...(e.governor_id ? { governor_id: String(e.governor_id) } : {}), ...(e.src ? { src: String(e.src).slice(0, 10) } : {}) }; }
     if (e.type === 'speedups') return { training: n0(e.training), heal: n0(e.healing), universal: n0(e.universal),
                                         building: n0(e.building), research: n0(e.research), total: n0(e.total) };
@@ -1912,7 +1915,7 @@ window.RokAuth = (() => {
     lbLk = data?.lk_autarch != null ? +data.lk_autarch : null;
     lbUk = data?.units_killed != null ? +data.units_killed : null; lbUl = data?.units_lost != null ? +data.units_lost : null; lbUh = data?.units_healed != null ? +data.units_healed : null;
     ownGains = data?.gains && typeof data.gains === 'object' ? data.gains : {};
-    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', prof_bg: data?.prof_bg || '', prof_order: data?.prof_order || '', kvk_stats: data?.kvk_stats || null, is_private: !!data?.is_private, governor_id: data?.governor_id || '', showcase: data?.showcase || null, kingdom: data?.kingdom || '', alliance_name: data?.alliance_name || '', kvk_start: data?.kvk_start || '', kvk_map: data?.kvk_map || null };
+    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', prof_bg: data?.prof_bg || '', prof_order: data?.prof_order || '', kvk_card: data?.kvk_card || '', kvk_stats: data?.kvk_stats || null, is_private: !!data?.is_private, governor_id: data?.governor_id || '', showcase: data?.showcase || null, kingdom: data?.kingdom || '', alliance_name: data?.alliance_name || '', kvk_start: data?.kvk_start || '', kvk_map: data?.kvk_map || null };
   }
   // Aktuellen VIP-Stand melden. force = neuer Scan (immer aktualisieren), sonst nur bei geänderter Punktzahl.
   // Kill-Punkte aus dem Statthalter-Scan in die Rangliste schreiben (Spalte kill_points)
@@ -2055,6 +2058,20 @@ window.RokAuth = (() => {
     }
     ownMeta = { ...ownMeta, prof_bg: img || '' };
     if (lbLast == null) lbLast = row.vip_points;
+    return true;
+  }
+  // KvK-Bilanz-Bild im Profil in public.leaderboard.kvk_card (JPEG als Data-URL, für andere sichtbar). false = Spalte fehlt noch.
+  async function saveKvkCard(img) {
+    if (!user) return false;
+    const row = { user_id: user.id, username: profile.name.slice(0, 40), kvk_card: img || null };
+    if (lbLast == null) { row.vip_points = 0; row.vip_level = 0; row.updated_at = new Date().toISOString(); }
+    const { error } = await sb.from('leaderboard').upsert(row);
+    if (error) {
+      if (/kvk_card|column|schema/i.test(error.message || '')) { missingCols.add('kvk_card'); return false; }
+      throw new Error(germanError(error));
+    }
+    ownMeta = { ...ownMeta, kvk_card: img || '' };
+    if (lbLast == null) lbLast = 0;
     return true;
   }
   // Reihenfolge der Profil-Kacheln in public.leaderboard.prof_order (Text, mit Komma). false = Spalte fehlt noch.
@@ -2274,7 +2291,7 @@ window.RokAuth = (() => {
   }
 
   return { pending: () => hasPending, hasFeature, isAdmin, saveKvkStart, saveKvkMap, saveKvkStats, kvkPeers, kvkUsers, kvkFindId, kvkGroups, kvkGroupCreate, kvkGroupPublic, kvkGroupInvite, kvkGroupJoin, kvkGroupLeave, kvkGroupDelete, refreshInvites, invites: () => inviteN, myId: () => user?.id || null, ownGains: () => ownGains, loadGearItems, saveShowcase, uploadImage, imgBase: () => IMG_BASE, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
-           pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, saveProfBg, saveProfOrder, loadProfile, setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
+           pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, saveProfBg, saveProfOrder, saveKvkCard, loadProfile, setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
 })();
 </script>
 
@@ -2914,7 +2931,7 @@ window.RokApp = () => {
   // Altdaten-Schutz: nur bekannte Zahlenfelder übernehmen
   const sanitize = (e) => {
     const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups', 'ap', 'governor', 'materials'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
-    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'materials' ? [...ALL_MAT_KEYS, 'total_leg'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'units_killed', 'units_lost', 'units_healed', 'governor_id']
+    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'materials' ? [...ALL_MAT_KEYS, 'total_leg'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'acclaim', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'units_killed', 'units_lost', 'units_healed', 'governor_id']
       : out.type === 'speedups' ? ['universal', 'building', 'research', 'training', 'healing', 'total']
       : ['food', 'wood', 'stone', 'gold', 'total', 'farmFood', 'farmWood', 'farmStone', 'farmGold', 'bagFood', 'bagWood', 'bagStone', 'bagGold'];
     keys.forEach(k => out[k] = (e[k] === null || e[k] === undefined || isNaN(+e[k])) ? null : +e[k]);
@@ -3928,6 +3945,25 @@ window.RokApp = () => {
       }
     } catch (e) { console.warn('KvK-Countdown nicht verfügbar', e); hide(); }
   }
+  // KvK-Bilanz-Bild (eigenes aus ownMeta, fremdes aus leaderboard.kvk_card) zwischen Countdown und Showcase
+  let profCardCtx = null;
+  function mountProfCard(own, row) {
+    profCardCtx = { own, row };
+    const el = $('profKvkCard'); if (!el) return;
+    const img = safeSkin(own ? RokAuth.ownMeta().kvk_card : row?.kvk_card);
+    if (!img) { el.classList.add('hidden'); el.innerHTML = ''; return; }
+    el.className = 'panel rounded-2xl p-4 sm:p-5';
+    el.innerHTML = `<div class="flex items-center justify-between gap-3 mb-3">
+        <h3 class="font-display text-lg gold-text">🏁 KvK-Bilanz</h3>
+        <div class="flex gap-2">
+          <a href="${img}" download="kvk-bilanz.jpg" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⬇ Download</a>
+          ${own ? '<button type="button" data-card-edit class="text-xs px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:bg-gold-500/10">✎ Bearbeiten</button>' : ''}
+        </div></div>
+      <img src="${img}" alt="KvK-Bilanz" class="w-full rounded-xl border border-gold-500/30 shadow-2xl">`;
+    const ed = el.querySelector('[data-card-edit]');
+    if (ed) ed.onclick = () => { const s = window.KvKCalc.getState(); s.tab = 'end'; s.open.endImg = true; window.KvKCalc.setState(s); view = 'kvk'; applyView(); window.KvKCalc.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  }
+  window.addEventListener('kvk:card', () => { if (profCardCtx && profCardCtx.own) mountProfCard(true, profCardCtx.row); });
   // KvK-Karte unter dem Countdown: eigene aus dem KvK-Bereich, fremde aus dem Profil (leaderboard.kvk_map)
   function mountProfMap(own, row) {
     const el = $('profKvkMap');
@@ -4026,6 +4062,7 @@ window.RokApp = () => {
       renderGameProfile({ own, row, entries, place, players: sorted.length, scansError: p.scansError, isPrivate: own ? !!RokAuth.ownMeta().is_private : !!p.isPrivate });
       $('profState').classList.add('hidden'); $('profBody').classList.remove('hidden');
       mountProfKvk(own, row);
+      mountProfCard(own, row);
       if (own) RokAuth.refreshInvites().catch(() => {}); else $('profInvNote').style.display = 'none';
     } catch (e) {
       $('profState').textContent = 'Profil konnte nicht geladen werden: ' + (e.message || e);
@@ -4081,8 +4118,8 @@ window.RokApp = () => {
     // Werte-Kacheln (gleicher Stil für alle, auch Deads) · Reihenfolge frei wählbar (Felder 1 … n)
     const TILE_DEF = {
       kill_points: ['⚔️', 'Kill-Punkte', '', 'bg-red-400/80'], highest_merit: ['🏅', 'Höchster Verdienst', '', 'bg-amber-400/80'], energy: ['⚡', 'Energie', '', 'bg-yellow-300/80'],
-      ark_wins: ['🏛️', 'Ark of Osiris', 'Siege', 'bg-sky-400/80'], units_killed: ['🗡️', 'Most Units Killed', '', 'bg-rose-400/80'], units_healed: ['💚', 'Most Units Healed', '', 'bg-emerald-400/80'],
-      units_lost: ['🩸', 'Most Units Lost', '', 'bg-slate-400/80'], lk_autarch: ['👑', 'Lost Kingdom', '× Autarch', 'bg-gold-400/90'], deads: ['💀', 'Deads', '', 'bg-red-600/80'] };
+      ark_wins: ['🏛️', 'Truhe des Osiris', 'Siege', 'bg-sky-400/80'], units_killed: ['🗡️', 'Most Units Killed', '', 'bg-rose-400/80'], units_healed: ['💚', 'Most Units Healed', '', 'bg-emerald-400/80'],
+      units_lost: ['🩸', 'Most Units Lost', '', 'bg-slate-400/80'], lk_autarch: ['👑', 'Verlorenes Königreich', '× Alleinherrscher', 'bg-gold-400/90'], deads: ['💀', 'Deads', '', 'bg-red-600/80'] };
     const order = profOrder(own ? ownProfOrder() : row.prof_order).filter((k) => k !== 'deads' || canSpeed);   // Deads nur für dich
     const editT = own && profTileEdit;
     const statTile = (k, idx) => { const [ic, label, unit, acc] = TILE_DEF[k], v = gov && gov[k] != null ? gov[k] : null; return `
@@ -4306,7 +4343,7 @@ window.RokApp = () => {
   }
   // Statthalter-Werte von Hand: geänderte Felder → neuer Statthalter-Eintrag (zählt wie ein Scan, inkl. Zuwachs)
   let profGov = null;                                        // angezeigte eigene Statthalter-Werte (Vergleich beim Speichern)
-  const GOV_LABEL = { energy: 'Energie', kill_points: 'Kill-Punkte', highest_merit: 'Höchster Verdienst', deads: 'Deads', ark_wins: 'Ark of Osiris', lk_autarch: 'Lost Kingdom', units_killed: 'Most Units Killed', units_lost: 'Most Units Lost', units_healed: 'Most Units Healed' };
+  const GOV_LABEL = { energy: 'Energie', kill_points: 'Kill-Punkte', highest_merit: 'Höchster Verdienst', deads: 'Deads', ark_wins: 'Truhe des Osiris', lk_autarch: 'Verlorenes Königreich', units_killed: 'Most Units Killed', units_lost: 'Most Units Lost', units_healed: 'Most Units Healed' };
   async function saveManualGov(gid) {
     const cur = {}, next = {}, bad = [];
     let changed = false;
@@ -4367,7 +4404,7 @@ window.RokApp = () => {
     // Abzeichen: „9 Wins“ / „9 Siege“ · „4x Autarch“
     const win = W.find(w => /^(Wins?|Siege?|Victor(y|ies))$/i.test(w.t));
     if (win) { const n = leftOf(win, /^[0-9OoDQ]{1,4}$/); if (n) out.ark_wins = digit(n.t); }
-    const aut = W.find(w => /Autar/i.test(w.t));
+    const aut = W.find(w => /Autar|Alleinherr/i.test(w.t));
     if (aut) {
       const inl = aut.t.match(/^([0-9OoDQ]{1,4})\s*[x×X]/);
       const n = inl ? null : leftOf(aut, /^[0-9OoDQ]{1,4}\s*[x×X]?$/);
@@ -4390,11 +4427,14 @@ window.RokApp = () => {
       const below = rows.filter(r => r[0].cy > kp.cy + kp.h * 0.7).flat();
       const hm = below.filter(n => Math.abs(n.cx - pw.cx) < Math.abs(n.cx - kp.cx)).sort((a, b) => a.cy - b.cy)[0];
       if (hm && hm.v > 0) out.highest_merit = hm.v;
+      const ac = below.filter(n => Math.abs(n.cx - kp.cx) <= Math.abs(n.cx - pw.cx)).sort((a, b) => a.cy - b.cy)[0];
+      if (ac) out.acclaim = ac.v;                                   // aktueller Verdienst (oft 0)
     } else {                                                      // eigenes Profil: untereinander
       const col = rows.map(r => r[r.length - 1]).filter(n => n.v > 0);
       if (col[0]) out.energy = col[0].v;
       if (col[1]) out.kill_points = col[1].v;
       if (col.length >= 3) out.highest_merit = col[col.length - 1].v;
+      if (col.length >= 4) out.acclaim = col[2].v; else if (col.length === 3) out.acclaim = 0;   // Verdienst steht zwischen Kill-Punkten und Höchstem Verdienst
     }
     return out;
   }
@@ -4445,8 +4485,8 @@ window.RokApp = () => {
       } catch (x) { serverErr = x.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : x.message; }
       const e = { kill_points: govBig(r.kill_points ?? r.killpoints), highest_merit: govBig(r.highest_merit ?? r.highest_acclaim ?? r.highestMerit), energy: govBig(r.energy ?? r.power),
                   deads: govBig(r.deads ?? r.dead), ark_wins: govBig(r.ark_wins ?? r.ark), lk_autarch: govBig(r.lk_autarch ?? r.autarch),
-                  units_killed: govBig(r.units_killed), units_lost: govBig(r.units_lost), units_healed: govBig(r.units_healed) };
-      const GK = ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'units_killed', 'units_lost', 'units_healed'], hasVal = () => GK.some(k => e[k] != null);
+                  units_killed: govBig(r.units_killed), units_lost: govBig(r.units_lost), units_healed: govBig(r.units_healed), acclaim: govBig(r.acclaim ?? r.current_acclaim) };
+      const GK = ['kill_points', 'highest_merit', 'acclaim', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'units_killed', 'units_lost', 'units_healed'], hasVal = () => GK.some(k => e[k] != null);
       let gid = String(r.governor_id ?? r.governorId ?? r.id ?? '').replace(/\D/g, '').slice(0, 12);
       if (!gid) { const m = raw.match(/ID\s*[:：]?\s*(\d{5,12})/i); if (m) gid = m[1]; }
       let ally = String(r.alliance_name ?? r.allianceName ?? (String(r.alliance ?? '').includes(']') ? String(r.alliance).replace(/^\s*\[[^\]]*\]\s*/, '') : '')).trim().slice(0, 40);
