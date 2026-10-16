@@ -158,6 +158,9 @@ Ordne jeden Wert seiner Beschriftung zu (Ansicht A: gleiche Zeile rechts, Ansich
 - "deads"         = Tote / Dead (nur wenn sichtbar, sonst null)
 - "ark_wins"      = Zahl vor "Wins"/"Siege" beim Abzeichen Ark of Osiris / Arche des Osiris
 - "lk_autarch"    = Zahl vor "x Autarch" beim Abzeichen Lost Kingdom / Verlorenes Königreich ("0x Autarch" = 0)
+- "units_killed"  = "Most Units Killed" / "Meiste getötete Einheiten" (nur wenn sichtbar, sonst null)
+- "units_lost"    = "Most Units Lost" / "Meiste verlorene Einheiten" (nur wenn sichtbar, sonst null)
+- "units_healed"  = "Most Units Healed" / "Meiste geheilte Einheiten" (nur wenn sichtbar, sonst null)
 Punkt oder Komma sind Tausendertrennzeichen: "5.482.675.899" und "5,482,675,899" = 5482675899. Abkürzungen umrechnen ("84.9M" = 84900000).
 Lies jede Ziffer einzeln und genau ab – lieber null als geraten. Fehlt ein Wert oder ist er nicht lesbar, nutze null.
 
@@ -175,6 +178,9 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
   "deads": number|null,
   "ark_wins": number|null,
   "lk_autarch": number|null,
+  "units_killed": number|null,
+  "units_lost": number|null,
+  "units_healed": number|null,
   "confidence": "hoch" | "mittel" | "niedrig",
   "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
 }`;
