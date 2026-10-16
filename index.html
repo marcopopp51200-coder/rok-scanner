@@ -529,6 +529,8 @@ tailwind.config = {
 
       <!-- KvK-Countdown (gleiche Uhr wie im KvK-Bereich) -->
       <div id="profKvkTimer"></div>
+      <!-- KvK-Karte (4 Camps) – unter dem Countdown, für Besucher sichtbar -->
+      <div id="profKvkMap" class="hidden"></div>
 
       <!-- Bearbeiten (nur eigenes Profil) – öffnet sich als Fenster über „✎ Dein Profil“ -->
       <div id="profEditModal" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-ink-950/85 backdrop-blur-sm p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="profEditTitle">
@@ -1888,7 +1890,7 @@ window.RokAuth = (() => {
     lbArk = data?.ark_wins != null ? +data.ark_wins : null;
     lbLk = data?.lk_autarch != null ? +data.lk_autarch : null;
     ownGains = data?.gains && typeof data.gains === 'object' ? data.gains : {};
-    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', is_private: !!data?.is_private, governor_id: data?.governor_id || '', showcase: data?.showcase || null, kingdom: data?.kingdom || '', alliance_name: data?.alliance_name || '', kvk_start: data?.kvk_start || '' };
+    ownMeta = { alliance_tag: data?.alliance_tag || '', avatar: data?.avatar || '', city_skin: data?.city_skin || '', is_private: !!data?.is_private, governor_id: data?.governor_id || '', showcase: data?.showcase || null, kingdom: data?.kingdom || '', alliance_name: data?.alliance_name || '', kvk_start: data?.kvk_start || '', kvk_map: data?.kvk_map || null };
   }
   // Aktuellen VIP-Stand melden. force = neuer Scan (immer aktualisieren), sonst nur bei geänderter Punktzahl.
   // Kill-Punkte aus dem Statthalter-Scan in die Rangliste schreiben (Spalte kill_points)
@@ -2101,6 +2103,22 @@ window.RokAuth = (() => {
     return true;
   }
 
+  // KvK-Karte im Profil (Spalte leaderboard.kvk_map, jsonb { kds: [[…]×4], my, ally }) – für andere im Profil sichtbar
+  async function saveKvkMap(m) {
+    if (!user || missingCols.has('kvk_map')) return false;
+    const has = m && Array.isArray(m.kds) && (m.kds.some(k => k && k.length) || m.my > 0);
+    const val = has ? { kds: m.kds.map(k => (k || []).slice(0, 60)), my: +m.my || 0, ally: +m.ally || 0, style: /^[a-z]{1,12}$/.test(m.style || '') ? m.style : 'battle', layout: /^(schema|lk1|lk2)$/.test(m.layout || '') ? m.layout : 'schema', layout: /^(schema|lk1|lk2)$/.test(m.layout || '') ? m.layout : 'schema',
+      ev: Array.isArray(m.ev) ? m.ev.slice(0, 40) : [], days: +m.days || 60 } : null;                      // ev: Ruinen/Altäre für Timer + Karte bei Besuchern
+    if (JSON.stringify(val) === JSON.stringify(ownMeta.kvk_map || null)) return true;
+    const row = { user_id: user.id, username: profile.name.slice(0, 40), kvk_map: val };
+    if (lbLast == null) { row.vip_points = 0; row.vip_level = 0; row.updated_at = new Date().toISOString(); }
+    const { error } = await sb.from('leaderboard').upsert(row);
+    if (error) { console.warn('KvK-Karte nicht im Profil gespeichert (Spalte kvk_map in Supabase anlegen)', error); if (/kvk_map|column|schema/i.test(error.message || '')) missingCols.add('kvk_map'); return false; }
+    ownMeta = { ...ownMeta, kvk_map: val };
+    if (lbLast == null) lbLast = 0;
+    return true;
+  }
+
   // Admin (Tabelle feature_access, feature = 'admin') – einmal pro Sitzung abfragen
   let adminP = null;
   const isAdmin = () => adminP || (adminP = hasFeature('admin'));
@@ -2115,7 +2133,7 @@ window.RokAuth = (() => {
     return r.data || [];
   }
 
-  return { pending: () => hasPending, hasFeature, isAdmin, saveKvkStart, ownGains: () => ownGains, loadGearItems, saveShowcase, uploadImage, imgBase: () => IMG_BASE, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
+  return { pending: () => hasPending, hasFeature, isAdmin, saveKvkStart, saveKvkMap, ownGains: () => ownGains, loadGearItems, saveShowcase, uploadImage, imgBase: () => IMG_BASE, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
            pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, loadProfile, setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
 })();
 </script>
@@ -3731,24 +3749,46 @@ window.RokApp = () => {
   // Jeder Spieler trägt sein Datum selbst ein (KvK-Bereich) → steht in seinem Profil, auch für Besucher sichtbar
   const kvkDate = (d) => /^\d{4}-\d{2}-\d{2}$/.test(String(d || '').slice(0, 10)) ? String(d).slice(0, 10) : '';
   function mountProfKvk(own, row) {
-    const el = $('profKvkTimer'), hide = () => { el.classList.add('hidden'); el.innerHTML = ''; };
+    const el = $('profKvkTimer'), hide = () => { el.classList.add('hidden'); el.innerHTML = ''; mountProfMap(own, row); };   // ohne Timer: Karte direkt zeigen
+    const mapEl = $('profKvkMap'); if (mapEl) { mapEl.classList.add('hidden'); mapEl.innerHTML = ''; }                       // mit Timer: Karte über „Karte zeigen“
+    const editMap = () => { const s = window.KvKCalc.getState(); s.tab = 'map'; s.open.mapCamps = true; window.KvKCalc.setState(s); view = 'kvk'; applyView(); window.KvKCalc.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
     if (!window.KvKCalc?.mountTimer) return hide();
     try {
       if (own) {
         const d = kvkDate(window.KvKCalc.getState?.()?.startDate);
         if (d !== kvkDate(RokAuth.ownMeta().kvk_start)) RokAuth.saveKvkStart(d);      // bisheriges Datum ins Profil übernehmen
         el.classList.remove('hidden');
-        window.KvKCalc.mountTimer(el, { onOpen: () => { view = 'kvk'; applyView(); window.KvKCalc?.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
+        RokAuth.saveKvkMap(window.KvKCalc.mapData());                                   // Karte fürs Profil aktuell halten
+        window.KvKCalc.mountTimer(el, { onOpen: () => { view = 'kvk'; applyView(); window.KvKCalc?.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }, map: null, onMapEdit: editMap });
       } else {
         const d = kvkDate(row?.kvk_start);
         if (!d) return hide();                                                         // Spieler hat (noch) kein Datum eingetragen
         el.classList.remove('hidden');
-        window.KvKCalc.mountTimer(el, { startDate: d });
+        window.KvKCalc.mountTimer(el, { startDate: d, events: row?.kvk_map?.ev || [], days: row?.kvk_map?.days, map: row?.kvk_map || {}, kingdom: row?.kingdom || '' });
       }
     } catch (e) { console.warn('KvK-Countdown nicht verfügbar', e); hide(); }
   }
+  // KvK-Karte unter dem Countdown: eigene aus dem KvK-Bereich, fremde aus dem Profil (leaderboard.kvk_map)
+  function mountProfMap(own, row) {
+    const el = $('profKvkMap');
+    if (!el) return;
+    let shown = false;
+    try {
+      if (!window.KvKCalc?.mountMap) shown = false;
+      else if (own) {
+        RokAuth.saveKvkMap(window.KvKCalc.mapData());                                   // bisherige Karte ins Profil übernehmen
+        shown = window.KvKCalc.mountMap(el, null, { onOpen: () => { const s = window.KvKCalc.getState(); s.tab = 'map'; s.open.mapCamps = true; window.KvKCalc.setState(s); view = 'kvk'; applyView(); window.KvKCalc.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
+      } else shown = window.KvKCalc.mountMap(el, row?.kvk_map || {}, { kingdom: row?.kingdom || '', startDate: kvkDate(row?.kvk_start) });
+    } catch (e) { console.warn('KvK-Karte nicht verfügbar', e); shown = false; }
+    el.classList.toggle('hidden', !shown);
+    if (!shown) el.innerHTML = '';
+  }
   // Datum im KvK-Bereich geändert → im Profil speichern
-  window.addEventListener('kvkcalc:change', (ev) => { const d = kvkDate(ev.detail?.startDate); if (d !== kvkDate(RokAuth.ownMeta().kvk_start)) RokAuth.saveKvkStart(d); });
+  let kvkMapT = null;
+  window.addEventListener('kvkcalc:change', (ev) => {
+    const d = kvkDate(ev.detail?.startDate); if (d !== kvkDate(RokAuth.ownMeta().kvk_start)) RokAuth.saveKvkStart(d);
+    clearTimeout(kvkMapT); kvkMapT = setTimeout(() => { if (window.KvKCalc?.mapData) RokAuth.saveKvkMap(window.KvKCalc.mapData()); }, 1500);   // Karte gesammelt speichern (Tippen)
+  });
 
   function openProfile(uid) {
     if (!uid) return;

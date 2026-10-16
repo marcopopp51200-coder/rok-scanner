@@ -282,12 +282,88 @@
       max: 'Max', chestsMax: 'max. 38', buildTitle: 'Bauzeit Kristallgebäude', buildSpeed: 'Bau-Tempo (%)', buildSpeedHint: 'deine Bau-Geschwindigkeit, z. B. 98',
       helps: 'Allianz-Hilfen je Stufe', helpsHint: 'max. 30 · je Hilfe 1 % der Bauzeit, mind. 1 Min', helpsShort: 'Hilfen',
       buildNeed: 'Benötigt gesamt', buildHave: 'Bau-Speedups', buildLeft: 'Übrig', buildMissing: 'Fehlt', withUni: 'mit Universal', rmStartBuys: 'Start-Käufe', packs: 'Pakete',
-      openKvk: 'KvK öffnen', countdown: 'KvK Countdown', edit: 'Bearbeiten', bgLabel: 'Hintergrundbild', bgPick: 'Bild wählen', bgReset: 'Standard',
+      phasePre: 'Noch vor der Registrierung', phaseNow: 'Aktuelle Phase', phaseNext: 'nächste ab', phaseFrom: 'ab', phaseNames: { reg: 'Registrierung', team: 'Team-up', match: 'Matchmaking', ann: 'Bekanntgabe', begin: 'Lost Kingdom beginnt' },
+      lockOn: 'Startwerte fixiert', lockSince: 'seit KvK-Start', lockInfo: 'neue Scans ändern sie nicht mehr', lockEdit: 'Startwerte bearbeiten',
+      lockMode: 'Bearbeitungsmodus', lockModeInfo: 'Änderungen werden sofort gespeichert · Scan nimmt nur Daten von vor dem KvK-Start', lockDone: 'Fertig', lockUndo: 'Verwerfen',
+      lockTip: 'Fixiert seit KvK-Start – zum Ändern „Startwerte bearbeiten“', noPreScan: 'Kein Scan von vor dem KvK-Start vorhanden',
+      showMap: 'Karte zeigen', openKvk: 'KvK öffnen', countdown: 'KvK Countdown', edit: 'Bearbeiten', bgLabel: 'Hintergrundbild', bgPick: 'Bild wählen', bgReset: 'Standard',
       bgBusy: 'Bild wird verarbeitet …', bgDone: 'Hintergrund gespeichert', bgTooBig: 'Bild ist zu groß für den Browser-Speicher', bgFail: 'Bild konnte nicht gelesen werden', calTitle: 'KvK-Kalender', done: 'Fertig', startShort: 'Start',
-      tabs: { start: 'Start', mid: 'Mid', end: 'End' },
+      tabs: { start: 'Start', mid: 'Mid', end: 'End', map: 'Karte' },
+      mp: { whichKvk: 'Welches KvK?', whichHint: 'Bestimmt, welche Karte im Reiter Karte und in deinem Profil erscheint', layouts: { schema: ['Schema', 'vereinfachte Zonen-Übersicht (Testanordnung)'] }, mapsLoading: 'Karten werden geladen …', mapLoading: 'Karte wird geladen …', mapFail: 'Karte konnte nicht geladen werden – Schema wird gezeigt', title: 'Karte & Zeiten', hint: 'Camps, Pässe, Ruinen und Altäre – mit Timer bis zum nächsten Ereignis', next: 'Nächstes Ereignis', none: 'Keine kommenden Ereignisse im KvK', noTime: 'Für diesen Pass ist noch keine Zeit hinterlegt', fightOn: 'Kampf läuft noch', fightSince: 'seit', fightLen: 'Kampfdauer {h} Std', nextOne: 'danach', altarNext: 'Nächster Altar', passNext: 'Öffnet', fightNow: 'Kampf', nextShort: 'Nächstes', needStart: 'Trag oben über ✎ das KvK-Startdatum ein – dann erscheinen alle Zeiten und der Timer.', upcoming: 'Als Nächstes', passes: 'Pässe', rules: 'Ruinen & Altäre', kinds: { pass: 'Pass', ruin: 'Ruine', altar: 'Altar', other: 'Sonstiges' }, passOpen: 'Pass {n} öffnet', campsFold: 'Camps bearbeiten', campsHint: 'Bis zu 10 Königreiche je Camp, eigenes und verbündetes Camp', designHint: '{n} Designs zur Auswahl – gilt auch für die Karte im Profil', timesFold: 'Zeiten bearbeiten', timesHint: 'Ruinen, Altäre und eigene Ereignisse – Datum oder KvK-Tag, Uhrzeit UTC, Abstand in Stunden', day: 'KvK-Tag', time: 'Uhrzeit (UTC)', date: 'Datum (UTC)', rep: 'alle … Std', repHint: '0 = einmal · 24 = täglich · Ruinen alle 40 Std · Altar alle 86 Std · Datum gesetzt → KvK-Tag wird ignoriert', once: 'einmal', daily: 'täglich', every: 'alle {n}', everyH: 'Std', add: 'hinzufügen', name: 'Name (optional)', past: 'vorbei', dayN: 'Tag', noRules: 'Noch keine Ruinen- oder Altarzeiten eingetragen', soon: 'Die echten Ruinen- und Altarzeiten kommen noch – bis dahin kannst du sie unten selbst eintragen.', allDone: 'alle vorbei', del: 'Entfernen' },
       calc: 'Berechnung', calcHint: 'Kisten, Bundles, Kosten Mine & Kristall-Tech-Gebäude', costMine: 'Kristallmine – Ziel-Stufe', costTech: 'Kristall-Tech-Gebäude – Ziel-Stufe', lv: 'Stufe', costTotal: 'Kristall-Kosten gesamt', left: 'Übrig', resOnly: 'nur Rohstoffe',
       income: 'Ertrag pro Tag', avail: 'Verfügbar', need: 'Benötigt', diff: 'Differenz', chestsNeed: 'Kisten nötig', chestsUnit: 'Kisten',
       enough: 'Reicht', missingTxt: 'Fehlen', availTotal: 'Verfügbar gesamt', inclSupply: 'inkl. Premium Supply', mineTech: 'Mine + Tech', bundlesFold: 'Bundles', bundlesHint: 'Echtgeld-Angebote, Statistik & Budget-Planer',
+      m: {
+        e: {
+          title: 'KvK Ende', hint: 'Deine Bilanz und ein Bild für dein Profil',
+          sum: 'KvK-Bilanz', sumHint: 'KvK-Start gegen KvK-Ende – Gewinn, Verlust und Trade',
+          img: 'Bild für dein Profil', imgHint: 'Vorgefertigtes Bild zum Herunterladen und im Profil zeigen',
+          result: 'Ergebnis', win: 'Gewonnen', lose: 'Verloren', open: 'Offen',
+          start: 'KvK-Start', end: 'KvK-Ende', change: 'Veränderung', endScan: 'Ende aus Scan', endScanHint: 'Statthalter-Profil, Speedups, Ressourcen und AP aus deinen letzten Scans',
+          fight: 'Kampf im KvK', kills: 'Kills (getötete Einheiten)', heal: 'Geheilt (Einheiten)', deadsKvk: 'Deads im KvK', deadsHint: 'von Hand eingetragen, sonst Deads Ende − Start', autarch: 'Autarch bekommen',
+          trade: 'Trade', tradeHint: 'Kills ÷ (Deads + Geheilt)', apTotal: 'AP gesamt',
+          ik: { kp: 'Kill-Punkte', power: 'Macht', acclaim: 'Verdienst', kdh: 'Kampf', speed: 'Speedups', res: 'Ressourcen', ap: 'AP', autarch: 'Autarch', trade: 'Trade' },
+          imgMiss: 'nicht eingetragen', imgKills: 'Kills', imgDeads: 'Deads', imgHealed: 'Geheilt', imgDay: 'T', imgNo: 'Nein',
+          k: { kp: 'Kill-Punkte gewonnen', power: 'Macht-Veränderung', acclaim: 'Verdienst gewonnen', kdh: 'Kills / Deads / Geheilt', speed: 'Speedups verbraucht',
+               res: 'Ressourcen verbraucht', ap: 'AP verbraucht / dazu', autarch: 'Autarch bekommen', trade: 'Trade %', result: 'Gewonnen / Verloren' },
+          imgSoon: 'Hier entsteht dein KvK-Bild', imgSoonSub: 'Vorschau, Download und „Im Profil zeigen“ kommen als Nächstes',
+          imgData: 'Im Bild zeigen', download: 'Bild herunterladen', toProfile: 'Im Profil zeigen', soonBadge: 'bald',
+          used: 'verbraucht', gained: 'dazu', lost: 'weniger', none: '–',
+          optAvatar: 'Profilbild', optKingdom: 'Königreich & Allianz', imgOpts: 'Profil im Bild', imgTitle: 'KvK-Bilanz', imgWin: 'Sieg', imgLose: 'Niederlage', imgPreview: 'Vorschau',
+          bgTitle: 'Hintergrund', bgUpload: 'Eigenes Bild hochladen', bgDel: 'Eigenes Bild entfernen', bg: { timer: 'Countdown', gold: 'Gold', blood: 'Blut', night: 'Nacht', frost: 'Frost', own: 'Eigenes' }
+        },
+        mapFold: 'Karte', mapHint: '4 Camps und ihre Königreiche', camp: 'Camp', campName: 'Name', campKds: 'Königreiche (mit Komma getrennt)',
+        myCamp: 'Mein Camp', ally: 'Verbündet', mapDesign: 'Design der Karte', zoneN: 'Zone {n}', altar: 'Altar', mapLegendLk: '🏯 Pass mit Stufe (4–9) · ⛩️ Altar · Zahl im Kreis = Schrein/Tempel/Sanktum-Stufe · kleine Burgen = Forts · Tore und Altäre antippen für Zeiten', mapLegend: 'P4 → Zone 4 · P5 → Zone 5 · P6 = Altar (Camp → Zone 5) · P7 = Zone 5 ↔ Zone 5 · P8 → Ziggurat (Zone 6) · Testanordnung', mapStyles: { battle: 'Schlachtfeld', parchment: 'Pergament', night: 'Nacht', flat: 'Klar', holo: 'Taktik', frost: 'Frost', lava: 'Glut', royal: 'Royal', pixel: 'Pixel', sand: 'Wüste', ingame: 'Spielkarte', blueprint: 'Blaupause', marble: 'Marmor', jungle: 'Dschungel' }, mapTitle: 'KvK-Karte', center: 'Ziggurat', mapEmpty: 'noch keine Königreiche', campNames: ['Feuer', 'Erde', 'Wasser', 'Wind'], kdShort: 'KD',
+        title: 'KvK Mitte', hint: 'Kristall-Verlauf, Ziele, Barbaren & Zwischenstand',
+        flow: 'Kristall-Verlauf', flowHint: 'Was du wann erwirtschaftest – über die ganze KvK-Dauer',
+        goal: 'Roadmap: Ziele je Pass', goalHint: 'Pass 4–8 anklicken, Technologien eintragen – was fehlt und wie viele Barbaren/Forts dafür',
+        apFold: 'AP & Barbaren', apFoldHint: 'Wie viele Barbaren und Forts deine AP schaffen',
+        statsFold: 'Zwischenstand', statsFoldHint: 'Kill-Punkte, Macht, Verdienst, Deads und verbrauchte Speedups seit KvK-Start',
+        base: 'Grundlagen', days: 'KvK-Dauer (Tage)', psup: 'Premium Supply: 60.000 💎 pro Tag (50 Tage) · +50 % Mine',
+        psupAuto: 'automatisch an, wenn im Start-Tab gekauft', mineBoost: 'Zusätzlicher Minen-Boost (%)',
+        mineInfo: 'Kristallmine Stufe', perHour: 'pro Std.', research: 'Kristallforschung',
+        rsBarb: 'Barbarian Bounties – Barbaren & Forts', rsBastion: 'Cultural Exchange – Bastion-Quests', rsKaruak: 'Karaku Reports – Kau Karuak',
+        bastion: 'Bastion & weitere Quellen', bastionPerDay: 'Bastion-Quests pro Tag', bastionCr: 'Kristalle pro Quest (1.500–22.500)',
+        maudara: 'Maudara: Kristalle pro Tag', other: 'Sonstiges: Kristalle pro Tag',
+        kk: 'Trial of Kau Karuak', kkLv: 'bis Stufe', kkDay: 'an Tag', kkDiff: { easy: 'Easy', normal: 'Normal', hard: 'Hard' }, kkWhen: { easy: 'Kristalle vor Pass 4 (bis Tag 7)', normal: 'zwischen Pass 4 und 5 (Tag 8–14)', hard: 'zwischen Pass 7 und 8 (Tag 25–28) · Nightmare gibt Season Coins, nach Pass 9' },
+        kkBoost: 'Karuak-Boost (Kristalle pro Std.)', kkBoostDay: 'Boost ab Tag',
+        roadTitle: 'Roadmap', roadHint: 'Was an welcher Station passiert – auf einen Pass tippen, um seine Ziele zu bearbeiten',
+        rStart: 'Start-Bestand', rStand: 'Stand', rElite: 'Elite-Ertrag', rBoost: 'Karuak-Boost', rFrom: 'ab Tag', rUpTo: 'bis Stufe', rGoals: 'Ziele',
+        kkHint: 'Elite-Stufen 5 · 10 · 15 bringen je +500 💎 pro Std.', barbsFrom: 'Barbaren & Forts kommen aus „AP & Barbaren“.',
+        src: { start: 'Start (übrig)', mine: 'Kristallmine', supply: 'Premium Supply', bundles: 'Mountain Warfare & Conquer\'s Will', barbs: 'Barbaren, Forts & Kahar', bastion: 'Bastion-Quests', karuak: 'Kau Karuak', maudara: 'Maudara', other: 'Sonstiges' },
+        startLeft: 'Start (übrig)', startHint: 'Verfügbar laut Start-Tab minus Mine & Forschungszentrum (Premium Supply, Mountain Warfare und Conquer\'s Will kommen erst an ihrem Tag)',
+        earned: 'Einnahmen gesamt', perDayAvg: 'Ø pro Tag', endBal: 'Stand am Ende', balance: 'Kontostand',
+        day: 'Tag', today: 'heute', milestones: 'Meilensteine', mEnd: 'KvK-Ende', chartTitle: 'Kristalle über die KvK-Dauer (gestapelt nach Quelle)',
+        tableView: 'Tabelle', noData: 'Noch keine Einnahmen – trag oben Quellen ein.', goalLine: 'Ziel',
+        goalsTitle: 'Ziele in Reihenfolge', goalAdd: '+ Ziel-Technologie', goalName: 'z. B. Treaties III', goalCost: 'Kristalle',
+        goalNone: 'Noch keine Ziele – füge eine Technologie mit ihren Kristallkosten hinzu.', reached: 'erreicht', reachedDay: 'erreicht an Tag',
+        simple: 'Vereinfacht', simpleHint: 'Nur eine Zahl: wie viele Kristalle du bis zu diesem Pass haben willst',
+        simpleCr: 'Ziel-Kristalle bis Pass', simpleKahar: 'Kahar bis dahin (je 45.000)', simplePassive: 'Passiv bis dahin',
+        simplePassiveHint: 'Start, Mine, Supply, Bundles, Bastion, Kau Karuak, Maudara, Sonstiges – ohne Barbaren',
+        simpleKaharOut: 'Kahar', simpleRest: 'Rest über Barbaren', simpleOk: 'Schaffst du schon passiv', simpleApBy: 'AP bis dahin', simpleApShort: 'AP reichen nicht',
+        adjTitle: 'Ist-Abgleich', adjHint: 'Bastion-Quests und Allianz-Chains schwanken – trag deinen echten Stand ein, ab dann rechnet alles damit weiter',
+        adjSpent: 'Bisher ausgegeben', adjCur: 'Kristalle jetzt (im Spiel)', adjDay: 'Stand vom KvK-Tag', adjDayHint: 'leer = heute', adjOn: 'In die Berechnung übernehmen',
+        adjPlan: 'Plan bis Tag', adjReal: 'Ist (jetzt + ausgegeben)', adjDiff: 'Abweichung', adjNoDay: 'KvK-Tag fehlt – Start-Datum festlegen oder Tag eintragen',
+        adjActive: 'Abgleich aktiv', presets: 'Ziel-Stufen', presetsHint: 'antippen = zum gewählten Pass hinzufügen', passPick: 'Pass wählen', pgTitle: 'Ziele bis Pass', pgAdd: '+ Ziel für Pass', pgNone: 'Für diesen Pass noch kein Ziel – füge eine Technologie mit ihren Kristallkosten hinzu.',
+        pgAvail: 'Verfügbar bis Pass', pgNeed: 'Benötigt (inkl. vorherige Pässe)', pgLeft: 'Übrig', pgMiss: 'Fehlt', pgExtra: 'Zusätzlich nötig',
+        pgBarbs: '{b} Barbaren · {a} Angriffe · {ap} AP', pgForts: 'oder {f} Forts · {ap} AP', pgOverview: 'Alle Pässe', pgEmpty: 'kein Ziel',
+        pgAvailHint: 'Kontostand am Tag der Pass-Öffnung (Barbaren aus deinem AP-Plan schon eingerechnet)',
+        honFold: 'Ehre', honFoldHint: 'Timeline mit Ruinen, Altären und Barbaren – wann du 80.000 und 120.000 erreichst',
+        honStart: 'Ehre jetzt', ruinsDay: 'Ruinen pro Tag', altarsDay: 'Altäre pro Tag', honPerDay: 'Ehre pro Tag',
+        honReach: 'erreicht an Tag', honNow: 'schon erreicht', honMiss: 'fehlen am KvK-Ende', honExtra: 'dafür zusätzlich pro Tag', honOr: 'oder',
+        honChart: 'Ehre über die KvK-Dauer', honBarbsSrc: 'Barbaren & Forts aus deinem AP-Plan', pgMw: 'Mountain Warfare bei diesem Pass', pgMwNone: 'kein Mountain Warfare gewählt (Start-Tab → Bundles)',
+        reachedNow: 'sofort machbar', missing: 'fehlt', missingEnd: 'fehlen am KvK-Ende', goalsSum: 'Alle Ziele', leftEnd: 'übrig am KvK-Ende',
+        apSrc: 'AP aus deinen Flaschen (Start-Tab / Scan)', apRegen: 'AP-Regeneration pro Tag', chain: 'Ø Chain (Barbaren je Angriff, 1–10)',
+        barbAp: 'AP pro Barbaren-Angriff', barbCr: 'Kristalle pro Barbar', forts: 'Forts (Anzahl, je Angriff 1 Fort)', fortAp: 'AP pro Fort', fortCr: 'Kristalle pro Fort',
+        kahar: 'Kahar the Hidden (Anzahl)', kaharHint: 'je Kahar 45.000 💎', kaharShort: 'Kahar',
+        attacks: 'Angriffe', barbs: 'Barbaren', fortsDone: 'Forts', apUsed: 'AP verbraucht', crystals: 'Kristalle', withRs: 'inkl. Forschung',
+        chainInfo: 'Chain {n}: {n} Barbaren für {ap} AP', apTotalLbl: 'AP gesamt', apNoFort: 'zu wenig AP für die Forts',
+        honor: 'Ehre', honorHint: 'Werte je Quelle aus dem Spiel eintragen', hBarb: 'Ehre pro Barbar', hFort: 'Ehre pro Fort', hAltar: 'Ehre pro Altar', hRuin: 'Ehre pro Ruine',
+        altars: 'Altäre', ruins: 'Ruinen', honorTotal: 'Ehre gesamt',
+        statStart: 'KvK-Start', statNow: 'Jetzt', statDiff: 'Veränderung', nowScan: 'Jetzt aus Scan', nowScanHint: 'Statthalter-Profil und Speedups aus deinem letzten Scan',
+        power: 'Macht', kp: 'Kill-Punkte', acclaim: 'Verdienst', deads: 'Deads', universal: 'Universal', healing: 'Heilung', inDays: 'Tage',
+        spent: 'verbraucht', gained: 'dazu', lost: 'verloren', noScan: 'Noch kein Scan'
+      },
       soon: { mid: 'Hier entsteht die Planung für die Mitte des KvK.', end: 'Hier entsteht die Planung für das Ende des KvK.' }, soonSub: 'Kommt als Nächstes',
       noStart: 'Start-Datum festlegen', pre: 'Pre-KvK', day: 'Tag', untilStart: 'bis zum Start', sinceStart: 'seit Start',
       u: { d: 'Tage', h: 'Std', m: 'Min', s: 'Sek' },
@@ -307,6 +383,7 @@
       noGoals: 'Noch keine Ziele. Füge Kristallgebäude oder Technologien mit ihren Kosten hinzu.',
       shop: 'Echtgeld-Bundles', shopHint: 'Haken setzen bzw. Anzahl eintragen, was du kaufst',
       perMil: '$/Mio', times: '×', perDayShort: '/Tag', seqHint: 'Stufen nacheinander freischalten',
+      mwPerPass: 'Je Pass wählen, bis zu welcher Stufe du kaufst', mwNone: 'nichts',
       stats: 'Statistik', statsHint: 'Preis pro 1 Mio Kristalle (alle Stufen eines Bundles) – kürzer ist besser',
       maxed: 'Komplett', sel: 'Deine Auswahl', spend: 'Ausgaben', crystals: 'Kristalle', avg: 'Ø Preis',
       best: 'Bestes Angebot', worst: 'Schlechtestes Angebot', nothing: 'Noch nichts ausgewählt',
@@ -330,12 +407,88 @@
       max: 'Max', chestsMax: 'max. 38', buildTitle: 'Build time crystal buildings', buildSpeed: 'Building speed (%)', buildSpeedHint: 'your building speed, e.g. 98',
       helps: 'Alliance helps per level', helpsHint: 'max. 30 · each help 1% of build time, min. 1 min', helpsShort: 'helps',
       buildNeed: 'Needed total', buildHave: 'Building speedups', buildLeft: 'Left over', buildMissing: 'Missing', withUni: 'with universal', rmStartBuys: 'Start purchases', packs: 'packs',
-      openKvk: 'Open KvK', countdown: 'KvK Countdown', edit: 'Edit', bgLabel: 'Background image', bgPick: 'Choose image', bgReset: 'Default',
+      phasePre: 'Before registration', phaseNow: 'Current phase', phaseNext: 'next from', phaseFrom: 'from', phaseNames: { reg: 'Registration', team: 'Team-up', match: 'Matchmaking', ann: 'Announcement', begin: 'Lost Kingdom begins' },
+      lockOn: 'Start values locked', lockSince: 'since KvK start', lockInfo: 'new scans no longer change them', lockEdit: 'Edit start values',
+      lockMode: 'Edit mode', lockModeInfo: 'Changes are saved right away · scan only uses data from before KvK start', lockDone: 'Done', lockUndo: 'Discard',
+      lockTip: 'Locked since KvK start – use “Edit start values” to change', noPreScan: 'No scan from before KvK start',
+      showMap: 'Show map', openKvk: 'Open KvK', countdown: 'KvK Countdown', edit: 'Edit', bgLabel: 'Background image', bgPick: 'Choose image', bgReset: 'Default',
       bgBusy: 'Processing image …', bgDone: 'Background saved', bgTooBig: 'Image is too large for browser storage', bgFail: 'Image could not be read', calTitle: 'KvK calendar', done: 'Done', startShort: 'Start',
-      tabs: { start: 'Start', mid: 'Mid', end: 'End' },
+      tabs: { start: 'Start', mid: 'Mid', end: 'End', map: 'Map' },
+      mp: { whichKvk: 'Which KvK?', whichHint: 'Decides which map shows in the Map tab and in your profile', layouts: { schema: ['Schematic', 'simplified zone overview (test layout)'] }, mapsLoading: 'Loading maps …', mapLoading: 'Loading map …', mapFail: 'Map could not be loaded – showing the schematic', title: 'Map & times', hint: 'Camps, passes, ruins and altars – with a timer to the next event', next: 'Next event', none: 'No upcoming events in this KvK', noTime: 'No time stored for this pass yet', fightOn: 'Fight still on', fightSince: 'since', fightLen: 'fight lasts {h} h', nextOne: 'then', altarNext: 'Next altar', passNext: 'Opens', fightNow: 'Fight', nextShort: 'Next', needStart: 'Set the KvK start date via ✎ above – then all times and the timer appear.', upcoming: 'Coming up', passes: 'Passes', rules: 'Ruins & altars', kinds: { pass: 'Pass', ruin: 'Ruin', altar: 'Altar', other: 'Other' }, passOpen: 'Pass {n} opens', campsFold: 'Edit camps', campsHint: 'Up to 10 kingdoms per camp, own and allied camp', designHint: '{n} designs to choose from – also used for the map in your profile', timesFold: 'Edit times', timesHint: 'Ruins, altars and your own events – date or KvK day, time in UTC, interval in hours', day: 'KvK day', time: 'Time (UTC)', date: 'Date (UTC)', rep: 'every … h', repHint: '0 = once · 24 = daily · ruins every 40 h · altar every 86 h · with a date set, the KvK day is ignored', once: 'once', daily: 'daily', every: 'every {n}', everyH: 'h', add: 'add', name: 'Name (optional)', past: 'over', dayN: 'Day', noRules: 'No ruin or altar times entered yet', soon: 'The real ruin and altar times are still coming – until then you can enter them below.', allDone: 'all over', del: 'Remove' },
       calc: 'Calculation', calcHint: 'Chests, bundles, mine & crystal tech building cost', costMine: 'Crystal mine – target level', costTech: 'Crystal tech building – target level', lv: 'Level', costTotal: 'Total crystal cost', left: 'Left over', resOnly: 'resources only',
       income: 'Income per day', avail: 'Available', need: 'Needed', diff: 'Difference', chestsNeed: 'Chests needed', chestsUnit: 'chests',
       enough: 'Enough', missingTxt: 'Missing', availTotal: 'Available total', inclSupply: 'incl. Premium Supply', mineTech: 'Mine + tech', bundlesFold: 'Bundles', bundlesHint: 'Real-money offers, statistics & budget planner',
+      m: {
+        e: {
+          title: 'KvK End', hint: 'Your summary and an image for your profile',
+          sum: 'KvK summary', sumHint: 'KvK start vs. KvK end – gains, losses and trade',
+          img: 'Image for your profile', imgHint: 'Ready-made image to download and show in your profile',
+          result: 'Result', win: 'Won', lose: 'Lost', open: 'Open',
+          start: 'KvK start', end: 'KvK end', change: 'Change', endScan: 'End from scan', endScanHint: 'Governor profile, speedups, resources and AP from your latest scans',
+          fight: 'Fighting in KvK', kills: 'Kills (units killed)', heal: 'Healed (units)', deadsKvk: 'Deads in KvK', deadsHint: 'entered by hand, otherwise deads end − start', autarch: 'Autarch received',
+          trade: 'Trade', tradeHint: 'Kills ÷ (deads + healed)', apTotal: 'Total AP',
+          ik: { kp: 'Kill points', power: 'Power', acclaim: 'Acclaim', kdh: 'Battle', speed: 'Speedups', res: 'Resources', ap: 'AP', autarch: 'Autarch', trade: 'Trade' },
+          imgMiss: 'not entered', imgKills: 'Kills', imgDeads: 'Deads', imgHealed: 'Healed', imgDay: 'd', imgNo: 'No',
+          k: { kp: 'Kill points gained', power: 'Power change', acclaim: 'Acclaim gained', kdh: 'Kills / deads / healed', speed: 'Speedups used',
+               res: 'Resources used', ap: 'AP used / gained', autarch: 'Autarch received', trade: 'Trade %', result: 'Won / lost' },
+          imgSoon: 'Your KvK image will live here', imgSoonSub: 'Preview, download and “show in profile” come next',
+          imgData: 'Show in image', download: 'Download image', toProfile: 'Show in profile', soonBadge: 'soon',
+          used: 'used', gained: 'gained', lost: 'less', none: '–',
+          optAvatar: 'Profile picture', optKingdom: 'Kingdom & alliance', imgOpts: 'Profile in the image', imgTitle: 'KvK summary', imgWin: 'Victory', imgLose: 'Defeat', imgPreview: 'Preview',
+          bgTitle: 'Background', bgUpload: 'Upload own image', bgDel: 'Remove own image', bg: { timer: 'Countdown', gold: 'Gold', blood: 'Blood', night: 'Night', frost: 'Frost', own: 'Own' }
+        },
+        mapFold: 'Map', mapHint: '4 camps and their kingdoms', camp: 'Camp', campName: 'Name', campKds: 'Kingdoms (comma separated)',
+        campNames: ['Fire', 'Earth', 'Water', 'Wind'], kdShort: 'KD', myCamp: 'My camp', ally: 'Ally', mapDesign: 'Map design', zoneN: 'Zone {n}', altar: 'Altar', mapLegendLk: '🏯 pass with level (4–9) · ⛩️ altar · number in circle = shrine/temple/sanctum level · small castles = forts · tap gates and altars for times', mapLegend: 'P4 → zone 4 · P5 → zone 5 · P6 = altar (camp → zone 5) · P7 = zone 5 ↔ zone 5 · P8 → ziggurat (zone 6) · test layout', mapStyles: { battle: 'Battlefield', parchment: 'Parchment', night: 'Night', flat: 'Clean', holo: 'Tactical', frost: 'Frost', lava: 'Ember', royal: 'Royal', pixel: 'Pixel', sand: 'Desert', ingame: 'Game map', blueprint: 'Blueprint', marble: 'Marble', jungle: 'Jungle' }, mapTitle: 'KvK map', center: 'Ziggurat', mapEmpty: 'no kingdoms yet',
+        title: 'KvK Mid', hint: 'Crystal timeline, goals, barbarians & interim status',
+        flow: 'Crystal timeline', flowHint: 'What you earn when – over the whole KvK',
+        goal: 'Roadmap: goals per pass', goalHint: 'Pick pass 4–8, enter technologies – what is missing and how many barbarians/forts for it',
+        apFold: 'AP & barbarians', apFoldHint: 'How many barbarians and forts your AP can take',
+        statsFold: 'Interim status', statsFoldHint: 'Kill points, power, acclaim, deads and speedups used since KvK start',
+        base: 'Basics', days: 'KvK length (days)', psup: 'Premium Supply: 60,000 💎 per day (50 days) · +50% mine',
+        psupAuto: 'on automatically if bought in the Start tab', mineBoost: 'Extra mine boost (%)',
+        mineInfo: 'Crystal mine level', perHour: 'per hour', research: 'Crystal research',
+        rsBarb: 'Barbarian Bounties – barbarians & forts', rsBastion: 'Cultural Exchange – bastion quests', rsKaruak: 'Karaku Reports – Kau Karuak',
+        bastion: 'Bastion & other sources', bastionPerDay: 'Bastion quests per day', bastionCr: 'Crystals per quest (1,500–22,500)',
+        maudara: 'Maudara: crystals per day', other: 'Other: crystals per day',
+        kk: 'Trial of Kau Karuak', kkLv: 'up to level', kkDay: 'on day', kkDiff: { easy: 'Easy', normal: 'Normal', hard: 'Hard' }, kkWhen: { easy: 'crystals before pass 4 (by day 7)', normal: 'between pass 4 and 5 (day 8–14)', hard: 'between pass 7 and 8 (day 25–28) · Nightmare gives season coins, after pass 9' },
+        kkBoost: 'Karuak boost (crystals per hour)', kkBoostDay: 'Boost from day',
+        roadTitle: 'Roadmap', roadHint: 'What happens at which station – tap a pass to edit its goals',
+        rStart: 'Starting stock', rStand: 'Balance', rElite: 'Elite income', rBoost: 'Karuak boost', rFrom: 'from day', rUpTo: 'up to level', rGoals: 'Goals',
+        kkHint: 'Elite levels 5 · 10 · 15 give +500 💎 per hour each', barbsFrom: 'Barbarians & forts come from “AP & barbarians”.',
+        src: { start: 'Start (left)', mine: 'Crystal mine', supply: 'Premium Supply', bundles: 'Mountain Warfare & Conquer\'s Will', barbs: 'Barbarians, forts & Kahar', bastion: 'Bastion quests', karuak: 'Kau Karuak', maudara: 'Maudara', other: 'Other' },
+        startLeft: 'Start (left)', startHint: 'Available per Start tab minus mine & research center (Premium Supply, Mountain Warfare and Conquer\'s Will arrive on their day)',
+        earned: 'Total income', perDayAvg: 'Avg per day', endBal: 'Balance at the end', balance: 'Balance',
+        day: 'Day', today: 'today', milestones: 'Milestones', mEnd: 'KvK end', chartTitle: 'Crystals over the KvK (stacked by source)',
+        tableView: 'Table', noData: 'No income yet – enter sources above.', goalLine: 'Goal',
+        goalsTitle: 'Goals in order', goalAdd: '+ Target technology', goalName: 'e.g. Treaties III', goalCost: 'Crystals',
+        goalNone: 'No goals yet – add a technology with its crystal cost.', reached: 'reached', reachedDay: 'reached on day',
+        simple: 'Simple', simpleHint: 'Just one number: how many crystals you want by this pass',
+        simpleCr: 'Target crystals by pass', simpleKahar: 'Kahar by then (45,000 each)', simplePassive: 'Passive by then',
+        simplePassiveHint: 'Start, mine, supply, bundles, bastion, Kau Karuak, Maudara, other – without barbarians',
+        simpleKaharOut: 'Kahar', simpleRest: 'Rest via barbarians', simpleOk: 'Covered passively', simpleApBy: 'AP by then', simpleApShort: 'not enough AP',
+        adjTitle: 'Reality check', adjHint: 'Bastion quests and alliance chains vary – enter your real numbers, everything from then on uses them',
+        adjSpent: 'Spent so far', adjCur: 'Crystals now (in game)', adjDay: 'As of KvK day', adjDayHint: 'empty = today', adjOn: 'Use in the calculation',
+        adjPlan: 'Plan up to day', adjReal: 'Real (now + spent)', adjDiff: 'Difference', adjNoDay: 'KvK day missing – set the start date or enter a day',
+        adjActive: 'Reality check on', presets: 'Goal tiers', presetsHint: 'tap = add to the selected pass', passPick: 'Choose pass', pgTitle: 'Goals by pass', pgAdd: '+ Goal for pass', pgNone: 'No goal for this pass yet – add a technology with its crystal cost.',
+        pgAvail: 'Available by pass', pgNeed: 'Needed (incl. earlier passes)', pgLeft: 'Left', pgMiss: 'Missing', pgExtra: 'Additionally needed',
+        pgBarbs: '{b} barbarians · {a} attacks · {ap} AP', pgForts: 'or {f} forts · {ap} AP', pgOverview: 'All passes', pgEmpty: 'no goal',
+        pgAvailHint: 'Balance on the day the pass opens (barbarians from your AP plan already included)',
+        honFold: 'Honor', honFoldHint: 'Timeline with ruins, altars and barbarians – when you reach 80,000 and 120,000',
+        honStart: 'Honor now', ruinsDay: 'Ruins per day', altarsDay: 'Altars per day', honPerDay: 'Honor per day',
+        honReach: 'reached on day', honNow: 'already reached', honMiss: 'missing at KvK end', honExtra: 'additionally per day', honOr: 'or',
+        honChart: 'Honor over the KvK', honBarbsSrc: 'Barbarians & forts from your AP plan', pgMw: 'Mountain Warfare at this pass', pgMwNone: 'no Mountain Warfare chosen (Start tab → Bundles)',
+        reachedNow: 'possible right away', missing: 'missing', missingEnd: 'missing at KvK end', goalsSum: 'All goals', leftEnd: 'left at KvK end',
+        apSrc: 'AP from your bottles (Start tab / scan)', apRegen: 'AP regeneration per day', chain: 'Avg chain (barbarians per attack, 1–10)',
+        barbAp: 'AP per barbarian attack', barbCr: 'Crystals per barbarian', forts: 'Forts (count, 1 fort per attack)', fortAp: 'AP per fort', fortCr: 'Crystals per fort',
+        kahar: 'Kahar the Hidden (count)', kaharHint: '45,000 💎 each', kaharShort: 'Kahar',
+        attacks: 'Attacks', barbs: 'Barbarians', fortsDone: 'Forts', apUsed: 'AP used', crystals: 'Crystals', withRs: 'incl. research',
+        chainInfo: 'Chain {n}: {n} barbarians for {ap} AP', apTotalLbl: 'Total AP', apNoFort: 'not enough AP for the forts',
+        honor: 'Honor', honorHint: 'Enter the in-game value per source', hBarb: 'Honor per barbarian', hFort: 'Honor per fort', hAltar: 'Honor per altar', hRuin: 'Honor per ruin',
+        altars: 'Altars', ruins: 'Ruins', honorTotal: 'Total honor',
+        statStart: 'KvK start', statNow: 'Now', statDiff: 'Change', nowScan: 'Now from scan', nowScanHint: 'Governor profile and speedups from your last scan',
+        power: 'Power', kp: 'Kill points', acclaim: 'Acclaim', deads: 'Deads', universal: 'Universal', healing: 'Healing', inDays: 'days',
+        spent: 'used', gained: 'gained', lost: 'lost', noScan: 'No scan yet'
+      },
       soon: { mid: 'Planning for the middle of KvK will live here.', end: 'Planning for the end of KvK will live here.' }, soonSub: 'Coming next',
       noStart: 'Set start date', pre: 'Pre-KvK', day: 'Day', untilStart: 'until start', sinceStart: 'since start',
       u: { d: 'Days', h: 'Hrs', m: 'Min', s: 'Sec' },
@@ -355,6 +508,7 @@
       noGoals: 'No goals yet. Add crystal buildings or technologies with their cost.',
       shop: 'Real-money bundles', shopHint: 'Tick or enter how many you buy',
       perMil: '$/M', times: '×', perDayShort: '/day', seqHint: 'tiers unlock in order',
+      mwPerPass: 'Choose per pass up to which tier you buy', mwNone: 'none',
       stats: 'Statistics', statsHint: 'Price per 1M crystals (all tiers of a bundle) – shorter is better',
       maxed: 'Maxed', sel: 'Your selection', spend: 'Spend', crystals: 'Crystals', avg: 'Avg. price',
       best: 'Best deal', worst: 'Worst deal', nothing: 'Nothing selected yet',
@@ -399,14 +553,39 @@
       crystal: { start: 0, chests: 0, mineLv: 25, techLv: 25, perMarch: 0, marches: 0, other: 0 },
       buildSpeed: 0,                                                              // Bau-Tempo in % (für die Bauzeit der Kristallgebäude)
       helps: 30,                                                                  // Allianz-Hilfen je Ausbaustufe (max. 30)
-      open: { calc: true, bundles: false, res: false, stats: false, rmStart: false },                                       // eingeklappte Fenster
+      mapEv: [],                                                              // Ruinen/Altäre/Eigenes: { id, kind, name, day, time 'HH:MM' UTC, rep (Tage, 0 = einmal) }
+      open: { mapCamps: false, mapTimes: false, mapDesign: false, calc: false, bundles: false, res: false, stats: false, rmStart: false, midFlow: false, midGoal: false, midAp: false, midHon: false, midStats: false, midMap: false, endSum: false, endImg: false },                                       // eingeklappte Fenster
       buy: {},                                                                    // Stufen-ID → Anzahl
       budget: 0,
       planPass: 8,                                                                // Planung bis zu diesem Pass (MW je Pass + Conquer's Will je Tag)
       res: { food: 0, wood: 0, stone: 0, gold: 0 },
-      stats: { power: 0, kp: 0, deads: 0 },
+      stats: { power: 0, kp: 0, deads: 0, acclaim: 0 },
+      // KvK Mitte: Kristall-Verlauf, Quellen, AP/Barbaren, Ehre, Zwischenstand
+      mid: {
+        days: 60, psup: 0, mineBoost: 0,                                          // psup: 0 = wie im Start-Tab gekauft, 1 = an, 2 = aus
+        rs: { barb: 0, bastion: 0, karuak: 0 },                                   // Kristallforschung in %
+        bastionPerDay: 0, bastionCr: 1500, maudaraPerDay: 0, otherPerDay: 0,
+        kk: { easy: 0, normal: 0, hard: 0, easyDay: 7, normalDay: 14, hardDay: 28, boost: 0, boostDay: 1 },   // boost = zusätzliche Kristalle pro Std.
+        apRegen: 0, chain: 1, barbAp: 60, barbCr: 500, forts: 0, fortAp: 150, fortCr: 3000, kahar: 0,   // kahar = Anzahl Kahar the Hidden
+        hon: { start: 0, barb: 0, fort: 0, altar: 0, ruin: 0, altarsDay: 0, ruinsDay: 0 },
+        pass: 4, pg: { 4: [], 5: [], 6: [], 7: [], 8: [] },
+        // Vereinfacht: Ziel-Kristalle bis zum Pass + geplante Kahar bis dahin
+        pt: { 4: { cr: 0, kahar: 0 }, 5: { cr: 0, kahar: 0 }, 6: { cr: 0, kahar: 0 }, 7: { cr: 0, kahar: 0 }, 8: { cr: 0, kahar: 0 } },                     // Roadmap: Ziele je Pass (Name + Kristallkosten)
+        now: { power: 0, kp: 0, deads: 0, acclaim: 0, universal: 0, healing: 0 },
+        nowSrc: 0,
+        adj: { spent: 0, cur: 0, day: 0, on: 1 },
+        // Karte: 4 Camps mit ihren Königreichen (Text, mit Komma getrennt); myCamp 1–4 (0 = keins)
+        camps: [{ name: '', kds: '' }, { name: '', kds: '' }, { name: '', kds: '' }, { name: '', kds: '' }], myCamp: 0, allyCamp: 0, mapStyle: 'battle', layout: 'schema'                                 // Ist-Abgleich: bisher ausgegeben + jetzt im Spiel (on: 1 an, 2 aus)
+      },
       goals: [],
-      src: { ap: 0, speed: 0, res: 0, stats: 0 }
+      src: { ap: 0, speed: 0, res: 0, stats: 0 },
+      mwPass: { 4: 0, 5: 0, 6: 0, 7: 0, 8: 0 },
+      // KvK Ende: Werte am Ende, Kampf, Ergebnis und was im Bild gezeigt wird (1 = an, 2 = aus)
+      end: {
+        now: { power: 0, kp: 0, acclaim: 0, deads: 0, universal: 0, training: 0, healing: 0, food: 0, wood: 0, stone: 0, gold: 0, ap: 0 },
+        kills: 0, heal: 0, deads: 0, autarch: 0, result: 0, nowSrc: 0, bg: 'timer',   // deads: Deads im KvK von Hand (Vorrang vor Ende − Start)         // result: 0 offen, 1 gewonnen, 2 verloren · bg: Hintergrund des Bilds
+        show: { kp: 1, power: 1, acclaim: 1, kdh: 1, speed: 1, res: 1, ap: 1, autarch: 1, trade: 1, result: 1, avatar: 1, kingdom: 1 }
+      }                                    // Mountain Warfare: bis zu welcher Stufe je Pass (0 = nichts)
     };
   }
   function mergeInto(base, src) {
@@ -451,6 +630,12 @@
           if ((st.buy[id] || 0) > cap) { if (cap) st.buy[id] = cap; else delete st.buy[id]; }
         }
       });
+      Object.keys(st.open).forEach((k) => { st.open[k] = false; });   // beim Laden der Seite immer alles eingeklappt
+      // Mountain Warfare je Pass: ältere Stände (nur Anzahl je Stufe) der Reihe nach auf Pass 4, 5, … verteilen
+      const mwT = BUNDLES.find((b) => b.id === 'mw').tiers;
+      MW_PASSES.forEach((n) => { st.mwPass[n] = Math.max(0, Math.min(5, Math.round(+st.mwPass[n] || 0))); });
+      if (!(parsed && parsed.mwPass) && mwT.some((x) => st.buy[x.id])) MW_PASSES.forEach((n, j) => { st.mwPass[n] = mwT.filter((x) => (st.buy[x.id] || 0) > j).length; });
+      mwToBuy(st);
       return st;
     } catch (e) { return freshState(); }
   }
@@ -467,6 +652,23 @@
     }, 400);
   }
 
+  // Server-Uhr: Countdown & Ereignisse richten sich nach der Zeit des Servers (Date-Header), nicht nach der Uhr des Geräts.
+  // Abweichung wird einmal gemessen (Laufzeit halbiert) und alle 10 Min. aufgefrischt; ohne Antwort gilt die Geräte-Uhr.
+  let clockOffset = 0, clockSynced = false;
+  const srvNow = () => Date.now() + clockOffset;
+  function syncClock() {
+    try {
+      const t0 = Date.now();
+      fetch((window.location && location.origin && location.protocol.startsWith('http') ? location.origin + '/' : '') + '?_t=' + t0, { method: 'HEAD', cache: 'no-store' })
+        .then((r) => { const d = r.headers.get('date'), t1 = Date.now(); if (!d) return; const srv = Date.parse(d); if (!isFinite(srv)) return;
+          // Date-Header hat nur Sekunden: +500 ms Mitte der Sekunde, Laufzeit halbiert
+          const off = srv + 500 - (t0 + (t1 - t0) / 2);
+          if (Math.abs(off) > 1500) { clockOffset = off; } else clockOffset = 0;   // < 1,5 s Unterschied: Geräte-Uhr ist genau genug
+          clockSynced = true; })
+        .catch(() => {});
+    } catch (e) { /* ohne Netzwerk: Geräte-Uhr */ }
+  }
+  syncClock(); setInterval(syncClock, 10 * 60000);
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   const getPath = (o, p) => p.split('.').reduce((a, k) => (a == null ? undefined : a[k]), o);
   function setPath(o, p, v) {
@@ -478,29 +680,66 @@
   /* ================================================================== *
    * Scanner-Daten
    * ================================================================== */
-  function lastScan(type) {
+  function lastScan(type, maxTs = null) {
     const n = ns();
     if (!n) return null;
     if (type === 'governor') {   // Statthalter-Scans liegen im Verlauf (Macht = „energy“)
       try {
         const h = JSON.parse(localStorage.getItem(n + 'history_v1') || '[]');
-        return (Array.isArray(h) ? h : []).filter((e) => e && e.type === 'governor' && (e.energy != null || e.kill_points != null))
+        return (Array.isArray(h) ? h : []).filter((e) => e && e.type === 'governor' && (e.energy != null || e.kill_points != null) && (maxTs == null || (+e.ts || 0) <= maxTs))
           .sort((a, z) => (+z.ts || 0) - (+a.ts || 0))[0] || null;
       } catch (e) { return null; }
     }
-    try { const v = JSON.parse(localStorage.getItem(n + 'last_scan_' + type) || 'null'); return v && typeof v === 'object' ? v : null; }
+    try { const v = JSON.parse(localStorage.getItem(n + 'last_scan_' + type) || 'null'); return v && typeof v === 'object' && (maxTs == null || (+v.ts || 0) <= maxTs) ? v : null; }
     catch (e) { return null; }
   }
   const SCAN_TYPE = { ap: 'ap', speed: 'speedups', res: 'resources', stats: 'governor' };
 
+  // Startwerte (AP, Speedups, Ressourcen, Statthalter) frieren mit dem KvK-Start ein:
+  // danach kein Auto-Import mehr, Eingaben gesperrt – außer im Bearbeitungsmodus (der nur Scans von vor dem Start nimmt).
+  let startEdit = false, startBackup = null;
+  const START_PATH = /^(ap\.b\d+|speed\.|res\.|stats\.)/;
+  const kvkRunning = () => { const p = phase(); return !!(p && !p.before); };
+  const startLocked = () => kvkRunning() && !startEdit;
+  const scanCut = () => (kvkRunning() ? startTs() : null);
+  function lockDom() {
+    if (!root || !startLocked()) return;
+    const tip = t().lockTip;
+    root.querySelectorAll('input[data-path]').forEach((i) => {
+      if (!START_PATH.test(i.dataset.path)) return;
+      i.readOnly = true; i.title = tip; i.setAttribute('aria-readonly', 'true');
+      i.style.opacity = '.65'; i.style.cursor = 'not-allowed'; i.style.borderStyle = 'dashed';
+    });
+    root.querySelectorAll('[data-scan]').forEach((b) => { b.disabled = true; b.title = tip; });
+  }
+  function lockBar() {
+    if (!kvkRunning()) return '';
+    const L = t(), btn = 'shrink-0 text-xs px-2.5 py-1 rounded-lg border transition';
+    if (!startEdit) return `
+      <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gold-500/30 bg-gold-500/5 px-3 py-2 text-xs text-slate-300">
+        <span>🔒 <b class="text-gold-300">${L.lockOn}</b> ${L.lockSince} (${shortDate(new Date(startTs()))}) · <span class="text-slate-400">${L.lockInfo}</span></span>
+        <button type="button" data-start-edit class="${btn} border-ink-600 hover:border-gold-500/60 hover:text-gold-300">✎ ${L.lockEdit}</button>
+      </div>`;
+    return `
+      <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-400/50 bg-amber-400/10 px-3 py-2 text-xs text-slate-300">
+        <span>✎ <b class="text-amber-300">${L.lockMode}</b> · <span class="text-slate-400">${L.lockModeInfo}</span></span>
+        <span class="flex gap-2">
+          <button type="button" data-start-undo class="${btn} border-ink-600 hover:border-red-400/60 hover:text-red-300">↶ ${L.lockUndo}</button>
+          <button type="button" data-start-done class="${btn} border-gold-500 bg-gold-500 text-ink-950 font-semibold hover:bg-gold-400">✓ ${L.lockDone}</button>
+        </span>
+      </div>`;
+  }
+
   function importScan(part) {
-    const s = lastScan(SCAN_TYPE[part]);
+    const s = lastScan(SCAN_TYPE[part], scanCut());
     if (!s) return false;
     if (part === 'ap') AP_SIZES.forEach((z) => (state.ap['b' + z] = Math.max(0, Math.round(+s['ap_' + z] || 0))));
     if (part === 'speed') SPEED_CATS.forEach((c) => (state.speed[c.k] = Math.max(0, Math.round(+s[c.k] || 0))));
     if (part === 'stats') {
       if (s.energy != null) state.stats.power = Math.max(0, Math.round(+s.energy || 0));
       if (s.kill_points != null) state.stats.kp = Math.max(0, Math.round(+s.kill_points || 0));
+      if (s.highest_merit != null) state.stats.acclaim = Math.max(0, Math.round(+s.highest_merit || 0));
+      if (s.deads != null) state.stats.deads = Math.max(0, Math.round(+s.deads || 0));
     }
     if (part === 'res') {
       const bar = (s.resources && s.resources.bar) || {};
@@ -510,6 +749,7 @@
     return true;
   }
   function autoImport() {
+    if (kvkRunning()) return;                    // KvK läuft: Startwerte bleiben, wie sie sind
     let changed = false;
     ['ap', 'speed'].forEach((p) => {
       const s = lastScan(SCAN_TYPE[p]);
@@ -582,7 +822,7 @@
   function phase(d) {
     const ts = startTs(d === undefined ? state.startDate : d);
     if (ts == null) return null;
-    const diff = ts - Date.now();
+    const diff = ts - srvNow();
     return { ts, before: diff > 0, ms: Math.abs(diff), day: diff > 0 ? 0 : Math.floor(-diff / 86400000) + 1 };
   }
 
@@ -615,6 +855,8 @@
   // Mountain Warfare erscheint 12 Std vor jeder Öffnung.
   const PASS_SCHEDULE = [{ n: 4, day: 7 }, { n: 5, day: 14 }, { n: 6, day: 15 }, { n: 7, day: 24 }, { n: 8, day: 28 }];
   const MW_PASSES = PASS_SCHEDULE.map((p) => p.n);
+  // Kau Karuak: wann die Kristalle der Schwierigkeiten kommen (Easy vor Pass 4, Normal Pass 4–5, Hard Pass 7–8; Nightmare-Coins nach Pass 9)
+  const KK_DEFAULT_DAY = { easy: 7, normal: 14, hard: 28 };
   const passDay = (n) => (PASS_SCHEDULE.find((p) => p.n === n) || {}).day || 0;
   const passDate = (n) => { const s = startTs(); return s == null ? null : new Date(s + passDay(n) * 86400000); };
   const shortDate = (d) => d.toLocaleDateString(locale(), { day: '2-digit', month: '2-digit' });
@@ -679,14 +921,26 @@
     return res;
   }
 
+  // Mountain Warfare: Auswahl je Pass → Anzahl je Stufe (für Summen und Planer)
+  function mwToBuy(st = state) {
+    BUNDLES.find((b) => b.id === 'mw').tiers.forEach((x, i) => {
+      const n = MW_PASSES.filter((p) => (st.mwPass[p] || 0) > i).length;
+      if (n) st.buy[x.id] = n; else delete st.buy[x.id];
+    });
+  }
   // Planer-Ergebnis in die Bundle-Auswahl übernehmen (ohne Neuaufbau der Seite → nichts springt)
   function applyPlan() {
     if (!(state.budget > 0)) return;
-    state.buy = { ...budgetPlan(state.budget).pick };
+    const plan = budgetPlan(state.budget);
+    state.buy = { ...plan.pick };
+    MW_PASSES.forEach((n) => { state.mwPass[n] = plan.perPass[n] != null ? plan.perPass[n] + 1 : 0; });
+    mwToBuy();
     syncShopInputs();
   }
   function syncShopInputs() {
     if (!root) return;
+    root.querySelectorAll('[data-mwp]').forEach((b) => b.setAttribute('aria-pressed', String((state.mwPass[b.dataset.mwp] || 0) === +b.dataset.lv)));
+    root.querySelectorAll('[data-mwp-sum]').forEach((el) => { el.innerHTML = mwPassSum(+el.dataset.mwpSum); });
     root.querySelectorAll('[data-buy]').forEach((inp) => {
       const v = state.buy[inp.dataset.buy] || 0;
       if (inp.type === 'checkbox') inp.checked = !!v;
@@ -705,13 +959,13 @@
 
     const mw = B('mw').tiers, cw = B('cw').tiers;
     const nPass = buy[mw[0].id] || 0, nDay = buy[cw[0].id] || 0;
-    const nShown = Math.max(MW_PASSES.length, nPass);
+    const nShown = MW_PASSES.length;
     const cols = [];
 
     // Station „Start“: Premium Supply + Bundles bei Freischaltung
     const ps = B('psup').tiers.filter((x) => buy[x.id]);
     const startItems = [];
-    if (ps.length) startItems.push({ title: '🚀 Premium Supply', sub: `60.000 💎${L.perDayShort}`, ...sum(ps) });
+    if (ps.length) startItems.push({ title: '🚀 Premium Supply', sub: `${fmt(60000)} 💎${L.perDayShort}`, ...sum(ps) });
     // Freischaltungen: je Gebäude/Bundle eine Karte, jede Stufe eine Zeile
     const lvRowsHTML = (tiers, labelOf) => tiers.map((x) => `
       <div class="flex items-center justify-between gap-2 py-0.5 border-b border-ink-700/60 last:border-0">
@@ -743,7 +997,7 @@
       const sch = PASS_SCHEDULE[j];
       if (!sch) break;
       const items = cwBlock(prevDay, sch.day);
-      const tiers = mw.filter((x) => (buy[x.id] || 0) > j);
+      const tiers = mw.slice(0, state.mwPass[sch.n] || 0);
       if (tiers.length) items.push({ title: '⛰️ Mountain Warfare', sub: chainTxt(tiers), ...sum(tiers), hot: true });
       const dt = passDate(sch.n);
       cols.push({ head: `${L.pass} ${sch.n}`, date: dt ? shortDate(dt) : `${L.dayN} ${sch.day}`, items });
@@ -871,12 +1125,12 @@
 
   const subTitle = (txt) => `<div class="text-xs uppercase tracking-widest text-slate-400">${txt}</div>`;
 
-  function tileHead(icon, title, hint, scanPart) {
+  function tileHead(icon, title, hint, scanPart, extra = '') {
     let scan = '';
     if (scanPart) {
-      const has = !!lastScan(SCAN_TYPE[scanPart]);
+      const has = !!lastScan(SCAN_TYPE[scanPart], scanCut());
       const src = state.src[scanPart];
-      scan = `<button type="button" data-scan="${scanPart}" ${has ? '' : 'disabled'} title="${has ? '' : t().noScan}"
+      scan = `<button type="button" data-scan="${scanPart}" ${has ? '' : 'disabled'} title="${has ? '' : kvkRunning() ? t().noPreScan : t().noScan}"
                 class="shrink-0 text-xs px-2.5 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 disabled:opacity-40 disabled:pointer-events-none">${t().scan}</button>`;
       hint += src ? ` · <span class="text-slate-500">${t().scanFrom}: ${dateLabel(src)}</span>` : '';
     }
@@ -886,7 +1140,7 @@
             <h3 class="font-display text-lg text-gold-300">${icon} ${title}</h3>
             <p data-hint class="text-xs text-slate-400 mt-0.5">${hint}</p>
           </div>
-          ${scan}
+          ${scan}${extra}
         </div>`;
   }
 
@@ -894,18 +1148,23 @@
    * Ansicht
    * ================================================================== */
   // Timer-Feld (Feuer-Countdown mit Hintergrundbild und Flammen) – im KvK-Bereich und z. B. im Profil
-  function timePanelHTML(openBtn) {
+  function timePanelHTML(openBtn, mapBtn) {
     const L = t();
     return `
       <section class="kvk-time panel relative overflow-hidden rounded-2xl px-4 pt-4 sm:pt-5 pb-[72px] sm:pb-20">
         <div class="kvk-flame-glow" aria-hidden="true"></div>
         <canvas data-flames class="kvk-flames" aria-hidden="true"></canvas>
-        ${openBtn ? `<button type="button" data-kvk-open class="absolute right-3 top-3 z-20 text-xs px-3 py-1.5 rounded-lg border border-gold-500/40 bg-ink-950/60 text-gold-300 hover:border-gold-400 hover:bg-ink-950/80 backdrop-blur-sm">${L.openKvk} ›</button>` : ''}
+        ${openBtn || mapBtn ? `<div class="absolute right-3 top-3 z-20 flex flex-col items-end gap-1.5">
+          ${openBtn ? `<button type="button" data-kvk-open class="text-xs px-3 py-1.5 rounded-lg border border-gold-500/40 bg-ink-950/60 text-gold-300 hover:border-gold-400 hover:bg-ink-950/80 backdrop-blur-sm">${L.openKvk} ›</button>` : ''}
+          ${mapBtn ? `<button type="button" data-kvk-map class="text-xs px-3 py-1.5 rounded-lg border border-gold-500/40 bg-ink-950/60 text-gold-300 hover:border-gold-400 hover:bg-ink-950/80 backdrop-blur-sm">🗺️ ${L.showMap}</button>` : ''}
+        </div>` : ''}
         <div class="relative z-10 flex flex-col items-center text-center gap-2.5">
           <div class="font-display text-sm sm:text-base uppercase tracking-[.3em] text-gold-300/90">${L.countdown}</div>
           <div data-phase></div>
           <div data-countdown class="max-w-full overflow-x-auto"></div>
           <div data-startline class="text-xs text-slate-500"></div>
+          <div data-nextev class="text-xs"></div>
+          <div data-phases class="w-full max-w-xl"></div>
         </div>
       </section>`;
   }
@@ -940,11 +1199,11 @@
       </div>`;
 
     // ---- Seiten-Umschalter ----
-    const TAB_ICONS = { start: '🚀', mid: '⚔️', end: '🏁' };
+    const TAB_ICONS = { start: '🚀', mid: '⚔️', end: '🏁', map: '🗺️' };
     const tabs = `
-      <div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist">
-        ${['start', 'mid', 'end'].map((k) => `<button type="button" role="tab" data-ktab="${k}" aria-pressed="${state.tab === k}"
-            class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition">${TAB_ICONS[k]} ${L.tabs[k]}</button>`).join('')}
+      <div class="grid grid-cols-4 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist">
+        ${['start', 'mid', 'end', 'map'].map((k) => `<button type="button" role="tab" data-ktab="${k}" aria-pressed="${state.tab === k}"
+            class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition whitespace-nowrap"><span class="block sm:inline">${TAB_ICONS[k]}</span> ${L.tabs[k]}</button>`).join('')}
       </div>`;
 
     // ---- Klappfenster ----
@@ -1096,6 +1355,315 @@
         ${fold('stats', '📊', L.statsFold, L.statsFoldHint, `<div class="pt-3">${statsBody}</div>`)}
       </section>`;
 
+
+    // ================= KvK Mitte =================
+    const M = L.m, md = state.mid;
+    const midPsupOn = md.psup === 1 || (md.psup !== 2 && !!state.buy.psup);
+    const midSmall = (label, path, val, max, hint) => `
+      <label class="flex flex-col gap-1 text-xs text-slate-400">
+        <span>${label}</span>
+        <span class="flex gap-1.5">
+          <input type="text" inputmode="decimal" autocomplete="off" data-path="${path}" value="${esc(val)}" placeholder="0" class="${INPUT}">
+          ${max != null ? maxBtn(path, max) : ''}
+        </span>
+        ${hint ? `<span class="text-[10px] text-slate-600">${hint}</span>` : ''}
+      </label>`;
+    const flowBody = `
+      <div class="flex flex-col gap-4 pt-3">
+        <div data-out="midFlow"></div>
+        ${card(`<div><div class="text-xs uppercase tracking-widest text-slate-400">🧾 ${M.adjTitle}</div><p class="text-xs text-slate-500 mt-0.5">${M.adjHint}</p></div>
+          <div class="grid gap-4 lg:grid-cols-2 items-start">
+            <div class="grid gap-3 grid-cols-2">
+              ${midSmall('💸 ' + M.adjSpent, 'mid.adj.spent', inVal(md.adj.spent), null)}
+              ${midSmall('💎 ' + M.adjCur, 'mid.adj.cur', inVal(md.adj.cur), null)}
+              ${midSmall('📅 ' + M.adjDay, 'mid.adj.day', inVal(md.adj.day), null, M.adjDayHint)}
+              <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer self-end pb-2">
+                <input type="checkbox" data-path="mid.adj.on" ${md.adj.on !== 2 ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${M.adjOn}</label>
+            </div>
+            <div data-out="midAdj"></div>
+          </div>`)}
+        <div class="grid gap-3 lg:grid-cols-2 items-start">
+          ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">⚙️ ${M.base}</div>
+            <div class="grid gap-3 sm:grid-cols-2">
+              ${midSmall('📅 ' + M.days, 'mid.days', inVal(md.days), null)}
+              ${midSmall('⛏️ ' + M.mineBoost, 'mid.mineBoost', inVal(md.mineBoost), null)}
+            </div>
+            <label class="flex items-start gap-2.5 text-sm text-slate-200 cursor-pointer rounded-lg border border-ink-700 px-3 py-2 ${midPsupOn ? 'bg-gold-500/5 border-gold-500/40' : ''}">
+              <input type="checkbox" data-path="mid.psup" ${midPsupOn ? 'checked' : ''} class="mt-0.5 w-4 h-4 accent-yellow-500">
+              <span>${M.psup}<span class="block text-[11px] text-slate-500">${M.psupAuto}</span></span>
+            </label>`)}
+          ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">🔬 ${M.research}</div>
+            ${midSmall('🪓 ' + M.rsBarb + ' (%)', 'mid.rs.barb', inVal(md.rs.barb), 25)}
+            ${midSmall('🏰 ' + M.rsBastion + ' (%)', 'mid.rs.bastion', inVal(md.rs.bastion), 100)}
+            ${midSmall('🗿 ' + M.rsKaruak + ' (%)', 'mid.rs.karuak', inVal(md.rs.karuak), 100)}`)}
+          ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">🏰 ${M.bastion}</div>
+            <div class="grid gap-3 sm:grid-cols-2">
+              ${midSmall(M.bastionPerDay, 'mid.bastionPerDay', inVal(md.bastionPerDay), null)}
+              ${midSmall(M.bastionCr, 'mid.bastionCr', inVal(md.bastionCr), 22500)}
+              ${midSmall('🐉 ' + M.maudara, 'mid.maudaraPerDay', inVal(md.maudaraPerDay), null)}
+              ${midSmall('➕ ' + M.other, 'mid.otherPerDay', inVal(md.otherPerDay), null)}
+            </div>
+            <p class="text-[11px] text-slate-500">🪓 ${M.barbsFrom}</p>`)}
+          ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">🗿 ${M.kk}</div>
+            ${['easy', 'normal', 'hard'].map((d) => `
+              <div class="grid grid-cols-2 sm:grid-cols-[4.5rem_minmax(0,1fr)_minmax(0,1fr)] items-end gap-2">
+                <span class="col-span-2 sm:col-span-1 text-sm font-semibold text-slate-200 sm:pb-2">${M.kkDiff[d]}</span>
+                ${midSmall(M.kkLv, 'mid.kk.' + d, inVal(md.kk[d]), 15)}
+                ${midSmall(M.kkDay, 'mid.kk.' + d + 'Day', inVal(md.kk[d + 'Day']), null)}
+                <span class="col-span-2 sm:col-span-3 -mt-1 text-[11px] text-slate-500">${M.kkWhen[d]}</span>
+              </div>`).join('')}
+            <div class="grid gap-2 grid-cols-2 pt-1 border-t border-ink-700">
+              ${midSmall('⚡ ' + M.kkBoost, 'mid.kk.boost', inVal(md.kk.boost), null)}
+              ${midSmall(M.kkBoostDay, 'mid.kk.boostDay', inVal(md.kk.boostDay), null)}
+            </div>
+            <p class="text-[11px] text-slate-500">${M.kkHint}</p>`)}
+        </div>
+      </div>`;
+    const pSel = PASS_SCHEDULE.some((p) => p.n === +md.pass) ? +md.pass : 4;
+    const pgList = md.pg[pSel] || [];
+    const passPick = PASS_SCHEDULE.map((p) => { const dt = passDate(p.n), n = (md.pg[p.n] || []).filter((g) => g.cost > 0).length, mwOn = (state.mwPass[p.n] || 0) > 0; return `
+      <button type="button" data-mpass="${p.n}" aria-pressed="${p.n === pSel}" class="seg-btn rounded-lg py-1.5 px-1 border border-ink-600 transition leading-tight">
+        <span class="block text-xs sm:text-sm font-semibold whitespace-nowrap"><span class="sm:hidden">P${p.n}</span><span class="hidden sm:inline">${L.pass} ${p.n}</span>${n ? ` · ${n}` : ''}${mwOn ? ' ⛰️' : ''}</span>
+        <span class="block text-[10px] opacity-75 tabular-nums">${dt ? shortDate(dt) : `${L.dayN} ${p.day}`}</span>
+      </button>`; }).join('');
+    const goalRows = pgList.map((g) => `
+      <div data-pg="${esc(g.id)}" class="grid grid-cols-[minmax(0,1fr)_6rem_auto] sm:grid-cols-[minmax(0,1fr)_7.5rem_auto] items-center gap-2">
+        <input type="text" data-pg-field="name" value="${esc(g.name)}" placeholder="${M.goalName}" class="${INPUT} !text-left">
+        <input type="text" inputmode="decimal" data-pg-field="cost" value="${esc(inVal(g.cost))}" placeholder="${M.goalCost}" class="${INPUT}">
+        <button type="button" data-pg-del class="w-9 h-9 rounded-lg border border-ink-600 text-slate-400 hover:border-red-400/60 hover:text-red-300" aria-label="✕">✕</button>
+      </div>`).join('');
+    const goalBody = `
+      <div class="flex flex-col gap-4 pt-3">
+        <div class="rounded-xl border border-gold-500/25 bg-ink-950/60 p-4 flex flex-col gap-3">
+          <div>${subTitle('🗺️ ' + M.roadTitle)}<p class="text-xs text-slate-500 mt-0.5">${M.roadHint}</p></div>
+          <div data-out="midRoad"></div>
+        </div>
+        <div>
+          <div class="text-xs text-slate-400 mb-1">🎯 ${M.passPick}</div>
+          <div class="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label="${M.passPick}">${passPick}</div>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2 items-start">
+          ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">🎯 ${M.pgTitle} ${pSel}</div>
+            ${goalRows ? `<div class="flex flex-col gap-2">${goalRows}</div>` : `<p class="text-sm text-slate-500">${M.pgNone}</p>`}
+            <button type="button" data-pg-add class="self-start text-xs px-3 py-2 rounded-lg border border-dashed border-gold-500/60 text-gold-300 hover:border-gold-400">${M.pgAdd} ${pSel}</button>
+            <div class="pt-2 border-t border-ink-700">
+              <div class="text-[11px] text-slate-500 mb-1.5">🎯 ${M.simple} · ${M.simpleHint}</div>
+              <div class="grid gap-3 grid-cols-2">
+                ${midSmall(M.simpleCr + ' ' + pSel, 'mid.pt.' + pSel + '.cr', inVal((md.pt[pSel] || {}).cr), null)}
+                ${midSmall('👹 ' + M.simpleKahar, 'mid.pt.' + pSel + '.kahar', inVal((md.pt[pSel] || {}).kahar), null)}
+              </div>
+            </div>
+            <div class="pt-2 border-t border-ink-700">
+              <div class="text-[11px] text-slate-500 mb-1.5">⚡ ${M.presets} · ${M.presetsHint}</div>
+              <div class="flex flex-wrap gap-1.5">${TECH_PRESETS.map((t0) => { const has = pgList.some((g) => g.preset === t0.id); return `
+                <button type="button" data-pg-preset="${t0.id}" ${has ? 'disabled' : ''} class="text-xs px-2.5 py-1.5 rounded-lg border border-gold-500/40 text-slate-200 hover:bg-gold-500/10 disabled:opacity-40 disabled:pointer-events-none">
+                  ${esc(t0.name)} <span class="text-gold-300 tabular-nums">${short(t0.cost)}</span></button>`; }).join('')}</div>
+            </div>`)}
+          ${card('<div data-out="midGoal"></div>')}
+        </div>
+      </div>`;
+    const apBody = `
+      <div class="flex flex-col gap-4 pt-3">
+        ${card(`${tileHead('🧪', L.apTitle, M.apSrc, 'ap')}
+          <div data-out="midAp"></div>
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            ${midSmall('🔋 ' + M.apRegen, 'mid.apRegen', inVal(md.apRegen), null)}
+            ${midSmall('🔗 ' + M.chain, 'mid.chain', inVal(md.chain), 10)}
+            ${midSmall('⚡ ' + M.barbAp, 'mid.barbAp', inVal(md.barbAp), null)}
+            ${midSmall('💎 ' + M.barbCr, 'mid.barbCr', inVal(md.barbCr), null)}
+            ${midSmall('🏰 ' + M.forts, 'mid.forts', inVal(md.forts), null)}
+            ${midSmall('⚡ ' + M.fortAp, 'mid.fortAp', inVal(md.fortAp), null)}
+            ${midSmall('💎 ' + M.fortCr, 'mid.fortCr', inVal(md.fortCr), null)}
+            ${midSmall('👹 ' + M.kahar, 'mid.kahar', inVal(md.kahar), null, M.kaharHint)}
+          </div>`)}
+      </div>`;
+    const honBody = `
+      <div class="flex flex-col gap-4 pt-3">
+        <div data-out="midHonor"></div>
+        ${card(`<div><div class="text-xs uppercase tracking-widest text-slate-400">🏅 ${M.honor}</div><p class="text-xs text-slate-500 mt-0.5">${M.honorHint}</p></div>
+          <div class="grid gap-3 grid-cols-2 lg:grid-cols-4">
+            ${midSmall('🏅 ' + M.honStart, 'mid.hon.start', inVal(md.hon.start), null)}
+            ${midSmall('🏛️ ' + M.ruinsDay, 'mid.hon.ruinsDay', inVal(md.hon.ruinsDay), null)}
+            ${midSmall('⛩️ ' + M.altarsDay, 'mid.hon.altarsDay', inVal(md.hon.altarsDay), null)}
+            <span class="hidden lg:block"></span>
+            ${midSmall(M.hRuin, 'mid.hon.ruin', inVal(md.hon.ruin), null)}
+            ${midSmall(M.hAltar, 'mid.hon.altar', inVal(md.hon.altar), null)}
+            ${midSmall(M.hBarb, 'mid.hon.barb', inVal(md.hon.barb), null)}
+            ${midSmall(M.hFort, 'mid.hon.fort', inVal(md.hon.fort), null)}
+          </div>`)}
+      </div>`;
+    const sIn = (path, val, unit) => `<input type="text" inputmode="decimal" autocomplete="off" data-path="${path}" ${unit ? `data-unit="${unit}"` : ''} value="${esc(val)}" placeholder="0" class="${INPUT_SM}">`;
+    const statLines = [['💪', M.power, 'stats.power', 'mid.now.power'], ['⚔️', M.kp, 'stats.kp', 'mid.now.kp'], ['🏅', M.acclaim, 'stats.acclaim', 'mid.now.acclaim'],
+      ['💀', M.deads, 'stats.deads', 'mid.now.deads'], ['⏱️', M.universal + ` (${M.inDays})`, 'speed.universal', 'mid.now.universal', 'days'], ['❤️', M.healing + ` (${M.inDays})`, 'speed.healing', 'mid.now.healing', 'days']];
+    const midHasScan = !!(lastScan('governor') || lastScan('speedups'));
+    const statsMidBody = `
+      <div class="grid gap-4 pt-3 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start">
+        ${card(`<div class="flex items-start justify-between gap-3">
+            <p class="text-xs text-slate-400">${M.nowScanHint}${state.mid.nowSrc ? ` · <span class="text-slate-500">${L.scanFrom}: ${dateLabel(state.mid.nowSrc)}</span>` : ''}</p>
+            <button type="button" data-mid-scan ${midHasScan ? '' : 'disabled'} title="${midHasScan ? '' : M.noScan}" class="shrink-0 text-xs px-2.5 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 disabled:opacity-40 disabled:pointer-events-none">${M.nowScan}</button>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)] gap-x-2 gap-y-1.5 sm:gap-y-2 items-center text-sm">
+            <span class="hidden sm:block"></span><span class="text-[10px] uppercase tracking-widest text-slate-500 text-right">${M.statStart}</span><span class="text-[10px] uppercase tracking-widest text-slate-500 text-right">${M.statNow}</span>
+            ${statLines.map(([ic, lab, a, b, unit]) => {
+              const va = getPath(state, a), vb = getPath(state, b);
+              return `<span class="col-span-2 sm:col-span-1 text-slate-300 truncate pt-1 sm:pt-0">${ic} ${lab}</span>${sIn(a, unit ? inVal(va / 1440, 1) : inVal(va), unit)}${sIn(b, unit ? inVal(vb / 1440, 1) : inVal(vb), unit)}`;
+            }).join('')}
+          </div>`)}
+        ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">📊 ${M.statDiff}</div><div data-out="midStats"></div>`)}
+      </div>`;
+    // ================= KvK Ende =================
+    const r0 = calc();
+    const E = L.m.e, ed = state.end;
+    const eIn = (path, val, unit) => `<input type="text" inputmode="decimal" autocomplete="off" data-path="${path}" ${unit ? `data-unit="${unit}"` : ''} value="${esc(val)}" placeholder="0" class="${INPUT_SM}">`;
+    const endRows = [['💪', M.power, 'stats.power', 'end.now.power'], ['⚔️', M.kp, 'stats.kp', 'end.now.kp'], ['🏅', M.acclaim, 'stats.acclaim', 'end.now.acclaim'],
+      ['💀', M.deads, 'stats.deads', 'end.now.deads'],
+      ['⏱️', L.cats.universal + ` (${M.inDays})`, 'speed.universal', 'end.now.universal', 'days'], ['⚔️', L.cats.training + ` (${M.inDays})`, 'speed.training', 'end.now.training', 'days'],
+      ['❤️', L.cats.healing + ` (${M.inDays})`, 'speed.healing', 'end.now.healing', 'days'],
+      ...RES.map((x) => [x.icon, L.res[x.k], 'res.' + x.k, 'end.now.' + x.k])];
+    const endHasScan = !!(lastScan('governor') || lastScan('speedups') || lastScan('resources') || lastScan('ap'));
+    const resBtn = (v, lab, cls) => `<button type="button" data-end-result="${v}" aria-pressed="${ed.result === v}" class="seg-btn rounded-lg py-2 px-2 text-sm font-semibold border border-ink-600 transition ${cls}">${lab}</button>`;
+    const endSumBody = `
+      <div class="flex flex-col gap-4 pt-3">
+        ${lockBar()}
+        <div data-out="endSum"></div>
+        <div class="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start">
+          ${card(`<div class="flex items-start justify-between gap-3">
+              <p class="text-xs text-slate-400">${E.endScanHint}${ed.nowSrc ? ` · <span class="text-slate-500">${L.scanFrom}: ${dateLabel(ed.nowSrc)}</span>` : ''}</p>
+              <button type="button" data-end-scan ${endHasScan ? '' : 'disabled'} title="${endHasScan ? '' : M.noScan}" class="shrink-0 text-xs px-2.5 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 disabled:opacity-40 disabled:pointer-events-none">${E.endScan}</button>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)] gap-x-2 gap-y-1.5 sm:gap-y-2 items-center text-sm">
+              <span class="hidden sm:block"></span><span class="text-[10px] uppercase tracking-widest text-slate-500 text-right">${E.start}</span><span class="text-[10px] uppercase tracking-widest text-slate-500 text-right">${E.end}</span>
+              ${endRows.map(([ic, lab, a, b, unit]) => {
+                const va = getPath(state, a), vb = getPath(state, b);
+                return `<span class="col-span-2 sm:col-span-1 text-slate-300 truncate pt-1 sm:pt-0">${ic} ${lab}</span>${eIn(a, unit ? inVal(va / 1440, 1) : inVal(va), unit)}${eIn(b, unit ? inVal(vb / 1440, 1) : inVal(vb), unit)}`;
+              }).join('')}
+              <span class="col-span-2 sm:col-span-1 text-slate-300 truncate pt-1 sm:pt-0">🧪 ${E.apTotal}</span>
+              <span class="text-right text-slate-400 tabular-nums text-sm pr-2">${fmt(r0.apTotal)}</span>${eIn('end.now.ap', inVal(ed.now.ap))}
+            </div>`)}
+          <div class="flex flex-col gap-4">
+            ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">🏁 ${E.result}</div>
+              <div class="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="${E.result}">${resBtn(1, '🏆 ' + E.win)}${resBtn(2, '💀 ' + E.lose)}${resBtn(0, E.open)}</div>`)}
+            ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">🗡️ ${E.fight}</div>
+              <div class="grid gap-3 grid-cols-2">
+                ${midSmall('🗡️ ' + E.kills, 'end.kills', inVal(ed.kills), null)}
+                ${midSmall('💀 ' + E.deadsKvk, 'end.deads', inVal(ed.deads), null)}
+                ${midSmall('❤️ ' + E.heal, 'end.heal', inVal(ed.heal), null)}
+                ${midSmall('👑 ' + E.autarch, 'end.autarch', inVal(ed.autarch), null)}
+              </div>
+              <p class="text-[11px] text-slate-500">⚖️ ${E.trade} = ${E.tradeHint} · 💀 ${E.deadsKvk}: ${E.deadsHint}</p>`)}
+          </div>
+        </div>
+      </div>`;
+    const endImgBody = `
+      <div class="grid gap-4 pt-3 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start">
+        <div class="flex flex-col gap-3">
+          <div class="text-[10px] uppercase tracking-widest text-slate-500">👁 ${E.imgPreview}</div>
+          <div data-out="endImg"></div>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" disabled class="text-sm px-3 py-2 rounded-lg border border-ink-600 text-slate-400 opacity-60 cursor-not-allowed">⬇ ${E.download} <span class="text-[10px] uppercase tracking-widest text-slate-500">· ${E.soonBadge}</span></button>
+            <button type="button" disabled class="text-sm px-3 py-2 rounded-lg border border-ink-600 text-slate-400 opacity-60 cursor-not-allowed">👤 ${E.toProfile} <span class="text-[10px] uppercase tracking-widest text-slate-500">· ${E.soonBadge}</span></button>
+          </div>
+        </div>
+        ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">✅ ${E.imgData}</div>
+          <div class="flex flex-col gap-1">${END_KEYS.map((k) => `
+            <label class="flex items-center gap-2.5 text-sm text-slate-200 cursor-pointer rounded-lg px-2 py-1.5 hover:bg-ink-800/60">
+              <input type="checkbox" data-path="end.show.${k}" ${ed.show[k] !== 2 ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${E.k[k]}</label>`).join('')}
+          </div>
+          <div class="text-xs uppercase tracking-widest text-slate-400 pt-2 border-t border-ink-700">👤 ${E.imgOpts}</div>
+          <div class="flex flex-col gap-1">${[['avatar', E.optAvatar], ['kingdom', E.optKingdom]].map(([k, lab]) => `
+            <label class="flex items-center gap-2.5 text-sm text-slate-200 cursor-pointer rounded-lg px-2 py-1.5 hover:bg-ink-800/60">
+              <input type="checkbox" data-path="end.show.${k}" ${ed.show[k] !== 2 ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">${lab}</label>`).join('')}
+          </div>
+          <div class="text-xs uppercase tracking-widest text-slate-400 pt-2 border-t border-ink-700">🖼️ ${E.bgTitle}</div>
+          <div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="${E.bgTitle}">${['timer', 'gold', 'blood', 'night', 'frost', ...(endOwnBg() ? ['own'] : [])].map((k) => {
+            const sel = (ed.bg === 'own' && !endOwnBg() ? 'timer' : ed.bg || 'timer') === k;
+            return `<button type="button" data-endbg="${k}" aria-pressed="${sel}" class="relative aspect-[16/9] rounded-lg overflow-hidden border-2 ${sel ? 'border-gold-400 shadow-[0_0_14px_rgba(245,197,66,.35)]' : 'border-ink-600 hover:border-gold-500/60'} transition" style="background:${endBgCss(k).replace(/"/g, '&quot;')}">
+              <span class="absolute inset-x-0 bottom-0 text-[10px] font-semibold py-0.5 px-1 text-center truncate bg-ink-950/75 ${sel ? 'text-gold-300' : 'text-slate-300'}">${sel ? '✓ ' : ''}${E.bg[k]}</span></button>`;
+          }).join('')}</div>
+          <div class="flex gap-2">
+            <label class="flex-1 text-center cursor-pointer text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">
+              ⬆ ${E.bgUpload}<input type="file" accept="image/*" data-endbg-file class="hidden">
+            </label>
+            ${endOwnBg() ? `<button type="button" data-endbg-del class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-red-400/60 hover:text-red-300">✕ ${E.bgDel}</button>` : ''}
+          </div>
+          <div data-endbg-msg class="text-[11px] text-slate-500 min-h-[1em]"></div>`)}
+      </div>`;
+    const endTile = `
+      <section class="panel rounded-2xl p-5 flex flex-col gap-4">
+        ${tileHead('🏁', E.title, E.hint, null)}
+        ${fold('endSum', '📊', E.sum, E.sumHint, endSumBody)}
+        ${fold('endImg', '🖼️', E.img, E.imgHint, endImgBody)}
+      </section>`;
+
+    // ---- Karte: 4 Camps (fest: Feuer, Erde, Wasser, Wind) ----
+    const campBody = `
+      <div class="pt-3">
+        ${card(`<div class="grid gap-2.5 sm:grid-cols-2">${[0, 1, 2, 3].map((i) => { const c = md.camps[i] || { kds: '' }, C = CAMPS[i], me = md.myCamp === i + 1, al = md.allyCamp === i + 1; return `
+          <div class="rounded-xl border p-2.5 transition" style="border-color:${me ? '#f5c542' : al ? '#34d399' : C.col + '66'};background:linear-gradient(135deg,${C.col}22,transparent 70%)">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+              <span class="flex items-center gap-2 text-sm font-semibold" style="color:${C.txt}"><span class="text-base">${C.icon}</span>${M.campNames[i]}</span>
+              <span class="flex gap-1">
+                <button type="button" data-mycamp="${i + 1}" aria-pressed="${me}" class="seg-btn text-[11px] px-2 py-1 rounded-md border border-ink-600">⭐ ${M.myCamp}</button>
+                <button type="button" data-allycamp="${i + 1}" aria-pressed="${al}" ${me ? 'disabled' : ''} class="text-[11px] px-2 py-1 rounded-md border transition disabled:opacity-30 disabled:pointer-events-none ${al ? 'border-emerald-400 bg-emerald-400/15 text-emerald-300' : 'border-ink-600 hover:border-emerald-400/60 hover:text-emerald-300'}">🤝 ${M.ally}</button>
+              </span>
+            </div>
+            <div class="grid grid-cols-5 gap-1.5" data-camp-kds="${i}">${(() => { const ks = parseKds(c.kds).slice(0, 10); return Array.from({ length: 10 }, (_, j) => `
+              <input type="text" inputmode="numeric" maxlength="6" data-camp-kd="${i}:${j}" value="${esc(ks[j] || '')}" placeholder="${j + 1}" class="${INPUT_SM} !px-1 !text-center" aria-label="${M.campNames[i]} ${j + 1}">`).join(''); })()}</div>
+          </div>`; }).join('')}</div>`)}
+      </div>`;
+
+
+    // ---- Reiter Karte: Timer bis zum nächsten Ereignis, Karte, Zeitplan ----
+    const MP = L.mp;
+    const evRow = (e) => `
+      <div data-ev="${e.id}" class="grid gap-2 grid-cols-2 sm:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,.55fr)_minmax(0,.8fr)_minmax(0,.65fr)_auto] items-end rounded-lg border border-ink-700 bg-ink-950/40 p-2.5">
+        <label class="flex flex-col gap-1 text-[11px] text-slate-500"><span>&nbsp;</span>
+          <select data-ev-field="kind" class="${INPUT_SM} !text-left">${['ruin', 'altar', 'other'].map((k) => `<option value="${k}" ${e.kind === k ? 'selected' : ''}>${EV_ICON[k][0]} ${MP.kinds[k]}</option>`).join('')}</select></label>
+        <label class="flex flex-col gap-1 text-[11px] text-slate-500"><span>${MP.name}</span>
+          <input type="text" data-ev-field="name" value="${esc(e.name)}" maxlength="40" placeholder="${MP.kinds[e.kind] || ''}" class="${INPUT_SM} !text-left"></label>
+        <label class="flex flex-col gap-1 text-[11px] text-slate-500"><span>${MP.date}</span>
+          <input type="date" data-ev-field="date" value="${esc(e.date || '')}" class="${INPUT_SM} [color-scheme:dark]"></label>
+        <label class="flex flex-col gap-1 text-[11px] text-slate-500 ${e.date ? 'opacity-50' : ''}"><span>${MP.day}</span>
+          <input type="text" inputmode="numeric" data-ev-field="day" value="${esc(e.day)}" ${e.date ? 'disabled' : ''} class="${INPUT_SM}"></label>
+        <label class="flex flex-col gap-1 text-[11px] text-slate-500"><span>${MP.time}</span>
+          <input type="time" data-ev-field="time" value="${esc(e.time)}" class="${INPUT_SM} [color-scheme:dark]"></label>
+        <label class="flex flex-col gap-1 text-[11px] text-slate-500" title="${MP.repHint}"><span>${MP.rep}</span>
+          <input type="text" inputmode="numeric" data-ev-field="repH" value="${esc(evRepH(e))}" class="${INPUT_SM}"></label>
+        <button type="button" data-ev-del="${e.id}" title="${MP.del}" aria-label="${MP.del}" class="col-span-2 sm:col-span-1 h-[34px] px-3 rounded-lg border border-ink-600 text-slate-400 hover:border-red-400/60 hover:text-red-300">✕</button>
+      </div>`;
+    const timesBody = `
+      <div class="flex flex-col gap-2.5 pt-3">
+        <p class="text-[11px] text-slate-500">${MP.repHint}</p>
+        ${state.mapEv.map(evRow).join('')}
+        <div class="flex flex-wrap gap-2">${['ruin', 'altar', 'other'].map((k) => `<button type="button" data-ev-add="${k}" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">＋ ${EV_ICON[k][0]} ${MP.kinds[k]}</button>`).join('')}</div>
+      </div>`;
+    const mapEditOn = !!(state.open.mapCamps || state.open.mapTimes || state.open.mapDesign);
+    const mapTile = `
+      <section class="panel rounded-2xl p-5 flex flex-col gap-4">
+        ${tileHead('🗺️', MP.title, MP.hint, null, `<button type="button" data-map-edit class="shrink-0 text-xs px-2.5 py-1 rounded-lg border ${mapEditOn ? 'border-gold-500 bg-gold-500 text-ink-950 font-semibold' : 'border-ink-600 hover:border-gold-500/60 hover:text-gold-300'}">${mapEditOn ? '✓ ' + L.done : '✎ ' + L.edit}</button>`)}
+        <div data-out="mapNext"></div>
+        <div class="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-start">
+          <div data-out="midMap"></div>
+          <div class="flex flex-col gap-4">
+            ${card(`<div class="text-xs uppercase tracking-widest text-slate-400">📅 ${MP.upcoming}</div><div data-out="mapUpcoming"></div>`)}
+            ${card(`<div data-out="mapSched"></div>`)}
+          </div>
+        </div>
+        ${fold('mapDesign', '🎨', M.mapDesign, MP.designHint.replace('{n}', MAP_STYLES.length), `<div class="pt-3">${mapStylePicker()}</div>`)}
+        ${fold('mapCamps', '🏕️', MP.campsFold, MP.campsHint, campBody)}
+        ${fold('mapTimes', '⏰', MP.timesFold, MP.timesHint, timesBody)}
+      </section>`;
+
+    const midTile = `
+      <section class="panel rounded-2xl p-5 flex flex-col gap-4">
+        ${tileHead('⚔️', M.title, M.hint, null)}
+        ${fold('midFlow', '💎', M.flow, M.flowHint, flowBody)}
+        ${fold('midGoal', '🎯', M.goal, M.goalHint, goalBody)}
+        ${fold('midAp', '🪓', M.apFold, M.apFoldHint, apBody)}
+        ${fold('midHon', '🏅', M.honFold, M.honFoldHint, honBody)}
+        ${fold('midStats', '📊', M.statsFold, M.statsFoldHint, statsMidBody)}
+      </section>`;
+
     return `
       <div class="space-y-5">
         <header class="relative text-center py-1 px-12 sm:px-28">
@@ -1111,10 +1679,19 @@
         ${timePanel}
         ${tabs}
         ${state.tab === 'start' ? `
+        ${lockBar()}
+        <section class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
+          <div><h3 class="font-display text-lg text-gold-300">🗺️ ${L.mp.whichKvk}</h3><p class="text-xs text-slate-400 mt-0.5">${L.mp.whichHint}</p></div>
+          <div class="grid gap-2 grid-cols-1 sm:grid-cols-3" role="radiogroup" aria-label="${L.mp.whichKvk}">${(loadMapIndex(), [{ id: 'schema', name: L.mp.layouts.schema[0], desc: L.mp.layouts.schema[1] }, ...(MAP_INDEX || []).map((m) => ({ id: m.id, name: tx(m.name), desc: tx(m.desc) }))]).map((m) => { const on = validLayout(state.mid.layout) === m.id; return `
+            <button type="button" data-layout="${esc(m.id)}" aria-pressed="${on}" class="text-left rounded-xl border-2 p-2.5 transition ${on ? 'border-gold-400 bg-gold-500/10' : 'border-ink-700 hover:border-gold-500/50'}">
+              <div class="font-semibold text-sm ${on ? 'text-gold-300' : 'text-slate-200'}">${on ? '✓ ' : ''}${esc(m.name)}</div>
+              <div class="text-[11px] text-slate-500">${esc(m.desc)}</div>
+            </button>`; }).join('')}${MAP_INDEX ? '' : `<div class="text-xs text-slate-500 self-center">⏳ ${L.mp.mapsLoading}</div>`}</div>
+        </section>
         ${crystalTile}
         <div class="text-right">
           <button type="button" data-reset class="text-xs text-slate-500 hover:text-red-300 underline">${L.reset}</button>
-        </div>` : `
+        </div>` : state.tab === 'mid' ? midTile : state.tab === 'end' ? endTile : state.tab === 'map' ? mapTile : `
         <section class="panel rounded-2xl p-10 text-center">
           <div class="text-4xl mb-3">${TAB_ICONS[state.tab]}</div>
           <h3 class="font-display text-xl text-gold-300">KvK ${L.tabs[state.tab]}</h3>
@@ -1124,6 +1701,705 @@
       </div>`;
   }
 
+  /* ================================================================== *
+   * KvK Ende: Bilanz Start → Ende
+   * ================================================================== */
+  // Karte als eigenständige Funktion – auch fürs Profil (fremde Daten aus leaderboard.kvk_map)
+  const parseKds = (txt) => [...new Set(String(txt || '').split(/[,;\s]+/).map((k) => k.replace(/[^\d]/g, '').slice(0, 6)).filter(Boolean))];
+  // Ereignisse (Ruinen/Altäre/Eigenes) kompakt fürs Profil – nur geprüfte Felder
+  function cleanEvents(list) {
+    if (!Array.isArray(list)) return [];
+    return list.slice(0, 40).map((e, i) => e && typeof e === 'object' ? {
+      id: String(e.id || 'e' + i).slice(0, 20), kind: ['ruin', 'altar', 'other'].includes(e.kind) ? e.kind : 'other', name: String(e.name || '').slice(0, 40),
+      date: /^\d{4}-\d{2}-\d{2}$/.test(e.date || '') ? e.date : '', day: Math.max(1, Math.min(120, Math.round(+e.day) || 1)),
+      time: /^\d{2}:\d{2}$/.test(e.time || '') ? e.time : '00:00', repH: Math.max(0, Math.min(24 * 60, Math.round(e.repH != null ? +e.repH || 0 : (+e.rep || 0) * 24)))
+    } : null).filter(Boolean);
+  }
+  function mapData() {
+    const m = state.mid;
+    return { kds: [0, 1, 2, 3].map((i) => parseKds((m.camps[i] || {}).kds)), my: +m.myCamp || 0, ally: +m.allyCamp || 0, style: MAP_STYLES.includes(m.mapStyle) ? m.mapStyle : 'battle', layout: validLayout(m.layout),
+      ev: cleanEvents(state.mapEv), days: Math.max(1, Math.min(120, Math.round(+m.days) || 60)) };
+  }
+  function cleanMap(raw) {
+    if (!raw || typeof raw !== 'object' || !Array.isArray(raw.kds)) return null;
+    const kds = [0, 1, 2, 3].map((i) => parseKds((Array.isArray(raw.kds[i]) ? raw.kds[i] : []).join(',')).slice(0, 60));
+    const cl = (v) => ([1, 2, 3, 4].includes(+v) ? +v : 0);
+    return { kds, my: cl(raw.my), ally: cl(raw.ally) === cl(raw.my) ? 0 : cl(raw.ally), style: MAP_STYLES.includes(raw.style) ? raw.style : 'battle', layout: validLayout(raw.layout),
+      ev: cleanEvents(raw.ev), days: Math.max(1, Math.min(120, Math.round(+raw.days) || 60)) };
+  }
+  // Kampfdauer je Ereignis (Testwerte): Altar 2 Std, Pass-Kampf 1 Tag
+  const FIGHT_MS = { altar: 2 * 3600000, pass: 24 * 3600000 };
+  const fightEnd = (e) => e.ts + (FIGHT_MS[e.kind] || 0);
+  const activeFights = (evs, now) => evs.filter((e) => FIGHT_MS[e.kind] && e.ts <= now && now < fightEnd(e));
+  // Ereignis-Schlüssel auf der Karte: 'p4'…'p8' (Pass-Tore) und 'altar'
+  const evKey = (e) => (e.kind === 'pass' ? e.src : e.kind === 'altar' ? 'altar' : null);
+  const mapHasData = (d) => !!d && (d.kds.some((k) => k.length) || d.my > 0);
+  let mapSeq = 0;
+  // Echte KvK-Karten (aus Spiel-Screenshots nachgezeichnet, 500 × 500): Mauern, Bereiche, Pässe mit Stufe, Altäre, Schreine, Forts
+  // Echte KvK-Karten liegen als eigene Dateien in maps/ (maps/index.json = Liste, maps/<id>.json = Karte, 500 × 500):
+  // Mauern, Bereiche, Pässe mit Stufe, Altäre, Gebäude. Geladen wird nur, was gebraucht wird; danach im Speicher.
+  const LK_MAPS = {}, mapLoading = {};
+  let MAP_INDEX = null, mapIndexLoading = null;
+  const MAP_BASE = (() => { try { const sc = document.currentScript && document.currentScript.src; return sc ? new URL('maps/', sc).href : 'maps/'; } catch (e) { return 'maps/'; } })();
+  const validLayout = (v) => (typeof v === 'string' && /^[a-z0-9_-]{1,20}$/.test(v) ? v : 'schema');
+  function mapsChanged() { if (root) rerender(); mapHosts.forEach((h) => { if (h.isConnected && h._kvkRemount) h._kvkRemount(); }); }
+  function loadMapIndex() {
+    if (MAP_INDEX || mapIndexLoading) return;
+    mapIndexLoading = fetch(MAP_BASE + 'index.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null))
+      .then((j) => { MAP_INDEX = j && Array.isArray(j.maps) ? j.maps.filter((m) => m && validLayout(m.id) === m.id) : []; mapsChanged(); })
+      .catch(() => { MAP_INDEX = []; mapsChanged(); });
+  }
+  function ensureMap(id) {
+    if (!id || id === 'schema' || LK_MAPS[id] || mapLoading[id]) return;
+    mapLoading[id] = fetch(MAP_BASE + id + '.json').then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (j && j.wall && Array.isArray(j.gates)) LK_MAPS[id] = j; else LK_MAPS[id] = false; mapsChanged(); })
+      .catch(() => { LK_MAPS[id] = false; mapsChanged(); });
+  }
+  // Karten-Designs (auswählbar, wird mit der Karte im Profil gespeichert) – alles selbst gezeichnetes SVG
+  const MAP_STYLES = ['battle', 'parchment', 'night', 'flat', 'holo', 'frost', 'lava', 'royal', 'pixel', 'sand', 'ingame', 'blueprint', 'marble', 'jungle'];
+  const SERIF = 'Cinzel,Georgia,serif', SANS = 'Inter,system-ui,sans-serif', MONO = 'ui-monospace,Menlo,Consolas,monospace';
+  // chip: bg, tx, st (null = Camp-Farbe), mbg/mtx/mst = eigenes Königreich, rx, castle ('camp' | Farbe | null), shadow, glow
+  const MAP_THEMES = {
+    battle:    { zone: ['#2a2622', '#d9b45a', '#f5deb0', '#1f1c19'], frame: 'linear-gradient(135deg,#7a5508,#e0a91b 30%,#7a5508 55%,#e0a91b 80%,#7a5508)', font: SANS, terrain: ['#4a2418', '#4d3a22', '#173447', '#322545'], grad: [.55, .22], noise: ['#000', .55], grain: true,
+                 rivers: { col: '#2c6a8f', w: 5, hi: '#7cc4e8', op: .75 }, trees: 'leaf', ridges: 'rock', center: 'battle', cTxt: '#fde68a', cStroke: '#120e0a', hl: ['#f5c542', '#34d399'],
+                 banner: { kind: 'ribbon', fill: null, tx: '#fff', st: null, outline: true }, chip: { bg: '#1c1711', tx: '#f1e6c8', st: null, mbg: '#f5c542', mtx: '#1a1206', mst: '#fff7d1', rx: 4, castle: 'camp', shadow: true, glow: true }, empty: '#d8c8a0', vignette: ['#000', .55] },
+    parchment: { zone: ['#e2d3ad', '#5a4630', '#3b2b18', '#eadcbc'], gate: ['#3b2b18', '#f1e2c0', '#f1e2c0'], frame: 'linear-gradient(135deg,#4a3218,#7a5a32 35%,#4a3218 60%,#7a5a32)', font: SERIF, paper: '#eadcbc', grad: [.32, .14], noise: ['#7a5a2a', .35],
+                 rivers: { col: '#3d6f8f', w: 2.2, op: .8 }, trees: 'ink', ridges: 'ink', cross: { st: '#5a4630', w: 1, dash: '5 3 1 3', op: .7 }, border: '#5a4630', center: 'ink', cTxt: '#3b2b18', hl: ['#b7830f', '#2f7a55'],
+                 banner: { kind: 'ribbon', fill: '#f4ead2', tx: 'camp', st: '#5a4630', tail: '#e6d6b0' }, chip: { bg: '#f6eedb', tx: '#2a1e10', st: '#5a4630', mbg: '#f5c542', mtx: '#1a1206', mst: '#fff7d1', rx: 4, castle: '#5a4630', glow: true }, empty: '#5a4630', vignette: ['#3b2410', .45] },
+    night:     { zone: ['#111725', '#f5c542', '#fde68a', '#0a0e17'], frame: '#212b40', font: SANS, paper: '#0a0e17', panels: true, cross: { st: '#f5c542', w: 1.5, dash: '2 5', op: .35 }, center: 'glow', cTxt: '#fde68a', hl: ['#f5c542', '#34d399'],
+                 banner: { kind: 'text', tx: '#f1f5f9' }, chip: { bg: '#0c1019', tx: '#e2e8f0', st: null, mbg: '#f5c542', mtx: '#07090f', mst: '#fde68a', rx: 7, glow: true }, empty: '#64748b' },
+    flat:      { zone: ['#cbd5e1', '#f8fafc', '#0f172a', '#e2e8f0'], gate: ['#0f172a', '#ffffff', '#ffffff'], frame: '#cbd5e1', font: SANS, paper: '#f8fafc', blocks: true, center: 'flat', cTxt: '#f8fafc', hl: ['#0f172a', '#ffffff'], hlW: 3.5, hlRx: 4,
+                 banner: { kind: 'pill' }, chip: { bg: '#ffffff', tx: '#2a1e10', st: 'none', mbg: '#0f172a', mtx: '#fde68a', mst: '#0f172a', rx: 10 }, empty: '#ffffff' },
+    holo:      { zone: ['#071a26', '#22d3ee', '#a5f3fc', '#061018'], gate: ['#061018', '#22d3ee', '#a5f3fc'], frame: '#0e3340', font: MONO, paper: '#061018', grad: [.28, .08], grid: { st: '#22d3ee', op: .14, step: 20 }, cross: { st: '#22d3ee', w: .8, dash: '4 4', op: .5 }, center: 'holo', cTxt: '#a5f3fc', hl: ['#22d3ee', '#a3e635'],
+                 banner: { kind: 'holo', tx: '#a5f3fc', st: '#22d3ee' }, chip: { bg: '#061018', tx: '#a5f3fc', st: '#22d3ee', mbg: '#22d3ee', mtx: '#061018', mst: '#a5f3fc', rx: 2, glow: true }, empty: '#67e8f9', extras: 'holo' },
+    frost:     { zone: ['#cfdde8', '#7fb3d5', '#1e3a5f', '#dde9f1'], gate: ['#1e3a5f', '#ffffff', '#ffffff'], frame: 'linear-gradient(135deg,#9fc3dc,#e8f4fb 40%,#9fc3dc)', font: SANS, paper: '#dde9f1', grad: [.3, .1], noise: ['#5b7d99', .25], grain: true,
+                 rivers: { col: '#8fc6e3', w: 5, hi: '#ffffff', op: .85 }, trees: 'snow', ridges: 'ice', center: 'ice', cTxt: '#1e3a5f', hl: ['#d97706', '#059669'],
+                 banner: { kind: 'ribbon', fill: '#f4f9fc', tx: 'camp', st: '#7fb3d5', tail: '#d6e8f3' }, chip: { bg: '#ffffff', tx: '#1e3a5f', st: null, mbg: '#f5c542', mtx: '#1a1206', mst: '#b45309', rx: 4, castle: 'camp' }, empty: '#5b7d99', vignette: ['#5b7d99', .25], extras: 'snow' },
+    lava:      { zone: ['#1c0d0a', '#ff6a00', '#ffb27a', '#120605'], gate: ['#1a0a06', '#ff6a00', '#ffd166'], frame: 'linear-gradient(135deg,#3a0e08,#ff6a00 35%,#3a0e08 60%,#ff6a00)', font: SANS, terrain: ['#3a0e08', '#2c1a0c', '#1a1012', '#24101c'], grad: [.3, .08], noise: ['#000', .5],
+                 rivers: { col: '#ff6a00', w: 5, hi: '#ffd166', op: .95, glow: true }, ridges: 'ash', center: 'lava', cTxt: '#ffb27a', cStroke: '#120605', hl: ['#ffd166', '#7dd3fc'],
+                 banner: { kind: 'ribbon', fill: '#2a0e08', tx: '#ffb27a', st: '#ff6a00', tail: '#2a0e08' }, chip: { bg: '#1a0a06', tx: '#ffd9b0', st: '#ff7a1a', mbg: '#ffd166', mtx: '#2a0e08', mst: '#fff7d1', rx: 4, shadow: true, glow: true }, empty: '#c97a4a', vignette: ['#000', .6], extras: 'embers' },
+    royal:     { zone: ['#14121a', '#d4af37', '#f5deb0', '#0b0b0f'], frame: 'linear-gradient(135deg,#1a1206,#d4af37 30%,#1a1206 55%,#d4af37 80%,#1a1206)', font: SERIF, paper: '#0b0b0f', grad: [.35, .1], center: 'royal', cTxt: '#f5deb0', hl: ['#fde68a', '#6ee7b7'],
+                 banner: { kind: 'ribbon', fill: '#15131a', tx: '#f5deb0', st: '#d4af37', tail: '#15131a' }, chip: { bg: '#15131a', tx: '#f5deb0', st: '#d4af37', mbg: '#d4af37', mtx: '#15131a', mst: '#fff7d1', rx: 3, castle: '#d4af37', glow: true }, empty: '#a8905a', extras: 'ornament' },
+    pixel:     { zone: ['#555555', '#ffffff', '#ffffff', '#333333'], gate: ['#111111', '#ffffff', '#ffffff'], frame: 'repeating-linear-gradient(45deg,#111 0 6px,#3a3a3a 6px 12px)', font: MONO, crisp: true, terrain: ['#c0392b', '#a0703c', '#2e86de', '#8e44ad'], checker: true, rivers: { pixel: true, col: '#1b4f72', w: 8, hi: '#5dade2' }, trees: 'pixel',
+                 center: 'pixel', cTxt: '#ffffff', hl: ['#ffe600', '#00ff88'], hlW: 4, hlRx: 0,
+                 banner: { kind: 'pixel', fill: '#111111', tx: '#ffffff', st: '#ffffff' }, chip: { bg: '#111111', tx: '#ffffff', st: '#ffffff', mbg: '#ffe600', mtx: '#111111', mst: '#111111', rx: 0 }, empty: '#ffffff' },
+    sand:      { zone: ['#cfae74', '#6b4a1e', '#3b2a12', '#dcbf86'], gate: ['#3b2b18', '#f1e2c0', '#f1e2c0'], frame: 'linear-gradient(135deg,#6b4a1e,#c9a46a 40%,#6b4a1e)', font: SANS, paper: '#dcbf86', grad: [.25, .08], noise: ['#7a4f1e', .3], grain: true,
+                 rivers: { col: '#4f8fb3', w: 3, op: .7, dash: '7 4' }, trees: 'palm', center: 'sand', cTxt: '#3b2a12', hl: ['#b45309', '#047857'],
+                 banner: { kind: 'ribbon', fill: '#f1e2c0', tx: 'camp', st: '#6b4a1e', tail: '#e2cc9c' }, chip: { bg: '#f6ead0', tx: '#3b2a12', st: '#6b4a1e', mbg: '#f5c542', mtx: '#1a1206', mst: '#b45309', rx: 4, castle: 'camp' }, empty: '#6b4a1e', vignette: ['#5a3a12', .35], extras: 'desert' },
+    ingame:    { gate: ['#2f4f1e', '#f3f7d9', '#f3f7d9'], zone: ['#8fc24d', '#eef7d2', '#1e3d10', '#6a9f3a'], frame: 'linear-gradient(135deg,#3d6b2a,#8fc24d 40%,#3d6b2a)', font: SANS, paper: '#6a9f3a', terrain: ['#d9412b', '#d9952a', '#1fa6a0', '#6b4fb3'],
+                 noise: ['#1e3d10', .3], grain: true, wobble: true, bigIcon: .5, trees: 'leaf', treeN: 8, center: 'ingame', cTxt: '#eef7d2', cStroke: '#1e3d10', hl: ['#fde68a', '#ffffff'], hlW: 3,
+                 banner: { kind: 'ribbon', fill: null, tx: '#fff', st: null, outline: true }, chip: { bg: '#1e3d10', tx: '#eef7d2', st: null, mbg: '#f5c542', mtx: '#1a1206', mst: '#fff7d1', rx: 5, castle: 'camp', shadow: true, glow: true }, empty: '#eef7d2', vignette: ['#1e3d10', .35] },
+    blueprint: { gate: ['#1e3a8a', '#dbeafe', '#eff6ff'], zone: ['#2548a8', '#dbeafe', '#dbeafe', '#1e3a8a'], frame: '#172554', font: MONO, paper: '#1e3a8a', grad: [.3, .1], grid: { st: '#dbeafe', op: .18, step: 25 }, cross: { st: '#dbeafe', w: .8, dash: '6 4', op: .6 },
+                 center: 'blueprint', cTxt: '#eff6ff', hl: ['#fde68a', '#86efac'], banner: { kind: 'holo', tx: '#eff6ff', st: '#dbeafe' }, chip: { bg: '#1e3a8a', tx: '#eff6ff', st: '#dbeafe', mbg: '#fde68a', mtx: '#1e3a8a', mst: '#ffffff', rx: 2 }, empty: '#bfdbfe', extras: 'blueprint' },
+    marble:    { gate: ['#3b2b18', '#b8860b', '#f5deb0'], zone: ['#d9d2c3', '#b8860b', '#3b2b18', '#e7e2d8'], frame: 'linear-gradient(135deg,#8a6a1e,#e8d9a0 40%,#8a6a1e)', font: SERIF, paper: '#e7e2d8', grad: [.28, .1], extras: 'veins', center: 'marble', cTxt: '#3b2b18', hl: ['#b8860b', '#2f7a55'],
+                 banner: { kind: 'ribbon', fill: '#f6f1e6', tx: 'camp', st: '#b8860b', tail: '#e8dfca' }, chip: { bg: '#f6f1e6', tx: '#2a1e10', st: '#b8860b', mbg: '#f5c542', mtx: '#1a1206', mst: '#b8860b', rx: 3, castle: '#b8860b' }, empty: '#6b5a3a', vignette: ['#6b5a3a', .3] },
+    jungle:    { gate: ['#102a16', '#9ad28a', '#e8ffd6'], zone: ['#2f6b3a', '#9ad28a', '#e8ffd6', '#1f4d2b'], frame: 'linear-gradient(135deg,#1f4d2b,#6fbf5a 40%,#1f4d2b)', font: SANS, paper: '#1f4d2b', grad: [.5, .2], noise: ['#000', .45], grain: true,
+                 rivers: { col: '#2c6a8f', w: 5, hi: '#7cc4e8', op: .75 }, trees: 'leaf', treeN: 26, center: 'battle', cTxt: '#fde68a', cStroke: '#102a16', hl: ['#f5c542', '#7dd3fc'],
+                 banner: { kind: 'ribbon', fill: null, tx: '#fff', st: null, outline: true }, chip: { bg: '#102a16', tx: '#d9f2c8', st: null, mbg: '#f5c542', mtx: '#1a1206', mst: '#fff7d1', rx: 4, castle: 'camp', shadow: true, glow: true }, empty: '#d9f2c8', vignette: ['#000', .5] }
+  };
+  function mapSVG(d, ownKd, evs) {
+    const M = t().m, st = MAP_STYLES.includes(d.style) ? d.style : 'battle', T = MAP_THEMES[st];
+    const now = srvNow(), fights = evs ? activeFights(evs, now) : [], hot = {};
+    fights.forEach((e) => { const k = evKey(e); if (k) hot[k] = e; });
+    const myKd = String(ownKd != null ? ownKd : ((window.RokAuth && window.RokAuth.ownMeta && window.RokAuth.ownMeta()) || {}).kingdom || '').replace(/[^\d]/g, '');
+    const quad = [[0, 0], [1, 0], [0, 1], [1, 1]], u = 'm' + (++mapSeq);   // eigene IDs je Karte (mehrere auf einer Seite)
+    // Geometrie (500 × 500): Camps in den Ecken (0–175), dazwischen Zone 4, in der Mitte Zone 5 (4 Viertel) um Zone 6 (Ziggurat)
+    const W = 500, CS = 150, C0 = 250, Z6R = 40;
+    let seed = 7;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+    const f1 = (v) => Math.round(v * 10) / 10;
+    const campBox = (qx, qy) => ({ x: qx ? W - CS : 0, y: qy ? W - CS : 0 });            // linke obere Ecke des Camps
+    // Pässe (Testanordnung): P4 Camp → Zone 4 (2 je Zone 4), P5 Zone 4 → Zone 5, P6 = Altar Camp → Zone 5 (Ecke),
+    // P7 Zone 5 ↔ Zone 5 (zum Nachbar-Camp), P8 Zone 5 → Ziggurat (Zone 6)
+    const P4 = [[CS, CS / 2], [W - CS, CS / 2], [CS, W - CS / 2], [W - CS, W - CS / 2], [CS / 2, CS], [CS / 2, W - CS], [W - CS / 2, CS], [W - CS / 2, W - CS]];
+    const P5 = [[C0, CS], [C0, W - CS], [CS, C0], [W - CS, C0]];
+    const P6 = [[CS, CS], [W - CS, CS], [CS, W - CS], [W - CS, W - CS]];
+    const P7 = [[C0, CS + 30], [C0, W - CS - 30], [CS + 30, C0], [W - CS - 30, C0]];
+    const dz = f1((Z6R + 16) / Math.SQRT2);
+    const P8 = [[C0 - dz, C0 - dz], [C0 + dz, C0 - dz], [C0 - dz, C0 + dz], [C0 + dz, C0 + dz]];
+    const RIVER1 = 'M0 292C38 284 52 262 86 266S128 300 150 286S168 248 158 232', RIVER2 = 'M400 108C366 116 350 140 318 134S276 104 252 118S236 152 244 168';
+    const PIX1 = 'M0 288H32V272H64V280H104V296H136V288H152V264H160V232', PIX2 = 'M400 112H368V128H336V120H296V104H264V112H248V136H240V168';
+    // Feuer-Overlay (Kampf läuft): Glut + drei flackernde Flammen, Farbe je Ereignis
+    const fire = (col, hi) => `<g class="kvk-fire" aria-hidden="true"><circle r="16" cy="-2" fill="${col}" opacity=".45" filter="url(#${u}b)"/>
+        <path d="M-6 6c-5 -6 -3 -12 0 -17c1 4 3 5 3 9c2 -3 1 -6 3 -9c3 5 5 11 0 17Z" fill="${col}" opacity=".9"/>
+        <path d="M4 7c-4 -5 -2 -10 1 -14c1 3 2 4 2 7c1 -2 1 -4 2 -6c2 4 3 9 -1 13Z" fill="${col}" opacity=".8"/>
+        <path d="M-3 7c-2.5 -3 -1.5 -6 0 -9c.6 2 1.5 3 1.5 5c1 -1.5 1 -3 1.5 -4.5c1.5 3 2 6 -1 8.5Z" fill="${hi}" opacity=".95"/></g>`;
+    // ---- Berge an den Innenkanten der Camps (Lücken bei P4 und an der Ecke bei P6) ----
+    const peak = (x, y, sz) => {
+      const L0 = f1(x - sz), R0 = f1(x + sz), top = f1(y - sz * 1.35), yy = f1(y);
+      if (T.ridges === 'ink') return `<path d="M${L0} ${yy}L${f1(x)} ${f1(y - sz * 1.3)}L${R0} ${yy}" fill="#d9c69c" stroke="#5a4630" stroke-width="1.1" stroke-linejoin="round"/><path d="M${f1(x)} ${f1(y - sz * 1.3)}L${f1(x + sz * 0.25)} ${yy}M${f1(x + sz * 0.15)} ${f1(y - sz * 0.6)}l${f1(sz * 0.4)} ${f1(sz * 0.3)}" stroke="#5a4630" stroke-width=".7" fill="none"/>`;
+      const [dark, light, cap] = T.ridges === 'ice' ? ['#9fc3dc', '#d9ecf7', '#ffffff'] : T.ridges === 'ash' ? ['#1f1410', '#3a2419', '#ff8c42'] : ['#3b3128', '#6b5a45', '#e9e1cc'];
+      return `<path d="M${L0} ${yy}L${f1(x)} ${top}L${R0} ${yy}Z" fill="${dark}"/><path d="M${L0} ${yy}L${f1(x)} ${top}L${f1(x - sz * 0.15)} ${yy}Z" fill="${light}"/><path d="M${f1(x - sz * 0.32)} ${f1(y - sz * 0.92)}L${f1(x)} ${top}L${f1(x + sz * 0.32)} ${f1(y - sz * 0.92)}L${f1(x + sz * 0.1)} ${f1(y - sz * 0.8)}Z" fill="${cap}"/>`;
+    };
+    let ridges = '';
+    if (T.ridges) {
+      const pts = [];
+      for (let v = 10; v <= 158; v += 10.5) {
+        if (Math.abs(v - CS / 2) < 11 || v > 148) continue;                     // Lücken für Pass 4 und die Ecke (Pass 6)
+        const j = (rnd() - 0.5) * 5;
+        quad.forEach(([qx, qy]) => { const b0 = campBox(qx, qy), ex = qx ? b0.x : CS, ey = qy ? b0.y : CS;   // Innenkanten
+          pts.push([ex + j, b0.y + v + 4], [b0.x + v, ey + j + 2]); });
+      }
+      ridges = pts.sort((p1, p2) => p1[1] - p2[1]).map(([x, y]) => peak(x, y, 6 + rnd() * 3.5)).join('');
+    }
+    // ---- Bäume (nur in den Camps) ----
+    const trees = [];
+    if (T.trees) quad.forEach(([qx, qy]) => {
+      const b0 = campBox(qx, qy);
+      for (let k = 0; k < (T.treeN || 14); k++) {
+        const x = f1(b0.x + 16 + rnd() * (CS - 32)), y = f1(b0.y + 16 + rnd() * (CS - 32)), r = f1(3 + rnd() * 2.2);
+        if (T.trees === 'ink') trees.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="#c9b78c" stroke="#5a4630" stroke-width=".8"/><path d="M${x} ${f1(y + r)}v2.5" stroke="#5a4630" stroke-width=".8"/>`);
+        else if (T.trees === 'snow') trees.push(`<path d="M${f1(x - r)} ${f1(y + r)}L${x} ${f1(y - r * 1.4)}L${f1(x + r)} ${f1(y + r)}Z" fill="#1f3d2b"/><path d="M${f1(x - r * 0.45)} ${f1(y - r * 0.3)}L${x} ${f1(y - r * 1.4)}L${f1(x + r * 0.45)} ${f1(y - r * 0.3)}Z" fill="#ffffff"/>`);
+        else if (T.trees === 'pixel') { const px = Math.round(x / 4) * 4, py = Math.round(y / 4) * 4; trees.push(`<rect x="${px - 4}" y="${py - 8}" width="8" height="8" fill="#1e8449"/><rect x="${px - 2}" y="${py - 12}" width="4" height="4" fill="#27ae60"/><rect x="${px - 1}" y="${py}" width="2" height="4" fill="#6e2c00"/>`); }
+        else if (T.trees === 'palm') trees.push(`<path d="M${x} ${f1(y + 4)}v-5" stroke="#6b4a1e" stroke-width="1.2"/><path d="M${x} ${f1(y - 1)}l-4 -2.5M${x} ${f1(y - 1)}l4 -2.5M${x} ${f1(y - 1)}l-3 1.5M${x} ${f1(y - 1)}l3 1.5M${x} ${f1(y - 1)}v-3.5" stroke="#2f6b3a" stroke-width="1.4" stroke-linecap="round"/>`);
+        else trees.push(`<circle cx="${f1(x + 1)}" cy="${f1(y + 1.5)}" r="${r}" fill="#000" opacity=".35"/><circle cx="${x}" cy="${y}" r="${r}" fill="#24401f"/><circle cx="${f1(x - r * 0.3)}" cy="${f1(y - r * 0.3)}" r="${f1(r * 0.45)}" fill="#3f6b33"/>`);
+      }
+    });
+    // ---- Defs ----
+    const gs = (T.grid || {}).step || 20;
+    const defs = `
+        <filter id="${u}n" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="4" seed="3"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.1 -.45"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+        <filter id="${u}f" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="9"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 .95  0 0 0 0 .8  0 0 0 .09 0"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+        <filter id="${u}g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>
+        <filter id="${u}b" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.5"/></filter>
+        <pattern id="${u}d" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1" fill="#fff" fill-opacity=".06"/></pattern>
+        <pattern id="${u}ck" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#000" fill-opacity=".12"/><rect x="8" y="8" width="8" height="8" fill="#000" fill-opacity=".12"/></pattern>
+        <pattern id="${u}gr" width="${gs}" height="${gs}" patternUnits="userSpaceOnUse"><path d="M${gs} 0H0V${gs}" fill="none" stroke="${(T.grid || {}).st || '#fff'}" stroke-opacity="${(T.grid || {}).op || .1}" stroke-width=".8"/></pattern>
+        <pattern id="${u}sc" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="1" fill="#000" fill-opacity=".18"/></pattern>
+        <pattern id="${u}dm" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M12 0L24 12L12 24L0 12Z" fill="none" stroke="#d4af37" stroke-opacity=".12" stroke-width=".8"/></pattern>
+        <pattern id="${u}hz" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 8L8 0" stroke="${T.zone[1]}" stroke-opacity=".12" stroke-width="1"/></pattern>
+        ${CAMPS.map((C, i) => { const [qx, qy] = quad[i], g = T.grad || [0, 0]; return `<radialGradient id="${u}c${i}" cx="${qx ? 100 : 0}%" cy="${qy ? 100 : 0}%" r="125%"><stop offset="0" stop-color="${C.col}" stop-opacity="${g[0]}"/><stop offset=".6" stop-color="${C.col}" stop-opacity="${g[1]}"/><stop offset="1" stop-color="${C.col}" stop-opacity=".06"/></radialGradient>`; }).join('')}
+        <radialGradient id="${u}k" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fde68a" stop-opacity=".9"/><stop offset=".5" stop-color="#e0a91b" stop-opacity=".35"/><stop offset="1" stop-color="#e0a91b" stop-opacity="0"/></radialGradient>
+        <radialGradient id="${u}o" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffd166" stop-opacity=".9"/><stop offset=".5" stop-color="#ff6a00" stop-opacity=".4"/><stop offset="1" stop-color="#ff6a00" stop-opacity="0"/></radialGradient>
+        <radialGradient id="${u}p" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#6b5836"/><stop offset=".7" stop-color="#3e3322"/><stop offset="1" stop-color="#2a2218"/></radialGradient>
+        ${T.vignette ? `<radialGradient id="${u}v" cx="50%" cy="50%" r="72%"><stop offset=".6" stop-color="${T.vignette[0]}" stop-opacity="0"/><stop offset="1" stop-color="${T.vignette[0]}" stop-opacity="${T.vignette[1]}"/></radialGradient>` : ''}`;
+    // ---- Hintergrund: Zonen-Boden, dann die vier Camps ----
+    const camp = (qx, qy, inset, extra) => { const b0 = campBox(qx, qy); return `<rect x="${b0.x + inset}" y="${b0.y + inset}" width="${CS - 2 * inset}" height="${CS - 2 * inset}" ${extra}/>`; };
+    let bg = `<rect width="${W}" height="${W}" fill="${T.paper || T.zone[3]}"/>`;
+    if (T.blocks) bg += quad.map(([qx, qy], i) => camp(qx, qy, 0, `fill="${CAMPS[i].col}"`)).join('');
+    if (T.terrain) bg += quad.map(([qx, qy], i) => camp(qx, qy, 0, `fill="${T.terrain[i]}"`)).join('');
+    if (T.grad && !T.panels) bg += quad.map(([qx, qy], i) => camp(qx, qy, 0, `fill="url(#${u}c${i})"`)).join('');
+    if (T.panels) bg += quad.map(([qx, qy], i) => camp(qx, qy, 6, `rx="14" fill="url(#${u}c${i})"`) + camp(qx, qy, 6, `rx="14" fill="url(#${u}d)" stroke="${CAMPS[i].col}" stroke-opacity=".55" stroke-width="1.2"`) + `<text x="${campBox(qx, qy).x + CS / 2}" y="${campBox(qx, qy).y + CS / 2 + 30}" text-anchor="middle" font-size="84" opacity=".07">${CAMPS[i].icon}</text>`).join('');
+    if (T.bigIcon) bg += quad.map(([qx, qy], i) => `<text x="${campBox(qx, qy).x + CS / 2}" y="${campBox(qx, qy).y + CS / 2 + 34}" text-anchor="middle" font-size="96" opacity="${T.bigIcon}">${CAMPS[i].icon}</text>`).join('');
+    if (T.checker) bg += `<rect width="${W}" height="${W}" fill="url(#${u}ck)"/>`;
+    if (T.extras === 'veins') { let vn = ''; for (let k = 0; k < 14; k++) { const x0 = f1(rnd() * W), y0 = f1(rnd() * W); vn += `<path d="M${x0} ${y0}q${f1((rnd() - .5) * 120)} ${f1((rnd() - .5) * 120)} ${f1((rnd() - .5) * 220)} ${f1((rnd() - .5) * 220)}" fill="none" stroke="#9c9383" stroke-width="${f1(.5 + rnd())}" opacity=".45"/>`; } bg += vn; }
+    if (T.noise) bg += `<rect width="${W}" height="${W}" fill="${T.noise[0]}" filter="url(#${u}n)" opacity="${T.noise[1]}"/>`;
+    if (T.grain) bg += `<rect width="${W}" height="${W}" fill="#fff" filter="url(#${u}f)"/>`;
+    if (T.grid) bg += `<rect width="${W}" height="${W}" fill="url(#${u}gr)"/>` + quad.map(([qx, qy], i) => camp(qx, qy, 3, `fill="none" stroke="${CAMPS[i].col}" stroke-opacity=".55" stroke-width="1"`)).join('');
+    if (T.extras === 'ornament') bg += `<rect width="${W}" height="${W}" fill="url(#${u}dm)"/>`;
+    if (T.extras === 'desert') { let dunes = ''; for (let k = 0; k < 16; k++) { const x0 = f1(rnd() * (W - 40)), y0 = f1(20 + rnd() * (W - 40)), w = f1(30 + rnd() * 50); dunes += `<path d="M${x0} ${y0}q${f1(w / 2)} -${f1(w / 7)} ${w} 0" fill="none" stroke="#b8945a" stroke-width="1.1" opacity=".8"/>`; } bg += dunes; }
+    if (T.extras === 'embers') { let cr = ''; for (let k = 0; k < 10; k++) { let x = f1(40 + rnd() * (W - 80)), y = f1(40 + rnd() * (W - 80)), dd = `M${x} ${y}`; for (let j = 0; j < 4; j++) { x = f1(x + (rnd() - 0.5) * 28); y = f1(y + (rnd() - 0.5) * 28); dd += `L${x} ${y}`; } cr += `<path d="${dd}" fill="none" stroke="#ff6a00" stroke-width="2.4" stroke-linecap="round" opacity=".55" filter="url(#${u}b)"/><path d="${dd}" fill="none" stroke="#ffd166" stroke-width=".8" stroke-linecap="round" opacity=".8"/>`; } bg += cr; }
+    if (T.rivers) {
+      const R = T.rivers, p1 = R.pixel ? PIX1 : RIVER1, p2 = R.pixel ? PIX2 : RIVER2, cap = R.pixel ? 'butt' : 'round', dash = R.dash ? `stroke-dasharray="${R.dash}"` : '';
+      const line = (pth, w, col, op) => `<path d="${pth}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="${cap}" stroke-linejoin="${R.pixel ? 'miter' : 'round'}" opacity="${op}" ${dash}/>`;
+      let rv = '';
+      [p1, p2].forEach((pth, i) => {
+        if (R.glow) rv += `<path d="${pth}" fill="none" stroke="${R.col}" stroke-width="${R.w * 2.2}" stroke-linecap="round" opacity=".5" filter="url(#${u}b)"/>`;
+        rv += line(pth, R.w, R.col, i ? R.op * 0.85 : R.op);
+        if (R.hi) rv += line(pth, R.pixel ? R.w / 2 : R.w * 0.28, R.hi, .6);
+      });
+      bg += `<g transform="scale(${W / 400})">${rv}</g>`;
+    }
+    // ---- Zonen: Zone 4 (4 Felder zwischen den Camps), Zone 5 (4 Viertel um die Mitte), Zone 6 (Ziggurat) ----
+    const [zf, zs, zl] = T.zone;
+    // Puzzle-Kanten (Design „Spielkarte“): Rechteck mit leicht gewellten Rändern
+    const wob = (x, y, w, h) => { const pts = []; const edge = (x0, y0, x1, y1) => { const n = Math.max(2, Math.round(Math.hypot(x1 - x0, y1 - y0) / 14)); for (let i = 0; i < n; i++) { const tt = i / n, j = (rnd() - 0.5) * 7; pts.push([x0 + (x1 - x0) * tt + (x0 === x1 ? j : 0), y0 + (y1 - y0) * tt + (y0 === y1 ? j : 0)]); } };
+      edge(x, y, x + w, y); edge(x + w, y, x + w, y + h); edge(x + w, y + h, x, y + h); edge(x, y + h, x, y); return 'M' + pts.map((p0) => f1(p0[0]) + ' ' + f1(p0[1])).join('L') + 'Z'; };
+    const zShape = (x, y, w, h, inset, attrs) => T.wobble ? `<path d="${wob(x + inset, y + inset, w - 2 * inset, h - 2 * inset)}" stroke-linejoin="round" ${attrs}/>` : `<rect x="${x + inset}" y="${y + inset}" width="${w - 2 * inset}" height="${h - 2 * inset}" ${attrs}/>`;
+    const zoneRect = (x, y, w, h, lab, lx, ly) => `${zShape(x, y, w, h, 0, `fill="${zf}" fill-opacity=".92"`)}${zShape(x, y, w, h, 0, `fill="url(#${u}hz)"`)}${zShape(x, y, w, h, 1, `fill="none" stroke="${zs}" stroke-opacity="${T.wobble ? .9 : .55}" stroke-width="${T.wobble ? 2 : 1}" ${T.wobble ? '' : 'stroke-dasharray="6 3"'}`)}
+      <text x="${lx}" y="${ly}" text-anchor="middle" font-size="11" font-weight="800" letter-spacing="1" fill="${zl}" opacity=".85">${lab}</text>`;
+    const Z4 = M.zoneN.replace('{n}', 4), Z5 = M.zoneN.replace('{n}', 5);
+    let zones = zoneRect(CS, 0, W - 2 * CS, CS, Z4, C0, 88) + zoneRect(CS, W - CS, W - 2 * CS, CS, Z4, C0, W - 80) + zoneRect(0, CS, CS, W - 2 * CS, Z4, CS / 2, C0 + 4) + zoneRect(W - CS, CS, CS, W - 2 * CS, Z4, W - CS / 2, C0 + 4);
+    zones += quad.map(([qx, qy]) => { const x = qx ? C0 : CS, y = qy ? C0 : CS, lx = qx ? W - CS - 24 : CS + 24, ly = qy ? C0 + 40 : C0 - 30;
+      return `${zShape(x, y, C0 - CS, C0 - CS, 0, `fill="${zf}" fill-opacity=".92"`)}${zShape(x, y, C0 - CS, C0 - CS, 1, `fill="none" stroke="${zs}" stroke-opacity="${T.wobble ? .9 : .7}" stroke-width="${T.wobble ? 2 : 1.2}"`)}<text x="${lx}" y="${ly}" text-anchor="middle" font-size="9" font-weight="800" letter-spacing=".8" fill="${zl}" opacity=".85">${Z5}</text>`; }).join('');
+    // Altar je Camp in Zone 5 (Ecke zum Camp)
+    const altar = (x, y) => `<g transform="translate(${x} ${y})" data-gate="altar" class="${evs ? 'cursor-pointer' : ''}"><rect x="-7" y="2" width="14" height="4" rx="1" fill="${T.gate ? T.gate[0] : '#2b241c'}" stroke="${zs}" stroke-width=".8"/><rect x="-4" y="-4" width="8" height="6" fill="${T.gate ? T.gate[0] : '#2b241c'}" stroke="${zs}" stroke-width=".8"/><path d="M0 -4c-3 -3 -2 -6 0 -8c2 2 3 5 0 8Z" fill="#ff9f43"/><path d="M0 -5c-1.4 -1.6 -1 -3 0 -4.2c1 1.2 1.4 2.6 0 4.2Z" fill="#ffe08a"/>
+      <text x="0" y="15" text-anchor="middle" font-size="6.5" font-weight="800" fill="${zl}">${M.altar}</text>${hot.altar ? `<g transform="translate(0 -6)">${fire('#22c55e', '#bbf7d0')}</g>` : ''}</g>`;
+    const ALT = quad.map(([qx, qy]) => [qx ? W - CS - 26 : CS + 26, qy ? W - CS - 30 : CS + 24]);
+    zones += ALT.map(([x, y]) => altar(x, y)).join('');
+    bg += zones + trees.join('');
+    if (T.cross) bg += `<path d="M${C0} 10V${CS - 6}M${C0} ${W - CS + 6}V${W - 10}M10 ${C0}H${CS - 6}M${W - CS + 6} ${C0}H${W - 10}" stroke="${T.cross.st}" stroke-width="${T.cross.w}" stroke-dasharray="${T.cross.dash}" opacity="${T.cross.op}"/>`;
+    bg += ridges;
+    if (T.border) bg += `<rect x="6" y="6" width="${W - 12}" height="${W - 12}" fill="none" stroke="${T.border}" stroke-width="1.2"/><rect x="10" y="10" width="${W - 20}" height="${W - 20}" fill="none" stroke="${T.border}" stroke-width=".5"/>`;
+    // ---- Mitte: Ziggurat (Zone 6) ----
+    const zig = (c, ink) => `<g aria-hidden="true">
+        <rect x="181" y="203" width="38" height="7" rx="1" fill="${c[0]}" ${ink ? `stroke="${ink}" stroke-width=".8"` : ''}/><rect x="186" y="196" width="28" height="7" rx="1" fill="${c[1]}" ${ink ? `stroke="${ink}" stroke-width=".8"` : ''}/>
+        <rect x="191" y="189" width="18" height="7" rx="1" fill="${c[2]}" ${ink ? `stroke="${ink}" stroke-width=".8"` : ''}/><rect x="195.5" y="181" width="9" height="8" rx="1" fill="${c[3]}" ${ink ? `stroke="${ink}" stroke-width=".8"` : ''}/>
+        <path d="M198.2 210V189M201.8 210V189" stroke="${c[4]}" stroke-width="1"/></g>`;
+    const GOLD = ['#8a620c', '#b7830f', '#e0a91b', '#fde68a', '#5a3d06'];
+    const centers = {
+      battle: `<circle cx="200" cy="200" r="${Z6R}" fill="url(#${u}p)"/><circle cx="200" cy="200" r="${Z6R}" fill="#fff" filter="url(#${u}f)"/><circle cx="200" cy="200" r="34" fill="#3a3122" stroke="#d9b45a" stroke-width="1.5"/><circle cx="200" cy="200" r="28" fill="none" stroke="#d9b45a" stroke-opacity=".45" stroke-dasharray="2 3"/><circle cx="200" cy="196" r="26" fill="url(#${u}k)" opacity=".6"/>${zig(GOLD)}`,
+      ink: `<circle cx="200" cy="200" r="${Z6R}" fill="#efe3c6" stroke="#5a4630" stroke-width="1.4"/><circle cx="200" cy="200" r="33" fill="none" stroke="#5a4630" stroke-width=".6" stroke-dasharray="2 2"/>${zig(['#c9b07a', '#d9c38f', '#e8d4a2', '#f4e6c0', '#5a4630'], '#5a4630')}`,
+      glow: `<circle cx="200" cy="200" r="58" fill="url(#${u}k)" opacity=".35"/><circle cx="200" cy="200" r="${Z6R}" fill="#0c1019" stroke="#f5c542" stroke-width="2"/><circle cx="200" cy="200" r="34" fill="none" stroke="#f5c542" stroke-opacity=".35" stroke-dasharray="3 3"/>${zig(GOLD)}`,
+      flat: `<circle cx="200" cy="200" r="${Z6R}" fill="#f8fafc"/><circle cx="200" cy="200" r="34" fill="#0f172a"/>${zig(GOLD)}`,
+      holo: `<circle cx="200" cy="200" r="52" fill="none" stroke="#22d3ee" stroke-opacity=".35" stroke-width="1" stroke-dasharray="10 6"/><circle cx="200" cy="200" r="${Z6R}" fill="#061018" fill-opacity=".9" stroke="#22d3ee" stroke-width="1.5"/><circle cx="200" cy="200" r="33" fill="none" stroke="#67e8f9" stroke-opacity=".5" stroke-dasharray="2 4"/>${zig(['none', 'none', 'none', 'none', '#67e8f9'], '#67e8f9')}`,
+      ice: `<circle cx="200" cy="200" r="${Z6R}" fill="#eaf4fa" stroke="#7fb3d5" stroke-width="1.6"/><circle cx="200" cy="200" r="34" fill="none" stroke="#7fb3d5" stroke-opacity=".5" stroke-dasharray="3 3"/>${zig(['#9fc3dc', '#b9d7ea', '#d9ecf7', '#ffffff', '#5b7d99'], '#7fb3d5')}`,
+      lava: `<circle cx="200" cy="200" r="58" fill="url(#${u}o)" opacity=".6"/><circle cx="200" cy="200" r="${Z6R}" fill="#1a0a06" stroke="#ff6a00" stroke-width="2"/><circle cx="200" cy="200" r="34" fill="none" stroke="#ffd166" stroke-opacity=".45" stroke-dasharray="3 3"/>${zig(['#7a2a0a', '#c2410c', '#f97316', '#ffd166', '#3a0e08'])}`,
+      royal: `<circle cx="200" cy="200" r="52" fill="none" stroke="#d4af37" stroke-opacity=".5" stroke-width=".8"/><circle cx="200" cy="200" r="${Z6R}" fill="#15131a" stroke="#d4af37" stroke-width="2"/><circle cx="200" cy="200" r="35" fill="none" stroke="#d4af37" stroke-opacity=".6" stroke-dasharray="1 3"/><circle cx="200" cy="196" r="26" fill="url(#${u}k)" opacity=".5"/>${zig(GOLD)}`,
+      pixel: `<rect x="160" y="160" width="80" height="80" fill="#ffffff"/><rect x="164" y="164" width="72" height="72" fill="#111111"/>${zig(GOLD)}`,
+      ingame: `<circle cx="200" cy="200" r="${Z6R}" fill="#4f7f2e" stroke="#eef7d2" stroke-width="2.2"/><circle cx="200" cy="200" r="33" fill="#3a6322" stroke="#eef7d2" stroke-opacity=".5" stroke-dasharray="3 3"/><circle cx="200" cy="196" r="26" fill="url(#${u}k)" opacity=".5"/>${zig(GOLD)}`,
+      blueprint: `<circle cx="200" cy="200" r="52" fill="none" stroke="#dbeafe" stroke-opacity=".5" stroke-width="1" stroke-dasharray="10 6"/><circle cx="200" cy="200" r="${Z6R}" fill="#1e3a8a" stroke="#dbeafe" stroke-width="1.5"/><circle cx="200" cy="200" r="33" fill="none" stroke="#dbeafe" stroke-opacity=".5" stroke-dasharray="2 4"/>${zig(['none', 'none', 'none', 'none', '#eff6ff'], '#eff6ff')}`,
+      marble: `<circle cx="200" cy="200" r="${Z6R}" fill="#f6f1e6" stroke="#b8860b" stroke-width="1.6"/><circle cx="200" cy="200" r="34" fill="none" stroke="#b8860b" stroke-opacity=".6" stroke-dasharray="3 3"/><circle cx="200" cy="196" r="26" fill="url(#${u}k)" opacity=".4"/>${zig(GOLD)}`,
+      sand: `<circle cx="200" cy="200" r="${Z6R}" fill="#c9a46a" stroke="#6b4a1e" stroke-width="1.5"/><circle cx="200" cy="200" r="34" fill="none" stroke="#6b4a1e" stroke-opacity=".5" stroke-dasharray="3 3"/>${zig(['#8a6a3a', '#b08a50', '#d2ad6e', '#f0d9a6', '#5a3a12'], '#6b4a1e')}`
+    };
+    const center = `<g transform="translate(${C0 - 200} ${C0 - 200})">${centers[T.center] || centers.battle}
+      <text x="200" y="${['ink', 'flat', 'sand', 'ice', 'marble'].includes(T.center) ? 228 : 223}" text-anchor="middle" font-size="7.5" font-weight="800" letter-spacing="1.2" fill="${T.cTxt}" ${T.cStroke ? `stroke="${T.cStroke}" stroke-width="2.2" paint-order="stroke"` : ''}>${M.center.toUpperCase()}</text>
+      <text x="200" y="${['ink', 'flat', 'sand', 'ice', 'marble'].includes(T.center) ? 236 : 231}" text-anchor="middle" font-size="6" font-weight="700" letter-spacing="1" fill="${T.cTxt}" opacity=".8" ${T.cStroke ? `stroke="${T.cStroke}" stroke-width="2" paint-order="stroke"` : ''}>${M.zoneN.replace('{n}', 6).toUpperCase()}</text></g>`;
+    // ---- Rahmen für eigenes / verbündetes Camp ----
+    const hl = quad.map(([qx, qy], i) => { const me = d.my === i + 1, al = !me && d.ally === i + 1; if (!me && !al) return '';
+      return camp(qx, qy, 5, `rx="${T.hlRx != null ? T.hlRx : 10}" fill="none" stroke="${me ? T.hl[0] : T.hl[1]}" stroke-width="${T.hlW || 2.4}" ${al ? 'stroke-dasharray="9 5"' : ''}`); }).join('');
+    // ---- Banner je Camp ----
+    const BN = T.banner;
+    const banner = (x, y, w, C, txt, alignR, me, al) => {
+      const bx = alignR ? x - w : x, ax = alignR ? 'end' : 'start';
+      if (BN.kind === 'pill') return `<rect x="${bx}" y="${y}" width="${w}" height="20" rx="10" fill="#0f172a" fill-opacity=".85"/><text x="${alignR ? x - 9 : x + 9}" y="${y + 14}" text-anchor="${ax}" font-size="11.5" font-weight="800" fill="#fff">${txt}</text>`;
+      if (BN.kind === 'text') return `<text x="${alignR ? x - 6 : x + 6}" y="${y + 15}" text-anchor="${ax}" font-size="13" font-weight="800" fill="${me ? '#fde68a' : al ? '#6ee7b7' : BN.tx}">${txt}</text>`;
+      if (BN.kind === 'holo') return `<path d="M${bx} ${y + 4}v-4h6M${bx + w} ${y + 4}v-4h-6M${bx} ${y + 16}v4h6M${bx + w} ${y + 16}v4h-6" fill="none" stroke="${BN.st}" stroke-width="1.2"/><rect x="${bx}" y="${y}" width="${w}" height="20" fill="${C.col}" fill-opacity=".18"/><text x="${alignR ? x - 7 : x + 7}" y="${y + 14}" text-anchor="${ax}" font-size="11" font-weight="800" fill="${me ? '#fde68a' : al ? '#a3e635' : BN.tx}">${txt}</text>`;
+      if (BN.kind === 'pixel') return `<rect x="${bx}" y="${y}" width="${w}" height="20" fill="${BN.st}"/><rect x="${bx + 2}" y="${y + 2}" width="${w - 4}" height="16" fill="${BN.fill}"/><text x="${alignR ? x - 7 : x + 7}" y="${y + 14}" text-anchor="${ax}" font-size="11" font-weight="800" fill="${BN.tx}">${txt}</text>`;
+      const fill = BN.fill || C.col, tc = BN.tx === 'camp' ? C.col : BN.tx, tailF = BN.tail || C.col;
+      const tail = alignR ? `M${bx} ${y}l-7 10l7 10Z` : `M${bx + w} ${y}l7 10l-7 10Z`;
+      return `<path d="${tail}" fill="${tailF}" ${BN.st ? `stroke="${BN.st}" stroke-width=".8"` : ''} opacity=".9"/>
+        <rect x="${bx}" y="${y}" width="${w}" height="20" rx="3" fill="${fill}" stroke="${BN.st || (me ? '#fde68a' : al ? '#6ee7b7' : '#00000055')}" stroke-width="${BN.st ? 1 : me || al ? 1.6 : 1}"/>
+        ${BN.outline ? `<rect x="${bx + 2}" y="${y + 2}" width="${w - 4}" height="16" rx="2" fill="none" stroke="#fff" stroke-opacity=".22"/>` : ''}
+        <text x="${alignR ? x - 7 : x + 7}" y="${y + 14}" text-anchor="${ax}" font-size="11.5" font-weight="800" fill="${tc}" ${BN.outline ? 'stroke="#00000066" stroke-width="2" paint-order="stroke"' : ''}>${txt}</text>`;
+    };
+    // ---- Königreich-Schild (46 breit, 3 Spalten je Camp) ----
+    const CH = T.chip, CW = 40, CSTEP = 44;
+    const chip = (cx, cy, k, C, mine) => {
+      const stc = CH.st === null ? C.col : CH.st;
+      if (k[0] === '+') return `<rect x="${cx}" y="${cy}" width="${CW}" height="20" rx="${CH.rx}" fill="${CH.bg}" fill-opacity=".75" stroke="${stc === 'none' ? CH.mbg : stc}" stroke-dasharray="3 2"/><text x="${cx + CW / 2}" y="${cy + 14}" text-anchor="middle" font-size="10.5" font-weight="700" fill="${CH.tx}">${k}</text>`;
+      const cc = CH.castle === 'camp' ? C.col : CH.castle;
+      const castle = cc ? `<path d="M${cx + 3} ${cy + 15}v-7l2 -2l2 2v7Z M${cx + 7} ${cy + 15}v-5h4v5Z" fill="${mine ? '#7a5508' : cc}"/>` : '';
+      return `${mine && CH.glow ? `<rect x="${cx - 3}" y="${cy - 3}" width="${CW + 6}" height="26" rx="6" fill="${CH.mbg}" opacity=".55" filter="url(#${u}g)"/>` : ''}
+        ${CH.shadow ? `<rect x="${cx}" y="${cy + 1.5}" width="${CW}" height="20" rx="${CH.rx}" fill="#000" opacity=".4"/>` : ''}
+        <rect x="${cx}" y="${cy}" width="${CW}" height="20" rx="${CH.rx}" fill="${mine ? CH.mbg : CH.bg}" fill-opacity="${mine || CH.st === 'none' ? 1 : 0.92}" stroke="${mine ? CH.mst : stc}" stroke-width="${CH.rx === 0 ? 2 : 1.2}"/>
+        ${castle}<text x="${cx + (castle ? 25 : 20)}" y="${cy + 14}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${mine ? CH.mtx : CH.tx}">${mine ? '★' : castle ? '' : '#'}${esc(k)}</text>`;
+    };
+    const camps = quad.map(([qx, qy], i) => {
+      const C = CAMPS[i], b0 = campBox(qx, qy), x = b0.x + 6, y = b0.y + 6, IN = CS - 12, me = d.my === i + 1, al = !me && d.ally === i + 1;
+      const all = d.kds[i] || [], cnt = all.length;
+      // max. 12 Schilder: bei mehr Königreichen 11 zeigen + „+N“; das eigene Königreich immer sichtbar
+      let kds = all;
+      if (cnt > 12) { kds = all.slice(0, 11); if (myKd && all.includes(myKd) && !kds.includes(myKd)) kds[10] = myKd; kds.push('+' + (cnt - 11)); }   // (Eingabe erlaubt 10 – ältere Profile evtl. mehr)
+      const R = Math.ceil(kds.length / 3);
+      const chips = kds.map((k, j) => {
+        const col = j % 3, row = Math.floor(j / 3), inRow = Math.min(3, kds.length - row * 3);
+        // Lesereihenfolge links→rechts, oben→unten; Gruppe hängt an der Außenecke des Camps
+        const cx = qx ? x + IN - 8 - inRow * CSTEP + (CSTEP - CW) + col * CSTEP : x + 8 + col * CSTEP;
+        const cy = qy ? y + IN - 34 - 20 - (R - 1 - row) * 25 : y + 32 + row * 25;
+        return chip(cx, cy, k, C, myKd && k === myKd);
+      }).join('');
+      const w = Math.round(28 + [...M.campNames[i]].length * 7.2 + (me || al ? 15 : 0) + String(cnt).length * 6 + 22);
+      const by = qy ? y + IN - 26 : y + 4;
+      return `${banner(qx ? x + IN - 4 : x + 2, by, w, C, `${C.icon} ${M.campNames[i]}${me ? ' ⭐' : al ? ' 🤝' : ''} <tspan font-size="9" font-weight="700" fill-opacity=".8">· ${cnt} KD</tspan>`, !!qx, me, al)}
+        ${chips || `<text x="${qx ? x + IN - 10 : x + 10}" y="${qy ? y + IN - 44 : y + 48}" text-anchor="${qx ? 'end' : 'start'}" font-size="10" font-style="italic" fill="${T.empty}" opacity=".8">${M.mapEmpty}</text>`}`;
+    }).join('');
+    // ---- Pass-Tore ----
+    const GC = T.gate || ['#2b241c', '#d9b45a', '#f5deb0'];
+    const gate = (x, y, n, side) => `<g transform="translate(${x} ${y})" data-gate="p${n}" class="${evs ? 'cursor-pointer' : ''}">
+        ${T.crisp ? '' : `<rect x="-9" y="-6" width="18" height="13" rx="2" fill="#000" opacity=".35" transform="translate(1 1.5)"/>`}
+        <rect x="-9" y="-6" width="18" height="13" rx="${T.crisp ? 0 : 1.5}" fill="${GC[0]}" stroke="${GC[1]}" stroke-width="1"/>
+        <path d="M-4.5 7V1a4.5 4.5 0 0 1 9 0V7Z" fill="${T.center === 'holo' ? 'none' : '#000'}" ${T.center === 'holo' ? `stroke="${GC[1]}" stroke-width=".8"` : 'opacity=".75"'}/>
+        <rect x="-10.5" y="-9" width="5" height="4" fill="${GC[1]}"/><rect x="5.5" y="-9" width="5" height="4" fill="${GC[1]}"/>
+        <text x="${side ? side * 13 : 0}" y="${side ? 3 : 16.5}" text-anchor="${side > 0 ? 'start' : side < 0 ? 'end' : 'middle'}" font-size="7" font-weight="800" fill="${GC[2]}" stroke="${GC[0]}" stroke-width="2.2" paint-order="stroke">P${n}</text>${hot['p' + n] ? `<g transform="translate(0 -4)">${fire('#a855f7', '#e9d5ff')}</g>` : ''}</g>`;
+    const gates = P4.map(([x, y]) => gate(x, y, 4)).join('') + P5.map(([x, y]) => gate(x, y, 5)).join('') + P6.map(([x, y]) => gate(x, y, 6)).join('')
+      + P7.map(([x, y]) => gate(x, y, 7, y === C0 ? 0 : (x < C0 ? -1 : 1))).join('') + P8.map(([x, y]) => gate(x, y, 8)).join('');
+    // ---- Deko obenauf ----
+    let over = '';
+    if (T.extras === 'snow') { for (let k = 0; k < 50; k++) { const x = f1(rnd() * W), y = f1(rnd() * W), r = f1(0.8 + rnd() * 1.4); over += `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" opacity="${f1(0.4 + rnd() * 0.5)}"/>`; } }
+    if (T.extras === 'embers') { for (let k = 0; k < 44; k++) { const x = f1(rnd() * W), y = f1(rnd() * W), r = f1(0.8 + rnd() * 1.6); over += `<circle cx="${x}" cy="${y}" r="${r * 2.2}" fill="#ff6a00" opacity=".25" filter="url(#${u}b)"/><circle cx="${x}" cy="${y}" r="${r}" fill="#ffd166" opacity="${f1(0.5 + rnd() * 0.5)}"/>`; } }
+    if (T.extras === 'desert') over += `<circle cx="${C0}" cy="40" r="20" fill="#ffd166" opacity=".35" filter="url(#${u}b)"/><circle cx="${C0}" cy="48" r="11" fill="#ffe08a" stroke="#c9871a" stroke-width="1"/>`;
+    if (T.extras === 'blueprint') over += `<rect x="6" y="6" width="${W - 12}" height="${W - 12}" fill="none" stroke="#dbeafe" stroke-width="1.2"/><rect x="12" y="12" width="${W - 24}" height="${W - 24}" fill="none" stroke="#dbeafe" stroke-opacity=".5" stroke-width=".6"/>
+      <path d="M${C0} 6v10M${C0} ${W - 16}v10M6 ${C0}h10M${W - 16} ${C0}h10" stroke="#dbeafe" stroke-width="1"/>`;
+    if (T.extras === 'holo') over += `<rect width="${W}" height="${W}" fill="url(#${u}sc)"/><path d="M6 26V6h20M${W - 26} 6h20v20M6 ${W - 26}v20h20M${W - 6} ${W - 26}v20h-20" fill="none" stroke="#22d3ee" stroke-width="1.5"/>`;
+    if (T.extras === 'ornament') over += `<rect x="6" y="6" width="${W - 12}" height="${W - 12}" fill="none" stroke="#d4af37" stroke-width="1.6"/><rect x="11" y="11" width="${W - 22}" height="${W - 22}" fill="none" stroke="#d4af37" stroke-opacity=".5" stroke-width=".6"/>
+      ${[[11, 11, 1, 1], [W - 11, 11, -1, 1], [11, W - 11, 1, -1], [W - 11, W - 11, -1, -1]].map(([x, y, sx, sy]) => `<path d="M${x} ${y + sy * 22}q0 ${-sy * 22} ${sx * 22} ${-sy * 22}M${x} ${y + sy * 14}q0 ${-sy * 14} ${sx * 14} ${-sy * 14}" fill="none" stroke="#d4af37" stroke-width="1"/><circle cx="${x + sx * 7}" cy="${y + sy * 7}" r="1.8" fill="#d4af37"/>`).join('')}`;
+    if (T.vignette) over += `<rect width="${W}" height="${W}" fill="url(#${u}v)" pointer-events="none"/>`;
+    // ---- echte Karte (Karte A / B): Bereiche, Mauern, Gebäude aus LK_MAPS ----
+    if (d.layout !== 'schema' && LK_MAPS[d.layout] === undefined) ensureMap(d.layout);
+    const LKM = LK_MAPS[d.layout] || null, lkWait = d.layout !== 'schema' && LK_MAPS[d.layout] === undefined, lkFail = d.layout !== 'schema' && LK_MAPS[d.layout] === false;
+    let body = `${bg}${hl}${center}${camps}${gates}`;
+    if (LKM) {
+      const WALL = { battle: '#2c2420', parchment: '#5a4630', night: '#3a4a6b', flat: '#0f172a', holo: '#22d3ee', frost: '#6f9fc2', lava: '#ff6a00', royal: '#d4af37', pixel: '#111111', sand: '#6b4a1e', ingame: '#2f4f1e', blueprint: '#dbeafe', marble: '#9c7a2a', jungle: '#0b1f10' }[st] || '#2c2420';
+      let g0 = `<rect width="${W}" height="${W}" fill="${T.paper || T.zone[3]}"/>`;
+      g0 += LKM.regions.map((r) => {
+        const ci = r.k[0] === 'c' ? +r.k[1] : -1;
+        if (ci >= 0) return `${T.blocks ? `<path d="${r.d}" fill="${CAMPS[ci].col}"/>` : T.terrain ? `<path d="${r.d}" fill="${T.terrain[ci]}"/>` : ''}${T.grad ? `<path d="${r.d}" fill="url(#${u}c${ci})"/>` : `<path d="${r.d}" fill="${CAMPS[ci].col}" fill-opacity="${T.blocks ? 1 : .2}"/>`}`;
+        if (r.k === 'z6') return `<path d="${r.d}" fill="${T.zone[0]}" fill-opacity=".95"/><path d="${r.d}" fill="url(#${u}k)" opacity=".35"/>`;
+        return `<path d="${r.d}" fill="${T.zone[0]}" fill-opacity="${T.blocks ? 1 : .55}"/><path d="${r.d}" fill="url(#${u}hz)"/>`;
+      }).join('');
+      if (T.checker) g0 += `<rect width="${W}" height="${W}" fill="url(#${u}ck)"/>`;
+      if (T.noise) g0 += `<rect width="${W}" height="${W}" fill="${T.noise[0]}" filter="url(#${u}n)" opacity="${T.noise[1]}"/>`;
+      if (T.grain) g0 += `<rect width="${W}" height="${W}" fill="#fff" filter="url(#${u}f)"/>`;
+      if (T.grid) g0 += `<rect width="${W}" height="${W}" fill="url(#${u}gr)"/>`;
+      if (T.extras === 'ornament') g0 += `<rect width="${W}" height="${W}" fill="url(#${u}dm)"/>`;
+      // Mauern: Schatten, Mauer, Lichtkante
+      g0 += `<g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="${LKM.wall}" stroke="#000" stroke-opacity=".35" stroke-width="7" transform="translate(1 1.5)"/>
+        <path d="${LKM.wall}" stroke="${WALL}" stroke-width="5"/><path d="${LKM.wall}" stroke="#fff" stroke-opacity="${T.ridges === 'ink' ? 0 : .18}" stroke-width="1.2" transform="translate(-.6 -.8)"/></g>`;
+      // eigenes / verbündetes Camp: Umriss des Bereichs
+      const hl2 = LKM.regions.filter((r) => r.k[0] === 'c').map((r) => { const i = +r.k[1], me = d.my === i + 1, al = !me && d.ally === i + 1;
+        return me || al ? `<path d="${r.d}" fill="none" stroke="${me ? T.hl[0] : T.hl[1]}" stroke-width="${T.hlW || 2.6}" ${al ? 'stroke-dasharray="9 5"' : ''} stroke-linejoin="round"/>` : ''; }).join('');
+      // Gebäude
+      const ink = T.gate ? T.gate[0] : '#2b241c', lite = T.gate ? T.gate[1] : '#d9b45a', ltx = T.gate ? T.gate[2] : '#f5deb0';
+      const fort = ([x, y]) => `<g transform="translate(${x} ${y})" opacity=".85"><rect x="-3.5" y="-2.5" width="7" height="5.5" fill="${lite}" stroke="${ink}" stroke-width=".6"/><path d="M-3.5 -2.5v-1.5h1.6v1.5M-.8 -2.5v-1.5h1.6v1.5M1.9 -2.5v-1.5h1.6v1.5" fill="${lite}" stroke="${ink}" stroke-width=".5"/></g>`;
+      const SHR_COL = { 4: '#e0a91b', 5: '#f97316', 6: '#ef4444', 7: '#a855f7' };
+      const shrine = ([x, y, lv]) => `<g transform="translate(${x} ${y})"><circle r="8.5" fill="${SHR_COL[lv] || '#e0a91b'}" opacity=".28"/><path d="M-3 4v-7l3 -3l3 3v7Z" fill="${lite}" stroke="${ink}" stroke-width=".7"/>
+        <circle cy="6.5" r="3.6" fill="${ink}" stroke="${SHR_COL[lv] || '#e0a91b'}" stroke-width=".8"/><text y="8.6" text-anchor="middle" font-size="5.2" font-weight="800" fill="#fff">${lv}</text></g>`;
+      const mono = ([x, y]) => `<g transform="translate(${x} ${y})"><circle r="10" fill="#e0a91b" opacity=".3"/><path d="M-5 5l1.5 -10h7l1.5 10Z" fill="${lite}" stroke="${ink}" stroke-width=".8"/></g>`;
+      const alt = LKM.altars.map(([x, y]) => altar(x, y)).join('');
+      const statue = ([x, y]) => `<g transform="translate(${x} ${y})" opacity=".8"><path d="M0 -6l2 5l4 1l-4 2l-2 4l-2 -4l-4 -2l4 -1Z" fill="${lite}" stroke="${ink}" stroke-width=".6"/></g>`;
+      const zg = LKM.zig[0] || [250, 250];
+      const zc = `<g transform="translate(${zg[0]} ${zg[1]}) scale(.62) translate(-200 -200)">${centers[T.center] || centers.battle}</g>
+        <text x="${zg[0]}" y="${zg[1] + 30}" text-anchor="middle" font-size="7.5" font-weight="800" letter-spacing="1.2" fill="${T.cTxt}" ${T.cStroke ? `stroke="${T.cStroke}" stroke-width="2.2" paint-order="stroke"` : ''}>${M.center.toUpperCase()}</text>`;
+      const gt = LKM.gates.map(([x, y, lv]) => gate(x, y, lv).replace(`translate(${x} ${y})`, `translate(${x} ${y}) scale(.72)`)).join('');
+      body = `${g0}${hl2}${LKM.forts.map(fort).join('')}${LKM.monos.map(mono).join('')}${LKM.shrines.map(shrine).join('')}${(LKM.statues || []).map(statue).join('')}${zc}${camps}${alt}${gt}`;
+    }
+    return `<div class="kvk-mapwrap relative rounded-2xl p-1.5" style="background:${T.frame}"><div data-map-pop class="hidden"></div><div class="rounded-[14px] overflow-hidden bg-ink-950">
+    <svg viewBox="0 0 ${W} ${W}" class="block w-full h-auto" role="img" aria-label="${M.mapFold}" style="font-family:${T.font}" ${T.crisp ? 'shape-rendering="crispEdges"' : ''}>
+      <defs>${defs}</defs>
+      ${body}${over}${lkWait || lkFail ? `<rect x="120" y="226" width="260" height="48" rx="12" fill="#07090f" fill-opacity=".82" stroke="#f5c542" stroke-opacity=".5"/>
+        <text x="250" y="255" text-anchor="middle" font-size="13" font-weight="700" fill="#fde68a">${lkWait ? '⏳ ' + t().mp.mapLoading : '⚠️ ' + t().mp.mapFail}</text>` : ''}
+    </svg></div></div>
+    <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 pt-2 pb-0.5 text-[11px] text-slate-400">
+      ${d.my ? `<span>⭐ ${M.myCamp}: <b class="text-gold-300">${CAMPS[d.my - 1].icon} ${M.campNames[d.my - 1]}</b></span>` : ''}
+      ${d.ally ? `<span>🤝 ${M.ally}: <b class="text-emerald-300">${CAMPS[d.ally - 1].icon} ${M.campNames[d.ally - 1]}</b></span>` : ''}
+      <span class="basis-full text-center text-slate-500">${LKM ? M.mapLegendLk : M.mapLegend}</span>
+    </div>`;
+  }
+  // Popup an einem Tor/Altar: nächste Öffnung bzw. laufender Kampf (eigene Karte und Karte im Profil)
+  function mapPopupHTML(key, evs) {
+    const L = t(), MP = L.mp, now = srvNow();
+    const mine = evs.filter((e) => evKey(e) === key), act = mine.find((e) => e.ts <= now && now < fightEnd(e)), nx = mine.find((e) => e.ts > now);
+    const icon = key === 'altar' ? EV_ICON.altar[0] : EV_ICON.pass[0], col = key === 'altar' ? '#22c55e' : '#a855f7';
+    const title = key === 'altar' ? MP.kinds.altar : `${L.pass} ${key.slice(1)}`;
+    const when = (ts) => new Date(ts).toLocaleString(locale(), { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const utc = (ts) => new Date(ts).toISOString().slice(11, 16) + ' UTC';
+    const dur = FIGHT_MS[key === 'altar' ? 'altar' : 'pass'] / 3600000;
+    const body = act
+      ? `<div class="text-xs text-slate-300">⚔️ ${MP.fightOn} · <span data-cd-ts="${fightEnd(act)}" class="font-semibold" style="color:${col}">${cdText(fightEnd(act) - now)}</span></div>
+         <div class="text-[11px] text-slate-500">${MP.fightSince} ${when(act.ts)} · ${MP.fightLen.replace('{h}', dur)}</div>
+         ${nx ? `<div class="text-[11px] text-slate-500 mt-1">${MP.nextOne}: ${when(nx.ts)}</div>` : ''}`
+      : nx
+        ? `<div class="text-xs text-slate-300">${key === 'altar' ? MP.altarNext : MP.passNext}: <b class="text-slate-100">${when(nx.ts)}</b> <span class="text-slate-500">(${utc(nx.ts)})</span></div>
+           <div class="text-sm font-bold tabular-nums" style="color:${col}"><span data-cd-ts="${nx.ts}">${cdText(nx.ts - now)}</span></div>
+           <div class="text-[11px] text-slate-500">${MP.fightLen.replace('{h}', dur)}</div>`
+        : `<div class="text-xs text-slate-500">${!evs.length ? MP.needStart : mine.length ? MP.allDone : MP.noTime}</div>`;
+    return `<div class="absolute z-20 w-60 max-w-[calc(100%-1rem)] rounded-xl border bg-ink-900/95 backdrop-blur px-3 py-2.5 shadow-2xl ui-pop" style="border-color:${col}88">
+        <button type="button" data-pop-close class="absolute right-1.5 top-1 text-slate-500 hover:text-slate-200 text-sm leading-none px-1" aria-label="${L.done}">✕</button>
+        <div class="flex items-center gap-2 mb-1"><span class="text-xl">${icon}</span><span class="font-display text-base" style="color:${col}">${title}</span></div>
+        ${body}
+      </div>`;
+  }
+  function showMapPopup(wrap, target, evs) {
+    const pop = wrap.querySelector('[data-map-pop]');
+    if (!pop) return;
+    const key = target.dataset.gate;
+    pop.innerHTML = mapPopupHTML(key, evs);
+    pop.classList.remove('hidden');
+    const box = pop.firstElementChild, wr = wrap.getBoundingClientRect(), tr = target.getBoundingClientRect();
+    const bw = box.offsetWidth || 240, bh = box.offsetHeight || 90;
+    let left = tr.left - wr.left + tr.width / 2 - bw / 2, top = tr.top - wr.top - bh - 8;
+    left = Math.max(6, Math.min(wr.width - bw - 6, left));
+    if (top < 6) top = tr.bottom - wr.top + 8;
+    box.style.left = left + 'px'; box.style.top = top + 'px';
+  }
+  function hideMapPopups(scope) { (scope || document).querySelectorAll('[data-map-pop]').forEach((p0) => { p0.classList.add('hidden'); p0.innerHTML = ''; }); }
+  // Klicks auf Karten (eigene im Reiter und die im Profil): Tor/Altar → Popup, sonst schließen
+  function mapClick(e, evs) {
+    const g = e.target.closest && e.target.closest('[data-gate]'), wrap = g && g.closest('.kvk-mapwrap');
+    if (e.target.closest && e.target.closest('[data-pop-close]')) { hideMapPopups(); return true; }
+    if (e.target.closest && e.target.closest('[data-map-pop]')) return true;
+    hideMapPopups();
+    if (!g || !wrap || !evs) return false;
+    showMapPopup(wrap, g, evs);
+    return true;
+  }
+  // Auswahl der Designs: kleine Vorschau je Design mit den eigenen Daten
+  function mapStylePicker() {
+    const M = t().m, d = mapData();
+    return `<div class="flex flex-col gap-2">
+      <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2" role="radiogroup" aria-label="${M.mapDesign}">${MAP_STYLES.map((k) => { const on = d.style === k; return `
+        <button type="button" data-mapstyle="${k}" aria-pressed="${on}" class="rounded-xl p-1.5 border-2 text-left transition ${on ? 'border-gold-400 bg-gold-500/10 shadow-[0_0_14px_rgba(245,197,66,.3)]' : 'border-ink-700 hover:border-gold-500/50'}">
+          <div class="pointer-events-none">${mapSVG({ ...d, style: k }, undefined, undefined).replace(/<div class="flex flex-wrap justify-center[\s\S]*$/, '')}</div>
+          <div class="mt-1 text-xs font-semibold text-center ${on ? 'text-gold-300' : 'text-slate-300'}">${on ? '✓ ' : ''}${M.mapStyles[k]}</div>
+        </button>`; }).join('')}</div>
+    </div>`;
+  }
+
+  // Ereignisse im Reiter Karte: Pässe automatisch, Ruinen/Altäre/Eigenes aus state.mapEv (Zeit in UTC)
+  const EV_ICON = { pass: ['🚪', '#f5c542'], ruin: ['🏚️', '#d6a46b'], altar: ['⛩️', '#f87171'], other: ['📌', '#94a3b8'] };
+  // Wiederholung in Stunden (ältere Einträge hatten Tage in rep → ×24); 0 = einmal
+  const evRepH = (e) => Math.max(0, Math.round(e.repH != null ? +e.repH || 0 : (+e.rep || 0) * 24));
+  // erster Termin: festes Datum (UTC) hat Vorrang, sonst KvK-Tag + Uhrzeit
+  function evFirstTs(e, s) {
+    const [hh, mm] = String(e.time || '00:00').split(':').map((x) => +x || 0);
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(e.date || '');
+    if (m) return Date.UTC(+m[1], +m[2] - 1, +m[3], hh, mm, 0);
+    if (s == null) return null;
+    return s + (Math.max(1, Math.round(+e.day || 1)) - 1) * 86400000 + (hh * 60 + mm) * 60000;
+  }
+  // alle Termine eines KvK: Pässe aus dem Startdatum, Ruinen/Altäre/Eigenes aus der Liste
+  function eventsFor(s, list, days) {
+    if (s == null) return [];
+    const MP = t().mp, end = s + (days || 60) * 86400000, out = [];
+    PASS_SCHEDULE.forEach((p) => out.push({ kind: 'pass', n: p.n, name: MP.passOpen.replace('{n}', p.n), ts: s + p.day * 86400000, src: 'p' + p.n }));
+    (list || []).forEach((e) => {
+      const repH = evRepH(e);
+      let ts = evFirstTs(e, s), k = 0;
+      if (ts == null) return;
+      do { out.push({ kind: e.kind, name: String(e.name || '').trim() || MP.kinds[e.kind] || '', ts, src: e.id }); ts += repH * 3600000; k++; } while (repH && ts < end && k < 400);
+    });
+    return out.filter((x) => x.ts <= end).sort((a, b) => a.ts - b.ts);
+  }
+  const mapEvents = () => eventsFor(startTs(), state.mapEv, state.mid.days);
+  // Nächstes Ereignis fürs Countdown-Feld: Pass 4/7/8 und Altäre; laufender Kampf hat Vorrang
+  function nextKeyEvent(evs, now) {
+    const keyOf = (e) => e.kind === 'altar' || (e.kind === 'pass' && [4, 7, 8].includes(e.n));
+    const act = activeFights(evs, now).filter(keyOf)[0];
+    if (act) return { e: act, fighting: true };
+    const nx = evs.find((e) => e.ts > now && keyOf(e));
+    return nx ? { e: nx, fighting: false } : null;
+  }
+  function cdText(ms, big) {
+    const sec = Math.max(0, Math.floor(ms / 1000)), d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60), x = sec % 60;
+    const p2 = (v) => String(v).padStart(2, '0'), dl = lang() === 'en' ? 'd' : 'T';
+    if (big) return `${d ? `${d} ${dl} ` : ''}${p2(h)}:${p2(m)}:${p2(x)}`;
+    return d ? `${d} ${dl} ${h} h` : h ? `${h} h ${p2(m)} m` : `${m} m ${p2(x)} s`;
+  }
+  // Sekundentakt: alle sichtbaren Countdowns im Reiter Karte; ist eins abgelaufen → neu berechnen
+  function tickNext() {
+    if (!root) return;
+    let due = false;
+    root.querySelectorAll('[data-cd-ts]').forEach((el) => { const ms = +el.dataset.cdTs - srvNow(); if (ms <= 0) due = true; el.textContent = cdText(ms, el.hasAttribute('data-cd-big')); });
+    if (due) { hideMapPopups(root); refresh(); }
+  }
+  function tickHosts() {
+    [...hosts, ...mapHosts].forEach((h) => {
+      if (!h.isConnected) return;
+      let due = false;
+      h.querySelectorAll('[data-cd-ts]').forEach((el) => { const ms = +el.dataset.cdTs - srvNow(); if (ms <= 0) due = true; el.textContent = cdText(ms, el.hasAttribute('data-cd-big')); });
+      if (due && h._kvkRemount) h._kvkRemount();
+    });
+  }
+  function mapOutputs() {
+    const L = t(), MP = L.mp, s = startTs();
+    const fsum = { mapCamps: '', mapDesign: `<span class="text-slate-400">${L.m.mapStyles[mapData().style] || ''}</span>`, mapTimes: (state.mapEv || []).length ? `<span class="text-slate-400">${(state.mapEv || []).length}×</span>` : '' };
+    const d0 = mapData(), nKd = d0.kds.reduce((a, k) => a + k.length, 0);
+    if (nKd || d0.my) fsum.mapCamps = `<span class="text-slate-400">${nKd} KD${d0.my ? ` · ⭐ ${CAMPS[d0.my - 1].icon}` : ''}${d0.ally ? ` · 🤝 ${CAMPS[d0.ally - 1].icon}` : ''}</span>`;
+    if (s == null) return { mapNext: `<div class="rounded-xl border border-gold-500/30 bg-gold-500/5 px-4 py-3 text-sm text-slate-300">🕒 ${MP.needStart}</div>`, mapUpcoming: `<p class="text-sm text-slate-500">–</p>`, mapSched: '', _fsum: fsum };
+    const now = srvNow(), evs = mapEvents(), up = evs.filter((e) => e.ts > now), nx = up[0];
+    const when = (ts) => new Date(ts).toLocaleString(locale(), { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const utc = (ts) => new Date(ts).toISOString().slice(11, 16) + ' UTC';
+    const kday = (ts) => Math.floor((ts - s) / 86400000) + 1;
+    const ic = (k) => EV_ICON[k] || EV_ICON.other;
+    const mapNext = !nx ? `<div class="rounded-xl border border-ink-700 bg-ink-950/50 px-4 py-3 text-sm text-slate-400">🏁 ${MP.none}</div>` : `
+      <div class="relative overflow-hidden rounded-2xl border p-4 sm:p-5" style="border-color:${ic(nx.kind)[1]}66;background:radial-gradient(120% 140% at 0% 0%,${ic(nx.kind)[1]}26,transparent 60%),rgba(7,9,15,.6)">
+        <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="shrink-0 grid place-items-center w-12 h-12 rounded-xl text-2xl" style="background:${ic(nx.kind)[1]}22;border:1px solid ${ic(nx.kind)[1]}66">${ic(nx.kind)[0]}</div>
+            <div class="min-w-0">
+              <div class="text-[10px] uppercase tracking-widest text-slate-400">⏱️ ${MP.next}</div>
+              <div class="font-display text-lg sm:text-xl truncate" style="color:${ic(nx.kind)[1]}">${esc(nx.name)}</div>
+              <div class="text-xs text-slate-400">${MP.dayN} ${kday(nx.ts)} · ${when(nx.ts)} <span class="text-slate-500">(${utc(nx.ts)})</span></div>
+            </div>
+          </div>
+          <div data-cd-ts="${nx.ts}" data-cd-big class="font-mono tabular-nums text-3xl sm:text-4xl font-bold tracking-wider text-slate-50" style="text-shadow:0 0 18px ${ic(nx.kind)[1]}66">${cdText(nx.ts - now, true)}</div>
+        </div>
+        ${up[1] ? `<div class="mt-3 pt-2 border-t border-ink-700/70 text-xs text-slate-400">↳ ${ic(up[1].kind)[0]} ${esc(up[1].name)} · ${when(up[1].ts)} · <span class="text-slate-300" data-cd-ts="${up[1].ts}">${cdText(up[1].ts - now)}</span></div>` : ''}
+      </div>`;
+    const mapUpcoming = !up.length ? `<p class="text-sm text-slate-500">${MP.none}</p>` : `<div class="flex flex-col divide-y divide-ink-700/70">${up.slice(0, 8).map((e, i) => `
+        <div class="flex items-center justify-between gap-3 py-1.5 ${i === 0 ? 'text-slate-100' : 'text-slate-300'}">
+          <span class="flex items-center gap-2 min-w-0"><span>${ic(e.kind)[0]}</span><span class="truncate text-sm">${esc(e.name)}</span></span>
+          <span class="shrink-0 text-right text-xs tabular-nums"><span class="text-slate-400">${when(e.ts)}</span> · <span data-cd-ts="${e.ts}" style="color:${ic(e.kind)[1]}">${cdText(e.ts - now)}</span></span>
+        </div>`).join('')}</div>`;
+    const passRows = PASS_SCHEDULE.map((p) => { const ts = s + p.day * 86400000, past = ts <= now; return `
+        <div class="flex items-center justify-between gap-3 py-1 text-sm ${past ? 'text-slate-500' : 'text-slate-200'}">
+          <span>🚪 ${L.pass} ${p.n}</span>
+          <span class="text-xs tabular-nums">${MP.dayN} ${kday(ts)} · ${when(ts)} ${past ? `<span class="ml-1 text-emerald-400/80">✓ ${MP.past}</span>` : ''}</span>
+        </div>`; }).join('');
+    const rules = (state.mapEv || []).map((e) => {
+      const occ = evs.filter((x) => x.src === e.id), nxt = occ.find((x) => x.ts > now), repH = evRepH(e);
+      const rTxt = repH === 0 ? MP.once : repH === 24 ? MP.daily : MP.every.replace('{n}', repH % 24 === 0 ? `${repH / 24} ${L.daysN}` : `${repH} ${MP.everyH}`);
+      const whenTxt = e.date ? `${new Date(evFirstTs(e, s)).toLocaleDateString(locale(), { day: '2-digit', month: '2-digit', timeZone: 'UTC' })} ${esc(e.time)} UTC` : `${MP.dayN} ${esc(e.day)} · ${esc(e.time)} UTC`;
+      return `
+        <div class="flex items-center justify-between gap-3 py-1 text-sm ${nxt ? 'text-slate-200' : 'text-slate-500'}">
+          <span class="min-w-0 truncate">${ic(e.kind)[0]} ${esc(String(e.name || '').trim() || MP.kinds[e.kind])} <span class="text-xs text-slate-500">· ${whenTxt} · ${rTxt}</span></span>
+          <span class="shrink-0 text-xs tabular-nums">${nxt ? `<span data-cd-ts="${nxt.ts}" style="color:${ic(e.kind)[1]}">${cdText(nxt.ts - now)}</span>` : MP.allDone}</span>
+        </div>`; }).join('');
+    const mapSched = `
+      <div class="text-xs uppercase tracking-widest text-slate-400">🚪 ${MP.passes}</div>
+      <div class="flex flex-col">${passRows}</div>
+      <div class="text-xs uppercase tracking-widest text-slate-400 pt-2 border-t border-ink-700">🏚️ ${MP.rules}</div>
+      ${rules ? `<div class="flex flex-col">${rules}</div>` : `<p class="text-sm text-slate-500">${MP.noRules}</p>`}`;
+    if (nx) fsum.mapTimes = `<span class="text-slate-400">${ic(nx.kind)[0]} <span data-cd-ts="${nx.ts}">${cdText(nx.ts - now)}</span></span>`;
+    return { mapNext, mapUpcoming, mapSched, _fsum: fsum };
+  }
+
+  // Camps fest: 0 Feuer oben links, 1 Erde oben rechts, 2 Wasser unten links, 3 Wind unten rechts
+  const CAMPS = [{ icon: '🔥', col: '#e5484d', txt: '#f87171' }, { icon: '🪨', col: '#a0703c', txt: '#d6a46b' }, { icon: '💧', col: '#3987e5', txt: '#60a5fa' }, { icon: '🌪️', col: '#9b6bdf', txt: '#b794f4' }];
+  const END_KEYS = ['kp', 'power', 'acclaim', 'kdh', 'speed', 'res', 'ap', 'autarch', 'trade', 'result'];
+  function endCalc(r) {
+    const e = state.end, n = e.now, st = state.stats, sp = state.speed, rs = state.res;
+    const has = (a, b) => (+a || 0) > 0 && (+b || 0) > 0;
+    const deadsKvk = +e.deads > 0 ? Math.round(+e.deads) : has(st.deads, n.deads) ? Math.max(0, n.deads - st.deads) : 0;
+    const killsN = +e.kills || 0, healN = +e.heal || 0;
+    const trade = killsN && (deadsKvk + healN) > 0 ? (killsN / (deadsKvk + healN)) * 100 : null;
+    const spUsed = ['universal', 'training', 'healing'].map((k) => ({ k, v: has(sp[k], n[k]) ? sp[k] - n[k] : null }));
+    const resUsed = RES.map((x) => ({ k: x.k, icon: x.icon, v: has(rs[x.k], n[x.k]) ? rs[x.k] - n[x.k] : null }));
+    return {
+      kp: has(st.kp, n.kp) ? n.kp - st.kp : null,
+      power: has(st.power, n.power) ? n.power - st.power : null,
+      acclaim: has(st.acclaim, n.acclaim) ? n.acclaim - st.acclaim : null,
+      deadsKvk, kills: killsN, heal: healN, trade,
+      spUsed, spTotal: spUsed.reduce((a, x) => a + (x.v || 0), 0),
+      resUsed, resTotal: resUsed.reduce((a, x) => a + (x.v || 0), 0),
+      ap: r.apTotal && n.ap ? n.ap - r.apTotal : null,
+      autarch: +e.autarch || 0, result: e.result
+    };
+  }
+  function endOutputs(r) {
+    const L = t(), E = L.m.e, ec = endCalc(r);
+    const sg = (v, f = short, goodUp = true) => v == null ? `<span class="text-slate-600">${E.none}</span>`
+      : `<span class="${v === 0 ? 'text-slate-400' : (v > 0) === goodUp ? 'text-emerald-400' : 'text-red-300'}">${v > 0 ? '+' : v < 0 ? '−' : '±'}${f(Math.abs(v))}</span>`;
+    const resTxt = ec.result === 1 ? `<span class="text-emerald-400">🏆 ${E.win}</span>` : ec.result === 2 ? `<span class="text-red-300">💀 ${E.lose}</span>` : `<span class="text-slate-500">${E.open}</span>`;
+    const tiles = {
+      kp: ['⚔️', sg(ec.kp)], power: ['💪', sg(ec.power)], acclaim: ['🏅', sg(ec.acclaim)],
+      kdh: ['🗡️', ec.kills || ec.deadsKvk || ec.heal ? `<span class="text-slate-100">${short(ec.kills)}</span> <span class="text-slate-500">/</span> <span class="text-red-300">${short(ec.deadsKvk)}</span> <span class="text-slate-500">/</span> <span class="text-sky-300">${short(ec.heal)}</span>` : `<span class="text-slate-600">${E.none}</span>`],
+      speed: ['⏱️', ec.spUsed.some((x) => x.v != null) ? (ec.spTotal >= 0 ? `<span class="text-amber-300">${dur(ec.spTotal)}</span>` : `<span class="text-emerald-400">+${dur(-ec.spTotal)}</span>`) : `<span class="text-slate-600">${E.none}</span>`],
+      res: ['🌾', ec.resUsed.some((x) => x.v != null) ? (ec.resTotal >= 0 ? `<span class="text-amber-300">${short(ec.resTotal)}</span>` : `<span class="text-emerald-400">+${short(-ec.resTotal)}</span>`) : `<span class="text-slate-600">${E.none}</span>`],
+      ap: ['🧪', sg(ec.ap)], autarch: ['👑', ec.autarch ? `<span class="text-gold-300">${fmt(ec.autarch)}×</span>` : `<span class="text-slate-600">${E.none}</span>`],
+      trade: ['⚖️', ec.trade == null ? `<span class="text-slate-600">${E.none}</span>` : `<span class="${ec.trade >= 100 ? 'text-emerald-400' : 'text-red-300'}">${fmt(ec.trade, 1)} %</span>`],
+      result: ['🏁', resTxt]
+    };
+    const sub = {
+      speed: ec.spUsed.filter((x) => x.v != null).map((x) => `${L.cats[x.k]} ${x.v >= 0 ? dur(x.v) : '+' + dur(-x.v)}`).join(' · '),
+      res: ec.resUsed.filter((x) => x.v != null).map((x) => `${x.icon} ${x.v >= 0 ? short(x.v) : '+' + short(-x.v)}`).join(' · '),
+      trade: E.tradeHint, ap: ec.ap == null ? '' : ec.ap < 0 ? E.used : E.gained
+    };
+    const endSum = `<div class="grid gap-2 grid-cols-2 lg:grid-cols-5">${END_KEYS.map((k) => kpi(`${tiles[k][0]} ${E.k[k]}`, tiles[k][1], sub[k] || '')).join('')}</div>`;
+
+    // Vorschau-Bild 16:9 – alle Maße in cqw (Prozent der Bildbreite), damit es in jeder Größe gleich aussieht.
+    // Layout je nach Anzahl der Kacheln (0–9) berechnet; fehlende Daten bekommen Standardwerte statt Lücken.
+    const sh = state.end.show, A = window.RokAuth || {};
+    const meta = (A.ownMeta && A.ownMeta()) || {}, who = (A.current && A.current()) || {};
+    const name = String(who.name || '').trim() || 'Governor', av = String(meta.avatar || '').trim();
+    const avIsImg = /^(data:image\/|https?:\/\/)/.test(av);
+    const avHTML = avIsImg ? `<img src="${esc(av)}" alt="" style="width:100%;height:100%;object-fit:cover">`
+      : `<span style="font-size:${av ? '4.2cqw' : '3.8cqw'};font-weight:800;line-height:1;color:${av ? '#fff' : '#07090f'}">${esc(av ? [...av].slice(0, 2).join('') : [...name][0].toUpperCase())}</span>`;
+    const kd = String(meta.kingdom || '').replace(/[^\d]/g, ''), aTag = String(meta.alliance_tag || '').trim(), aName = String(meta.alliance_name || '').trim();
+    const showAv = sh.avatar !== 2, showKd = sh.kingdom !== 2 && !!(kd || aTag || aName);
+    const keys = END_KEYS.filter((k) => k !== 'result' && sh[k] !== 2);
+    const s0 = startTs(), dEnd = s0 != null ? new Date(s0 + (state.mid.days || 60) * 86400000) : null;
+    const dateTxt = s0 != null ? `${shortDate(new Date(s0))} – ${shortDate(dEnd)}` : '';
+    const showRes = sh.result !== 2 && (ec.result === 1 || ec.result === 2);
+    const resBig = ec.result === 1 ? `<span style="color:#34d399">🏆 ${E.imgWin}</span>` : `<span style="color:#f87171">💀 ${E.imgLose}</span>`;
+    const bgKeySel = state.end.bg === 'own' && !endOwnBg() ? 'timer' : (state.end.bg || 'timer');
+
+    // kompakte Zahlen fürs Bild (K/M/B wie im Spiel) – kurz genug für jede Kachelbreite
+    const cs = (n) => { const a = Math.abs(n); return a >= 1e9 ? fmt(a / 1e9, a >= 1e11 ? 0 : 2) + 'B' : a >= 1e6 ? fmt(a / 1e6, a >= 1e8 ? 0 : 1) + 'M' : a >= 1e4 ? fmt(a / 1e3, 0) + 'K' : fmt(a); };
+    const cd = (min) => { const d = Math.abs(min) / 1440; return fmt(d, d >= 100 ? 0 : 1) + ' ' + E.imgDay; };
+    const MISS = { t: '–', c: '#64748b', miss: true };
+    const signed = (v, f = cs, good = true) => v == null ? MISS : { t: (v > 0 ? '+' : v < 0 ? '−' : '±') + f(Math.abs(v)), c: v === 0 ? '#cbd5e1' : (v > 0) === good ? '#34d399' : '#f87171' };
+    const usedV = (has, tot, f) => !has ? MISS : tot >= 0 ? { t: f(tot), c: '#fbbf24' } : { t: '+' + f(-tot), c: '#34d399' };
+    const IV = {
+      kp: signed(ec.kp), power: signed(ec.power), acclaim: signed(ec.acclaim),
+      speed: usedV(ec.spUsed.some((x) => x.v != null), ec.spTotal, cd),
+      res: usedV(ec.resUsed.some((x) => x.v != null), ec.resTotal, cs),
+      ap: ec.ap == null ? MISS : { t: (ec.ap < 0 ? '−' : '+') + cs(Math.abs(ec.ap)), c: ec.ap < 0 ? '#fbbf24' : '#34d399' },
+      autarch: ec.autarch ? { t: `${fmt(ec.autarch)}×`, c: '#fde68a' } : { t: E.imgNo, c: '#94a3b8' },
+      trade: ec.trade == null ? MISS : { t: fmt(ec.trade, ec.trade >= 1000 ? 0 : 1) + ' %', c: ec.trade >= 100 ? '#34d399' : '#f87171' }
+    };
+    const ISUB = {
+      speed: ec.spUsed.filter((x) => x.v != null).map((x) => `${L.cats[x.k]} ${x.v >= 0 ? '' : '+'}${cd(x.v)}`).join(' · '),
+      res: ec.resUsed.filter((x) => x.v != null).map((x) => `${x.icon} ${x.v >= 0 ? '' : '+'}${cs(Math.abs(x.v))}`).join(' · '),
+      ap: ec.ap == null ? '' : ec.ap < 0 ? E.used : E.gained
+    };
+    // Raster: Kacheln je Reihe, letzte Reihe mittig
+    const n = keys.length, PER = [0, 1, 2, 3, 2, 3, 3, 4, 4, 3], per = PER[n] || 3, rows = n ? Math.ceil(n / per) : 0;
+    const GAP = 1.2, INNER = 94;
+    const tileW = per === 1 ? 56 : (INNER - (per - 1) * GAP) / per;
+    const fsRows = [0, 5.2, 3.5, 2.6][rows] || 2.6;
+    const fs = +Math.min(fsRows, (tileW - 2.8) / (8 * 0.62)).toFixed(2);       // längster Wert ≈ 8 Zeichen
+    const lfs = +Math.max(1.2, Math.min(1.6, fs * 0.45)).toFixed(2), sfs = +Math.max(1, lfs * 0.85).toFixed(2);
+    const withSub = rows <= 2 && per <= 3;
+    const tileHTML = (k) => {
+      const head = `<div class="truncate" style="font-size:${lfs}cqw;letter-spacing:.1cqw;text-transform:uppercase;color:#94a3b8">${tiles[k][0]} ${E.ik[k]}</div>`;
+      let body, foot = '';
+      if (k === 'kdh') {
+        const kfs = +Math.min(fs * 0.78, (tileW - 2.8) / 3 / (5 * 0.62)).toFixed(2);
+        body = `<div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:.6cqw;margin-top:.3cqw">${[[E.imgKills, ec.kills, '#e2e8f0'], [E.imgDeads, ec.deadsKvk, '#f87171'], [E.imgHealed, ec.heal, '#7dd3fc']].map(([lab, v, c]) => `
+          <div style="min-width:0"><div class="truncate" style="font-size:${sfs}cqw;color:#64748b">${lab}</div>
+          <div data-imgval class="truncate tabular-nums" style="font-size:${kfs}cqw;font-weight:800;line-height:1.2;color:${c}">${cs(v || 0)}</div></div>`).join('')}</div>`;
+      } else {
+        const v = IV[k];
+        body = `<div data-imgval class="truncate tabular-nums" style="font-size:${fs}cqw;font-weight:800;line-height:1.2;color:${v.c}">${v.t}</div>`;
+        const sub = v.miss ? E.imgMiss : withSub ? ISUB[k] || '' : '';
+        if (sub) foot = `<div class="truncate" style="font-size:${sfs}cqw;color:${v.miss ? '#475569' : '#94a3b8'}">${esc(sub)}</div>`;
+      }
+      return `<div data-imgtile="${k}" style="width:${tileW.toFixed(2)}cqw;flex:0 0 auto;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:.25cqw;border:.12cqw solid rgba(245,197,66,.28);background:rgba(12,16,25,.74);border-radius:1.1cqw;padding:${rows >= 3 ? '.7cqw 1.2cqw' : '1.1cqw 1.4cqw'};${rows === 1 ? 'min-height:12cqw' : ''}">${head}${body}${foot}</div>`;
+    };
+    const chunks = []; for (let i = 0; i < n; i += per) chunks.push(keys.slice(i, i + per));
+    // keine Kachel gewählt → großes Titelbild statt leerem Raster
+    const hero = `<div class="h-full flex flex-col items-center justify-center text-center" style="gap:1cqw">
+        <div style="font-size:7cqw;line-height:1">${showRes ? (ec.result === 1 ? '🏆' : '💀') : '⚔️'}</div>
+        <div style="font-family:Cinzel,Georgia,serif;font-weight:800;font-size:4.6cqw;line-height:1.1;color:#fde68a">${showRes ? (ec.result === 1 ? E.imgWin : E.imgLose) : E.imgTitle}</div>
+        ${dateTxt ? `<div style="font-size:1.8cqw;color:#94a3b8">KvK · ${dateTxt}</div>` : ''}
+      </div>`;
+    const endImg = `
+      <div class="kvk-endimg relative w-full aspect-[16/9] rounded-xl overflow-hidden border border-gold-500/40 shadow-2xl" style="container-type:inline-size;background:#07090f">
+        <div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(7,9,15,.78),rgba(7,9,15,.62) 40%,rgba(7,9,15,.92)),${endBgCss(bgKeySel)}"></div>
+        <div class="absolute inset-0 flex flex-col" style="padding:2.6cqw 3cqw;gap:1.6cqw">
+          <div data-imghead class="flex items-center justify-between shrink-0" style="gap:2cqw;height:8cqw">
+            <div class="flex items-center min-w-0" style="gap:1.6cqw">
+              ${showAv ? `<div class="shrink-0 grid place-items-center overflow-hidden" style="width:8cqw;height:8cqw;border-radius:1.4cqw;border:.25cqw solid rgba(245,197,66,.8);background:linear-gradient(135deg,#f5c542,#b7830f);box-shadow:0 0 2cqw rgba(245,197,66,.35)">${avHTML}</div>` : ''}
+              <div class="min-w-0">
+                <div class="truncate" style="font-family:Cinzel,Georgia,serif;font-weight:800;font-size:${showKd ? 3.4 : 3.9}cqw;line-height:1.15;color:#fde68a">${esc(name)}</div>
+                ${showKd ? `<div class="truncate" style="font-size:1.55cqw;color:#cbd5e1;margin-top:.4cqw">${aTag ? `<b style="color:#fde68a">[${esc(aTag)}]</b> ` : ''}${esc(aName)}${kd ? ` <span style="${aTag || aName ? 'margin-left:.8cqw;' : ''}padding:.2cqw .8cqw;border:.12cqw solid rgba(245,197,66,.5);border-radius:.6cqw;color:#fde68a">🏰 #${esc(kd)}</span>` : ''}</div>` : ''}
+              </div>
+            </div>
+            <div class="shrink-0 text-right" style="max-width:40%">
+              <div style="font-family:Cinzel,Georgia,serif;font-size:1.5cqw;letter-spacing:.3cqw;color:#fde68a;text-transform:uppercase">${E.imgTitle}</div>
+              ${showRes && n ? `<div style="font-size:2.8cqw;font-weight:800;line-height:1.2">${resBig}</div>` : ''}
+              ${dateTxt && n ? `<div style="font-size:1.2cqw;color:#94a3b8">${dateTxt}</div>` : ''}
+            </div>
+          </div>
+          <div data-imggrid class="flex-1 min-h-0 flex flex-col justify-center" style="gap:${GAP}cqw">
+            ${n ? chunks.map((row) => `<div class="flex justify-center" style="gap:${GAP}cqw;${rows > 1 ? 'flex:1 1 0;min-height:0' : ''}">${row.map(tileHTML).join('')}</div>`).join('') : hero}
+          </div>
+          <div class="flex items-center justify-between shrink-0" style="font-size:1.1cqw;color:#64748b">
+            <span>⚔️ Wiz fan Club</span><span>KvK · ${E.imgTitle}</span>
+          </div>
+        </div>
+      </div>`;
+    const fsum = {
+      endSum: ec.kp != null || ec.result ? `${ec.kp != null ? `<span class="text-emerald-400">⚔️ ${ec.kp >= 0 ? '+' : '−'}${short(Math.abs(ec.kp))}</span> ` : ''}${ec.result ? resTxt : ''}` : '',
+      endImg: `<span class="text-slate-500">${END_KEYS.filter((k) => state.end.show[k] !== 2).length}/${END_KEYS.length}</span>`
+    };
+    return { endSum, endImg, _fsum: fsum };
+  }
+
+  function mwPassSum(n) {
+    const L = t(), tiers = BUNDLES.find((b) => b.id === 'mw').tiers.slice(0, state.mwPass[n] || 0);
+    if (!tiers.length) return `<span class="text-slate-600">${L.mwNone}</span>`;
+    return `<span class="text-slate-300">${esc(tx(tiers[tiers.length - 1].label))}</span> · <span class="text-slate-400">${usd(tiers.reduce((a, x) => a + x.usd, 0))}</span> · <span class="text-gold-300">${short(tiers.reduce((a, x) => a + x.cr, 0))} 💎</span>`;
+  }
+  function mwCardBody(b) {
+    const L = t();
+    return `<p class="px-2 pb-1 text-[11px] text-slate-500">${L.mwPerPass}</p>` + MW_PASSES.map((n) => {
+      const dt = passDate(n), cur = state.mwPass[n] || 0;
+      return `
+        <div class="px-2 py-1.5 rounded-lg ${cur ? 'bg-gold-500/5' : ''}">
+          <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <span class="text-sm text-slate-200 whitespace-nowrap">${L.pass} ${n} <span class="text-[11px] text-slate-500 tabular-nums">${dt ? shortDate(dt) : `${L.dayN} ${passDay(n)}`}</span></span>
+            <span data-mwp-sum="${n}" class="text-xs tabular-nums text-right">${mwPassSum(n)}</span>
+          </div>
+          <div class="mt-1 grid grid-cols-6 gap-1" role="radiogroup" aria-label="${L.pass} ${n}">
+            ${[0, ...b.tiers.map((_, i) => i + 1)].map((lv) => `<button type="button" data-mwp="${n}" data-lv="${lv}" aria-pressed="${cur === lv}" title="${lv ? esc(b.tiers.slice(0, lv).map((x) => tx(x.label)).join(' → ')) : L.mwNone}"
+              class="seg-btn rounded-md py-1 text-[11px] font-semibold border border-ink-600 transition truncate">${lv ? esc(tx(b.tiers[lv - 1].label)) : '–'}</button>`).join('')}
+          </div>
+        </div>`;
+    }).join('');
+  }
   function bundleCard(b) {
     const L = t();
     const tiersHTML = b.tiers.map((tr) => {
@@ -1140,7 +2416,7 @@
             <span class="block text-xs text-slate-500 tabular-nums">${usd(tr.usd)} · ${crTxt} 💎</span>
           </span>
           <span class="text-right">
-            <span class="block text-xs tabular-nums text-slate-300">${usd(pm)} <span class="text-slate-500">/ Mio</span></span>
+            <span class="block text-xs tabular-nums text-slate-300">${usd(pm)} <span class="text-slate-500">${L.perMil.replace('$', ' ')}</span></span>
             ${ratingBadge(pm)}
           </span>
         </label>`;
@@ -1150,17 +2426,446 @@
         <div class="flex items-center justify-between gap-3 px-3 py-2.5">
           <span class="min-w-0">
             <span class="block text-sm font-semibold text-slate-100">${esc(b.name)}</span>
-            <span class="block text-xs text-slate-500 truncate">${esc(tx(b.info))}${b.kind === 'repeat' ? ` · ${L.times} ${tx(b.unit)}` : ''}</span>
+            <span class="block text-xs text-slate-500 truncate">${esc(tx(b.info))}${b.kind === 'repeat' && b.id !== 'mw' ? ` · ${L.times} ${tx(b.unit)}` : ''}</span>
             ${b.sequential ? `<span class="block text-[11px] text-amber-300/80">🔒 ${L.seqHint}: ${b.tiers.map((x) => esc(tx(x.label))).join(' → ')}</span>` : ''}
           </span>
           <span data-bsum="${b.id}" class="shrink-0 text-xs text-gold-300 tabular-nums min-w-[7.5rem] text-right"></span>
         </div>
-        <div class="px-1.5 pb-2 space-y-0.5">${tiersHTML}</div>
+        <div class="px-1.5 pb-2 space-y-0.5">${b.id === 'mw' ? mwCardBody(b) : tiersHTML}</div>
         <div data-bfoot="${b.id}"></div>
       </div>`;
   }
 
   /* ----- Ausgaben ----- */
+  /* ================================================================== *
+   * KvK Mitte: Kristall-Verlauf über die ganze KvK-Dauer
+   * ================================================================== */
+  const HONOR_MILES = [80000, 120000];
+  // Ziel-Stufen zum schnellen Eintragen (Testwerte – echte Kosten folgen)
+  const TECH_PRESETS = [
+    { id: 'cap', name: 'Full Cap %', cost: 10000000 },
+    { id: 'heal1', name: 'Healing 1', cost: 20000000 },
+    { id: 'heal2', name: 'Healing 2', cost: 40000000 },
+    { id: 'stats', name: 'All Stats', cost: 60000000 }
+  ];                     // wichtigste Ehre-Stufen
+  const MID_SRC = ['mine', 'supply', 'bundles', 'barbs', 'bastion', 'karuak', 'maudara', 'other'];
+  // Dunkle Stufen der geprüften Kategorie-Palette (feste Reihenfolge, nie zyklisch)
+  const MID_COL = { start: '#5b6478', mine: '#3987e5', supply: '#d95926', bundles: '#e66767', barbs: '#199e70', bastion: '#c98500', karuak: '#d55181', maudara: '#008300', other: '#9085e9' };
+  const cl = (v, a, b) => Math.max(a, Math.min(b, Number.isFinite(+v) ? +v : 0));
+  function midCalc(r) {
+    const m = state.mid, D = Math.round(cl(m.days || 60, 1, 120));
+    const psupOn = m.psup === 1 || (m.psup !== 2 && !!state.buy.psup);
+    const lv = Math.round(cl(state.crystal.mineLv || 25, 1, 25));
+    const mo = KVK_DATA.freeSources.mineOutput.filter((x) => x.level <= lv).pop();
+    const mineDay = mo.perHour * 24 * (1 + (psupOn ? 0.5 : 0) + cl(m.mineBoost, 0, 1000) / 100);
+    const supplyDays = psupOn ? 50 : 0;
+
+    // AP → Forts und Barbaren (Chain: n Barbaren je Angriff zum gleichen AP-Preis)
+    const apRegen = cl(m.apRegen, 0, 1e6), apTotal = r.apTotal + apRegen * D;
+    const barbAp = Math.max(1, cl(m.barbAp, 0, 1e5) || 60), fortAp = Math.max(1, cl(m.fortAp, 0, 1e5) || 150);
+    const chain = Math.round(cl(m.chain || 1, 1, 10));
+    const fortsWanted = Math.floor(cl(m.forts, 0, 1e6));
+    const forts = Math.min(fortsWanted, Math.floor(apTotal / fortAp));
+    const apBarb = apTotal - forts * fortAp, attacks = Math.floor(apBarb / barbAp), barbs = attacks * chain;
+    const barbBonus = 1 + cl(m.rs.barb, 0, 25) / 100;
+    const barbCr = barbs * cl(m.barbCr, 0, 1e6) * barbBonus, fortCr = forts * cl(m.fortCr, 0, 1e7) * barbBonus;
+    const apUsed = forts * fortAp + attacks * barbAp;
+    const kahar = Math.floor(cl(m.kahar, 0, 1e5)), kaharCr = kahar * KVK_DATA.freeSources.kaharTheHidden;   // 45.000 je Kahar
+
+    const bastionDay = cl(m.bastionPerDay, 0, 1000) * cl(m.bastionCr, 0, 1e6) * (1 + cl(m.rs.bastion, 0, 100) / 100);
+
+    // Kau Karuak: Stufen-Belohnung am gewählten Tag, Elite-Stundenertrag ab dann
+    const kkPct = cl(m.rs.karuak, 0, 100), kkOnce = {}, kkEvents = [];
+    // Elite-Stundenertrag: ab dem Tag, an dem eine Schwierigkeit fertig ist, zählen deren Elite-Stufen (5/10/15);
+    // es gilt die höchste Anzahl der bis dahin abgeschlossenen Schwierigkeiten (max. 3 × 500/Std.)
+    let kkTrial = 0; const kkEl = [];
+    ['easy', 'normal', 'hard'].forEach((d) => {
+      const lvl = Math.round(cl(m.kk[d], 0, 15));
+      if (!lvl) return;
+      const day = Math.round(cl(m.kk[d + 'Day'] || KK_DEFAULT_DAY[d], 1, D)), c = kauKaruakCrystals(d, lvl, kkPct);
+      kkOnce[day] = (kkOnce[day] || 0) + c; kkTrial += c;
+      kkEl.push({ day, elites: KVK_DATA.kauKaruak.eliteLevels.filter((e) => lvl >= e).length });
+      kkEvents.push({ kind: 'trial', diff: d, lvl, day, cr: c });
+    });
+    const elitesAt = (d) => kkEl.reduce((a, e) => (e.day <= d ? Math.max(a, e.elites) : a), 0);
+    let elSeen = 0;
+    kkEl.slice().sort((a, b) => a.day - b.day).forEach((e) => { if (e.elites > elSeen && e.day <= D) { elSeen = e.elites; kkEvents.push({ kind: 'elite', day: e.day, perDay: kauKaruakHourly(e.elites, 24), elites: e.elites }); } });
+    const elites = elSeen, kkHourlyDay = kauKaruakHourly(elites, 24);
+    const kkBoostDay = cl(m.kk.boost, 0, 1e7) * 24, kkBoostFrom = Math.round(cl(m.kk.boostDay || 1, 1, D));
+    if (kkBoostDay) kkEvents.push({ kind: 'boost', day: kkBoostFrom, perDay: kkBoostDay, perHour: cl(m.kk.boost, 0, 1e7) });
+    kkEvents.sort((a, b) => a.day - b.day);
+
+    // Mountain Warfare am Tag der Pass-Öffnung, Conquer's Will täglich ab Tag 1 – nicht im Start-Bestand
+    const mwT = BUNDLES.find((b) => b.id === 'mw').tiers, cwT = BUNDLES.find((b) => b.id === 'cw').tiers;
+    const mwAt = {}; let mwSum = 0;
+    MW_PASSES.forEach((n) => { const c = mwT.slice(0, state.mwPass[n] || 0).reduce((a, x) => a + x.cr, 0); if (c) { const d = Math.max(1, Math.min(D, passDay(n))); mwAt[d] = (mwAt[d] || 0) + c; mwSum += c; } });
+    const cwOn = (d) => cwT.reduce((a, x) => a + ((state.buy[x.id] || 0) >= d ? x.cr : 0), 0);
+    const cwSum = cwT.reduce((a, x) => a + (state.buy[x.id] || 0) * x.cr, 0);
+    const start = r.chestCr + r.shop.crNow - mwSum - cwSum - r.goal;   // übrig nach Mine & Forschungszentrum
+    const daily = [], cum = { }, bal = [start];
+    MID_SRC.forEach((k) => (cum[k] = [0]));
+    for (let d = 1; d <= D; d++) {
+      const inc = {
+        mine: mineDay,
+        supply: d <= supplyDays ? 60000 : 0,
+        bundles: (mwAt[d] || 0) + cwOn(d),
+        barbs: (barbCr + fortCr + kaharCr) / D,
+        bastion: bastionDay,
+        karuak: (kkOnce[d] || 0) + kauKaruakHourly(elitesAt(d), 24) + (d >= kkBoostFrom ? kkBoostDay : 0),
+        maudara: cl(m.maudaraPerDay, 0, 1e8),
+        other: cl(m.otherPerDay, 0, 1e8)
+      };
+      daily.push(inc);
+      let sum = 0;
+      MID_SRC.forEach((k) => { cum[k].push(cum[k][d - 1] + inc[k]); sum += inc[k]; });
+      bal.push(bal[d - 1] + sum);
+    }
+    const totals = {}; MID_SRC.forEach((k) => (totals[k] = cum[k][D]));
+    const earned = bal[D] - start;                                  // Plan (ohne Ist-Abgleich)
+    // Ist-Abgleich: echter Stand (jetzt + bisher ausgegeben) ersetzt den Plan ab diesem Tag
+    const a = m.adj, ph0 = phase();
+    // ohne Tag: letzter abgeschlossener KvK-Tag (der laufende Tag ist noch nicht voll im Plan enthalten)
+    const adjDay = Math.round(cl(a.day, 0, D)) || (ph0 && !ph0.before ? Math.max(1, Math.min(D, ph0.day - 1)) : 0);
+    const adjHas = cl(a.spent, 0, 1e10) + cl(a.cur, 0, 1e10) > 0;
+    const adjReal = cl(a.spent, 0, 1e10) + cl(a.cur, 0, 1e10), adjPlan = adjDay ? bal[adjDay] : null;
+    const adjDiff = adjDay && adjHas ? adjReal - adjPlan : 0, adjOn = a.on !== 2 && !!adjDay && adjHas;
+    const planBal = bal.slice();
+    if (adjOn) for (let d = adjDay; d <= D; d++) bal[d] += adjDiff;
+
+    // Roadmap: Ziele je Pass – Kosten bis einschließlich dieses Passes gegen den Kontostand am Öffnungstag
+    const perBarb = cl(m.barbCr, 0, 1e6) * barbBonus, perFort = cl(m.fortCr, 0, 1e7) * barbBonus;
+    let need = 0;
+    const passes = PASS_SCHEDULE.map((p) => {
+      const list = (m.pg[p.n] || []).filter((g) => g && g.cost > 0);
+      const cost = list.reduce((a, g) => a + g.cost, 0);
+      need += cost;
+      const day = Math.min(p.day, D), avail = bal[day], left = avail - need, miss = Math.max(0, -left);
+      const xb = perBarb > 0 ? Math.ceil(miss / perBarb) : 0, xa = Math.ceil(xb / chain), xf = perFort > 0 ? Math.ceil(miss / perFort) : 0;
+      const mwTiers = mwT.slice(0, state.mwPass[p.n] || 0);
+      // Vereinfacht: Ziel-Kristalle − passiver Gewinn (ohne Barbaren/Forts/Kahar aus dem AP-Plan) − Kahar → Barbaren
+      const pt = (m.pt && m.pt[p.n]) || {}, sT = cl(pt.cr, 0, 1e11), sK = Math.floor(cl(pt.kahar, 0, 1e5));
+      const passive = bal[day] - cum.barbs[day], sKcr = sK * KVK_DATA.freeSources.kaharTheHidden, sRest = Math.max(0, sT - passive - sKcr);
+      const sXb = perBarb > 0 ? Math.ceil(sRest / perBarb) : 0, sXa = Math.ceil(sXb / chain), sXf = perFort > 0 ? Math.ceil(sRest / perFort) : 0;
+      const simple = { T: sT, K: sK, Kcr: sKcr, passive, rest: sRest, xb: sXb, xa: sXa, xap: sXa * barbAp, xf: sXf, xfap: sXf * fortAp, apBy: r.apTotal + apRegen * day };
+      return { simple, n: p.n, day: p.day, kday: p.day + 1, mwTiers, mwCr: mwTiers.reduce((a, x) => a + x.cr, 0), mwUsd: mwTiers.reduce((a, x) => a + x.usd, 0), list, cost, need, avail, left, miss, xb, xa, xap: xa * barbAp, xf, xfap: xf * fortAp };
+    });
+    const goalSum = need;
+
+    // Ehre: Ruinen + Altäre pro Tag, Barbaren/Forts aus dem AP-Plan gleichmäßig verteilt
+    const hn = m.hon, honStart = cl(hn.start, 0, 1e9);
+    const honDay = cl(hn.ruinsDay, 0, 1e4) * cl(hn.ruin, 0, 1e7) + cl(hn.altarsDay, 0, 1e4) * cl(hn.altar, 0, 1e7)
+      + (barbs * cl(hn.barb, 0, 1e6) + forts * cl(hn.fort, 0, 1e7)) / D;
+    const hon = [honStart];
+    for (let d = 1; d <= D; d++) hon.push(hon[d - 1] + honDay);
+    const honMiles = HONOR_MILES.map((v) => {
+      let day = -1;
+      for (let d = 0; d <= D; d++) if (hon[d] >= v) { day = d; break; }
+      const miss = day < 0 ? v - hon[D] : 0, perDay = miss / D;
+      return { v, day, miss, perDay,
+        ruins: hn.ruin > 0 ? Math.ceil(perDay / hn.ruin) : null, altars: hn.altar > 0 ? Math.ceil(perDay / hn.altar) : null,
+        barbs: hn.barb > 0 ? Math.ceil(miss / hn.barb) : null };
+    });
+
+    return { adjDay, adjHas, adjReal, adjPlan, adjDiff, adjOn, planBal, kahar, kaharCr, kkEvents, passes, perBarb, perFort, hon, honDay, honStart, honMiles, D, psupOn, lv, mo, mineDay, supplyDays, apRegen, apTotal, barbAp, fortAp, chain, fortsWanted, forts, attacks, barbs, apUsed,
+      barbCr, fortCr, barbBonus, bastionDay, kkTrial, kkHourlyDay, elites, kkFirst: kkEl.length ? Math.min(...kkEl.map((e) => e.day)) : Infinity, start, daily, cum, bal, totals, earned, goalSum };
+  }
+
+  // Gestapeltes Flächendiagramm (SVG): Start-Sockel + Quellen kumuliert, Ziel-Linien, Pässe, heute
+  let lastMid = null;
+  function midChart(mc) {
+    const L = t(), M = L.m;
+    const W = 760, H = 280, pl = 58, pr = 14, pt = 14, pb = 30, D = mc.D;
+    const top = Math.max(...mc.bal, ...mc.planBal), hi = Math.max(top, mc.goalSum, mc.start, 1);
+    let lo = Math.min(0, mc.start, ...mc.bal); if (lo > -0.03 * hi) lo = 0;            // winziges Minus → Achse bei 0 lassen   // Ziel-Kosten gesamt passen immer ins Bild
+    const nice = (v) => { const p = Math.pow(10, Math.floor(Math.log10(v))); return [1, 2, 2.5, 5, 10].map((k) => k * p).find((x) => x >= v); };
+    const step = nice((hi - lo) / 4), y0 = Math.floor(lo / step) * step, y1 = Math.ceil(hi / step) * step;
+    const X = (d) => pl + (d / D) * (W - pl - pr), Y = (v) => pt + (1 - (v - y0) / (y1 - y0)) * (H - pt - pb);
+    const base = Math.max(0, mc.start);                          // Sockel = Start-Bestand (falls positiv)
+    const layers = [];
+    let lower = Array.from({ length: D + 1 }, () => (mc.start > 0 ? base : mc.start));
+    if (mc.start > 0) layers.push({ k: 'start', lower: Array(D + 1).fill(0), upper: lower.slice() });
+    MID_SRC.forEach((k) => {
+      if (!mc.totals[k]) return;
+      const upper = lower.map((v, d) => v + mc.cum[k][d]);
+      layers.push({ k, lower, upper });
+      lower = upper;
+    });
+    const area = (ly) => {
+      const up = ly.upper.map((v, d) => `${X(d).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+      const dn = ly.lower.map((v, d) => `${X(d).toFixed(1)},${Y(v).toFixed(1)}`).reverse().join(' ');
+      return `<polygon points="${up} ${dn}" fill="${MID_COL[ly.k]}" fill-opacity="${ly.k === 'start' ? 0.35 : 0.82}" stroke="#0c1019" stroke-width="1" stroke-linejoin="round"/>`;
+    };
+    const grid = [];
+    for (let v = y0; v <= y1 + 1e-6; v += step) grid.push(`<line x1="${pl}" x2="${W - pr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="${v === 0 ? '#475569' : '#212b40'}" stroke-width="1"/>
+      <text x="${pl - 8}" y="${(Y(v) + 4).toFixed(1)}" text-anchor="end" font-size="11" fill="#94a3b8">${v < 0 ? '−' + short(-v) : short(v)}</text>`);
+    const xt = [];
+    const every = D <= 30 ? 5 : D <= 70 ? 10 : 20;
+    for (let d = 0; d <= D; d += every) xt.push(`<text x="${X(d).toFixed(1)}" y="${H - 10}" text-anchor="${d === 0 ? 'start' : D - d < every / 2 ? 'end' : 'middle'}" font-size="11" fill="#94a3b8">${d === 0 ? 'Start' : `${M.day} ${d}`}</text>`);
+    const passes = PASS_SCHEDULE.filter((p) => p.day <= D).map((p, i, a) => {
+      const near = i > 0 && X(p.day) - X(a[i - 1].day) < 22;           // eng beieinander (z. B. Pass 5/6) → Beschriftung versetzt
+      return `<line x1="${X(p.day).toFixed(1)}" x2="${X(p.day).toFixed(1)}" y1="${pt}" y2="${H - pb}" stroke="#64748b" stroke-dasharray="2 4" stroke-width="1"/>
+      <text x="${(X(p.day) + 3).toFixed(1)}" y="${pt + (near ? 22 : 10)}" font-size="10" fill="#94a3b8">P${p.n}</text>`;
+    }).join('');
+    const ph = phase(), today = ph && !ph.before && ph.day <= D ? ph.day : null;
+    const todayMark = today ? `<line x1="${X(today).toFixed(1)}" x2="${X(today).toFixed(1)}" y1="${pt}" y2="${H - pb}" stroke="#f5c542" stroke-width="2"/>
+      <text x="${(X(today) - 4).toFixed(1)}" y="${H - pb - 6}" text-anchor="end" font-size="10" font-weight="700" fill="#fde68a">${M.today}</text>` : '';
+    // Ziel-Kosten je Pass als Stufenlinie (springt am Öffnungstag um die Kosten dieses Passes)
+    const withGoals = mc.passes.filter((p) => p.cost > 0 && p.day <= D);
+    let goalLines = '';
+    if (withGoals.length) {
+      let pts = `${X(0).toFixed(1)},${Y(0).toFixed(1)}`, prev = 0;
+      withGoals.forEach((p) => { pts += ` ${X(p.day).toFixed(1)},${Y(prev).toFixed(1)} ${X(p.day).toFixed(1)},${Y(p.need).toFixed(1)}`; prev = p.need; });
+      pts += ` ${X(D).toFixed(1)},${Y(prev).toFixed(1)}`;
+      goalLines = `<polyline points="${pts}" fill="none" stroke="#fde68a" stroke-opacity=".85" stroke-dasharray="6 4" stroke-width="1.5"/>`
+        + withGoals.map((p) => `<circle cx="${X(p.day).toFixed(1)}" cy="${Y(p.need).toFixed(1)}" r="5" fill="${p.left >= 0 ? '#34d399' : '#f87171'}" stroke="#0c1019" stroke-width="2"/>`).join('');
+    }
+    const balLine = `<polyline points="${mc.bal.map((v, d) => `${X(d).toFixed(1)},${Y(v).toFixed(1)}`).join(' ')}" fill="none" stroke="#f0efec" stroke-width="2" stroke-linejoin="round"/>`;
+    lastMid = { mc, X, Y, W, H, pl, pr, pt, pb };
+    return `
+      <div class="overflow-x-auto"><div class="relative min-w-[600px]" data-midchart>
+        <svg viewBox="0 0 ${W} ${H}" class="w-full h-auto select-none" role="img" aria-label="${M.chartTitle}">
+          ${grid.join('')}${layers.map(area).join('')}${passes}${goalLines}${balLine}${todayMark}${xt.join('')}
+          <line data-mid-cross x1="0" x2="0" y1="${pt}" y2="${H - pb}" stroke="#f0efec" stroke-opacity=".6" stroke-width="1" visibility="hidden"/>
+          <rect x="${pl}" y="${pt}" width="${W - pl - pr}" height="${H - pt - pb}" fill="transparent" data-mid-hit/>
+        </svg>
+        <div data-mid-tip class="hidden absolute z-20 pointer-events-none min-w-[190px] rounded-lg border border-ink-600 bg-ink-900/95 shadow-2xl px-3 py-2 text-xs"></div>
+      </div></div>`;
+  }
+  // Hover: Tag unter dem Zeiger → Einnahmen bis dahin je Quelle + Kontostand
+  function midHover(e) {
+    const box = e.target.closest && e.target.closest('[data-midchart]');
+    if (!box || !lastMid) return;
+    const L = t(), M = L.m, { mc, X, W, pl, pr } = lastMid;
+    const svg = box.querySelector('svg'), rect = svg.getBoundingClientRect(), tip = box.querySelector('[data-mid-tip]'), cross = box.querySelector('[data-mid-cross]');
+    const vx = ((e.clientX - rect.left) / rect.width) * W;
+    if (vx < pl || vx > W - pr) { tip.classList.add('hidden'); cross.setAttribute('visibility', 'hidden'); return; }
+    const d = Math.round(((vx - pl) / (W - pl - pr)) * mc.D);
+    cross.setAttribute('x1', X(d)); cross.setAttribute('x2', X(d)); cross.setAttribute('visibility', 'visible');
+    const s = startTs(), date = s != null ? ` · ${shortDate(new Date(s + (d - 1) * 86400000))}` : '';
+    const rows = MID_SRC.filter((k) => mc.totals[k]).map((k) => `<div class="flex items-center justify-between gap-3"><span class="flex items-center gap-1.5 text-slate-300"><i class="inline-block w-2.5 h-2.5 rounded-sm" style="background:${MID_COL[k]}"></i>${M.src[k]}</span><span class="tabular-nums text-slate-100">${short(mc.cum[k][d])}</span></div>`).join('');
+    tip.innerHTML = `<div class="font-semibold text-gold-300 mb-1">${d === 0 ? 'Start' : `${M.day} ${d}`}${date}</div>${rows}
+      <div class="flex items-center justify-between gap-3 mt-1 pt-1 border-t border-ink-700"><span class="text-slate-400">${M.balance}</span><span class="tabular-nums font-bold text-white">${short(mc.bal[d])}</span></div>`;
+    tip.classList.remove('hidden');
+    const bw = box.clientWidth, px = (X(d) / W) * bw;
+    tip.style.top = '8px';
+    tip.style.left = (px > bw / 2 ? px - tip.offsetWidth - 12 : px + 12) + 'px';
+  }
+  function midLeave(e) {
+    const box = e.target.closest && e.target.closest('[data-midchart]');
+    if (!box || (e.relatedTarget && box.contains(e.relatedTarget))) return;
+    box.querySelector('[data-mid-tip]').classList.add('hidden');
+    box.querySelector('[data-mid-cross]').setAttribute('visibility', 'hidden');
+  }
+
+  function midOutputs(r) {
+    const L = t(), M = L.m, mc = midCalc(r);
+    const sgn = (v) => `<span class="${v >= 0 ? 'text-emerald-400' : 'text-red-300'}">${v >= 0 ? '' : '−'}${short(Math.abs(v))}</span>`;
+    // ---- Verlauf ----
+    const legend = [...(mc.start > 0 ? ['start'] : []), ...MID_SRC.filter((k) => mc.totals[k])].map((k) => `
+      <div class="flex items-center justify-between gap-3 text-sm py-1 border-b border-ink-700/60 last:border-0">
+        <span class="flex items-center gap-2 text-slate-300"><i class="inline-block w-3 h-3 rounded-sm" style="background:${MID_COL[k]}"></i>${M.src[k]}</span>
+        <span class="tabular-nums text-slate-100 font-semibold text-right shrink-0">${short(k === 'start' ? mc.start : mc.totals[k])}${k === 'start' ? '' : `<span class="block sm:inline text-xs font-normal text-slate-500"><span class="hidden sm:inline"> · </span>${short(mc.totals[k] / mc.D)}/${M.day}</span>`}</span>
+      </div>`).join('');
+    // Pässe: Stand bei Öffnung = bal[p.day], angezeigt als KvK-Tag p.day+1 (wie Karte und Roadmap); Ende: Stand nach Tag D
+    const mDays = [...PASS_SCHEDULE.filter((p) => p.day < mc.D).map((p) => ({ lab: `${L.pass} ${p.n}`, d: p.day, kday: p.day + 1 })), { lab: M.mEnd, d: mc.D, kday: mc.D }];
+    const s = startTs();
+    const miles = mDays.map((x) => `
+      <tr class="border-b border-ink-700/60 last:border-0">
+        <td class="py-1.5 pr-2 text-slate-300 whitespace-nowrap">${x.lab}</td>
+        <td class="py-1.5 px-2 text-slate-500 tabular-nums whitespace-nowrap">${M.day} ${x.kday}${s != null ? ` · ${shortDate(new Date(s + (x.kday - 1) * 86400000))}` : ''}</td>
+        <td class="py-1.5 px-2 text-right tabular-nums text-slate-300">+${short(mc.bal[x.d] - mc.start)}</td>
+        <td class="py-1.5 pl-2 text-right tabular-nums font-semibold">${sgn(mc.bal[x.d])}</td>
+      </tr>`).join('');
+    const midFlow = `
+      <div class="grid gap-2 grid-cols-2 lg:grid-cols-4">
+        ${kpi('💎 ' + M.startLeft, sgn(mc.start), M.startHint)}
+        ${kpi('📈 ' + M.earned, short(mc.earned), `${mc.D} ${L.daysN || M.inDays}`)}
+        ${kpi('⏱ ' + M.perDayAvg, short(mc.earned / mc.D), `⛏️ ${M.mineInfo} ${mc.lv}: ${fmt(mc.mo.perHour)} ${M.perHour}`)}
+        ${kpi('🏁 ' + M.endBal, sgn(mc.bal[mc.D]), mc.goalSum ? `${M.goalsSum}: ${short(mc.goalSum)}` : '')}
+      </div>
+      <div class="mt-3 rounded-xl border border-ink-700 bg-ink-950/60 p-3">
+        <div class="text-xs uppercase tracking-widest text-slate-400 mb-2">${M.chartTitle}</div>
+        ${mc.earned > 0 || mc.start > 0 ? midChart(mc) : `<p class="text-sm text-slate-500 py-6 text-center">${M.noData}</p>`}
+        <div class="grid gap-x-6 sm:grid-cols-2 mt-2">${legend}</div>
+      </div>
+      <details class="mt-3 rounded-xl border border-ink-700 bg-ink-950/40">
+        <summary class="cursor-pointer px-3 py-2 text-xs uppercase tracking-widest text-slate-400">📅 ${M.milestones} · ${M.tableView}</summary>
+        <div class="px-3 pb-2 overflow-x-auto"><table class="w-full text-sm">
+          <thead><tr class="text-[10px] uppercase tracking-widest text-slate-500"><th class="text-left py-1 pr-2 font-medium"></th><th class="text-left py-1 px-2 font-medium">${M.day}</th><th class="text-right py-1 px-2 font-medium">${M.earned}</th><th class="text-right py-1 pl-2 font-medium">${M.balance}</th></tr></thead>
+          <tbody>${miles}</tbody></table></div>
+      </details>`;
+
+    const midMap = mapSVG(mapData(), undefined, mapEvents());
+
+    // ---- Ist-Abgleich ----
+    const midAdj = !mc.adjHas ? '' : !mc.adjDay ? `<p class="text-sm text-amber-300">${M.adjNoDay}</p>` : `
+      ${line(`${M.adjPlan} ${mc.adjDay}`, short(mc.adjPlan))}
+      ${line(M.adjReal, short(mc.adjReal))}
+      <div class="mt-2">${sumBox((mc.adjOn ? '✓ ' : '') + M.adjDiff, sgn(mc.adjDiff), mc.adjOn ? `${M.adjActive} · ${M.endBal}: ${short(mc.bal[mc.D])}` : '')}</div>`;
+
+    // ---- Roadmap: Ziele je Pass ----
+    const sel = mc.passes.find((p) => p.n === +state.mid.pass) || mc.passes[0];
+    const passDt = (p) => (s != null ? ` · ${shortDate(new Date(s + p.day * 86400000))}` : '');
+    const tpl = (str, o) => str.replace(/\{(\w+)\}/g, (_, k) => o[k]);
+    const midGoal = `
+      <div class="grid gap-2 grid-cols-2 sm:grid-cols-3">
+        ${kpi('💎 ' + M.pgAvail + ' ' + sel.n, sgn(sel.avail), `${M.day} ${sel.kday}${passDt(sel)}`)}
+        ${kpi('🎯 ' + M.pgNeed, short(sel.need), sel.cost ? `${L.pass} ${sel.n}: ${short(sel.cost)}` : M.pgEmpty)}
+        <div class="col-span-2 sm:col-span-1">${kpi((sel.left >= 0 ? '✓ ' + M.pgLeft : '⚠ ' + M.pgMiss), sgn(sel.left), '')}</div>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-1.5">${M.pgAvailHint}</p>
+      <div class="mt-3 rounded-lg border ${sel.mwCr ? 'border-gold-500/40 bg-gold-500/5' : 'border-ink-700'} px-3 py-2 text-sm">
+        <div class="text-xs uppercase tracking-widest text-slate-400">⛰️ ${M.pgMw} ${sel.n}</div>
+        ${sel.mwCr ? `<div class="flex flex-wrap items-center justify-between gap-x-3 mt-0.5"><span class="text-slate-200">${sel.mwTiers.map((x) => esc(tx(x.label))).join(' → ')}</span>
+          <span class="tabular-nums"><span class="text-slate-400">${usd(sel.mwUsd)}</span> · <span class="text-gold-300 font-semibold">+${short(sel.mwCr)} 💎</span></span></div>`
+          : `<div class="text-xs text-slate-500 mt-0.5">${M.pgMwNone}</div>`}
+      </div>
+      ${sel.simple.T ? (() => { const q = sel.simple, ok = q.rest <= 0; return `
+      <div class="mt-3 rounded-lg border ${ok ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-sky-500/30 bg-sky-500/5'} px-3 py-2.5 text-sm">
+        <div class="text-xs uppercase tracking-widest text-slate-400 mb-1">🎯 ${M.simple} · ${M.simpleCr} ${sel.n}: <span class="text-gold-300">${short(q.T)}</span></div>
+        ${line(M.simplePassive, short(q.passive))}
+        ${q.K ? line('👹 ' + M.simpleKaharOut + ' × ' + fmt(q.K), '+' + short(q.Kcr)) : ''}
+        ${ok ? `<div class="text-emerald-400 font-semibold mt-1">✓ ${M.simpleOk} · +${short(q.passive + q.Kcr - q.T)}</div>` : `
+          ${line(M.simpleRest, short(q.rest), 'text-amber-300')}
+          <div class="text-slate-200 tabular-nums mt-1">🪓 ${tpl(M.pgBarbs, { b: fmt(q.xb), a: fmt(q.xa), ap: fmt(q.xap) })}</div>
+          <div class="text-slate-300 tabular-nums">🏰 ${tpl(M.pgForts, { f: fmt(q.xf), ap: fmt(q.xfap) })}</div>
+          <div class="text-[11px] mt-1 ${q.xap > q.apBy ? 'text-red-300' : 'text-slate-500'}">🧪 ${M.simpleApBy}: ${fmt(q.apBy)}${q.xap > q.apBy ? ' · ⚠ ' + M.simpleApShort : ''}</div>`}
+        <div class="text-[10px] text-slate-500 mt-1">${M.simplePassiveHint}</div>
+      </div>`; })() : ''}
+      ${sel.miss > 0 ? `<div class="mt-3 rounded-lg border border-red-400/30 bg-red-500/5 px-3 py-2.5 text-sm">
+        <div class="text-xs uppercase tracking-widest text-red-300/80 mb-1">${M.pgExtra} · ${short(sel.miss)} 💎</div>
+        <div class="text-slate-200 tabular-nums">🪓 ${tpl(M.pgBarbs, { b: fmt(sel.xb), a: fmt(sel.xa), ap: fmt(sel.xap) })}</div>
+        <div class="text-slate-300 tabular-nums">🏰 ${tpl(M.pgForts, { f: fmt(sel.xf), ap: fmt(sel.xfap) })}</div>
+      </div>` : ''}
+`;
+
+    // ---- Roadmap (wie im Start-Tab): Start ● — Pass 4 ● — … — Ende ●
+    const dayDt = (d) => (s != null ? shortDate(new Date(s + (d - 1) * 86400000)) : '');
+    const stations = [{ k: 'start', day: 0 }, ...mc.passes.filter((p) => p.day < mc.D).map((p) => ({ k: 'pass', day: p.day, p })), { k: 'end', day: mc.D }];
+    const roadItem = (title, sub, val, tone) => `
+      <div class="rounded-lg border ${tone === 'hot' ? 'border-gold-500/40 bg-gold-500/5' : tone === 'bad' ? 'border-red-400/40 bg-red-500/5' : tone === 'good' ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-ink-700 bg-ink-900/70'} px-2 py-1.5">
+        <div class="text-[11px] font-semibold text-slate-200 leading-tight">${title}</div>
+        ${sub ? `<div class="text-[10px] text-slate-400 leading-snug">${sub}</div>` : ''}
+        ${val ? `<div class="text-[11px] tabular-nums mt-0.5">${val}</div>` : ''}
+      </div>`;
+    let prevDay = -1;
+    const cols = stations.map((st) => {
+      const items = [];
+      if (st.k === 'start') items.push(roadItem('💎 ' + M.rStart, M.startHint.split('(')[0].trim(), sgn(mc.start), mc.start >= 0 ? '' : 'bad'));
+      mc.kkEvents.filter((e) => e.day > prevDay && e.day <= st.day && !(st.k === 'start')).forEach((e) => {
+        const when = `${M.day} ${e.day}${dayDt(e.day) ? ' · ' + dayDt(e.day) : ''}`;
+        if (e.kind === 'trial') items.push(roadItem(`🗿 Kau Karuak · ${M.kkDiff[e.diff]}`, `${M.rUpTo} ${e.lvl} · ${when}`, `<span class="text-gold-300">+${short(e.cr)} 💎</span>`, 'hot'));
+        if (e.kind === 'elite') items.push(roadItem(`⏱ ${M.rElite} · ${e.elites}×`, `${M.rFrom} ${e.day}${dayDt(e.day) ? ' · ' + dayDt(e.day) : ''}`, `<span class="text-gold-300">+${short(e.perDay)}</span><span class="text-slate-500">/${M.day}</span>`));
+        if (e.kind === 'boost') items.push(roadItem(`⚡ ${M.rBoost} · ${fmt(e.perHour)}/h`, `${M.rFrom} ${e.day}${dayDt(e.day) ? ' · ' + dayDt(e.day) : ''}`, `<span class="text-gold-300">+${short(e.perDay)}</span><span class="text-slate-500">/${M.day}</span>`));
+      });
+      if (st.k === 'pass') {
+        const p = st.p;
+        if (p.mwCr) items.push(roadItem('⛰️ Mountain Warfare', p.mwTiers.map((x) => esc(tx(x.label))).join(' → '), `<span class="text-slate-400">${usd(p.mwUsd)}</span> · <span class="text-gold-300">+${short(p.mwCr)}</span>`, 'hot'));
+        p.list.forEach((g) => items.push(roadItem('🎯 ' + esc(g.name || M.goalLine), '', `<span class="text-slate-300">−${short(g.cost)} 💎</span>`)));
+        if (p.simple.T) items.push(p.simple.rest <= 0
+          ? roadItem(`🎯 ${M.simple}: ${short(p.simple.T)}`, M.simpleOk, `<span class="text-emerald-400">✓</span>`, 'good')
+          : roadItem(`🎯 ${M.simple}: ${short(p.simple.T)}`, `${M.simplePassive}: ${short(p.simple.passive)}${p.simple.K ? ` · 👹 ${fmt(p.simple.K)}` : ''}`, `<span class="text-sky-300">🪓 ${fmt(p.simple.xb)}</span> <span class="text-slate-500">· ${fmt(p.simple.xap)} AP</span>`));
+        if (p.cost) items.push(p.left >= 0
+          ? roadItem('✓ ' + M.pgLeft, '', `<span class="text-emerald-400 font-semibold">+${short(p.left)}</span>`, 'good')
+          : roadItem('⚠ ' + M.pgMiss + ' ' + short(p.miss), `🪓 ${fmt(p.xb)} ${M.barbs} · ${fmt(p.xap)} AP<br>🏰 ${M.honOr} ${fmt(p.xf)} ${M.fortsDone}`, '', 'bad'));
+      }
+      if (st.k === 'end') {
+        const left = mc.bal[mc.D] - mc.goalSum;
+        items.push(roadItem(left >= 0 ? '✓ ' + M.leftEnd : '⚠ ' + M.missingEnd, mc.goalSum ? `${M.goalsSum}: ${short(mc.goalSum)}` : '', sgn(left), left >= 0 ? 'good' : 'bad'));
+      }
+      const bal = mc.bal[Math.min(st.day, mc.D)] - mc.passes.filter((p) => p.day <= st.day && st.k !== 'start').reduce((a, p) => a + p.cost, 0);
+      prevDay = st.day;
+      const head = st.k === 'start' ? `<div class="text-sm font-semibold ${items.length ? 'text-gold-300' : 'text-slate-500'}">${L.rmStart}</div><div class="text-[10px] text-slate-500 tabular-nums">${s != null ? shortDate(new Date(s)) : M.day + ' 0'}</div>`
+        : st.k === 'end' ? `<div class="text-sm font-semibold text-gold-300">${M.mEnd}</div><div class="text-[10px] text-slate-500 tabular-nums">${M.day} ${mc.D}${dayDt(mc.D) ? ' · ' + dayDt(mc.D) : ''}</div>`
+        : `<button type="button" data-mpass="${st.p.n}" class="kvk-road-head w-full rounded-lg px-1 py-0.5 ${+state.mid.pass === st.p.n ? 'ring-2 ring-gold-400/80 bg-gold-500/10' : 'hover:bg-ink-800'}">
+            <div class="text-sm font-semibold ${items.length ? 'text-gold-300' : 'text-slate-400'}">${L.pass} ${st.p.n}</div>
+            <div class="text-[10px] text-slate-500 tabular-nums">${dayDt(st.p.kday) || `${M.day} ${st.p.kday}`}</div></button>`;
+      return `
+        <div class="kvk-road-col ${items.length ? 'is-on' : ''}">
+          <div class="text-center">${head}</div>
+          <div class="kvk-road-dot"><span></span></div>
+          <div class="flex flex-col gap-1.5">
+            ${items.length ? items.join('') : `<div class="text-center text-xs text-slate-600 py-2">${L.rmNothing}</div>`}
+            <div class="text-[10px] text-right tabular-nums text-slate-500 pr-1">${M.rStand}: <span class="${bal >= 0 ? 'text-slate-300' : 'text-red-300'}">${bal >= 0 ? '' : '−'}${short(Math.abs(bal))}</span></div>
+          </div>
+        </div>`;
+    });
+    const midRoad = `
+      <div class="relative">
+        <button type="button" data-road="-1" class="kvk-road-arrow left-0" aria-label="←">‹</button>
+        <button type="button" data-road="1" class="kvk-road-arrow right-0" aria-label="→">›</button>
+        <div class="kvk-road-scroll overflow-x-auto pb-2" data-road-scroll>
+          <div class="kvk-road" style="--cols:${cols.length}">${cols.join('')}</div>
+        </div>
+      </div>`;
+
+    // ---- AP & Barbaren ----
+    const midAp = `
+      <div class="grid gap-2 grid-cols-2 sm:grid-cols-4">
+        ${kpi('🧪 ' + M.apTotalLbl, fmt(mc.apTotal), mc.apRegen ? `${fmt(r.apTotal)} + ${fmt(mc.apRegen)} × ${mc.D}` : M.apSrc)}
+        ${kpi('⚔️ ' + M.attacks, fmt(mc.attacks), M.chainInfo.replace(/\{n\}/g, mc.chain).replace('{ap}', fmt(mc.barbAp)))}
+        ${kpi('🪓 ' + M.barbs, fmt(mc.barbs), `+ ${fmt(mc.forts)} ${M.fortsDone}${mc.forts < mc.fortsWanted ? ` · <span class="text-red-300">${M.apNoFort}</span>` : ''}`)}
+        ${kpi('💎 ' + M.crystals, short(mc.barbCr + mc.fortCr + mc.kaharCr), [mc.barbBonus > 1 ? `${M.withRs} +${fmt((mc.barbBonus - 1) * 100)} %` : '', mc.kahar ? `👹 ${fmt(mc.kahar)} ${M.kaharShort}: ${short(mc.kaharCr)}` : ''].filter(Boolean).join(' · '))}
+      </div>`;
+    // ---- Ehre-Timeline ----
+    const hW = 760, hH = 200, hpl = 58, hpr = 14, hpt = 12, hpb = 28;
+    const hStep = (() => { const v = Math.max(mc.hon[mc.D], ...HONOR_MILES) / 5, p = Math.pow(10, Math.floor(Math.log10(v))); return [1, 2, 2.5, 4, 5, 10].map((k) => k * p).find((x) => x >= v); })();
+    const hMax = Math.ceil(Math.max(mc.hon[mc.D], ...HONOR_MILES) * 1.04 / hStep) * hStep;
+    const hX = (d) => hpl + (d / mc.D) * (hW - hpl - hpr), hY = (v) => hpt + (1 - v / hMax) * (hH - hpt - hpb);
+    const hGrid = Array.from({ length: Math.round(hMax / hStep) + 1 }, (_, i) => i * hStep).map((v) => `<line x1="${hpl}" x2="${hW - hpr}" y1="${hY(v).toFixed(1)}" y2="${hY(v).toFixed(1)}" stroke="#212b40"/>
+      <text x="${hpl - 8}" y="${(hY(v) + 4).toFixed(1)}" text-anchor="end" font-size="11" fill="#94a3b8">${fmt(v)}</text>`).join('');
+    const hMarks = mc.honMiles.map((x) => `<line x1="${hpl}" x2="${hW - hpr}" y1="${hY(x.v).toFixed(1)}" y2="${hY(x.v).toFixed(1)}" stroke="#fde68a" stroke-opacity=".8" stroke-dasharray="6 4" stroke-width="1.5"/>
+      <text x="${hpl + 6}" y="${(hY(x.v) - 5).toFixed(1)}" font-size="11" font-weight="600" fill="#fde68a" paint-order="stroke" stroke="#0c1019" stroke-width="3">${fmt(x.v)}</text>
+      ${x.day >= 0 ? `<circle cx="${hX(x.day).toFixed(1)}" cy="${hY(x.v).toFixed(1)}" r="5" fill="#34d399" stroke="#0c1019" stroke-width="2"/>` : ''}`).join('');
+    const hEvery = mc.D <= 30 ? 5 : mc.D <= 70 ? 10 : 20, hXt = [];
+    for (let d = 0; d <= mc.D; d += hEvery) hXt.push(`<text x="${hX(d).toFixed(1)}" y="${hH - 8}" text-anchor="${d === 0 ? 'start' : mc.D - d < hEvery / 2 ? 'end' : 'middle'}" font-size="11" fill="#94a3b8">${d === 0 ? 'Start' : `${M.day} ${d}`}</text>`);
+    const hArea = `<polygon points="${mc.hon.map((v, d) => `${hX(d).toFixed(1)},${hY(v).toFixed(1)}`).join(' ')} ${hX(mc.D).toFixed(1)},${hY(0).toFixed(1)} ${hX(0).toFixed(1)},${hY(0).toFixed(1)}" fill="#c98500" fill-opacity=".25"/>
+      <polyline points="${mc.hon.map((v, d) => `${hX(d).toFixed(1)},${hY(v).toFixed(1)}`).join(' ')}" fill="none" stroke="#e0a91b" stroke-width="2"/>`;
+    const honChart = `<div class="overflow-x-auto"><svg viewBox="0 0 ${hW} ${hH}" class="w-full min-w-[560px] h-auto" role="img" aria-label="${M.honChart}">${hGrid}${hArea}${hMarks}${hXt.join('')}</svg></div>`;
+    const h = state.mid.hon;
+    const honTotal = mc.hon[mc.D] - mc.honStart;
+    const midHonor = `
+      <div class="grid gap-2 grid-cols-2 lg:grid-cols-4">
+        ${kpi('🏅 ' + M.honStart, fmt(mc.honStart), '')}
+        ${kpi('📈 ' + M.honPerDay, fmt(mc.honDay), `${fmt(h.ruinsDay)} × ${M.ruins} · ${fmt(h.altarsDay)} × ${M.altars}`)}
+        ${mc.honMiles.map((x) => kpi(`🎯 ${fmt(x.v)}`, x.day === 0 ? `<span class="text-emerald-400">✓ ${M.honNow}</span>` : x.day > 0 ? `<span class="text-emerald-400">${M.day} ${x.day}</span>` : `<span class="text-red-300">−${short(x.miss)}</span>`,
+          x.day > 0 ? `${M.honReach} ${x.day}${s != null ? ` · ${shortDate(new Date(s + (x.day - 1) * 86400000))}` : ''}`
+          : x.day < 0 ? `${M.honMiss} · ${M.honExtra}: ${[x.ruins != null ? `${fmt(x.ruins)} ${M.ruins}` : '', x.altars != null ? `${fmt(x.altars)} ${M.altars}` : ''].filter(Boolean).join(` ${M.honOr} `) || '—'}` : '')).join('')}
+      </div>
+      <div class="mt-3 rounded-xl border border-ink-700 bg-ink-950/60 p-3">
+        <div class="text-xs uppercase tracking-widest text-slate-400 mb-2">${M.honChart}</div>${honChart}
+        <div class="mt-1 text-[11px] text-slate-500">🪓 ${M.honBarbsSrc}: ${fmt(mc.barbs)} × ${fmt(h.barb)} + ${fmt(mc.forts)} × ${fmt(h.fort)} = ${fmt(mc.barbs * h.barb + mc.forts * h.fort)}</div>
+      </div>`;
+
+    // ---- Zwischenstand ----
+    const st = state.stats, now = state.mid.now, sp = state.speed;
+    const diffCell = (a, b, kind) => {
+      if (!a || !b) return '<span class="text-slate-600">–</span>';     // erst vergleichen, wenn Start UND Jetzt eingetragen sind
+      const d = b - a;
+      if (kind === 'speed') return d <= 0 ? `<span class="text-amber-300">${dur(-d)} ${M.spent}</span>` : `<span class="text-emerald-400">+${dur(d)}</span>`;
+      const good = kind === 'deads' ? d <= 0 : d >= 0;
+      return `<span class="${d === 0 ? 'text-slate-400' : good ? 'text-emerald-400' : 'text-red-300'}">${d > 0 ? '+' : d < 0 ? '−' : '±'}${short(Math.abs(d))}</span>`;
+    };
+    const statRows = [['💪', M.power, st.power, now.power], ['⚔️', M.kp, st.kp, now.kp], ['🏅', M.acclaim, st.acclaim, now.acclaim], ['💀', M.deads, st.deads, now.deads, 'deads'],
+      ['⏱️', M.universal, sp.universal, now.universal, 'speed'], ['❤️', M.healing, sp.healing, now.healing, 'speed']];
+    const midStats = `<div class="flex flex-col gap-1">${statRows.map(([ic, lab, a, b, kind]) => `
+      <div class="flex items-center justify-between gap-3 text-sm py-1.5 border-b border-ink-700/60 last:border-0">
+        <span class="text-slate-400">${ic} ${lab}</span><span class="font-semibold tabular-nums text-right">${diffCell(+a || 0, +b || 0, kind)}</span>
+      </div>`).join('')}</div>`;
+
+    const kpGain = (now.kp || 0) - (st.kp || 0);
+    const fsum = {
+      midFlow: (mc.earned > 0 ? `<span class="text-gold-300">+${short(mc.earned)} 💎</span> <span class="text-slate-500">· ${short(mc.earned / mc.D)}/${M.day}</span>` : '')
+        + (mc.adjOn ? ` <span class="${mc.adjDiff >= 0 ? 'text-emerald-400' : 'text-red-300'}">· 🧾 ${mc.adjDiff >= 0 ? '+' : '−'}${short(Math.abs(mc.adjDiff))}</span>` : ''),
+      midGoal: (() => { const g = mc.passes.filter((p) => p.cost); if (!g.length) return ''; const bad = g.filter((p) => p.left < 0);
+        return bad.length ? `<span class="text-red-300">⚠ ${L.pass} ${bad.map((p) => p.n).join(', ')} · −${short(Math.max(...bad.map((p) => p.miss)))}</span>` : `<span class="text-emerald-400">✓ ${g.length}/${g.length}</span>`; })(),
+      midAp: mc.barbs || mc.forts ? `<span class="text-slate-300">🪓 ${fmt(mc.barbs)} · 🏰 ${fmt(mc.forts)}</span>` : '',
+      midHon: mc.honDay || mc.honStart ? mc.honMiles.map((x) => `<span class="${x.day >= 0 ? 'text-emerald-400' : 'text-red-300'}">${fmt(x.v)} ${x.day >= 0 ? `✓ ${M.day} ${x.day}` : '✗'}</span>`).join(' <span class="text-slate-600">·</span> ') : '',
+      midStats: now.kp && st.kp ? `<span class="${kpGain >= 0 ? 'text-emerald-400' : 'text-red-300'}">⚔️ ${kpGain >= 0 ? '+' : '−'}${short(Math.abs(kpGain))}</span>` : ''
+    };
+    return { midMap, midAdj, midFlow, midGoal, midRoad, midAp, midHonor, midStats, _fsum: fsum };
+  }
+
   function outputs(r) {
     const L = t();
     const lvOk2 = (v) => Math.max(1, Math.min(25, Math.round(+v || 25)));
@@ -1201,7 +2906,7 @@
       ? `<div class="grid grid-cols-3 gap-2">
            ${kpi(L.spend, usd(s.usd))}
            ${kpi(L.crystals, short(s.crTotal), s.supplyTotal ? `${short(s.supplyPerDay)}${L.perDayShort}` : '')}
-           ${kpi(L.avg, `${usd(s.perMil)}`, `/ Mio · ${rating(s.perMil).key}`)}
+           ${kpi(L.avg, `${usd(s.perMil)}`, `${L.perMil.replace('$', ' ')} · ${rating(s.perMil).key}`)}
          </div>`
       : `<p class="text-xs text-slate-500 text-center py-2">${L.nothing}</p>`;
 
@@ -1213,12 +2918,12 @@
         ${st.map((x) => {
           const rt = rating(x.pm), w = Math.max(3, (x.pm / maxPm) * 100);
           const selCr = x.b.tiers.reduce((a, tr) => a + (state.buy[tr.id] || 0) * tr.cr, 0);
-          const tip = `${x.b.name}: ${usd(x.usd)} → ${fmt(x.cr)} 💎 = ${usd(x.pm)} / Mio (${rt.key})`;
+          const tip = `${x.b.name}: ${usd(x.usd)} → ${fmt(x.cr)} 💎 = ${usd(x.pm)}${L.perMil.replace('$', ' ')} (${rt.key})`;
           return `
           <div role="listitem" class="group" title="${esc(tip)}">
             <div class="flex items-baseline justify-between gap-3 text-sm">
               <span class="text-slate-200 truncate">${esc(x.b.name)}</span>
-              <span class="shrink-0 tabular-nums text-slate-300 font-semibold">${usd(x.pm)} <span class="text-xs text-slate-500 font-normal">/ Mio</span> ${ratingBadge(x.pm)}</span>
+              <span class="shrink-0 tabular-nums text-slate-300 font-semibold">${usd(x.pm)} <span class="text-xs text-slate-500 font-normal">${L.perMil.replace('$', ' ')}</span> ${ratingBadge(x.pm)}</span>
             </div>
             <div class="mt-1 h-2.5 rounded bg-ink-800 overflow-hidden">
               <div class="h-full rounded transition-all group-hover:brightness-110" style="width:${w.toFixed(1)}%;background:${rt.bar}"></div>
@@ -1228,8 +2933,8 @@
         }).join('')}
       </div>
       <div class="grid grid-cols-2 gap-2 mt-3">
-        ${kpi('🏆 ' + L.best, esc(st[0].b.name), `${usd(st[0].pm)} / Mio`)}
-        ${kpi('⚠️ ' + L.worst, esc(st[st.length - 1].b.name), `${usd(st[st.length - 1].pm)} / Mio`)}
+        ${kpi('🏆 ' + L.best, esc(st[0].b.name), `${usd(st[0].pm)}${L.perMil.replace('$', ' ')}`)}
+        ${kpi('⚠️ ' + L.worst, esc(st[st.length - 1].b.name), `${usd(st[st.length - 1].pm)}${L.perMil.replace('$', ' ')}`)}
       </div>`;
 
     // Budget-Planer: Kennzahlen (Details stehen in der Roadmap)
@@ -1241,7 +2946,7 @@
           ${kpi('💎 ' + L.budgetGet, `<span class="text-gold-300">${short(p.cr)}</span>`, '')}
           ${kpi('💵 ' + L.spend, usd(p.spent), `${p.count}×`)}
           ${kpi('↩️ ' + L.budgetLeft, usd(p.left), '')}
-          ${kpi('⚖️ ' + L.avg, usd(perMil(p.spent, p.cr)), '/ Mio')}
+          ${kpi('⚖️ ' + L.avg, usd(perMil(p.spent, p.cr)), L.perMil.replace('$', ' '))}
         </div>
         <p class="mt-2 text-[11px] text-emerald-400/90">✓ ${L.autoNote}</p>`;
     }
@@ -1297,6 +3002,9 @@
           <div class="mt-2">${sumBox(left >= 0 ? `✓ ${L.buildLeft}` : `⚠️ ${L.buildMissing}`, `<span class="${left >= 0 ? 'text-emerald-400' : 'text-red-300'}">${dur(Math.abs(left))}</span>`,
             left < 0 ? `${L.withUni}: ${leftU >= 0 ? `✓ ${L.buildLeft} ${dur(leftU)}` : `${L.buildMissing} ${dur(-leftU)}`}` : '')}</div>`;
       })(),
+      ...(() => { const po = mapOutputs(); Object.assign(fsum, po._fsum); return { mapNext: po.mapNext, mapUpcoming: po.mapUpcoming, mapSched: po.mapSched }; })(),
+      ...(() => { const eo = endOutputs(r); Object.assign(fsum, eo._fsum); return { endSum: eo.endSum, endImg: eo.endImg }; })(),
+      ...(() => { const mo = midOutputs(r); Object.assign(fsum, mo._fsum); return { midMap: mo.midMap, midAdj: mo.midAdj, midFlow: mo.midFlow, midGoal: mo.midGoal, midRoad: mo.midRoad, midAp: mo.midAp, midHonor: mo.midHonor, midStats: mo.midStats }; })(),
       crystal, shop, stats, budget, roadmap, _fsum: fsum
     };
   }
@@ -1309,8 +3017,16 @@
   function renderClockIn(scope) {
     const L = t(), ph = scope._kvkFixed ? phase(scope._kvkStart) : phase();
     const phEl = scope.querySelector('[data-phase]'), cdEl = scope.querySelector('[data-countdown]');
-    const utcEl = scope.querySelector('[data-utc]'), lineEl = scope.querySelector('[data-startline]');
+    const utcEl = scope.querySelector('[data-utc]'), lineEl = scope.querySelector('[data-startline]'), phasesEl = scope.querySelector('[data-phases]');
     if (!phEl || !cdEl) return;
+    if (phasesEl) phasesEl.innerHTML = ph && ph.before ? phasesHTML(ph.ts) : '';
+    const nxEl = scope.querySelector('[data-nextev]');
+    if (nxEl && (!nxEl.dataset.ts || +nxEl.dataset.ts <= srvNow() || nxEl.dataset.key !== (scope._kvkFixed ? scope._kvkStart : state.startDate + '|' + (state.mapEv || []).length))) {
+      nxEl.innerHTML = nextEvHTML(scope._kvkFixed ? scope._kvkEvs || [] : mapEvents());
+      const inner = nxEl.firstElementChild; nxEl.dataset.ts = inner ? inner.dataset.ts : String(srvNow() + 60000);
+      nxEl.dataset.key = scope._kvkFixed ? scope._kvkStart : state.startDate + '|' + (state.mapEv || []).length;
+    }
+    if (nxEl) nxEl.querySelectorAll('[data-cd-ts]').forEach((x) => { x.textContent = cdText(+x.dataset.cdTs - srvNow()); });
     const badge = (txt, cls) => `<span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full border ${cls}">${txt}</span>`;
 
     if (!ph) {
@@ -1330,6 +3046,43 @@
       const tz = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { return ''; } })();
       utcEl.innerHTML = `00:00 UTC = <span class="text-slate-300">${local}</span> ${L.localIs}${tz ? ` (${esc(tz)})` : ''}`;
     }
+  }
+
+  // Zeile unter dem Countdown: nächstes Schlüssel-Ereignis (Pass 4/7/8, Altar) oder laufender Kampf
+  function nextEvHTML(evs) {
+    const MP = t().mp, now = srvNow(), n = nextKeyEvent(evs, now);
+    if (!n) return '';
+    const ic = EV_ICON[n.e.kind] || EV_ICON.other, col = n.e.kind === 'altar' ? '#4ade80' : '#c084fc';
+    const when = new Date(n.e.ts).toLocaleString(locale(), { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const endTs = n.fighting ? fightEnd(n.e) : n.e.ts;
+    return `<span class="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 rounded-full border px-3 py-1 bg-ink-950/60 backdrop-blur-sm" style="border-color:${col}66" data-ts="${endTs}">
+        <span class="text-slate-400">${n.fighting ? '⚔️ ' + MP.fightNow : '⏭ ' + MP.nextShort}:</span>
+        <span class="font-semibold" style="color:${col}">${ic[0]} ${esc(n.e.name)}</span>
+        <span class="text-slate-300">${n.fighting ? MP.fightOn : when}</span>
+        <span class="font-bold tabular-nums" style="color:${col}" data-cd-ts="${endTs}">${cdText(endTs - now)}</span>
+      </span>`;
+  }
+  // Phasen vor dem KvK-Start (immer gleicher Abstand zum Start): Registrierung −11 Tage, Team-up −9, Matchmaking −7,
+  // Bekanntgabe −2, Start 0. Nur Anzeige – der Countdown bleibt davon unberührt.
+  const PRE_PHASES = [{ k: 'reg', off: -11 }, { k: 'team', off: -9 }, { k: 'match', off: -7 }, { k: 'ann', off: -2 }, { k: 'begin', off: 0 }];
+  let phasesKey = '';
+  function phasesHTML(startMs) {
+    const L = t(), now = srvNow(), day = 86400000;
+    const ts = PRE_PHASES.map((p) => startMs + p.off * day);
+    let cur = -1; ts.forEach((x, i) => { if (x <= now) cur = i; });
+    const nxt = cur + 1 < ts.length ? ts[cur + 1] : null;
+    return `
+      <div class="mt-2 rounded-xl border border-gold-500/25 bg-ink-950/55 backdrop-blur-sm px-3 py-2">
+        <div class="text-[11px] text-slate-300 text-center mb-1.5">${cur < 0 ? `🕒 ${L.phasePre} · ${L.phaseNames.reg} ${L.phaseFrom} ${shortDate(new Date(ts[0]))}` : `📍 ${L.phaseNow}: <b class="text-gold-300">${L.phaseNames[PRE_PHASES[cur].k]}</b>${nxt ? ` · ${L.phaseNext} ${shortDate(new Date(nxt))}` : ''}`}</div>
+        <div class="flex items-start">
+          ${PRE_PHASES.map((p, i) => `
+            <div class="flex-1 min-w-0 flex flex-col items-center relative">
+              ${i < PRE_PHASES.length - 1 ? `<div class="absolute top-[7px] left-1/2 right-[-50%] h-[3px] ${i < cur ? 'bg-gold-400' : 'bg-ink-600'}"></div>` : ''}
+              <div class="relative w-4 h-4 rounded-full border-2 ${i < cur ? 'bg-gold-400 border-gold-300' : i === cur ? 'bg-gold-400 border-white shadow-[0_0_10px_rgba(245,197,66,.8)]' : 'bg-ink-800 border-ink-600'}"></div>
+              <div class="mt-1 text-[10px] leading-tight text-center ${i === cur ? 'text-gold-300 font-semibold' : i < cur ? 'text-slate-400' : 'text-slate-500'}">${shortDate(new Date(ts[i]))}<br>${L.phaseNames[p.k]}</div>
+            </div>`).join('')}
+        </div>
+      </div>`;
   }
 
   // Feuer-Countdown: 4 Kacheln. Aufbau einmalig, danach nur Zahlen tauschen –
@@ -1363,15 +3116,17 @@
   function render() {
     if (!root) return;
     state = load();
+    startEdit = false; startBackup = null;      // Bearbeitungsmodus nie ins nächste Laden/Konto mitnehmen
     autoImport();
     rerender();
     startClock();
   }
   function rerender() {
     if (!root) return;
-    if (!['start', 'mid', 'end'].includes(state.tab)) state.tab = 'start';
+    if (!['start', 'mid', 'end', 'map'].includes(state.tab)) state.tab = 'start';
     root.setAttribute('translate', 'no');      // eigene DE/EN-Texte – nicht vom Seiten-Übersetzer anfassen
     root.innerHTML = viewHTML();
+    lockDom();
     applyBg();
     refresh();
     renderClock();
@@ -1396,7 +3151,7 @@
       if (ft) ft.innerHTML = n >= 2 ? `
         <div class="mx-1.5 mb-2 flex items-center justify-between gap-2 rounded-lg border border-gold-500/30 bg-gold-500/5 px-3 py-1.5 text-xs">
           <span class="uppercase tracking-widest text-slate-400">Σ ${t().sel} · ${n}×</span>
-          <span class="tabular-nums font-semibold"><span class="text-slate-100">${usd(u)}</span> · <span class="text-gold-300">${short(c)} 💎</span> <span class="text-slate-500 font-normal">· ${usd(perMil(u, c))}/Mio</span></span>
+          <span class="tabular-nums font-semibold"><span class="text-slate-100">${usd(u)}</span> · <span class="text-gold-300">${short(c)} 💎</span> <span class="text-slate-500 font-normal">· ${usd(perMil(u, c))}${t().perMil.replace('$', ' ')}</span></span>
         </div>` : '';
     });
   }
@@ -1430,8 +3185,9 @@
   function startClock() {
     if (clock) return;
     clock = setInterval(() => {
-      if (visible()) renderClockIn(root);
+      if (visible()) { renderClockIn(root); tickNext(); }
       hosts.forEach((h) => { if (h.isConnected && h.offsetParent !== null) renderClockIn(h); });
+      tickHosts();
     }, 1000);
     startFlames();
   }
@@ -1441,13 +3197,77 @@
   // damit keine Megabytes an Bilddaten in user_state synchronisiert werden.
   const bgKey = () => { try { const p = window.RokAuth && window.RokAuth.current && window.RokAuth.current(); return 'kvkBg.' + (p && p.id ? p.id : 'local'); } catch (e) { return 'kvkBg.local'; } };
   const customBg = () => { try { return localStorage.getItem(bgKey()) || ''; } catch (e) { return ''; } };
+  // Hintergrund des KvK-Bilds: eigener Upload nur im Browser (wie der Countdown), Auswahl in state.end.bg
+  const endBgKey = () => bgKey().replace('kvkBg.', 'kvkEndBg.');
+  const endOwnBg = () => { try { return localStorage.getItem(endBgKey()) || ''; } catch (e) { return ''; } };
+  const END_BG = {
+    gold: 'radial-gradient(120% 90% at 15% 0%,#7a5508 0%,#3a2a08 35%,#0c1019 75%)',
+    blood: 'radial-gradient(120% 90% at 85% 0%,#7f1d1d 0%,#3b0d12 40%,#07090f 80%)',
+    night: 'radial-gradient(110% 80% at 50% 0%,#1e3a8a 0%,#111725 45%,#07090f 85%)',
+    frost: 'radial-gradient(120% 90% at 20% 10%,#0e7490 0%,#0c2a3a 40%,#07090f 85%)'
+  };
+  function endBgCss(key) {
+    if (END_BG[key]) return END_BG[key];
+    const own = key === 'own' && endOwnBg();
+    return `url('${own || customBg() || TIMER_BG}') center/cover`;
+  }
   function applyBg() {
     const bg = `url("${customBg() || TIMER_BG}")`;
     [root, ...hosts].forEach((sc) => { const sec = sc && sc.querySelector('.kvk-time'); if (sec) sec.style.setProperty('--kvk-bg', bg); });
   }
 
+  /* ----- Karte auf anderen Seiten (Game Profil) ----- */
+  // data = null → eigene Karte; sonst Daten aus dem Profil eines anderen Spielers (leaderboard.kvk_map)
+  function mountMap(el, data, opts = {}) {
+    if (!el) return false;
+    if (!root) init();
+    injectStyles();
+    if (data == null) state = load();
+    const d = data == null ? mapData() : cleanMap(data);
+    if (!mapHasData(d)) { el.innerHTML = ''; return false; }
+    const M = t().m;
+    const s0 = data == null ? startTs() : startTs(opts.startDate), evs = eventsFor(s0, d.ev, d.days);
+    el._kvkEvs = evs; el._kvkRemount = () => mountMap(el, data, opts);
+    if (!el._kvkMapClick) { el._kvkMapClick = true; el.addEventListener('click', (e) => mapClick(e, el._kvkEvs || [])); }
+    for (let i = mapHosts.length - 1; i >= 0; i--) if (!mapHosts[i].isConnected || mapHosts[i] === el) mapHosts.splice(i, 1);
+    mapHosts.push(el);
+    startClock();
+    el.setAttribute('translate', 'no');
+    el.innerHTML = `<section class="panel rounded-2xl p-4 sm:p-5">
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <h3 class="font-display text-lg text-gold-300">🗺️ ${M.mapTitle}</h3>
+          ${opts.onOpen ? `<button type="button" data-map-open class="text-xs px-2.5 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">✎ ${t().edit}</button>` : ''}
+        </div>
+        <div class="max-w-[30rem] mx-auto">${mapSVG(d, opts.kingdom, evs)}</div>
+      </section>`;
+    const b = el.querySelector('[data-map-open]');
+    if (b) b.onclick = () => opts.onOpen();
+    return true;
+  }
+
+  // Karte als Fenster über der Seite (Profil: „Karte zeigen“ im Countdown)
+  function openMapModal(data, opts = {}) {
+    let ov = document.getElementById('kvkMapModal');
+    if (ov) ov.remove();
+    ov = document.createElement('div');
+    ov.id = 'kvkMapModal';
+    ov.className = 'kvk-host p-3 sm:p-6';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:70;overflow-y:auto;background:rgba(7,9,15,.88);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)';
+    ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true');
+    ov.innerHTML = `<div class="relative max-w-3xl mx-auto sm:my-6 ui-pop">
+        <button type="button" data-map-close class="absolute -top-1 right-0 z-30 text-sm px-3 py-1.5 rounded-lg border border-ink-600 bg-ink-900 text-slate-300 hover:text-white" aria-label="${t().done}">✕</button>
+        <div data-map-host class="pt-9"></div></div>`;
+    document.body.appendChild(ov);
+    const host = ov.querySelector('[data-map-host]');
+    const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    ov.addEventListener('click', (e) => { if (e.target === ov || e.target.closest('[data-map-close]')) close(); });
+    mountMap(host, data, { ...opts, onOpen: opts.onOpen ? () => { close(); opts.onOpen(); } : undefined });
+  }
+
   /* ----- Timer auf anderen Seiten (z. B. Game Profil): gleiche Uhr, gleiche Flammen ----- */
-  const hosts = [];
+  const hosts = [], mapHosts = [];
   function mountTimer(el, opts = {}) {
     if (!el) return;
     if (!root) init();
@@ -1456,11 +3276,17 @@
     // opts.startDate (YYYY-MM-DD): fremdes Profil → dessen Datum zeigen statt des eigenen
     el._kvkFixed = typeof opts.startDate === 'string';
     el._kvkStart = el._kvkFixed ? opts.startDate : '';
+    el._kvkEvs = el._kvkFixed ? eventsFor(startTs(opts.startDate), cleanEvents(opts.events), opts.days) : null;   // fremdes Profil: dessen Ereignisse
     el.classList.add('kvk-host');
     el.setAttribute('translate', 'no');
-    el.innerHTML = timePanelHTML(!!opts.onOpen);
+    // Karte-Knopf: eigene Karte (map === null) oder die des Profilbesitzers (Objekt); nur wenn es etwas zu zeigen gibt
+    const mapSrc = opts.map === undefined ? undefined : opts.map;
+    const hasMap = mapSrc !== undefined && mapHasData(mapSrc === null ? mapData() : cleanMap(mapSrc));
+    el.innerHTML = timePanelHTML(!!opts.onOpen, hasMap);
     const b = el.querySelector('[data-kvk-open]');
     if (b) b.onclick = () => opts.onOpen();
+    const mb = el.querySelector('[data-kvk-map]');
+    if (mb) mb.onclick = () => openMapModal(mapSrc, { kingdom: opts.kingdom, startDate: opts.startDate, onOpen: opts.onMapEdit });
     for (let i = hosts.length - 1; i >= 0; i--) if (!hosts[i].isConnected || hosts[i] === el) hosts.splice(i, 1);
     hosts.push(el);
     applyBg();
@@ -1504,6 +3330,18 @@
       try { localStorage.setItem(bgKey(), data); } catch (e) { if (msg) msg.textContent = L.bgTooBig; return; }
       applyBg();
       if (msg) msg.textContent = '✓ ' + L.bgDone;
+    } catch (e) { if (msg) msg.textContent = L.bgFail; }
+    input.value = '';
+  }
+  async function onEndBgFile(input) {
+    const file = input.files && input.files[0], msg = root.querySelector('[data-endbg-msg]'), L = t();
+    if (!file) return;
+    if (msg) msg.textContent = L.bgBusy;
+    try {
+      const data = await processImage(file, 1920, 0.9);
+      try { localStorage.setItem(endBgKey(), data); } catch (e) { if (msg) msg.textContent = L.bgTooBig; return; }
+      state.end.bg = 'own'; save(); rerender();
+      const m2 = root.querySelector('[data-endbg-msg]'); if (m2) m2.textContent = '✓ ' + L.bgDone;
     } catch (e) { if (msg) msg.textContent = L.bgFail; }
     input.value = '';
   }
@@ -1649,6 +3487,38 @@
       save(); refresh();
       return;
     }
+    // Reiter Karte: Königreich-Felder je Camp → als Liste gespeichert
+    if (el.dataset && el.dataset.campKd) {
+      const i = +el.dataset.campKd.split(':')[0], box = el.closest('[data-camp-kds]');
+      if (box && state.mid.camps[i]) {
+        state.mid.camps[i].kds = [...box.querySelectorAll('[data-camp-kd]')].map((x) => x.value.replace(/[^\d]/g, '').slice(0, 6)).filter(Boolean).join(', ');
+        save(); refresh();
+      }
+      return;
+    }
+    // Reiter Karte: Ereignis-Zeilen
+    const evEl = el.closest && el.closest('[data-ev]');
+    if (evEl && el.dataset.evField) {
+      const ev = (state.mapEv || []).find((x) => x.id === evEl.dataset.ev), f = el.dataset.evField;
+      if (!ev) return;
+      if (f === 'day') ev.day = Math.max(1, Math.min(120, Math.round(parseNum(el.value)) || 1));
+      else if (f === 'repH') { ev.repH = Math.max(0, Math.min(24 * 60, Math.round(parseNum(el.value)))); delete ev.rep; }
+      else if (f === 'date') { const v = /^\d{4}-\d{2}-\d{2}$/.test(el.value) ? el.value : ''; if (!!v !== !!ev.date) { ev.date = v; save(); rerender(); return; } ev.date = v; }
+      else if (f === 'time') { if (/^\d{2}:\d{2}$/.test(el.value)) ev.time = el.value; }
+      else if (f === 'kind') ev.kind = ['ruin', 'altar', 'other'].includes(el.value) ? el.value : 'other';
+      else ev.name = String(el.value).slice(0, 40);
+      save(); refresh();
+      return;
+    }
+    // Roadmap: Ziele je Pass
+    const pRow = el.closest('[data-pg]');
+    if (pRow && el.dataset.pgField) {
+      const g = (state.mid.pg[state.mid.pass] || []).find((x) => x.id === pRow.dataset.pg);
+      if (!g) return;
+      g[el.dataset.pgField] = el.dataset.pgField === 'cost' ? parseNum(el.value) : el.value;
+      save(); refresh();
+      return;
+    }
     // Ziele
     const gRow = el.closest('[data-goal]');
     if (gRow && el.dataset.goalField) {
@@ -1660,6 +3530,7 @@
       return;
     }
     if (!el.dataset || !el.dataset.path) return;
+    if (startLocked() && START_PATH.test(el.dataset.path)) return;   // fixiert seit KvK-Start
     let v;
     if (el.dataset.kind === 'raw') v = el.value;
     else {
@@ -1667,6 +3538,11 @@
       if (el.dataset.unit === 'days') v = Math.round(v * 1440);   // Tage → Minuten
       if (el.dataset.path === 'crystal.chests') v = Math.min(38, Math.round(v));   // max. 38 Crystal Chest III
       if (el.dataset.path === 'helps') v = Math.min(30, Math.round(v));            // max. 30 Allianz-Hilfen je Stufe
+      const MID_MAX = { 'mid.adj.day': 120, 'mid.kk.boostDay': 120, 'mid.rs.barb': 25, 'mid.rs.bastion': 100, 'mid.rs.karuak': 100, 'mid.chain': 10, 'mid.days': 120,
+        'mid.kk.easy': 15, 'mid.kk.normal': 15, 'mid.kk.hard': 15, 'mid.bastionCr': 22500 };
+      if (MID_MAX[el.dataset.path] != null) v = Math.min(MID_MAX[el.dataset.path], v);
+      if (/^mid\.(chain|days|kk\.)/.test(el.dataset.path)) v = Math.round(v);
+      if (el.type === 'checkbox') v = el.checked ? 1 : 2;                         // Premium Supply an/aus
     }
     setPath(state, el.dataset.path, v);
     syncPath(el.dataset.path, el);
@@ -1709,7 +3585,7 @@
     root.querySelectorAll(`[data-path="${path}"]`).forEach((x) => {
       if (x === except) return;
       if (x.tagName === 'SELECT') x.value = String(v);
-      else if (x.type !== 'checkbox' && x.dataset.kind !== 'raw') x.value = inVal(v);
+      else if (x.type !== 'checkbox' && x.dataset.kind !== 'raw') x.value = x.dataset.unit === 'days' ? inVal(v / 1440, 1) : inVal(v);
     });
   }
 
@@ -1717,7 +3593,15 @@
     const el = e.target;
     if (!el.matches || !el.matches('input[type="text"]')) return;
     if (el.dataset.buy) { el.value = state.buy[el.dataset.buy] || ''; return; }
-    if (el.dataset.goalField === 'cost') {
+    if (el.dataset.evField === 'day' || el.dataset.evField === 'repH') {
+      const r = el.closest('[data-ev]'), ev = r && (state.mapEv || []).find((x) => x.id === r.dataset.ev);
+      if (ev) el.value = el.dataset.evField === 'repH' ? evRepH(ev) : ev.day;
+      return;
+    }
+    if (el.dataset.pgField === 'cost') {
+      const g = (state.mid.pg[state.mid.pass] || []).find((x) => x.id === el.closest('[data-pg]').dataset.pg);
+      if (g) el.value = inVal(g.cost);
+    } else if (el.dataset.goalField === 'cost') {
       const g = state.goals.find((x) => x.id === el.closest('[data-goal]').dataset.goal);
       if (g) el.value = inVal(g.cost);
     } else if (el.dataset.path && el.dataset.kind !== 'raw') {
@@ -1778,9 +3662,107 @@
       else rerender();   // Pass-Daten im Budget-Planer an neuen KvK-Start anpassen
       return;
     }
+    const myCampBtn = e.target.closest('[data-mycamp]');
+    if (myCampBtn) { const v = +myCampBtn.dataset.mycamp; state.mid.myCamp = state.mid.myCamp === v ? 0 : v; if (state.mid.allyCamp === state.mid.myCamp) state.mid.allyCamp = 0; save(); rerender(); return; }
+    if (mapClick(e, mapEvents())) return;
+    if (e.target.closest('[data-map-edit]')) {
+      const on = !(state.open.mapCamps || state.open.mapTimes || state.open.mapDesign);
+      state.open.mapCamps = on; state.open.mapTimes = on; state.open.mapDesign = on; save(); rerender();
+      if (on) { const f = root.querySelector('[data-fold="mapDesign"]'); if (f && f.scrollIntoView) f.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      return;
+    }
+    const evAdd = e.target.closest('[data-ev-add]');
+    if (evAdd) {
+      const ph = phase(), kind = evAdd.dataset.evAdd;
+      state.mapEv = [...(state.mapEv || []), { id: 'e' + Date.now().toString(36), kind, name: '', date: '', day: ph && !ph.before ? ph.day : 1, time: '12:00', repH: kind === 'ruin' ? 40 : kind === 'altar' ? 86 : 0 }].slice(0, 40);
+      state.open.mapTimes = true; save(); rerender(); return;
+    }
+    const evDel = e.target.closest('[data-ev-del]');
+    if (evDel) { state.mapEv = (state.mapEv || []).filter((x) => x.id !== evDel.dataset.evDel); save(); rerender(); return; }
+    const layBtn = e.target.closest('[data-layout]');
+    if (layBtn) { state.mid.layout = validLayout(layBtn.dataset.layout); ensureMap(state.mid.layout); save(); rerender(); return; }
+    const styleBtn = e.target.closest('[data-mapstyle]');
+    if (styleBtn) { state.mid.mapStyle = MAP_STYLES.includes(styleBtn.dataset.mapstyle) ? styleBtn.dataset.mapstyle : 'battle'; save(); rerender(); return; }
+    const allyBtn = e.target.closest('[data-allycamp]');
+    if (allyBtn) { const v = +allyBtn.dataset.allycamp; if (v !== state.mid.myCamp) { state.mid.allyCamp = state.mid.allyCamp === v ? 0 : v; save(); rerender(); } return; }
+    const endBgBtn = e.target.closest('[data-endbg]');
+    if (endBgBtn) { state.end.bg = endBgBtn.dataset.endbg; save(); rerender(); return; }
+    if (e.target.closest('[data-endbg-del]')) {
+      try { localStorage.removeItem(endBgKey()); } catch (er) { /* egal */ }
+      if (state.end.bg === 'own') state.end.bg = 'timer';
+      save(); rerender(); return;
+    }
+    const endRes = e.target.closest('[data-end-result]');
+    if (endRes) { state.end.result = +endRes.dataset.endResult; save(); rerender(); return; }
+    if (e.target.closest('[data-end-scan]')) {
+      const g = lastScan('governor'), sp = lastScan('speedups'), rs = lastScan('resources'), ap = lastScan('ap'), n = state.end.now;
+      if (g) {
+        if (g.energy != null) n.power = Math.max(0, Math.round(+g.energy || 0));
+        if (g.kill_points != null) n.kp = Math.max(0, Math.round(+g.kill_points || 0));
+        if (g.highest_merit != null) n.acclaim = Math.max(0, Math.round(+g.highest_merit || 0));
+        if (g.deads != null) n.deads = Math.max(0, Math.round(+g.deads || 0));
+      }
+      if (sp) ['universal', 'training', 'healing'].forEach((k) => { n[k] = Math.max(0, Math.round(+sp[k] || 0)); });
+      if (rs) { const bar = (rs.resources && rs.resources.bar) || {}; RES.forEach((x) => { n[x.k] = Math.max(0, Math.round(+bar[x.k] || 0)); }); }
+      if (ap) n.ap = AP_SIZES.reduce((a, z) => a + Math.max(0, Math.round(+ap['ap_' + z] || 0)) * z, 0);
+      const ts = Math.max(+(g && g.ts) || 0, +(sp && sp.ts) || 0, +(rs && rs.ts) || 0, +(ap && ap.ts) || 0);
+      if (ts) { state.end.nowSrc = ts; save(); rerender(); }
+      return;
+    }
+    if (e.target.closest('[data-mid-scan]')) {
+      const g = lastScan('governor'), sp = lastScan('speedups'), n = state.mid.now;
+      if (g) {
+        if (g.energy != null) n.power = Math.max(0, Math.round(+g.energy || 0));
+        if (g.kill_points != null) n.kp = Math.max(0, Math.round(+g.kill_points || 0));
+        if (g.highest_merit != null) n.acclaim = Math.max(0, Math.round(+g.highest_merit || 0));
+        if (g.deads != null) n.deads = Math.max(0, Math.round(+g.deads || 0));
+      }
+      if (sp) { n.universal = Math.max(0, Math.round(+sp.universal || 0)); n.healing = Math.max(0, Math.round(+sp.healing || 0)); }
+      if (g || sp) { state.mid.nowSrc = Math.max(+(g && g.ts) || 0, +(sp && sp.ts) || 0) || Date.now(); save(); rerender(); }
+      return;
+    }
+    if (e.target.closest('[data-start-edit]')) {
+      startBackup = JSON.parse(JSON.stringify({ ap: state.ap, speed: state.speed, res: state.res, stats: state.stats, src: state.src }));
+      startEdit = true; rerender(); return;
+    }
+    if (e.target.closest('[data-start-done]')) { startEdit = false; startBackup = null; save(); rerender(); return; }
+    if (e.target.closest('[data-start-undo]')) {
+      if (startBackup) Object.keys(startBackup).forEach((k) => Object.assign(state[k], startBackup[k]));
+      startEdit = false; startBackup = null; save(); rerender(); return;
+    }
     const scanBtn = e.target.closest('[data-scan]');
     if (scanBtn) { if (importScan(scanBtn.dataset.scan)) { save(); rerender(); } return; }
 
+    const mwBtn = e.target.closest('[data-mwp]');
+    if (mwBtn) {
+      state.mwPass[mwBtn.dataset.mwp] = +mwBtn.dataset.lv;
+      mwToBuy(); syncShopInputs(); save(); refresh();
+      return;
+    }
+    const mPass = e.target.closest('[data-mpass]');
+    if (mPass) { state.mid.pass = +mPass.dataset.mpass; save(); rerender(); return; }
+    const preBtn = e.target.closest('[data-pg-preset]');
+    if (preBtn) {
+      const t0 = TECH_PRESETS.find((x) => x.id === preBtn.dataset.pgPreset);
+      const list = state.mid.pg[state.mid.pass] || (state.mid.pg[state.mid.pass] = []);
+      if (t0 && !list.some((g) => g.preset === t0.id)) { list.push({ id: uid(), name: t0.name, cost: t0.cost, preset: t0.id }); save(); rerender(); }
+      return;
+    }
+    if (e.target.closest('[data-pg-add]')) {
+      const list = state.mid.pg[state.mid.pass] || (state.mid.pg[state.mid.pass] = []);
+      list.push({ id: uid(), name: '', cost: 0 });
+      save(); rerender();
+      const rows = root.querySelectorAll('[data-pg] input[data-pg-field="name"]');
+      if (rows.length) rows[rows.length - 1].focus();
+      return;
+    }
+    const pgDel = e.target.closest('[data-pg-del]');
+    if (pgDel) {
+      const id = pgDel.closest('[data-pg]').dataset.pg;
+      state.mid.pg[state.mid.pass] = (state.mid.pg[state.mid.pass] || []).filter((g) => g.id !== id);
+      save(); rerender();
+      return;
+    }
     if (e.target.closest('[data-goal-add]')) {
       state.goals.push({ id: uid(), name: '', cost: 0, on: true });
       save(); rerender();
@@ -1807,13 +3789,18 @@
       save(); refresh();
       return;
     }
-    if (e.target.closest('[data-budget-apply]')) {
-      state.buy = budgetPlan(state.budget).pick;
+    if (e.target.closest('[data-budget-apply]')) {          // (derzeit nicht gerendert) – Plan inkl. Mountain-Warfare-Stufen übernehmen
+      applyPlan();
       save(); rerender();
       return;
     }
     if (e.target.closest('[data-reset]')) {
-      if (window.confirm(t().confirmReset)) { state = freshState(); save(); rerender(); }
+      if (window.confirm(t().confirmReset)) {
+        // Läuft das KvK, bleiben Datum und fixierte Startwerte erhalten – sonst wären sie unwiederbringlich weg
+        const keep = kvkRunning() ? JSON.parse(JSON.stringify({ startDate: state.startDate, ap: state.ap, speed: state.speed, res: state.res, stats: state.stats, src: state.src })) : null;
+        state = freshState(); if (keep) Object.assign(state, keep);
+        startEdit = false; startBackup = null; save(); rerender();
+      }
     }
   }
 
@@ -1881,6 +3868,12 @@
 :is(#kvkRoot, .kvk-host) .kvk-time [data-startline] { color:#cbd5e1; text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.8); }
 :is(#kvkRoot, .kvk-host) .kvk-time [data-startline] span { color:#fff; }
 @keyframes kvk-glow { 0%, 100% { opacity:.75; } 50% { opacity:1; } }
+.kvk-fire path { transform-box:fill-box; transform-origin:50% 100%; animation:kvk-fireflick .55s ease-in-out infinite alternate; }
+.kvk-fire path:nth-child(3) { animation-duration:.42s; animation-delay:.1s; }
+.kvk-fire path:nth-child(4) { animation-duration:.7s; animation-delay:.2s; }
+.kvk-fire circle { animation:kvk-glow 1.1s ease-in-out infinite; }
+@keyframes kvk-fireflick { from { transform:scaleY(.85) scaleX(1.05); } to { transform:scaleY(1.15) scaleX(.92); } }
+@media (prefers-reduced-motion: reduce) { .kvk-fire path, .kvk-fire circle { animation:none; } }
 @media (prefers-reduced-motion: reduce) { :is(#kvkRoot, .kvk-host) .kvk-flame-glow { animation:none; } }
 :is(#kvkRoot, .kvk-host) .kvk-fire-wrap { display:flex; justify-content:center; gap:clamp(6px, 2vw, 14px); }
 :is(#kvkRoot, .kvk-host) .kvk-fire-tile { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -1939,11 +3932,14 @@
     root.addEventListener('input', onInput);
     root.addEventListener('change', (e) => {
       if (e.target.matches && e.target.matches('[data-bg-file]')) { onBgFile(e.target); return; }
+      if (e.target.matches && e.target.matches('[data-endbg-file]')) { onEndBgFile(e.target); return; }
       if (e.target.type === 'checkbox' || e.target.dataset.kind === 'raw') onInput(e);
     });
     root.addEventListener('focusout', onBlur);
     root.addEventListener('click', onClick);
     root.addEventListener('pointerdown', onRoadDown);
+    root.addEventListener('pointermove', midHover);
+    root.addEventListener('pointerleave', midLeave, true);
     window.addEventListener('pointermove', onRoadMove);
     window.addEventListener('pointerup', onRoadUp);
     root.addEventListener('scroll', (e) => { if (e.target.matches && e.target.matches('[data-road-scroll]')) roadArrows(); }, true);
@@ -1980,6 +3976,9 @@
     kauKaruakHourly,
     mineOutput,
     mountTimer,                                     // KvKCalc.mountTimer(element, { onOpen }) – Countdown z. B. im Profil
+    mapData: () => { if (!state) state = load(); return mapData(); },   // eigene Karte { kds: [[…]×4], my, ally } – fürs Profil speichern
+    openMapModal,                                   // KvKCalc.openMapModal(daten | null, { kingdom, startDate }) – Karte als Fenster
+    mountMap,                                       // KvKCalc.mountMap(element, daten | null, { kingdom, onOpen }) – Karte im Profil; false = nichts zu zeigen
     getState: () => clone(state),
     setState(obj) { loadedNs = ns(); state = mergeInto(freshState(), obj); save(); rerender(); },
     reset() { loadedNs = ns(); state = freshState(); save(); rerender(); }
