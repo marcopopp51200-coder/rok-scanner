@@ -1675,7 +1675,7 @@ window.RokAuth = (() => {
       return d;
     }
     if (e.type === 'governor') { const nn = (v) => v == null || v === '' || isNaN(+v) ? null : n0(v);
-      return { kill_points: n0(e.kill_points), highest_merit: n0(e.highest_merit), energy: n0(e.energy), deads: nn(e.deads), acclaim: nn(e.acclaim), ark_wins: nn(e.ark_wins), lk_autarch: nn(e.lk_autarch), units_killed: nn(e.units_killed), units_lost: nn(e.units_lost), units_healed: nn(e.units_healed),
+      return { kill_points: nn(e.kill_points), highest_merit: nn(e.highest_merit), energy: nn(e.energy), deads: nn(e.deads), lk_participated: nn(e.lk_participated), acclaim: nn(e.acclaim), ark_wins: nn(e.ark_wins), lk_autarch: nn(e.lk_autarch), units_killed: nn(e.units_killed), units_lost: nn(e.units_lost), units_healed: nn(e.units_healed),
                ...(e.governor_id ? { governor_id: String(e.governor_id) } : {}), ...(e.src ? { src: String(e.src).slice(0, 10) } : {}) }; }
     if (e.type === 'speedups') return { training: n0(e.training), heal: n0(e.healing), universal: n0(e.universal),
                                         building: n0(e.building), research: n0(e.research), total: n0(e.total) };
@@ -2297,7 +2297,7 @@ window.RokAuth = (() => {
   }
 
   return { pending: () => hasPending, hasFeature, isAdmin, saveKvkStart, saveKvkMap, saveKvkStats, kvkPeers, kvkUsers, kvkFindId, kvkGroups, kvkGroupCreate, kvkGroupPublic, kvkGroupInvite, kvkGroupJoin, kvkGroupLeave, kvkGroupDelete, refreshInvites, invites: () => inviteN, myId: () => user?.id || null, ownGains: () => ownGains, loadGearItems, saveShowcase, uploadImage, imgBase: () => IMG_BASE, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
-           pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, saveProfBg, saveProfOrder, saveKvkCard, loadProfile, setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
+           pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, saveProfBg, saveProfOrder, saveKvkCard, loadProfile, govNow: () => ({ energy: lbEnergy, kill_points: lbKills, deads: lbDeads }),   // Werte wie im Profil (Rangliste) setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
 })();
 </script>
 
@@ -2937,7 +2937,7 @@ window.RokApp = () => {
   // Altdaten-Schutz: nur bekannte Zahlenfelder übernehmen
   const sanitize = (e) => {
     const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups', 'ap', 'governor', 'materials'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
-    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'materials' ? [...ALL_MAT_KEYS, 'total_leg'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'acclaim', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'units_killed', 'units_lost', 'units_healed', 'governor_id']
+    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'materials' ? [...ALL_MAT_KEYS, 'total_leg'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'acclaim', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'lk_participated', 'units_killed', 'units_lost', 'units_healed', 'governor_id']
       : out.type === 'speedups' ? ['universal', 'building', 'research', 'training', 'healing', 'total']
       : ['food', 'wood', 'stone', 'gold', 'total', 'farmFood', 'farmWood', 'farmStone', 'farmGold', 'bagFood', 'bagWood', 'bagStone', 'bagGold'];
     keys.forEach(k => out[k] = (e[k] === null || e[k] === undefined || isNaN(+e[k])) ? null : +e[k]);
@@ -4092,7 +4092,7 @@ window.RokApp = () => {
     // ---- Kopf ----
     const govEntries = entries.filter(e => e.type === 'governor');
     // Statthalter-Werte: je Feld der neueste Scan, der es enthält – sonst (z. B. private Profile) aus der Rangliste
-    const GOV_KEYS = ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'units_killed', 'units_lost', 'units_healed'];
+    const GOV_KEYS = ['kill_points', 'highest_merit', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'lk_participated', 'units_killed', 'units_lost', 'units_healed'];
     const gov = (() => {
       const o = { ts: govEntries.length ? govEntries[govEntries.length - 1].ts : null }; let any = false;
       GOV_KEYS.forEach(k => { const v = govLatest(k, govEntries); o[k] = v != null ? v : (row[k] != null ? +row[k] : null); if (o[k] != null) any = true; });
@@ -4135,6 +4135,7 @@ window.RokApp = () => {
               <select data-prof-slot="${idx}" class="min-w-0 flex-1 bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-gold-500">${order.map((o) => `<option value="${o}" ${o === k ? 'selected' : ''}>${TILE_DEF[o][0]} ${TILE_DEF[o][1]}</option>`).join('')}</select></div>` : ''}
             <div class="text-[10px] uppercase tracking-wide sm:tracking-widest text-slate-400 truncate">${ic} ${label}${k === 'deads' ? ' <span class="normal-case tracking-normal text-slate-500">· 🔒</span>' : ''}</div>
             <div class="text-[15px] sm:text-2xl font-extrabold text-white tabular-nums mt-0.5 truncate">${v != null ? fmt(v) + (unit ? ` <span class="text-xs font-semibold text-slate-400">${unit}</span>` : '') : '–'}</div>
+            ${k === 'lk_autarch' && gov && gov.lk_participated != null ? `<div class="text-[11px] text-slate-400 tabular-nums">🎟️ ${fmt(gov.lk_participated)}× teilgenommen</div>` : ''}
           </div>`; };
     // eigenes Hintergrundbild im Profilkopf (für alle sichtbar, Spalte leaderboard.prof_bg)
     const pBg = own ? ownProfBg() : safeSkin(row.prof_bg);
@@ -4449,6 +4450,19 @@ window.RokApp = () => {
     const { data } = await T.recognize(await govPrep(dataUrl), 'eng');
     const text = String(data?.text || ''), lines = text.split(/\n+/).map(l => l.trim()).filter(Boolean);
     const out = { id: (text.match(/I\s*D\s*[:：.;]?\s*(\d{6,12})/i) || [])[1] || '' };
+    // Bild „Most Units“ (Times Named Autarch · Times Participated · Most Units Killed/Lost/Healed) – eigener Bildtyp
+    if (/Most\s*Units|Times\s*(Named|Participated)|Meiste\s+\S+\s+Einheiten|Teilnahmen/i.test(text)) {
+      const BIG = /(\d{1,3}(?:[.,]\d{3})+|\d+)/g, nums = (l) => (l.match(BIG) || []).map(govBig);
+      const lab = (re) => { const l = lines.find(x => re.test(x)); const m = l && nums(l); return m && m.length ? m[m.length - 1] : null; };
+      out.lkStats = true;
+      out.units_lost = lab(/Lost|verloren/i); out.units_healed = lab(/Heal|geheilt/i);
+      const hi = lines.findIndex(l => /Autarch|Alleinherr|Participated|Teilnahm/i.test(l));
+      const row = hi >= 0 ? [lines[hi], lines[hi + 1] || ''].map(nums).find(a => a.length >= 2) || [] : [];
+      if (row.length >= 3) { out.lk_autarch = row[0]; out.lk_participated = row[1]; }
+      const big = row.filter(v => v >= 1000); if (big.length) out.units_killed = Math.max(...big);   // Most Units Killed = große Zahl in der Kachel-Reihe
+      if (out.units_killed == null) out.units_killed = lab(/Killed|get.tet/i);
+      return out;
+    }
     // Allianz-Tag = Text in [ ] (Zeile "Bündnis" bevorzugt) · „$“ wird oft statt „S“ erkannt
     const allianceLine = lines.find(l => /B.?ndnis|Bundnis|Alliance|Allianz/i.test(l) && /[\[(|{]/.test(l)) || '';
     const tm = (allianceLine || text).match(/[\[(|{]\s*([A-Za-z0-9$]{1,6})\s*[\])|}]/);
@@ -4491,8 +4505,12 @@ window.RokApp = () => {
       } catch (x) { serverErr = x.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zum Scan-Server.' : x.message; }
       const e = { kill_points: govBig(r.kill_points ?? r.killpoints), highest_merit: govBig(r.highest_merit ?? r.highest_acclaim ?? r.highestMerit), energy: govBig(r.energy ?? r.power),
                   deads: govBig(r.deads ?? r.dead), ark_wins: govBig(r.ark_wins ?? r.ark), lk_autarch: govBig(r.lk_autarch ?? r.autarch),
-                  units_killed: govBig(r.units_killed), units_lost: govBig(r.units_lost), units_healed: govBig(r.units_healed), acclaim: govBig(r.acclaim ?? r.current_acclaim) };
-      const GK = ['kill_points', 'highest_merit', 'acclaim', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'units_killed', 'units_lost', 'units_healed'], hasVal = () => GK.some(k => e[k] != null);
+                  units_killed: govBig(r.units_killed), units_lost: govBig(r.units_lost), units_healed: govBig(r.units_healed), acclaim: govBig(r.acclaim ?? r.current_acclaim),
+                  lk_participated: govBig(r.lk_participated ?? r.times_participated) };
+      // Bild „Most Units“ (Lost-Kingdom-Statistik): nur Autarch, Teilnahmen und Most Units – nie Kill-Punkte/Macht/Verdienst
+      let lkStats = r.view === 'lk_stats';
+      const GK = ['kill_points', 'highest_merit', 'acclaim', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'lk_participated', 'units_killed', 'units_lost', 'units_healed'], hasVal = () => GK.some(k => e[k] != null);
+      const LK_ONLY = ['lk_autarch', 'lk_participated', 'units_killed', 'units_lost', 'units_healed'];
       let gid = String(r.governor_id ?? r.governorId ?? r.id ?? '').replace(/\D/g, '').slice(0, 12);
       if (!gid) { const m = raw.match(/ID\s*[:：]?\s*(\d{5,12})/i); if (m) gid = m[1]; }
       let ally = String(r.alliance_name ?? r.allianceName ?? (String(r.alliance ?? '').includes(']') ? String(r.alliance).replace(/^\s*\[[^\]]*\]\s*/, '') : '')).trim().slice(0, 40);
@@ -4502,6 +4520,8 @@ window.RokApp = () => {
       msg('Prüfe Werte …', 'text-slate-300');
       try {
         const o = await govOcr(img.dataUrl);
+        if (o.lkStats) lkStats = true;
+        if (lkStats) GK.filter(k => !LK_ONLY.includes(k)).forEach(k => { o[k] = null; e[k] = null; });
         if (!gid && o.id) gid = o.id.slice(0, 12);
         if (!tag && o.tag) tag = o.tag;
         if (!ally && o.ally) ally = o.ally;
@@ -4512,6 +4532,7 @@ window.RokApp = () => {
           if (o.layout && +o[k] !== +e[k] && ['kill_points', 'highest_merit', 'energy'].includes(k)) { diff.push(k); e[k] = o[k]; }
         });
       } catch (x) { console.warn('Texterkennung (Statthalter) fehlgeschlagen', x); }
+      if (lkStats) GK.filter(k => !LK_ONLY.includes(k)).forEach(k => { e[k] = null; });
       if (!hasVal() && !gid && !tag) throw new Error(serverErr || 'Keine Werte im Screenshot erkannt.');
       // Anderer Statthalter als im Profil gespeichert? (z. B. Screenshot eines Farm-Accounts)
       const savedGid = String(RokAuth.ownMeta().governor_id || $('profGovId').value || '').replace(/\D/g, '');
