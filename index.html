@@ -2297,7 +2297,7 @@ window.RokAuth = (() => {
   }
 
   return { pending: () => hasPending, hasFeature, isAdmin, saveKvkStart, saveKvkMap, saveKvkStats, kvkPeers, kvkUsers, kvkFindId, kvkGroups, kvkGroupCreate, kvkGroupPublic, kvkGroupInvite, kvkGroupJoin, kvkGroupLeave, kvkGroupDelete, refreshInvites, invites: () => inviteN, myId: () => user?.id || null, ownGains: () => ownGains, loadGearItems, saveShowcase, uploadImage, imgBase: () => IMG_BASE, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
-           pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, saveProfBg, saveProfOrder, saveKvkCard, loadProfile, govNow: () => ({ energy: lbEnergy, kill_points: lbKills, deads: lbDeads }),   // Werte wie im Profil (Rangliste) setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
+           pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, saveProfBg, saveProfOrder, saveKvkCard, loadProfile, govNow: () => ({ energy: lbEnergy, kill_points: lbKills, deads: lbDeads }), setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
 })();
 </script>
 
