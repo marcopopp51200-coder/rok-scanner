@@ -46,7 +46,7 @@ window.RokApp = () => {
     return fmt(n);
   }; R.short = short;
   // Item-Bilder aus /icons/… (fehlt img, wird das Emoji gezeigt)
-  const ico = (x, cls = 'w-5 h-5') => x && x.img ? `<img src="/icons/${x.img}" alt="" draggable="false" loading="lazy" class="${cls} object-contain inline-block align-middle shrink-0">` : (x?.icon || ''); R.ico = ico;
+  const ico = (x, cls = 'w-5 h-5') => x && x.img ? `<img src="icons/${x.img}" alt="" draggable="false" loading="lazy" class="${cls} object-contain inline-block align-middle shrink-0">` : (x?.icon || ''); R.ico = ico;
   const AP_IMG = 'ressourcen/ap.png';
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); R.esc = esc;
 
@@ -1724,15 +1724,14 @@ window.RokApp = () => {
     { k: 'barbKvk', label: 'Barbaren (KvK)', def: 40, icon: '⚔️' },
     { k: 'fortOff', label: 'Forts (Offseason)', def: 150, icon: '🏰' },
     { k: 'fortKvk', label: 'Forts (KvK)', def: 150, icon: '🏯' },
-    { k: 'maraud', label: 'Marodeure (KvK)', def: 50, icon: '🐎' },
-    { k: 'daily', label: 'Daily', def: 400, icon: '📅', unit: 'Tage' }
+    { k: 'maraud', label: 'Marodeure (KvK)', def: 50, icon: '🐎' }
   ];
   const AP_SRC = [
     { k: 'daily', label: 'Daily', desc: '100 AP jeden Tag', perDay: () => 100 },
     { k: 'monday', label: 'Montags-Belohnung', desc: '3.000 AP jeden Montag', perDay: () => 3000 / 7, inc: (s, days) => 3000 * mondays(days) },
     { k: 'afort', label: 'Allianz-Forts', desc: '100 % = 7.000 AP pro Woche', pct: true, perDay: (s) => 7000 * (s.pct || 100) / 100 / 7 },
-    { k: 'forts', label: 'Eigene Forts', desc: `Ø ${f1(AP_PER_FORT)} AP pro Fort (720 Forts ≈ 430×50er · 373 ≈ 237×50er)`, input: { label: 'Forts pro Tag (Ø)', ph: 'z. B. 5' }, perDay: (s) => (+s.n || 0) * AP_PER_FORT },
-    { k: 'barbs', label: 'Barbaren', desc: `Ø ${f1(AP_PER_BARB)} AP pro Barbar (7.000 Barbaren ≈ 915×100er)`, input: { label: 'Barbaren pro Tag', def: 108 }, perDay: (s) => (s.n ?? 108) * AP_PER_BARB },
+    { k: 'forts', label: 'Eigene Forts', desc: `Ø ${f1(AP_PER_FORT)} AP pro Fort (720 Forts ≈ 430×50er · 373 ≈ 237×50er)`, input: { label: 'Forts pro Woche (Ø)', ph: 'z. B. 35' }, perDay: (s) => (+s.w || 0) * AP_PER_FORT / 7 },
+    { k: 'barbs', label: 'Baulurs', desc: `Ø ${f1(AP_PER_BARB)} AP pro Baulur (7.000 Baulurs = 915×100er = 91.500 AP)`, input: { label: 'Baulurs pro Tag', def: 108 }, perDay: (s) => (s.n ?? 108) * AP_PER_BARB },
     { k: 'bundle', label: 'Daily Bundle', desc: '500 AP pro Kauf', input: { label: 'Käufe pro Tag', def: 1 }, perDay: (s) => (s.n ?? 1) * 500 }
   ];
   function mondays(days) { let c = 0; const d = new Date(); for (let i = 1; i <= Math.floor(days); i++) { d.setDate(d.getDate() + 1); if (d.getDay() === 1) c++; } return c; }
@@ -1756,7 +1755,8 @@ window.RokApp = () => {
             <span class="inline-flex items-center gap-1"><input data-apcost="${c.k}" type="number" min="1" step="1" value="${passive.apCost?.[c.k] ?? ''}" placeholder="${c.def}" class="${inp}"><span class="text-xs text-slate-500">AP</span></span></label>`).join('')}</div>
           <p class="mt-2 text-[11px] text-slate-500">Barbaren: 50 AP, je Angriff ohne Rückkehr −2 bis 40 (mit Talent „Einsicht“ weniger). Forts und Marodeure sind Schätzwerte – trag hier deine echten Kosten ein.</p>
         </details>
-      </section>
+      </section>`;
+    $('passTop').innerHTML = `
       <section id="apPassive" class="panel rounded-2xl p-5">
         <h2 class="font-display text-lg text-gold-300">Passive AP</h2>
         <p class="text-xs text-slate-400 mb-3">Aktiviere, was auf dich zutrifft – wird automatisch gespeichert und hochgerechnet.</p>
@@ -1771,20 +1771,90 @@ window.RokApp = () => {
               <div class="ap-src-body text-right text-xs tabular-nums text-emerald-400 whitespace-nowrap" data-apday="${x.k}"></div>
             </div>
             ${x.pct ? `<div class="ap-src-body mt-2 grid grid-cols-4 gap-1 p-1 rounded-lg bg-ink-950 border border-ink-700">${[25, 50, 75, 100].map(p => `<button type="button" data-appct="${p}" data-k="${x.k}" aria-pressed="${(s.pct || 100) === p}" class="seg-btn rounded-md py-1 text-xs font-semibold transition">${p} %</button>`).join('')}</div>` : ''}
-            ${x.input ? `<label class="ap-src-body mt-2 flex items-center justify-between gap-2 text-xs text-slate-300">${x.input.label}<input data-apn="${x.k}" type="number" min="0" step="any" value="${s.n ?? x.input.def ?? ''}" placeholder="${x.input.ph || ''}" class="${inp}"></label>` : ''}
+            ${x.input ? `<label class="ap-src-body mt-2 flex items-center justify-between gap-2 text-xs text-slate-300">${x.input.label}<input data-apn="${x.k}" type="number" min="0" step="any" value="${s[x.k === 'forts' ? 'w' : 'n'] ?? x.input.def ?? ''}" placeholder="${x.input.ph || ''}" class="${inp}"></label>` : ''}
           </div>`; }).join('')}</div>
         <div class="mt-4">${horizonCtl()}</div>
         <div id="apPassiveOut" class="mt-3"></div>
+        <div class="mt-5">
+          <div class="text-xs uppercase tracking-widest text-slate-400 mb-2">AP-Verlauf</div>
+          <div id="apLineSel" class="flex flex-wrap gap-x-4 gap-y-2 mb-3 text-xs text-slate-300"></div>
+          <div id="apChartWrap" class="h-64"></div>
+        </div>
+      </section>
+      <section id="apDay" class="panel rounded-2xl p-5">
+        <h2 class="font-display text-lg text-gold-300">Was schaffst du pro Tag?</h2>
+        <p class="text-xs text-slate-400 mb-3">Nur deine AP-Regeneration – ohne Flaschen und ohne Passive.</p>
+        <div class="space-y-2">
+          <label class="flex items-center justify-between gap-3 text-sm text-slate-300"><span>⏱ 1 AP alle … Sekunden</span>
+            <span class="inline-flex items-center gap-1"><input data-apsec type="number" min="1" step="any" value="${apDay().sec ?? ''}" placeholder="23" class="${inp}"><span class="text-xs text-slate-500">Sek.</span></span></label>
+          <div class="flex items-center justify-between gap-3 text-sm text-slate-300"><span>🎁 Gratis-AP einsammeln <span class="text-xs text-slate-500">(+500 AP pro Tag)</span></span>${toggleBtn('data-apfree', apDay().free !== false)}</div>
+          <div class="flex items-center justify-between gap-3 text-sm text-slate-300"><span>🧭 Travel abziehen <span class="text-xs text-slate-500">(−400 AP pro Tag)</span></span>${toggleBtn('data-aparm', !!apDay().arm)}</div>
+        </div>
+        <div id="apDayOut" class="mt-4"></div>
       </section>`;
     makeFold($('apCanDo'), 'apstats:cando');
     makeFold($('apPassive'), 'apstats:passive');
     renderApChips();
+    const pt = $('passTop');
     top.querySelectorAll('[data-apcost]').forEach(i => i.addEventListener('input', () => { const c = (passive.apCost = passive.apCost || {}); if (+i.value > 0) c[i.dataset.apcost] = +i.value; else delete c[i.dataset.apcost]; savePassive(); renderApStatsOut(); }));
-    top.querySelectorAll('[data-aptog]').forEach(b => b.onclick = () => { const s = apSrc(b.dataset.aptog); s.on = !s.on; b.setAttribute('aria-checked', String(s.on)); b.closest('.ap-src').dataset.on = String(s.on); savePassive(); renderApStatsOut(); });
-    top.querySelectorAll('[data-appct]').forEach(b => b.onclick = () => { const s = apSrc(b.dataset.k); s.pct = +b.dataset.appct; top.querySelectorAll(`[data-appct][data-k="${b.dataset.k}"]`).forEach(x => x.setAttribute('aria-pressed', String(x === b))); savePassive(); renderApStatsOut(); });
-    top.querySelectorAll('[data-apn]').forEach(i => i.addEventListener('input', () => { const s = apSrc(i.dataset.apn); s.n = i.value === '' ? null : Math.max(0, +i.value); savePassive(); renderApStatsOut(); }));
-    bindHorizonCtl(top, () => { renderApChips(); renderApStatsOut(); });
+    pt.querySelectorAll('[data-aptog]').forEach(b => b.onclick = () => { const s = apSrc(b.dataset.aptog); s.on = !s.on; b.setAttribute('aria-checked', String(s.on)); b.closest('.ap-src').dataset.on = String(s.on); savePassive(); renderApStatsOut(); });
+    pt.querySelectorAll('[data-appct]').forEach(b => b.onclick = () => { const s = apSrc(b.dataset.k); s.pct = +b.dataset.appct; pt.querySelectorAll(`[data-appct][data-k="${b.dataset.k}"]`).forEach(x => x.setAttribute('aria-pressed', String(x === b))); savePassive(); renderApStatsOut(); });
+    pt.querySelectorAll('[data-apn]').forEach(i => i.addEventListener('input', () => { const s = apSrc(i.dataset.apn); s[i.dataset.apn === 'forts' ? 'w' : 'n'] = i.value === '' ? null : Math.max(0, +i.value); savePassive(); renderApStatsOut(); }));
+    // Klappfeld 2: Was schaffst du pro Tag? (nur AP-Regeneration, Armament-Daily abziehbar)
+    pt.querySelectorAll('[data-apsec]').forEach(i => i.addEventListener('input', () => { const d = apDay(); d.sec = +i.value > 0 ? +i.value : null; savePassive(); renderApDayOut(); }));
+    pt.querySelectorAll('[data-apfree]').forEach(b => b.onclick = () => { const d = apDay(); d.free = d.free === false; b.setAttribute('aria-checked', String(d.free)); savePassive(); renderApDayOut(); });
+    pt.querySelectorAll('[data-aparm]').forEach(b => b.onclick = () => { const d = apDay(); d.arm = !d.arm; b.setAttribute('aria-checked', String(d.arm)); savePassive(); renderApDayOut(); });
+    makeFold($('apDay'), 'apstats:day');
+    renderApDayOut();
+    bindHorizonCtl(pt, () => { renderApChips(); renderApStatsOut(); });
     renderApStatsOut();
+  }
+  const apDay = () => (passive.apDay = passive.apDay || { sec: 23, arm: true });
+  function renderApDayOut() {
+    const out = $('apDayOut'); if (!out) return;
+    const d = apDay(), sec = +d.sec > 0 ? +d.sec : 23, regen = 86400 / sec, free = d.free !== false ? 500 : 0, net = Math.max(0, regen + free - (d.arm ? 400 : 0));
+    out.innerHTML = `<div class="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-sm">
+        <div class="flex justify-between gap-3"><span class="text-slate-300">AP-Regeneration pro Tag</span><b class="tabular-nums text-emerald-300">+${fmt(regen)}</b></div>
+        ${free ? `<div class="flex justify-between gap-3"><span class="text-slate-300">Gratis-AP</span><b class="tabular-nums text-emerald-300">+500</b></div>` : ''}
+        ${d.arm ? `<div class="flex justify-between gap-3"><span class="text-slate-300">Travel</span><b class="tabular-nums text-red-300">−400</b></div>` : ''}
+        <div class="flex justify-between gap-3 border-t border-ink-700 mt-1 pt-1"><span class="text-slate-200 font-semibold">Pro Tag verfügbar</span><b class="tabular-nums text-gold-300">${fmt(net)} AP</b></div></div>
+      <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">${AP_COSTS.map(c => { const cost = apCost(c.k); return `
+        <div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3">
+          <div class="text-[10px] uppercase tracking-widest text-slate-400 truncate">${c.icon} ${c.label}</div>
+          <div class="text-2xl font-bold text-gold-300 tabular-nums mt-1">${fmt(Math.floor(net / cost))} <span class="text-xs font-medium text-slate-400">/ Tag</span></div>
+          <div class="text-[11px] text-slate-500 tabular-nums">à ${fmt(cost)} AP</div></div>`; }).join('')}</div>`;
+  }
+  // Linien-Dashboard in Passive: AP gesamt, Passiv gesamt und jede aktive Quelle zum Ankreuzen
+  let apChart = null;
+  const AP_LINE_COL = { total: '#facc15', passive: '#34d399', daily: '#38bdf8', monday: '#a78bfa', afort: '#f97316', forts: '#f472b6', barbs: '#e2e8f0', bundle: '#ef4444' };
+  const apLines = () => (passive.apLines = passive.apLines || { total: true, passive: true });
+  function renderApChart() {
+    const wrap = $('apChartWrap'), selEl = $('apLineSel'); if (!wrap || !selEl) return;
+    const H = horizons(), now = apNow(), on = AP_SRC.filter(x => apSrc(x.k).on), L = apLines();
+    const opts = [...(now != null ? [{ k: 'total', label: 'AP gesamt' }] : []), { k: 'passive', label: 'Passiv gesamt' }, ...on.map(x => ({ k: x.k, label: x.label }))];
+    selEl.innerHTML = opts.map(o => `<label class="inline-flex items-center gap-1.5 cursor-pointer select-none"><input type="checkbox" data-apline="${o.k}" ${L[o.k] ? 'checked' : ''} class="accent-emerald-500">
+      <i class="inline-block w-3 h-1 rounded" style="background:${AP_LINE_COL[o.k]}"></i>${o.label}</label>`).join('');
+    selEl.querySelectorAll('[data-apline]').forEach(c => c.onchange = () => { apLines()[c.dataset.apline] = c.checked; savePassive(); renderApChart(); });
+    const maxD = Math.max(7, Math.ceil(Math.max(...H.map(h => h.days))));
+    const step = maxD > 90 ? Math.ceil(maxD / 90) : 1, days = [];
+    for (let d = 0; d <= maxD; d += step) days.push(d);
+    if (days[days.length - 1] !== maxD) days.push(maxD);
+    const labels = days.map(d => new Date(Date.now() + d * 864e5).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }));
+    const inc = (x, d) => x.inc ? x.inc(apSrc(x.k), d) : x.perDay(apSrc(x.k)) * d;
+    const series = opts.filter(o => L[o.k]).map(o => ({ k: o.k, label: o.label,
+      data: days.map(d => Math.round(o.k === 'total' ? now + apIncome(d) : o.k === 'passive' ? apIncome(d) : inc(AP_SRC.find(x => x.k === o.k), d))) }));
+    if (apChart) { try { apChart.destroy(); } catch {} apChart = null; }
+    if (!series.length) { wrap.innerHTML = '<div class="h-full grid place-items-center text-xs text-slate-500">Mindestens eine Linie ankreuzen.</div>'; return; }
+    if (!window.Chart) { wrap.innerHTML = '<div class="h-full grid place-items-center text-xs text-slate-500">Diagramm konnte nicht geladen werden.</div>'; return; }
+    wrap.innerHTML = '<canvas id="apProjChart"></canvas>';
+    apChart = new Chart($('apProjChart'), {
+      type: 'line',
+      data: { labels, datasets: series.map(sr => ({ label: sr.label, data: sr.data, borderColor: AP_LINE_COL[sr.k], backgroundColor: AP_LINE_COL[sr.k] + '22',
+        borderWidth: sr.k === 'total' ? 3 : 2, borderDash: sr.k === 'passive' ? [6, 4] : undefined, tension: .25, pointRadius: 0, pointHoverRadius: 5, fill: false })) },
+      options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${fmt(c.raw)} AP` } } },
+        scales: { y: { beginAtZero: !L.total, ticks: { callback: (v) => short(v) } }, x: { ticks: { maxTicksLimit: 8 } } } }
+    });
   }
   function renderApChips() {
     const el = $('apChips'); if (!el) return;
@@ -1814,6 +1884,7 @@ window.RokApp = () => {
     AP_SRC.forEach(x => { const el = document.querySelector(`[data-apday="${x.k}"]`); if (el) el.textContent = `+${fmt(x.perDay(apSrc(x.k)))} / Tag`; });
     const po = $('apPassiveOut'); if (!po) return;
     const on = AP_SRC.filter(x => apSrc(x.k).on);
+    renderApChart();
     if (!on.length) { po.innerHTML = '<div class="text-xs text-slate-500">Aktiviere oben mindestens eine Quelle – dann siehst du hier, wie viel AP in 7 Tagen, 30 Tagen, deinem eigenen Zeitraum und bis zum KvK dazukommen.</div>'; renderAreaTabs(); return; }
     const th = 'py-1.5 px-2 text-right font-medium whitespace-nowrap';
     const inc = (x, d) => x.inc ? x.inc(apSrc(x.k), d) : x.perDay(apSrc(x.k)) * d;
@@ -1861,10 +1932,10 @@ window.RokApp = () => {
   }
   function renderStats(m) {
     const top = $('statsTop'), sec = $('passiveInputs');
-    if (m === 'ap') { sec.classList.add('hidden'); if (R.areaTab === 'stats' || !top.querySelector('#apCanDo')) renderApStats(); else renderApStatsOut(); return; }
-    if (passiveFields(m)) { top.innerHTML = ''; renderPassive(m); return; }
-    sec.classList.add('hidden');
+    if (m === 'ap') { sec.classList.add('hidden'); if (!top.querySelector('#apCanDo')) renderApStats(); else renderApStatsOut(); return; }
+    $('passTop').innerHTML = '';
     top.innerHTML = `<section class="panel rounded-2xl p-6 text-center text-sm text-slate-400">Für diesen Bereich gibt es noch keine Statistik – kommt als Nächstes.</section>`;
+    if (passiveFields(m)) renderPassive(m); else sec.classList.add('hidden');
   }
   function renderAreaTabs() {
     const el = $('areaTabs'); if (!el || typeof HUB === 'undefined' || !HUB) return;
@@ -1872,27 +1943,33 @@ window.RokApp = () => {
     const lastTs = (() => { const t = m === 'mats' ? 'materials' : m; const e = R.history.filter(x => x.type === t).sort((a, b) => b.ts - a.ts)[0]; return e ? e.ts : null; })();
     const upIcon = '<svg class="w-9 h-9 text-gold-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>';
     const statIcon = '<svg class="w-9 h-9 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M7 16v-5M12 16V7M17 16v-8"/></svg>';
-    const tile = (k, icon, c, title, sub, ph) => `<button type="button" class="hub-tile panel !min-h-[7.5rem] sm:!min-h-[9.5rem]" data-atab="${k}" role="tab" aria-pressed="${R.areaTab === k}">
+    const tile = (k, icon, c, title, sub, ph, dis) => `<button type="button" class="hub-tile panel !min-h-[7.5rem] sm:!min-h-[9.5rem]" data-atab="${k}" role="tab" aria-pressed="${R.areaTab === k}" ${dis ? 'aria-disabled="true"' : ''}>
         <span class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl grid place-items-center text-3xl sm:text-4xl" style="background:linear-gradient(135deg,${c}33,${c}11);border:1px solid ${c}55">${icon}</span>
         <span class="font-display text-sm sm:text-lg text-white tracking-wide leading-tight">${title}</span>
         <span class="text-[10px] sm:text-xs tabular-nums ${sub ? 'text-slate-300' : 'text-slate-500'} leading-tight">${sub || ph}</span>
       </button>`;
-    let statSub = passiveSummary(m);
-    if (!statSub && m === 'ap' && apNow() != null) statSub = `≈ ${fmt(Math.floor(apNow() / apCost('barbOff')))} Barbaren`;
+    const statSub = m === 'ap' && apNow() != null ? `≈ ${fmt(Math.floor(apNow() / apCost('barbOff')))} Barbaren` : null;
+    const hasP = m === 'ap' || !!passiveFields(m), pSub = passiveSummary(m);
+    const dashSub = [hubValue(m), lastTs ? `Scan: ${dateLabel(lastTs)}` : null].filter(Boolean).join(' · ');
     el.innerHTML = tile('stats', statIcon, '#34d399', 'Statistics', statSub, 'Was kann ich damit machen?')
-      + tile('dash', ico(h, 'w-9 h-9 sm:w-12 sm:h-12'), h.c || '#f5c542', h.label || 'Dashboard', hubValue(m), 'noch kein Scan')
-      + tile('scan', upIcon, '#f5c542', 'Scan', lastTs ? `Letzter Scan: ${dateLabel(lastTs)}` : null, 'Screenshot oder von Hand');
-    el.querySelectorAll('[data-atab]').forEach(b => b.onclick = () => setAreaTab(b.dataset.atab));
+      + tile('dash', ico(h, 'w-9 h-9 sm:w-12 sm:h-12'), h.c || '#f5c542', h.label || 'Dashboard', dashSub, 'Scan & Dashboard')
+      + tile('passive', ico({ img: 'sonstiges/calendar.BYQ908Wv.webp', icon: '📈' }, 'w-9 h-9 sm:w-12 sm:h-12'), '#34d399', 'Passive', pSub, hasP ? 'noch nichts aktiviert' : 'nicht verfügbar', !hasP);
+    el.querySelectorAll('[data-atab]').forEach(b => b.onclick = () => { if (b.getAttribute('aria-disabled') === 'true') return; setAreaTab(b.dataset.atab); });
   }
+  // Links Statistics · Mitte Scan + Dashboard (wie früher nebeneinander) · rechts Passive
   function setAreaTab(t) {
-    if (t === 'passive') t = 'stats';
+    if (t === 'scan') t = 'dash';
+    if (t === 'passive' && R.mode !== 'ap' && !passiveFields(R.mode)) t = 'dash';
     R.areaTab = t;
     const aside = $('areaAside'), main = $('results'), stats = $('statsArea');
-    if (t === 'scan') aside.dataset.tab = 'scan'; else delete aside.dataset.tab;
-    aside.classList.toggle('hidden', t !== 'scan');
+    delete aside.dataset.tab;
+    $('areaGrid').className = t === 'dash' ? 'grid lg:grid-cols-[380px_1fr] gap-6' : 'grid gap-6';
+    aside.classList.toggle('hidden', t !== 'dash');
     main.classList.toggle('hidden', t !== 'dash');
-    stats.classList.toggle('hidden', t !== 'stats');
-    if (t === 'stats' && passiveReady) renderStats(R.mode);
+    stats.classList.toggle('hidden', t === 'dash');
+    $('statsTop').classList.toggle('hidden', t !== 'stats');
+    $('passArea').classList.toggle('hidden', t !== 'passive');
+    if (t !== 'dash' && passiveReady) renderStats(R.mode);
     renderAreaTabs();
     if (t === 'dash' && chart) setTimeout(() => chart?.resize?.(), 0);
   }
