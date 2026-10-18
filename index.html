@@ -56,6 +56,10 @@ tailwind.config = {
   #areaAside[data-tab] > * { margin-top:0 !important; }
   #areaAside[data-tab="scan"] { display:grid; gap:1.5rem; align-items:start; }
   @media (min-width:1024px) { #areaAside[data-tab="scan"] { grid-template-columns:1fr 1fr; } }
+  /* Zahlenfelder ohne Pfeile – nur Zahl eintippen */
+  input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+  input[type="number"] { -moz-appearance:textfield; appearance:textfield; }
+  input[type="date"] { color-scheme:dark; }
   .ap-tog[aria-checked="true"] { background:#10b981; border-color:#34d399; }
   .ap-tog[aria-checked="true"] > span { transform:translateX(18px); background:#fff; }
   .ap-src[data-on="false"] .ap-src-body { opacity:.45; }
@@ -517,6 +521,7 @@ tailwind.config = {
 
         <div id="speedOpts" class="hidden flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-xs text-slate-300"></div>
         <div id="matOpts" class="hidden flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-xs text-slate-300"></div>
+        <div id="vipHistOpts" class="hidden flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-xs text-slate-300"></div>
         <div id="resLines" class="hidden grid grid-cols-3 gap-1 p-1 mb-4 rounded-xl bg-ink-950 border border-ink-700 w-full sm:w-fit" role="group" aria-label="Ansicht"></div>
         <div class="relative h-72">
           <canvas id="historyChart"></canvas>
@@ -540,7 +545,6 @@ tailwind.config = {
       </section>
 
       <!-- Bündnis-Credits (nur im Modus VIP), unter dem Verlauf -->
-      <section id="creditSection" class="hidden panel rounded-2xl p-5 ring-1 ring-gold-500/30"></section>
 
       <!-- Farmen (nur im Modus Ressourcen), unter dem Diagramm -->
       <section id="farmSection" class="hidden panel rounded-2xl p-5">
@@ -570,7 +574,11 @@ tailwind.config = {
 
     <!-- Statistics (linke Kachel): Was kann ich damit machen + Passive Income mit Hochrechnung -->
     <div id="statsArea" class="hidden space-y-6 min-w-0">
-      <div id="statsTop" class="space-y-6"></div>
+      <div id="statsLeft" class="space-y-6">
+        <div id="statsTop" class="space-y-6"></div>
+        <!-- Bündnis-Credits (VIP) -->
+      <section id="creditSection" class="hidden panel rounded-2xl p-5 ring-1 ring-gold-500/30"></section>
+      </div>
       <!-- Passive (rechte Kachel) -->
       <div id="passArea" class="space-y-6">
         <div id="passTop" class="space-y-6"></div>

@@ -532,10 +532,11 @@ window.RokApp = () => {
   const CREDITS_PER_VIP = 500;
   function renderCredits() {
     const box = $('creditSection');
-    const n = vipNumbers(), show = R.mode === 'vip' && (n.current != null || n.inventory > 0);
+    const n = vipNumbers(), p0 = (n.current != null || n.inventory > 0) ? n.after : (typeof pmReady !== 'undefined' && pmReady ? vipNowPts() : null);
+    const show = R.mode === 'vip' && p0 != null;
     box.classList.toggle('hidden', !show);
     if (!show) return;
-    const p = n.after, nx = lbNext(p);
+    const p = p0, nx = lbNext(p);
     const line = (label, miss) => `<div class="rounded-xl bg-ink-950/60 border border-ink-700 px-4 py-3">
         <div class="text-[10px] uppercase tracking-widest text-slate-400">${label}</div>
         <div class="mt-1 text-sm text-slate-300"><b class="text-white tabular-nums">${fmt(miss)}</b> Punkte fehlen → <b class="text-gold-300 tabular-nums">${fmt(miss * CREDITS_PER_VIP)}</b> Bündnis-Credits benötigt</div>
@@ -791,6 +792,8 @@ window.RokApp = () => {
         { label: 'Aktuelle Punkte', data: list.map(e => e.current), backgroundColor: isLine ? '#f5c54233' : '#e0a91bcc', borderColor: '#f5c542', borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, spanGaps: true, order: 2 },
         { label: 'Nach Einlösen', data: list.map(e => e.after), backgroundColor: isLine ? '#38bdf833' : '#38bdf899', borderColor: '#38bdf8', borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, spanGaps: true, order: 2 },
       ];
+      const g = R.history.filter(e => e.type === 'gems' && e.gems != null).sort((a, b) => b.ts - a.ts)[0];
+      if (LS.get('rok_scanner_vip_gems', '') === '1' && g) datasets.push({ label: 'Nach Einlösen + Gems', data: list.map(e => e.after + +g.gems), backgroundColor: isLine ? '#f472b633' : '#f472b699', borderColor: '#f472b6', borderWidth: isLine ? 2.5 : 0, borderDash: isLine ? [6, 4] : undefined, borderRadius: 4, tension: .3, pointRadius: 4, spanGaps: true, order: 1 });
     }
 
 
@@ -1308,7 +1311,10 @@ window.RokApp = () => {
         <div class="text-xs text-slate-400 tabular-nums">${fmt(have)} / ${fmt(goal)}</div>
       </div>
       <div class="mt-1 text-lg font-bold ${miss ? 'text-white' : 'text-emerald-400'}">${miss ? `Noch <span class="text-indigo-300 tabular-nums">${fmt(miss)}</span> Passseiten fehlen` : 'Genug Passseiten für die Migration ✓'}</div>
-      <div class="mt-3 h-2 rounded-full bg-ink-950 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#818cf8,#6366f1)"></div></div>`;
+      <div class="mt-3 h-2 rounded-full bg-ink-950 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#818cf8,#6366f1)"></div></div>
+      ${(() => { if (typeof pmReady === 'undefined' || !pmReady || !miss) return ''; const d = pmDayTotal('passports').passports || 0;
+        return `<div class="mt-3 grid grid-cols-2 gap-3 text-sm"><div class="rounded-lg bg-ink-950/60 border border-ink-700 px-3 py-2"><div class="text-[10px] uppercase tracking-widest text-slate-400">Pro Tag</div><b class="tabular-nums text-emerald-300">${d > 0 ? '+' + fmtLeg(d) : '–'}</b></div>
+          <div class="rounded-lg bg-ink-950/60 border border-ink-700 px-3 py-2"><div class="text-[10px] uppercase tracking-widest text-slate-400">Tage bis zum Ziel</div><b class="tabular-nums text-indigo-300">${d > 0 ? fmt(Math.ceil(miss / d)) + ' Tage' : 'Passive aktivieren'}</b></div></div>`; })()}`;
   }
   $('passGoal').addEventListener('input', () => {
     const g = passGoalNum(); LS.set(PASS_GOAL, g ? String(g) : '');
@@ -1564,6 +1570,13 @@ window.RokApp = () => {
     $('speedInputs').classList.toggle('hidden', R.mode !== 'speedups');
     $('speedOpts').classList.toggle('hidden', R.mode !== 'speedups');
     $('matOpts').classList.toggle('hidden', R.mode !== 'mats');
+    $('vipHistOpts').classList.toggle('hidden', R.mode !== 'vip');
+    if (R.mode === 'vip') {
+      const g = R.history.filter(e => e.type === 'gems' && e.gems != null).sort((a, b) => b.ts - a.ts)[0];
+      $('vipHistOpts').innerHTML = `<label class="inline-flex items-center gap-2 cursor-pointer select-none ${g ? '' : 'opacity-50'}"><input id="vipHistGems" type="checkbox" ${LS.get('rok_scanner_vip_gems', '') === '1' ? 'checked' : ''} ${g ? '' : 'disabled'} class="accent-pink-500">
+        ${ico({ img: 'ressourcen/gems.png', icon: '💎' }, 'w-4 h-4')} mit aktuellen Gems${g ? ` (+${fmt(g.gems)})` : ' – noch kein Gems-Scan'}</label>`;
+      $('vipHistGems').onchange = (e) => { LS.set('rok_scanner_vip_gems', e.target.checked ? '1' : ''); renderHistory(); };
+    }
     if (R.mode === 'mats') renderMatLines($('matOpts'), () => renderHistory());
     $('farmSection').classList.toggle('hidden', R.mode !== 'resources');
     $('resLines').classList.toggle('hidden', R.mode !== 'resources');
@@ -1702,17 +1715,27 @@ window.RokApp = () => {
   }
   const savePassive = () => { clearTimeout(savePassive._t); savePassive._t = setTimeout(() => LS.set(PASSIVE_KEY, JSON.stringify(passive)), 400); };
   // Eingabe für eigene Tage + Hinweis zum KvK-Start
+  const isoDay = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const dayPlus = (n) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + n); return d; };
   function horizonCtl() {
-    const kd = kvkStartDate();
+    const kd = kvkStartDate(), n = hState().custom;
+    const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 tabular-nums text-slate-200 focus:outline-none focus:border-gold-500';
     return `<div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-400">
-      <label class="inline-flex items-center gap-2">Eigener Zeitraum <input data-hcustom type="number" min="1" max="999" step="1" value="${hState().custom}" class="w-16 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-right tabular-nums text-slate-200 focus:outline-none focus:border-gold-500"> Tage</label>
+      <span class="inline-flex flex-wrap items-center gap-2">Eigener Zeitraum <input data-hcustom type="number" min="1" max="999" step="1" value="${n}" class="w-16 text-right ${inp}"> Tage · bis
+        <input data-hdate type="date" min="${isoDay(dayPlus(1))}" value="${isoDay(dayPlus(n))}" class="${inp}"></span>
       <span>${kd ? `KvK-Start: <b class="text-slate-200">${kd.split('-').reverse().join('.')}</b>` : 'KvK-Start nicht festgelegt (unter KvK → Get Ready)'}</span></div>`;
   }
   function bindHorizonCtl(root, rerender) {
-    root.querySelectorAll('[data-hcustom]').forEach(i => i.addEventListener('input', () => {
-      const v = Math.round(+i.value); if (!(v >= 1)) return;
-      hState().custom = Math.min(999, v); savePassive(); rerender();
-    }));
+    const num = root.querySelector('[data-hcustom]'), dat = root.querySelector('[data-hdate]');
+    num?.addEventListener('input', () => {
+      const v = Math.round(+num.value); if (!(v >= 1)) return;
+      hState().custom = Math.min(999, v); if (dat) dat.value = isoDay(dayPlus(hState().custom)); savePassive(); rerender();
+    });
+    dat?.addEventListener('change', () => {
+      const t = new Date(dat.value + 'T00:00:00'); if (isNaN(t)) return;
+      const v = Math.round((t - dayPlus(0)) / 864e5); if (!(v >= 1)) return;
+      hState().custom = Math.min(999, v); if (num) num.value = hState().custom; savePassive(); rerender();
+    });
   }
 
   // ---------- AP: Statistik (was kann ich machen) + aktivierbare Passive-Quellen ----------
@@ -1728,13 +1751,15 @@ window.RokApp = () => {
   ];
   const AP_SRC = [
     { k: 'daily', label: 'Daily', desc: '100 AP jeden Tag', perDay: () => 100 },
-    { k: 'monday', label: 'Montags-Belohnung', desc: '3.000 AP jeden Montag', perDay: () => 3000 / 7, inc: (s, days) => 3000 * mondays(days) },
+    { k: 'monday', label: 'Montags-Belohnung', desc: '3.000 AP – wird immer montags komplett eingesammelt', perDay: () => 3000 / 7, inc: (s, days) => 3000 * mondays(days), dayText: () => `+3.000 / Mo · nächster ${nextMonday()}` },
     { k: 'afort', label: 'Allianz-Forts', desc: '100 % = 7.000 AP pro Woche', pct: true, perDay: (s) => 7000 * (s.pct || 100) / 100 / 7 },
     { k: 'forts', label: 'Eigene Forts', desc: `Ø ${f1(AP_PER_FORT)} AP pro Fort (720 Forts ≈ 430×50er · 373 ≈ 237×50er)`, input: { label: 'Forts pro Woche (Ø)', ph: 'z. B. 35' }, perDay: (s) => (+s.w || 0) * AP_PER_FORT / 7 },
     { k: 'barbs', label: 'Baulurs', desc: `Ø ${f1(AP_PER_BARB)} AP pro Baulur (7.000 Baulurs = 915×100er = 91.500 AP)`, input: { label: 'Baulurs pro Tag', def: 108 }, perDay: (s) => (s.n ?? 108) * AP_PER_BARB },
     { k: 'bundle', label: 'Daily Bundle', desc: '500 AP pro Kauf', input: { label: 'Käufe pro Tag', def: 1 }, perDay: (s) => (s.n ?? 1) * 500 }
   ];
-  function mondays(days) { let c = 0; const d = new Date(); for (let i = 1; i <= Math.floor(days); i++) { d.setDate(d.getDate() + 1); if (d.getDay() === 1) c++; } return c; }
+  // Kalender: zählt die Montage ab morgen bis einschließlich Tag „days“ (heute gilt als schon eingesammelt)
+  function mondays(days) { let c = 0; for (let i = 1; i <= Math.floor(days + 1e-9); i++) if (dayPlus(i).getDay() === 1) c++; return c; }
+  const nextMonday = () => { for (let i = 1; i <= 7; i++) { const d = dayPlus(i); if (d.getDay() === 1) return d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }); } return ''; };
   const apSrc = (k) => { const a = (passive.apSrc = passive.apSrc || {}); return (a[k] = a[k] || { on: false }); };
   const apCost = (k) => { const c = (passive.apCost = passive.apCost || {}); const d = AP_COSTS.find(x => x.k === k).def; return +c[k] > 0 ? +c[k] : d; };
   const apIncome = (days) => AP_SRC.reduce((a, x) => { const s = apSrc(x.k); return a + (s.on ? (x.inc ? x.inc(s, days) : x.perDay(s) * days) : 0); }, 0);
@@ -1747,7 +1772,11 @@ window.RokApp = () => {
     top.innerHTML = `
       <section id="apCanDo" class="panel rounded-2xl p-5">
         <h2 class="font-display text-lg text-gold-300">Was kannst du mit deinen AP machen?</h2>
-        <div id="apChips" class="flex flex-wrap gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700 mb-4" role="group"></div>
+        <div id="apChips" class="flex flex-wrap gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700 mb-3" role="group"></div>
+        <div class="flex flex-wrap items-center gap-2 mb-4 text-xs text-slate-400">Ø Chain bei Barbaren
+          <div class="flex gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group">${[1, 2, 3].map(c => `<button type="button" data-apchain="${c}" aria-pressed="${apChain() === c}" class="seg-btn rounded-lg px-3 py-1 text-xs font-semibold transition">${c}er</button>`).join('')}</div>
+          <label class="inline-flex items-center gap-1">oder Ø <input data-apchainv type="number" min="1" max="10" step="0.1" value="${apChain()}" class="w-14 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-right tabular-nums text-slate-200 focus:outline-none focus:border-gold-500"></label>
+          <span class="text-slate-500">(2er Chain = Barbaren ×2, 3er = ×3)</span></div>
         <div id="apCanDoOut"></div>
         <details class="mt-4 group">
           <summary class="cursor-pointer select-none text-xs text-slate-400 hover:text-gold-300">⚙ AP-Kosten anpassen</summary>
@@ -1759,6 +1788,13 @@ window.RokApp = () => {
     $('passTop').innerHTML = `
       <section id="apPassive" class="panel rounded-2xl p-5">
         <h2 class="font-display text-lg text-gold-300">Passive AP</h2>
+        <div class="text-xs uppercase tracking-widest text-slate-400 mb-2">AP-Verlauf</div>
+        <div id="apLineSel" class="flex flex-wrap gap-x-4 gap-y-2 mb-3 text-xs text-slate-300"></div>
+        <div id="apChartWrap" class="h-64"></div>
+        <div class="mt-4">${horizonCtl()}</div>
+        <div id="apPassiveOut" class="mt-3"></div>
+        <section id="apSrcBox" class="mt-5 rounded-xl border border-ink-700 bg-ink-950/30 p-4">
+          <h2 class="font-display text-base text-gold-300">Quellen aktivieren</h2>
         <p class="text-xs text-slate-400 mb-3">Aktiviere, was auf dich zutrifft – wird automatisch gespeichert und hochgerechnet.</p>
         <div class="space-y-2">${AP_SRC.map(x => { const s = apSrc(x.k); return `
           <div class="ap-src rounded-xl border border-ink-700 bg-ink-950/40 px-3 py-2.5" data-on="${!!s.on}" data-src="${x.k}">
@@ -1773,13 +1809,7 @@ window.RokApp = () => {
             ${x.pct ? `<div class="ap-src-body mt-2 grid grid-cols-4 gap-1 p-1 rounded-lg bg-ink-950 border border-ink-700">${[25, 50, 75, 100].map(p => `<button type="button" data-appct="${p}" data-k="${x.k}" aria-pressed="${(s.pct || 100) === p}" class="seg-btn rounded-md py-1 text-xs font-semibold transition">${p} %</button>`).join('')}</div>` : ''}
             ${x.input ? `<label class="ap-src-body mt-2 flex items-center justify-between gap-2 text-xs text-slate-300">${x.input.label}<input data-apn="${x.k}" type="number" min="0" step="any" value="${s[x.k === 'forts' ? 'w' : 'n'] ?? x.input.def ?? ''}" placeholder="${x.input.ph || ''}" class="${inp}"></label>` : ''}
           </div>`; }).join('')}</div>
-        <div class="mt-4">${horizonCtl()}</div>
-        <div id="apPassiveOut" class="mt-3"></div>
-        <div class="mt-5">
-          <div class="text-xs uppercase tracking-widest text-slate-400 mb-2">AP-Verlauf</div>
-          <div id="apLineSel" class="flex flex-wrap gap-x-4 gap-y-2 mb-3 text-xs text-slate-300"></div>
-          <div id="apChartWrap" class="h-64"></div>
-        </div>
+        </section>
       </section>
       <section id="apDay" class="panel rounded-2xl p-5">
         <h2 class="font-display text-lg text-gold-300">Was schaffst du pro Tag?</h2>
@@ -1794,7 +1824,11 @@ window.RokApp = () => {
       </section>`;
     makeFold($('apCanDo'), 'apstats:cando');
     makeFold($('apPassive'), 'apstats:passive');
+    makeFold($('apSrcBox'), 'apstats:sources');
     renderApChips();
+    const syncChain = () => { top.querySelectorAll('[data-apchain]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.apchain === apChain()))); };
+    top.querySelectorAll('[data-apchain]').forEach(b => b.onclick = () => { passive.apChain = +b.dataset.apchain; top.querySelector('[data-apchainv]').value = passive.apChain; syncChain(); savePassive(); renderApStatsOut(); renderApDayOut(); });
+    top.querySelector('[data-apchainv]').addEventListener('input', (ev) => { const v = +ev.target.value; if (!(v >= 1)) return; passive.apChain = Math.min(10, v); syncChain(); savePassive(); renderApStatsOut(); renderApDayOut(); });
     const pt = $('passTop');
     top.querySelectorAll('[data-apcost]').forEach(i => i.addEventListener('input', () => { const c = (passive.apCost = passive.apCost || {}); if (+i.value > 0) c[i.dataset.apcost] = +i.value; else delete c[i.dataset.apcost]; savePassive(); renderApStatsOut(); }));
     pt.querySelectorAll('[data-aptog]').forEach(b => b.onclick = () => { const s = apSrc(b.dataset.aptog); s.on = !s.on; b.setAttribute('aria-checked', String(s.on)); b.closest('.ap-src').dataset.on = String(s.on); savePassive(); renderApStatsOut(); });
@@ -1809,6 +1843,10 @@ window.RokApp = () => {
     bindHorizonCtl(pt, () => { renderApChips(); renderApStatsOut(); });
     renderApStatsOut();
   }
+  const apChain = () => { const c = +passive.apChain; return c >= 1 ? c : 1; };
+  const BARB_KEYS = ['barbOff', 'barbKvk'];
+  const apDoCount = (k, ap) => { const n = Math.floor(ap / apCost(k)); return BARB_KEYS.includes(k) ? Math.floor(n * apChain()) : n; };
+  const apDoSub = (k) => `à ${fmt(apCost(k))} AP${BARB_KEYS.includes(k) && apChain() !== 1 ? ` · ×${f1(apChain())} Chain` : ''}`;
   const apDay = () => (passive.apDay = passive.apDay || { sec: 23, arm: true });
   function renderApDayOut() {
     const out = $('apDayOut'); if (!out) return;
@@ -1818,11 +1856,11 @@ window.RokApp = () => {
         ${free ? `<div class="flex justify-between gap-3"><span class="text-slate-300">Gratis-AP</span><b class="tabular-nums text-emerald-300">+500</b></div>` : ''}
         ${d.arm ? `<div class="flex justify-between gap-3"><span class="text-slate-300">Travel</span><b class="tabular-nums text-red-300">−400</b></div>` : ''}
         <div class="flex justify-between gap-3 border-t border-ink-700 mt-1 pt-1"><span class="text-slate-200 font-semibold">Pro Tag verfügbar</span><b class="tabular-nums text-gold-300">${fmt(net)} AP</b></div></div>
-      <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">${AP_COSTS.map(c => { const cost = apCost(c.k); return `
+      <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">${AP_COSTS.map(c => `
         <div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3">
           <div class="text-[10px] uppercase tracking-widest text-slate-400 truncate">${c.icon} ${c.label}</div>
-          <div class="text-2xl font-bold text-gold-300 tabular-nums mt-1">${fmt(Math.floor(net / cost))} <span class="text-xs font-medium text-slate-400">/ Tag</span></div>
-          <div class="text-[11px] text-slate-500 tabular-nums">à ${fmt(cost)} AP</div></div>`; }).join('')}</div>`;
+          <div class="text-2xl font-bold text-gold-300 tabular-nums mt-1">${fmt(apDoCount(c.k, net))} <span class="text-xs font-medium text-slate-400">/ Tag</span></div>
+          <div class="text-[11px] text-slate-500 tabular-nums">${apDoSub(c.k)}</div></div>`).join('')}</div>`;
   }
   // Linien-Dashboard in Passive: AP gesamt, Passiv gesamt und jede aktive Quelle zum Ankreuzen
   let apChart = null;
@@ -1875,13 +1913,13 @@ window.RokApp = () => {
           <div class="text-3xl font-extrabold text-white tabular-nums">${fmt(ap)} AP</div>
           <div class="text-xs text-slate-400">${now == null ? 'Noch kein AP-Scan – nur Passive gerechnet' : h.k === 'now' ? 'aus deinem letzten Scan' : `${fmt(now)} jetzt + ${fmt(ap - now)} passiv`}</div></div>
       </div>
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">${AP_COSTS.map(c => { const cost = apCost(c.k), n = Math.floor(ap / cost); return `
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">${AP_COSTS.map(c => `
         <div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3">
           <div class="text-[10px] uppercase tracking-widest text-slate-400 truncate">${c.icon} ${c.label}</div>
-          <div class="text-2xl font-bold text-gold-300 tabular-nums mt-1">${fmt(n)} <span class="text-xs font-medium text-slate-400">${c.unit || '×'}</span></div>
-          <div class="text-[11px] text-slate-500 tabular-nums">à ${fmt(cost)} AP</div></div>`; }).join('')}</div>`;
+          <div class="text-2xl font-bold text-gold-300 tabular-nums mt-1">${fmt(apDoCount(c.k, ap))} <span class="text-xs font-medium text-slate-400">×</span></div>
+          <div class="text-[11px] text-slate-500 tabular-nums">${apDoSub(c.k)}</div></div>`).join('')}</div>`;
     // Passive-Quellen: pro Tag je Quelle + Hochrechnung
-    AP_SRC.forEach(x => { const el = document.querySelector(`[data-apday="${x.k}"]`); if (el) el.textContent = `+${fmt(x.perDay(apSrc(x.k)))} / Tag`; });
+    AP_SRC.forEach(x => { const el = document.querySelector(`[data-apday="${x.k}"]`); if (el) el.textContent = x.dayText ? x.dayText() : `+${fmt(x.perDay(apSrc(x.k)))} / Tag`; });
     const po = $('apPassiveOut'); if (!po) return;
     const on = AP_SRC.filter(x => apSrc(x.k).on);
     renderApChart();
@@ -1890,12 +1928,246 @@ window.RokApp = () => {
     const inc = (x, d) => x.inc ? x.inc(apSrc(x.k), d) : x.perDay(apSrc(x.k)) * d;
     po.innerHTML = `<div class="overflow-x-auto rounded-lg border border-emerald-500/30 bg-emerald-500/5"><table class="w-full text-xs">
       <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-1.5 px-2 text-left font-medium">Quelle</th><th class="${th}">pro Tag</th>${H.map(h => `<th class="${th}">${h.label}</th>`).join('')}</tr></thead>
-      <tbody>${on.map(x => `<tr class="border-b border-ink-800"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${x.label}</td><td class="py-1.5 px-2 text-right tabular-nums text-emerald-400">+${fmt(x.perDay(apSrc(x.k)))}</td>${H.map(h => `<td class="py-1.5 px-2 text-right tabular-nums text-emerald-400">+${fmt(inc(x, h.days))}</td>`).join('')}</tr>`).join('')}
-        <tr class="border-b border-ink-800 font-semibold"><td class="py-1.5 px-2 text-slate-200">Passiv gesamt</td><td class="py-1.5 px-2 text-right tabular-nums text-emerald-300">+${fmt(apPerDay())}</td>${H.map(h => `<td class="py-1.5 px-2 text-right tabular-nums text-emerald-300">+${fmt(apIncome(h.days))}</td>`).join('')}</tr>
+      <tbody>${on.map(x => `<tr class="border-b border-ink-800"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${x.label}</td><td class="py-1.5 px-2 text-right tabular-nums text-emerald-400 whitespace-nowrap">${x.k === 'monday' ? '+3.000 / Mo' : '+' + fmt(x.perDay(apSrc(x.k)))}</td>${H.map(h => `<td class="py-1.5 px-2 text-right tabular-nums text-emerald-400">+${fmt(inc(x, h.days))}</td>`).join('')}</tr>`).join('')}
+        <tr class="border-b border-ink-800 font-semibold"><td class="py-1.5 px-2 text-slate-200">Passiv gesamt</td><td class="py-1.5 px-2 text-right tabular-nums text-emerald-300 whitespace-nowrap">Ø +${fmt(apPerDay())}</td>${H.map(h => `<td class="py-1.5 px-2 text-right tabular-nums text-emerald-300">+${fmt(apIncome(h.days))}</td>`).join('')}</tr>
         ${now != null ? `<tr class="font-bold"><td class="py-2 px-2 text-gold-300">AP gesamt</td><td class="py-2 px-2 text-right tabular-nums text-slate-400">${fmt(now)}</td>${H.map(h => `<td class="py-2 px-2 text-right tabular-nums text-gold-300">${fmt(now + apIncome(h.days))}</td>`).join('')}</tr>` : ''}
       </tbody></table></div>`;
     renderAreaTabs();
   }
+
+  // ---------- Passive-Module mit Quellen zum Aktivieren (VIP, Gems, Ressourcen, Passports, Goldheads) ----------
+  // Aufbau wie bei AP: Linie oben (ankreuzbar) · Zeitraum · Tabelle · „Quellen aktivieren“ einklappbar
+  var pmReady = false;
+  const lastOf = (t, ok = () => true) => R.history.filter(e => e.type === t && ok(e)).sort((a, b) => b.ts - a.ts)[0];
+  const gemsNow = () => { const e = lastOf('gems', x => x.gems != null); return e ? +e.gems : null; };
+  const vipNowPts = () => { const n = vipNumbers(); if (n.current != null || n.inventory) return n.after; const e = lastOf('vip', x => x.after != null); return e ? +e.after : null; };
+  const nv = (v, d) => (v === null || v === undefined || v === '' || isNaN(+v)) ? d : +v;
+  const GEM_PER_FORT = 150 * 10 / 1676;   // 150× 10 Gems bei 1.676 Burgen → Ø 0,895 Gems pro Fort (8,95 % Drop)
+  const one = (k) => (v) => ({ [k]: v });
+  const PMOD = {
+    vip: { title: 'Passive VIP', units: [{ k: 'vip', label: 'VIP-Punkte', c: '#f5c542', img: 'sonstiges/svip._LSdqpwn.webp', icon: '👑' }], now: () => ({ vip: vipNowPts() }),
+      src: [{ k: 'daily', label: 'Tägliche VIP-Punkte', desc: 'Login / VIP-Truhe', inputs: [{ key: 'n', label: 'VIP-Punkte pro Tag', def: 200 }], perDay: (s) => ({ vip: nv(s.n, 200) }) }] },
+    gems: { title: 'Passive Gems', units: [{ k: 'gems', label: 'Gems', c: '#f472b6', img: 'ressourcen/gems.png', icon: '💎' }], now: () => ({ gems: gemsNow() }),
+      src: [
+        { k: 'daily', label: 'Daily', desc: '100 Gems jeden Tag', perDay: () => ({ gems: 100 }) },
+        { k: 'karuak', label: 'Baulurs / Karuak', desc: '108 Baulurs am Tag, davon Ø 9 Karuak · 30 Gems pro Kill', inputs: [{ key: 'n', label: 'Karuak-Kills pro Tag (Ø)', def: 9 }, { key: 'g', label: 'Gems pro Kill', def: 30 }], perDay: (s) => ({ gems: nv(s.n, 9) * nv(s.g, 30) }) },
+        { k: 'bundle', label: 'Daily Bundle', desc: '1.200 Gems pro Kauf', inputs: [{ key: 'n', label: 'Käufe pro Tag', def: 1 }], perDay: (s) => ({ gems: nv(s.n, 1) * 1200 }) },
+        { k: 'forts', label: 'Forts', desc: `Ø ${(+GEM_PER_FORT).toLocaleString('de-DE', { maximumFractionDigits: 3 })} Gems pro Fort (10 Gems in 150 von 1.676 Burgen = 8,95 % Drop)`, inputs: [{ key: 'w', label: 'Forts pro Woche (Ø)', ph: 'z. B. 175' }], perDay: (s) => ({ gems: nv(s.w, nv(passive.apSrc?.forts?.w, 0)) * GEM_PER_FORT / 7 }) },
+        { k: 'farm', label: 'Gem-Farming', desc: 'Gems sammeln auf der Karte', inputs: [{ key: 'n', label: 'Ø Gems pro Tag (in der Woche)', ph: 'z. B. 2000' }], perDay: (s) => ({ gems: nv(s.n, 0) }) },
+        { k: 'supply', label: 'Gem Supply', desc: '650 Gems jeden Tag', perDay: () => ({ gems: 650 }) }
+      ] },
+    resources: { title: 'Passive Ressourcen', units: RES.map(r => ({ k: r.k, label: r.label, c: r.from, img: r.img, icon: r.icon })), short: true,
+      now: () => { const e = lastOf('resources'); return e ? Object.fromEntries(RES.map(r => [r.k, e[r.k] ?? null])) : {}; },
+      src: [
+        { k: 'city', label: 'City-Ressourcen (alle Lv. 25)', desc: 'Proviant/Holz 54.080 · Stein 40.560 · Gold 27.040 pro Stunde', perDay: () => ({ food: 54080 * 24, wood: 54080 * 24, stone: 40560 * 24, gold: 27040 * 24 }) },
+        { k: 'alliance', label: 'Allianz-Ressourcen', desc: 'Selbst eintragen – pro Stunde', inputs: RES.map(r => ({ key: r.k, label: `${r.label} pro Stunde`, ph: '0', text: true })), perDay: (s) => Object.fromEntries(RES.map(r => [r.k, nv(s[r.k], 0) * 24])) },
+        { k: 'daily', label: 'Daily', desc: 'Proviant/Holz 270.000 · Stein 202.000 · Gold 27.000 pro Tag', perDay: () => ({ food: 270000, wood: 270000, stone: 202000, gold: 27000 }) }
+      ] },
+    passports: { title: 'Passive Passports', units: [{ k: 'passports', label: 'Passseiten', c: '#818cf8', img: 'sonstiges/passport.webp', icon: '🛂' }], now: () => { const e = lastOf('passports', x => x.passports != null); return { passports: e ? +e.passports : null }; },
+      src: [{ k: 'credits', label: 'Allianz-Credits (Shop)', desc: 'Genaue Werte folgen – vorerst selbst eintragen', inputs: [{ key: 'w', label: 'Passseiten pro Woche', ph: 'z. B. 50' }], perDay: (s) => ({ passports: nv(s.w, 0) / 7 }) }] },
+    goldheads: { title: 'Passive Goldheads', units: [{ k: 'goldheads', label: 'Goldheads', c: '#facc15', icon: '🗿' }], now: () => { const e = lastOf('goldheads'); return { goldheads: e ? +e.goldheads || 0 : null }; },
+      src: [
+        { k: 'vip', label: 'VIP', desc: 'Genaue Werte folgen – vorerst selbst eintragen', inputs: [{ key: 'w', label: 'Goldheads pro Woche', ph: 'z. B. 20' }], perDay: (s) => ({ goldheads: nv(s.w, 0) / 7 }) },
+        { k: 'events', label: 'Events', desc: 'Genaue Werte folgen – vorerst selbst eintragen', inputs: [{ key: 'w', label: 'Goldheads pro Woche (Ø)', ph: 'z. B. 30' }], perDay: (s) => ({ goldheads: nv(s.w, 0) / 7 }) }
+      ] }
+  };
+  const PM_COL = ['#38bdf8', '#a78bfa', '#f97316', '#f472b6', '#e2e8f0', '#ef4444', '#2dd4bf'];
+  const pmSt = (m) => { const a = (passive.pm = passive.pm || {}); return (a[m] = a[m] || { src: {}, lines: { total: true } }); };
+  const pmSrc = (m, k) => { const st = pmSt(m); return (st.src[k] = st.src[k] || { on: false }); };
+  const pmFmt = (m, v) => PMOD[m].short ? short(v) : fmt(v);
+  const pmAdd = (a, b, f = 1) => { const o = { ...a }; Object.entries(b || {}).forEach(([k, v]) => o[k] = (o[k] || 0) + v * f); return o; };
+  const pmPerDay = (m, x) => x.perDay(pmSrc(m, x.k));
+  const pmInc = (m, x, days) => x.inc ? x.inc(pmSrc(m, x.k), days) : pmAdd({}, pmPerDay(m, x), days);
+  const pmOn = (m) => PMOD[m].src.filter(x => pmSrc(m, x.k).on);
+  const pmIncome = (m, days) => pmOn(m).reduce((a, x) => pmAdd(a, pmInc(m, x, days)), {});
+  const pmDayTotal = (m) => pmOn(m).reduce((a, x) => pmAdd(a, pmPerDay(m, x)), {});
+  const pmSum = (o) => Object.values(o || {}).reduce((a, v) => a + (+v || 0), 0);
+  function renderPM(m) {
+    const cf = PMOD[m], pt = $('passTop');
+    const inp = 'w-24 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500';
+    pt.innerHTML = `
+      <section id="pmPassive" class="panel rounded-2xl p-5">
+        <h2 class="font-display text-lg text-gold-300">${cf.title}</h2>
+        <div class="text-xs uppercase tracking-widest text-slate-400 mb-2">Verlauf</div>
+        <div id="pmLineSel" class="flex flex-wrap gap-x-4 gap-y-2 mb-3 text-xs text-slate-300"></div>
+        <div id="pmChartWrap" class="h-64"></div>
+        <div class="mt-4">${horizonCtl()}</div>
+        <div id="pmOut" class="mt-3"></div>
+        <div id="pmExtra"></div>
+        <section id="pmSrcBox" class="mt-5 rounded-xl border border-ink-700 bg-ink-950/30 p-4">
+          <h2 class="font-display text-base text-gold-300">Quellen aktivieren</h2>
+          <p class="text-xs text-slate-400 mb-3">Aktiviere, was auf dich zutrifft – wird automatisch gespeichert und hochgerechnet.</p>
+          <div class="space-y-2">${cf.src.map(x => { const s = pmSrc(m, x.k); return `
+            <div class="ap-src rounded-xl border border-ink-700 bg-ink-950/40 px-3 py-2.5" data-on="${!!s.on}">
+              <div class="flex items-center gap-3">
+                ${toggleBtn(`data-pmtog="${x.k}"`, !!s.on)}
+                <div class="ap-src-body min-w-0 flex-1">
+                  <div class="text-sm font-semibold text-white">${ico(cf.units[0], 'w-4 h-4')} ${x.label}</div>
+                  <div class="text-[11px] text-slate-400">${x.desc}</div>
+                </div>
+                <div class="ap-src-body text-right text-xs tabular-nums text-emerald-400 whitespace-nowrap" data-pmday="${x.k}"></div>
+              </div>
+              ${(x.inputs || []).map(f => `<label class="ap-src-body mt-2 flex items-center justify-between gap-2 text-xs text-slate-300">${f.label}<input data-pmin="${x.k}" data-key="${f.key}" ${f.text ? 'type="text" inputmode="decimal"' : 'type="number" min="0" step="any"'} value="${s[f.key] ?? f.def ?? ''}" placeholder="${f.ph || ''}" class="${inp}"></label>`).join('')}
+            </div>`; }).join('')}</div>
+        </section>
+      </section>`;
+    makeFold($('pmPassive'), 'pm:' + m);
+    makeFold($('pmSrcBox'), 'pmsrc:' + m);
+    pt.querySelectorAll('[data-pmtog]').forEach(b => b.onclick = () => { const s = pmSrc(m, b.dataset.pmtog); s.on = !s.on; b.setAttribute('aria-checked', String(s.on)); b.closest('.ap-src').dataset.on = String(s.on); savePassive(); renderPMOut(m); });
+    pt.querySelectorAll('[data-pmin]').forEach(i => i.addEventListener('input', () => {
+      const s = pmSrc(m, i.dataset.pmin), v = i.value.trim() === '' ? null : i.type === 'text' ? parseAmount(i.value) : +i.value;
+      s[i.dataset.key] = v == null || isNaN(v) ? null : Math.max(0, v); savePassive(); renderPMOut(m);
+    }));
+    bindHorizonCtl(pt, () => renderPMOut(m));
+    renderPMOut(m);
+  }
+  function renderPMOut(m) {
+    const cf = PMOD[m], out = $('pmOut'); if (!out) return;
+    const H = horizons(), now = cf.now(), on = pmOn(m), U = cf.units, multi = U.length > 1;
+    cf.src.forEach(x => { const el = document.querySelector(`[data-pmday="${x.k}"]`); if (el) { const d = pmPerDay(m, x); el.textContent = multi ? `+${pmFmt(m, pmSum(d))} / Tag` : `+${pmFmt(m, d[U[0].k] || 0)} / Tag`; } });
+    const th = 'py-1.5 px-2 text-right font-medium whitespace-nowrap', td = 'py-1.5 px-2 text-right tabular-nums';
+    if (!on.length) out.innerHTML = '<div class="text-xs text-slate-500">Aktiviere unten mindestens eine Quelle – dann siehst du hier, was in 7 Tagen, 30 Tagen, deinem eigenen Zeitraum und bis zum KvK dazukommt.</div>';
+    else if (!multi) {
+      const k = U[0].k, hasNow = now[k] != null;
+      out.innerHTML = `<div class="overflow-x-auto rounded-lg border border-emerald-500/30 bg-emerald-500/5"><table class="w-full text-xs">
+        <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-1.5 px-2 text-left font-medium">Quelle</th><th class="${th}">pro Tag</th>${H.map(h => `<th class="${th}">${h.label}</th>`).join('')}</tr></thead>
+        <tbody>${on.map(x => `<tr class="border-b border-ink-800"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${x.label}</td><td class="${td} text-emerald-400">+${pmFmt(m, pmPerDay(m, x)[k] || 0)}</td>${H.map(h => `<td class="${td} text-emerald-400">+${pmFmt(m, pmInc(m, x, h.days)[k] || 0)}</td>`).join('')}</tr>`).join('')}
+          <tr class="border-b border-ink-800 font-semibold"><td class="py-1.5 px-2 text-slate-200">Passiv gesamt</td><td class="${td} text-emerald-300">+${pmFmt(m, pmDayTotal(m)[k] || 0)}</td>${H.map(h => `<td class="${td} text-emerald-300">+${pmFmt(m, pmIncome(m, h.days)[k] || 0)}</td>`).join('')}</tr>
+          ${hasNow ? `<tr class="font-bold"><td class="py-2 px-2 text-gold-300">${U[0].label} gesamt</td><td class="${td} text-slate-400">${pmFmt(m, now[k])}</td>${H.map(h => `<td class="${td} text-gold-300">${pmFmt(m, now[k] + (pmIncome(m, h.days)[k] || 0))}</td>`).join('')}</tr>` : ''}
+        </tbody></table></div>`;
+    } else {
+      out.innerHTML = `<div class="overflow-x-auto rounded-lg border border-emerald-500/30 bg-emerald-500/5"><table class="w-full text-xs">
+        <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-1.5 px-2 text-left font-medium">Quelle · pro Tag</th>${U.map(u => `<th class="${th}">${ico(u, 'w-4 h-4')} ${u.label}</th>`).join('')}</tr></thead>
+        <tbody>${on.map(x => { const d = pmPerDay(m, x); return `<tr class="border-b border-ink-800"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${x.label}</td>${U.map(u => `<td class="${td} text-emerald-400">+${pmFmt(m, d[u.k] || 0)}</td>`).join('')}</tr>`; }).join('')}
+          <tr class="font-semibold"><td class="py-1.5 px-2 text-slate-200">Passiv gesamt</td>${U.map(u => `<td class="${td} text-emerald-300">+${pmFmt(m, pmDayTotal(m)[u.k] || 0)}</td>`).join('')}</tr></tbody></table></div>
+        <div class="mt-3 overflow-x-auto rounded-lg border border-gold-500/30 bg-gold-500/5"><table class="w-full text-xs">
+        <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-1.5 px-2 text-left font-medium">Bestand</th><th class="${th}">Jetzt</th>${H.map(h => `<th class="${th}">${h.label}</th>`).join('')}</tr></thead>
+        <tbody>${U.map(u => `<tr class="border-b border-ink-800 last:border-b-0"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${ico(u, 'w-4 h-4')} ${u.label}</td><td class="${td} text-slate-400">${now[u.k] != null ? pmFmt(m, now[u.k]) : '–'}</td>${H.map(h => `<td class="${td} font-semibold text-gold-300">${now[u.k] != null ? '' : '+'}${pmFmt(m, (+now[u.k] || 0) + (pmIncome(m, h.days)[u.k] || 0))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    }
+    renderPMChart(m);
+    if (cf.extra) cf.extra(m); else if ($('pmExtra')) $('pmExtra').innerHTML = '';
+    renderAreaTabs();
+  }
+  let pmChart = null;
+  function renderPMChart(m) {
+    const cf = PMOD[m], wrap = $('pmChartWrap'), selEl = $('pmLineSel'); if (!wrap || !selEl) return;
+    const H = horizons(), now = cf.now(), U = cf.units, multi = U.length > 1, L = pmSt(m).lines, on = pmOn(m);
+    const opts = multi ? U.map(u => ({ k: u.k, label: u.label, c: u.c, val: (d) => (+now[u.k] || 0) + (pmIncome(m, d)[u.k] || 0) }))
+      : [{ k: 'total', label: `${U[0].label} gesamt`, c: '#facc15', val: (d) => (+now[U[0].k] || 0) + (pmIncome(m, d)[U[0].k] || 0) },
+         { k: 'passive', label: 'Passiv gesamt', c: '#34d399', dash: true, val: (d) => pmIncome(m, d)[U[0].k] || 0 },
+         ...on.map((x, i) => ({ k: x.k, label: x.label, c: PM_COL[i % PM_COL.length], val: (d) => pmInc(m, x, d)[U[0].k] || 0 }))];
+    if (multi && !Object.keys(L).some(k => U.some(u => u.k === k))) U.forEach(u => L[u.k] = true);
+    selEl.innerHTML = opts.map(o => `<label class="inline-flex items-center gap-1.5 cursor-pointer select-none"><input type="checkbox" data-pmline="${o.k}" ${L[o.k] ? 'checked' : ''} class="accent-emerald-500"><i class="inline-block w-3 h-1 rounded" style="background:${o.c}"></i>${o.label}</label>`).join('');
+    selEl.querySelectorAll('[data-pmline]').forEach(c => c.onchange = () => { L[c.dataset.pmline] = c.checked; savePassive(); renderPMChart(m); });
+    const maxD = Math.max(7, Math.ceil(Math.max(...H.map(h => h.days)))), step = maxD > 90 ? Math.ceil(maxD / 90) : 1, days = [];
+    for (let d = 0; d <= maxD; d += step) days.push(d);
+    if (days[days.length - 1] !== maxD) days.push(maxD);
+    const labels = days.map(d => new Date(Date.now() + d * 864e5).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }));
+    const series = opts.filter(o => L[o.k]);
+    if (pmChart) { try { pmChart.destroy(); } catch {} pmChart = null; }
+    if (!series.length) { wrap.innerHTML = '<div class="h-full grid place-items-center text-xs text-slate-500">Mindestens eine Linie ankreuzen.</div>'; return; }
+    if (!window.Chart) { wrap.innerHTML = '<div class="h-full grid place-items-center text-xs text-slate-500">Diagramm konnte nicht geladen werden.</div>'; return; }
+    wrap.innerHTML = '<canvas id="pmChart"></canvas>';
+    pmChart = new Chart($('pmChart'), { type: 'line',
+      data: { labels, datasets: series.map(o => ({ label: o.label, data: days.map(d => Math.round(o.val(d))), borderColor: o.c, backgroundColor: o.c + '22', borderWidth: o.k === 'total' ? 3 : 2, borderDash: o.dash ? [6, 4] : undefined, tension: .25, pointRadius: 0, pointHoverRadius: 5, fill: false })) },
+      options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${pmFmt(m, c.raw)}` } } },
+        scales: { y: { ticks: { callback: (v) => short(v) } }, x: { ticks: { maxTicksLimit: 8 } } } } });
+  }
+  const pmSummary = (m) => { const d = pmDayTotal(m), t = pmSum(d); if (!(t > 0)) return null; return PMOD[m].units.length > 1 ? `+${short(t)} / Tag` : `+${pmFmt(m, t)} / Tag`; };
+  const daysTo = (need, perDay) => need <= 0 ? 0 : perDay > 0 ? Math.ceil(need / perDay) : null;
+
+  // VIP: Tage bis zum nächsten Level / Ziel + schlafender Panda
+  PMOD.vip.extra = () => {
+    const el = $('pmExtra'); if (!el) return;
+    const p = vipNowPts(), d = pmDayTotal('vip').vip || 0;
+    if (p == null) { el.innerHTML = '<div class="mt-4 text-xs text-slate-500">Noch kein VIP-Stand – im Bereich VIP scannen oder eintragen.</div>'; return; }
+    const nx = lbNext(p), toT = targetPoints() - p, dN = nx.max ? 0 : daysTo(nx.need, d), dT = daysTo(toT, d);
+    const card = (label, need, days) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-4"><div class="text-[10px] uppercase tracking-widest text-slate-400">${label}</div>
+      <div class="text-2xl font-bold text-gold-300 tabular-nums mt-1">${days == null ? '–' : days === 0 ? 'erreicht ✓' : `${fmt(days)} <span class="text-sm font-medium text-slate-400">Tage</span>`}</div>
+      <div class="text-[11px] text-slate-500 tabular-nums">${need > 0 ? `${fmt(need)} Punkte fehlen` : ''}${days ? ` · am ${dayPlus(days).toLocaleDateString('de-DE')}` : ''}</div></div>`;
+    el.innerHTML = `<div class="mt-4 grid sm:grid-cols-2 gap-3">${nx.max ? '' : card(`Bis ${vipName(nx.next)}`, nx.need, dN)}${toT > 0 ? card(`Bis zum Ziel ${vipName(targetLevel)}`, toT, dT) : card(`Ziel ${vipName(targetLevel)}`, 0, 0)}</div>
+      <div class="mt-4 flex items-center justify-center gap-3 text-slate-400 select-none" aria-hidden="true"><span class="text-5xl">🐼</span><span class="text-2xl animate-pulse">💤</span></div>
+      <div class="text-center text-[11px] text-slate-500">${d > 0 ? 'Einfach weiterschlafen – die Punkte kommen von allein.' : 'Aktiviere unten deine täglichen VIP-Punkte.'}</div>`;
+  };
+  // Passports: Tage bis zum Migrations-Ziel
+  PMOD.passports.extra = () => {
+    const el = $('pmExtra'); if (!el) return;
+    const goal = passGoalNum(), have = +PMOD.passports.now().passports || 0, d = pmDayTotal('passports').passports || 0;
+    if (PMOD.passports.now().passports != null) renderPassGoal(have);   // Dashboard in der Mitte mit aktualisieren
+    el.innerHTML = goal ? `<div class="mt-3 text-xs text-slate-300">🎯 Migrations-Ziel ${fmt(goal)}: ${have >= goal ? '<b class="text-emerald-400">schon erreicht ✓</b>' : d > 0 ? `in ca. <b class="text-indigo-300 tabular-nums">${fmt(daysTo(goal - have, d))}</b> Tagen` : 'Quelle aktivieren, um die Tage zu sehen'}</div>` : '';
+  };
+
+  // ---------- Statistics: Ziel-Linie (Gems-Event, Goldheads) ----------
+  const GOALS = {
+    gems: { title: 'Gems für ein Event', name: 'Event', namePh: 'z. B. Wheel of Fortune', unit: 'Gems', def: 50000 },
+    goldheads: { title: 'Goldheads für deinen Kommandanten', name: 'Ziel', namePh: 'z. B. nächste Expertise', unit: 'Goldheads', def: 5555, note: 'Max. 5.555 Goldheads für eine komplette Expertise. Die Tabelle je Kommandanten-Stufe kommt noch.' }
+  };
+  const goalSt = (m) => { const g = (passive.goal = passive.goal || {}); return (g[m] = g[m] || { name: '', target: null }); };
+  let goalChart = null;
+  function renderGoalStats(m) {
+    const top = $('statsTop'), cf = GOALS[m], st = goalSt(m);
+    const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:border-gold-500';
+    top.innerHTML = `<section id="goalBox" class="panel rounded-2xl p-5">
+      <h2 class="font-display text-lg text-gold-300">${cf.title}</h2>
+      <div class="grid sm:grid-cols-2 gap-3 mb-4">
+        <label class="text-xs text-slate-400">${cf.name}<input data-goalname type="text" value="${esc(st.name || '')}" placeholder="${cf.namePh}" class="mt-1 w-full ${inp}"></label>
+        <label class="text-xs text-slate-400">Benötigt (${cf.unit})<input data-goaltarget type="number" min="1" step="1" value="${st.target ?? ''}" placeholder="${cf.def}" class="mt-1 w-full text-right ${inp}"></label>
+      </div>
+      <div id="goalOut"></div>
+      <div id="goalChartWrap" class="h-64 mt-4"></div>
+      ${cf.note ? `<p class="mt-3 text-[11px] text-slate-500">${cf.note}</p>` : ''}
+    </section>`;
+    makeFold($('goalBox'), 'goal:' + m);
+    top.querySelector('[data-goalname]').addEventListener('input', (e) => { st.name = e.target.value.slice(0, 40); savePassive(); renderGoalOut(m); });
+    top.querySelector('[data-goaltarget]').addEventListener('input', (e) => { st.target = +e.target.value > 0 ? +e.target.value : null; savePassive(); renderGoalOut(m); });
+    renderGoalOut(m);
+  }
+  function renderGoalOut(m) {
+    const out = $('goalOut'); if (!out) return;
+    const cf = GOALS[m], st = goalSt(m), target = st.target || cf.def, k = PMOD[m].units[0].k, now = +PMOD[m].now()[k] || 0, perDay = pmDayTotal(m)[k] || 0;
+    let reach = now >= target ? 0 : null;
+    if (reach == null && perDay > 0) for (let d = 1; d <= 730; d++) if (now + (pmIncome(m, d)[k] || 0) >= target) { reach = d; break; }
+    const nm = st.name ? esc(st.name) : cf.name;
+    out.innerHTML = `<div class="grid sm:grid-cols-3 gap-3">
+      <div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">Jetzt</div><div class="text-xl font-bold text-white tabular-nums">${fmt(now)}</div></div>
+      <div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">Fehlen für ${nm}</div><div class="text-xl font-bold text-gold-300 tabular-nums">${fmt(Math.max(0, target - now))}</div></div>
+      <div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">Erreicht</div><div class="text-xl font-bold ${reach === 0 ? 'text-emerald-400' : 'text-indigo-300'} tabular-nums">${reach === 0 ? 'schon jetzt ✓' : reach ? `${dayPlus(reach).toLocaleDateString('de-DE')} <span class="text-xs font-medium text-slate-400">· in ${fmt(reach)} Tagen</span>` : perDay > 0 ? 'nicht in 2 Jahren' : 'Passive aktivieren'}</div></div></div>`;
+    const wrap = $('goalChartWrap'); if (!wrap) return;
+    const maxD = Math.min(730, Math.max(14, reach ? Math.ceil(reach * 1.15) : 60)), step = maxD > 90 ? Math.ceil(maxD / 90) : 1, days = [];
+    for (let d = 0; d <= maxD; d += step) days.push(d);
+    if (days[days.length - 1] !== maxD) days.push(maxD);
+    if (goalChart) { try { goalChart.destroy(); } catch {} goalChart = null; }
+    if (!window.Chart) { wrap.innerHTML = '<div class="h-full grid place-items-center text-xs text-slate-500">Diagramm konnte nicht geladen werden.</div>'; return; }
+    wrap.innerHTML = '<canvas id="goalChart"></canvas>';
+    goalChart = new Chart($('goalChart'), { type: 'line',
+      data: { labels: days.map(d => new Date(Date.now() + d * 864e5).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })),
+        datasets: [{ label: PMOD[m].units[0].label, data: days.map(d => Math.round(now + (pmIncome(m, d)[k] || 0))), borderColor: PMOD[m].units[0].c, borderWidth: 3, tension: .25, pointRadius: 0, pointHoverRadius: 5, fill: false },
+                   { label: nm, data: days.map(() => target), borderColor: '#facc15', borderWidth: 2, borderDash: [6, 4], pointRadius: 0, fill: false }] },
+      options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { labels: { boxWidth: 12, color: '#94a3b8' } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${fmt(c.raw)}` } } },
+        scales: { y: { ticks: { callback: (v) => short(v) } }, x: { ticks: { maxTicksLimit: 8 } } } } });
+  }
+
+  // ---------- VIP Statistics: Gems → VIP (1 Gem = 1 VIP-Punkt) ----------
+  function renderVipStats() {
+    const top = $('statsTop'), p = vipNowPts(), g = gemsNow();
+    if (p == null) { top.innerHTML = '<section class="panel rounded-2xl p-6 text-center text-sm text-slate-400">Noch kein VIP-Stand – in der Mitte scannen oder eintragen.</section>'; return; }
+    const withG = p + (g || 0), lvNow = levelFor(p), lvG = levelFor(withG), toT = targetPoints() - withG;
+    top.innerHTML = `<section id="vipGemBox" class="panel rounded-2xl p-5">
+      <h2 class="font-display text-lg text-gold-300">Gems in VIP umrechnen</h2>
+      <p class="text-xs text-slate-400 mb-4">1 Gem = 1 VIP-Punkt · Gems aus deinem letzten Scan im Bereich Gems.</p>
+      <div class="grid sm:grid-cols-3 gap-3">
+        <div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">VIP jetzt</div><div class="text-xl font-bold text-white tabular-nums">${fmt(p)}</div><div class="text-xs text-slate-400">${vipName(lvNow)}</div></div>
+        <div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">${ico({ img: 'ressourcen/gems.png', icon: '💎' }, 'w-4 h-4')} Gems</div><div class="text-xl font-bold text-pink-300 tabular-nums">${g == null ? '–' : '+' + fmt(g)}</div><div class="text-xs text-slate-400">${g == null ? 'noch kein Gems-Scan' : 'als VIP-Punkte'}</div></div>
+        <div class="rounded-xl border border-gold-500/40 bg-gold-500/5 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">VIP mit Gems</div><div class="text-xl font-bold text-gold-300 tabular-nums">${fmt(withG)}</div><div class="text-xs text-slate-300">${vipName(lvG)}${lvG > lvNow ? ` <span class="text-emerald-400">(+${lvG - lvNow} Level)</span>` : ''}</div></div>
+      </div>
+      <div class="mt-3 text-xs ${toT > 0 ? 'text-slate-300' : 'text-emerald-400'}">${toT > 0 ? `Bis zum Ziel ${vipName(targetLevel)} fehlen danach noch <b class="text-white tabular-nums">${fmt(toT)}</b> Punkte (= ${fmt(toT)} Gems).` : `Mit deinen Gems erreichst du dein Ziel ${vipName(targetLevel)} ✓`}</div>
+    </section>`;
+    makeFold($('vipGemBox'), 'vipgems');
+    renderCredits();
+  }
+  pmReady = true;
 
   // ---------- Allgemeine Passive-Hochrechnung (alle anderen Bereiche) ----------
   function renderPassiveOut(m) {
@@ -1932,10 +2204,18 @@ window.RokApp = () => {
   }
   function renderStats(m) {
     const top = $('statsTop'), sec = $('passiveInputs');
-    if (m === 'ap') { sec.classList.add('hidden'); if (!top.querySelector('#apCanDo')) renderApStats(); else renderApStatsOut(); return; }
-    $('passTop').innerHTML = '';
-    top.innerHTML = `<section class="panel rounded-2xl p-6 text-center text-sm text-slate-400">Für diesen Bereich gibt es noch keine Statistik – kommt als Nächstes.</section>`;
-    if (passiveFields(m)) renderPassive(m); else sec.classList.add('hidden');
+    if (m === 'ap') { sec.classList.add('hidden'); if (!top.querySelector('#apCanDo')) renderApStats(); else renderApStatsOut(); renderCredits(); return; }
+    // links: Statistics
+    if (m === 'vip') renderVipStats();
+    else if (GOALS[m]) renderGoalStats(m);
+    else if (m === 'passports') top.innerHTML = `<section class="panel rounded-2xl p-5"><h2 class="font-display text-lg text-gold-300 mb-2">Power → benötigte Passseiten</h2>
+        <div class="overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs"><thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-2 px-3 text-left font-medium">Power</th><th class="py-2 px-3 text-right font-medium">Passseiten</th></tr></thead>
+        <tbody><tr><td colspan="2" class="py-6 text-center text-slate-500">Tabelle folgt – sobald die Daten da sind, steht hier, wie viele Passseiten du für deine Power brauchst.</td></tr></tbody></table></div></section>`;
+    else top.innerHTML = `<section class="panel rounded-2xl p-6 text-center text-sm text-slate-400">Für diesen Bereich gibt es noch keine Statistik – kommt als Nächstes.</section>`;
+    if (m !== 'vip') renderCredits();
+    // rechts: Passive
+    if (PMOD[m]) { sec.classList.add('hidden'); renderPM(m); }
+    else { $('passTop').innerHTML = ''; if (passiveFields(m)) renderPassive(m); else sec.classList.add('hidden'); }
   }
   function renderAreaTabs() {
     const el = $('areaTabs'); if (!el || typeof HUB === 'undefined' || !HUB) return;
@@ -1948,8 +2228,12 @@ window.RokApp = () => {
         <span class="font-display text-sm sm:text-lg text-white tracking-wide leading-tight">${title}</span>
         <span class="text-[10px] sm:text-xs tabular-nums ${sub ? 'text-slate-300' : 'text-slate-500'} leading-tight">${sub || ph}</span>
       </button>`;
-    const statSub = m === 'ap' && apNow() != null ? `≈ ${fmt(Math.floor(apNow() / apCost('barbOff')))} Barbaren` : null;
-    const hasP = m === 'ap' || !!passiveFields(m), pSub = passiveSummary(m);
+    let statSub = m === 'ap' && apNow() != null ? `≈ ${fmt(apDoCount('barbOff', apNow()))} Barbaren` : null;
+    if (m === 'vip' && pmReady) { const p = vipNowPts(), g = gemsNow(); if (p != null && g) statSub = `mit Gems: ${vipName(levelFor(p + g))}`; }
+    if (GOALS[m] && pmReady) { const st = goalSt(m), cf = GOALS[m], k = PMOD[m].units[0].k, now = +PMOD[m].now()[k] || 0, t = st.target || cf.def;
+      if (st.target) { let r = now >= t ? 0 : null; if (r == null && (pmDayTotal(m)[k] || 0) > 0) for (let d = 1; d <= 730; d++) if (now + (pmIncome(m, d)[k] || 0) >= t) { r = d; break; }
+        statSub = r === 0 ? `${st.name || cf.name}: erreicht ✓` : r ? `${st.name || cf.name}: ${dayPlus(r).toLocaleDateString('de-DE')}` : `${fmt(t - now)} fehlen`; } }
+    const hasP = m === 'ap' || !!PMOD[m] || !!passiveFields(m), pSub = PMOD[m] ? pmSummary(m) : passiveSummary(m);
     const dashSub = [hubValue(m), lastTs ? `Scan: ${dateLabel(lastTs)}` : null].filter(Boolean).join(' · ');
     el.innerHTML = tile('stats', statIcon, '#34d399', 'Statistics', statSub, 'Was kann ich damit machen?')
       + tile('dash', ico(h, 'w-9 h-9 sm:w-12 sm:h-12'), h.c || '#f5c542', h.label || 'Dashboard', dashSub, 'Scan & Dashboard')
@@ -1959,7 +2243,7 @@ window.RokApp = () => {
   // Links Statistics · Mitte Scan + Dashboard (wie früher nebeneinander) · rechts Passive
   function setAreaTab(t) {
     if (t === 'scan') t = 'dash';
-    if (t === 'passive' && R.mode !== 'ap' && !passiveFields(R.mode)) t = 'dash';
+    if (t === 'passive' && R.mode !== 'ap' && !PMOD[R.mode] && !passiveFields(R.mode)) t = 'dash';
     R.areaTab = t;
     const aside = $('areaAside'), main = $('results'), stats = $('statsArea');
     delete aside.dataset.tab;
@@ -1967,7 +2251,7 @@ window.RokApp = () => {
     aside.classList.toggle('hidden', t !== 'dash');
     main.classList.toggle('hidden', t !== 'dash');
     stats.classList.toggle('hidden', t === 'dash');
-    $('statsTop').classList.toggle('hidden', t !== 'stats');
+    $('statsLeft').classList.toggle('hidden', t !== 'stats');
     $('passArea').classList.toggle('hidden', t !== 'passive');
     if (t !== 'dash' && passiveReady) renderStats(R.mode);
     renderAreaTabs();
