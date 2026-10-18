@@ -28,7 +28,7 @@ window.RokMods.feed = (R) => {
     attach: null, busy: false, admin: false, text: '', filter: 'all', q: '', hasMore: false, moreBusy: false, gq: '', lastSync: 0,
     comments: {}, cmOpen: new Set(), cmDraft: {}, cmBusy: false, noCm: false, deferRender: false,
     cmGif: {}, cmMsg: {}, gifFor: null, edit: null, editBusy: false, notifs: [], nOpen: false, noNotif: false, flash: null,
-    votes: {}, noVotes: false, pollAnim: new Set(), pollSeen: new Set(), reactBump: null };
+    gset: 'all', votes: {}, noVotes: false, pollAnim: new Set(), pollSeen: new Set(), reactBump: null };
   const db = () => A.db();
   const me = () => A.userId();
   const root = $('feedView');
@@ -58,6 +58,21 @@ window.RokMods.feed = (R) => {
       .fx-spark{position:absolute;width:var(--sz,3px);height:var(--sz,3px);border-radius:50%;background:#ffe2a0;box-shadow:0 0 6px 1px #ff7a18,0 0 2px #fff;pointer-events:none;z-index:5;animation:fxSpark var(--t,.9s) cubic-bezier(.15,.7,.3,1) forwards}
       .fx-spark.fx-streak2{width:9px;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(255,200,90,0),#ffd27a,#fff);transform-origin:0 50%}
       @keyframes fxSpark{0%{transform:translate(0,0) rotate(var(--a,0deg)) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) rotate(var(--a,0deg)) scale(.2);opacity:0}}
+      .fx-rocket{position:absolute;width:2px;height:10px;border-radius:2px;background:linear-gradient(180deg,#fff,#ffd27a 40%,rgba(255,120,30,0));box-shadow:0 0 6px #ffb020;pointer-events:none;z-index:6;animation:fxRocket var(--t,.55s) cubic-bezier(.3,.6,.4,1) forwards}
+      @keyframes fxRocket{0%{transform:translate(0,0);opacity:1}100%{transform:translate(var(--tx,0px),var(--ty,-60px));opacity:.9}}
+      .fx-fw{position:absolute;width:var(--sz,3px);height:var(--sz,3px);border-radius:50%;background:var(--c,#ffd27a);box-shadow:0 0 6px 1px var(--c,#ffd27a);pointer-events:none;z-index:6;animation:fxFw var(--t,1s) cubic-bezier(.12,.75,.3,1) forwards}
+      @keyframes fxFw{0%{transform:translate(0,0) scale(1.2);opacity:1}70%{opacity:.9}100%{transform:translate(var(--tx),calc(var(--ty) + 14px)) scale(.2);opacity:0}}
+      .fx-skull{position:absolute;top:-20px;font-size:var(--fs,13px);line-height:1;opacity:0;filter:drop-shadow(0 0 4px rgba(239,68,68,.55));animation:fxSkull var(--t,6s) linear infinite;animation-delay:var(--d,0s)}
+      @keyframes fxSkull{0%{transform:translate(0,0) rotate(0);opacity:0}10%{opacity:.6}85%{opacity:.45}100%{transform:translate(var(--dx,0px),230px) rotate(var(--r,160deg));opacity:0}}
+      .fx-res{position:absolute;bottom:-20px;font-size:var(--fs,14px);line-height:1;opacity:0;animation:fxRes var(--t,9s) ease-in-out infinite;animation-delay:var(--d,0s)}
+      @keyframes fxRes{0%{transform:translate(0,0) rotate(0) scale(.8);opacity:0}15%{opacity:.42}50%{transform:translate(calc(var(--dx,0px) * .5),-110px) rotate(var(--r,12deg)) scale(1)}85%{opacity:.3}100%{transform:translate(var(--dx,0px),-230px) rotate(0) scale(.9);opacity:0}}
+      .fx-stock .fx-layer::before{content:"";position:absolute;top:-50%;bottom:-50%;left:-40%;width:35%;background:linear-gradient(100deg,rgba(110,231,183,0),rgba(110,231,183,.10) 45%,rgba(220,255,240,.22) 50%,rgba(110,231,183,.10) 55%,rgba(110,231,183,0));transform:translateX(-120%) skewX(-12deg);animation:fxSweep 7s ease-in-out infinite}
+      .fx-helper{animation:fxBob 2.6s ease-in-out infinite}
+      @keyframes fxBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+      .fx-flag{transform-box:fill-box;transform-origin:0% 50%;animation:fxFlag 1.1s ease-in-out infinite}
+      @keyframes fxFlag{0%,100%{transform:skewY(0deg) scaleX(1)}50%{transform:skewY(-9deg) scaleX(.86)}}
+      .fx-arm{transform-box:fill-box;transform-origin:0% 100%;animation:fxArm 2.2s ease-in-out infinite}
+      @keyframes fxArm{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-6deg)}}
       .fx-pop{animation:fxPop .5s cubic-bezier(.34,1.56,.64,1)}
       @keyframes fxPop{0%{transform:scale(1)}30%{transform:scale(1.35)}65%{transform:scale(.94)}100%{transform:scale(1)}}
       .fx-count{display:inline-block;animation:fxCount .4s ease-out}
@@ -76,13 +91,31 @@ window.RokMods.feed = (R) => {
       .fx-bar{transition:width 1s cubic-bezier(.2,.8,.2,1)}
       .fx-pollopt{transition:transform .15s ease,border-color .15s ease,background-color .15s ease}
       .fx-pollopt:hover{transform:translateY(-1px)}
-      @media (prefers-reduced-motion: reduce){.fx-layer,.fx-spark,.fx-rp{display:none!important}.fx-forge,.fx-pop,.fx-count{animation:none!important}.fx-bar{transition:none!important}}`;
+      @media (prefers-reduced-motion: reduce){.fx-layer,.fx-spark,.fx-rp,.fx-rocket,.fx-fw{display:none!important}.fx-forge,.fx-pop,.fx-count,.fx-helper,.fx-flag,.fx-arm{animation:none!important}.fx-bar{transition:none!important}}`;
     document.head.appendChild(css);
   })();
   // feste „Zufalls“-Werte je Index (gleiches Bild bei jedem Neuzeichnen)
   const rnd = (i, k = 1) => { const x = Math.sin((i + 1) * 12.9898 * k) * 43758.5453; return x - Math.floor(x); };
   const goldLayer = (n = 12) => `<div class="fx-layer">${Array.from({ length: n }, (_, i) => `<span class="fx-gold${i % 3 === 2 ? ' fx-flake' : ''}" style="left:${(rnd(i, 1) * 96 + 2).toFixed(1)}%;--sz:${(2 + rnd(i, 2) * 3).toFixed(1)}px;--t:${(5.5 + rnd(i, 3) * 4).toFixed(2)}s;--d:${(-rnd(i, 4) * 9).toFixed(2)}s;--dx:${((rnd(i, 5) - .5) * 40).toFixed(0)}px"></span>`).join('')}</div>`;
   const emberLayer = (n = 14) => `<div class="fx-layer">${Array.from({ length: n }, (_, i) => `<span class="fx-ember" style="left:${(rnd(i, 7) * 96 + 2).toFixed(1)}%;--sz:${(2 + rnd(i, 8) * 2.5).toFixed(1)}px;--t:${(2.6 + rnd(i, 9) * 2.6).toFixed(2)}s;--d:${(-rnd(i, 10) * 5).toFixed(2)}s;--dx:${((rnd(i, 11) - .5) * 36).toFixed(0)}px"></span>`).join('')}</div>`;
+  const skullLayer = (n = 9) => `<div class="fx-layer">${Array.from({ length: n }, (_, i) => `<span class="fx-skull" style="left:${(rnd(i, 21) * 92 + 2).toFixed(1)}%;--fs:${(10 + rnd(i, 22) * 7).toFixed(0)}px;--t:${(5 + rnd(i, 23) * 4).toFixed(2)}s;--d:${(-rnd(i, 24) * 9).toFixed(2)}s;--dx:${((rnd(i, 25) - .5) * 40).toFixed(0)}px;--r:${((rnd(i, 26) - .5) * 360).toFixed(0)}deg">💀</span>`).join('')}</div>`;
+  const resLayer = (icons, n = 12) => { const ic = icons.length ? icons : ['🪙'];
+    return `<div class="fx-layer">${Array.from({ length: n }, (_, i) => `<span class="fx-res" style="left:${(rnd(i, 31) * 92 + 2).toFixed(1)}%;--fs:${(12 + rnd(i, 32) * 8).toFixed(0)}px;--t:${(8 + rnd(i, 33) * 6).toFixed(2)}s;--d:${(-rnd(i, 34) * 14).toFixed(2)}s;--dx:${((rnd(i, 35) - .5) * 50).toFixed(0)}px;--r:${((rnd(i, 36) - .5) * 40).toFixed(0)}deg">${ic[i % ic.length]}</span>`).join('')}</div>`; };
+  // Feuerwerk über der Craft-Karte: Rakete steigt auf und zerplatzt in bunte Funken
+  const FW_COL = ['#ffd27a', '#ffb020', '#ff7a18', '#fde68a', '#fff', '#f87171', '#fca5a5', '#7dd3fc'];
+  function fireworkBurst(el) {
+    if (!el || !el.isConnected || REDUCE()) return;
+    const w = el.offsetWidth; if (!w) return;
+    const x0 = w * (.12 + Math.random() * .76), tx = (Math.random() - .5) * 40, ty = -(38 + Math.random() * 40), rk = document.createElement('span');
+    rk.className = 'fx-rocket'; rk.style.cssText = `left:${x0.toFixed(0)}px;top:-4px;--tx:${tx.toFixed(0)}px;--ty:${ty.toFixed(0)}px;--t:${(.45 + Math.random() * .2).toFixed(2)}s`;
+    const pop = () => { rk.remove(); if (!el.isConnected) return;
+      const n = 16 + Math.floor(Math.random() * 8), c1 = FW_COL[Math.floor(Math.random() * FW_COL.length)], c2 = FW_COL[Math.floor(Math.random() * FW_COL.length)];
+      for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + Math.random() * .3, d = 22 + Math.random() * 26, sp = document.createElement('span');
+        sp.className = 'fx-fw'; sp.style.cssText = `left:${(x0 + tx).toFixed(0)}px;top:${(ty - 4).toFixed(0)}px;--tx:${(Math.cos(a) * d).toFixed(0)}px;--ty:${(Math.sin(a) * d).toFixed(0)}px;--c:${i % 2 ? c1 : c2};--t:${(.8 + Math.random() * .5).toFixed(2)}s;--sz:${(2 + Math.random() * 2).toFixed(1)}px`;
+        sp.addEventListener('animationend', () => sp.remove(), { once: true }); setTimeout(() => sp.remove(), 2200); el.appendChild(sp); } };
+    rk.addEventListener('animationend', pop, { once: true }); setTimeout(() => { if (rk.isConnected) pop(); }, 900);
+    el.appendChild(rk);
+  }
   // Craft-Upgrade: Funken sprühen außen um die Karte (Schmiedefeuer) – beim Erscheinen und dann alle paar Sekunden, solange sichtbar
   function forgeBurst(el, n = 14) {
     if (!el || !el.isConnected || REDUCE()) return;
@@ -101,12 +134,13 @@ window.RokMods.feed = (R) => {
   const forgeSeen = new WeakSet();
   const forgeIO = 'IntersectionObserver' in window ? new IntersectionObserver((ents) => ents.forEach((e) => {
     const el = e.target; el._fxVis = e.isIntersecting;
-    if (e.isIntersecting && !el._fxT) { if (!forgeSeen.has(el)) { forgeSeen.add(el); forgeBurst(el, 18); }
-      el._fxT = setInterval(() => { if (!el.isConnected) { clearInterval(el._fxT); forgeIO.unobserve(el); return; } if (el._fxVis && !document.hidden) forgeBurst(el, 9); }, 5200); }
+    if (e.isIntersecting && !el._fxT) { if (!forgeSeen.has(el)) { forgeSeen.add(el); forgeBurst(el, 26); fireworkBurst(el); setTimeout(() => fireworkBurst(el), 350); setTimeout(() => fireworkBurst(el), 800); }
+      el._fxT = setInterval(() => { if (!el.isConnected) { clearInterval(el._fxT); forgeIO.unobserve(el); return; }
+        if (el._fxVis && !document.hidden) { forgeBurst(el, 16); fireworkBurst(el); if (Math.random() < .6) setTimeout(() => fireworkBurst(el), 400 + Math.random() * 500); } }, 2600); }
     if (!e.isIntersecting && el._fxT) { clearInterval(el._fxT); el._fxT = null; }
   }), { threshold: 0.4 }) : null;
   function fxScan(scope) {
-    (scope || root).querySelectorAll('.fx-forge').forEach((el) => { if (el._fxObs) return; el._fxObs = true; if (forgeIO) forgeIO.observe(el); else forgeBurst(el, 16); });
+    (scope || root).querySelectorAll('.fx-forge').forEach((el) => { if (el._fxObs) return; el._fxObs = true; if (forgeIO) forgeIO.observe(el); else { forgeBurst(el, 22); fireworkBurst(el); } });
     // Umfrage-Balken: von 0 auf den Wert wachsen lassen
     (scope || root).querySelectorAll('[data-bar-w]').forEach((b) => { const w = b.dataset.barW; b.removeAttribute('data-bar-w'); requestAnimationFrame(() => requestAnimationFrame(() => { b.style.width = w + '%'; })); });
   }
@@ -238,7 +272,8 @@ window.RokMods.feed = (R) => {
   function checkAttach(a) {
     if (!a) return '';
     const d = a.data || {};
-    if (a.kind === 'craft') { if (!d.item && !d.name) return 'Wähl zuerst das Ausrüstungsteil.'; if (!d.crafted && !d.ic && !d.exp && !(d.note || '').trim()) return 'Gib an, was verbessert wurde (neu gecraftet, Iconic, Expertise oder eigene Angabe).'; }
+    if (a.kind === 'craft' && d.mode === 'set') { if (!Object.keys(d.gear || {}).length) return 'Dieses Set hat keine Ausrüstung.'; }
+    else if (a.kind === 'craft') { if (!d.item && !d.name) return 'Wähl zuerst das Ausrüstungsteil.'; if (!d.crafted && !d.ic && !d.exp && !(d.note || '').trim()) return 'Gib an, was verbessert wurde (neu gecraftet, Iconic, Expertise oder eigene Angabe).'; }
     if (a.kind === 'pass' && !d.ts) return 'Trag ein, wann dein Pass öffnet.';
     if (a.kind === 'stock' && !d.res && !d.speed && !d.ap) return 'Wähl mindestens Ressourcen, Speedups oder AP aus.';
     if (a.kind === 'kvkpts' && !d.kp && !d.acclaim && !d.deads) return 'Trag Kill-Punkte oder Verdienst ein.';
@@ -660,17 +695,35 @@ window.RokMods.feed = (R) => {
   const CAT_LABEL = { helm: 'Helm', chest: 'Brust', weapon: 'Waffe', gloves: 'Handschuhe', legs: 'Beine', boots: 'Stiefel', accessory: 'Accessoire' };
   const ROMAN = R.ROMAN || ['I', 'II', 'III', 'IV', 'V'];
   const REFT = R.REFTYPES || {};
-  const ownGear = () => {
+  // alle Showcase-Sets mit Ausrüstung (für Filter „Alle / Set 1 / Set 2 …“ und „Ganzes Set posten“)
+  const gearSets = () => {
+    const out = [];
+    (R.showcaseList ? R.showcaseList() : []).forEach((sc) => (sc.sets || []).forEach((set, i) => {
+      if (!Object.values(set.gear || {}).some((g) => g && (g.item || g.name))) return;
+      out.push({ key: String(set.id || (sc.id + '_' + i)), name: String(set.name || '').trim() || `Set ${out.length + 1}`, from: sc.title || '', set });
+    }));
+    return out;
+  };
+  const ownGear = (only) => {
     const out = [], seen = new Set();
-    (R.showcaseList ? R.showcaseList() : []).forEach((sc) => (sc.sets || []).forEach((set) => Object.entries(set.gear || {}).forEach(([slot, g]) => {
+    const sets = only && only !== 'all' ? gearSets().filter((x) => x.key === only).map((x) => x.set) : (R.showcaseList ? R.showcaseList() : []).flatMap((sc) => sc.sets || []);
+    sets.forEach((set) => Object.entries(set.gear || {}).forEach(([slot, g]) => {
       if (!g || !(g.item || g.name)) return;
       const it = R.gItem ? R.gItem(g.item) : null, key = g.item || g.name; if (seen.has(key)) return; seen.add(key);
       const sl = (R.GEAR_SLOTS || []).find((s) => s.k === slot);
       out.push({ item: g.item || '', name: g.name || it?.name || '?', icon: g.icon || it?.icon || '', rarity: g.rarity || it?.rarity || 'legendary',
         slot: sl ? sl.label : slot, tier: +g.tier || 0, refType: g.refType || '' });
-    })));
+    }));
     return out;
   };
+  // ganzes Set als Craft-Upgrade posten
+  function pickWholeSet(key) {
+    const x = gearSets().find((y) => y.key === key); if (!x || !st.attach) return;
+    const gear = {}; Object.entries(x.set.gear || {}).forEach(([k, g]) => { if (g && (g.item || g.name)) { const it = R.gItem ? R.gItem(g.item) : null;
+      gear[k] = { item: g.item || '', name: g.name || it?.name || '', icon: g.icon || it?.icon || '', rarity: g.rarity || it?.rarity || 'legendary', tier: +g.tier || 0, refine: +g.refine || 0, refType: g.refType || '' }; } });
+    st.attach.data = { mode: 'set', name: x.name, set: x.name, gear, gfx: x.set.gfx || null, cmd: (x.set.cmd || []).filter((c) => c && c.id).slice(0, 2).map((c) => ({ id: c.id, exp: !!c.exp })), crafted: false, note: '' };
+    renderComposer();
+  }
   const gearSearch = (q) => {
     const cat = R.gearCat || [], t = q.trim().toLowerCase();
     if (!t) return [];
@@ -680,7 +733,7 @@ window.RokMods.feed = (R) => {
   function attachCraft() {
     if (R.gearDbState === 'idle' && R.loadGearDb) R.loadGearDb();
     st.attach = { kind: 'craft', data: { item: '', name: '', icon: '', rarity: 'legendary', slot: '', crafted: false, ic: null, exp: false, refType: '', note: '' } };
-    st.gq = ''; renderComposer();
+    st.gq = ''; st.gset = 'all'; renderComposer();
   }
   function pickGear(g) {
     const d = st.attach.data;
@@ -849,6 +902,19 @@ window.RokMods.feed = (R) => {
   // ======================================================================
   const rarCol = { legendary: 'text-amber-300', epic: 'text-fuchsia-300', elite: 'text-sky-300', advanced: 'text-emerald-300', normal: 'text-slate-300' };
   const icoBox = (src, cls, fallback) => (src ? `<img src="${esc(src)}" alt="" class="${cls} rounded-lg object-contain bg-ink-900">` : `<span class="${cls} rounded-lg grid place-items-center text-2xl bg-ink-900">${fallback}</span>`);
+  const craftSetTile = (d) => {
+    const n = Object.keys(d.gear || {}).length, cmds = (d.cmd || []).map((c) => R.cmdImg ? `<img src="${esc(R.cmdImg(c.id, c.exp))}" alt="" loading="lazy" class="w-9 h-9 rounded-full object-cover border border-gold-400/60 bg-ink-900">` : '').join('');
+    let board = ''; try { board = R.gearBoardHTML ? R.gearBoardHTML(d.gear || {}, d.gfx) : ''; } catch { board = ''; }
+    return `<div class="fx-forge rounded-xl border border-orange-400/40 bg-gradient-to-br from-orange-950/40 via-ink-950/80 to-ink-950 p-3 flex flex-col sm:flex-row items-center gap-4">
+      <div class="relative w-[140px] sm:w-[150px] aspect-[1/2] shrink-0">${board || Object.values(d.gear || {}).map((g) => g.icon ? `<img src="${esc(g.icon)}" alt="" class="inline-block w-1/2 aspect-square object-contain">` : '').join('')}</div>
+      <div class="min-w-0 flex-1 self-stretch flex flex-col justify-center gap-1.5">
+        <div class="text-[10px] uppercase tracking-widest text-orange-300">⚒️ ${d.crafted ? 'Neues Set gecraftet' : 'Mein Set'}</div>
+        <div class="font-display text-xl text-slate-100 break-words">${esc(d.name || 'Set')}</div>
+        ${cmds ? `<div class="flex -space-x-2">${cmds}</div>` : ''}
+        <div class="text-xs text-slate-400">${n} Teil${n === 1 ? '' : 'e'}${Object.values(d.gear || {}).some((g) => g.refine >= 100) ? ` · ${Object.values(d.gear || {}).filter((g) => g.refine >= 100).length}× Expertise` : ''}</div>
+        ${d.note ? `<div class="text-sm text-slate-200">📝 ${esc(d.note)}</div>` : ''}
+      </div></div>`;
+  };
   const craftTile = (g) => {
     const lines = [];
     if (g.crafted) lines.push(['🆕', 'Neu gecraftet']);
@@ -898,9 +964,9 @@ window.RokMods.feed = (R) => {
     if (d.deads) cells.push(statCell('💀', 'Deads', short(d.deads), fmt(d.deads)));
     if (d.honor) cells.push(statCell('🎖️', 'Ehre', short(d.honor), fmt(d.honor)));
     if (d.crystal) cells.push(statCell('💠', 'Kristalle', short(d.crystal), fmt(d.crystal)));
-    return `<div class="relative overflow-hidden rounded-xl border border-red-400/35 bg-gradient-to-br from-red-950/50 via-ink-950 to-ink-950 p-3">
+    return `<div class="relative overflow-hidden rounded-xl border border-red-400/35 bg-gradient-to-br from-red-950/50 via-ink-950 to-ink-950 p-3">${d.kp ? skullLayer(9) : ''}<div class="fx-body">
       <div class="flex items-center justify-between gap-2"><span class="text-[10px] uppercase tracking-widest text-red-300">🏁 KvK-Ergebnis</span><span class="font-display text-sm text-slate-100">${esc(d.label || 'KvK')}</span></div>
-      <div class="grid grid-cols-2 ${cells.length > 2 ? 'sm:grid-cols-' + Math.min(5, cells.length) : ''} gap-1.5 mt-2">${cells.join('')}</div></div>`; };
+      <div class="grid grid-cols-2 ${cells.length > 2 ? 'sm:grid-cols-' + Math.min(5, cells.length) : ''} gap-1.5 mt-2">${cells.join('')}</div></div></div>`; };
   // AoO-Match
   const aooMatchTile = (d) => { const win = d.res === 'win';
     return `<div class="relative overflow-hidden rounded-xl border ${win ? 'border-gold-400/50' : 'border-red-400/40'} p-4" style="background:${win ? 'linear-gradient(135deg,#0b2a4a,#0c1019 55%,#3a2706)' : 'linear-gradient(135deg,#2a0b10,#0c1019 60%)'}">
@@ -966,9 +1032,10 @@ window.RokMods.feed = (R) => {
     }
     if (d.ap) parts.push(sec('🧪 AP', '', grid([statCell('🧪', 'AP gesamt', fmt(d.ap.total))])));
     const ts = Math.max(0, ...[d.res, d.speed, d.ap].filter(Boolean).map((x) => +x.ts || 0));
-    return `<div class="rounded-xl border border-emerald-400/30 bg-gradient-to-br from-emerald-950/40 to-ink-950 p-3 flex flex-col gap-3">
+    const icons = [...(d.res ? RES_K.filter(([k]) => d.res[k] != null).map(([, i]) => i) : []), ...(d.speed ? ['⏱️', '⏳'] : []), ...(d.ap ? ['🧪'] : [])];
+    return `<div class="fx-stock relative overflow-hidden rounded-xl border border-emerald-400/30 bg-gradient-to-br from-emerald-950/40 to-ink-950 p-3">${resLayer(icons, 12)}<div class="fx-body flex flex-col gap-3">
       <div class="flex items-baseline justify-between gap-2"><span class="text-[10px] uppercase tracking-widest text-emerald-300">📦 Mein Bestand</span>${ts ? `<span class="text-[10px] text-slate-500">Scan vom ${esc(R.dateLabel ? R.dateLabel(ts) : new Date(ts).toLocaleDateString('de-DE'))}</span>` : ''}</div>
-      ${parts.join('') || '<p class="text-sm text-slate-500">nichts ausgewählt</p>'}</div>`;
+      ${parts.join('') || '<p class="text-sm text-slate-500">nichts ausgewählt</p>'}</div></div>`;
   };
   const vipTile = (d) => {
     const lv = +d.lv || 0, isNew = d.mode === 'new';
@@ -1001,19 +1068,33 @@ window.RokMods.feed = (R) => {
       <div class="text-[10px] uppercase tracking-widest text-rose-300">🆘 Help Me – was soll ich verbessern?</div>
       <div class="font-semibold text-slate-100">${esc(d.title || '')}</div>
       ${(d.icons || []).length ? `<div class="flex flex-wrap gap-1">${d.icons.map((g) => g.icon ? `<img src="${esc(g.icon)}" alt="" class="w-9 h-9 rounded bg-ink-900 object-contain">` : '<span class="w-9 h-9 rounded bg-ink-900 grid place-items-center text-sm">⚒️</span>').join('')}</div>` : ''}
-      <div class="flex flex-wrap items-center justify-between gap-2"><span class="text-xs text-slate-400">${+d.sets || 0} Set${+d.sets === 1 ? '' : 's'} · ${+d.items || 0} Teile</span>
-        <button type="button" data-feed-help="${esc(d.rid || '')}" class="text-xs px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">Zum Help-Me-Beitrag →</button></div></div>`;
-  const kvkptsTile = (d) => `<div class="rounded-xl border border-red-400/30 bg-gradient-to-br from-red-950/40 to-ink-950 p-3">
+      <div class="flex flex-wrap items-end justify-between gap-2"><span class="text-xs text-slate-400">${+d.sets || 0} Set${+d.sets === 1 ? '' : 's'} · ${+d.items || 0} Teile</span>
+        <div class="flex flex-col items-center">${helperSvg}
+          <button type="button" data-feed-help="${esc(d.rid || '')}" class="text-xs px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">Zum Help-Me-Beitrag →</button></div></div></div>`;
+  // kleiner Krieger mit wehender Fahne (über dem Help-Me-Button)
+  const helperSvg = `<svg viewBox="0 0 44 46" class="fx-helper w-11 h-[46px] -mb-0.5" aria-hidden="true">
+      <ellipse cx="17" cy="44" rx="9" ry="1.6" fill="rgba(0,0,0,.45)"/>
+      <path d="M17 32 L12.5 43" stroke="#64748b" stroke-width="2.6" stroke-linecap="round"/><path d="M17 32 L21 43" stroke="#64748b" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M17 21 L17 32" stroke="#b7830f" stroke-width="6.5" stroke-linecap="round"/><path d="M14.2 25 h5.6" stroke="#fde68a" stroke-width="1.2"/>
+      <path d="M16.5 23 L10.5 28.5" stroke="#f5d0a9" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="29" y1="4" x2="29" y2="43" stroke="#cbd5e1" stroke-width="1.6" stroke-linecap="round"/><circle cx="29" cy="3.6" r="1.4" fill="#f5c542"/>
+      <g class="fx-arm"><path d="M17.5 23 L28.4 19" stroke="#f5d0a9" stroke-width="2.2" stroke-linecap="round"/></g>
+      <path class="fx-flag" d="M29.8 5 Q34.5 3.2 38.5 5.2 Q42 7 43 6 L43 14.5 Q41.5 15.6 38.5 13.8 Q34.5 11.8 29.8 13.6 Z" fill="#f43f5e" stroke="#be123c" stroke-width=".6"/>
+      <text x="36.4" y="11.8" text-anchor="middle" font-size="5.2" font-weight="800" fill="#fff" font-family="Inter,system-ui,sans-serif" class="fx-flag">SOS</text>
+      <circle cx="17" cy="16.2" r="4.4" fill="#f5d0a9"/><path d="M12.4 15.8 Q12.6 10.6 17 10.4 Q21.4 10.6 21.6 15.8 Z" fill="#e0a91b" stroke="#8f5a03" stroke-width=".6"/><path d="M17 10.2 L17 7.6" stroke="#f43f5e" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="15.6" cy="17" r=".55" fill="#1e293b"/><circle cx="18.4" cy="17" r=".55" fill="#1e293b"/>
+    </svg>`;
+  const kvkptsTile = (d) => `<div class="relative overflow-hidden rounded-xl border border-red-400/30 bg-gradient-to-br from-red-950/40 to-ink-950 p-3">${skullLayer(9)}<div class="fx-body">
       <div class="text-[10px] uppercase tracking-widest text-red-300">⚔️ ${esc(d.label || 'KvK')}</div>
       <div class="grid grid-cols-2 ${d.deads ? 'sm:grid-cols-3' : ''} gap-1.5 mt-2">
         ${statCell('⚔️', 'Kill-Punkte', d.kp ? '+' + short(d.kp) : '–', d.kp ? fmt(d.kp) : '')}
         ${statCell('🏅', 'Verdienst', d.acclaim ? '+' + short(d.acclaim) : '–', d.acclaim ? fmt(d.acclaim) : '')}
         ${d.deads ? statCell('💀', 'Deads', short(d.deads), fmt(d.deads)) : ''}
-      </div></div>`;
+      </div></div></div>`;
   const imgHTML = (src) => `<a href="${esc(src)}" target="_blank" rel="noopener" class="block"><img src="${esc(src)}" alt="" loading="lazy" class="w-full max-h-[34rem] object-contain rounded-xl border border-ink-700 bg-ink-950"></a>`;
   const attachHTML = (p) => {
     const d = p.data;
-    if (p.kind === 'craft' && d) return craftTile(d);
+    if (p.kind === 'craft' && d) return d.mode === 'set' ? craftSetTile(d) : craftTile(d);
     if (p.kind === 'aoo' && d && d.mode !== 'match') return R.aooCardHTML ? R.aooCardHTML(d) : aooTile(d);
     if (p.kind === 'pass' && d) return passTile(d);
     if (p.kind === 'stock' && d) return stockTile(d);
@@ -1031,7 +1112,7 @@ window.RokMods.feed = (R) => {
   };
   const previewHTML = (a) => {
     if (!a) return '';
-    if (a.kind === 'craft') return craftTile(a.data);
+    if (a.kind === 'craft') return a.data.mode === 'set' ? craftSetTile(a.data) : craftTile(a.data);
     if (a.kind === 'poll') return pollTile({ id: '__prev', data: a.data }, true);
     if (a.kind === 'showcase' && !a.dataUrl) return showcaseCard(a.data);
     if (a.kind === 'kvk' && a.data && a.data.mode === 'stats') return kvkResTile(a.data);
@@ -1095,7 +1176,7 @@ window.RokMods.feed = (R) => {
       ${ed ? editBoxHTML(1000, 3) : p.body ? `<p class="text-sm text-slate-100 whitespace-pre-wrap break-words">${richText(p.body, p.mentions)}</p>` : ''}
       ${attachHTML(p)}
       ${reactBar(p)}
-      ${commentsHTML(p)}
+      ${p.kind === 'help' ? '' : commentsHTML(p)}
     </article>`;
   };
 
@@ -1106,14 +1187,24 @@ window.RokMods.feed = (R) => {
   const segBtn = (attr, on, txt) => `<button type="button" ${attr} aria-pressed="${!!on}" class="seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold border border-ink-600 transition">${txt}</button>`;
   const box = (title, body) => `<div class="rounded-xl border border-ink-700 bg-ink-950/60 p-3 flex flex-col gap-2.5"><div class="text-[11px] uppercase tracking-widest text-slate-500">${title}</div>${body}</div>`;
   function craftForm(d) {
-    const own = ownGear(), hits = gearSearch(st.gq);
+    if (d.mode === 'set') return box('⚒️ Ganzes Set posten', `<div class="flex items-center gap-2"><span class="text-sm font-semibold text-slate-100 truncate">📦 ${esc(d.name || 'Set')}</span><span class="text-[11px] text-slate-500">${Object.keys(d.gear || {}).length} Teile</span>
+        <button type="button" data-f-act="regear" class="ml-auto text-xs px-2.5 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60">ändern</button></div>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-f="crafted" ${d.crafted ? 'checked' : ''} class="w-4 h-4 accent-amber-400"> 🆕 Neu gecraftet / fertig</label>
+      <input type="text" data-f="note" maxlength="120" value="${esc(d.note || '')}" placeholder="Sonst noch? z. B. „endlich komplett Iconic V“" class="${INP} w-full">`);
+    const sets = gearSets(); if (st.gset !== 'all' && !sets.some((x) => x.key === st.gset)) st.gset = 'all';
+    const own = ownGear(st.gset), hits = gearSearch(st.gq), cur = sets.find((x) => x.key === st.gset);
+    const fchip = (k, lab, title) => `<button type="button" data-f-gset="${esc(k)}" aria-pressed="${st.gset === k}" title="${esc(title || '')}" class="seg-btn shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold border border-ink-600 transition">${esc(lab)}</button>`;
+    const filter = sets.length > 1 ? `<div class="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">${fchip('all', 'Alle')}${sets.map((x, i) => fchip(x.key, x.name || `Set ${i + 1}`, x.from)).join('')}</div>` : '';
     const gearBtn = (g, i, src) => `<button type="button" data-gpick="${src}:${i}" class="flex items-center gap-2 text-left rounded-lg border border-ink-700 hover:border-gold-500/60 px-2 py-1.5 min-w-0">
         ${icoBox(g.icon, 'w-9 h-9 shrink-0', '⚒️')}
         <span class="min-w-0"><span class="block text-sm truncate ${rarCol[g.rarity] || ''}">${esc(g.name)}</span><span class="block text-[10px] text-slate-500 truncate">${esc(g.slot)}${g.tier ? ` · Iconic ${ROMAN[g.tier - 1]}` : ''}</span></span></button>`;
     const pickArea = `
       <input type="search" data-f="gq" value="${esc(st.gq)}" placeholder="🔍 Teil suchen (z. B. Dragon, Hope …)" class="${INP} w-full">
       <div data-ghits class="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">${hits.map((g, i) => gearBtn(g, i, 's')).join('')}</div>
-      ${own.length ? `<div class="text-[10px] text-slate-500">Aus deinen Showcase-Sets:</div><div class="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3 max-h-60 overflow-y-auto">${own.map((g, i) => gearBtn(g, i, 'o')).join('')}</div>` : ''}
+      ${own.length || sets.length ? `<div class="flex flex-wrap items-center justify-between gap-2"><span class="text-[10px] text-slate-500">Aus deinen Showcase-Sets${cur ? `: <b class="text-slate-300">${esc(cur.name)}</b>` : ''}</span>
+        ${cur ? `<button type="button" data-f-wholeset="${esc(cur.key)}" class="text-xs px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">📦 Ganzes Set posten</button>` : sets.length === 1 ? `<button type="button" data-f-wholeset="${esc(sets[0].key)}" class="text-xs px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">📦 Ganzes Set posten</button>` : '<span class="text-[10px] text-slate-500">Set wählen → ganzes Set posten</span>'}</div>
+        ${filter}
+        <div class="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3 max-h-60 overflow-y-auto">${own.map((g, i) => gearBtn(g, i, 'o')).join('')}</div>` : ''}
       ${!st.gq && !own.length ? `<p class="text-xs text-slate-500">Tipp: Namen eintippen – oder Sets unter 🎨 Showcases anlegen, dann stehen deine Teile hier.</p>` : ''}`;
     const chosen = d.name ? `<div class="flex items-center gap-2">${icoBox(d.icon, 'w-10 h-10', '⚒️')}<div class="min-w-0"><div class="text-sm font-semibold truncate ${rarCol[d.rarity] || ''}">${esc(d.name)}</div><div class="text-[10px] text-slate-500">${esc(d.slot)}</div></div>
         <button type="button" data-f-act="regear" class="ml-auto text-xs px-2.5 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60">ändern</button></div>` : '';
@@ -1225,7 +1316,7 @@ window.RokMods.feed = (R) => {
   const composerHTML = () => {
     const a = st.attach;
     const chip = (ic, lab, k) => `<button type="button" data-feed-attach="${k}" ${st.busy ? 'disabled' : ''} class="text-xs px-3 py-1.5 rounded-lg border transition disabled:opacity-50 ${a && a.kind === k ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 hover:border-gold-500/60 hover:text-gold-300'}">${ic} ${lab}</button>`;
-    const showPrev = a && !(a.kind === 'craft' && !a.data.name);
+    const showPrev = a && !(a.kind === 'craft' && !a.data.name && a.data.mode !== 'set');
     return `<div class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
       <div class="flex items-center gap-3">${R.userLine({ username: R.PROFILE.name, avatar: (A.ownMeta() || {}).avatar, alliance_tag: (A.ownMeta() || {}).alliance_tag }, 'w-10 h-10 text-base')}<span class="ml-auto text-[11px] uppercase tracking-widest text-slate-500">Neuer Beitrag</span></div>
       <textarea id="feedText" data-mention rows="2" maxlength="1000" placeholder="Was gibt's Neues? (optional) · @ zum Markieren" class="w-full bg-ink-950 border border-ink-600 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 resize-y">${esc(st.text)}</textarea>
@@ -1336,9 +1427,11 @@ window.RokMods.feed = (R) => {
       return;
     }
     const gp = t.closest('[data-gpick]');
-    if (gp && st.attach && st.attach.kind === 'craft') { const [src, i] = gp.dataset.gpick.split(':'); const g = (src === 'o' ? ownGear() : gearSearch(st.gq))[+i]; if (g) pickGear(g); return; }
+    if (gp && st.attach && st.attach.kind === 'craft') { const [src, i] = gp.dataset.gpick.split(':'); const g = (src === 'o' ? ownGear(st.gset) : gearSearch(st.gq))[+i]; if (g) pickGear(g); return; }
+    const gs = t.closest('[data-f-gset]'); if (gs && st.attach && st.attach.kind === 'craft') { st.gset = gs.dataset.fGset; renderComposer(); return; }
+    const ws = t.closest('[data-f-wholeset]'); if (ws && st.attach && st.attach.kind === 'craft') { pickWholeSet(ws.dataset.fWholeset); return; }
     const fa = t.closest('[data-f-act]');
-    if (fa && fa.dataset.fAct === 'regear' && st.attach) { Object.assign(st.attach.data, { item: '', name: '', icon: '', ic: null }); renderComposer(); return; }
+    if (fa && fa.dataset.fAct === 'regear' && st.attach) { if (st.attach.data.mode === 'set') { attachCraft(); return; } Object.assign(st.attach.data, { item: '', name: '', icon: '', ic: null }); renderComposer(); return; }
     const fp = t.closest('[data-f-pass]');
     if (fp && st.attach && st.attach.kind === 'pass') { const n = +fp.dataset.fPass, p = passPlan().find((x) => x.n === n); st.attach.data = { n, ts: p ? p.ts : st.attach.data.ts }; renderComposer(); return; }
     const fs = t.closest('[data-f-seg]');
