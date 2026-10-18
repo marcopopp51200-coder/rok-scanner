@@ -49,7 +49,7 @@ window.RokApp = () => {
 
   // ---------- State ----------
   const MODE_KEY = 'rok_scanner_mode'; R.MODE_KEY = MODE_KEY;
-  R.mode = ['speedups', 'resources', 'vip', 'gems', 'ap', 'mats'].includes(LS.get(MODE_KEY, '')) ? LS.get(MODE_KEY) : 'resources';
+  R.mode = ['speedups', 'resources', 'vip', 'gems', 'ap', 'mats', 'passports'].includes(LS.get(MODE_KEY, '')) ? LS.get(MODE_KEY) : 'resources';
   let images = []; // {id, name, dataUrl, mediaType, base64}
   let vipItems = [];
   let vipCurrent = null;
@@ -250,6 +250,7 @@ window.RokApp = () => {
         discardImages();
         return;
       }
+      if (modeRejected && R.mode === 'passports') throw new Error('Der Scan-Server kennt den Passport-Scan noch nicht – bitte die neue api/scan.js auf Vercel einspielen. Bis dahin kannst du die Anzahl links von Hand eintragen.');
       if (modeRejected && R.mode === 'mats') throw new Error('Der Scan-Server kennt den Material-Scan noch nicht – bitte die neue api/scan.js auf Vercel einspielen. Bis dahin kannst du die Materialien links von Hand eintragen.');
       if (modeRejected && R.mode === 'speedups') {
         $('speedInputs').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -337,7 +338,7 @@ window.RokApp = () => {
     $('analyzeBtn').disabled = on || !images.length;
     $('analyzeLabel').textContent = on ? 'Analysiere …' : (R.mode === 'mats' ? 'Materialien scannen' : 'Analysieren');
     $('loadingState').classList.toggle('hidden', !on);
-    if (on) { ['emptyState','resSection','vipSection','gemsSection','speedSection','apSection'].forEach(id => $(id).classList.add('hidden')); }
+    if (on) { ['emptyState','resSection','vipSection','gemsSection','speedSection','apSection','passSection'].forEach(id => $(id).classList.add('hidden')); }
   }
   function showError(m) { $('errorBox').textContent = m; $('errorBox').classList.remove('hidden'); }
   function hideError() { $('errorBox').classList.add('hidden'); }
@@ -357,6 +358,8 @@ window.RokApp = () => {
       RokAuth.saveNow('speedups');
     } else if (type === 'mats') {
       prefillMats(r);                                            // sofort auswerten, Felder zum Korrigieren füllen
+    } else if (type === 'passports') {
+      prefillPass(r);
     } else if (type === 'ap') {
       prefillAp(r);                                              // nicht sofort speichern: Nutzer prüft die 4 Felder
     } else if (type === 'gems') {
@@ -394,7 +397,7 @@ window.RokApp = () => {
     }
   }
   let activeVipEntryId = null;
-  let vipScanLoaded = false, hasRes = false, hasVip = false, hasGems = false, hasSpeed = false, hasAp = false, hasMats = false;
+  let vipScanLoaded = false, hasRes = false, hasVip = false, hasGems = false, hasSpeed = false, hasAp = false, hasMats = false, hasPass = false;
   const LAST = 'rok_scanner_last_scan';
   const saveLastScan = (data) => LS.set(LAST + '_' + data.type, JSON.stringify(data));
   const newId = () => (crypto.randomUUID?.() || String(Date.now() + Math.random())); R.newId = newId;
@@ -638,8 +641,8 @@ window.RokApp = () => {
   try { R.history = JSON.parse(LS.get(HIST, '[]')) || []; } catch { R.history = []; }
   // Altdaten-Schutz: nur bekannte Zahlenfelder übernehmen
   const sanitize = (e) => {
-    const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups', 'ap', 'governor', 'materials'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
-    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'materials' ? [...ALL_MAT_KEYS, 'total_leg'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'acclaim', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'lk_participated', 'units_killed', 'units_lost', 'units_healed', 'governor_id']
+    const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups', 'ap', 'governor', 'materials', 'passports'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
+    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'passports' ? ['passports', 'required'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'materials' ? [...ALL_MAT_KEYS, 'total_leg'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'acclaim', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'lk_participated', 'units_killed', 'units_lost', 'units_healed', 'governor_id']
       : out.type === 'speedups' ? ['universal', 'building', 'research', 'training', 'healing', 'total']
       : ['food', 'wood', 'stone', 'gold', 'total', 'farmFood', 'farmWood', 'farmStone', 'farmGold', 'bagFood', 'bagWood', 'bagStone', 'bagGold'];
     keys.forEach(k => out[k] = (e[k] === null || e[k] === undefined || isNaN(+e[k])) ? null : +e[k]);
@@ -667,7 +670,7 @@ window.RokApp = () => {
     saveHistory(); renderHistory();
   }
   // Ein Diagramm (= alle Scans eines Typs) löschen – mit Sicherheitsabfrage
-  const TYPE_LABEL = { resources: 'Ressourcen', speedups: 'Speedups', vip: 'VIP', gems: 'Gems', ap: 'AP', governor: 'Statthalter', materials: 'Materialien' }; R.TYPE_LABEL = TYPE_LABEL;
+  const TYPE_LABEL = { resources: 'Ressourcen', speedups: 'Speedups', vip: 'VIP', gems: 'Gems', ap: 'AP', governor: 'Statthalter', materials: 'Materialien', passports: 'Passports' }; R.TYPE_LABEL = TYPE_LABEL;
   async function resetHistoryType(type) {
     const n = R.history.filter(e => e.type === type).length;
     if (!n) { UI.alert(`Im ${TYPE_LABEL[type]}-Diagramm sind keine Einträge.`); return false; }
@@ -677,7 +680,7 @@ window.RokApp = () => {
     if (type === 'vip') activeVipEntryId = null;
     LS.del(LAST + '_' + type);
     if (type === 'resources') hasRes = false; else if (type === 'gems') hasGems = false;
-    else if (type === 'speedups') hasSpeed = false; else if (type === 'ap') hasAp = false; else if (type === 'materials') hasMats = false;   // Ergebnis-Karte des Typs ausblenden
+    else if (type === 'speedups') hasSpeed = false; else if (type === 'ap') hasAp = false; else if (type === 'materials') hasMats = false; else if (type === 'passports') hasPass = false;   // Ergebnis-Karte des Typs ausblenden
     saveHistory(); applyMode();
     return true;
   }
@@ -734,6 +737,9 @@ window.RokApp = () => {
     } else if (histTab === 'ap') {
       datasets = [{ label: 'AP gesamt', data: list.map(e => e.total_ap), backgroundColor: isLine ? '#34d39933' : '#34d399cc', borderColor: '#34d399',
         borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: '#34d399', spanGaps: true, fill: false }];
+    } else if (histTab === 'passports') {
+      datasets = [{ label: 'Passseiten', data: list.map(e => e.passports), backgroundColor: isLine ? '#818cf833' : '#818cf8cc', borderColor: '#818cf8',
+        borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: '#818cf8', spanGaps: true, fill: false }];
     } else if (histTab === 'gems') {
       const gs = (label, key, c) => ({ label, data: list.map(e => e[key]), backgroundColor: isLine ? c + '33' : c + 'cc', borderColor: c,
         borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: c, spanGaps: true, fill: false });
@@ -753,7 +759,7 @@ window.RokApp = () => {
     if (!window.Chart) {
       empty.textContent = 'Chart.js konnte nicht geladen werden (keine Internetverbindung?). Die Tabelle funktioniert trotzdem.';
     } else {
-      empty.textContent = list.length ? '' : ({ speedups: 'Noch keine Speedup-Scans gespeichert.', resources: 'Noch keine Ressourcen-Scans gespeichert.', vip: 'Noch keine VIP-Scans gespeichert.', gems: 'Noch keine Edelstein-Scans gespeichert.', ap: 'Noch keine AP-Scans gespeichert.', materials: 'Noch keine Material-Scans gespeichert.' })[histTab];
+      empty.textContent = list.length ? '' : ({ speedups: 'Noch keine Speedup-Scans gespeichert.', resources: 'Noch keine Ressourcen-Scans gespeichert.', vip: 'Noch keine VIP-Scans gespeichert.', gems: 'Noch keine Edelstein-Scans gespeichert.', passports: 'Noch keine Passport-Scans gespeichert.', ap: 'Noch keine AP-Scans gespeichert.', materials: 'Noch keine Material-Scans gespeichert.' })[histTab];
       if (chart) chart.destroy();
       chart = new Chart($('historyChart'), {
         type: chartType,
@@ -836,6 +842,19 @@ window.RokApp = () => {
           <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
         </tr>`;
       }).join('');
+    } else if (histTab === 'passports') {
+      $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
+        <th class="${th_}">🛂 Passseiten</th><th class="${th_}">Benötigt</th><th class="${th_}">Veränderung</th><th class="w-8"></th></tr>`;
+      $('histRows').innerHTML = rows.map((e, i) => {
+        const prev = rows[i + 1], d = prev && prev.passports != null && e.passports != null ? e.passports - prev.passports : null;
+        return `<tr class="border-b border-ink-800 hover:bg-ink-850">
+          <td class="py-2 pr-2 whitespace-nowrap text-slate-300">${dateLabel(e.ts)}</td>
+          <td class="py-2 px-2 text-right tabular-nums font-semibold text-indigo-300">${e.passports != null ? fmt(e.passports) : '–'}</td>
+          <td class="py-2 px-2 text-right tabular-nums text-slate-300">${e.required != null ? fmt(e.required) : '–'}</td>
+          <td class="py-2 px-2 text-right tabular-nums ${d == null ? 'text-slate-500' : d >= 0 ? 'text-emerald-400' : 'text-red-400'}">${d == null ? '–' : (d >= 0 ? '+' : '−') + fmt(Math.abs(d))}</td>
+          <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
+        </tr>`;
+      }).join('');
     } else if (histTab === 'gems') {
       $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
         <th class="${th_}">Auf Hand</th><th class="${th_}">Im Rucksack</th><th class="${th_}">💎 Gesamt</th><th class="${th_}">Veränderung</th><th class="w-8"></th></tr>`;
@@ -866,7 +885,7 @@ window.RokApp = () => {
     $('histRows').querySelectorAll('[data-hdel]').forEach(b => b.onclick = () => deleteEntry(b.dataset.hdel));
 
     const n = (t) => R.history.filter(e => e.type === t).length;
-    $('histCount').textContent = `${R.history.length} Scans gespeichert (${n('speedups')} Speedups, ${n('resources')} Ressourcen, ${n('vip')} VIP, ${n('gems')} Gems, ${n('ap')} AP, ${n('materials')} Mats) · nur Zahlenwerte, keine Bilder`;
+    $('histCount').textContent = `${R.history.length} Scans gespeichert (${n('speedups')} Speedups, ${n('resources')} Ressourcen, ${n('vip')} VIP, ${n('gems')} Gems, ${n('ap')} AP, ${n('materials')} Mats, ${n('passports')} Passports) · nur Zahlenwerte, keine Bilder`;
     $('resetChart').textContent = `🗑 ${TYPE_LABEL[histTab] || ''}-Diagramm zurücksetzen`;
     $('resetChart').disabled = !list.length; $('resetChart').classList.toggle('opacity-40', !list.length);
     $('resetHistory').disabled = !R.history.length;
@@ -1207,6 +1226,74 @@ window.RokApp = () => {
     saveApEntry(c, r.confidence || 'Scan').then(res => flash($('apSaveMsg'), savedText(res), true)).catch(e => showError(e.message || String(e)));
   }
 
+  // ---------- Passports (Passseiten für die Migration) ----------
+  const PASS_GOAL = 'rok_scanner_pass_goal';
+  const passGoalNum = () => { const v = toCount($('passGoal').value); return v ? v : null; };
+  try { const g = LS.get(PASS_GOAL, ''); if (g) $('passGoal').value = g; } catch {}
+  function renderPass(e, ts) {
+    const n = e.passports;
+    $('passValue').textContent = fmt(n);
+    const prev = R.history.filter(x => x.type === 'passports' && x.ts < ts && x.passports != null).sort((a, b) => b.ts - a.ts)[0];
+    const d = prev ? n - prev.passports : null;
+    $('passDelta').innerHTML = d == null ? 'Erster Scan' :
+      `<span class="${d >= 0 ? 'text-emerald-400' : 'text-red-400'}">${d >= 0 ? '+' : '−'}${fmt(Math.abs(d))}</span> seit ${dateLabel(prev.ts)}`;
+    $('passSource').textContent = `Letzter Scan: ${dateLabel(ts)}`;
+    renderPassGoal(n);
+    hasPass = true;
+  }
+  function renderPassGoal(n) {
+    const goal = passGoalNum(), card = $('passGoalCard');
+    card.classList.toggle('hidden', !goal);
+    if (!goal) return;
+    const have = n ?? 0, miss = Math.max(0, goal - have), pct = Math.min(100, have / goal * 100);
+    card.innerHTML = `<div class="flex items-center justify-between gap-3">
+        <div class="text-xs uppercase tracking-widest text-slate-400">Migration</div>
+        <div class="text-xs text-slate-400 tabular-nums">${fmt(have)} / ${fmt(goal)}</div>
+      </div>
+      <div class="mt-1 text-lg font-bold ${miss ? 'text-white' : 'text-emerald-400'}">${miss ? `Noch <span class="text-indigo-300 tabular-nums">${fmt(miss)}</span> Passseiten fehlen` : 'Genug Passseiten für die Migration ✓'}</div>
+      <div class="mt-3 h-2 rounded-full bg-ink-950 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#818cf8,#6366f1)"></div></div>`;
+  }
+  $('passGoal').addEventListener('input', () => {
+    const g = passGoalNum(); LS.set(PASS_GOAL, g ? String(g) : '');
+    const last = R.history.filter(x => x.type === 'passports').sort((a, b) => b.ts - a.ts)[0];
+    renderPassGoal(last?.passports ?? toCount($('passIn').value));
+  });
+  $('passIn').addEventListener('input', () => $('passIn').classList.remove('border-amber-400'));
+  let activePass = null;   // Korrekturen innerhalb von 30 Minuten überschreiben den letzten Eintrag
+  async function savePassEntry(n, confidence, required) {
+    const entry = { passports: n, required: required ?? passGoalNum() };
+    const fresh = activePass && Date.now() - activePass.ts < 30 * 60000 && R.history.some(e => e.id === activePass.id);
+    const ts = fresh ? activePass.ts : Date.now();
+    if (fresh) updateHistory(activePass.id, { ...entry, confidence });
+    else { activePass = { id: newId(), ts }; addHistory({ id: activePass.id, ts, type: 'passports', ...entry, confidence }); }
+    renderPass(entry, ts);
+    saveLastScan({ type: 'passports', ts, ...entry });
+    applyMode();
+    return RokAuth.saveNow('passports');
+  }
+  $('passSave').onclick = async () => {
+    const n = toCount($('passIn').value);
+    if (n == null) { showError('Bitte die Anzahl deiner Passseiten eintragen.'); return; }
+    hideError();
+    $('passIn').classList.remove('border-amber-400');
+    $('passSave').disabled = true;
+    try { flash($('passSaveMsg'), savedText(await savePassEntry(n, 'manuell')), true); }
+    catch (e) { showError(e.message || String(e)); }
+    finally { $('passSave').disabled = false; }
+  };
+  function prefillPass(r) {
+    const src = r.passports && typeof r.passports === 'object' ? r.passports : r;
+    const n = toCount(src.passports ?? src.passport_pages ?? src.count ?? (typeof r.passports !== 'object' ? r.passports : null));
+    if (n == null) throw new Error('Keine Passports im Screenshot erkannt. Bitte die Anzahl links von Hand eintragen.');
+    const req = toCount(src.required ?? r.required);
+    $('passIn').value = n; $('passIn').classList.add('border-amber-400');
+    if (req && !passGoalNum()) { $('passGoal').value = req; LS.set(PASS_GOAL, String(req)); }
+    activePass = null;                                               // neuer Scan = neuer Verlaufseintrag
+    $('passPrefillMsg').textContent = `✓ Ausgewertet (${r.confidence || 'Scan'}): ${fmt(n)} Passseiten. Falls die Zahl nicht stimmt: Feld korrigieren und „Passports speichern“ – das überschreibt diesen Scan.`;
+    $('passPrefillMsg').classList.remove('hidden');
+    savePassEntry(n, r.confidence || 'Scan', req).then(res => flash($('passSaveMsg'), savedText(res), true)).catch(e => showError(e.message || String(e)));
+  }
+
   // ---------- Materialien: Eingabe, Auswertung, Karten ----------
   $('matsGrid').innerHTML = '<span></span>' + GRADES.map(g => `<span class="text-center" title="${g.label}"><i class="inline-block w-3 h-3 rounded-sm" style="background:${g.c}"></i></span>`).join('')
     + [CHEST, ...MATS].map(m => `<span class="text-slate-300 whitespace-nowrap truncate">${m.icon} ${m.label}</span>` + GRADES.map(g =>
@@ -1318,7 +1405,7 @@ window.RokApp = () => {
 
   // Getrennte Seiten: Ressourcen | VIP | Gems | Speedups | AP
   function applyMode() {
-    const has = { speedups: hasSpeed, resources: hasRes, vip: hasVip, gems: hasGems, ap: hasAp, mats: hasMats }[R.mode];
+    const has = { speedups: hasSpeed, resources: hasRes, vip: hasVip, gems: hasGems, ap: hasAp, mats: hasMats, passports: hasPass }[R.mode];
     document.querySelectorAll('.seg-btn[data-mode]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mode === R.mode));
     $('vipInputs').classList.toggle('hidden', R.mode !== 'vip');
     $('resSection').classList.toggle('hidden', R.mode !== 'resources' || !hasRes);
@@ -1327,6 +1414,8 @@ window.RokApp = () => {
     $('gemsSection').classList.toggle('hidden', R.mode !== 'gems' || !hasGems);
     $('apSection').classList.toggle('hidden', R.mode !== 'ap' || !hasAp);
     $('apInputs').classList.toggle('hidden', R.mode !== 'ap');
+    $('passSection').classList.toggle('hidden', R.mode !== 'passports' || !hasPass);
+    $('passInputs').classList.toggle('hidden', R.mode !== 'passports');
     $('speedSection').classList.toggle('hidden', R.mode !== 'speedups' || !hasSpeed);
     $('speedInputs').classList.toggle('hidden', R.mode !== 'speedups');
     $('speedOpts').classList.toggle('hidden', R.mode !== 'speedups');
@@ -1345,10 +1434,59 @@ window.RokApp = () => {
       gems: 'Lade einen Screenshot hoch, auf dem deine Edelsteine zu sehen sind, und klicke auf „Analysieren“.',
       ap: 'Lade einen Screenshot deiner AP-Flaschen aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag die Anzahl je Flaschengröße links ein.',
       speedups: 'Lade Screenshots deiner Beschleuniger aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag deinen Bestand links unter „Speedups eingeben“ ein.',
-      mats: 'Lade Screenshots deiner Schmiedematerialien aus dem Rucksack hoch und klicke auf „Materialien scannen“ – oder trag die Anzahl links von Hand ein.'
+      mats: 'Lade Screenshots deiner Schmiedematerialien aus dem Rucksack hoch und klicke auf „Materialien scannen“ – oder trag die Anzahl links von Hand ein.',
+      passports: 'Lade einen Screenshot deiner Passseiten aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag die Anzahl links von Hand ein.'
     }[R.mode];
     histTab = R.mode === 'mats' ? 'materials' : R.mode; syncTabs(); renderHistory();
+    renderHub();
   }
+
+  // ---------- Dashboard-Startseite: Kacheln je Bereich ----------
+  var HUB = [   // var: applyMode() kann schon vor dieser Zeile laufen
+    { m: 'ap', icon: '⚡', label: 'AP', c: '#34d399' },
+    { m: 'speedups', icon: '⏱️', label: 'Speedups', c: '#38bdf8' },
+    { m: 'vip', icon: '👑', label: 'VIP', c: '#f5c542' },
+    { m: 'gems', icon: '💎', label: 'Gems', c: '#f472b6' },
+    { m: 'resources', icon: '🌾', label: 'Ressourcen', c: '#fb923c' },
+    { m: 'mats', icon: '🧱', label: 'Mats', c: '#a78bfa' },
+    { m: 'passports', icon: '🛂', label: 'Passports', c: '#818cf8' }
+  ];
+  const hubLast = (t, ok) => R.history.filter(e => e.type === t && ok(e)).sort((a, b) => b.ts - a.ts)[0];
+  function hubValue(m) {
+    if (m === 'ap') { const e = hubLast('ap', x => x.total_ap != null); return e ? fmt(e.total_ap) + ' AP' : null; }
+    if (m === 'speedups') { const e = hubLast('speedups', x => x.total != null); return e ? fmt(Math.floor(e.total / 1440)) + ' Tage' : null; }
+    if (m === 'vip') { const e = hubLast('vip', x => x.after != null || x.current != null); return e ? vipName(levelFor(e.current ?? e.after)) : null; }
+    if (m === 'gems') { const e = hubLast('gems', x => x.gems != null); return e ? short(e.gems) : null; }
+    if (m === 'resources') { const e = hubLast('resources', x => x.total != null); return e ? short(e.total) : null; }
+    if (m === 'mats') { const e = hubLast('materials', x => x.total_leg != null); return e ? fmt(Math.floor(e.total_leg)) + ' Legendär' : null; }
+    if (m === 'passports') { const e = hubLast('passports', x => x.passports != null); return e ? fmt(e.passports) : null; }
+    return null;
+  }
+  function renderHub() {
+    const grid = $('hubGrid'); if (!grid || !HUB) return;
+    grid.innerHTML = HUB.map(h => {
+      const v = hubValue(h.m);
+      return `<button type="button" class="hub-tile panel" data-hub="${h.m}" aria-label="${h.label} öffnen">
+        <span class="w-16 h-16 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,${h.c}33,${h.c}11);border:1px solid ${h.c}55">${h.icon}</span>
+        <span class="font-display text-base sm:text-lg text-white tracking-wide">${h.label}</span>
+        <span class="text-xs tabular-nums ${v ? 'text-slate-300' : 'text-slate-500'}">${v || 'noch kein Scan'}</span>
+      </button>`;
+    }).join('');
+    grid.querySelectorAll('[data-hub]').forEach(b => b.onclick = () => {
+      R.mode = b.dataset.hub; LS.set(MODE_KEY, R.mode); hideError();
+      showHub(false); applyMode(); window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+  // true = Kachel-Startseite, false = gewählter Bereich (Upload, Ergebnis, Verlauf)
+  R.scanHub = true;
+  function showHub(on) {
+    R.scanHub = !!on;
+    $('scanHub').classList.toggle('hidden', !R.scanHub);
+    $('scanArea').classList.toggle('hidden', R.scanHub);
+    $('scanBack').textContent = R.scanHub ? '← Zurück' : '← Alle Bereiche';
+    if (R.scanHub) renderHub(); else if (chart) setTimeout(() => chart?.resize?.(), 0);
+  }
+  R.showHub = showHub;
 
   // Browser bitten, den lokalen Zwischenspeicher nicht automatisch aufzuräumen
   try { navigator.storage?.persist?.(); } catch {}
@@ -1614,10 +1752,13 @@ window.RokApp = () => {
   const lastAp = readLast('ap');
   if (lastAp && (lastAp.total_ap != null || lastAp.ap != null)) { const c = { ...lastAp, total_ap: lastAp.total_ap ?? +lastAp.ap }; renderAp(c, lastAp.ts); fillApFields(c); }
   else updateApSum();
+  const lastPass = readLast('passports');
+  if (lastPass?.passports != null) { renderPass({ passports: +lastPass.passports, required: lastPass.required ?? null }, lastPass.ts); $('passIn').value = lastPass.passports; }
   const lastGems = readLast('gems');
   if (lastGems?.gems != null) renderGems({ gems: +lastGems.gems, gemsHand: lastGems.gemsHand ?? null, gemsBag: lastGems.gemsBag ?? null }, lastGems.ts);
   renderFarms();
   applyMode();
+  showHub(true);
   { const g = R.history.filter(e => e.type === 'governor').sort((a, b) => b.ts - a.ts)[0];
     if (g) RokAuth.pushGov(g); }
   applyView();

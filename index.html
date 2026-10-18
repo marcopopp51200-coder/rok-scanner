@@ -47,6 +47,9 @@ tailwind.config = {
   input[type=number]::-webkit-inner-spin-button { opacity: .4 }
   .gdia { clip-path: polygon(50% 1.5%, 98.5% 50%, 50% 98.5%, 1.5% 50%); }
   .ghex { clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+  .hub-tile { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.6rem; min-height:9.5rem; padding:1.1rem .75rem; border-radius:1rem; text-align:center; transition:transform .15s, border-color .15s, box-shadow .15s; }
+  .hub-tile:hover, .hub-tile:focus-visible { transform:translateY(-2px); border-color:rgba(245,197,66,.55); box-shadow:0 0 22px rgba(245,197,66,.18); outline:none; }
+  .hub-tile:active { transform:translateY(0); }
   .seg-btn[aria-pressed="true"] { background: linear-gradient(180deg,#f5c542,#b7830f); color:#07090f; box-shadow: 0 0 18px rgba(245,197,66,.35); }
 </style>
 </head>
@@ -186,17 +189,15 @@ tailwind.config = {
     <button id="scanBack" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">← Zurück</button>
   </div>
   <div id="scannerView">
-  <section class="panel rounded-2xl p-5 mb-6">
-    <h2 class="font-display text-lg text-gold-300 mb-3 text-center">Modus</h2>
-    <div class="grid grid-cols-3 sm:grid-cols-6 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group">
-      <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="speedups" aria-pressed="false">Speedups</button>
-      <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="resources" aria-pressed="true">Ressourcen</button>
-      <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="vip" aria-pressed="false">VIP</button>
-      <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="gems" aria-pressed="false">Gems</button>
-      <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="ap" aria-pressed="false">AP</button>
-      <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="mats" aria-pressed="false">Mats</button>
+  <!-- Dashboard-Startseite: Kacheln je Bereich (werden in scanner.js gefüllt) -->
+  <section id="scanHub" class="mb-6">
+    <div class="flex flex-wrap items-end justify-between gap-2 mb-4">
+      <h2 class="font-display text-2xl gold-text">Dashboard</h2>
+      <span class="text-xs text-slate-400">Bereich antippen zum Öffnen</span>
     </div>
+    <div id="hubGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"></div>
   </section>
+  <div id="scanArea" class="hidden">
   <div class="grid lg:grid-cols-[380px_1fr] gap-6">
 
     <!-- Left: input -->
@@ -276,6 +277,20 @@ tailwind.config = {
         <div id="apPrefillMsg" class="hidden mt-2 text-xs text-amber-300"></div>
         <button id="apSave" class="mt-3 w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">AP speichern</button>
         <div id="apSaveMsg" class="hidden mt-2 text-xs"></div>
+      </section>
+
+      <section id="passInputs" class="hidden panel rounded-2xl p-5">
+        <h2 class="font-display text-lg text-gold-300 mb-1">2 · Passports eingeben</h2>
+        <p class="text-xs text-slate-400 mb-3">Anzahl deiner Passseiten aus dem Inventar. Ein Scan füllt das Feld – kurz prüfen, dann speichern.</p>
+        <div class="space-y-2">
+          <label class="grid grid-cols-[1fr_120px] items-center gap-2 text-sm"><span class="text-slate-300">🛂 Passseiten</span>
+            <input id="passIn" type="number" min="0" step="1" placeholder="0" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+          <label class="grid grid-cols-[1fr_120px] items-center gap-2 text-sm"><span class="text-slate-300">🎯 Benötigt für Migration <span class="text-slate-500 text-xs">(optional)</span></span>
+            <input id="passGoal" type="number" min="0" step="1" placeholder="–" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+        </div>
+        <div id="passPrefillMsg" class="hidden mt-2 text-xs text-amber-300"></div>
+        <button id="passSave" class="mt-3 w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Passports speichern</button>
+        <div id="passSaveMsg" class="hidden mt-2 text-xs"></div>
       </section>
 
       <section id="matsInputs" class="hidden panel rounded-2xl p-5">
@@ -450,6 +465,23 @@ tailwind.config = {
         <div id="apBreak" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
       </section>
 
+      <!-- Passports -->
+      <section id="passSection" class="hidden space-y-4">
+        <div class="flex items-end justify-between">
+          <h2 class="font-display text-2xl gold-text">Passports</h2>
+          <span id="passSource" class="text-xs text-slate-400"></span>
+        </div>
+        <div class="panel rounded-2xl p-6 flex items-center gap-5">
+          <div class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#818cf833,#6366f122);border:1px solid #818cf855">🛂</div>
+          <div>
+            <div class="text-xs uppercase tracking-widest text-slate-400">Passseiten (Main)</div>
+            <div id="passValue" class="text-4xl font-extrabold text-white tabular-nums">–</div>
+            <div id="passDelta" class="text-sm mt-1 text-slate-400"></div>
+          </div>
+        </div>
+        <div id="passGoalCard" class="hidden panel rounded-2xl p-5"></div>
+      </section>
+
       <!-- History -->
       <section id="historySection" class="panel rounded-2xl p-5">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -519,6 +551,7 @@ tailwind.config = {
       </section>
     </main>
   </div>
+  </div><!-- /scanArea -->
   </div>
 
   <!-- Game Profil -->

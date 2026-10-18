@@ -112,6 +112,7 @@ window.RokAuth = (() => {
     if (e.type === 'governor') { const nn = (v) => v == null || v === '' || isNaN(+v) ? null : n0(v);
       return { kill_points: nn(e.kill_points), highest_merit: nn(e.highest_merit), energy: nn(e.energy), deads: nn(e.deads), lk_participated: nn(e.lk_participated), acclaim: nn(e.acclaim), ark_wins: nn(e.ark_wins), lk_autarch: nn(e.lk_autarch), units_killed: nn(e.units_killed), units_lost: nn(e.units_lost), units_healed: nn(e.units_healed),
                ...(e.governor_id ? { governor_id: String(e.governor_id) } : {}), ...(e.src ? { src: String(e.src).slice(0, 10) } : {}) }; }
+    if (e.type === 'passports') return { passports: n0(e.passports), required: e.required == null ? null : n0(e.required) };
     if (e.type === 'speedups') return { training: n0(e.training), heal: n0(e.healing), universal: n0(e.universal),
                                         building: n0(e.building), research: n0(e.research), total: n0(e.total) };
     return e;
@@ -155,14 +156,14 @@ window.RokAuth = (() => {
     const hist = readLocalHistory();
     const cur = new Map(hist.map(e => [String(e.id), JSON.stringify(e)]));
     const up = [...cur].filter(([id, j]) => full || synced.get(id) !== j).map(([, j]) => rowOf(JSON.parse(j)))
-      .filter(r => ['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'materials'].includes(r.type));
+      .filter(r => ['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'materials', 'passports'].includes(r.type));
     const delIds = readDelQ().filter(id => !cur.has(id));        // nur selbst gelöschte Einträge
     // Speedups getrennt senden: fehlt das SQL-Update, blockiert das nicht die übrigen Daten
-    const isExtra = (r) => ['speedups', 'ap', 'governor', 'materials'].includes(r.type);
+    const isExtra = (r) => ['speedups', 'ap', 'governor', 'materials', 'passports'].includes(r.type);
     const core = up.filter(r => !isExtra(r)), extra = up.filter(isExtra), failed = [];
     if (core.length) { const { error } = await sb.from('scans').upsert(core, { onConflict: 'user_id,id' }); if (error) throw error; }
     speedWarn = false;
-    for (const t of ['speedups', 'ap', 'governor', 'materials']) {                         // je Typ einzeln: lehnt die DB einen Typ ab, blockiert er den anderen nicht
+    for (const t of ['speedups', 'ap', 'governor', 'materials', 'passports']) {                         // je Typ einzeln: lehnt die DB einen Typ ab, blockiert er den anderen nicht
       const rows = extra.filter(r => r.type === t);
       if (!rows.length) continue;
       const { error } = await sb.from('scans').upsert(rows, { onConflict: 'user_id,id' });
@@ -540,7 +541,7 @@ window.RokAuth = (() => {
     if (lb.error) throw new Error(germanError(lb.error));
     // Privates Profil eines anderen Spielers: Verlauf gar nicht erst abrufen (nur die Kopfzeile ist sichtbar) – Admins bekommen nur die Speedups
     if (uid !== user?.id) return { row: lb.data, scans: [], scansError: false, isPrivate: !!lb.data?.is_private };   // fremde Profile: nur Kopf + Showcase
-    const sc = await sb.from('scans').select('id,type,scanned_at,data').eq('user_id', uid).in('type', ['vip', 'speedups', 'gems', 'ap', 'resources', 'governor', 'materials']).order('scanned_at', { ascending: true });
+    const sc = await sb.from('scans').select('id,type,scanned_at,data').eq('user_id', uid).in('type', ['vip', 'speedups', 'gems', 'ap', 'resources', 'governor', 'materials', 'passports']).order('scanned_at', { ascending: true });
     return { row: lb.data, scans: sc.error ? [] : (sc.data || []).map(entryOf), scansError: !!sc.error, isPrivate: !!lb.data?.is_private };
   }
   // Governor ID (Spalte leaderboard.governor_id, Text)
@@ -589,9 +590,8 @@ window.RokAuth = (() => {
   const IMG_BASE = SUPABASE_URL + '/storage/v1/object/public/showcase/';
   async function uploadImage(blob, key) {
     if (!sb || !user) throw new Error('Nicht eingeloggt.');
-    const type = blob && blob.type === 'image/gif' ? 'image/gif' : 'image/jpeg';   // GIFs bleiben GIFs (Animation), alles andere JPEG
-    const path = `${user.id}/${String(key).replace(/[^A-Za-z0-9_-]+/g, '_')}.${type === 'image/gif' ? 'gif' : 'jpg'}`;
-    const { error } = await sb.storage.from('showcase').upload(path, blob, { upsert: true, contentType: type, cacheControl: '3600' });
+    const path = `${user.id}/${String(key).replace(/[^A-Za-z0-9_-]+/g, '_')}.jpg`;
+    const { error } = await sb.storage.from('showcase').upload(path, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' });
     if (error) throw error;
     return IMG_BASE + path + '?v=' + Date.now();
   }
