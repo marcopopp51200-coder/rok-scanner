@@ -1,5 +1,5 @@
 // Wiz fan Club – Help Me (Reiter rechts neben Craft)
-// Ein Spieler postet ein Set (oder alle Sets) aus seinen Showcases. Die Sets werden als Rauten-Brett wie in Showcases/Craft gezeigt.
+// Ein Spieler postet bis zu 7 Sets aus seinen Showcases (auf Wunsch gleich auch im Feed). Die Sets werden als Rauten-Brett wie in Showcases/Craft gezeigt.
 // Helfer tippen ein Item an und wählen „⚔ Refine“ oder „⬆ T erhöhen“ – bis zu 5 Schritte als Prioritäten-Liste (1 = zuerst).
 // Mit „💾 Speichern“ wird die Empfehlung gespeichert (jederzeit änderbar). Der Fragende sieht die Auswertung; neue Antworten
 // erscheinen als rote Zahl am Reiter. Läuft innerhalb von RokApp (scanner.js); R = geteilter Kontext (window.Rok).
@@ -9,8 +9,8 @@ window.RokMods = window.RokMods || {};
 window.RokMods.helpme = (R) => {
   const $ = R.$, esc = R.esc, A = window.RokAuth, root = $('helpView');
   const db = () => A.db(), me = () => A.userId();
-  const MAX = 5, SEEN_KEY = 'rok_help_seen', DRAFT_KEY = 'rok_help_draft';
-  const st = { loaded: false, loading: false, err: '', noTable: false, reqs: [], ans: {}, users: {}, pick: {}, note: {}, open: null, choose: null, busy: false, saving: null, msg: ['', ''], compose: false, sel: 'all', title: '' };
+  const MAX = 5, MAX_SETS = 7, SEEN_KEY = 'rok_help_seen', DRAFT_KEY = 'rok_help_draft';
+  const st = { loaded: false, loading: false, err: '', noTable: false, reqs: [], ans: {}, users: {}, pick: {}, note: {}, open: null, choose: null, busy: false, saving: null, msg: ['', ''], compose: false, sel: null, toFeed: true, sharing: null, title: '' };
   const seen = () => { try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '{}'); } catch { return {}; } };
   const markSeen = (id) => { try { const s = seen(); s[id] = Date.now(); localStorage.setItem(SEEN_KEY, JSON.stringify(s)); } catch {} };
   // Entwurf (noch nicht gespeicherte Auswahl) lokal merken, damit nichts verloren geht
@@ -54,14 +54,31 @@ window.RokMods.helpme = (R) => {
   const gearOf = (set) => Object.entries(set.gear || {}).filter(([, g]) => g && (g.name || g.item)).map(([slot, g]) => { const it = R.gItem ? R.gItem(g.item) : null;
     return { slot, item: g.item || '', name: g.name || it?.name || '', icon: g.icon || it?.icon || '', rarity: g.rarity || it?.rarity || '', tier: g.tier || 0, refine: g.refine || 0, refType: g.refType || '' }; });
   const ownSets = () => (R.showcaseList ? R.showcaseList() : []).flatMap((sc) => (sc.sets || []).map((set, i) => ({ id: set.id || sc.id + '_' + i, name: set.name || `Set ${i + 1}`, from: sc.title, gear: gearOf(set), gfx: set.gfx || null }))).filter((s) => s.gear.length);
+  // Auswahl der Sets: bis zu 7 (Standard = die ersten 7)
+  const selIds = () => { const all = ownSets().map((s) => s.id); return (st.sel || all.slice(0, MAX_SETS)).filter((id) => all.includes(id)); };
+  function toggleSet(id) {
+    const cur = selIds(), i = cur.indexOf(id);
+    if (i >= 0) cur.splice(i, 1); else if (cur.length >= MAX_SETS) { msg(`Höchstens ${MAX_SETS} Sets – erst eines abwählen.`, 'warn'); return; } else cur.push(id);
+    st.sel = cur; render();
+  }
+  // Anfrage im Feed teilen (feed.js stellt R.feedShareHelp bereit)
+  async function share(req, quiet) {
+    if (!R.feedShareHelp) { if (!quiet) msg('Der Feed ist noch nicht geladen – bitte Seite neu laden.', 'warn'); return false; }
+    st.sharing = req.id; if (!quiet) render();
+    try { await R.feedShareHelp(req); if (!quiet) msg('✓ Im Feed gepostet', 'ok'); st.sharing = null; if (!quiet) render(); return true; }
+    catch (e) { msg('Im Feed posten fehlgeschlagen: ' + (A.germanError ? A.germanError(e) : e.message || e), 'err'); }
+    st.sharing = null; if (!quiet) render(); return false;
+  }
   async function post() {
-    const sets = ownSets().filter((s) => st.sel === 'all' || s.id === st.sel);
-    if (!sets.length) { msg('Keine Ausrüstung gefunden – zuerst unter 🎨 Showcases Sets mit Gear anlegen.', 'warn'); return; }
+    const ids = selIds(), sets = ownSets().filter((s) => ids.includes(s.id)).slice(0, MAX_SETS);
+    if (!sets.length) { msg(ownSets().length ? 'Wähl mindestens ein Set aus.' : 'Keine Ausrüstung gefunden – zuerst unter 🎨 Showcases Sets mit Gear anlegen.', 'warn'); return; }
     if (st.busy) return; st.busy = true; render();
     try {
       const row = { user_id: me(), title: (st.title || '').trim().slice(0, 100) || 'Was soll ich als Nächstes verbessern?', sets: sets.map((s) => ({ id: s.id, name: s.name, gear: s.gear, gfx: s.gfx })), status: 'open' };
-      const { error } = await db().from('help_requests').insert(row); if (error) throw error;
-      st.compose = false; st.title = ''; msg('✓ Anfrage gepostet', 'ok'); await load();
+      const { data: ins, error } = await db().from('help_requests').insert(row).select().single(); if (error) throw error;
+      st.compose = false; st.title = ''; st.sel = null;
+      const fed = st.toFeed && ins ? await share(ins, true) : false;
+      msg(fed ? '✓ Anfrage gepostet – auch im Feed' : '✓ Anfrage gepostet', 'ok'); await load();
     } catch (e) { msg(R.tableMissing(e) ? 'Die Help-Me-Tabellen fehlen noch in Supabase (SQL im Chat).' : 'Posten fehlgeschlagen: ' + (A.germanError ? A.germanError(e) : e.message), 'err'); }
     st.busy = false; render();
   }
@@ -208,7 +225,7 @@ window.RokMods.helpme = (R) => {
       <div class="flex items-center gap-3">
         <button type="button" data-help-prof="${esc(req.user_id)}" class="flex items-center gap-2.5 min-w-0 text-left rounded-lg hover:bg-ink-800/60 pr-2">${R.userLine(u(req.user_id), 'w-10 h-10 text-base')}</button>
         <span class="ml-auto text-[11px] text-slate-500 text-right">${closed ? '✓ geschlossen · ' : ''}${R.timeAgo(req.created_at)}<span class="block">${ans.length} Antwort${ans.length === 1 ? '' : 'en'}</span></span>
-        ${own ? `${closed ? '' : btn(`data-help-close="${esc(req.id)}"`, 'Schließen')}${btn(`data-help-del="${esc(req.id)}"`, '✕', 'red')}` : ''}
+        ${own ? `${closed ? '' : btn(`data-help-share="${esc(req.id)}"${st.sharing === req.id ? ' disabled' : ''}`, st.sharing === req.id ? '⏳' : '📰 Im Feed posten')}${closed ? '' : btn(`data-help-close="${esc(req.id)}"`, 'Schließen')}${btn(`data-help-del="${esc(req.id)}"`, '✕', 'red')}` : ''}
       </div>
       <div class="font-semibold text-slate-100">🆘 ${esc(req.title)}</div>
       ${open || own ? `${boards}${helper}${resultHTML}`
@@ -219,9 +236,19 @@ window.RokMods.helpme = (R) => {
     const sets = ownSets();
     return `<div class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
       <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="font-display text-lg gold-text">🆘 Neue Anfrage</h3>${btn('data-help-compose="0"', 'Abbrechen', 'red')}</div>
-      ${sets.length ? `<label class="text-xs text-slate-400">Welche Sets?<select data-help-sel class="mt-1 ${inp}"><option value="all" ${st.sel === 'all' ? 'selected' : ''}>Alle Sets (${sets.length})</option>${sets.map((s) => `<option value="${esc(s.id)}" ${st.sel === s.id ? 'selected' : ''}>${esc(s.name)} · ${s.gear.length} Teile (${esc(s.from)})</option>`).join('')}</select></label>
+      ${sets.length ? `<div class="flex flex-col gap-1.5">
+        <div class="flex items-baseline justify-between gap-2 text-xs text-slate-400"><span>Welche Sets? (bis zu ${MAX_SETS})</span><span class="tabular-nums ${selIds().length >= MAX_SETS ? 'text-gold-300' : ''}">${selIds().length}/${Math.min(MAX_SETS, sets.length)} gewählt</span></div>
+        <div class="grid gap-1.5 sm:grid-cols-2">${sets.map((s) => { const on = selIds().includes(s.id), full = !on && selIds().length >= MAX_SETS;
+          return `<button type="button" data-help-set="${esc(s.id)}" aria-pressed="${on}" class="flex items-center gap-2 text-left rounded-lg border px-2.5 py-2 min-w-0 transition ${on ? 'border-gold-400 bg-gold-500/10' : 'border-ink-600 hover:border-gold-500/60'} ${full ? 'opacity-50' : ''}">
+            <span class="w-5 h-5 shrink-0 rounded border grid place-items-center text-[11px] font-bold ${on ? 'bg-gold-500 border-gold-400 text-ink-950' : 'border-ink-600'}">${on ? '✓' : ''}</span>
+            <span class="flex -space-x-1.5 shrink-0">${s.gear.slice(0, 4).map((g) => g.icon ? `<img src="${esc(g.icon)}" alt="" class="w-6 h-6 rounded bg-ink-900 object-contain ring-1 ring-ink-800">` : '').join('')}</span>
+            <span class="min-w-0"><span class="block text-sm font-semibold truncate text-slate-100">${esc(s.name)}</span><span class="block text-[10px] text-slate-500 truncate">${s.gear.length} Teile · ${esc(s.from)}</span></span></button>`; }).join('')}</div>
+        ${sets.length > 1 ? `<div class="flex gap-3 text-[11px]"><button type="button" data-help-setall="1" class="text-gold-300 hover:underline">Erste ${Math.min(MAX_SETS, sets.length)} wählen</button><button type="button" data-help-setall="0" class="text-slate-400 hover:underline">Keine</button></div>` : ''}
+      </div>
       <label class="text-xs text-slate-400">Frage (optional)<input type="text" maxlength="100" data-help-title value="${esc(st.title)}" placeholder="Was soll ich als Nächstes verbessern?" class="mt-1 ${inp}"></label>
-      <div class="flex justify-end">${btn('data-help-post' + (st.busy ? ' disabled' : ''), '📨 Posten', 'gold')}</div>` : '<p class="text-sm text-amber-300">Noch keine Sets mit Ausrüstung – zuerst unter 🎨 Showcases eintragen.</p>'}</div>`;
+      <div class="flex flex-wrap items-center justify-end gap-3">
+        <label class="mr-auto flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input type="checkbox" data-help-tofeed ${st.toFeed ? 'checked' : ''} class="w-4 h-4 accent-amber-400"> 📰 Auch im Feed posten</label>
+        ${btn('data-help-post' + (st.busy || !selIds().length ? ' disabled' : ''), '📨 Posten', 'gold')}</div>` : '<p class="text-sm text-amber-300">Noch keine Sets mit Ausrüstung – zuerst unter 🎨 Showcases eintragen.</p>'}</div>`;
   }
   function msg(t, tone) { st.msg = [t, tone]; const el = $('helpMsg'); if (!el) return; el.textContent = t; el.className = 'text-xs min-h-[1em] ' + ({ ok: 'text-emerald-400', warn: 'text-amber-300', err: 'text-red-300' }[tone] || 'text-slate-500'); }
   function render() {
@@ -246,12 +273,15 @@ window.RokMods.helpme = (R) => {
     if (el.dataset.helpNote) { const rid = el.dataset.helpNote; ensurePick(rid); st.note[rid] = el.value; saveDraft(rid);
       clearTimeout(noteT); noteT = setTimeout(() => { const art = root.querySelector(`[data-help-req="${CSS.escape(rid)}"]`); if (art && !art.contains(document.activeElement)) render(); else { const b = art?.querySelector('[data-help-save]'); if (b) b.disabled = !!st.saving || !dirty(rid) && !!mineOf(rid); } }, 250); }
     if (el.hasAttribute('data-help-title')) st.title = el.value;
-    if (el.hasAttribute('data-help-sel')) st.sel = el.value;
+    if (el.hasAttribute('data-help-tofeed')) st.toFeed = el.checked;
   });
   root.addEventListener('click', (ev) => {
     const t = ev.target, c = (a) => t.closest(`[${a}]`); let b;
     if ((b = c('data-help-compose'))) { st.compose = b.dataset.helpCompose === '1'; render(); }
     else if (c('data-help-post')) post();
+    else if ((b = c('data-help-set'))) toggleSet(b.dataset.helpSet);
+    else if ((b = c('data-help-setall'))) { st.sel = b.dataset.helpSetall === '1' ? ownSets().map((s) => s.id).slice(0, MAX_SETS) : []; render(); }
+    else if ((b = c('data-help-share'))) { const r = st.reqs.find((x) => x.id === b.dataset.helpShare); if (r) share(r); }
     else if (c('data-help-reload')) load();
     else if ((b = c('data-help-open'))) { st.open = b.dataset.helpOpen; render(); }
     else if ((b = c('data-help-tile'))) { const [rid, item] = b.dataset.helpTile.split('|'); st.choose = st.choose && st.choose.rid === rid && st.choose.item === item ? null : { rid, item }; render(); }

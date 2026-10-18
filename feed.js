@@ -5,7 +5,9 @@
 // Läuft innerhalb von RokApp (scanner.js); R = geteilter Kontext (window.Rok).
 // Supabase: public.feed_posts (id, user_id, kind, body, image, data, created_at)
 //           public.feed_reactions (post_id, user_id, emoji, created_at) – ein Eintrag je Spieler und Beitrag
-//           public.feed_comments (id, post_id, user_id, body, created_at)
+//           public.feed_comments (id, post_id, user_id, body, image, mentions, edited_at, created_at) – image = GIF (keine Fotos)
+//           public.notifications (id, user_id, from_user, kind, post_id, comment_id, body, read, created_at) – @-Erwähnungen
+// feed_posts.mentions / edited_at: [{ id, name, t }] = markierte Spieler (t = Text nach dem @), Zeitpunkt der letzten Bearbeitung
 // kind ist freier Text – neue Arten brauchen kein SQL.
 window.RokMods = window.RokMods || {};
 window.RokMods.feed = (R) => {
@@ -23,7 +25,8 @@ window.RokMods.feed = (R) => {
   const LIMIT = 40, POLL_MS = 20000;
   const st = { posts: [], pending: [], reacts: {}, users: {}, loaded: false, loading: false, polling: false, err: '', noTable: false,
     attach: null, busy: false, admin: false, text: '', filter: 'all', q: '', hasMore: false, moreBusy: false, gq: '', lastSync: 0,
-    comments: {}, cmOpen: new Set(), cmDraft: {}, cmBusy: false, noCm: false, deferRender: false };
+    comments: {}, cmOpen: new Set(), cmDraft: {}, cmBusy: false, noCm: false, deferRender: false,
+    cmGif: {}, cmMsg: {}, gifFor: null, edit: null, editBusy: false, notifs: [], nOpen: false, noNotif: false, flash: null };
   const db = () => A.db();
   const me = () => A.userId();
   const root = $('feedView');
@@ -72,8 +75,8 @@ window.RokMods.feed = (R) => {
     } catch (e) { if (R.tableMissing(e)) st.noTable = true; else st.err = A.germanError ? A.germanError(e) : String(e.message || e); }
     st.loading = false; st.loaded = true; renderList();
   }
-  const sig = () => JSON.stringify([st.posts.map((p) => p.id + (p.image || '')), st.pending.length, Object.entries(st.reacts).map(([k, v]) => k + v.map((x) => x.user_id + x.emoji).join()), Object.values(st.comments).flat().map((c) => c.id)]);
-  const typing = () => { const l = $('feedList'), a = document.activeElement; return !!(l && a && l.contains(a) && a.tagName === 'INPUT'); };
+  const sig = () => JSON.stringify([st.posts.map((p) => p.id + (p.image || '') + (p.edited_at || '')), st.pending.length, Object.entries(st.reacts).map(([k, v]) => k + v.map((x) => x.user_id + x.emoji).join()), Object.values(st.comments).flat().map((c) => c.id + (c.image || '') + (c.edited_at || ''))]);
+  const typing = () => { const l = $('feedList'), a = document.activeElement; return !!(l && a && l.contains(a) && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) || !!st.edit; };
   const scrolledDown = () => { const l = $('feedList'); return !!l && l.getBoundingClientRect().top < -150; };
   // Leise im Hintergrund: neue Beiträge, gelöschte Beiträge und Reaktionen abgleichen
   async function poll() {
@@ -147,9 +150,13 @@ window.RokMods.feed = (R) => {
     const bad = checkAttach(a); if (bad) { msg(bad, 'warn'); return; }
     if (st.busy) return; st.busy = true; msg('Wird gepostet …', 'busy'); renderComposer();
     try {
+      const ments = await resolveMentions(body);
       const row = { user_id: me(), kind: a ? a.kind : 'text', body: body.slice(0, 1000), image: null, data: a ? cleanData(a) : null };
-      const { data: ins, error } = await db().from('feed_posts').insert(row).select().single();
+      let r = await db().from('feed_posts').insert(ments.length ? { ...row, mentions: ments } : row).select().single();
+      if (r.error && ments.length && colMissing(r.error)) r = await db().from('feed_posts').insert(row).select().single();   // Spalte mentions fehlt noch
+      const { data: ins, error } = r;
       if (error) throw error;
+      notify(ments, { kind: 'post', post_id: ins.id, body: body.slice(0, 140) });
       if (a && a.dataUrl) {   // Bild erst nach dem Anlegen hochladen (Dateiname = Beitrags-ID)
         try {
           const url = await A.uploadImage(await dataUrlToBlob(a.dataUrl), 'feed_' + ins.id);
@@ -174,19 +181,233 @@ window.RokMods.feed = (R) => {
     if (error) { msg('Löschen fehlgeschlagen: ' + (A.germanError ? A.germanError(error) : error.message), 'err'); return; }
     st.posts = st.posts.filter((p) => p.id !== id); renderList();
   }
+  const colMissing = (e) => /column/i.test(String(e?.message || e || ''));   // z. B. „Could not find the 'mentions' column …“
+  const GIF_ONLY = '🎞️';   // Platzhalter-Text, falls die Datenbank leere Kommentare ablehnt
+  const cmMsg = (pid, t, tone) => { st.cmMsg[pid] = t ? [t, tone] : null; const el = root.querySelector(`[data-cm-msg="${CSS.escape(pid)}"]`); if (el) { el.textContent = t || ''; el.className = 'text-[11px] ' + ({ ok: 'text-emerald-400', warn: 'text-amber-300', err: 'text-red-300', busy: 'text-slate-300' }[tone] || 'text-slate-500'); } };
   async function sendComment(postId) {
-    const body = String(st.cmDraft[postId] || '').trim().slice(0, 500);
-    if (!body || st.cmBusy) return;
-    st.cmBusy = true;
+    const body = String(st.cmDraft[postId] || '').trim().slice(0, 500), gif = st.cmGif[postId];
+    if ((!body && !gif) || st.cmBusy) return;
+    st.cmBusy = true; if (gif) cmMsg(postId, 'GIF wird hochgeladen …', 'busy');
     try {
-      const { data, error } = await db().from('feed_comments').insert({ post_id: postId, user_id: me(), body }).select().single();
-      if (error) throw error;
+      const ments = await resolveMentions(body);
+      const base = { post_id: postId, user_id: me(), body };
+      let r = await db().from('feed_comments').insert(ments.length ? { ...base, mentions: ments } : base).select().single();
+      if (r.error && ments.length && colMissing(r.error)) r = await db().from('feed_comments').insert(base).select().single();
+      if (r.error && !body && /check|violat|null/i.test(r.error.message || '')) r = await db().from('feed_comments').insert({ ...base, body: GIF_ONLY }).select().single();
+      if (r.error) throw r.error;
+      const data = r.data;
+      if (gif) {   // GIF unverändert hochladen (Dateiname = Kommentar-ID)
+        try {
+          const url = await A.uploadImage(await dataUrlToBlob(gif.dataUrl), 'cm_' + data.id);
+          const u = await db().from('feed_comments').update({ image: url }).eq('id', data.id);
+          if (u.error) throw u.error;
+          data.image = url;
+        } catch (x) { cmMsg(postId, colMissing(x) ? 'Kommentar gesendet – für GIFs fehlt noch die Spalte „image“ (SQL im Chat).' : 'Kommentar gesendet, aber das GIF konnte nicht hochgeladen werden: ' + (x.message || x), 'warn'); }
+      }
       (st.comments[postId] = st.comments[postId] || []).push(data);
-      delete st.cmDraft[postId]; await addUsers([data]);
-    } catch (e) { msg(R.tableMissing(e) ? 'Die Kommentar-Tabelle fehlt noch in Supabase (SQL im Chat ausführen).' : 'Kommentar fehlgeschlagen: ' + (A.germanError ? A.germanError(e) : e.message), 'err'); if (R.tableMissing(e)) st.noCm = true; }
+      delete st.cmDraft[postId]; delete st.cmGif[postId]; await addUsers([data]);
+      if (!st.cmMsg[postId] || st.cmMsg[postId][1] === 'busy') st.cmMsg[postId] = null;
+      notify(ments, { kind: 'comment', post_id: postId, comment_id: data.id, body: body.slice(0, 140) });
+    } catch (e) { msg(R.tableMissing(e) ? 'Die Kommentar-Tabelle fehlt noch in Supabase (SQL im Chat ausführen).' : 'Kommentar fehlgeschlagen: ' + (A.germanError ? A.germanError(e) : e.message), 'err'); if (R.tableMissing(e)) st.noCm = true; else cmMsg(postId, 'Kommentar fehlgeschlagen: ' + (A.germanError ? A.germanError(e) : e.message), 'err'); }
     st.cmBusy = false; renderList();
     const inp = root.querySelector(`[data-cm-in="${CSS.escape(postId)}"]`); if (inp) inp.focus();
   }
+  // GIF für einen Kommentar wählen – nur GIFs, keine Fotos
+  async function pickCmGif(postId, file) {
+    if (!file || !postId) return;
+    if (file.type !== 'image/gif' && !/\.gif$/i.test(file.name || '')) { cmMsg(postId, '🚫 Nur GIFs erlaubt – keine Fotos.', 'warn'); return; }
+    if (file.size > GIF_MAX) { cmMsg(postId, `Das GIF ist zu groß (${(file.size / 1048576).toFixed(1)} MB) – höchstens 8 MB.`, 'warn'); return; }
+    cmMsg(postId, 'GIF wird geprüft …', 'busy');
+    try {
+      const dataUrl = await readDataUrl(file);
+      if (!/^data:image\/gif/i.test(dataUrl)) { cmMsg(postId, '🚫 Nur GIFs erlaubt – keine Fotos.', 'warn'); return; }
+      await checkImage(dataUrl);
+      st.cmGif[postId] = { dataUrl }; st.cmMsg[postId] = null; st.cmOpen.add(postId); renderList();
+      const inp = root.querySelector(`[data-cm-in="${CSS.escape(postId)}"]`); if (inp) inp.focus();
+    } catch (e) { cmMsg(postId, e.block ? '🚫 Dieses GIF ist im Feed nicht erlaubt.' : 'GIF nicht angehängt: ' + (e.message || e), e.block ? 'err' : 'warn'); }
+  }
+
+  // ---------- Bearbeiten (eigene Beiträge und Kommentare) ----------
+  function startEdit(kind, id, pid) {
+    const src = kind === 'post' ? st.posts.find((p) => p.id === id) : (st.comments[pid] || []).find((c) => c.id === id);
+    if (!src) return;
+    (src.mentions || []).forEach((m) => { if (m && m.name) mt.map[String(m.t || m.name).toLowerCase()] = m; });
+    st.edit = { kind, id, pid, text: src.body === GIF_ONLY ? '' : src.body || '' }; renderList();
+    const el = root.querySelector('[data-edit-in]'); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+  }
+  function cancelEdit() { st.edit = null; renderList(); }
+  async function saveEdit() {
+    const e = st.edit; if (!e || st.editBusy) return;
+    const isPost = e.kind === 'post', tbl = isPost ? 'feed_posts' : 'feed_comments';
+    const src = isPost ? st.posts.find((p) => p.id === e.id) : (st.comments[e.pid] || []).find((c) => c.id === e.id);
+    if (!src) { st.edit = null; renderList(); return; }
+    let body = e.text.trim().slice(0, isPost ? 1000 : 500);
+    if (!body && (isPost ? src.kind === 'text' && !src.image : !src.image)) { flashEdit('Der Text darf nicht leer sein – sonst lieber löschen (✕).', 'warn'); return; }
+    if (!body && !isPost) body = GIF_ONLY;
+    st.editBusy = true; flashEdit('Wird gespeichert …', 'busy');
+    try {
+      const ments = await resolveMentions(body), now = new Date().toISOString();
+      let r = await db().from(tbl).update({ body, edited_at: now, mentions: ments.length ? ments : null }).eq('id', e.id).select();
+      if (r.error && colMissing(r.error)) r = await db().from(tbl).update({ body }).eq('id', e.id).select();   // Spalten fehlen noch → nur Text
+      if (r.error) throw r.error;
+      if (!(r.data || []).length) throw new Error('Keine Berechtigung zum Bearbeiten – bitte das SQL aus dem Chat ausführen.');
+      const old = new Set((src.mentions || []).map((m) => m.id));
+      Object.assign(src, r.data[0]);
+      notify(ments.filter((m) => !old.has(m.id)), isPost ? { kind: 'post', post_id: e.id, body: body.slice(0, 140) } : { kind: 'comment', post_id: e.pid, comment_id: e.id, body: body.slice(0, 140) });
+      st.edit = null;
+    } catch (x) { st.editBusy = false; flashEdit('Speichern fehlgeschlagen: ' + (A.germanError ? A.germanError(x) : x.message || x), 'err'); return; }
+    st.editBusy = false; renderList();
+  }
+  function flashEdit(t, tone) { const el = root.querySelector('[data-edit-msg]'); if (el) { el.textContent = t; el.className = 'text-[11px] mr-auto ' + ({ ok: 'text-emerald-400', warn: 'text-amber-300', err: 'text-red-300', busy: 'text-slate-300' }[tone] || 'text-slate-500'); } }
+
+  // ---------- @-Erwähnungen: Spieler über Name oder Governor-ID markieren ----------
+  const mt = { box: null, el: null, start: 0, q: '', list: [], i: 0, t: null, seq: 0, map: {} };   // map: kleingeschriebener Text nach @ → { id, name, t }
+  async function mentionSearch(q) {
+    const t = String(q || '').trim().replace(/[%_,()]/g, ''); if (!t) return [];
+    const run = (cols) => /^\d{5,}$/.test(t) ? db().from('leaderboard').select(cols).eq('governor_id', t).limit(6)
+      : db().from('leaderboard').select(cols).ilike('username', '%' + t + '%').limit(12);
+    let r = await run('user_id,username,avatar,alliance_tag,governor_id');
+    if (r.error) r = await run('user_id,username,avatar,alliance_tag');
+    if (r.error) return [];
+    const lo = t.toLowerCase();
+    return (r.data || []).filter((u) => u.user_id && u.username && u.user_id !== me())
+      .sort((a, b) => (String(b.username).toLowerCase().startsWith(lo) ? 1 : 0) - (String(a.username).toLowerCase().startsWith(lo) ? 1 : 0)).slice(0, 6);
+  }
+  // Alle @-Markierungen im Text: gewählte aus der Liste + getippte Namen/IDs, die genau passen
+  async function resolveMentions(text) {
+    const out = new Map(), lo = String(text || '').toLowerCase();
+    if (!lo.includes('@')) return [];
+    Object.values(mt.map).forEach((m) => { if (m.id !== me() && lo.includes('@' + String(m.t).toLowerCase())) out.set(m.id, { id: m.id, name: m.name, t: m.t }); });
+    const covered = (tk) => [...out.values()].some((m) => String(m.t).toLowerCase().startsWith(tk.toLowerCase()));
+    const toks = [...new Set([...String(text).matchAll(/(^|\s)@([^\s@,.!?;:()]{2,30})/g)].map((x) => x[2]))].filter((tk) => !covered(tk)).slice(0, 5);
+    for (const tk of toks) {
+      try {
+        const hit = (await mentionSearch(tk)).find((u) => /^\d+$/.test(tk) ? String(u.governor_id) === tk : String(u.username).toLowerCase() === tk.toLowerCase());
+        if (hit && hit.user_id !== me()) out.set(hit.user_id, { id: hit.user_id, name: hit.username, t: tk });
+      } catch {}
+    }
+    return [...out.values()].slice(0, 10);
+  }
+  function mentionClose() { if (mt.box) mt.box.remove(); mt.box = null; mt.el = null; mt.list = []; clearTimeout(mt.t); }
+  function mentionDraw() {
+    if (!mt.el || !document.body.contains(mt.el)) { mentionClose(); return; }
+    if (!mt.box) { mt.box = document.createElement('div'); mt.box.className = 'fixed z-[60] w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gold-500/40 bg-ink-900 shadow-2xl p-1 text-sm'; document.body.appendChild(mt.box);
+      mt.box.addEventListener('mousedown', (ev) => { ev.preventDefault(); const b = ev.target.closest('[data-mpick]'); if (b) mentionPick(+b.dataset.mpick); }); }
+    const r = mt.el.getBoundingClientRect(), below = window.innerHeight - r.bottom > 230;
+    mt.box.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 296)) + 'px';
+    mt.box.style.top = below ? r.bottom + 4 + 'px' : ''; mt.box.style.bottom = below ? '' : window.innerHeight - r.top + 4 + 'px';
+    mt.box.innerHTML = !mt.q ? '<div class="px-3 py-2 text-xs text-slate-400">Name oder Governor-ID tippen …</div>'
+      : mt.list === null ? '<div class="px-3 py-2 text-xs text-slate-400">⏳ Suche …</div>'
+      : !mt.list.length ? `<div class="px-3 py-2 text-xs text-slate-400">Kein Spieler „${esc(mt.q)}“ gefunden</div>`
+      : mt.list.map((u, i) => `<button type="button" data-mpick="${i}" class="w-full flex items-center gap-2 rounded-lg px-2 py-1.5 text-left ${i === mt.i ? 'bg-gold-500/15' : 'hover:bg-ink-800'}">
+          ${R.avatarHtml ? R.avatarHtml(u.username, u.avatar, 'w-7 h-7 text-xs') : ''}<span class="min-w-0 flex-1"><span class="block truncate font-semibold text-slate-100" translate="no">${esc(u.username)}${u.alliance_tag ? ` <span class="font-normal text-slate-400">[${esc(u.alliance_tag)}]</span>` : ''}</span>${u.governor_id ? `<span class="block text-[10px] text-slate-500">ID ${esc(u.governor_id)}</span>` : ''}</span></button>`).join('');
+  }
+  function mentionInput(el) {
+    const pos = el.selectionStart ?? el.value.length, before = el.value.slice(0, pos);
+    const m = /(^|\s)@([^\s@]{0,30})$/.exec(before);
+    if (!m) { if (mt.el === el) mentionClose(); return; }
+    mt.el = el; mt.start = pos - m[2].length - 1; mt.q = m[2]; mt.i = 0;
+    clearTimeout(mt.t);
+    if (!mt.q) { mt.list = []; mentionDraw(); return; }
+    mt.list = null; mentionDraw();
+    const seq = ++mt.seq;
+    mt.t = setTimeout(async () => { const l = await mentionSearch(mt.q); if (seq !== mt.seq || mt.el !== el) return; mt.list = l; mt.i = 0; mentionDraw(); }, 220);
+  }
+  function mentionPick(i) {
+    const u = (mt.list || [])[i], el = mt.el; if (!u || !el) return;
+    const pos = el.selectionStart ?? el.value.length, ins = '@' + u.username + ' ';
+    el.value = el.value.slice(0, mt.start) + ins + el.value.slice(pos);
+    const c = mt.start + ins.length; el.setSelectionRange(c, c);
+    mt.map[String(u.username).toLowerCase()] = { id: u.user_id, name: u.username, t: u.username };
+    mentionClose(); el.dispatchEvent(new Event('input', { bubbles: true })); el.focus();
+  }
+  // Text mit klickbaren @Namen
+  function richText(body, ments) {
+    let h = esc(body || ''); const ph = [];
+    (Array.isArray(ments) ? ments : []).filter((m) => m && m.id && (m.t || m.name)).sort((a, b) => String(b.t || b.name).length - String(a.t || a.name).length).forEach((m) => {
+      const needle = esc('@' + (m.t || m.name)); if (!h.includes(needle)) return;
+      ph.push(`<button type="button" data-feed-prof="${esc(m.id)}" title="${esc(m.name)}" class="inline font-semibold text-gold-300 hover:underline" translate="no">@${esc(m.t || m.name)}</button>`);
+      h = h.split(needle).join('\u0000' + (ph.length - 1) + '\u0000');
+    });
+    return h.replace(/\u0000(\d+)\u0000/g, (_, i) => ph[+i]);
+  }
+
+  // ---------- Benachrichtigungen (@-Erwähnungen) ----------
+  async function notify(ments, info) {
+    if (!ments || !ments.length || st.noNotif) return;
+    const rows = ments.filter((m) => m.id && m.id !== me()).map((m) => ({ user_id: m.id, from_user: me(), kind: info.kind, post_id: String(info.post_id || ''), comment_id: info.comment_id ? String(info.comment_id) : null, body: info.body || '' }));
+    if (!rows.length) return;
+    try { const { error } = await db().from('notifications').insert(rows); if (error) throw error; }
+    catch (e) { if (R.tableMissing(e)) st.noNotif = true; console.warn('notify', e); }
+  }
+  const unread = () => st.notifs.filter((n) => !n.read).length;
+  function feedBadge() {
+    let b = document.querySelector('[data-feed-badge]');
+    if (!b) { const tab = document.querySelector('.main-tab[data-view="feed"]'); if (tab) { tab.classList.add('relative'); tab.insertAdjacentHTML('beforeend', '<span data-feed-badge style="display:none" class="absolute -top-1.5 -right-1.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold grid place-items-center"></span>'); } }
+    R.setBadge('[data-feed-badge]', unread());
+    const bell = $('feedBell'); if (bell) bell.outerHTML = bellHTML();
+  }
+  async function loadNotifs() {
+    if (st.noNotif || !me()) return;
+    try {
+      const { data, error } = await db().from('notifications').select('*').eq('user_id', me()).order('created_at', { ascending: false }).limit(30);
+      if (error) throw error;
+      st.notifs = data || []; await addUsers(st.notifs.map((n) => ({ user_id: n.from_user })));
+    } catch (e) { if (R.tableMissing(e)) st.noNotif = true; }
+    feedBadge(); if (st.nOpen) renderNotifs();
+  }
+  async function markRead(ids) {
+    const list = st.notifs.filter((n) => !n.read && (!ids || ids.includes(n.id))); if (!list.length) return;
+    list.forEach((n) => { n.read = true; }); feedBadge();
+    try { await db().from('notifications').update({ read: true }).in('id', list.map((n) => n.id)); } catch {}
+  }
+  const bellHTML = () => { const n = unread();
+    return `<button type="button" id="feedBell" data-feed-bell aria-expanded="${st.nOpen}" title="Erwähnungen" class="relative text-xs px-3 py-1.5 rounded-lg border ${st.nOpen ? 'border-gold-400 text-gold-200 bg-gold-500/10' : 'border-ink-600 hover:border-gold-500/60 hover:text-gold-300'}">🔔<span class="hidden sm:inline"> Erwähnungen</span>${n ? `<span class="absolute -top-1.5 -right-1.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold grid place-items-center">${n > 9 ? '9+' : n}</span>` : ''}</button>`; };
+  function notifsHTML() {
+    if (!st.nOpen) return '';
+    const one = (n) => { const u = st.users[n.from_user] || { username: '?' };
+      return `<button type="button" data-notif="${esc(n.id)}" class="w-full flex items-start gap-2.5 text-left rounded-xl px-2.5 py-2 transition ${n.read ? 'hover:bg-ink-800/60' : 'bg-gold-500/10 hover:bg-gold-500/15'}">
+        ${R.avatarHtml ? R.avatarHtml(u.username, u.avatar, 'w-8 h-8 text-xs shrink-0') : ''}
+        <span class="min-w-0 flex-1"><span class="block text-sm text-slate-200"><b translate="no">${esc(u.username || '?')}</b> hat dich ${n.kind === 'comment' ? 'in einem Kommentar' : 'in einem Beitrag'} erwähnt</span>
+          ${n.body ? `<span class="block text-xs text-slate-400 truncate">„${esc(n.body)}“</span>` : ''}<span class="block text-[10px] text-slate-500">${R.timeAgo(n.created_at)}</span></span>
+        ${n.read ? '' : '<span class="mt-1.5 w-2 h-2 rounded-full bg-red-500 shrink-0"></span>'}</button>`; };
+    return `<div class="panel rounded-2xl p-3 flex flex-col gap-1">
+      <div class="flex items-center justify-between gap-2 px-1 pb-1"><span class="text-[11px] uppercase tracking-widest text-slate-500">🔔 Erwähnungen</span>
+        ${unread() ? '<button type="button" data-notif-all class="text-[11px] text-gold-300 hover:underline">Alle als gelesen markieren</button>' : ''}</div>
+      ${st.noNotif ? '<p class="text-xs text-amber-300 px-1">⚠ Die Tabelle „notifications“ fehlt noch in Supabase (SQL im Chat ausführen).</p>'
+        : st.notifs.length ? st.notifs.map(one).join('') : '<p class="text-xs text-slate-500 px-1 py-2">Noch keine Erwähnungen. Wenn dich jemand mit @ markiert, erscheint es hier.</p>'}</div>`;
+  }
+  function renderNotifs() { const el = $('feedNotifs'); if (el) el.innerHTML = notifsHTML(); const b = $('feedBell'); if (b) b.outerHTML = bellHTML(); }
+  // Zum Beitrag springen (lädt ihn nach, falls er nicht in der Liste ist)
+  async function openPost(postId, commentId) {
+    if (R.view !== 'feed' && R.goView) R.goView('feed');
+    if (!st.loaded && !st.loading) await load();
+    let p = st.posts.find((x) => x.id === postId);
+    if (!p && postId) {
+      try {
+        const { data } = await db().from('feed_posts').select('*').eq('id', postId).maybeSingle();
+        if (data) { p = data; st.posts = [...st.posts, data].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+          const [rx, cm] = await Promise.all([fetchReacts([data.id]), fetchComments([data.id])]); Object.assign(st.reacts, rx); Object.assign(st.comments, cm);
+          await addUsers([data, ...Object.values(cm).flat()]); }
+      } catch {}
+    }
+    if (!p) { msg('Dieser Beitrag wurde gelöscht.', 'warn'); return; }
+    if (commentId) st.cmOpen.add(postId);
+    st.filter = 'all'; st.q = ''; st.flash = commentId || postId; renderList(); const fl = $('feedFilter'); if (fl) fl.innerHTML = filterHTML();
+    setTimeout(() => { const el = root.querySelector(commentId ? `[data-cm="${CSS.escape(commentId)}"]` : `[data-post="${CSS.escape(postId)}"]`) || root.querySelector(`[data-post="${CSS.escape(postId)}"]`);
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('ring-2', 'ring-gold-400'); setTimeout(() => { el.classList.remove('ring-2', 'ring-gold-400'); st.flash = null; }, 2600); } }, 350);
+  }
+  R.feedOpenPost = openPost;
+  // Help Me → Feed: Anfrage als Beitrag teilen (aus helpme.js aufgerufen)
+  R.feedShareHelp = async (req) => {
+    const sets = req.sets || [];
+    const data = { rid: req.id, title: req.title || 'Was soll ich als Nächstes verbessern?', sets: sets.length, items: sets.reduce((a, x) => a + (x.gear || []).length, 0),
+      icons: sets.flatMap((x) => (x.gear || []).map((g) => ({ icon: g.icon || '', rarity: g.rarity || '' }))).slice(0, 8) };
+    const { error } = await db().from('feed_posts').insert({ user_id: me(), kind: 'help', body: '', image: null, data });
+    if (error) throw error;
+    if (st.loaded) load();
+    return true;
+  };
   async function delComment(postId, id) {
     if (!(await window.UI.confirm('Diesen Kommentar löschen?'))) return;
     const { error } = await db().from('feed_comments').delete().eq('id', id);
@@ -552,7 +773,7 @@ window.RokMods.feed = (R) => {
       <div class="grid grid-cols-2 gap-1.5">${[0, 1, 2, 3].map(camp).join('')}</div></div>`;
   };
   const helpTile = (d) => `<div class="rounded-xl border border-rose-400/30 bg-gradient-to-br from-rose-950/40 to-ink-950 p-3 flex flex-col gap-2.5">
-      <div class="text-[10px] uppercase tracking-widest text-rose-300">🆘 Help Me – was soll ich craften?</div>
+      <div class="text-[10px] uppercase tracking-widest text-rose-300">🆘 Help Me – was soll ich verbessern?</div>
       <div class="font-semibold text-slate-100">${esc(d.title || '')}</div>
       ${(d.icons || []).length ? `<div class="flex flex-wrap gap-1">${d.icons.map((g) => g.icon ? `<img src="${esc(g.icon)}" alt="" class="w-9 h-9 rounded bg-ink-900 object-contain">` : '<span class="w-9 h-9 rounded bg-ink-900 grid place-items-center text-sm">⚒️</span>').join('')}</div>` : ''}
       <div class="flex flex-wrap items-center justify-between gap-2"><span class="text-xs text-slate-400">${+d.sets || 0} Set${+d.sets === 1 ? '' : 's'} · ${+d.items || 0} Teile</span>
@@ -599,13 +820,16 @@ window.RokMods.feed = (R) => {
   };
   const commentsHTML = (p) => {
     const list = st.comments[p.id] || [], open = st.cmOpen.has(p.id), n = list.length;
-    const one = (c) => { const u = st.users[c.user_id] || { username: '?' }, mine = c.user_id === me();
-      return `<div class="flex items-start gap-2 min-w-0">
+    const one = (c) => { const u = st.users[c.user_id] || { username: '?' }, mine = c.user_id === me(), ed = st.edit && st.edit.kind === 'cm' && st.edit.id === c.id;
+      const text = c.body && !(c.body === GIF_ONLY && c.image) ? `<p class="text-sm text-slate-100 whitespace-pre-wrap break-words">${richText(c.body, c.mentions)}</p>` : '';
+      return `<div class="flex items-start gap-2 min-w-0 rounded-xl transition-shadow" data-cm="${esc(c.id)}">
         <button type="button" data-feed-prof="${esc(c.user_id)}" class="shrink-0">${R.avatarHtml ? R.avatarHtml(u.username, u.avatar, 'w-7 h-7 text-xs') : ''}</button>
         <div class="min-w-0 flex-1 rounded-xl bg-ink-900/80 border border-ink-700/70 px-3 py-1.5">
-          <div class="flex items-baseline gap-2 text-[11px]"><b class="text-slate-200 truncate" translate="no">${esc(u.username || '?')}</b><span class="text-slate-500 shrink-0">${R.timeAgo(c.created_at)}</span>
-            ${mine || st.admin ? `<button type="button" data-cm-del="${esc(p.id)}|${esc(c.id)}" title="Kommentar löschen" class="ml-auto text-slate-600 hover:text-red-300">✕</button>` : ''}</div>
-          <p class="text-sm text-slate-100 whitespace-pre-wrap break-words">${esc(c.body)}</p></div></div>`; };
+          <div class="flex items-baseline gap-2 text-[11px]"><b class="text-slate-200 truncate" translate="no">${esc(u.username || '?')}</b><span class="text-slate-500 shrink-0">${R.timeAgo(c.created_at)}${c.edited_at ? ' · bearbeitet' : ''}</span>
+            <span class="ml-auto flex items-center gap-2">${mine && !ed ? `<button type="button" data-cm-edit="${esc(p.id)}|${esc(c.id)}" title="Kommentar bearbeiten" class="text-slate-500 hover:text-gold-300">✎</button>` : ''}
+            ${mine || st.admin ? `<button type="button" data-cm-del="${esc(p.id)}|${esc(c.id)}" title="Kommentar löschen" class="text-slate-600 hover:text-red-300">✕</button>` : ''}</span></div>
+          ${ed ? editBoxHTML(500, 2) : text}
+          ${c.image ? `<a href="${esc(c.image)}" target="_blank" rel="noopener" class="block mt-1"><img src="${esc(c.image)}" alt="GIF" loading="lazy" class="max-h-56 max-w-full rounded-lg border border-ink-700 bg-ink-950"></a>` : ''}</div></div>`; };
     if (!open) {
       const last = list[n - 1];
       return `<div class="flex flex-col gap-2">
@@ -614,20 +838,29 @@ window.RokMods.feed = (R) => {
     }
     return `<div class="flex flex-col gap-2">
       ${list.map(one).join('')}
-      ${st.noCm ? '<p class="text-xs text-amber-300">⚠ Kommentare: Die Tabelle fehlt noch in Supabase (SQL im Chat ausführen).</p>' : `<div class="flex items-center gap-2">
-        <input type="text" maxlength="500" data-cm-in="${esc(p.id)}" value="${esc(st.cmDraft[p.id] || '')}" placeholder="Kommentar schreiben …" class="${INP} flex-1 min-w-0 !rounded-full !px-3.5">
-        <button type="button" data-cm-send="${esc(p.id)}" ${st.cmBusy ? 'disabled' : ''} class="shrink-0 px-3.5 py-1.5 rounded-full bg-gold-500 hover:bg-gold-400 text-ink-950 text-xs font-semibold disabled:opacity-50">Senden</button></div>`}
+      ${st.noCm ? '<p class="text-xs text-amber-300">⚠ Kommentare: Die Tabelle fehlt noch in Supabase (SQL im Chat ausführen).</p>' : `${st.cmGif[p.id] ? `<div class="relative self-start ml-9"><img src="${esc(st.cmGif[p.id].dataUrl)}" alt="GIF" class="max-h-32 rounded-lg border border-gold-500/40"><button type="button" data-cm-gifx="${esc(p.id)}" title="GIF entfernen" class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-ink-950 border border-red-500/60 text-red-300 text-xs grid place-items-center">✕</button></div>` : ''}
+      <div class="flex items-center gap-2">
+        <button type="button" data-cm-gif="${esc(p.id)}" title="GIF anhängen (nur GIFs)" class="shrink-0 h-8 px-2.5 rounded-full border text-[11px] font-extrabold tracking-wide ${st.cmGif[p.id] ? 'border-gold-400 text-gold-200 bg-gold-500/15' : 'border-ink-600 text-slate-400 hover:border-gold-500/60 hover:text-gold-300'}">GIF</button>
+        <input type="text" maxlength="500" data-cm-in="${esc(p.id)}" data-mention value="${esc(st.cmDraft[p.id] || '')}" placeholder="Kommentar schreiben … (@ zum Markieren)" class="${INP} flex-1 min-w-0 !rounded-full !px-3.5">
+        <button type="button" data-cm-send="${esc(p.id)}" ${st.cmBusy ? 'disabled' : ''} class="shrink-0 px-3.5 py-1.5 rounded-full bg-gold-500 hover:bg-gold-400 text-ink-950 text-xs font-semibold disabled:opacity-50">Senden</button></div>
+      <div data-cm-msg="${esc(p.id)}" class="text-[11px] ${st.cmMsg[p.id] ? ({ ok: 'text-emerald-400', warn: 'text-amber-300', err: 'text-red-300', busy: 'text-slate-300' }[st.cmMsg[p.id][1]] || '') : ''}">${st.cmMsg[p.id] ? esc(st.cmMsg[p.id][0]) : ''}</div>`}
       <button type="button" data-cm-toggle="${esc(p.id)}" class="self-start text-[11px] text-slate-500 hover:text-slate-300">Einklappen</button></div>`;
   };
+  const editBoxHTML = (max, rows) => `<div class="flex flex-col gap-1.5 mt-1">
+      <textarea data-edit-in data-mention rows="${rows}" maxlength="${max}" class="w-full bg-ink-950 border border-gold-500/50 rounded-lg px-2.5 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-gold-400 resize-y">${esc(st.edit ? st.edit.text : '')}</textarea>
+      <div class="flex flex-wrap items-center justify-end gap-2"><span data-edit-msg class="text-[11px] mr-auto text-slate-500">@ zum Markieren · Strg+Enter speichert</span>
+        <button type="button" data-edit-cancel class="text-xs px-3 py-1 rounded-lg border border-ink-600 text-slate-400 hover:text-slate-200">Abbrechen</button>
+        <button type="button" data-edit-save ${st.editBusy ? 'disabled' : ''} class="text-xs px-3 py-1 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold disabled:opacity-50">💾 Speichern</button></div></div>`;
   const postHTML = (p) => {
-    const u = st.users[p.user_id] || { username: '?' }, own = p.user_id === me(), k = KIND[p.kind] || KIND.text;
+    const u = st.users[p.user_id] || { username: '?' }, own = p.user_id === me(), k = KIND[p.kind] || KIND.text, ed = st.edit && st.edit.kind === 'post' && st.edit.id === p.id;
     return `<article class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3" data-post="${esc(p.id)}">
       <div class="flex items-center gap-3">
         <button type="button" data-feed-prof="${esc(p.user_id)}" class="flex items-center gap-2.5 min-w-0 text-left rounded-lg hover:bg-ink-800/60 pr-2">${R.userLine(u, 'w-10 h-10 text-base')}</button>
-        <span class="ml-auto shrink-0 text-[11px] text-slate-500 text-right"><span class="block">${k[0]} ${k[1]}</span>${R.timeAgo(p.created_at)}</span>
+        <span class="ml-auto shrink-0 text-[11px] text-slate-500 text-right"><span class="block">${k[0]} ${k[1]}</span>${R.timeAgo(p.created_at)}${p.edited_at ? ' · bearbeitet' : ''}</span>
+        ${own && !ed ? `<button type="button" data-feed-edit="${esc(p.id)}" title="Text bearbeiten" class="shrink-0 w-8 h-8 rounded-lg border border-ink-700 text-slate-500 hover:border-gold-500/60 hover:text-gold-300">✎</button>` : ''}
         ${own || st.admin ? `<button type="button" data-feed-del="${esc(p.id)}" title="Löschen" class="shrink-0 w-8 h-8 rounded-lg border border-ink-700 text-slate-500 hover:border-red-400/60 hover:text-red-300">✕</button>` : ''}
       </div>
-      ${p.body ? `<p class="text-sm text-slate-100 whitespace-pre-wrap break-words">${esc(p.body)}</p>` : ''}
+      ${ed ? editBoxHTML(1000, 3) : p.body ? `<p class="text-sm text-slate-100 whitespace-pre-wrap break-words">${richText(p.body, p.mentions)}</p>` : ''}
       ${attachHTML(p)}
       ${reactBar(p)}
       ${commentsHTML(p)}
@@ -718,7 +951,7 @@ window.RokMods.feed = (R) => {
     const showPrev = a && !(a.kind === 'craft' && !a.data.name);
     return `<div class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
       <div class="flex items-center gap-3">${R.userLine({ username: R.PROFILE.name, avatar: (A.ownMeta() || {}).avatar, alliance_tag: (A.ownMeta() || {}).alliance_tag }, 'w-10 h-10 text-base')}<span class="ml-auto text-[11px] uppercase tracking-widest text-slate-500">Neuer Beitrag</span></div>
-      <textarea id="feedText" rows="2" maxlength="1000" placeholder="Was gibt's Neues? (optional)" class="w-full bg-ink-950 border border-ink-600 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 resize-y">${esc(st.text)}</textarea>
+      <textarea id="feedText" data-mention rows="2" maxlength="1000" placeholder="Was gibt's Neues? (optional) · @ zum Markieren" class="w-full bg-ink-950 border border-ink-600 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 resize-y">${esc(st.text)}</textarea>
       <div class="flex flex-wrap items-center gap-2">
         <span class="text-[11px] text-slate-500 mr-1">Anhängen:</span>
         ${chip('📷', 'Foto', 'photo')}${chip('🎨', 'Showcase', 'showcase')}${chip('🏁', 'KvK-Bilanz', 'kvk')}${chip('🏛️', 'AoO', 'aoo')}
@@ -785,9 +1018,12 @@ window.RokMods.feed = (R) => {
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div><h2 class="font-display text-2xl gold-text">📰 Feed</h2><p class="text-xs text-slate-500">Showcases, KvK, Craft-Upgrades und Bestände aller Spieler</p></div>
         <div class="flex items-center gap-3"><span id="feedSync" class="text-[11px] text-emerald-400/80"></span>
+          ${bellHTML()}
           <button type="button" id="feedReload" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">↻ Aktualisieren</button></div>
       </div>
+      <div id="feedNotifs">${notifsHTML()}</div>
       <div id="feedComposer"></div>
+      <input type="file" id="feedCmFile" accept="image/gif,.gif" class="hidden">
       <div id="feedFilter">${filterHTML()}</div>
       <div id="feedList" class="space-y-4"></div>`;
     renderComposer(); renderList();
@@ -799,7 +1035,16 @@ window.RokMods.feed = (R) => {
   root.addEventListener('click', (ev) => {
     const t = ev.target;
     if (t.closest('#feedPost')) { post(); return; }
-    if (t.closest('#feedReload')) { load(); return; }
+    if (t.closest('#feedReload')) { load(); loadNotifs(); return; }
+    if (t.closest('[data-feed-bell]')) { st.nOpen = !st.nOpen; renderNotifs(); if (st.nOpen) loadNotifs(); return; }
+    if (t.closest('[data-notif-all]')) { markRead(); renderNotifs(); return; }
+    const nf = t.closest('[data-notif]'); if (nf) { const n = st.notifs.find((x) => x.id === nf.dataset.notif); if (n) { markRead([n.id]); st.nOpen = false; renderNotifs(); openPost(n.post_id, n.comment_id); } return; }
+    const fe = t.closest('[data-feed-edit]'); if (fe) { startEdit('post', fe.dataset.feedEdit); return; }
+    const ce = t.closest('[data-cm-edit]'); if (ce) { const [pid, cid] = ce.dataset.cmEdit.split('|'); startEdit('cm', cid, pid); return; }
+    if (t.closest('[data-edit-save]')) { saveEdit(); return; }
+    if (t.closest('[data-edit-cancel]')) { cancelEdit(); return; }
+    const cg = t.closest('[data-cm-gif]'); if (cg) { st.gifFor = cg.dataset.cmGif; const f = $('feedCmFile'); if (f) f.click(); return; }
+    const cgx = t.closest('[data-cm-gifx]'); if (cgx) { delete st.cmGif[cgx.dataset.cmGifx]; renderList(); return; }
     if (t.closest('[data-feed-pending]')) { showPending(); return; }
     if (t.closest('[data-feed-more]')) { more(); return; }
     const fl = t.closest('[data-feed-filter]');
@@ -845,6 +1090,8 @@ window.RokMods.feed = (R) => {
   // Tippen / Auswählen in den Formularen – nur Vorschau neu zeichnen, damit der Fokus bleibt
   root.addEventListener('input', (ev) => {
     const t = ev.target;
+    if (t.dataset && t.dataset.mention !== undefined) mentionInput(t);
+    if (t.hasAttribute && t.hasAttribute('data-edit-in')) { if (st.edit) st.edit.text = t.value; return; }
     if (t.id === 'feedText') { st.text = t.value; return; }
     if (t.id === 'feedSearch') { st.q = t.value; renderList(); return; }
     if (t.dataset && t.dataset.cmIn) { st.cmDraft[t.dataset.cmIn] = t.value; return; }
@@ -859,6 +1106,7 @@ window.RokMods.feed = (R) => {
   root.addEventListener('change', (ev) => {
     const t = ev.target;
     if (t.id === 'feedFile') { const file = t.files && t.files[0]; t.value = ''; pickPhoto(file); return; }
+    if (t.id === 'feedCmFile') { const file = t.files && t.files[0]; t.value = ''; pickCmGif(st.gifFor, file); return; }
     const f = t.dataset && t.dataset.f, a = st.attach; if (!f || !a) return;
     const d = a.data;
     if (f === 'crafted' || f === 'exp') { d[f] = t.checked; renderPreview(); return; }
@@ -874,7 +1122,21 @@ window.RokMods.feed = (R) => {
     if (f.startsWith('kv_')) { const el = root.querySelector(`[data-f="${f}"]`); if (el && f !== 'kv_label' && d[f.slice(3)]) el.value = fmt(d[f.slice(3)]); }
   });
 
-  root.addEventListener('keydown', (ev) => { const t = ev.target; if (ev.key === 'Enter' && !ev.shiftKey && t.dataset && t.dataset.cmIn) { ev.preventDefault(); sendComment(t.dataset.cmIn); } });
+  // @-Liste mit Pfeiltasten / Enter / Tab bedienen (vor dem Senden mit Enter)
+  root.addEventListener('keydown', (ev) => {
+    if (!mt.box || mt.el !== ev.target) return;
+    const n = (mt.list || []).length;
+    if (ev.key === 'Escape') { ev.preventDefault(); ev.stopImmediatePropagation(); mentionClose(); return; }
+    if (!n) return;
+    if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') { ev.preventDefault(); ev.stopImmediatePropagation(); mt.i = (mt.i + (ev.key === 'ArrowDown' ? 1 : n - 1)) % n; mentionDraw(); }
+    else if (ev.key === 'Enter' || ev.key === 'Tab') { ev.preventDefault(); ev.stopImmediatePropagation(); mentionPick(mt.i); }
+  }, true);
+  root.addEventListener('keydown', (ev) => { const t = ev.target;
+    if (ev.key === 'Enter' && !ev.shiftKey && t.dataset && t.dataset.cmIn) { ev.preventDefault(); sendComment(t.dataset.cmIn); }
+    else if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey) && t.hasAttribute('data-edit-in')) { ev.preventDefault(); saveEdit(); }
+    else if (ev.key === 'Escape' && t.hasAttribute('data-edit-in')) cancelEdit(); });
+  root.addEventListener('focusout', (ev) => { if (mt.el === ev.target) setTimeout(() => { if (mt.el && document.activeElement !== mt.el) mentionClose(); }, 150); });
+  window.addEventListener('scroll', () => { if (mt.box) mentionDraw(); }, { passive: true });
   // aufgeschobenes Neuzeichnen nachholen, sobald niemand mehr in der Liste tippt
   root.addEventListener('focusout', () => { setTimeout(() => { if (st.deferRender && !typing()) renderList(); }, 300); });
   // Auto-Aktualisieren: alle 20 s, solange der Feed offen und der Tab sichtbar ist · Countdown der Pässe läuft mit
@@ -884,7 +1146,9 @@ window.RokMods.feed = (R) => {
   document.addEventListener('visibilitychange', () => { if (feedOpen() && Date.now() - st.lastSync > 5000) poll(); });
 
   // Seite öffnen → laden (einmal, danach automatisch und über ↻)
-  R.viewHooks.feed = () => { if (!st.loaded && !st.loading) load(); else { renderList(); if (Date.now() - st.lastSync > 5000) poll(); } };
+  R.viewHooks.feed = () => { if (!st.loaded && !st.loading) load(); else { renderList(); if (Date.now() - st.lastSync > 5000) poll(); } loadNotifs(); };
+  // Erwähnungen: gleich beim Start und dann jede Minute (rote Zahl am Feed-Reiter)
+  setTimeout(loadNotifs, 1500); setInterval(() => { if (!document.hidden) loadNotifs(); }, 60000);
   R.feedReload = load;
   render();
 };
