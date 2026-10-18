@@ -3019,7 +3019,7 @@ window.RokMods.showcase = (R) => {
 
 
   // Zum Scanner & Dashboard im passenden Modus springen
-  function goScan(m) { R.view = 'scanner'; R.applyView(); R.showHub?.(false); R.mode = m; R.LS.set(R.MODE_KEY, R.mode); R.applyMode(); R.$('dropzone').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  function goScan(m) { R.view = 'scanner'; R.applyView(); R.showHub?.(false); R.mode = m; R.LS.set(R.MODE_KEY, R.mode); R.applyMode(); R.setAreaTab?.('scan'); R.$('dropzone').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
   R.$('profScanSpeed').onclick = () => goScan('speedups');
   R.$('profSpeedMode').addEventListener('click', (ev) => { const b = ev.target.closest('[data-pm]'); if (!b) return;
     try { localStorage.setItem('rok_prof_panel', b.dataset.pm); } catch {} if (R.lastProfileP) R.renderGameProfile(R.lastProfileP); });

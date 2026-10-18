@@ -45,6 +45,9 @@ window.RokApp = () => {
     if (n >= 1e3) return d(n / 1e3, 1) + ' Tsd.';
     return fmt(n);
   }; R.short = short;
+  // Item-Bilder aus /icons/… (fehlt img, wird das Emoji gezeigt)
+  const ico = (x, cls = 'w-5 h-5') => x && x.img ? `<img src="/icons/${x.img}" alt="" draggable="false" loading="lazy" class="${cls} object-contain inline-block align-middle shrink-0">` : (x?.icon || ''); R.ico = ico;
+  const AP_IMG = 'ressourcen/ap.png';
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); R.esc = esc;
 
   // ---------- State ----------
@@ -53,18 +56,28 @@ window.RokApp = () => {
   const COUNTERS = {
     goldheads: { title: 'Goldheads', icon: '🗿', c: '#facc15', unit: 'Goldheads',
       fields: [{ k: 'goldheads', label: 'Universelle legendäre Skulpturen', icon: '🗿', c: '#facc15' }] },
-    keys: { title: 'Keys', icon: '🔑', c: '#fbbf24', unit: 'Keys',
-      fields: [{ k: 'key_gold', label: 'Goldene Schlüssel', icon: '🔑', c: '#facc15' },
-               { k: 'key_silver', label: 'Silberne Schlüssel', icon: '🗝️', c: '#cbd5e1' },
-               { k: 'key_material', label: 'Material-Schlüssel', icon: '🧰', c: '#a78bfa' }] },
-    armaments: { title: 'Armaments', icon: '🛡️', c: '#f97316', unit: 'Teile', sumLabel: 'Armaments gesamt',
+    keys: { title: 'Keys', icon: '🔑', img: 'sonstiges/goldkey.png', c: '#fbbf24', unit: 'Keys',
+      fields: [{ k: 'key_gold', label: 'Goldene Schlüssel', icon: '🔑', img: 'sonstiges/goldkey.png', c: '#facc15' },
+               { k: 'key_silver', label: 'Silberne Schlüssel', icon: '🗝️', img: 'sonstiges/silverkey.png', c: '#cbd5e1' },
+               { k: 'key_material', label: 'Material-Schlüssel', icon: '🧰', img: 'sonstiges/materialkey.png', c: '#a78bfa' },
+               { k: 'key_sovereign', label: 'Sovereign-Schlüssel', icon: '🗝️', img: 'sonstiges/sovereignkey.png', c: '#34d399' }] },
+    armaments: { title: 'Armaments', icon: '🛡️', img: 'geararnaments/anramentchest.png', c: '#f97316', unit: 'Teile', sumLabel: 'Armaments gesamt',
       sum: ['arm_legendary', 'arm_epic', 'arm_elite', 'arm_advanced', 'arm_normal'],
-      fields: [{ k: 'arm_legendary', label: 'Legendär', icon: '🟨', c: '#f5c542' },
-               { k: 'arm_epic', label: 'Episch', icon: '🟪', c: '#a855f7' },
-               { k: 'arm_elite', label: 'Elite', icon: '🟦', c: '#38bdf8' },
-               { k: 'arm_advanced', label: 'Fortgeschritten', icon: '🟩', c: '#34d399' },
-               { k: 'arm_normal', label: 'Normal', icon: '⬜', c: '#94a3b8' },
-               { k: 'arm_scrolls', label: 'Schriftrollen', icon: '📜', c: '#fb923c' }] }
+      fields: [{ k: 'arm_legendary', label: 'Legendär', icon: '🟨', img: 'sonstiges/legendary_background.webp', c: '#f5c542' },
+               { k: 'arm_epic', label: 'Episch', icon: '🟪', img: 'sonstiges/epic_background.webp', c: '#a855f7' },
+               { k: 'arm_elite', label: 'Elite', icon: '🟦', img: 'sonstiges/elite_background.webp', c: '#38bdf8' },
+               { k: 'arm_advanced', label: 'Fortgeschritten', icon: '🟩', img: 'sonstiges/advanced_background.webp', c: '#34d399' },
+               { k: 'arm_normal', label: 'Normal', icon: '⬜', img: 'sonstiges/common_background.webp', c: '#94a3b8' },
+               { k: 'arm_scrolls', label: 'Schriftrollen', icon: '📜', c: '#fb923c' },
+               { k: 'arm_chest', label: 'Armament-Truhen', icon: '🧰', img: 'geararnaments/anramentchest.png', c: '#f59e0b' },
+               { k: 'arm_chest2', label: 'Armament-Kisten', icon: '🧰', img: 'geararnaments/img_icon_item_2525.png', c: '#a8a29e' },
+               { k: 'arm_coin', label: 'Formations-Münzen', icon: '🪙', img: 'geararnaments/FormationMoney.png', c: '#60a5fa' },
+               { k: 'arm_coin_gold', label: 'Goldene Formations-Münzen', icon: '🪙', img: 'geararnaments/FormationMoneyGold.png', c: '#facc15' },
+               { k: 'arm_conv', label: 'Umwandlungssteine', icon: '💠', img: 'geararnaments/conversation%20stone.png', c: '#38bdf8' },
+               { k: 'arm_conv_frag', label: 'Umwandlungsstein-Fragmente', icon: '💠', img: 'geararnaments/conversionStoneFragment.png', c: '#818cf8' },
+               { k: 'arm_crystal', label: 'Kristalle', icon: '🔶', img: 'geararnaments/iconCrystal.png', c: '#fb923c' },
+               { k: 'arm_trans_crystal', label: 'Transmutationskristalle', icon: '🔮', img: 'geararnaments/transmutation%20crystal.png', c: '#c084fc' },
+               { k: 'arm_trans_stone', label: 'Transmutationssteine', icon: '🔶', img: 'geararnaments/transmutstone.png', c: '#f97316' }] }
   }; R.COUNTERS = COUNTERS;
   const CNT_TYPES = Object.keys(COUNTERS);
   const cntTotal = (m, e) => { const cf = COUNTERS[m]; const ks = cf.sum || (cf.fields.length === 1 ? [cf.fields[0].k] : null); if (!ks) return null; return ks.reduce((a, k) => a + (+e[k] || 0), 0); };
@@ -109,10 +122,10 @@ window.RokApp = () => {
   // ---------- Schmiedematerialien ----------
   // 4:1-Umrechnung: 1 Legendär = 4 Episch = 16 Elite = 64 Fortgeschritten = 256 Normal
   const MATS = [
-    { k: 'leather', label: 'Leder',       icon: '🐂', c: '#d97706' },
-    { k: 'iron',    label: 'Eisenerz',    icon: '⛓️', c: '#94a3b8' },
-    { k: 'ebony',   label: 'Ebenholz',    icon: '🪵', c: '#a16207' },
-    { k: 'bone',    label: 'Tierknochen', icon: '🦴', c: '#e5e7eb' }
+    { k: 'leather', label: 'Leder',       icon: '🐂', img: 'mats/matleatherorange.png', c: '#d97706' },
+    { k: 'iron',    label: 'Eisenerz',    icon: '⛓️', img: 'mats/matstoneorange.png', c: '#94a3b8' },
+    { k: 'ebony',   label: 'Ebenholz',    icon: '🪵', img: 'mats/matwoodorange.png', c: '#a16207' },
+    { k: 'bone',    label: 'Tierknochen', icon: '🦴', img: 'mats/matbonesorange.png', c: '#e5e7eb' }
   ]; R.MATS = MATS;
   const GRADES = [
     { k: 'white',  label: 'Normal',          short: 'W', c: '#cbd5e1', div: 256 },
@@ -123,7 +136,7 @@ window.RokApp = () => {
   ];
   const MAT_KEYS = MATS.flatMap(m => GRADES.map(g => m.k + '_' + g.k));
   // Material-Kisten (gleiche 5 Seltenheiten) – werden getrennt ganz oben angezeigt
-  const CHEST = { k: 'chest', label: 'Kisten', icon: '📦', c: '#b45309' }; R.CHEST = CHEST;
+  const CHEST = { k: 'chest', label: 'Kisten', icon: '📦', img: 'mats/choicematchest.png', c: '#b45309' }; R.CHEST = CHEST;
   const CHEST_KEYS = GRADES.map(g => 'chest_' + g.k);
   const ALL_MAT_KEYS = [...CHEST_KEYS, ...MAT_KEYS];
   // Gesamt-Legendär = Gold + Lila/4 + Blau/16 + Grün/64 + Weiß/256
@@ -288,6 +301,7 @@ window.RokApp = () => {
       if (!parsed) throw new Error('Die Antwort konnte nicht ausgelesen werden. Bitte erneut versuchen.');
       showResult(parsed);
       discardImages(); // erfolgreich ausgelesen → Bilder sofort verwerfen
+      setAreaTab('dash');   // Ergebnis anzeigen
     } catch (e) {
       showError(e.message === 'Failed to fetch' ? 'Netzwerkfehler – keine Verbindung zur API. Prüfe Internet/Adblocker.' : e.message);
       $('emptyState').classList.toggle('hidden', !$('resSection').classList.contains('hidden') || !$('vipSection').classList.contains('hidden'));
@@ -437,10 +451,10 @@ window.RokApp = () => {
   }
 
   const RES = [
-    { k: 'food',  label: 'Proviant', icon: '🌾', from: '#fbbf24', to: '#d97706' },
-    { k: 'wood',  label: 'Holz',     icon: '🪵', from: '#a3e635', to: '#65a30d' },
-    { k: 'stone', label: 'Stein',    icon: '🪨', from: '#cbd5e1', to: '#64748b' },
-    { k: 'gold',  label: 'Gold',     icon: '🪙', from: '#fde047', to: '#ca8a04' },
+    { k: 'food',  label: 'Proviant', icon: '🌾', img: 'ressourcen/corn.png', from: '#fbbf24', to: '#d97706' },
+    { k: 'wood',  label: 'Holz',     icon: '🪵', img: 'ressourcen/wood.png', from: '#a3e635', to: '#65a30d' },
+    { k: 'stone', label: 'Stein',    icon: '🪨', img: 'ressourcen/stone.png', from: '#cbd5e1', to: '#64748b' },
+    { k: 'gold',  label: 'Gold',     icon: '🪙', img: 'ressourcen/gold.png', from: '#fde047', to: '#ca8a04' },
   ];
 
   // {food:{rucksack,aufHand,gesamt}} → {bar:{food:gesamt}, inventory:{food:rucksack}}; Auf Hand = Gesamt − Rucksack
@@ -473,7 +487,7 @@ window.RokApp = () => {
       <div class="panel rounded-2xl p-5">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-xl grid place-items-center text-2xl" style="background:linear-gradient(135deg,${v.from}33,${v.to}22);border:1px solid ${v.from}55">${v.icon}</div>
+            <div class="w-11 h-11 rounded-xl grid place-items-center text-2xl" style="background:linear-gradient(135deg,${v.from}33,${v.to}22);border:1px solid ${v.from}55">${ico(v, 'w-9 h-9')}</div>
             <div>
               <div class="text-xs uppercase tracking-widest text-slate-400">${v.label}</div>
               <div class="text-2xl font-bold text-white">${v.total ? short(v.total) : '–'}</div>
@@ -822,7 +836,7 @@ window.RokApp = () => {
     const th_ = 'py-2 px-2 font-medium text-right';
     if (histTab === 'resources') {
       $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
-        ${RES.map(r => `<th class="${th_}">${r.icon} ${r.label}</th>`).join('')}<th class="${th_}">Summe</th><th class="w-8"></th></tr>`;
+        ${RES.map(r => `<th class="${th_}">${ico(r, 'w-4 h-4')} ${r.label}</th>`).join('')}<th class="${th_}">Summe</th><th class="w-8"></th></tr>`;
       const tot = (e) => sumPart(e, resView);
       // Zelle: nur der Wert der gewählten Ansicht (Gesamt / Ohne Rucksack / Mit Farms)
       const cell = (get) => { const v = get(resView); return v == null ? '–' : `<span class="font-semibold text-white" title="${fmt(v)}">${short(v)}</span>`; };
@@ -836,7 +850,7 @@ window.RokApp = () => {
       }).join('');
     } else if (histTab === 'speedups') {
       $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
-        ${SPEED.map(c => `<th class="${th_}">${c.icon} ${c.label}</th>`).join('')}<th class="${th_}">Gesamt</th><th class="w-8"></th></tr>`;
+        ${SPEED.map(c => `<th class="${th_}">${ico(c, 'w-4 h-4')} ${c.label}</th>`).join('')}<th class="${th_}">Gesamt</th><th class="w-8"></th></tr>`;
       $('histRows').innerHTML = rows.map((e, i) => {
         const prev = rows[i + 1], d = prev && prev.total != null && e.total != null ? e.total - prev.total : null;
         return `<tr class="border-b border-ink-800 hover:bg-ink-850">
@@ -849,7 +863,7 @@ window.RokApp = () => {
       }).join('');
     } else if (histTab === 'materials') {
       $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
-        ${MATS.map(m => `<th class="${th_}">${m.icon} ${m.label}</th>`).join('')}<th class="${th_}">⚒️ Gesamt (Legendär)</th><th class="${th_}">📦 Kisten</th><th class="w-8"></th></tr>`;
+        ${MATS.map(m => `<th class="${th_}">${ico(m, 'w-4 h-4')} ${m.label}</th>`).join('')}<th class="${th_}">⚒️ Gesamt (Legendär)</th><th class="${th_}">📦 Kisten</th><th class="w-8"></th></tr>`;
       $('histRows').innerHTML = rows.map(e => `<tr class="border-b border-ink-800 hover:bg-ink-850">
           <td class="py-2 pr-2 whitespace-nowrap text-slate-300">${dateLabel(e.ts)}</td>
           ${MATS.map(m => `<td class="py-2 px-2 text-right tabular-nums">${fmtLeg(matLeg(e, m.k))}</td>`).join('')}
@@ -873,7 +887,7 @@ window.RokApp = () => {
     } else if (COUNTERS[histTab]) {
       const cf = COUNTERS[histTab], main = cf.sum || [cf.fields[0].k];
       $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
-        ${cf.fields.map(f => `<th class="${th_}">${f.icon} ${f.label}</th>`).join('')}${cf.sum ? `<th class="${th_}">Gesamt</th>` : ''}<th class="${th_}">Veränderung</th><th class="w-8"></th></tr>`;
+        ${cf.fields.map(f => `<th class="${th_}">${ico(f, 'w-4 h-4')} ${f.label}</th>`).join('')}${cf.sum ? `<th class="${th_}">Gesamt</th>` : ''}<th class="${th_}">Veränderung</th><th class="w-8"></th></tr>`;
       const val = (e) => main.reduce((a, k) => a + (+e[k] || 0), 0);
       $('histRows').innerHTML = rows.map((e, i) => {
         const prev = rows[i + 1], d = prev ? val(e) - val(prev) : null;
@@ -1032,11 +1046,11 @@ window.RokApp = () => {
 
   // ---------- Speedups ----------
   const SPEED = [
-    { k: 'universal', label: 'Universal', icon: '⏱️', c: '#f5c542' },
-    { k: 'training',  label: 'Training',  icon: '⚔️', c: '#f87171' },
-    { k: 'healing',   label: 'Heilung',   icon: '❤️', c: '#34d399' },
-    { k: 'research',  label: 'Forschung', icon: '📘', c: '#38bdf8' },
-    { k: 'building',  label: 'Bau',       icon: '🔨', c: '#fb923c' }
+    { k: 'universal', label: 'Universal', icon: '⏱️', img: 'sonstiges/SpeedUniversal.png', c: '#f5c542' },
+    { k: 'training',  label: 'Training',  icon: '⚔️', img: 'sonstiges/SpeedTraining.png', c: '#f87171' },
+    { k: 'healing',   label: 'Heilung',   icon: '❤️', img: 'sonstiges/SpeedHealing.png', c: '#34d399' },
+    { k: 'research',  label: 'Forschung', icon: '📘', img: 'sonstiges/SpeedResearch.png', c: '#38bdf8' },
+    { k: 'building',  label: 'Bau',       icon: '🔨', img: 'sonstiges/SpeedBuilding.png', c: '#fb923c' }
   ]; R.SPEED = SPEED;
   // Minuten → "12 T 5 Std 30 Min" (kurz: "12T 5h 30m")
   function durText(min, compact = false) {
@@ -1061,7 +1075,7 @@ window.RokApp = () => {
   const saveSpeedUi = () => LS.set(SPEED_UI, JSON.stringify(R.speedUi)); R.saveSpeedUi = saveSpeedUi;
   // Material-Linien (Scanner-Verlauf + Profil teilen sich die Auswahl)
   R.speedUi.matLines = { leather: true, iron: true, ebony: true, bone: true, chest: true, total: true, ...(R.speedUi.matLines || {}) };
-  const MAT_LINES = () => [...MATS.map(m => [m.k, m.icon + ' ' + m.label, m.c]), ['chest', CHEST.icon + ' ' + CHEST.label, CHEST.c], ['total', '⚒️ Gesamt', '#facc15']];
+  const MAT_LINES = () => [...MATS.map(m => [m.k, ico(m, 'w-4 h-4') + ' ' + m.label, m.c]), ['chest', ico(CHEST, 'w-4 h-4') + ' ' + CHEST.label, CHEST.c], ['total', '⚒️ Gesamt', '#facc15']];
   function renderMatLines(el, onChange) {
     el.innerHTML = '<span class="text-slate-500">Linien:</span>' + MAT_LINES().map(([k, l, c]) =>
       `<label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-ml="${k}" ${R.speedUi.matLines[k] ? 'checked' : ''} class="w-4 h-4" style="accent-color:${c}">${l}</label>`).join('');
@@ -1077,7 +1091,7 @@ window.RokApp = () => {
     $('eventBtns').innerHTML = EVENTS.map(x => `<button class="ev-btn seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition" data-ev="${x.id}" aria-pressed="${x.id === ev.id}">${x.label}</button>`).join('');
     $('eventBtns').querySelectorAll('.ev-btn').forEach(b => b.onclick = () => { R.speedUi.event = b.dataset.ev; saveSpeedUi(); renderEvent(); renderSpeedOpts(); renderHistory(); });
     const label = (k) => SPEED.find(c => c.k === k);
-    $('eventFormula').innerHTML = 'Berechnung: ' + ev.keys.map(k => `<span class="text-slate-200">${label(k).icon} ${label(k).label}</span>`).join(' + ');
+    $('eventFormula').innerHTML = 'Berechnung: ' + ev.keys.map(k => `<span class="text-slate-200">${ico(label(k), 'w-4 h-4')} ${label(k).label}</span>`).join(' + ');
     const ppm = R.speedUi.ppm[ev.id];
     if (document.activeElement !== $('eventPpm')) $('eventPpm').value = ppm ?? '';
     const e = R.curSpeed || {};
@@ -1129,7 +1143,7 @@ window.RokApp = () => {
     const inp = 'w-full bg-ink-950 border border-ink-600 rounded-lg px-1.5 py-1.5 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500';
     return SPEED.map(c => {
       const m = e?.[c.k] || 0, d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60), mi = m % 60;
-      return `<span class="text-slate-300 whitespace-nowrap">${c.icon} ${c.label}</span>
+      return `<span class="text-slate-300 whitespace-nowrap">${ico(c, 'w-5 h-5')} ${c.label}</span>
         <input data-sk="${c.k}" data-u="1440" type="number" min="0" step="1" value="${d || ''}" placeholder="0" class="${inp}">
         <input data-sk="${c.k}" data-u="60" type="number" min="0" step="1" value="${h || ''}" placeholder="0" class="${inp}">
         <input data-sk="${c.k}" data-u="1" type="number" min="0" step="1" value="${mi || ''}" placeholder="0" class="${inp}">`;
@@ -1163,7 +1177,7 @@ window.RokApp = () => {
     $('speedCards').innerHTML = SPEED.map(c => `
       <div class="panel rounded-2xl p-5">
         <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-xl grid place-items-center text-2xl" style="background:${c.c}22;border:1px solid ${c.c}55">${c.icon}</div>
+          <div class="w-11 h-11 rounded-xl grid place-items-center text-2xl" style="background:${c.c}22;border:1px solid ${c.c}55">${ico(c, 'w-9 h-9')}</div>
           <div class="min-w-0">
             <div class="text-xs uppercase tracking-widest text-slate-400">${c.label}</div>
             <div class="text-xl font-bold text-white tabular-nums">${durText(e[c.k] || 0)}</div>
@@ -1218,7 +1232,7 @@ window.RokApp = () => {
     $('apBreak').innerHTML = AP_SIZES.map(z => {
       const n = +c['ap_' + z] || 0;
       return `<div class="panel rounded-2xl p-4">
-        <div class="text-[10px] uppercase tracking-widest text-slate-400">${z >= 500 ? '⚗️' : '🧪'} ${fmt(z)}er Flaschen</div>
+        <div class="text-[10px] uppercase tracking-widest text-slate-400">${ico({ img: AP_IMG }, 'w-4 h-4')} ${fmt(z)}er Flaschen</div>
         <div class="text-xl font-bold text-white tabular-nums mt-1">${fmt(n)} <span class="text-sm font-medium text-slate-400">Stk.</span></div>
         <div class="text-xs text-emerald-300 tabular-nums">= ${fmt(n * z)} AP</div>
       </div>`;
@@ -1302,6 +1316,7 @@ window.RokApp = () => {
     renderPassGoal(last?.passports ?? toCount($('passIn').value));
   });
   $('passIn').addEventListener('input', () => $('passIn').classList.remove('border-amber-400'));
+  $('passGoal').addEventListener('input', () => { if (passiveReady && R.mode === 'passports') renderPassiveOut('passports'); });
   let activePass = null;   // Korrekturen innerhalb von 30 Minuten überschreiben den letzten Eintrag
   async function savePassEntry(n, confidence, required) {
     const entry = { passports: n, required: required ?? passGoalNum() };
@@ -1343,12 +1358,13 @@ window.RokApp = () => {
     const cf = COUNTERS[m], last = cntLast(m);
     $('cntInputs').innerHTML = `<h2 class="font-display text-lg text-gold-300 mb-1">2 · ${cf.title} eingeben</h2>
       <p class="text-xs text-slate-400 mb-3">Anzahl aus dem Inventar. Ein Scan füllt die Felder – kurz prüfen, dann speichern.</p>
-      <div class="space-y-2">${cf.fields.map(f => `<label class="grid grid-cols-[1fr_110px] items-center gap-2 text-sm"><span class="text-slate-300">${f.icon} ${f.label}</span>
+      <div class="space-y-2">${cf.fields.map(f => `<label class="grid grid-cols-[1fr_110px] items-center gap-2 text-sm"><span class="text-slate-300">${ico(f, 'w-5 h-5')} ${f.label}</span>
         <input data-cnt="${f.k}" type="number" min="0" step="1" placeholder="0" value="${last && last[f.k] != null ? last[f.k] : ''}" class="cnt-in w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>`).join('')}</div>
       ${cf.sum ? `<div class="mt-3 rounded-lg border border-gold-500/30 bg-gold-500/5 px-3 py-2 flex items-center justify-between"><span class="text-xs uppercase tracking-widest text-slate-400">Gesamt</span><span id="cntSum" class="text-lg font-extrabold text-gold-300 tabular-nums"></span></div>` : ''}
       <div id="cntPrefillMsg" class="hidden mt-2 text-xs text-amber-300"></div>
       <button id="cntSave" class="mt-3 w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">${cf.title} speichern</button>
       <div id="cntSaveMsg" class="hidden mt-2 text-xs"></div>`;
+    makeFold($('cntInputs'), 'cnt:' + m);
     const upd = () => { if ($('cntSum')) $('cntSum').textContent = fmt(cntTotal(m, readCntFields(m))) + ' ' + cf.unit; };
     $('cntInputs').querySelectorAll('.cnt-in').forEach(i => i.addEventListener('input', () => { i.classList.remove('border-amber-400'); upd(); }));
     upd();
@@ -1378,14 +1394,14 @@ window.RokApp = () => {
     let html = `<div class="flex items-end justify-between"><h2 class="font-display text-2xl gold-text">${cf.title}</h2><span class="text-xs text-slate-400">Letzter Scan: ${dateLabel(e.ts)}</span></div>`;
     if (cf.fields.length === 1) {
       const f = cf.fields[0];
-      html += big(f.icon, f.c, f.label, fmt(e[f.k]), delta(e[f.k], prev?.[f.k]));
+      html += big(ico(f, 'w-12 h-12'), f.c, f.label, fmt(e[f.k]), delta(e[f.k], prev?.[f.k]));
     } else {
-      if (cf.sum) html += big(cf.icon, cf.c, cf.sumLabel, fmt(cntTotal(m, e)), delta(cntTotal(m, e), prev ? cntTotal(m, prev) : null));
+      if (cf.sum) html += big(ico(cf, 'w-12 h-12'), cf.c, cf.sumLabel, fmt(cntTotal(m, e)), delta(cntTotal(m, e), prev ? cntTotal(m, prev) : null));
       const tot = cntTotal(m, e) || 0;
       html += `<div class="grid grid-cols-2 ${cf.fields.length > 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-3'} gap-3">${cf.fields.map(f => {
         const v = +e[f.k] || 0, inSum = cf.sum?.includes(f.k), pct = inSum && tot ? Math.round(v / tot * 100) : null;
         return `<div class="panel rounded-2xl p-4">
-          <div class="flex items-center justify-between gap-2"><div class="text-[10px] uppercase tracking-widest text-slate-400 truncate">${f.icon} ${f.label}</div>${pct != null ? `<div class="text-[10px] text-slate-500 tabular-nums">${pct} %</div>` : ''}</div>
+          <div class="flex items-center justify-between gap-2"><div class="text-[10px] uppercase tracking-widest text-slate-400 truncate">${ico(f, 'w-4 h-4')} ${f.label}</div>${pct != null ? `<div class="text-[10px] text-slate-500 tabular-nums">${pct} %</div>` : ''}</div>
           <div class="text-2xl font-bold tabular-nums mt-1" style="color:${f.c}">${fmt(v)}</div>
           <div class="text-xs tabular-nums mt-0.5">${prev ? delta(v, +prev[f.k] || 0) || '' : ''}</div>
           ${pct != null ? `<div class="mt-2 h-1.5 rounded-full bg-ink-950 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${f.c}"></div></div>` : ''}
@@ -1419,7 +1435,7 @@ window.RokApp = () => {
 
   // ---------- Materialien: Eingabe, Auswertung, Karten ----------
   $('matsGrid').innerHTML = '<span></span>' + GRADES.map(g => `<span class="text-center" title="${g.label}"><i class="inline-block w-3 h-3 rounded-sm" style="background:${g.c}"></i></span>`).join('')
-    + [CHEST, ...MATS].map(m => `<span class="text-slate-300 whitespace-nowrap truncate">${m.icon} ${m.label}</span>` + GRADES.map(g =>
+    + [CHEST, ...MATS].map(m => `<span class="text-slate-300 whitespace-nowrap truncate">${ico(m, 'w-4 h-4')} ${m.label}</span>` + GRADES.map(g =>
       `<input id="m_${m.k}_${g.k}" type="number" min="0" step="1" placeholder="0" title="${m.label} · ${g.label}"
          class="mat-in w-full bg-ink-950 border rounded-md px-1 py-1.5 text-xs text-right tabular-nums focus:outline-none focus:border-gold-500" style="border-color:${g.c}55">`).join('')).join('');
   function readMatFields() { const e = {}; ALL_MAT_KEYS.forEach(k => e[k] = Math.max(0, Math.round(+$('m_' + k).value || 0))); e.total_leg = matTotal(e); return e; }
@@ -1452,8 +1468,8 @@ window.RokApp = () => {
           <div class="text-xs text-slate-400 mt-0.5">${nSel} von 5 ausgewählt – Kachel antippen zum Ein-/Ausschließen</div>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 w-full sm:w-auto">
-          ${MATS.map(m => tile(m.k, m.icon, m.label, matLeg(e, m.k))).join('')}
-          ${tile('chest', CHEST.icon, CHEST.label, chestEq)}
+          ${MATS.map(m => tile(m.k, ico(m, 'w-4 h-4'), m.label, matLeg(e, m.k))).join('')}
+          ${tile('chest', ico(CHEST, 'w-4 h-4'), CHEST.label, chestEq)}
         </div>
       </div>`;
     $('matsSum').querySelectorAll('[data-msel]').forEach(b => b.onclick = () => {
@@ -1466,7 +1482,7 @@ window.RokApp = () => {
       const leg = matLeg(e, m.k), full = Math.floor(leg + 1e-9), pct = Math.round((leg - full) * 100);
       return `<div class="panel rounded-2xl p-5">
         <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-xl grid place-items-center text-2xl" style="background:${m.c}22;border:1px solid ${m.c}55">${m.icon}</div>
+          <div class="w-11 h-11 rounded-xl grid place-items-center text-2xl" style="background:${m.c}22;border:1px solid ${m.c}55">${ico(m, 'w-9 h-9')}</div>
           <div class="min-w-0">
             <div class="text-xs uppercase tracking-widest text-slate-400">${m.label}</div>
             <div class="text-sm text-slate-300">Äquivalent in Legendär: <b class="text-xl text-gold-300 tabular-nums">${fmtLeg(leg)}</b></div>
@@ -1543,6 +1559,8 @@ window.RokApp = () => {
     $('cntInputs').classList.toggle('hidden', !isCnt);
     $('cntSection').classList.toggle('hidden', !isCnt || !has);
     if (isCnt && $('cntInputs').dataset.m !== R.mode) { renderCntInputs(R.mode); $('cntInputs').dataset.m = R.mode; }
+    if (typeof setAreaTab === 'function' && R.areaTab === 'passive' && !passiveFields(R.mode)) setAreaTab('dash');
+    if (passiveReady) renderPassive(R.mode); else if ($('passiveInputs')) $('passiveInputs').classList.add('hidden');
     $('speedSection').classList.toggle('hidden', R.mode !== 'speedups' || !hasSpeed);
     $('speedInputs').classList.toggle('hidden', R.mode !== 'speedups');
     $('speedOpts').classList.toggle('hidden', R.mode !== 'speedups');
@@ -1569,18 +1587,181 @@ window.RokApp = () => {
     }[R.mode];
     histTab = R.mode === 'mats' ? 'materials' : R.mode; syncTabs(); renderHistory();
     renderHub();
+    renderAreaTabs();
   }
+
+
+  // ---------- Klappbare Felder (Zustand pro Gerät + Cloud über user_state) ----------
+  var FOLD_KEY = 'rok_scanner_fold', folds;   // var: makeFold kann schon vor dieser Zeile laufen
+  function loadFolds() { if (!folds) { try { folds = JSON.parse(LS.get('rok_scanner_fold', '{}')) || {}; } catch { folds = {}; } } return folds; }
+  function makeFold(sec, key) {
+    if (!sec) return;
+    loadFolds();
+    const h = sec.querySelector(':scope > h2'); if (!h) return;
+    let body = sec.querySelector(':scope > .fold-body');
+    if (!body) {
+      body = document.createElement('div');
+      body.className = 'fold-body mt-3' + (sec.classList.contains('space-y-4') ? ' space-y-4' : '');
+      [...sec.children].filter(c => c !== h).forEach(c => body.appendChild(c));
+      sec.appendChild(body);
+      sec.classList.remove('space-y-4');
+      h.classList.remove('mb-1', 'mb-3');
+      h.classList.add('flex', 'items-center', 'justify-between', 'gap-3', 'cursor-pointer', 'select-none');
+      const t = document.createElement('span'); while (h.firstChild) t.appendChild(h.firstChild); h.appendChild(t);
+      const chev = document.createElement('span');
+      chev.className = 'fold-chev shrink-0 w-7 h-7 rounded-lg grid place-items-center border border-ink-600 text-slate-400 transition-transform';
+      chev.innerHTML = '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
+      h.appendChild(chev);
+      h.setAttribute('role', 'button'); h.tabIndex = 0;
+      const toggle = () => { loadFolds(); folds[sec.dataset.fold] = !folds[sec.dataset.fold]; LS.set('rok_scanner_fold', JSON.stringify(folds)); applyFold(sec); };
+      h.onclick = toggle;
+      h.onkeydown = (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); toggle(); } };
+    }
+    sec.dataset.fold = key;
+    applyFold(sec);
+  }
+  function applyFold(sec) {
+    const closed = !!loadFolds()[sec.dataset.fold], body = sec.querySelector(':scope > .fold-body'), h = sec.querySelector(':scope > h2');
+    if (body) body.hidden = closed;
+    if (h) { h.setAttribute('aria-expanded', String(!closed)); h.title = closed ? 'Aufklappen' : 'Zuklappen'; }
+    const ch = sec.querySelector(':scope > h2 .fold-chev'); if (ch) ch.style.transform = closed ? 'rotate(-90deg)' : '';
+  }
+
+  // ---------- Passive Income: was regelmäßig dazukommt (Events, Truhen, Allianz, Farmen …) ----------
+  var passiveReady = false;
+  const PASSIVE_KEY = 'rok_scanner_passive';
+  let passive = {}; try { passive = JSON.parse(LS.get(PASSIVE_KEY, '{}')) || {}; } catch { passive = {}; }
+  const PERIODS = { day: { label: 'pro Tag', d: 1 }, week: { label: 'pro Woche', d: 7 }, month: { label: 'pro Monat', d: 30 } };
+  function passiveFields(m) {
+    if (m === 'ap') return [{ k: 'ap', label: 'AP', icon: '⚡', img: AP_IMG, c: '#34d399' }];
+    if (m === 'speedups') return SPEED.map(c => ({ ...c, unit: 'Std.' }));
+    if (m === 'gems') return [{ k: 'gems', label: 'Gems', icon: '💎', img: 'ressourcen/gems.png', c: '#f472b6' }];
+    if (m === 'resources') return RES.map(r => ({ ...r, c: r.from, text: true }));
+    if (m === 'mats') return MATS.map(x => ({ ...x, unit: 'Legendär', dec: true }));
+    if (m === 'passports') return [{ k: 'passports', label: 'Passseiten', icon: '🛂', img: 'sonstiges/passport.webp', c: '#818cf8' }];
+    if (COUNTERS[m] && m !== 'keys') return COUNTERS[m].fields;
+    return null;
+  }
+  // aktueller Bestand je Feld (aus dem letzten Scan) – Grundlage für die Hochrechnung
+  function passiveNow(m) {
+    const last = (t) => R.history.filter(e => e.type === t).sort((a, b) => b.ts - a.ts)[0];
+    if (m === 'ap') { const e = last('ap'); return e ? { ap: e.total_ap } : {}; }
+    if (m === 'gems') { const e = last('gems'); return e ? { gems: e.gems } : {}; }
+    if (m === 'passports') { const e = last('passports'); return e ? { passports: e.passports } : {}; }
+    if (m === 'speedups') { const e = last('speedups'); return e || {}; }
+    if (m === 'resources') { const e = last('resources'); return e || {}; }
+    if (m === 'mats') { const e = last('materials'); return e ? Object.fromEntries(MATS.map(x => [x.k, matLeg(e, x.k)])) : {}; }
+    return last(m) || {};
+  }
+  const pState = (m) => (passive[m] = passive[m] || { period: 'week', vals: {} });
+  const pPerDay = (m, f) => { const st = pState(m), v = +st.vals[f.k] || 0; return v / PERIODS[st.period].d * (m === 'speedups' ? 60 : 1); };   // Speedups: Minuten
+  const pFmt = (m, f, v) => m === 'speedups' ? durText(Math.round(v)) : f.dec ? fmtLeg(v) : f.text ? short(v) : fmt(v);
+  function renderPassive(m) {
+    const fields = passiveFields(m), sec = $('passiveInputs');
+    sec.classList.toggle('hidden', !fields);
+    if (!fields) return;
+    if (sec.dataset.m !== m) {
+      const st = pState(m);
+      const inp = 'w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500';
+      sec.innerHTML = `<h2 class="font-display text-lg text-gold-300">${m === 'gems' ? 2 : 3} · Passive Income</h2>
+        <p class="text-xs text-slate-400 mb-3">Was regelmäßig dazukommt (Events, Truhen, Allianz-Shop, Farmen …). Wird automatisch gespeichert und hochgerechnet.</p>
+        <div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700 mb-3" role="group">
+          ${Object.entries(PERIODS).map(([k, p]) => `<button type="button" data-pper="${k}" aria-pressed="${st.period === k}" class="seg-btn rounded-lg py-1.5 text-xs font-semibold transition">${p.label}</button>`).join('')}
+        </div>
+        <div class="space-y-2">${fields.map(f => `<label class="grid grid-cols-[1fr_110px] items-center gap-2 text-sm">
+            <span class="text-slate-300 min-w-0 truncate">${ico(f, 'w-5 h-5')} ${f.label}${f.unit ? ` <span class="text-slate-500 text-xs">(${f.unit})</span>` : ''}</span>
+            <input data-pin="${f.k}" ${f.text ? 'type="text" inputmode="decimal"' : `type="number" min="0" step="${f.dec || m === 'speedups' ? 'any' : '1'}"`} placeholder="0" value="${st.vals[f.k] ?? ''}" class="${inp}"></label>`).join('')}</div>
+        <div id="passiveOut" class="mt-3"></div>`;
+      sec.dataset.m = m;
+      sec.querySelectorAll('[data-pper]').forEach(b => b.onclick = () => {
+        pState(m).period = b.dataset.pper; LS.set(PASSIVE_KEY, JSON.stringify(passive));
+        sec.querySelectorAll('[data-pper]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+        renderPassiveOut(m);
+      });
+      sec.querySelectorAll('[data-pin]').forEach(i => i.addEventListener('input', () => {
+        const f = fields.find(x => x.k === i.dataset.pin);
+        const v = i.value.trim() === '' ? null : f.text ? parseAmount(i.value) : +i.value;
+        if (v == null || isNaN(v)) delete pState(m).vals[f.k]; else pState(m).vals[f.k] = Math.max(0, v);
+        clearTimeout(renderPassive._t); renderPassive._t = setTimeout(() => LS.set(PASSIVE_KEY, JSON.stringify(passive)), 400);
+        renderPassiveOut(m);
+      }));
+      makeFold(sec, 'passive:' + m);
+    }
+    renderPassiveOut(m);
+  }
+  function renderPassiveOut(m) {
+    const out = $('passiveOut'); if (!out) return;
+    const fields = passiveFields(m), now = passiveNow(m);
+    const rows = fields.map(f => ({ f, d: pPerDay(m, f) })).filter(r => r.d > 0);
+    if (!rows.length) { out.innerHTML = '<div class="text-xs text-slate-500">Trag ein, wie viel du regelmäßig bekommst – dann siehst du hier, was in 7 und 30 Tagen dazukommt.</div>'; renderAreaTabs(); return; }
+    const line = (r) => {
+      const has = now[r.f.k] != null, in30 = (+now[r.f.k] || 0) + r.d * 30;
+      return `<div class="grid grid-cols-[1fr_auto] gap-x-3 items-center py-1.5 border-t border-ink-700 first:border-t-0">
+        <div class="text-xs text-slate-300 min-w-0 truncate">${ico(r.f, 'w-4 h-4')} ${r.f.label}</div>
+        <div class="text-right text-xs tabular-nums"><span class="text-emerald-400">+${pFmt(m, r.f, r.d * 7)}</span> <span class="text-slate-500">/ Woche</span></div>
+        <div class="text-[11px] text-slate-500">${has ? 'in 30 Tagen' : '+30 Tage'}</div>
+        <div class="text-right text-sm font-semibold tabular-nums text-gold-300">${has ? pFmt(m, r.f, in30) : '+' + pFmt(m, r.f, r.d * 30)}</div></div>`;
+    };
+    let extra = '';
+    if (m === 'passports') {
+      const goal = toCount($('passGoal')?.value), have = +now.passports || 0, d = rows[0]?.d || 0;
+      if (goal && d > 0) extra = `<div class="mt-2 text-xs ${have >= goal ? 'text-emerald-400' : 'text-slate-300'}">${have >= goal ? 'Ziel schon erreicht ✓' : `🎯 Migrations-Ziel in ca. <b class="text-indigo-300 tabular-nums">${fmt(Math.ceil((goal - have) / d))}</b> Tagen erreicht`}</div>`;
+    }
+    out.innerHTML = `<div class="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2">${rows.map(line).join('')}</div>${extra}`;
+    renderAreaTabs();
+  }
+  passiveReady = true;
+
+
+  // ---------- Bereichs-Kacheln: Scan (links) · Dashboard (Mitte, Start) · Passive (rechts) ----------
+  R.areaTab = 'dash';
+  function passiveSummary(m) {
+    if (!passiveReady) return null;
+    const fields = passiveFields(m); if (!fields) return null;
+    const rows = fields.map(f => ({ f, d: pPerDay(m, f) })).filter(r => r.d > 0);
+    if (!rows.length) return null;
+    if (rows.length === 1) return `+${pFmt(m, rows[0].f, rows[0].d * 7)} / Woche`;
+    return `${rows.length} Werte · pro Woche`;
+  }
+  function renderAreaTabs() {
+    const el = $('areaTabs'); if (!el || typeof HUB === 'undefined' || !HUB) return;
+    const h = HUB.find(x => x.m === R.mode) || {}, m = R.mode, hasP = passReadyFields(m);
+    const lastTs = (() => { const t = m === 'mats' ? 'materials' : m; const e = R.history.filter(x => x.type === t).sort((a, b) => b.ts - a.ts)[0]; return e ? e.ts : null; })();
+    const upIcon = '<svg class="w-9 h-9 text-gold-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>';
+    const tile = (k, icon, c, title, sub, dis) => `<button type="button" class="hub-tile panel !min-h-[7.5rem] sm:!min-h-[9.5rem]" data-atab="${k}" role="tab" aria-pressed="${R.areaTab === k}" ${dis ? 'aria-disabled="true"' : ''}>
+        <span class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl grid place-items-center text-3xl sm:text-4xl" style="background:linear-gradient(135deg,${c}33,${c}11);border:1px solid ${c}55">${icon}</span>
+        <span class="font-display text-sm sm:text-lg text-white tracking-wide leading-tight">${title}</span>
+        <span class="text-[10px] sm:text-xs tabular-nums ${sub ? 'text-slate-300' : 'text-slate-500'} leading-tight">${sub || (dis ? 'nicht verfügbar' : 'noch nichts eingetragen')}</span>
+      </button>`;
+    el.innerHTML = tile('scan', upIcon, '#f5c542', 'Scan', lastTs ? `Letzter Scan: ${dateLabel(lastTs)}` : 'Screenshot oder von Hand', false)
+      + tile('dash', ico(h, 'w-9 h-9 sm:w-12 sm:h-12'), h.c || '#f5c542', h.label || 'Dashboard', hubValue(m) || 'noch kein Scan', false)
+      + tile('passive', ico({ img: 'sonstiges/calendar.BYQ908Wv.webp', icon: '📈' }, 'w-9 h-9 sm:w-12 sm:h-12'), '#34d399', 'Passive', hasP ? passiveSummary(m) : null, !hasP);
+    el.querySelectorAll('[data-atab]').forEach(b => b.onclick = () => { if (b.getAttribute('aria-disabled') === 'true') return; setAreaTab(b.dataset.atab); });
+  }
+  function passReadyFields(m) { return passiveReady && !!passiveFields(m); }
+  function setAreaTab(t) {
+    if (t === 'passive' && !passReadyFields(R.mode)) t = 'dash';
+    R.areaTab = t;
+    const aside = $('areaAside'), main = $('results');
+    aside.dataset.tab = t === 'dash' ? '' : t;
+    if (t === 'dash') delete aside.dataset.tab;
+    aside.classList.toggle('hidden', t === 'dash');
+    main.classList.toggle('hidden', t !== 'dash');
+    renderAreaTabs();
+    if (t === 'dash' && chart) setTimeout(() => chart?.resize?.(), 0);
+  }
+  R.setAreaTab = setAreaTab;
 
   // ---------- Dashboard-Startseite: Kacheln je Bereich ----------
   var HUB = [   // var: applyMode() kann schon vor dieser Zeile laufen
-    { m: 'ap', icon: '⚡', label: 'AP', c: '#34d399' },
-    { m: 'speedups', icon: '⏱️', label: 'Speedups', c: '#38bdf8' },
-    { m: 'vip', icon: '👑', label: 'VIP', c: '#f5c542' },
-    { m: 'gems', icon: '💎', label: 'Gems', c: '#f472b6' },
-    { m: 'resources', icon: '🌾', label: 'Ressourcen', c: '#fb923c' },
-    { m: 'mats', icon: '🧱', label: 'Mats', c: '#a78bfa' },
-    { m: 'passports', icon: '🛂', label: 'Passports', c: '#818cf8' },
-    ...CNT_TYPES.map(m => ({ m, icon: COUNTERS[m].icon, label: COUNTERS[m].title, c: COUNTERS[m].c }))
+    { m: 'ap', icon: '⚡', img: AP_IMG, label: 'AP', c: '#34d399' },
+    { m: 'speedups', icon: '⏱️', img: 'sonstiges/SpeedUniversal.png', label: 'Speedups', c: '#38bdf8' },
+    { m: 'vip', icon: '👑', img: 'sonstiges/svip._LSdqpwn.webp', label: 'VIP', c: '#f5c542' },
+    { m: 'gems', icon: '💎', img: 'ressourcen/gemsmore.png', label: 'Gems', c: '#f472b6' },
+    { m: 'resources', icon: '🌾', img: 'ressourcen/cornmore.png', label: 'Ressourcen', c: '#fb923c' },
+    { m: 'mats', icon: '🧱', img: 'mats/choicematchest.png', label: 'Mats', c: '#a78bfa' },
+    { m: 'passports', icon: '🛂', img: 'sonstiges/passport.webp', label: 'Passports', c: '#818cf8' },
+    ...CNT_TYPES.map(m => ({ m, icon: COUNTERS[m].icon, img: COUNTERS[m].img, label: COUNTERS[m].title, c: COUNTERS[m].c }))
   ];
   const hubLast = (t, ok) => R.history.filter(e => e.type === t && ok(e)).sort((a, b) => b.ts - a.ts)[0];
   function hubValue(m) {
@@ -1600,14 +1781,14 @@ window.RokApp = () => {
     grid.innerHTML = HUB.map(h => {
       const v = hubValue(h.m);
       return `<button type="button" class="hub-tile panel" data-hub="${h.m}" aria-label="${h.label} öffnen">
-        <span class="w-16 h-16 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,${h.c}33,${h.c}11);border:1px solid ${h.c}55">${h.icon}</span>
+        <span class="w-16 h-16 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,${h.c}33,${h.c}11);border:1px solid ${h.c}55">${ico(h, 'w-12 h-12')}</span>
         <span class="font-display text-base sm:text-lg text-white tracking-wide">${h.label}</span>
         <span class="text-xs tabular-nums ${v ? 'text-slate-300' : 'text-slate-500'}">${v || 'noch kein Scan'}</span>
       </button>`;
     }).join('');
     grid.querySelectorAll('[data-hub]').forEach(b => b.onclick = () => {
       R.mode = b.dataset.hub; LS.set(MODE_KEY, R.mode); hideError();
-      showHub(false); applyMode(); window.scrollTo({ top: 0, behavior: 'smooth' });
+      showHub(false); setAreaTab('dash'); applyMode(); window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   }
   // true = Kachel-Startseite, false = gewählter Bereich (Upload, Ergebnis, Verlauf)
@@ -1890,6 +2071,7 @@ window.RokApp = () => {
   const lastGems = readLast('gems');
   if (lastGems?.gems != null) renderGems({ gems: +lastGems.gems, gemsHand: lastGems.gemsHand ?? null, gemsBag: lastGems.gemsBag ?? null }, lastGems.ts);
   renderFarms();
+  ['resTotals', 'speedInputs', 'apInputs', 'passInputs', 'matsInputs', 'vipInputs'].forEach(id => makeFold($(id), id));
   applyMode();
   showHub(true);
   { const g = R.history.filter(e => e.type === 'governor').sort((a, b) => b.ts - a.ts)[0];

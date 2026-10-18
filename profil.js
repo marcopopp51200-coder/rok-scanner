@@ -400,12 +400,12 @@ window.RokMods.profil = (R) => {
     R.$('profSpeed').innerHTML = main.map(([k, label]) => {
       const c = R.SPEED.find(x => x.k === k), m = sp?.[k] || 0;
       return `<div class="rounded-xl bg-ink-950/60 border border-ink-700 p-4">
-        <div class="flex items-center gap-2 text-xs uppercase tracking-widest text-slate-400"><span class="text-lg">${c.icon}</span>${label}</div>
+        <div class="flex items-center gap-2 text-xs uppercase tracking-widest text-slate-400"><span class="text-lg">${R.ico ? R.ico(c, 'w-5 h-5') : c.icon}</span>${label}</div>
         <div class="text-2xl font-extrabold text-white tabular-nums mt-1">${sp ? R.days(m) : '–'} <span class="text-sm font-semibold text-slate-400">Tage</span></div>
         <div class="text-xs text-slate-400">${sp ? R.durText(m) : 'keine Daten'}</div>
       </div>`;
     }).join('');
-    R.$('profSpeedMinor').innerHTML = sp ? ['research', 'building'].map(k => { const c = R.SPEED.find(x => x.k === k); return `<span>${c.icon} ${c.label}: <b class="text-slate-200">${R.durText(sp[k] || 0)}</b></span>`; }).join('') : '';
+    R.$('profSpeedMinor').innerHTML = sp ? ['research', 'building'].map(k => { const c = R.SPEED.find(x => x.k === k); return `<span>${R.ico ? R.ico(c, 'w-5 h-5') : c.icon} ${c.label}: <b class="text-slate-200">${R.durText(sp[k] || 0)}</b></span>`; }).join('') : '';
     R.$('profSpeedStamp').textContent = spTs ? `Stand: ${R.dateLabel(spTs)}` : '';
     }
 

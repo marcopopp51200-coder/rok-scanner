@@ -50,6 +50,15 @@ tailwind.config = {
   .hub-tile { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.6rem; min-height:9.5rem; padding:1.1rem .75rem; border-radius:1rem; text-align:center; transition:transform .15s, border-color .15s, box-shadow .15s; }
   .hub-tile:hover, .hub-tile:focus-visible { transform:translateY(-2px); border-color:rgba(245,197,66,.55); box-shadow:0 0 22px rgba(245,197,66,.18); outline:none; }
   .hub-tile:active { transform:translateY(0); }
+  .hub-tile[aria-pressed="true"] { border-color:rgba(245,197,66,.75); box-shadow:0 0 0 1px rgba(245,197,66,.35), 0 0 26px rgba(245,197,66,.22); }
+  .hub-tile[aria-disabled="true"] { opacity:.45; cursor:not-allowed; transform:none; }
+  /* Bereichs-Reiter: Scan zeigt die Eingaben (ohne Passive), Passive nur das Passive-Feld */
+  #areaAside[data-tab] > * { margin-top:0 !important; }
+  #areaAside[data-tab="scan"] { display:grid; gap:1.5rem; align-items:start; }
+  @media (min-width:1024px) { #areaAside[data-tab="scan"] { grid-template-columns:1fr 1fr; } }
+  #areaAside[data-tab="scan"] > #passiveInputs { display:none !important; }
+  #areaAside[data-tab="passive"] > section:not(#passiveInputs) { display:none !important; }
+  #areaAside[data-tab="passive"] { max-width:42rem; width:100%; margin:0 auto; }
   .seg-btn[aria-pressed="true"] { background: linear-gradient(180deg,#f5c542,#b7830f); color:#07090f; box-shadow: 0 0 18px rgba(245,197,66,.35); }
 </style>
 </head>
@@ -198,10 +207,12 @@ tailwind.config = {
     <div id="hubGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"></div>
   </section>
   <div id="scanArea" class="hidden">
-  <div class="grid lg:grid-cols-[380px_1fr] gap-6">
+  <!-- Bereich: drei Kacheln Scan · Dashboard · Passive (scanner.js füllt sie), Inhalt erscheint darunter -->
+  <div id="areaTabs" class="grid grid-cols-3 gap-2 sm:gap-4 mb-6" role="tablist"></div>
+  <div id="areaGrid" class="grid gap-6">
 
     <!-- Left: input -->
-    <aside class="space-y-6">
+    <aside id="areaAside" class="space-y-6">
 
       <section id="shotsSection" class="panel rounded-2xl p-5">
         <h2 class="font-display text-lg text-gold-300 mb-3">1 · Screenshots</h2>
@@ -228,6 +239,7 @@ tailwind.config = {
 
       <!-- Summen (nur Modus Ressourcen), linke Spalte -->
       <section id="resTotals" class="hidden panel rounded-2xl p-5 space-y-4">
+        <h2 class="font-display text-lg text-gold-300 mb-1">2 · Ressourcen gesamt</h2>
         <div>
           <div class="text-xs uppercase tracking-widest text-slate-400">Gesamt</div>
           <div id="resTotal" class="text-3xl font-bold text-white tabular-nums"></div>
@@ -261,13 +273,13 @@ tailwind.config = {
         <h2 class="font-display text-lg text-gold-300 mb-1">2 · AP-Flaschen</h2>
         <p class="text-xs text-slate-400 mb-3">Anzahl je Flaschengröße aus dem Inventar. Ein Scan füllt die Felder vor – kurz prüfen, dann speichern.</p>
         <div class="space-y-2" id="apFields">
-          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300">🧪 50er Flaschen <span class="text-slate-500 text-xs">× 50</span></span>
+          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300"><img src="/icons/ressourcen/ap.png" alt="" draggable="false" class="w-5 h-5 object-contain inline-block align-middle"> 50er Flaschen <span class="text-slate-500 text-xs">× 50</span></span>
             <input id="ap50" data-ap="50" type="number" min="0" step="1" placeholder="0" class="ap-in w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
-          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300">🧪 100er Flaschen <span class="text-slate-500 text-xs">× 100</span></span>
+          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300"><img src="/icons/ressourcen/ap.png" alt="" draggable="false" class="w-5 h-5 object-contain inline-block align-middle"> 100er Flaschen <span class="text-slate-500 text-xs">× 100</span></span>
             <input id="ap100" data-ap="100" type="number" min="0" step="1" placeholder="0" class="ap-in w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
-          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300">⚗️ 500er Flaschen <span class="text-slate-500 text-xs">× 500</span></span>
+          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300"><img src="/icons/ressourcen/ap.png" alt="" draggable="false" class="w-5 h-5 object-contain inline-block align-middle"> 500er Flaschen <span class="text-slate-500 text-xs">× 500</span></span>
             <input id="ap500" data-ap="500" type="number" min="0" step="1" placeholder="0" class="ap-in w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
-          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300">⚗️ 1.000er Flaschen <span class="text-slate-500 text-xs">× 1.000</span></span>
+          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300"><img src="/icons/ressourcen/ap.png" alt="" draggable="false" class="w-5 h-5 object-contain inline-block align-middle"> 1.000er Flaschen <span class="text-slate-500 text-xs">× 1.000</span></span>
             <input id="ap1000" data-ap="1000" type="number" min="0" step="1" placeholder="0" class="ap-in w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
         </div>
         <div class="mt-3 rounded-lg border border-gold-500/30 bg-gold-500/5 px-3 py-2 flex items-center justify-between">
@@ -283,7 +295,7 @@ tailwind.config = {
         <h2 class="font-display text-lg text-gold-300 mb-1">2 · Passports eingeben</h2>
         <p class="text-xs text-slate-400 mb-3">Anzahl deiner Passseiten aus dem Inventar. Ein Scan füllt das Feld – kurz prüfen, dann speichern.</p>
         <div class="space-y-2">
-          <label class="grid grid-cols-[1fr_120px] items-center gap-2 text-sm"><span class="text-slate-300">🛂 Passseiten</span>
+          <label class="grid grid-cols-[1fr_120px] items-center gap-2 text-sm"><span class="text-slate-300"><img src="/icons/sonstiges/passport.webp" alt="" draggable="false" class="w-5 h-5 object-contain inline-block align-middle"> Passseiten</span>
             <input id="passIn" type="number" min="0" step="1" placeholder="0" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
           <label class="grid grid-cols-[1fr_120px] items-center gap-2 text-sm"><span class="text-slate-300">🎯 Benötigt für Migration <span class="text-slate-500 text-xs">(optional)</span></span>
             <input id="passGoal" type="number" min="0" step="1" placeholder="–" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
@@ -335,6 +347,9 @@ tailwind.config = {
         </div>
       </section>
 
+
+      <!-- Passive Income (scanner.js füllt den Inhalt je Bereich) -->
+      <section id="passiveInputs" class="hidden panel rounded-2xl p-5"></section>
 
     </aside>
 
@@ -401,7 +416,7 @@ tailwind.config = {
           <span id="speedSource" class="text-xs text-slate-400"></span>
         </div>
         <div class="panel rounded-2xl p-6 flex items-center gap-5">
-          <div class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#38bdf833,#6366f122);border:1px solid #38bdf855">⏱️</div>
+          <div class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#38bdf833,#6366f122);border:1px solid #38bdf855"><img src="/icons/sonstiges/SpeedUniversal.png" alt="" draggable="false" class="w-12 h-12 object-contain inline-block align-middle"></div>
           <div>
             <div class="text-xs uppercase tracking-widest text-slate-400">Speedups gesamt</div>
             <div id="speedTotal" class="text-4xl font-extrabold text-white tabular-nums">–</div>
@@ -420,7 +435,7 @@ tailwind.config = {
         </div>
         <div class="panel rounded-2xl p-6 flex items-center gap-5">
           <!-- Gem-Symbol: hier austauschen -->
-          <div id="gemIcon" class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#f472b633,#a855f722);border:1px solid #f472b655">💎</div>
+          <div id="gemIcon" class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#f472b633,#a855f722);border:1px solid #f472b655"><img src="/icons/ressourcen/gemsmore.png" alt="" draggable="false" class="w-12 h-12 object-contain inline-block align-middle"></div>
           <div>
             <div class="text-xs uppercase tracking-widest text-slate-400">Edelsteine gesamt (Main)</div>
             <div id="gemsValue" class="text-4xl font-extrabold text-white tabular-nums">–</div>
@@ -457,7 +472,7 @@ tailwind.config = {
           <span id="apSource" class="text-xs text-slate-400"></span>
         </div>
         <div class="panel rounded-2xl p-6 flex items-center gap-5">
-          <div class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#34d39933,#10b98122);border:1px solid #34d39955">⚡</div>
+          <div class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#34d39933,#10b98122);border:1px solid #34d39955"><img src="/icons/ressourcen/ap.png" alt="" draggable="false" class="w-12 h-12 object-contain inline-block align-middle"></div>
           <div>
             <div class="text-xs uppercase tracking-widest text-slate-400">AP (Aktionspunkte)</div>
             <div id="apValue" class="text-4xl font-extrabold text-white tabular-nums">–</div>
@@ -474,7 +489,7 @@ tailwind.config = {
           <span id="passSource" class="text-xs text-slate-400"></span>
         </div>
         <div class="panel rounded-2xl p-6 flex items-center gap-5">
-          <div class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#818cf833,#6366f122);border:1px solid #818cf855">🛂</div>
+          <div class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#818cf833,#6366f122);border:1px solid #818cf855"><img src="/icons/sonstiges/passport.webp" alt="" draggable="false" class="w-12 h-12 object-contain inline-block align-middle"></div>
           <div>
             <div class="text-xs uppercase tracking-widest text-slate-400">Passseiten (Main)</div>
             <div id="passValue" class="text-4xl font-extrabold text-white tabular-nums">–</div>
