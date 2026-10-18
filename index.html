@@ -293,6 +293,8 @@ tailwind.config = {
         <div id="passSaveMsg" class="hidden mt-2 text-xs"></div>
       </section>
 
+      <section id="cntInputs" class="hidden panel rounded-2xl p-5"></section>
+
       <section id="matsInputs" class="hidden panel rounded-2xl p-5">
         <h2 class="font-display text-lg text-gold-300 mb-1">2 · Materialien eingeben</h2>
         <p class="text-xs text-slate-400 mb-3">Anzahl je Seltenheit. Ein Scan füllt die Felder – kurz prüfen, dann speichern.</p>
@@ -337,7 +339,7 @@ tailwind.config = {
     </aside>
 
     <!-- Right: results -->
-    <main id="results" class="space-y-6">
+    <main id="results" class="space-y-6 min-w-0">
       <div id="emptyState" class="panel rounded-2xl p-10 text-center">
         <div class="text-5xl mb-3">🏰</div>
         <h3 class="font-display text-xl text-gold-300">Noch keine Auswertung</h3>
@@ -481,6 +483,9 @@ tailwind.config = {
         </div>
         <div id="passGoalCard" class="hidden panel rounded-2xl p-5"></div>
       </section>
+
+      <!-- Goldheads / Keys / Armaments (scanner.js füllt den Inhalt) -->
+      <section id="cntSection" class="hidden space-y-4"></section>
 
       <!-- History -->
       <section id="historySection" class="panel rounded-2xl p-5">

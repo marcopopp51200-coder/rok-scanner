@@ -48,8 +48,28 @@ window.RokApp = () => {
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); R.esc = esc;
 
   // ---------- State ----------
+  // Zähler-Bereiche: gleiche Logik für Goldheads, Keys und Armaments (Felder = Anzahl je Item)
+  // sum: Felder, die zur Gesamtzahl zählen (fehlt sum → keine Gesamtzahl)
+  const COUNTERS = {
+    goldheads: { title: 'Goldheads', icon: '🗿', c: '#facc15', unit: 'Goldheads',
+      fields: [{ k: 'goldheads', label: 'Universelle legendäre Skulpturen', icon: '🗿', c: '#facc15' }] },
+    keys: { title: 'Keys', icon: '🔑', c: '#fbbf24', unit: 'Keys',
+      fields: [{ k: 'key_gold', label: 'Goldene Schlüssel', icon: '🔑', c: '#facc15' },
+               { k: 'key_silver', label: 'Silberne Schlüssel', icon: '🗝️', c: '#cbd5e1' },
+               { k: 'key_material', label: 'Material-Schlüssel', icon: '🧰', c: '#a78bfa' }] },
+    armaments: { title: 'Armaments', icon: '🛡️', c: '#f97316', unit: 'Teile', sumLabel: 'Armaments gesamt',
+      sum: ['arm_legendary', 'arm_epic', 'arm_elite', 'arm_advanced', 'arm_normal'],
+      fields: [{ k: 'arm_legendary', label: 'Legendär', icon: '🟨', c: '#f5c542' },
+               { k: 'arm_epic', label: 'Episch', icon: '🟪', c: '#a855f7' },
+               { k: 'arm_elite', label: 'Elite', icon: '🟦', c: '#38bdf8' },
+               { k: 'arm_advanced', label: 'Fortgeschritten', icon: '🟩', c: '#34d399' },
+               { k: 'arm_normal', label: 'Normal', icon: '⬜', c: '#94a3b8' },
+               { k: 'arm_scrolls', label: 'Schriftrollen', icon: '📜', c: '#fb923c' }] }
+  }; R.COUNTERS = COUNTERS;
+  const CNT_TYPES = Object.keys(COUNTERS);
+  const cntTotal = (m, e) => { const cf = COUNTERS[m]; const ks = cf.sum || (cf.fields.length === 1 ? [cf.fields[0].k] : null); if (!ks) return null; return ks.reduce((a, k) => a + (+e[k] || 0), 0); };
   const MODE_KEY = 'rok_scanner_mode'; R.MODE_KEY = MODE_KEY;
-  R.mode = ['speedups', 'resources', 'vip', 'gems', 'ap', 'mats', 'passports'].includes(LS.get(MODE_KEY, '')) ? LS.get(MODE_KEY) : 'resources';
+  R.mode = ['speedups', 'resources', 'vip', 'gems', 'ap', 'mats', 'passports', ...CNT_TYPES].includes(LS.get(MODE_KEY, '')) ? LS.get(MODE_KEY) : 'resources';
   let images = []; // {id, name, dataUrl, mediaType, base64}
   let vipItems = [];
   let vipCurrent = null;
@@ -250,6 +270,7 @@ window.RokApp = () => {
         discardImages();
         return;
       }
+      if (modeRejected && COUNTERS[R.mode]) throw new Error(`Der Scan-Server kennt den ${COUNTERS[R.mode].title}-Scan noch nicht – bitte die neue api/scan.js auf Vercel einspielen. Bis dahin kannst du die Anzahl links von Hand eintragen.`);
       if (modeRejected && R.mode === 'passports') throw new Error('Der Scan-Server kennt den Passport-Scan noch nicht – bitte die neue api/scan.js auf Vercel einspielen. Bis dahin kannst du die Anzahl links von Hand eintragen.');
       if (modeRejected && R.mode === 'mats') throw new Error('Der Scan-Server kennt den Material-Scan noch nicht – bitte die neue api/scan.js auf Vercel einspielen. Bis dahin kannst du die Materialien links von Hand eintragen.');
       if (modeRejected && R.mode === 'speedups') {
@@ -338,7 +359,7 @@ window.RokApp = () => {
     $('analyzeBtn').disabled = on || !images.length;
     $('analyzeLabel').textContent = on ? 'Analysiere …' : (R.mode === 'mats' ? 'Materialien scannen' : 'Analysieren');
     $('loadingState').classList.toggle('hidden', !on);
-    if (on) { ['emptyState','resSection','vipSection','gemsSection','speedSection','apSection','passSection'].forEach(id => $(id).classList.add('hidden')); }
+    if (on) { ['emptyState','resSection','vipSection','gemsSection','speedSection','apSection','passSection','cntSection'].forEach(id => $(id).classList.add('hidden')); }
   }
   function showError(m) { $('errorBox').textContent = m; $('errorBox').classList.remove('hidden'); }
   function hideError() { $('errorBox').classList.add('hidden'); }
@@ -358,6 +379,8 @@ window.RokApp = () => {
       RokAuth.saveNow('speedups');
     } else if (type === 'mats') {
       prefillMats(r);                                            // sofort auswerten, Felder zum Korrigieren füllen
+    } else if (COUNTERS[type]) {
+      prefillCnt(type, r);
     } else if (type === 'passports') {
       prefillPass(r);
     } else if (type === 'ap') {
@@ -641,8 +664,8 @@ window.RokApp = () => {
   try { R.history = JSON.parse(LS.get(HIST, '[]')) || []; } catch { R.history = []; }
   // Altdaten-Schutz: nur bekannte Zahlenfelder übernehmen
   const sanitize = (e) => {
-    const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups', 'ap', 'governor', 'materials', 'passports'].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
-    const keys = out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'passports' ? ['passports', 'required'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'materials' ? [...ALL_MAT_KEYS, 'total_leg'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'acclaim', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'lk_participated', 'units_killed', 'units_lost', 'units_healed', 'governor_id']
+    const out = { id: String(e.id), ts: +e.ts || Date.now(), type: ['vip', 'gems', 'speedups', 'ap', 'governor', 'materials', 'passports', ...CNT_TYPES].includes(e.type) ? e.type : 'resources', confidence: e.confidence ?? null };
+    const keys = COUNTERS[out.type] ? COUNTERS[out.type].fields.map(f => f.k) : out.type === 'vip' ? ['current', 'inventory', 'after'] : out.type === 'passports' ? ['passports', 'required'] : out.type === 'gems' ? ['gems', 'gemsHand', 'gemsBag'] : out.type === 'ap' ? ['ap_50', 'ap_100', 'ap_500', 'ap_1000', 'total_ap'] : out.type === 'materials' ? [...ALL_MAT_KEYS, 'total_leg'] : out.type === 'governor' ? ['kill_points', 'highest_merit', 'acclaim', 'energy', 'deads', 'ark_wins', 'lk_autarch', 'lk_participated', 'units_killed', 'units_lost', 'units_healed', 'governor_id']
       : out.type === 'speedups' ? ['universal', 'building', 'research', 'training', 'healing', 'total']
       : ['food', 'wood', 'stone', 'gold', 'total', 'farmFood', 'farmWood', 'farmStone', 'farmGold', 'bagFood', 'bagWood', 'bagStone', 'bagGold'];
     keys.forEach(k => out[k] = (e[k] === null || e[k] === undefined || isNaN(+e[k])) ? null : +e[k]);
@@ -670,7 +693,7 @@ window.RokApp = () => {
     saveHistory(); renderHistory();
   }
   // Ein Diagramm (= alle Scans eines Typs) löschen – mit Sicherheitsabfrage
-  const TYPE_LABEL = { resources: 'Ressourcen', speedups: 'Speedups', vip: 'VIP', gems: 'Gems', ap: 'AP', governor: 'Statthalter', materials: 'Materialien', passports: 'Passports' }; R.TYPE_LABEL = TYPE_LABEL;
+  const TYPE_LABEL = { resources: 'Ressourcen', speedups: 'Speedups', vip: 'VIP', gems: 'Gems', ap: 'AP', governor: 'Statthalter', materials: 'Materialien', passports: 'Passports', goldheads: 'Goldheads', keys: 'Keys', armaments: 'Armaments' }; R.TYPE_LABEL = TYPE_LABEL;
   async function resetHistoryType(type) {
     const n = R.history.filter(e => e.type === type).length;
     if (!n) { UI.alert(`Im ${TYPE_LABEL[type]}-Diagramm sind keine Einträge.`); return false; }
@@ -737,6 +760,11 @@ window.RokApp = () => {
     } else if (histTab === 'ap') {
       datasets = [{ label: 'AP gesamt', data: list.map(e => e.total_ap), backgroundColor: isLine ? '#34d39933' : '#34d399cc', borderColor: '#34d399',
         borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: '#34d399', spanGaps: true, fill: false }];
+    } else if (COUNTERS[histTab]) {
+      const cf = COUNTERS[histTab], ds = (label, data, c, dash) => ({ label, data, backgroundColor: isLine ? c + '33' : c + 'cc', borderColor: c,
+        borderWidth: isLine ? (dash ? 3.5 : 2.5) : 0, borderDash: dash && isLine ? [8, 5] : undefined, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: c, spanGaps: true, fill: false });
+      datasets = cf.fields.map(f => ds(f.label, list.map(e => e[f.k]), f.c));
+      if (cf.sum) datasets.push(ds(cf.sumLabel, list.map(e => cntTotal(histTab, e)), '#facc15', true));
     } else if (histTab === 'passports') {
       datasets = [{ label: 'Passseiten', data: list.map(e => e.passports), backgroundColor: isLine ? '#818cf833' : '#818cf8cc', borderColor: '#818cf8',
         borderWidth: isLine ? 2.5 : 0, borderRadius: 4, tension: .3, pointRadius: 4, pointBackgroundColor: '#818cf8', spanGaps: true, fill: false }];
@@ -759,7 +787,7 @@ window.RokApp = () => {
     if (!window.Chart) {
       empty.textContent = 'Chart.js konnte nicht geladen werden (keine Internetverbindung?). Die Tabelle funktioniert trotzdem.';
     } else {
-      empty.textContent = list.length ? '' : ({ speedups: 'Noch keine Speedup-Scans gespeichert.', resources: 'Noch keine Ressourcen-Scans gespeichert.', vip: 'Noch keine VIP-Scans gespeichert.', gems: 'Noch keine Edelstein-Scans gespeichert.', passports: 'Noch keine Passport-Scans gespeichert.', ap: 'Noch keine AP-Scans gespeichert.', materials: 'Noch keine Material-Scans gespeichert.' })[histTab];
+      empty.textContent = list.length ? '' : ({ speedups: 'Noch keine Speedup-Scans gespeichert.', resources: 'Noch keine Ressourcen-Scans gespeichert.', vip: 'Noch keine VIP-Scans gespeichert.', gems: 'Noch keine Edelstein-Scans gespeichert.', passports: 'Noch keine Passport-Scans gespeichert.', goldheads: 'Noch keine Goldhead-Scans gespeichert.', keys: 'Noch keine Key-Scans gespeichert.', armaments: 'Noch keine Armament-Scans gespeichert.', ap: 'Noch keine AP-Scans gespeichert.', materials: 'Noch keine Material-Scans gespeichert.' })[histTab];
       if (chart) chart.destroy();
       chart = new Chart($('historyChart'), {
         type: chartType,
@@ -842,6 +870,21 @@ window.RokApp = () => {
           <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
         </tr>`;
       }).join('');
+    } else if (COUNTERS[histTab]) {
+      const cf = COUNTERS[histTab], main = cf.sum || [cf.fields[0].k];
+      $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
+        ${cf.fields.map(f => `<th class="${th_}">${f.icon} ${f.label}</th>`).join('')}${cf.sum ? `<th class="${th_}">Gesamt</th>` : ''}<th class="${th_}">Veränderung</th><th class="w-8"></th></tr>`;
+      const val = (e) => main.reduce((a, k) => a + (+e[k] || 0), 0);
+      $('histRows').innerHTML = rows.map((e, i) => {
+        const prev = rows[i + 1], d = prev ? val(e) - val(prev) : null;
+        return `<tr class="border-b border-ink-800 hover:bg-ink-850">
+          <td class="py-2 pr-2 whitespace-nowrap text-slate-300">${dateLabel(e.ts)}</td>
+          ${cf.fields.map((f, j) => `<td class="py-2 px-2 text-right tabular-nums ${j === 0 && !cf.sum ? 'font-semibold text-gold-300' : ''}">${e[f.k] != null ? fmt(e[f.k]) : '–'}</td>`).join('')}
+          ${cf.sum ? `<td class="py-2 px-2 text-right tabular-nums font-semibold text-gold-300">${fmt(cntTotal(histTab, e))}</td>` : ''}
+          <td class="py-2 px-2 text-right tabular-nums ${d == null ? 'text-slate-500' : d >= 0 ? 'text-emerald-400' : 'text-red-400'}">${d == null ? '–' : (d >= 0 ? '+' : '−') + fmt(Math.abs(d))}</td>
+          <td class="text-right"><button data-hdel="${e.id}" class="text-slate-500 hover:text-red-400 px-1" title="Eintrag löschen">✕</button></td>
+        </tr>`;
+      }).join('');
     } else if (histTab === 'passports') {
       $('histHead').innerHTML = `<tr class="border-b border-ink-700"><th class="py-2 pr-2 font-medium text-left">Datum</th>
         <th class="${th_}">🛂 Passseiten</th><th class="${th_}">Benötigt</th><th class="${th_}">Veränderung</th><th class="w-8"></th></tr>`;
@@ -885,7 +928,7 @@ window.RokApp = () => {
     $('histRows').querySelectorAll('[data-hdel]').forEach(b => b.onclick = () => deleteEntry(b.dataset.hdel));
 
     const n = (t) => R.history.filter(e => e.type === t).length;
-    $('histCount').textContent = `${R.history.length} Scans gespeichert (${n('speedups')} Speedups, ${n('resources')} Ressourcen, ${n('vip')} VIP, ${n('gems')} Gems, ${n('ap')} AP, ${n('materials')} Mats, ${n('passports')} Passports) · nur Zahlenwerte, keine Bilder`;
+    $('histCount').textContent = `${R.history.length} Scans gespeichert (${n('speedups')} Speedups, ${n('resources')} Ressourcen, ${n('vip')} VIP, ${n('gems')} Gems, ${n('ap')} AP, ${n('materials')} Mats, ${n('passports')} Passports, ${n('goldheads')} Goldheads, ${n('keys')} Keys, ${n('armaments')} Armaments) · nur Zahlenwerte, keine Bilder`;
     $('resetChart').textContent = `🗑 ${TYPE_LABEL[histTab] || ''}-Diagramm zurücksetzen`;
     $('resetChart').disabled = !list.length; $('resetChart').classList.toggle('opacity-40', !list.length);
     $('resetHistory').disabled = !R.history.length;
@@ -1294,6 +1337,86 @@ window.RokApp = () => {
     savePassEntry(n, r.confidence || 'Scan', req).then(res => flash($('passSaveMsg'), savedText(res), true)).catch(e => showError(e.message || String(e)));
   }
 
+  // ---------- Zähler-Bereiche (Goldheads, Keys, Armaments) ----------
+  const cntLast = (m) => R.history.filter(e => e.type === m).sort((a, b) => b.ts - a.ts)[0];
+  function renderCntInputs(m) {
+    const cf = COUNTERS[m], last = cntLast(m);
+    $('cntInputs').innerHTML = `<h2 class="font-display text-lg text-gold-300 mb-1">2 · ${cf.title} eingeben</h2>
+      <p class="text-xs text-slate-400 mb-3">Anzahl aus dem Inventar. Ein Scan füllt die Felder – kurz prüfen, dann speichern.</p>
+      <div class="space-y-2">${cf.fields.map(f => `<label class="grid grid-cols-[1fr_110px] items-center gap-2 text-sm"><span class="text-slate-300">${f.icon} ${f.label}</span>
+        <input data-cnt="${f.k}" type="number" min="0" step="1" placeholder="0" value="${last && last[f.k] != null ? last[f.k] : ''}" class="cnt-in w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>`).join('')}</div>
+      ${cf.sum ? `<div class="mt-3 rounded-lg border border-gold-500/30 bg-gold-500/5 px-3 py-2 flex items-center justify-between"><span class="text-xs uppercase tracking-widest text-slate-400">Gesamt</span><span id="cntSum" class="text-lg font-extrabold text-gold-300 tabular-nums"></span></div>` : ''}
+      <div id="cntPrefillMsg" class="hidden mt-2 text-xs text-amber-300"></div>
+      <button id="cntSave" class="mt-3 w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">${cf.title} speichern</button>
+      <div id="cntSaveMsg" class="hidden mt-2 text-xs"></div>`;
+    const upd = () => { if ($('cntSum')) $('cntSum').textContent = fmt(cntTotal(m, readCntFields(m))) + ' ' + cf.unit; };
+    $('cntInputs').querySelectorAll('.cnt-in').forEach(i => i.addEventListener('input', () => { i.classList.remove('border-amber-400'); upd(); }));
+    upd();
+    $('cntSave').onclick = async () => {
+      const e = readCntFields(m);
+      if (!cf.fields.some(f => e[f.k])) { showError('Bitte mindestens eine Anzahl eintragen.'); return; }
+      hideError(); $('cntSave').disabled = true;
+      try { flash($('cntSaveMsg'), savedText(await saveCntEntry(m, e, 'manuell')), true); }
+      catch (er) { showError(er.message || String(er)); }
+      finally { if ($('cntSave')) $('cntSave').disabled = false; }
+    };
+  }
+  function readCntFields(m) {
+    const e = {};
+    COUNTERS[m].fields.forEach(f => { const el = $('cntInputs').querySelector(`[data-cnt="${f.k}"]`); e[f.k] = el ? Math.max(0, Math.round(+el.value || 0)) : 0; });
+    return e;
+  }
+  function renderCnt(m) {
+    const cf = COUNTERS[m], list = R.history.filter(e => e.type === m).sort((a, b) => b.ts - a.ts), e = list[0], prev = list[1];
+    if (!e) { $('cntSection').innerHTML = ''; return false; }
+    const delta = (a, b) => b == null || a == null ? '' : `<span class="${a - b >= 0 ? 'text-emerald-400' : 'text-red-400'}">${a - b >= 0 ? '+' : '−'}${fmt(Math.abs(a - b))}</span>`;
+    const big = (icon, c, label, value, d) => `<div class="panel rounded-2xl p-6 flex items-center gap-5">
+        <div class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,${c}33,${c}11);border:1px solid ${c}55">${icon}</div>
+        <div><div class="text-xs uppercase tracking-widest text-slate-400">${label}</div>
+          <div class="text-4xl font-extrabold text-white tabular-nums">${value}</div>
+          <div class="text-sm mt-1 text-slate-400">${prev ? `${d} seit ${dateLabel(prev.ts)}` : 'Erster Scan'}</div></div></div>`;
+    let html = `<div class="flex items-end justify-between"><h2 class="font-display text-2xl gold-text">${cf.title}</h2><span class="text-xs text-slate-400">Letzter Scan: ${dateLabel(e.ts)}</span></div>`;
+    if (cf.fields.length === 1) {
+      const f = cf.fields[0];
+      html += big(f.icon, f.c, f.label, fmt(e[f.k]), delta(e[f.k], prev?.[f.k]));
+    } else {
+      if (cf.sum) html += big(cf.icon, cf.c, cf.sumLabel, fmt(cntTotal(m, e)), delta(cntTotal(m, e), prev ? cntTotal(m, prev) : null));
+      const tot = cntTotal(m, e) || 0;
+      html += `<div class="grid grid-cols-2 ${cf.fields.length > 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-3'} gap-3">${cf.fields.map(f => {
+        const v = +e[f.k] || 0, inSum = cf.sum?.includes(f.k), pct = inSum && tot ? Math.round(v / tot * 100) : null;
+        return `<div class="panel rounded-2xl p-4">
+          <div class="flex items-center justify-between gap-2"><div class="text-[10px] uppercase tracking-widest text-slate-400 truncate">${f.icon} ${f.label}</div>${pct != null ? `<div class="text-[10px] text-slate-500 tabular-nums">${pct} %</div>` : ''}</div>
+          <div class="text-2xl font-bold tabular-nums mt-1" style="color:${f.c}">${fmt(v)}</div>
+          <div class="text-xs tabular-nums mt-0.5">${prev ? delta(v, +prev[f.k] || 0) || '' : ''}</div>
+          ${pct != null ? `<div class="mt-2 h-1.5 rounded-full bg-ink-950 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${f.c}"></div></div>` : ''}
+        </div>`; }).join('')}</div>`;
+    }
+    $('cntSection').innerHTML = html;
+    return true;
+  }
+  let activeCnt = {};   // je Bereich: Korrekturen innerhalb von 30 Minuten überschreiben den letzten Eintrag
+  async function saveCntEntry(m, entry, confidence) {
+    const a = activeCnt[m], fresh = a && Date.now() - a.ts < 30 * 60000 && R.history.some(e => e.id === a.id);
+    const ts = fresh ? a.ts : Date.now();
+    if (fresh) updateHistory(a.id, { ...entry, confidence });
+    else { activeCnt[m] = { id: newId(), ts }; addHistory({ id: activeCnt[m].id, ts, type: m, ...entry, confidence }); }
+    saveLastScan({ type: m, ts, ...entry });
+    applyMode();
+    return RokAuth.saveNow(m);
+  }
+  function prefillCnt(m, r) {
+    const cf = COUNTERS[m], src = r.counts && typeof r.counts === 'object' ? r.counts : r, e = {}; let found = 0;
+    cf.fields.forEach(f => { const v = toCount(src[f.k]); if (v != null) found++; e[f.k] = v ?? 0; });
+    if (!found) throw new Error(`Keine ${cf.title} im Screenshot erkannt. Bitte die Anzahl links von Hand eintragen.`);
+    activeCnt[m] = null;                                              // neuer Scan = neuer Verlaufseintrag
+    saveCntEntry(m, e, r.confidence || 'Scan').then(res => {
+      cf.fields.forEach(f => { const el = $('cntInputs').querySelector(`[data-cnt="${f.k}"]`); if (el && toCount(src[f.k]) != null) el.classList.add('border-amber-400'); });
+      $('cntPrefillMsg').textContent = `✓ Ausgewertet (${r.confidence || 'Scan'}). Falls eine Zahl nicht stimmt: Feld korrigieren und „${cf.title} speichern“ – das überschreibt diesen Scan.`;
+      $('cntPrefillMsg').classList.remove('hidden');
+      flash($('cntSaveMsg'), savedText(res), true);
+    }).catch(er => showError(er.message || String(er)));
+  }
+
   // ---------- Materialien: Eingabe, Auswertung, Karten ----------
   $('matsGrid').innerHTML = '<span></span>' + GRADES.map(g => `<span class="text-center" title="${g.label}"><i class="inline-block w-3 h-3 rounded-sm" style="background:${g.c}"></i></span>`).join('')
     + [CHEST, ...MATS].map(m => `<span class="text-slate-300 whitespace-nowrap truncate">${m.icon} ${m.label}</span>` + GRADES.map(g =>
@@ -1405,7 +1528,7 @@ window.RokApp = () => {
 
   // Getrennte Seiten: Ressourcen | VIP | Gems | Speedups | AP
   function applyMode() {
-    const has = { speedups: hasSpeed, resources: hasRes, vip: hasVip, gems: hasGems, ap: hasAp, mats: hasMats, passports: hasPass }[R.mode];
+    const has = { speedups: hasSpeed, resources: hasRes, vip: hasVip, gems: hasGems, ap: hasAp, mats: hasMats, passports: hasPass }[R.mode] ?? (COUNTERS[R.mode] ? renderCnt(R.mode) : false);
     document.querySelectorAll('.seg-btn[data-mode]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mode === R.mode));
     $('vipInputs').classList.toggle('hidden', R.mode !== 'vip');
     $('resSection').classList.toggle('hidden', R.mode !== 'resources' || !hasRes);
@@ -1416,6 +1539,10 @@ window.RokApp = () => {
     $('apInputs').classList.toggle('hidden', R.mode !== 'ap');
     $('passSection').classList.toggle('hidden', R.mode !== 'passports' || !hasPass);
     $('passInputs').classList.toggle('hidden', R.mode !== 'passports');
+    const isCnt = !!COUNTERS[R.mode];
+    $('cntInputs').classList.toggle('hidden', !isCnt);
+    $('cntSection').classList.toggle('hidden', !isCnt || !has);
+    if (isCnt && $('cntInputs').dataset.m !== R.mode) { renderCntInputs(R.mode); $('cntInputs').dataset.m = R.mode; }
     $('speedSection').classList.toggle('hidden', R.mode !== 'speedups' || !hasSpeed);
     $('speedInputs').classList.toggle('hidden', R.mode !== 'speedups');
     $('speedOpts').classList.toggle('hidden', R.mode !== 'speedups');
@@ -1435,7 +1562,10 @@ window.RokApp = () => {
       ap: 'Lade einen Screenshot deiner AP-Flaschen aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag die Anzahl je Flaschengröße links ein.',
       speedups: 'Lade Screenshots deiner Beschleuniger aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag deinen Bestand links unter „Speedups eingeben“ ein.',
       mats: 'Lade Screenshots deiner Schmiedematerialien aus dem Rucksack hoch und klicke auf „Materialien scannen“ – oder trag die Anzahl links von Hand ein.',
-      passports: 'Lade einen Screenshot deiner Passseiten aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag die Anzahl links von Hand ein.'
+      passports: 'Lade einen Screenshot deiner Passseiten aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag die Anzahl links von Hand ein.',
+      goldheads: 'Lade einen Screenshot deiner universellen legendären Skulpturen (Goldheads) hoch und klicke auf „Analysieren“ – oder trag die Anzahl links von Hand ein.',
+      keys: 'Lade einen Screenshot deiner Schlüssel aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag die Anzahl links von Hand ein.',
+      armaments: 'Lade Screenshots deiner Armaments und Schriftrollen hoch und klicke auf „Analysieren“ – oder trag die Anzahl links von Hand ein.'
     }[R.mode];
     histTab = R.mode === 'mats' ? 'materials' : R.mode; syncTabs(); renderHistory();
     renderHub();
@@ -1449,7 +1579,8 @@ window.RokApp = () => {
     { m: 'gems', icon: '💎', label: 'Gems', c: '#f472b6' },
     { m: 'resources', icon: '🌾', label: 'Ressourcen', c: '#fb923c' },
     { m: 'mats', icon: '🧱', label: 'Mats', c: '#a78bfa' },
-    { m: 'passports', icon: '🛂', label: 'Passports', c: '#818cf8' }
+    { m: 'passports', icon: '🛂', label: 'Passports', c: '#818cf8' },
+    ...CNT_TYPES.map(m => ({ m, icon: COUNTERS[m].icon, label: COUNTERS[m].title, c: COUNTERS[m].c }))
   ];
   const hubLast = (t, ok) => R.history.filter(e => e.type === t && ok(e)).sort((a, b) => b.ts - a.ts)[0];
   function hubValue(m) {
@@ -1460,6 +1591,8 @@ window.RokApp = () => {
     if (m === 'resources') { const e = hubLast('resources', x => x.total != null); return e ? short(e.total) : null; }
     if (m === 'mats') { const e = hubLast('materials', x => x.total_leg != null); return e ? fmt(Math.floor(e.total_leg)) + ' Legendär' : null; }
     if (m === 'passports') { const e = hubLast('passports', x => x.passports != null); return e ? fmt(e.passports) : null; }
+    if (m === 'keys') { const e = hubLast('keys', () => true); return e ? `${fmt(e.key_gold || 0)} Gold · ${fmt(e.key_silver || 0)} Silber` : null; }
+    if (COUNTERS[m]) { const e = hubLast(m, () => true); return e ? fmt(cntTotal(m, e)) + ' ' + COUNTERS[m].unit : null; }
     return null;
   }
   function renderHub() {
