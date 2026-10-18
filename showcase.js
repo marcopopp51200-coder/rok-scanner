@@ -2664,6 +2664,8 @@ window.RokMods.showcase = (R) => {
   };
   R.ownShowcase = ownShowcase;
   R.showcaseList = () => { try { return ownShowcase().list.map((x) => ({ id: x.id, title: x.title, sets: x.sets })); } catch { return []; } };
+  // Rauten-Brett wie im Showcase, nur zum Anzeigen (z. B. Help Me) – g = { helm: {...}, chest: {...}, … }, fx = Rahmen-Einstellungen des Sets
+  R.gearBoardHTML = (g, fx) => { const o = sc.own; sc.own = false; try { return scGearBoard(scGearNorm(g || {}), false, false, scGfxNorm(fx)); } finally { sc.own = o; } };
   let scH2I = null;
   const scLoadH2I = () => scH2I || (scH2I = new Promise((resolve, reject) => {
     if (window.htmlToImage) return resolve(window.htmlToImage);
