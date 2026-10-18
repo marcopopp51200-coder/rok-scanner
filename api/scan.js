@@ -136,17 +136,24 @@ A) EIGENES PROFIL (hochkant): Oben eine Leiste "Aktionspunkte / Action Points 1,
      Bündnis / Alliance          [S79]Saints of 79
      Macht / Energie / Power     85,141,754
      Kill-Punkte / Kill Points   5,482,675,899
-     Verdienst / Acclaim         0                 ← NICHT verwenden
+     Verdienst / Acclaim         0                 ← aktueller Verdienst → "acclaim" (oft 0, NICHT der Höchste)
      Höchster Verdienst / Highest Acclaim   20,061,883
-   Ganz unten drei Abzeichen: "Champions of Olympia", "Ark of Osiris – 9 Wins", "Lost Kingdom – 4x Autarch".
+   Ganz unten drei Abzeichen: "Champions of Olympia / Champions von Olympia", "Ark of Osiris – 9 Wins" bzw. deutsch "Truhe des Osiris – 9 Siege",
+   "Lost Kingdom – 4x Autarch" bzw. deutsch "Verlorenes Königreich – 4x Alleinherrscher".
 
 B) FREMDES PROFIL (quer, Banner links): rechts oben "Governor(ID: 149655218)" und der Name. Darunter ein Raster aus 2 Zeilen × 3 Spalten,
    der Wert steht jeweils DIREKT UNTER seiner Beschriftung:
      Alliance [S79]Saints of 79 | Kill Points 48,173,763 | Power 26,616,910
      Civilization Spain         | Acclaim 0              | Highest Acclaim 224,895
-   Unten drei Abzeichen: "Champions of Olympia N/A", "Ark of Osiris 2 Wins", "Lost Kingdom 0x Autarch".
+   Unten drei Abzeichen: "Champions of Olympia N/A", "Ark of Osiris 2 Wins" (deutsch "Truhe des Osiris 2 Siege"), "Lost Kingdom 0x Autarch" (deutsch "Verlorenes Königreich 0x Alleinherrscher").
 
 C) "WEITERE INFOS / MORE INFO": Liste mit u. a. "Tote / Dead" (gefallene Einheiten), ggf. auch Kill-Punkte und Macht.
+
+D) LOST-KINGDOM-STATISTIK ("Most Units", gelbe Kacheln): oben drei Kacheln mit Beschriftung oben und Zahl darunter:
+     "Times Named Autarch" / "Mal Alleinherrscher" 4 | "Times Participated" / "Teilnahmen" 13 | "Most Units Killed" / "Meiste getötete Einheiten" 89,827,934
+   darunter zwei Zeilen: "Most Units Lost" 1,949,570 und "Most Units Healed" 42,174,599.
+   → view = "lk_stats". Hier NUR lk_autarch, lk_participated, units_killed, units_lost, units_healed füllen.
+   "Most Units Killed" ist NICHT kill_points! kill_points, energy, highest_merit, acclaim, deads, ark_wins = null.
 
 Ordne jeden Wert seiner Beschriftung zu (Ansicht A: gleiche Zeile rechts, Ansicht B: direkt darunter) – nicht nach Größe raten.
 - "governor_id"   = Ziffern hinter "ID:" (als Text, z. B. "148759624")
@@ -156,8 +163,10 @@ Ordne jeden Wert seiner Beschriftung zu (Ansicht A: gleiche Zeile rechts, Ansich
 - "kill_points"   = Kill-Punkte / Kill Points
 - "highest_merit" = Höchster Verdienst / Highest Acclaim (NIEMALS der normale "Verdienst"/"Acclaim", der oft 0 ist)
 - "deads"         = Tote / Dead (nur wenn sichtbar, sonst null)
-- "ark_wins"      = Zahl vor "Wins"/"Siege" beim Abzeichen Ark of Osiris / Arche des Osiris
-- "lk_autarch"    = Zahl vor "x Autarch" beim Abzeichen Lost Kingdom / Verlorenes Königreich ("0x Autarch" = 0)
+- "acclaim"       = aktueller Verdienst / Acclaim (die Zeile OHNE "Höchster"; oft 0 – dann 0, nicht null)
+- "ark_wins"      = Zahl vor "Wins"/"Siege" beim Abzeichen Ark of Osiris / Truhe des Osiris / Arche des Osiris
+- "lk_autarch"    = Zahl vor "x Autarch" / "x Alleinherrscher" beim Abzeichen Lost Kingdom / Verlorenes Königreich ("0x" = 0)
+- "lk_participated" = "Times Participated" / "Teilnahmen" (nur Ansicht D, sonst null)
 - "units_killed"  = "Most Units Killed" / "Meiste getötete Einheiten" (nur wenn sichtbar, sonst null)
 - "units_lost"    = "Most Units Lost" / "Meiste verlorene Einheiten" (nur wenn sichtbar, sonst null)
 - "units_healed"  = "Most Units Healed" / "Meiste geheilte Einheiten" (nur wenn sichtbar, sonst null)
@@ -167,7 +176,7 @@ Lies jede Ziffer einzeln und genau ab – lieber null als geraten. Fehlt ein Wer
 Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
 {
   "type": "governor",
-  "view": "own" | "other" | "more_info",
+  "view": "own" | "other" | "more_info" | "lk_stats",
   "governor_id": string|null,
   "name": string|null,
   "alliance_tag": string|null,
@@ -175,9 +184,11 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
   "energy": number|null,
   "kill_points": number|null,
   "highest_merit": number|null,
+  "acclaim": number|null,
   "deads": number|null,
   "ark_wins": number|null,
   "lk_autarch": number|null,
+  "lk_participated": number|null,
   "units_killed": number|null,
   "units_lost": number|null,
   "units_healed": number|null,
