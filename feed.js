@@ -28,7 +28,7 @@ window.RokMods.feed = (R) => {
     attach: null, busy: false, admin: false, text: '', filter: 'all', q: '', hasMore: false, moreBusy: false, gq: '', lastSync: 0,
     comments: {}, cmOpen: new Set(), cmDraft: {}, cmBusy: false, noCm: false, deferRender: false,
     cmGif: {}, cmMsg: {}, gifFor: null, edit: null, editBusy: false, notifs: [], nOpen: false, noNotif: false, flash: null,
-    gset: 'all', votes: {}, noVotes: false, pollAnim: new Set(), pollSeen: new Set(), reactBump: null };
+    gset: 'all', gsetOpen: false, fOpen: false, pollChange: new Set(), pollDur: 24, votes: {}, noVotes: false, pollAnim: new Set(), pollSeen: new Set(), reactBump: null };
   const db = () => A.db();
   const me = () => A.userId();
   const root = $('feedView');
@@ -64,9 +64,15 @@ window.RokMods.feed = (R) => {
       @keyframes fxFw{0%{transform:translate(0,0) scale(1.2);opacity:1}70%{opacity:.9}100%{transform:translate(var(--tx),calc(var(--ty) + 14px)) scale(.2);opacity:0}}
       .fx-skull{position:absolute;top:-20px;font-size:var(--fs,13px);line-height:1;opacity:0;filter:drop-shadow(0 0 4px rgba(239,68,68,.55));animation:fxSkull var(--t,6s) linear infinite;animation-delay:var(--d,0s)}
       @keyframes fxSkull{0%{transform:translate(0,0) rotate(0);opacity:0}10%{opacity:.6}85%{opacity:.45}100%{transform:translate(var(--dx,0px),230px) rotate(var(--r,160deg));opacity:0}}
-      .fx-res{position:absolute;bottom:-20px;font-size:var(--fs,14px);line-height:1;opacity:0;animation:fxRes var(--t,9s) ease-in-out infinite;animation-delay:var(--d,0s)}
-      @keyframes fxRes{0%{transform:translate(0,0) rotate(0) scale(.8);opacity:0}15%{opacity:.42}50%{transform:translate(calc(var(--dx,0px) * .5),-110px) rotate(var(--r,12deg)) scale(1)}85%{opacity:.3}100%{transform:translate(var(--dx,0px),-230px) rotate(0) scale(.9);opacity:0}}
-      .fx-stock .fx-layer::before{content:"";position:absolute;top:-50%;bottom:-50%;left:-40%;width:35%;background:linear-gradient(100deg,rgba(110,231,183,0),rgba(110,231,183,.10) 45%,rgba(220,255,240,.22) 50%,rgba(110,231,183,.10) 55%,rgba(110,231,183,0));transform:translateX(-120%) skewX(-12deg);animation:fxSweep 7s ease-in-out infinite}
+      .fx-res{position:absolute;top:-40px;font-size:var(--fs,14px);line-height:1;opacity:0;animation:fxRain var(--t,8s) linear infinite;animation-delay:var(--d,0s)}
+      @keyframes fxRain{
+        0%{top:-40px;transform:rotate(0deg);opacity:0;animation-timing-function:cubic-bezier(.5,0,1,1)}
+        4%{opacity:.95}
+        22%{top:calc(100% - var(--fs,22px) - var(--y,0px));transform:rotate(var(--r,20deg));animation-timing-function:ease-out}
+        26%{top:calc(100% - var(--fs,22px) - var(--y,0px) - 7px);transform:rotate(calc(var(--r,20deg) * .7));animation-timing-function:ease-in}
+        30%{top:calc(100% - var(--fs,22px) - var(--y,0px));transform:rotate(var(--r,20deg))}
+        80%{top:calc(100% - var(--fs,22px) - var(--y,0px));opacity:.9}
+        100%{top:calc(100% - var(--fs,22px) - var(--y,0px));transform:rotate(var(--r,20deg)) scale(.85);opacity:0}}
       .fx-helper{animation:fxBob 2.6s ease-in-out infinite}
       @keyframes fxBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
       .fx-flag{transform-box:fill-box;transform-origin:0% 50%;animation:fxFlag 1.1s ease-in-out infinite}
@@ -89,6 +95,10 @@ window.RokMods.feed = (R) => {
       .fx-heart{font-size:15px;line-height:1;animation:fxHeart 1.15s ease-out forwards}
       @keyframes fxHeart{0%{transform:translate(-50%,-50%) scale(.5);opacity:0}20%{opacity:1;transform:translate(-50%,-110%) scale(1.1)}100%{transform:translate(calc(-50% + var(--dx)),-330%) scale(.85);opacity:0}}
       .fx-bar{transition:width 1s cubic-bezier(.2,.8,.2,1)}
+      .fx-barshine{position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none}
+      .fx-barshine::before{content:"";position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(100deg,rgba(255,240,190,0),rgba(255,240,190,.18) 35%,rgba(255,250,225,.55) 50%,rgba(255,240,190,.18) 65%,rgba(255,240,190,0));transform:translateX(-110%) skewX(-14deg);animation:fxShine 2.8s ease-in-out infinite}
+      @keyframes fxShine{0%,10%{transform:translateX(-110%) skewX(-14deg)}70%,100%{transform:translateX(270%) skewX(-14deg)}}
+      .fx-res img{width:var(--fs,22px);height:var(--fs,22px);object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
       .fx-pollopt{transition:transform .15s ease,border-color .15s ease,background-color .15s ease}
       .fx-pollopt:hover{transform:translateY(-1px)}
       @media (prefers-reduced-motion: reduce){.fx-layer,.fx-spark,.fx-rp,.fx-rocket,.fx-fw{display:none!important}.fx-forge,.fx-pop,.fx-count,.fx-helper,.fx-flag,.fx-arm{animation:none!important}.fx-bar{transition:none!important}}`;
@@ -100,7 +110,8 @@ window.RokMods.feed = (R) => {
   const emberLayer = (n = 14) => `<div class="fx-layer">${Array.from({ length: n }, (_, i) => `<span class="fx-ember" style="left:${(rnd(i, 7) * 96 + 2).toFixed(1)}%;--sz:${(2 + rnd(i, 8) * 2.5).toFixed(1)}px;--t:${(2.6 + rnd(i, 9) * 2.6).toFixed(2)}s;--d:${(-rnd(i, 10) * 5).toFixed(2)}s;--dx:${((rnd(i, 11) - .5) * 36).toFixed(0)}px"></span>`).join('')}</div>`;
   const skullLayer = (n = 9) => `<div class="fx-layer">${Array.from({ length: n }, (_, i) => `<span class="fx-skull" style="left:${(rnd(i, 21) * 92 + 2).toFixed(1)}%;--fs:${(10 + rnd(i, 22) * 7).toFixed(0)}px;--t:${(5 + rnd(i, 23) * 4).toFixed(2)}s;--d:${(-rnd(i, 24) * 9).toFixed(2)}s;--dx:${((rnd(i, 25) - .5) * 40).toFixed(0)}px;--r:${((rnd(i, 26) - .5) * 360).toFixed(0)}deg">💀</span>`).join('')}</div>`;
   const resLayer = (icons, n = 12) => { const ic = icons.length ? icons : ['🪙'];
-    return `<div class="fx-layer">${Array.from({ length: n }, (_, i) => `<span class="fx-res" style="left:${(rnd(i, 31) * 92 + 2).toFixed(1)}%;--fs:${(12 + rnd(i, 32) * 8).toFixed(0)}px;--t:${(8 + rnd(i, 33) * 6).toFixed(2)}s;--d:${(-rnd(i, 34) * 14).toFixed(2)}s;--dx:${((rnd(i, 35) - .5) * 50).toFixed(0)}px;--r:${((rnd(i, 36) - .5) * 40).toFixed(0)}deg">${ic[i % ic.length]}</span>`).join('')}</div>`; };
+    return `<div class="fx-layer">${Array.from({ length: n }, (_, i) => { const x = ic[i % ic.length], img = /\.(png|webp|jpe?g)$/i.test(x);
+      return `<span class="fx-res" style="left:${(rnd(i, 31) * 94 + 1).toFixed(1)}%;--fs:${((img ? 20 : 14) + rnd(i, 32) * (img ? 12 : 8)).toFixed(0)}px;--t:${(6 + rnd(i, 33) * 5).toFixed(2)}s;--d:${(-rnd(i, 34) * 11).toFixed(2)}s;--y:${(rnd(i, 37) * 12).toFixed(0)}px;--r:${((rnd(i, 36) - .5) * 70).toFixed(0)}deg">${img ? `<img src="${esc(x)}" alt="" loading="lazy">` : x}</span>`; }).join('')}</div>`; };
   // Feuerwerk über der Craft-Karte: Rakete steigt auf und zerplatzt in bunte Funken
   const FW_COL = ['#ffd27a', '#ffb020', '#ff7a18', '#fde68a', '#fff', '#f87171', '#fca5a5', '#7dd3fc'];
   function fireworkBurst(el) {
@@ -204,6 +215,7 @@ window.RokMods.feed = (R) => {
       const { data, error } = await db().from('feed_posts').select('*').order('created_at', { ascending: false }).limit(LIMIT);
       if (error) throw error;
       st.posts = data || []; st.pending = []; st.hasMore = st.posts.length === LIMIT;
+      await addEndedPolls();
       const ids = st.posts.map((p) => p.id);
       [st.reacts, st.comments, st.votes] = await Promise.all([fetchReacts(ids), fetchComments(ids), fetchVotes(st.posts)]);
       st.users = {}; await addUsers([...st.posts, ...Object.values(st.comments).flat()]);
@@ -211,6 +223,24 @@ window.RokMods.feed = (R) => {
     } catch (e) { if (R.tableMissing(e)) st.noTable = true; else st.err = A.germanError ? A.germanError(e) : String(e.message || e); }
     st.loading = false; st.loaded = true; renderList();
   }
+  // Umfragen, die in den letzten 7 Tagen geendet haben, kommen mit dem Ergebnis wieder nach oben – auch wenn sie älter als die geladenen Beiträge sind
+  async function addEndedPolls() {
+    try {
+      const now = new Date(), from = new Date(Date.now() - 7 * 864e5);
+      const { data, error } = await db().from('feed_posts').select('*').eq('kind', 'poll').gte('data->>ends', from.toISOString()).lte('data->>ends', now.toISOString()).limit(20);
+      if (error || !data) return;
+      const have = new Set(st.posts.map((p) => p.id));
+      data.filter((p) => !have.has(p.id)).forEach((p) => { p._bump = true; st.posts.push(p); });
+    } catch {}
+  }
+  let pollEndSeen = new Set();
+  setInterval(() => {   // läuft eine Umfrage ab, während der Feed offen ist → neu sortieren
+    if (R.view !== 'feed' || document.hidden) return;
+    let changed = false;
+    st.posts.forEach((p) => { if (pollOver(p) && !pollEndSeen.has(p.id)) { pollEndSeen.add(p.id); changed = true; } });
+    root.querySelectorAll('[data-poll-left]').forEach((el) => { const p = st.posts.find((x) => x.id === el.dataset.pollLeft), e = pollEnds(p); if (e && e > Date.now()) el.textContent = `⏳ noch ${leftTxt(e - Date.now())}`; });
+    if (changed && !typing()) renderList();
+  }, 30000);
   const sig = () => JSON.stringify([st.posts.map((p) => p.id + (p.image || '') + (p.edited_at || '')), st.pending.length, Object.entries(st.reacts).map(([k, v]) => k + v.map((x) => x.user_id + x.emoji).join()), Object.values(st.comments).flat().map((c) => c.id + (c.image || '') + (c.edited_at || '')), Object.entries(st.votes).map(([k, v]) => k + v.length)]);
   const typing = () => { const l = $('feedList'), a = document.activeElement; return !!(l && a && l.contains(a) && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) || !!st.edit; };
   const scrolledDown = () => { const l = $('feedList'); return !!l && l.getBoundingClientRect().top < -150; };
@@ -219,14 +249,15 @@ window.RokMods.feed = (R) => {
     if (st.polling || st.loading || st.noTable || !st.loaded) return;
     st.polling = true;
     try {
-      const all = [...st.pending, ...st.posts];
+      const all = [...st.pending, ...st.posts.filter((p) => !p._bump)];
       const win = all.slice(0, LIMIT), cutoff = win.length ? win[win.length - 1].created_at : null;
       let q = db().from('feed_posts').select('*').order('created_at', { ascending: false });
       q = cutoff ? q.gte('created_at', cutoff).limit(200) : q.limit(LIMIT);
       const { data, error } = await q;
       if (error) throw error;
       const fresh = data || [], shown = new Set(st.posts.map((p) => p.id));
-      const older = cutoff ? st.posts.filter((p) => p.created_at < cutoff) : [];
+      const fids = new Set((data || []).map((p) => p.id));
+      const older = st.posts.filter((p) => !fids.has(p.id) && (p._bump || (cutoff && p.created_at < cutoff)));
       const before = sig();
       await addUsers(fresh);
       const newOnes = fresh.filter((p) => !shown.has(p.id) && p.user_id !== me());
@@ -252,7 +283,7 @@ window.RokMods.feed = (R) => {
     if (st.moreBusy || !st.posts.length) return;
     st.moreBusy = true; renderList();
     try {
-      const oldest = st.posts[st.posts.length - 1].created_at;
+      const reg = st.posts.filter((p) => !p._bump), oldest = (reg[reg.length - 1] || st.posts[st.posts.length - 1]).created_at;
       const { data, error } = await db().from('feed_posts').select('*').order('created_at', { ascending: false }).lt('created_at', oldest).limit(LIMIT);
       if (error) throw error;
       const add = data || [];
@@ -314,7 +345,8 @@ window.RokMods.feed = (R) => {
   function cleanData(a) {
     const d = { ...(a.data || {}) };
     delete d._segs; delete d.opt; delete d._kx;
-    if (a.kind === 'poll') { d.q = String(d.q || '').trim().slice(0, 140); d.opts = (d.opts || []).map((o) => String(o).trim().slice(0, 60)).filter(Boolean).slice(0, 4); }
+    if (a.kind === 'poll') { d.q = String(d.q || '').trim().slice(0, 140); d.opts = (d.opts || []).map((o) => String(o).trim().slice(0, 60)).filter(Boolean).slice(0, 4);
+      const h = +d.dur || 0; d.dur = h; d.ends = h ? new Date(Date.now() + h * 3600e3).toISOString() : null; }
     return Object.keys(d).length ? d : null;
   }
   async function del(id) {
@@ -570,15 +602,27 @@ window.RokMods.feed = (R) => {
   // ---------- Umfragen: abstimmen (eine Stimme je Spieler) ----------
   const VOTE_KEY = 'rok_poll_votes';
   const localVotes = () => { try { return JSON.parse(localStorage.getItem(VOTE_KEY) || '{}'); } catch { return {}; } };
+  const pollEnds = (p) => { const e = p && p.kind === 'poll' && p.data && p.data.ends ? Date.parse(p.data.ends) : NaN; return Number.isFinite(e) ? e : null; };
+  const pollOver = (p) => { const e = pollEnds(p); return e != null && e <= Date.now(); };
+  const leftTxt = (ms) => { const m = Math.max(1, Math.round(ms / 60000)); return m < 60 ? `${m} Min.` : m < 48 * 60 ? `${Math.round(m / 60)} Std.` : `${Math.round(m / 1440)} Tage`; };
+  const sortTs = (p) => (pollOver(p) ? pollEnds(p) : Date.parse(p.created_at) || 0);   // beendete Umfrage rückt mit dem Ende nach oben
   const myVote = (pid) => { const v = (st.votes[pid] || []).find((x) => x.user_id === me()); if (v) return +v.opt; const l = localVotes()[pid]; return l == null ? null : +l; };
   async function vote(pid, i) {
-    if (myVote(pid) != null) return;
     const p = st.posts.find((x) => x.id === pid); if (!p || !p.data || !(p.data.opts || [])[i]) return;
-    (st.votes[pid] = st.votes[pid] || []).push({ post_id: pid, user_id: me(), opt: i, created_at: new Date().toISOString() });
+    if (pollOver(p)) { msg('Diese Umfrage ist schon beendet.', 'warn'); renderList(); return; }
+    const old = myVote(pid), change = old != null;
+    st.pollChange.delete(pid);
+    if (old === i) { renderList(); return; }
+    const list = (st.votes[pid] = (st.votes[pid] || []).filter((v) => v.user_id !== me()));
+    list.push({ post_id: pid, user_id: me(), opt: i, created_at: new Date().toISOString() });
     try { const l = localVotes(); l[pid] = i; localStorage.setItem(VOTE_KEY, JSON.stringify(l)); } catch {}
     st.pollAnim.add(pid); renderList();
     if (st.noVotes) { msg('Stimme nur auf diesem Gerät gespeichert – die Tabelle „feed_votes“ fehlt noch in Supabase (SQL im Chat).', 'warn'); return; }
-    try { const { error } = await db().from('feed_votes').insert({ post_id: pid, user_id: me(), opt: i }); if (error) throw error; }
+    try {
+      const { error } = change ? await db().from('feed_votes').upsert({ post_id: pid, user_id: me(), opt: i }, { onConflict: 'post_id,user_id' })
+        : await db().from('feed_votes').insert({ post_id: pid, user_id: me(), opt: i });
+      if (error) throw error;
+    }
     catch (e) {
       if (R.tableMissing(e)) { st.noVotes = true; msg('Stimme nur auf diesem Gerät gespeichert – die Tabelle „feed_votes“ fehlt noch in Supabase (SQL im Chat).', 'warn'); }
       else if (!/duplicate|unique/i.test(String(e.message || e))) msg('Abstimmen fehlgeschlagen: ' + (e.message || e), 'err');
@@ -689,7 +733,7 @@ window.RokMods.feed = (R) => {
     renderComposer();
   }
   // ---------- Umfrage ----------
-  function attachPoll() { st.attach = { kind: 'poll', data: { q: '', opts: ['', ''] } }; renderComposer(); setTimeout(() => { const q = root.querySelector('[data-f="pq"]'); if (q) q.focus(); }, 30); }
+  function attachPoll() { st.attach = { kind: 'poll', data: { q: '', opts: ['', ''], dur: st.pollDur } }; renderComposer(); setTimeout(() => { const q = root.querySelector('[data-f="pq"]'); if (q) q.focus(); }, 30); }
 
   // ---------- Craft-Upgrade: Teil wählen + was genau verbessert wurde ----------
   const CAT_LABEL = { helm: 'Helm', chest: 'Brust', weapon: 'Waffe', gloves: 'Handschuhe', legs: 'Beine', boots: 'Stiefel', accessory: 'Accessoire' };
@@ -982,23 +1026,28 @@ window.RokMods.feed = (R) => {
   // Umfrage im RoK-Stil: erst Buttons, nach der Stimme animierte Prozentbalken
   const pollTile = (p, preview) => {
     const d = p.data || {}, opts = d.opts || [], votes = preview ? [] : st.votes[p.id] || [], mine = preview ? null : myVote(p.id);
+    const ends = preview ? (d.dur ? Date.now() + d.dur * 3600e3 : null) : pollEnds(p), over = !preview && pollOver(p), changing = !over && st.pollChange.has(p.id);
     const cnt = opts.map((_, i) => votes.filter((v) => +v.opt === i).length);
     if (mine != null && !votes.some((v) => v.user_id === me())) cnt[mine] = (cnt[mine] || 0) + 1;   // nur lokal gespeicherte Stimme mitzählen
-    const total = cnt.reduce((a, b) => a + b, 0), showRes = mine != null, max = Math.max(...cnt, 0);
+    const total = cnt.reduce((a, b) => a + b, 0), showRes = (mine != null || over) && !changing, max = Math.max(...cnt, 0);
     const anim = showRes && (st.pollAnim.has(p.id) || !st.pollSeen.has(p.id)); if (showRes && !preview) { st.pollSeen.add(p.id); st.pollAnim.delete(p.id); }
     const L = 'ABCD';
     const rows = opts.map((o, i) => { const pct = total ? Math.round(cnt[i] / total * 100) : 0, me1 = mine === i, top = showRes && cnt[i] === max && max > 0;
-      if (!showRes) return `<button type="button" ${preview ? 'disabled' : `data-poll="${esc(p.id)}|${i}"`} class="fx-pollopt w-full flex items-center gap-3 rounded-lg border border-gold-500/30 bg-ink-950/70 hover:border-gold-400 hover:bg-gold-500/10 px-3 py-2 text-left disabled:cursor-default">
-          <span class="w-6 h-6 shrink-0 rounded-md grid place-items-center text-[11px] font-extrabold bg-gold-500/15 border border-gold-500/50 text-gold-200">${L[i]}</span><span class="text-sm text-slate-100 min-w-0 break-words">${esc(o)}</span></button>`;
+      if (!showRes) return `<button type="button" ${preview ? 'disabled' : `data-poll="${esc(p.id)}|${i}"`} class="fx-pollopt w-full flex items-center gap-3 rounded-lg border ${me1 ? 'border-gold-400 bg-gold-500/10' : 'border-gold-500/30 bg-ink-950/70'} hover:border-gold-400 hover:bg-gold-500/10 px-3 py-2 text-left disabled:cursor-default">
+          <span class="w-6 h-6 shrink-0 rounded-md grid place-items-center text-[11px] font-extrabold ${me1 ? 'bg-gold-500 text-ink-950' : 'bg-gold-500/15 border border-gold-500/50 text-gold-200'}">${me1 ? '✓' : L[i]}</span><span class="text-sm text-slate-100 min-w-0 break-words">${esc(o)}</span>${me1 ? '<span class="ml-auto text-[10px] text-gold-300 whitespace-nowrap">deine Stimme</span>' : ''}</button>`;
       return `<div class="relative overflow-hidden rounded-lg border ${me1 ? 'border-gold-400' : 'border-ink-600'} bg-ink-950/70 px-3 py-2">
-          <div class="fx-bar absolute inset-y-0 left-0 ${top ? 'bg-gradient-to-r from-gold-600/55 to-gold-400/35' : 'bg-gradient-to-r from-slate-500/30 to-slate-400/15'}" style="width:${anim ? 0 : pct}%"${anim ? ` data-bar-w="${pct}"` : ''}></div>
-          <div class="relative flex items-center gap-3"><span class="w-6 h-6 shrink-0 rounded-md grid place-items-center text-[11px] font-extrabold ${me1 ? 'bg-gold-500 text-ink-950' : 'bg-ink-800 text-slate-300 border border-ink-600'}">${me1 ? '✓' : L[i]}</span>
-            <span class="text-sm text-slate-100 min-w-0 flex-1 break-words">${esc(o)}</span><span class="text-[11px] text-slate-400 tabular-nums whitespace-nowrap">${cnt[i]} Stimme${cnt[i] === 1 ? '' : 'n'}</span><span class="w-11 text-right font-bold tabular-nums ${top ? 'text-gold-200' : 'text-slate-200'}">${pct} %</span></div></div>`; }).join('');
+          <div class="fx-bar absolute inset-y-0 left-0 overflow-hidden ${top ? 'bg-gradient-to-r from-gold-600/55 to-gold-400/35' : 'bg-gradient-to-r from-slate-500/30 to-slate-400/15'}" style="width:${anim ? 0 : pct}%"${anim ? ` data-bar-w="${pct}"` : ''}>${top ? '<span class="fx-barshine"></span>' : ''}</div>
+          <div class="relative flex items-center gap-3"><span class="w-6 h-6 shrink-0 rounded-md grid place-items-center text-[11px] font-extrabold ${me1 ? 'bg-gold-500 text-ink-950' : over && top ? 'bg-gold-500/30 text-gold-100 border border-gold-400' : 'bg-ink-800 text-slate-300 border border-ink-600'}">${me1 ? '✓' : over && top ? '👑' : L[i]}</span>
+            <span class="text-sm text-slate-100 min-w-0 flex-1 break-words">${esc(o)}</span><span class="text-[11px] text-slate-400 tabular-nums whitespace-nowrap">${cnt[i]} Stimme${cnt[i] === 1 ? '' : 'n'}</span><span class="w-12 text-right font-bold tabular-nums whitespace-nowrap ${top ? 'text-gold-200' : 'text-slate-200'}">${pct} %</span></div></div>`; }).join('');
     return `<div class="relative overflow-hidden rounded-xl border border-gold-500/40 p-3.5 flex flex-col gap-2.5" style="background:radial-gradient(120% 80% at 50% 0%, rgba(245,197,66,.14), transparent 60%), linear-gradient(180deg,#161e2f,#0c1019)">
-      <div class="flex items-center justify-between gap-2"><span class="text-[10px] uppercase tracking-[.25em] text-gold-300">📊 Allianz-Umfrage</span><span class="text-[11px] text-slate-500 tabular-nums">${preview ? 'Vorschau' : `${total} Stimme${total === 1 ? '' : 'n'}`}</span></div>
+      <div class="flex items-center justify-between gap-2"><span class="text-[10px] uppercase tracking-[.25em] ${over ? 'text-emerald-300' : 'text-gold-300'}">${over ? '🏁 Umfrage beendet' : '📊 Allianz-Umfrage'}</span>
+        <span class="text-[11px] text-slate-500 tabular-nums text-right">${preview ? 'Vorschau' : `${total} Stimme${total === 1 ? '' : 'n'}`}${ends ? `<span class="block ${over ? 'text-emerald-400/80' : 'text-gold-300/80'}" data-poll-left="${esc(p.id)}">${over ? 'Ergebnis steht fest' : `⏳ noch ${leftTxt(ends - Date.now())}`}</span>` : ''}</span></div>
       <div class="font-display text-lg text-slate-100 leading-snug break-words">${esc(d.q || 'Frage …')}</div>
       <div class="flex flex-col gap-1.5">${rows}</div>
-      ${showRes ? '<div class="text-[11px] text-slate-500">✓ Du hast abgestimmt</div>' : preview ? '' : '<div class="text-[11px] text-slate-500">Tippe auf eine Antwort – du kannst einmal abstimmen.</div>'}</div>`;
+      ${over ? `<div class="text-[11px] text-slate-400">${total ? `🏆 Gewonnen: <b class="text-gold-200">${esc(opts[cnt.indexOf(max)] || '')}</b>` : 'Niemand hat abgestimmt.'}${mine != null ? ` · deine Stimme: ${esc(opts[mine] || '')}` : ''}</div>`
+        : changing ? `<div class="flex items-center justify-between gap-2 text-[11px] text-slate-400"><span>Neue Antwort antippen</span><button type="button" data-poll-keep="${esc(p.id)}" class="text-slate-400 hover:text-slate-200">Abbrechen</button></div>`
+        : showRes ? `<div class="flex items-center justify-between gap-2 text-[11px] text-slate-500"><span>✓ Du hast abgestimmt</span><button type="button" data-poll-change="${esc(p.id)}" class="px-2.5 py-1 rounded-lg border border-gold-500/40 text-gold-300 hover:bg-gold-500/10">↺ Stimme ändern</button></div>`
+        : preview ? '' : '<div class="text-[11px] text-slate-500">Tippe auf eine Antwort – du kannst sie später noch ändern.</div>'}</div>`;
   };
   const aooTile = (c) => `<div class="rounded-xl border border-sky-400/40 bg-gradient-to-br from-sky-950/60 to-ink-950 p-3">
       <div class="text-[10px] uppercase tracking-widest text-sky-300">🏛️ Ark of Osiris</div>
@@ -1016,6 +1065,11 @@ window.RokMods.feed = (R) => {
         ${d.ts ? `<div class="text-sm text-slate-300">${esc(dateTxt(d.ts))} Uhr <span class="text-slate-500">(deine Zeit)</span></div>
         <div class="text-sm font-semibold text-gold-200" data-cd="${+d.ts}">${cdText(+d.ts)}</div>` : ''}</div></div></div>`;
   const statCell = (ico, lab, val, sub) => `<div class="rounded-lg bg-ink-900/70 border border-ink-700 px-2.5 py-1.5 min-w-0"><div class="text-[10px] text-slate-500 truncate">${ico} ${lab}</div><div class="font-semibold text-slate-100 tabular-nums">${val}</div>${sub ? `<div class="text-[10px] text-slate-500 truncate">${sub}</div>` : ''}</div>`;
+  // echte Spiel-Icons (icons/ressourcen + icons/sonstiges)
+  const RES_IMG = { food: ['/icons/ressourcen/corn.png', '/icons/ressourcen/cornmore.png'], wood: ['/icons/ressourcen/wood.png', '/icons/ressourcen/woodmore.png'], stone: ['/icons/ressourcen/stone.png', '/icons/ressourcen/stonemore.png'], gold: ['/icons/ressourcen/gold.png', '/icons/ressourcen/goldMore.png'] };
+  const SPD_IMG = { universal: '/icons/sonstiges/SpeedUniversal.png', training: '/icons/sonstiges/SpeedTraining.png', healing: '/icons/sonstiges/SpeedHealing.png', research: '/icons/sonstiges/SpeedResearch.png', building: '/icons/sonstiges/SpeedBuilding.png' };
+  const AP_IMG = '/icons/ressourcen/ap.png';
+  const icoImg = (src, fb) => `<img src="${esc(src)}" alt="" class="inline-block -mt-0.5 object-contain align-middle" style="width:16px;height:16px" onerror="this.replaceWith(document.createTextNode('${fb}'))">`;
   const stockTile = (d) => {
     const sec = (t, sub, body) => `<div><div class="flex items-baseline justify-between gap-2 mb-1.5"><span class="text-[11px] uppercase tracking-widest text-slate-400">${t}</span>${sub ? `<span class="text-[10px] text-slate-500">${sub}</span>` : ''}</div>${body}</div>`;
     const grid = (cells) => `<div class="grid grid-cols-2 ${cells.length >= 4 ? 'sm:grid-cols-' + Math.min(5, cells.length) : 'sm:grid-cols-4'} gap-1.5">${cells.join('')}</div>`;
@@ -1023,17 +1077,19 @@ window.RokMods.feed = (R) => {
     if (d.res) {
       const ks = RES_K.filter(([k]) => d.res[k] != null), tot = ks.reduce((a, [k]) => a + (+d.res[k] || 0), 0);
       parts.push(sec('🌾 Ressourcen', `${d.res.bag ? 'inkl. Rucksack' : 'ohne Rucksack'}${ks.length > 1 ? ` · Σ ${short(tot)}` : ''}`,
-        grid(ks.map(([k, i, l]) => statCell(i, l, short(d.res[k]))))));
+        grid(ks.map(([k, i, l]) => statCell(icoImg(RES_IMG[k][0], i), l, short(d.res[k]))))));
     }
     if (d.speed) {
       const ks = SPD_K.filter(([k]) => d.speed[k] != null), tot = ks.reduce((a, [k]) => a + (+d.speed[k] || 0), 0);
-      const cells = [...(d.speed.uh != null ? [statCell('⏱️❤️', 'Uni + Heilung', days(d.speed.uh) + ' T')] : []), ...ks.map(([k, i, l]) => statCell(i, l, days(d.speed[k]) + ' T'))];
+      const cells = [...(d.speed.uh != null ? [statCell(icoImg(SPD_IMG.universal, '⏱️') + icoImg(SPD_IMG.healing, '❤️'), 'Uni + Heilung', days(d.speed.uh) + ' T')] : []), ...ks.map(([k, i, l]) => statCell(icoImg(SPD_IMG[k], i), l, days(d.speed[k]) + ' T'))];
       parts.push(sec('⏱️ Speedups', ks.length > 1 ? `Σ ${days(tot)} Tage` : '', grid(cells)));
     }
-    if (d.ap) parts.push(sec('🧪 AP', '', grid([statCell('🧪', 'AP gesamt', fmt(d.ap.total))])));
+    if (d.ap) parts.push(sec('🧪 AP', '', grid([statCell(icoImg(AP_IMG, '🧪'), 'AP gesamt', fmt(d.ap.total))])));
     const ts = Math.max(0, ...[d.res, d.speed, d.ap].filter(Boolean).map((x) => +x.ts || 0));
-    const icons = [...(d.res ? RES_K.filter(([k]) => d.res[k] != null).map(([, i]) => i) : []), ...(d.speed ? ['⏱️', '⏳'] : []), ...(d.ap ? ['🧪'] : [])];
-    return `<div class="fx-stock relative overflow-hidden rounded-xl border border-emerald-400/30 bg-gradient-to-br from-emerald-950/40 to-ink-950 p-3">${resLayer(icons, 12)}<div class="fx-body flex flex-col gap-3">
+    const icons = [...(d.res ? RES_K.filter(([k]) => d.res[k] != null).flatMap(([k]) => RES_IMG[k]) : []),
+      ...(d.speed ? [...SPD_K.filter(([k]) => d.speed[k] != null).map(([k]) => SPD_IMG[k]), ...(d.speed.uh != null ? [SPD_IMG.universal, SPD_IMG.healing] : [])] : []),
+      ...(d.ap ? [AP_IMG, AP_IMG] : [])];
+    return `<div class="fx-stock relative overflow-hidden rounded-xl border border-emerald-400/30 bg-gradient-to-br from-emerald-950/40 to-ink-950 p-3 pb-12">${resLayer(icons, 26)}<div class="fx-body flex flex-col gap-3">
       <div class="flex items-baseline justify-between gap-2"><span class="text-[10px] uppercase tracking-widest text-emerald-300">📦 Mein Bestand</span>${ts ? `<span class="text-[10px] text-slate-500">Scan vom ${esc(R.dateLabel ? R.dateLabel(ts) : new Date(ts).toLocaleDateString('de-DE'))}</span>` : ''}</div>
       ${parts.join('') || '<p class="text-sm text-slate-500">nichts ausgewählt</p>'}</div></div>`;
   };
@@ -1072,7 +1128,7 @@ window.RokMods.feed = (R) => {
         <div class="flex flex-col items-center">${helperSvg}
           <button type="button" data-feed-help="${esc(d.rid || '')}" class="text-xs px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">Zum Help-Me-Beitrag →</button></div></div></div>`;
   // kleiner Krieger mit wehender Fahne (über dem Help-Me-Button)
-  const helperSvg = `<svg viewBox="0 0 44 46" class="fx-helper w-11 h-[46px] -mb-0.5" aria-hidden="true">
+  const helperSvg = `<svg viewBox="0 0 44 46" class="fx-helper w-[76px] h-[80px] -mb-1" aria-hidden="true">
       <ellipse cx="17" cy="44" rx="9" ry="1.6" fill="rgba(0,0,0,.45)"/>
       <path d="M17 32 L12.5 43" stroke="#64748b" stroke-width="2.6" stroke-linecap="round"/><path d="M17 32 L21 43" stroke="#64748b" stroke-width="2.6" stroke-linecap="round"/>
       <path d="M17 21 L17 32" stroke="#b7830f" stroke-width="6.5" stroke-linecap="round"/><path d="M14.2 25 h5.6" stroke="#fde68a" stroke-width="1.2"/>
@@ -1167,6 +1223,7 @@ window.RokMods.feed = (R) => {
   const postHTML = (p) => {
     const u = st.users[p.user_id] || { username: '?' }, own = p.user_id === me(), k = KIND[p.kind] || KIND.text, ed = st.edit && st.edit.kind === 'post' && st.edit.id === p.id;
     return `<article class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3" data-post="${esc(p.id)}">
+      ${pollOver(p) ? `<div class="-mt-1 -mx-1 flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-400/30 px-3 py-1.5 text-[11px] text-emerald-200"><span>🏁</span><span>Umfrage beendet ${R.timeAgo(new Date(pollEnds(p)).toISOString())} – das Ergebnis steht fest</span></div>` : ''}
       <div class="flex items-center gap-3">
         <button type="button" data-feed-prof="${esc(p.user_id)}" class="flex items-center gap-2.5 min-w-0 text-left rounded-lg hover:bg-ink-800/60 pr-2">${R.userLine(u, 'w-10 h-10 text-base')}</button>
         <span class="ml-auto shrink-0 text-[11px] text-slate-500 text-right"><span class="block">${k[0]} ${k[1]}</span>${R.timeAgo(p.created_at)}${p.edited_at ? ' · bearbeitet' : ''}</span>
@@ -1193,8 +1250,11 @@ window.RokMods.feed = (R) => {
       <input type="text" data-f="note" maxlength="120" value="${esc(d.note || '')}" placeholder="Sonst noch? z. B. „endlich komplett Iconic V“" class="${INP} w-full">`);
     const sets = gearSets(); if (st.gset !== 'all' && !sets.some((x) => x.key === st.gset)) st.gset = 'all';
     const own = ownGear(st.gset), hits = gearSearch(st.gq), cur = sets.find((x) => x.key === st.gset);
-    const fchip = (k, lab, title) => `<button type="button" data-f-gset="${esc(k)}" aria-pressed="${st.gset === k}" title="${esc(title || '')}" class="seg-btn shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold border border-ink-600 transition">${esc(lab)}</button>`;
-    const filter = sets.length > 1 ? `<div class="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">${fchip('all', 'Alle')}${sets.map((x, i) => fchip(x.key, x.name || `Set ${i + 1}`, x.from)).join('')}</div>` : '';
+    const fitem = (k, lab, sub) => `<button type="button" data-f-gset="${esc(k)}" class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition ${st.gset === k ? 'bg-gold-500/20 text-gold-100' : 'text-slate-200 hover:bg-ink-800'}"><span class="truncate">${esc(lab)}</span>${sub ? `<span class="text-[10px] text-slate-500 truncate">${esc(sub)}</span>` : ''}</button>`;
+    const filter = sets.length > 1 ? `<div class="relative">
+        <button type="button" data-f-gsetopen aria-expanded="${st.gsetOpen}" class="w-full inline-flex items-center justify-between gap-3 rounded-lg border ${st.gsetOpen ? 'border-gold-400 bg-gold-500/10' : 'border-ink-600 hover:border-gold-500/60'} bg-ink-950 px-3 py-1.5 text-sm">
+          <span><span class="text-slate-400">Set:</span> <b class="text-slate-100">${esc(cur ? cur.name : 'Alle')}</b></span><span class="text-gold-300 ${st.gsetOpen ? 'rotate-180' : ''}">▾</span></button>
+        ${st.gsetOpen ? `<div class="absolute z-30 left-0 right-0 mt-1 rounded-xl border border-gold-500/40 bg-ink-900 shadow-2xl p-1.5 grid sm:grid-cols-2 gap-1 max-h-64 overflow-y-auto">${fitem('all', 'Alle Sets', '')}${sets.map((x, i) => fitem(x.key, x.name || `Set ${i + 1}`, x.from)).join('')}</div>` : ''}</div>` : '';
     const gearBtn = (g, i, src) => `<button type="button" data-gpick="${src}:${i}" class="flex items-center gap-2 text-left rounded-lg border border-ink-700 hover:border-gold-500/60 px-2 py-1.5 min-w-0">
         ${icoBox(g.icon, 'w-9 h-9 shrink-0', '⚒️')}
         <span class="min-w-0"><span class="block text-sm truncate ${rarCol[g.rarity] || ''}">${esc(g.name)}</span><span class="block text-[10px] text-slate-500 truncate">${esc(g.slot)}${g.tier ? ` · Iconic ${ROMAN[g.tier - 1]}` : ''}</span></span></button>`;
@@ -1298,13 +1358,17 @@ window.RokMods.feed = (R) => {
       <div class="flex flex-wrap items-center gap-3"><label class="flex items-center gap-2 text-sm"><input type="checkbox" data-f="am_mvp" ${d.mvp ? 'checked' : ''} class="w-4 h-4 accent-amber-400"> ⭐ MVP</label>
         <select data-f="am_role" class="${INP} !py-1"><option value="">Rolle …</option>${AOO_ROLES.map((r) => `<option ${d.role === r ? 'selected' : ''}>${r}</option>`).join('')}</select></div>`);
   }
+  const POLL_DUR = [[1, '1 Std.'], [6, '6 Std.'], [12, '12 Std.'], [24, '1 Tag'], [72, '3 Tage'], [168, '7 Tage'], [0, 'Unbegrenzt']];
   function pollForm(d) {
     const opts = d.opts || [];
     return box('📊 Umfrage', `<input type="text" data-f="pq" maxlength="140" value="${esc(d.q || '')}" placeholder="Frage, z. B. „Wann starten wir die Ark?“" class="${INP} w-full">
       <div class="flex flex-col gap-1.5">${opts.map((o, i) => `<div class="flex items-center gap-2"><span class="w-6 h-6 shrink-0 rounded-md grid place-items-center text-[11px] font-extrabold bg-gold-500/15 border border-gold-500/50 text-gold-200">${'ABCD'[i]}</span>
         <input type="text" data-f="po_${i}" maxlength="60" value="${esc(o)}" placeholder="Antwort ${i + 1}" class="${INP} flex-1 min-w-0">
         ${opts.length > 2 ? `<button type="button" data-f-pdel="${i}" title="Antwort entfernen" class="w-7 h-7 shrink-0 rounded-lg border border-ink-600 text-slate-500 hover:text-red-300 hover:border-red-400/60">✕</button>` : ''}</div>`).join('')}</div>
-      ${opts.length < 4 ? '<button type="button" data-f-padd class="self-start text-xs px-3 py-1.5 rounded-lg border border-dashed border-gold-500/50 text-gold-300 hover:bg-gold-500/10">+ Antwort</button>' : '<p class="text-[11px] text-slate-500">Höchstens 4 Antworten.</p>'}`);
+      ${opts.length < 4 ? '<button type="button" data-f-padd class="self-start text-xs px-3 py-1.5 rounded-lg border border-dashed border-gold-500/50 text-gold-300 hover:bg-gold-500/10">+ Antwort</button>' : '<p class="text-[11px] text-slate-500">Höchstens 4 Antworten.</p>'}
+      <div class="text-xs text-slate-300">⏳ Wie lange läuft die Umfrage?</div>
+      <div class="flex flex-wrap gap-1.5">${POLL_DUR.map(([h, l]) => segBtn(`data-f-pdur="${h}"`, (d.dur ?? 24) === h, l)).join('')}</div>
+      <p class="text-[11px] text-slate-500">${d.dur ? 'Wenn sie endet, rückt sie mit dem Ergebnis wieder nach oben im Feed.' : 'Ohne Ende – Abstimmen geht dauerhaft.'}</p>`);
   }
   const formHTML = (a) => (!a ? '' : a.kind === 'showcase' && a.pick ? showcaseForm(a) : a.kind === 'kvk' ? kvkForm(a) : a.kind === 'aoo' ? aooForm(a) : a.kind === 'poll' ? pollForm(a.data)
     : a.kind === 'craft' ? craftForm(a.data) : a.kind === 'pass' ? passForm(a.data) : a.kind === 'stock' ? stockForm(a.data)
@@ -1342,13 +1406,19 @@ window.RokMods.feed = (R) => {
     return `<div class="flex flex-col gap-2">
       <div class="flex items-center gap-2"><span class="text-[11px] uppercase tracking-widest text-slate-500 shrink-0">Filter</span>
         <input type="search" id="feedSearch" value="${esc(st.q)}" placeholder="🔍 Spieler oder Allianz-Tag" class="${INP} ml-auto w-full sm:w-64"></div>
-      <div class="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">${FILTERS.map(([k, l]) => { const n = cnt(k); return k !== 'all' && k !== st.filter && !n ? '' :
-        `<button type="button" data-feed-filter="${k}" aria-pressed="${st.filter === k}" class="seg-btn shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold border border-ink-600 transition">${l} <span class="opacity-60 tabular-nums">${n}</span></button>`; }).join('')}</div>
+      <div class="relative" data-fbox>
+        <button type="button" data-feed-fopen aria-expanded="${st.fOpen}" class="w-full sm:w-auto inline-flex items-center justify-between gap-3 rounded-xl border ${st.fOpen ? 'border-gold-400 bg-gold-500/10' : 'border-ink-600 hover:border-gold-500/60'} bg-ink-950 px-3.5 py-2 text-sm">
+          <span><span class="text-slate-400">Anzeigen:</span> <b class="text-slate-100">${(FILTERS.find((f) => f[0] === st.filter) || FILTERS[0])[1]}</b> <span class="text-slate-500 tabular-nums">${cnt(st.filter)}</span></span>
+          <span class="text-gold-300 transition-transform ${st.fOpen ? 'rotate-180' : ''}">▾</span></button>
+        ${st.fOpen ? `<div class="absolute z-30 left-0 right-0 sm:right-auto sm:w-[26rem] mt-1.5 rounded-xl border border-gold-500/40 bg-ink-900 shadow-2xl p-1.5 grid grid-cols-2 gap-1">${FILTERS.map(([k, l]) => { const n = cnt(k), on = st.filter === k;
+          return `<button type="button" data-feed-filter="${k}" ${!n && k !== 'all' && !on ? 'disabled' : ''} class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition ${on ? 'bg-gold-500/20 text-gold-100' : 'text-slate-200 hover:bg-ink-800'} disabled:opacity-35 disabled:cursor-default"><span class="truncate">${l}</span><span class="text-[11px] tabular-nums ${on ? 'text-gold-200' : 'text-slate-500'}">${n}</span></button>`; }).join('')}</div>` : ''}
+      </div>
     </div>`;
   };
   function visiblePosts() {
     const q = st.q.trim().toLowerCase();
-    return st.posts.filter((p) => {
+    st.posts.forEach((p) => { if (pollOver(p)) pollEndSeen.add(p.id); });
+    return [...st.posts].sort((a, b) => sortTs(b) - sortTs(a)).filter((p) => {
       if (!matchFilter(p, st.filter)) return false;
       if (!q) return true;
       const u = st.users[p.user_id] || {};
@@ -1416,7 +1486,8 @@ window.RokMods.feed = (R) => {
     if (t.closest('[data-feed-pending]')) { showPending(); return; }
     if (t.closest('[data-feed-more]')) { more(); return; }
     const fl = t.closest('[data-feed-filter]');
-    if (fl) { st.filter = fl.dataset.feedFilter; $('feedFilter').innerHTML = filterHTML(); renderList(); return; }
+    if (fl) { st.filter = fl.dataset.feedFilter; st.fOpen = false; $('feedFilter').innerHTML = filterHTML(); renderList(); return; }
+    if (t.closest('[data-feed-fopen]')) { st.fOpen = !st.fOpen; $('feedFilter').innerHTML = filterHTML(); return; }
     const at = t.closest('[data-feed-attach]');
     if (at) {
       const k = at.dataset.feedAttach;
@@ -1428,7 +1499,8 @@ window.RokMods.feed = (R) => {
     }
     const gp = t.closest('[data-gpick]');
     if (gp && st.attach && st.attach.kind === 'craft') { const [src, i] = gp.dataset.gpick.split(':'); const g = (src === 'o' ? ownGear(st.gset) : gearSearch(st.gq))[+i]; if (g) pickGear(g); return; }
-    const gs = t.closest('[data-f-gset]'); if (gs && st.attach && st.attach.kind === 'craft') { st.gset = gs.dataset.fGset; renderComposer(); return; }
+    const gs = t.closest('[data-f-gset]'); if (gs && st.attach && st.attach.kind === 'craft') { st.gset = gs.dataset.fGset; st.gsetOpen = false; renderComposer(); return; }
+    if (t.closest('[data-f-gsetopen]') && st.attach && st.attach.kind === 'craft') { st.gsetOpen = !st.gsetOpen; renderComposer(); return; }
     const ws = t.closest('[data-f-wholeset]'); if (ws && st.attach && st.attach.kind === 'craft') { pickWholeSet(ws.dataset.fWholeset); return; }
     const fa = t.closest('[data-f-act]');
     if (fa && fa.dataset.fAct === 'regear' && st.attach) { if (st.attach.data.mode === 'set') { attachCraft(); return; } Object.assign(st.attach.data, { item: '', name: '', icon: '', ic: null }); renderComposer(); return; }
@@ -1458,6 +1530,9 @@ window.RokMods.feed = (R) => {
     if (t.closest('[data-f-padd]') && a0 && a0.kind === 'poll') { if (a0.data.opts.length < 4) a0.data.opts.push(''); renderComposer(); const l = root.querySelector(`[data-f="po_${a0.data.opts.length - 1}"]`); if (l) l.focus(); return; }
     const pd = t.closest('[data-f-pdel]'); if (pd && a0 && a0.kind === 'poll') { if (a0.data.opts.length > 2) a0.data.opts.splice(+pd.dataset.fPdel, 1); renderComposer(); return; }
     const pv = t.closest('[data-poll]'); if (pv) { const [pid, i] = pv.dataset.poll.split('|'); vote(pid, +i); return; }
+    const pc = t.closest('[data-poll-change]'); if (pc) { st.pollChange.add(pc.dataset.pollChange); renderList(); return; }
+    const pk = t.closest('[data-poll-keep]'); if (pk) { st.pollChange.delete(pk.dataset.pollKeep); renderList(); return; }
+    const pdu = t.closest('[data-f-pdur]'); if (pdu && a0 && a0.kind === 'poll') { a0.data.dur = +pdu.dataset.fPdur; st.pollDur = a0.data.dur; renderComposer(); return; }
     const mp = t.closest('[data-feed-map]');
     if (mp) { const id = mp.dataset.feedMap; openMap(id === '__prev' ? (st.attach || {}).data : (st.posts.find((p) => p.id === id) || {}).data); return; }
     const hp = t.closest('[data-feed-help]'); if (hp) { goHelp(hp.dataset.feedHelp); return; }
@@ -1511,6 +1586,10 @@ window.RokMods.feed = (R) => {
     if (f.startsWith('kv_')) { const el = root.querySelector(`[data-f="${f}"]`); if (el && f !== 'kv_label' && d[f.slice(3)]) el.value = fmt(d[f.slice(3)]); }
   });
 
+  document.addEventListener('click', (ev) => {
+    if (st.fOpen && !ev.target.closest('[data-fbox]')) { st.fOpen = false; const f = $('feedFilter'); if (f) f.innerHTML = filterHTML(); }
+    if (st.gsetOpen && !ev.target.closest('[data-f-gsetopen]') && !ev.target.closest('[data-f-gset]')) { st.gsetOpen = false; renderComposer(); }
+  });
   // @-Liste mit Pfeiltasten / Enter / Tab bedienen (vor dem Senden mit Enter)
   root.addEventListener('keydown', (ev) => {
     if (!mt.box || mt.el !== ev.target) return;
