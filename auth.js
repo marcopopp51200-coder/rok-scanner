@@ -589,8 +589,9 @@ window.RokAuth = (() => {
   const IMG_BASE = SUPABASE_URL + '/storage/v1/object/public/showcase/';
   async function uploadImage(blob, key) {
     if (!sb || !user) throw new Error('Nicht eingeloggt.');
-    const path = `${user.id}/${String(key).replace(/[^A-Za-z0-9_-]+/g, '_')}.jpg`;
-    const { error } = await sb.storage.from('showcase').upload(path, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '3600' });
+    const type = blob && blob.type === 'image/gif' ? 'image/gif' : 'image/jpeg';   // GIFs bleiben GIFs (Animation), alles andere JPEG
+    const path = `${user.id}/${String(key).replace(/[^A-Za-z0-9_-]+/g, '_')}.${type === 'image/gif' ? 'gif' : 'jpg'}`;
+    const { error } = await sb.storage.from('showcase').upload(path, blob, { upsert: true, contentType: type, cacheControl: '3600' });
     if (error) throw error;
     return IMG_BASE + path + '?v=' + Date.now();
   }

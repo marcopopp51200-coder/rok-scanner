@@ -1,26 +1,29 @@
 // Wiz fan Club – Feed (Startseite)
 // Beiträge aller Spieler: Text, Foto vom Gerät, Showcase-Bild, KvK-Bilanz, AoO, Craft-Upgrade,
 // Pass-Start, Bestand (Rss / Speedups / AP – auch einzeln), VIP-Stufe, KvK-Karte, Help-Me-Anfrage und
-// Kill-Punkte & Verdienst je Pass – mit Reaktionen.
+// Kill-Punkte & Verdienst je Pass/Altar – mit Reaktionen und Kommentaren.
 // Läuft innerhalb von RokApp (scanner.js); R = geteilter Kontext (window.Rok).
 // Supabase: public.feed_posts (id, user_id, kind, body, image, data, created_at)
 //           public.feed_reactions (post_id, user_id, emoji, created_at) – ein Eintrag je Spieler und Beitrag
+//           public.feed_comments (id, post_id, user_id, body, created_at)
 // kind ist freier Text – neue Arten brauchen kein SQL.
 window.RokMods = window.RokMods || {};
 window.RokMods.feed = (R) => {
   const $ = R.$, esc = R.esc, A = window.RokAuth;
   const REACTS = [['👍', 'Daumen hoch'], ['👎', 'Daumen runter'], ['🔥', 'Feuer'], ['❤️', 'Herz'], ['😂', 'Lachen'], ['😮', 'Wow'], ['⚔️', 'Kampf'], ['💎', 'Kristall']];
   const KIND = {
-    text: ['💬', 'Beitrag'], photo: ['📷', 'Foto'], showcase: ['🎨', 'Showcase'], kvk: ['🏁', 'KvK-Bilanz'], aoo: ['🏛️', 'AoO-Showcase'],
+    text: ['💬', 'Beitrag'], photo: ['📷', 'Foto / GIF'], showcase: ['🎨', 'Showcase'], kvk: ['🏁', 'KvK-Bilanz'], aoo: ['🏛️', 'AoO-Showcase'],
     craft: ['⚒️', 'Craft-Upgrade'], pass: ['🚪', 'Pass-Start'], stock: ['📦', 'Bestand'], kvkpts: ['⚔️', 'Kill-Punkte & Verdienst'],
     vip: ['👑', 'VIP-Stufe'], kvkmap: ['🗺️', 'KvK-Karte'], help: ['🆘', 'Help Me']
   };
   // Filter: Art des Beitrags (Name-Suche kommt zusätzlich)
-  const FILTERS = [['all', 'Alle', null], ['showcase', '🎨 Showcases', ['showcase', 'aoo']], ['kvk', '🏁 KvK', ['kvk', 'kvkpts', 'pass', 'kvkmap']],
-    ['craft', '⚒️ Craft', ['craft']], ['help', '🆘 Help Me', ['help']], ['photo', '📷 Fotos', ['photo']], ['stock', '📦 Bestand & VIP', ['stock', 'vip']]];
+  const FILTERS = [['all', 'Alle', null], ['mine', '⭐ Meine', null], ['photo', '📷 Fotos', ['photo']], ['showcase', '🎨 Showcases', ['showcase', 'aoo']],
+    ['craft', '⚒️ Craft', ['craft']], ['help', '🆘 Help Me', ['help']], ['pass', '🚪 Pass-Start', ['pass']], ['kvkpts', '⚔️ KP & Verdienst', ['kvkpts']],
+    ['kvk', '🏁 KvK-Bilanz & Karte', ['kvk', 'kvkmap']], ['stock', '📦 Bestand', ['stock']], ['vip', '👑 VIP', ['vip']], ['text', '💬 Text', ['text']]];
   const LIMIT = 40, POLL_MS = 20000;
   const st = { posts: [], pending: [], reacts: {}, users: {}, loaded: false, loading: false, polling: false, err: '', noTable: false,
-    attach: null, busy: false, admin: false, text: '', filter: 'all', q: '', hasMore: false, moreBusy: false, gq: '', lastSync: 0 };
+    attach: null, busy: false, admin: false, text: '', filter: 'all', q: '', hasMore: false, moreBusy: false, gq: '', lastSync: 0,
+    comments: {}, cmOpen: new Set(), cmDraft: {}, cmBusy: false, noCm: false, deferRender: false };
   const db = () => A.db();
   const me = () => A.userId();
   const root = $('feedView');
@@ -44,6 +47,14 @@ window.RokMods.feed = (R) => {
     if (!r.error) (r.data || []).forEach((x) => { (out[x.post_id] = out[x.post_id] || []).push(x); });
     return out;
   }
+  async function fetchComments(ids) {
+    const out = {};
+    if (!ids.length || st.noCm) return out;
+    const r = await db().from('feed_comments').select('*').in('post_id', ids).order('created_at', { ascending: true });
+    if (r.error) { if (R.tableMissing(r.error)) st.noCm = true; return out; }
+    (r.data || []).forEach((x) => { (out[x.post_id] = out[x.post_id] || []).push(x); });
+    return out;
+  }
   async function addUsers(posts) {
     const miss = [...new Set(posts.map((p) => p.user_id))].filter((id) => !st.users[id]);
     if (miss.length) st.users = { ...st.users, ...(await R.users(miss)) };
@@ -54,13 +65,15 @@ window.RokMods.feed = (R) => {
       const { data, error } = await db().from('feed_posts').select('*').order('created_at', { ascending: false }).limit(LIMIT);
       if (error) throw error;
       st.posts = data || []; st.pending = []; st.hasMore = st.posts.length === LIMIT;
-      st.reacts = await fetchReacts(st.posts.map((p) => p.id));
-      st.users = {}; await addUsers(st.posts);
+      const ids = st.posts.map((p) => p.id);
+      [st.reacts, st.comments] = await Promise.all([fetchReacts(ids), fetchComments(ids)]);
+      st.users = {}; await addUsers([...st.posts, ...Object.values(st.comments).flat()]);
       st.noTable = false; st.lastSync = Date.now();
     } catch (e) { if (R.tableMissing(e)) st.noTable = true; else st.err = A.germanError ? A.germanError(e) : String(e.message || e); }
     st.loading = false; st.loaded = true; renderList();
   }
-  const sig = () => JSON.stringify([st.posts.map((p) => p.id + (p.image || '')), st.pending.length, Object.entries(st.reacts).map(([k, v]) => k + v.map((x) => x.user_id + x.emoji).join())]);
+  const sig = () => JSON.stringify([st.posts.map((p) => p.id + (p.image || '')), st.pending.length, Object.entries(st.reacts).map(([k, v]) => k + v.map((x) => x.user_id + x.emoji).join()), Object.values(st.comments).flat().map((c) => c.id)]);
+  const typing = () => { const l = $('feedList'), a = document.activeElement; return !!(l && a && l.contains(a) && a.tagName === 'INPUT'); };
   const scrolledDown = () => { const l = $('feedList'); return !!l && l.getBoundingClientRect().top < -150; };
   // Leise im Hintergrund: neue Beiträge, gelöschte Beiträge und Reaktionen abgleichen
   async function poll() {
@@ -82,9 +95,13 @@ window.RokMods.feed = (R) => {
         st.pending = newOnes;
         st.posts = [...fresh.filter((p) => shown.has(p.id) || p.user_id === me()), ...older];
       } else { st.pending = []; st.posts = [...fresh, ...older]; }
-      st.reacts = await fetchReacts([...st.pending, ...st.posts].map((p) => p.id));
+      const ids = [...st.pending, ...st.posts].map((p) => p.id);
+      [st.reacts, st.comments] = await Promise.all([fetchReacts(ids), fetchComments(ids)]);
+      await addUsers(Object.values(st.comments).flat());
       st.lastSync = Date.now();
-      if (sig() !== before) renderList(); else renderSync();
+      if (sig() === before) renderSync();
+      else if (typing()) { st.deferRender = true; renderSync(); }   // gerade am Kommentieren → nicht stören, später zeichnen
+      else renderList();
     } catch (e) { /* stilles Nachladen – Fehler erst beim nächsten Versuch erneut */ }
     st.polling = false;
   }
@@ -101,7 +118,8 @@ window.RokMods.feed = (R) => {
       if (error) throw error;
       const add = data || [];
       await addUsers(add);
-      Object.assign(st.reacts, await fetchReacts(add.map((p) => p.id)));
+      const ids = add.map((p) => p.id), [rx, cm] = await Promise.all([fetchReacts(ids), fetchComments(ids)]);
+      Object.assign(st.reacts, rx); Object.assign(st.comments, cm); await addUsers(Object.values(cm).flat());
       st.posts = [...st.posts, ...add]; st.hasMore = add.length === LIMIT;
     } catch (e) { msg('Ältere Beiträge konnten nicht geladen werden: ' + (e.message || e), 'err'); }
     st.moreBusy = false; renderList();
@@ -120,6 +138,7 @@ window.RokMods.feed = (R) => {
     if (a.kind === 'stock' && !d.res && !d.speed && !d.ap) return 'Wähl mindestens Ressourcen, Speedups oder AP aus.';
     if (a.kind === 'kvkpts' && !d.kp && !d.acclaim && !d.deads) return 'Trag Kill-Punkte oder Verdienst ein.';
     if (a.kind === 'help' && !d.rid) return 'Wähl die Help-Me-Anfrage aus.';
+    if (a.kind === 'vip' && !(d.lv >= 1)) return d.mode === 'status' ? 'Für den VIP-Status fehlt ein VIP-Scan.' : 'Trag deine neue VIP-Stufe ein (1–20).';
     return '';
   }
   async function post() {
@@ -154,6 +173,25 @@ window.RokMods.feed = (R) => {
     const { error } = await db().from('feed_posts').delete().eq('id', id);
     if (error) { msg('Löschen fehlgeschlagen: ' + (A.germanError ? A.germanError(error) : error.message), 'err'); return; }
     st.posts = st.posts.filter((p) => p.id !== id); renderList();
+  }
+  async function sendComment(postId) {
+    const body = String(st.cmDraft[postId] || '').trim().slice(0, 500);
+    if (!body || st.cmBusy) return;
+    st.cmBusy = true;
+    try {
+      const { data, error } = await db().from('feed_comments').insert({ post_id: postId, user_id: me(), body }).select().single();
+      if (error) throw error;
+      (st.comments[postId] = st.comments[postId] || []).push(data);
+      delete st.cmDraft[postId]; await addUsers([data]);
+    } catch (e) { msg(R.tableMissing(e) ? 'Die Kommentar-Tabelle fehlt noch in Supabase (SQL im Chat ausführen).' : 'Kommentar fehlgeschlagen: ' + (A.germanError ? A.germanError(e) : e.message), 'err'); if (R.tableMissing(e)) st.noCm = true; }
+    st.cmBusy = false; renderList();
+    const inp = root.querySelector(`[data-cm-in="${CSS.escape(postId)}"]`); if (inp) inp.focus();
+  }
+  async function delComment(postId, id) {
+    if (!(await window.UI.confirm('Diesen Kommentar löschen?'))) return;
+    const { error } = await db().from('feed_comments').delete().eq('id', id);
+    if (error) { msg('Löschen fehlgeschlagen: ' + (A.germanError ? A.germanError(error) : error.message), 'err'); return; }
+    st.comments[postId] = (st.comments[postId] || []).filter((c) => c.id !== id); renderList();
   }
   async function react(postId, emoji) {
     const mine = (st.reacts[postId] || []).find((x) => x.user_id === me());
@@ -200,17 +238,22 @@ window.RokMods.feed = (R) => {
     if (porn >= 0.6 || (pr.Sexy || 0) >= 0.85) { const e = new Error('BLOCK'); e.block = true; throw e; }
     return true;
   }
+  const readDataUrl = (file) => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => no(new Error('Datei konnte nicht gelesen werden')); r.readAsDataURL(file); });
+  const GIF_MAX = 8 * 1024 * 1024;
   async function pickPhoto(file) {
     if (!file) return;
     if (!/^image\//.test(file.type)) { msg('Das ist kein Bild.', 'warn'); return; }
-    st.busy = true; msg('Foto wird geprüft …', 'busy'); renderComposer();
+    const gif = file.type === 'image/gif';
+    if (gif && file.size > GIF_MAX) { msg(`Das GIF ist zu groß (${(file.size / 1048576).toFixed(1)} MB) – höchstens 8 MB.`, 'warn'); return; }
+    st.busy = true; msg(gif ? 'GIF wird geprüft …' : 'Foto wird geprüft …', 'busy'); renderComposer();
     try {
-      const { dataUrl } = await R.prepareImage(file);
+      // GIF unverändert lassen (sonst bewegt es sich nicht mehr) – geprüft wird das erste Bild
+      const dataUrl = gif ? await readDataUrl(file) : (await R.prepareImage(file)).dataUrl;
       await checkImage(dataUrl);
-      st.attach = { kind: 'photo', dataUrl, data: null }; msg('', '');
+      st.attach = { kind: 'photo', dataUrl, gif, data: gif ? { gif: true } : null }; msg('', '');
     } catch (e) {
       st.attach = null;
-      msg(e.block ? '🚫 Dieses Bild ist im Feed nicht erlaubt.' : 'Foto nicht angehängt: ' + (e.message || e) + ' – bitte später nochmal versuchen.', e.block ? 'err' : 'warn');
+      msg(e.block ? '🚫 Dieses Bild ist im Feed nicht erlaubt.' : 'Bild nicht angehängt: ' + (e.message || e) + ' – bitte später nochmal versuchen.', e.block ? 'err' : 'warn');
     }
     st.busy = false; renderComposer();
   }
@@ -338,15 +381,19 @@ window.RokMods.feed = (R) => {
   const vipLv = (p) => { let l = 0; VIP_PTS.forEach((t, i) => { if (p >= t) l = i; }); return l; };
   const vipName = (l) => (R.vipName ? R.vipName(l) : +l >= 20 ? 'SVIP' : 'VIP ' + l);
   const vipSrc = () => latest('vip', (e) => e.current != null || e.after != null);
-  function vipBuild(mode, bag) {
-    const e = vipSrc(); if (!e) return null;
-    const pts = Math.round(bag ? (e.after ?? e.current ?? 0) : (e.current ?? e.after ?? 0)), lv = vipLv(pts);
-    return { mode, bag: !!bag, pts, lv, next: VIP_PTS[lv + 1] ?? null, ts: e.ts };
+  // Status: immer inkl. Rucksack, mit Abstand zur nächsten Stufe · Neue Stufe: nur die Stufe (selbst eingeben)
+  function vipBuild(mode, lv) {
+    const e = vipSrc();
+    if (mode === 'new') {
+      const auto = e ? vipLv(Math.round(e.after ?? e.current ?? 0)) : 1;
+      return { mode: 'new', lv: Math.max(1, Math.min(20, Math.round(+lv || auto || 1))) };
+    }
+    if (!e) return null;
+    const pts = Math.round(e.after ?? e.current ?? 0), l = vipLv(pts);
+    return { mode: 'status', bag: true, pts, lv: l, next: VIP_PTS[l + 1] ?? null, ts: e.ts };
   }
   function attachVip() {
-    const d = vipBuild('new', false);
-    if (!d) { msg('Noch kein VIP-Scan – zuerst im Scanner unter VIP erfassen.', 'warn'); return; }
-    st.attach = { kind: 'vip', data: d }; renderComposer();
+    st.attach = { kind: 'vip', data: vipBuild('new') }; renderComposer();
   }
 
   // ---------- KvK-Karte (aus KvK → Karte) ----------
@@ -385,28 +432,39 @@ window.RokMods.feed = (R) => {
   }
 
   // ---------- Kill-Punkte & Verdienst je Pass (aus KvK → Stats) ----------
+  // Abschnitte wie in der KvK-Timeline: Pass 4 · Altäre · Pass 7 · Pass 8 · KvK gesamt.
+  // Zahlen für die Pässe und das ganze KvK kommen aus KvK → Stats (Zwischenstände), Altäre trägt man selbst ein.
+  const dd = (ts) => new Date(ts).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
   function kvkSegs() {
-    let s = null; try { s = window.KvKCalc && window.KvKCalc.getState ? window.KvKCalc.getState() : null; } catch { s = null; }
-    if (!s) return [];
+    let s = null, tl = [];
+    try { s = window.KvKCalc && window.KvKCalc.getState ? window.KvKCalc.getState() : null; } catch { s = null; }
+    try { tl = window.KvKCalc && window.KvKCalc.timeline ? window.KvKCalc.timeline() || [] : []; } catch { tl = []; }
     const pick = (o) => ({ kp: +(o || {}).kp || 0, acclaim: +(o || {}).acclaim || 0, deads: +(o || {}).deads || 0 });
-    const start = { kp: +(s.stats || {}).kp || 0, acclaim: 0, deads: +(s.stats || {}).deads || 0 };
-    const pp = ((s.end || {}).pp) || {}, P = { 4: pick(pp[4]), 7: pick(pp[7]), 8: pick(pp[8]) };
-    const end = pick((s.end || {}).now), now = pick((s.mid || {}).now);
+    const st0 = s || {}, start = { kp: +(st0.stats || {}).kp || 0, acclaim: 0, deads: +(st0.stats || {}).deads || 0 };
+    const pp = ((st0.end || {}).pp) || {}, P = { 4: pick(pp[4]), 7: pick(pp[7]), 8: pick(pp[8]) };
+    const end = pick((st0.end || {}).now), now = pick((st0.mid || {}).now);
     const has = (o) => o.kp > 0 || o.acclaim > 0;
     const diff = (cur, prev, k) => { if (!(cur[k] > 0)) return 0; if (k === 'acclaim') return Math.max(0, cur[k] - (prev[k] || 0)); return prev[k] > 0 ? Math.max(0, cur[k] - prev[k]) : 0; };
-    const seg = (id, label, cur, prev) => ({ id, label, kp: diff(cur, prev, 'kp'), acclaim: diff(cur, prev, 'acclaim'), deads: diff(cur, prev, 'deads') });
-    const out = [];
-    if (has(P[4])) out.push(seg('p4', 'Pass 4 (seit KvK-Start)', P[4], start));
-    if (has(P[7])) out.push(seg('p7', has(P[4]) ? 'Pass 7 (seit Pass 4)' : 'Pass 7 (seit KvK-Start)', P[7], has(P[4]) ? P[4] : start));
-    if (has(P[8])) { const pr = has(P[7]) ? [P[7], 'Pass 7'] : has(P[4]) ? [P[4], 'Pass 4'] : [start, 'KvK-Start']; out.push(seg('p8', `Pass 8 (seit ${pr[1]})`, P[8], pr[0])); }
-    if (has(end)) out.push(seg('kvk', 'Ganzes KvK', end, start));
-    else { const cur = [now, P[8], P[7], P[4]].find(has); if (cur) out.push(seg('now', 'KvK bisher (seit Start)', cur, start)); }
+    const vals = (cur, prev) => ({ kp: diff(cur, prev, 'kp'), acclaim: diff(cur, prev, 'acclaim'), deads: diff(cur, prev, 'deads') });
+    const passVals = (n) => { if (!has(P[n])) return { kp: 0, acclaim: 0, deads: 0 }; const prev = [8, 7, 4].filter((m) => m < n).map((m) => P[m]).find(has) || start; return vals(P[n], prev); };
+    const out = [], seen = new Set(), t = Date.now();
+    let altar = 0;
+    tl.forEach((e) => {
+      if (e.kind === 'altar') { altar++; if (e.ts <= t + 864e5) out.push({ id: 'a' + altar, label: `Altar ${altar} · ${dd(e.ts)}`, ts: e.ts, kp: 0, acclaim: 0, deads: 0 }); return; }
+      if (seen.has(e.n)) return; seen.add(e.n);
+      out.push({ id: 'p' + e.n, label: `Pass ${e.n} · ${dd(e.ts)}`, ts: e.ts, ...passVals(e.n) });
+    });
+    if (!tl.length) {   // ohne KvK-Startdatum: feste Abschnitte
+      out.push({ id: 'p4', label: 'Pass 4', ...passVals(4) }, { id: 'a1', label: 'Altar', kp: 0, acclaim: 0, deads: 0 }, { id: 'p7', label: 'Pass 7', ...passVals(7) }, { id: 'p8', label: 'Pass 8', ...passVals(8) });
+    }
+    const cur = has(end) ? end : [now, P[8], P[7], P[4]].find(has);
+    out.push({ id: 'kvk', label: has(end) ? 'KvK gesamt' : 'KvK gesamt (bisher)', ...(cur ? vals(cur, start) : { kp: 0, acclaim: 0, deads: 0 }) });
     return out;
   }
   function attachKvkPts() {
-    const segs = kvkSegs(), last = segs[segs.length - 1];
-    st.attach = { kind: 'kvkpts', data: last ? { seg: last.id, label: last.label, kp: last.kp, acclaim: last.acclaim, deads: last.deads, _segs: segs }
-      : { seg: 'own', label: 'Ganzes KvK', kp: 0, acclaim: 0, deads: 0, _segs: [] } };
+    const segs = kvkSegs(), t = Date.now();
+    const def = [...segs].reverse().find((x) => x.ts && x.ts <= t && (x.kp || x.acclaim)) || [...segs].reverse().find((x) => x.ts && x.ts <= t) || segs[segs.length - 1];
+    st.attach = { kind: 'kvkpts', data: { seg: def.id, label: def.label, kp: def.kp, acclaim: def.acclaim, deads: def.deads, _segs: segs } };
     renderComposer();
   }
 
@@ -467,14 +525,15 @@ window.RokMods.feed = (R) => {
       ${parts.join('') || '<p class="text-sm text-slate-500">nichts ausgewählt</p>'}</div>`;
   };
   const vipTile = (d) => {
-    const lv = +d.lv || 0, base = VIP_PTS[lv] || 0, next = d.next, pct = next ? Math.max(0, Math.min(100, Math.round((d.pts - base) / (next - base) * 100))) : 100;
-    return `<div class="rounded-xl border border-gold-500/40 bg-gradient-to-br from-amber-950/50 to-ink-950 p-4 flex flex-col gap-3">
-      <div class="flex items-center gap-4">
+    const lv = +d.lv || 0, isNew = d.mode === 'new';
+    const head = `<div class="flex items-center gap-4">
         <span class="w-14 h-14 shrink-0 rounded-xl grid place-items-center bg-gold-500/15 border border-gold-500/40 text-2xl">👑</span>
-        <div class="min-w-0"><div class="text-[10px] uppercase tracking-widest text-gold-300">${d.mode === 'new' ? '🎉 Neue VIP-Stufe erreicht' : 'Mein VIP-Status'}</div>
+        <div class="min-w-0"><div class="text-[10px] uppercase tracking-widest text-gold-300">${isNew ? '🎉 Neue VIP-Stufe erreicht' : 'Mein VIP-Status'}</div>
           <div class="font-display text-2xl text-slate-100">${esc(vipName(lv))}</div>
-          <div class="text-xs text-slate-400 tabular-nums">${fmt(d.pts)} VIP-Punkte${d.bag ? ' inkl. Rucksack' : ''}</div></div>
-      </div>
+          ${!isNew && d.pts != null ? `<div class="text-xs text-slate-400 tabular-nums">${fmt(d.pts)} VIP-Punkte inkl. Rucksack</div>` : ''}</div></div>`;
+    if (isNew) return `<div class="rounded-xl border border-gold-500/40 bg-gradient-to-br from-amber-950/50 to-ink-950 p-4">${head}</div>`;
+    const base = VIP_PTS[lv] || 0, next = d.next, pct = next ? Math.max(0, Math.min(100, Math.round((d.pts - base) / (next - base) * 100))) : 100;
+    return `<div class="rounded-xl border border-gold-500/40 bg-gradient-to-br from-amber-950/50 to-ink-950 p-4 flex flex-col gap-3">${head}
       ${next ? `<div><div class="flex justify-between text-[11px] text-slate-400 mb-1"><span>${esc(vipName(lv))}</span><span class="text-gold-200 font-semibold">${pct} %</span><span>${esc(vipName(lv + 1))}</span></div>
         <div class="h-2.5 rounded-full bg-ink-800 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-gold-600 to-gold-300" style="width:${pct}%"></div></div>
         <div class="mt-1.5 text-sm text-slate-200">Noch <b class="text-gold-200 tabular-nums">${fmt(next - d.pts)}</b> Punkte bis ${esc(vipName(lv + 1))}</div></div>`
@@ -538,6 +597,28 @@ window.RokMods.feed = (R) => {
     return `<div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-ink-700/70">${REACTS.map(([e, lab]) => `
       <button type="button" data-react="${esc(p.id)}|${e}" title="${lab}" aria-pressed="${mine && mine.emoji === e}" class="inline-flex items-center gap-1 px-2 py-1 rounded-full border text-sm transition ${mine && mine.emoji === e ? 'border-gold-400 bg-gold-500/15 text-gold-200' : cnt[e] ? 'border-ink-600 bg-ink-900 text-slate-200 hover:border-gold-500/60' : 'border-ink-700 text-slate-500 hover:border-gold-500/60 hover:text-slate-200'}">${e}${cnt[e] ? `<span class="text-[11px] tabular-nums">${cnt[e]}</span>` : ''}</button>`).join('')}</div>`;
   };
+  const commentsHTML = (p) => {
+    const list = st.comments[p.id] || [], open = st.cmOpen.has(p.id), n = list.length;
+    const one = (c) => { const u = st.users[c.user_id] || { username: '?' }, mine = c.user_id === me();
+      return `<div class="flex items-start gap-2 min-w-0">
+        <button type="button" data-feed-prof="${esc(c.user_id)}" class="shrink-0">${R.avatarHtml ? R.avatarHtml(u.username, u.avatar, 'w-7 h-7 text-xs') : ''}</button>
+        <div class="min-w-0 flex-1 rounded-xl bg-ink-900/80 border border-ink-700/70 px-3 py-1.5">
+          <div class="flex items-baseline gap-2 text-[11px]"><b class="text-slate-200 truncate" translate="no">${esc(u.username || '?')}</b><span class="text-slate-500 shrink-0">${R.timeAgo(c.created_at)}</span>
+            ${mine || st.admin ? `<button type="button" data-cm-del="${esc(p.id)}|${esc(c.id)}" title="Kommentar löschen" class="ml-auto text-slate-600 hover:text-red-300">✕</button>` : ''}</div>
+          <p class="text-sm text-slate-100 whitespace-pre-wrap break-words">${esc(c.body)}</p></div></div>`; };
+    if (!open) {
+      const last = list[n - 1];
+      return `<div class="flex flex-col gap-2">
+        ${last ? one(last) : ''}
+        <button type="button" data-cm-toggle="${esc(p.id)}" class="self-start text-xs text-slate-400 hover:text-gold-300">💬 ${n > 1 ? `Alle ${n} Kommentare · antworten` : n ? 'Antworten' : 'Kommentieren'}</button></div>`;
+    }
+    return `<div class="flex flex-col gap-2">
+      ${list.map(one).join('')}
+      ${st.noCm ? '<p class="text-xs text-amber-300">⚠ Kommentare: Die Tabelle fehlt noch in Supabase (SQL im Chat ausführen).</p>' : `<div class="flex items-center gap-2">
+        <input type="text" maxlength="500" data-cm-in="${esc(p.id)}" value="${esc(st.cmDraft[p.id] || '')}" placeholder="Kommentar schreiben …" class="${INP} flex-1 min-w-0 !rounded-full !px-3.5">
+        <button type="button" data-cm-send="${esc(p.id)}" ${st.cmBusy ? 'disabled' : ''} class="shrink-0 px-3.5 py-1.5 rounded-full bg-gold-500 hover:bg-gold-400 text-ink-950 text-xs font-semibold disabled:opacity-50">Senden</button></div>`}
+      <button type="button" data-cm-toggle="${esc(p.id)}" class="self-start text-[11px] text-slate-500 hover:text-slate-300">Einklappen</button></div>`;
+  };
   const postHTML = (p) => {
     const u = st.users[p.user_id] || { username: '?' }, own = p.user_id === me(), k = KIND[p.kind] || KIND.text;
     return `<article class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3" data-post="${esc(p.id)}">
@@ -549,6 +630,7 @@ window.RokMods.feed = (R) => {
       ${p.body ? `<p class="text-sm text-slate-100 whitespace-pre-wrap break-words">${esc(p.body)}</p>` : ''}
       ${attachHTML(p)}
       ${reactBar(p)}
+      ${commentsHTML(p)}
     </article>`;
   };
 
@@ -602,10 +684,12 @@ window.RokMods.feed = (R) => {
       <p class="text-[11px] text-slate-500">Werte aus deinen letzten Scans – sie werden beim Posten festgehalten.</p>`);
   }
   function vipForm(d) {
-    const e = vipSrc(), inv = e ? Math.round((e.after ?? 0) - (e.current ?? 0)) : 0;
-    return box('👑 VIP', `<div class="flex flex-wrap gap-1.5">${segBtn('data-f-vip="new"', d.mode === 'new', '🎉 Neue Stufe erreicht')}${segBtn('data-f-vip="status"', d.mode === 'status', '📊 Status')}</div>
-      ${inv > 0 ? `<label class="flex items-center gap-2 text-sm"><input type="checkbox" data-f="vipBag" ${d.bag ? 'checked' : ''} class="w-4 h-4 accent-amber-400"> VIP-Punkte im Rucksack mitzählen <span class="text-[10px] text-slate-500">+${fmt(inv)}</span></label>` : ''}
-      <p class="text-[11px] text-slate-500">Punkte aus deinem letzten VIP-Scan${e ? ' (' + esc(R.dateLabel ? R.dateLabel(e.ts) : '') + ')' : ''}.</p>`);
+    const e = vipSrc();
+    const body = d.mode === 'new'
+      ? `<label class="flex flex-wrap items-center gap-2 text-sm text-slate-300">Neue Stufe: VIP <input type="number" inputmode="numeric" min="1" max="20" data-f="vipLv" value="${+d.lv || ''}" class="${INP} w-20 text-center tabular-nums"> <span class="text-[11px] text-slate-500">20 = SVIP</span></label>`
+      : e ? `<p class="text-[11px] text-slate-500">Punkte inkl. Rucksack aus deinem letzten VIP-Scan (${esc(R.dateLabel ? R.dateLabel(e.ts) : '')}).</p>`
+        : `<p class="text-sm text-amber-300">Noch kein VIP-Scan – für den Status zuerst im Scanner unter VIP erfassen.</p>`;
+    return box('👑 VIP', `<div class="flex flex-wrap gap-1.5">${segBtn('data-f-vip="new"', d.mode === 'new', '🎉 Neue Stufe erreicht')}${segBtn('data-f-vip="status"', d.mode === 'status', '📊 Status')}</div>${body}`);
   }
   function helpForm(a) {
     const list = a.list || [];
@@ -613,13 +697,14 @@ window.RokMods.feed = (R) => {
     return box('🆘 Welche Anfrage?', `<div class="flex flex-col gap-1.5">${list.map((r) => `<button type="button" data-f-help="${esc(r.rid)}" aria-pressed="${a.data.rid === r.rid}" class="seg-btn text-left rounded-lg border border-ink-600 px-3 py-2 text-sm"><span class="font-semibold">${esc(r.title)}</span> <span class="text-[11px] opacity-75">· ${r.sets} Set${r.sets === 1 ? '' : 's'} · ${R.timeAgo(r.at)}</span></button>`).join('')}</div>`);
   }
   function kvkptsForm(d) {
-    const segs = d._segs || [];
-    const btns = segs.map((s) => segBtn(`data-f-seg="${s.id}"`, d.seg === s.id, esc(s.label))).join('') + segBtn('data-f-seg="own"', d.seg === 'own', '✏️ Eigene Angabe');
+    const segs = d._segs || [], t = Date.now();
+    const btns = segs.map((s) => segBtn(`data-f-seg="${s.id}"`, d.seg === s.id, `${s.id[0] === 'a' ? '⛩️' : s.id === 'kvk' ? '🏁' : '🚪'} ${esc(s.label)}${s.ts && s.ts > t ? ' <span class="opacity-60">(bald)</span>' : ''}`)).join('') + segBtn('data-f-seg="own"', d.seg === 'own', '✏️ Eigene Angabe');
     const inp = (k, lab) => `<label class="flex flex-col gap-1 text-[11px] text-slate-400">${lab}<input type="text" inputmode="decimal" data-f="kv_${k}" value="${d[k] ? esc(fmt(d[k])) : ''}" placeholder="0" class="${INP} text-right tabular-nums"></label>`;
-    return box('⚔️ Welcher Abschnitt?', `<div class="flex flex-wrap gap-1.5">${btns}</div>
-      ${d.seg === 'own' ? `<input type="text" data-f="kv_label" maxlength="40" value="${esc(d.label || '')}" placeholder="z. B. Pass 4 Kampf, Altar-Tag 2 …" class="${INP} w-full">` : ''}
+    const isAltar = String(d.seg || '')[0] === 'a';
+    return box('⚔️ Welcher Abschnitt? (aus deiner KvK-Timeline)', `<div class="flex flex-wrap gap-1.5">${btns}</div>
+      ${d.seg === 'own' ? `<input type="text" data-f="kv_label" maxlength="40" value="${esc(d.label || '')}" placeholder="z. B. Ruine, Kampftag 3 …" class="${INP} w-full">` : ''}
       <div class="grid grid-cols-3 gap-2">${inp('kp', '⚔️ Kill-Punkte')}${inp('acclaim', '🏅 Verdienst')}${inp('deads', '💀 Deads (optional)')}</div>
-      <p class="text-[11px] text-slate-500">${segs.length ? 'Gewinn je Abschnitt aus KvK → Stats (Zwischenstände je Pass) – Zahlen kannst du anpassen.' : 'Noch keine Zwischenstände unter KvK → Stats – Zahlen bitte eintragen.'}</p>`);
+      <p class="text-[11px] text-slate-500">${isAltar ? 'Für Altäre gibt es keine gespeicherten Zwischenstände – bitte Zahlen eintragen.' : 'Pässe und KvK gesamt kommen aus KvK → Stats (Zwischenstände je Pass) – Zahlen kannst du anpassen.'}</p>`);
   }
   const formHTML = (a) => (!a ? '' : a.kind === 'craft' ? craftForm(a.data) : a.kind === 'pass' ? passForm(a.data) : a.kind === 'stock' ? stockForm(a.data)
     : a.kind === 'kvkpts' ? kvkptsForm(a.data) : a.kind === 'vip' ? vipForm(a.data) : a.kind === 'help' ? helpForm(a) : '');
@@ -650,14 +735,20 @@ window.RokMods.feed = (R) => {
       </div>
     </div>`;
   };
-  const filterHTML = () => `<div class="flex flex-wrap items-center gap-2">
-      <div class="flex flex-wrap gap-1.5">${FILTERS.map(([k, l]) => segBtn(`data-feed-filter="${k}"`, st.filter === k, l)).join('')}</div>
-      <input type="search" id="feedSearch" value="${esc(st.q)}" placeholder="🔍 Spieler oder Allianz-Tag" class="${INP} ml-auto w-full sm:w-56">
+  const matchFilter = (p, k) => { const f = FILTERS.find((x) => x[0] === k); if (!f || k === 'all') return true; if (k === 'mine') return p.user_id === me(); return f[2].includes(p.kind); };
+  const filterHTML = () => {
+    const cnt = (k) => st.posts.filter((p) => matchFilter(p, k)).length;
+    return `<div class="flex flex-col gap-2">
+      <div class="flex items-center gap-2"><span class="text-[11px] uppercase tracking-widest text-slate-500 shrink-0">Filter</span>
+        <input type="search" id="feedSearch" value="${esc(st.q)}" placeholder="🔍 Spieler oder Allianz-Tag" class="${INP} ml-auto w-full sm:w-64"></div>
+      <div class="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">${FILTERS.map(([k, l]) => { const n = cnt(k); return k !== 'all' && k !== st.filter && !n ? '' :
+        `<button type="button" data-feed-filter="${k}" aria-pressed="${st.filter === k}" class="seg-btn shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold border border-ink-600 transition">${l} <span class="opacity-60 tabular-nums">${n}</span></button>`; }).join('')}</div>
     </div>`;
+  };
   function visiblePosts() {
-    const f = FILTERS.find((x) => x[0] === st.filter), kinds = f && f[2], q = st.q.trim().toLowerCase();
+    const q = st.q.trim().toLowerCase();
     return st.posts.filter((p) => {
-      if (kinds && !kinds.includes(p.kind)) return false;
+      if (!matchFilter(p, st.filter)) return false;
       if (!q) return true;
       const u = st.users[p.user_id] || {};
       return String(u.username || '').toLowerCase().includes(q) || String(u.alliance_tag || '').toLowerCase().includes(q);
@@ -682,7 +773,12 @@ window.RokMods.feed = (R) => {
   function msg(t, tone) { lastMsg = [t, tone]; const el = $('feedMsg'); if (!el) return; el.textContent = t; el.className = 'text-xs min-h-[1em] flex-1 ' + ({ ok: 'text-emerald-400', warn: 'text-amber-300', err: 'text-red-300', busy: 'text-slate-300' }[tone] || 'text-slate-500'); }
   function renderComposer() { const el = $('feedComposer'); if (!el) return; el.innerHTML = composerHTML(); msg(lastMsg[0], lastMsg[1]); }
   function renderPreview() { const el = root.querySelector('[data-feed-prev]'); if (el && st.attach) el.innerHTML = previewHTML(st.attach); else renderComposer(); }
-  function renderList() { const el = $('feedList'); if (el) el.innerHTML = listHTML(); renderSync(); }
+  function renderList() {
+    st.deferRender = false;
+    const el = $('feedList'); if (el) el.innerHTML = listHTML();
+    const fl = $('feedFilter'); if (fl && !(document.activeElement && document.activeElement.id === 'feedSearch')) fl.innerHTML = filterHTML();
+    renderSync();
+  }
   function renderSync() { const el = $('feedSync'); if (el) el.textContent = syncTxt(); }
   function render() {
     root.innerHTML = `
@@ -732,12 +828,16 @@ window.RokMods.feed = (R) => {
     const pre = t.closest('[data-f-preset]');
     if (pre && st.attach && st.attach.kind === 'stock') { st.attach.data = stockBuild(stockPreset(pre.dataset.fPreset)); renderComposer(); return; }
     const fv = t.closest('[data-f-vip]');
-    if (fv && st.attach && st.attach.kind === 'vip') { st.attach.data = vipBuild(fv.dataset.fVip, st.attach.data.bag); renderComposer(); return; }
+    if (fv && st.attach && st.attach.kind === 'vip') { st.attach.data = vipBuild(fv.dataset.fVip, st.attach.data && st.attach.data.lv) || { mode: 'status' }; renderComposer(); return; }
     const fh = t.closest('[data-f-help]');
     if (fh && st.attach && st.attach.kind === 'help') { const r = (st.attach.list || []).find((x) => x.rid === fh.dataset.fHelp); if (r) st.attach.data = { rid: r.rid, title: r.title, sets: r.sets, items: r.items, icons: r.icons }; renderComposer(); return; }
     const mp = t.closest('[data-feed-map]');
     if (mp) { const id = mp.dataset.feedMap; openMap(id === '__prev' ? (st.attach || {}).data : (st.posts.find((p) => p.id === id) || {}).data); return; }
     const hp = t.closest('[data-feed-help]'); if (hp) { goHelp(hp.dataset.feedHelp); return; }
+    const ct = t.closest('[data-cm-toggle]');
+    if (ct) { const id = ct.dataset.cmToggle; if (st.cmOpen.has(id)) st.cmOpen.delete(id); else st.cmOpen.add(id); renderList(); if (st.cmOpen.has(id)) { const i = root.querySelector(`[data-cm-in="${CSS.escape(id)}"]`); if (i) i.focus(); } return; }
+    const cs = t.closest('[data-cm-send]'); if (cs) { sendComment(cs.dataset.cmSend); return; }
+    const cd = t.closest('[data-cm-del]'); if (cd) { const [pid, cid] = cd.dataset.cmDel.split('|'); delComment(pid, cid); return; }
     const rb = t.closest('[data-react]'); if (rb) { const [id, e] = rb.dataset.react.split('|'); react(id, e); return; }
     const dl = t.closest('[data-feed-del]'); if (dl) { del(dl.dataset.feedDel); return; }
     const pr = t.closest('[data-feed-prof]'); if (pr) { R.openProfile(pr.dataset.feedProf); return; }
@@ -747,10 +847,12 @@ window.RokMods.feed = (R) => {
     const t = ev.target;
     if (t.id === 'feedText') { st.text = t.value; return; }
     if (t.id === 'feedSearch') { st.q = t.value; renderList(); return; }
+    if (t.dataset && t.dataset.cmIn) { st.cmDraft[t.dataset.cmIn] = t.value; return; }
     const f = t.dataset && t.dataset.f, a = st.attach; if (!f || !a) return;
     const d = a.data;
     if (f === 'gq') { st.gq = t.value; const h = root.querySelector('[data-ghits]'); if (!st.gq || !h) { renderComposer(); const s = root.querySelector('[data-f="gq"]'); if (s) { s.focus(); s.setSelectionRange(s.value.length, s.value.length); } } else h.innerHTML = gearSearch(st.gq).map((g, i) => `<button type="button" data-gpick="s:${i}" class="flex items-center gap-2 text-left rounded-lg border border-ink-700 hover:border-gold-500/60 px-2 py-1.5 min-w-0">${icoBox(g.icon, 'w-9 h-9 shrink-0', '⚒️')}<span class="min-w-0"><span class="block text-sm truncate ${rarCol[g.rarity] || ''}">${esc(g.name)}</span><span class="block text-[10px] text-slate-500 truncate">${esc(g.slot)}</span></span></button>`).join('') || '<p class="text-xs text-slate-500">Nichts gefunden.</p>'; return; }
     if (f === 'note') { d.note = t.value.slice(0, 120); renderPreview(); return; }
+    if (f === 'vipLv') { const v = Math.round(+t.value); if (v >= 1 && v <= 20) { d.lv = v; renderPreview(); } return; }
     if (f === 'kv_label') { d.label = t.value.slice(0, 40); renderPreview(); return; }
     if (f.startsWith('kv_')) { d[f.slice(3)] = num(t.value); renderPreview(); return; }
   });
@@ -768,11 +870,13 @@ window.RokMods.feed = (R) => {
     }
     if (f === 'refType') { d.refType = t.value; if (t.value) d.exp = true; renderComposer(); return; }
     if (f === 'passTs') { d.ts = fromLocalInput(t.value); renderPreview(); return; }
-    if (f === 'vipBag') { a.data = vipBuild(d.mode, t.checked); renderComposer(); return; }
     if (f.startsWith('so_')) { const o = { ...(d.opt || {}), [f.slice(3)]: t.checked }; a.data = stockBuild(o); renderComposer(); return; }
     if (f.startsWith('kv_')) { const el = root.querySelector(`[data-f="${f}"]`); if (el && f !== 'kv_label' && d[f.slice(3)]) el.value = fmt(d[f.slice(3)]); }
   });
 
+  root.addEventListener('keydown', (ev) => { const t = ev.target; if (ev.key === 'Enter' && !ev.shiftKey && t.dataset && t.dataset.cmIn) { ev.preventDefault(); sendComment(t.dataset.cmIn); } });
+  // aufgeschobenes Neuzeichnen nachholen, sobald niemand mehr in der Liste tippt
+  root.addEventListener('focusout', () => { setTimeout(() => { if (st.deferRender && !typing()) renderList(); }, 300); });
   // Auto-Aktualisieren: alle 20 s, solange der Feed offen und der Tab sichtbar ist · Countdown der Pässe läuft mit
   const feedOpen = () => R.view === 'feed' && !document.hidden;
   setInterval(() => { if (feedOpen()) poll(); }, POLL_MS);

@@ -4982,6 +4982,8 @@
     mineOutput,
     mountTimer,                                     // KvKCalc.mountTimer(element, { onOpen }) – Countdown z. B. im Profil
     mapData: () => { if (!state) state = load(); return mapData(); },   // eigene Karte { kds: [[…]×4], my, ally } – fürs Profil speichern
+    passTimes: () => { if (!state) state = load(); syncSched(); return { start: startTs(), passes: clone(PASS_SCHEDULE) }; },   // Pass-Öffnungen { start, passes: [{ n, ts }] } (UTC-ms) – für den Feed
+    timeline: () => { if (!state) state = load(); return mapEvents().filter((e) => e.kind === 'altar' || (e.kind === 'pass' && [4, 7, 8].includes(e.n))).map((e) => ({ kind: e.kind, n: e.n || 0, ts: e.ts })); },   // Timeline (Pass 4/7/8 + Altäre) – für den Feed
     openMapModal,                                   // KvKCalc.openMapModal(daten | null, { kingdom, startDate }) – Karte als Fenster
     mountMap,                                       // KvKCalc.mountMap(element, daten | null, { kingdom, onOpen }) – Karte im Profil; false = nichts zu zeigen
     getState: () => clone(state),
