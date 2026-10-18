@@ -3,7 +3,7 @@
 // Der API-Key kommt ausschließlich aus der Umgebungsvariable ANTHROPIC_API_KEY und verlässt nie den Server.
 
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5';
-const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'mats', 'gear', 'armament', 'passports']);
+const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'mats', 'gear', 'armament', 'passports', 'goldheads', 'keys', 'armaments']);
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MAX_IMAGES = 5;
 const MAX_TOTAL_B64 = 4_300_000; // Vercel erlaubt max. 4,5 MB pro Anfrage
@@ -150,6 +150,54 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
   "confidence": "hoch" | "mittel" | "niedrig",
   "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
 }`;
+
+// ---------- Goldheads / Keys / Armaments (Anzahl aus dem Inventar) ----------
+const COUNT_TAIL = (type, keys) => `
+Punkt/Komma in einer Anzahl ist ein Tausendertrennzeichen: "1.250" = 1250. Die Anzahl steht auf Inventar-Kacheln UNTEN RECHTS,
+in Textansichten hinter "Du besitzt:" / "Owned:". Bei mehreren Screenshots dasselbe Item nicht doppelt zählen.
+Ist ein Item nicht zu sehen, nutze null (nicht 0 raten). Ignoriere alle anderen Items.
+
+Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
+{
+  "type": "${type}",
+  "counts": { ${keys.map(k => `"${k}": number|null`).join(', ')} },
+  "confidence": "hoch" | "mittel" | "niedrig",
+  "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
+}`;
+
+const PROMPT_GOLDHEADS = `${INTRO}
+
+MODUS: Goldheads. Alle Screenshots stammen vom Main-Account des Spielers.
+Gesucht ist die Anzahl der UNIVERSELLEN legendären Skulpturen ("Goldheads"): goldene Büste/Kopf-Skulptur,
+englisch z. B. "Legendary Sculpture" / "Universal Legendary Sculpture", deutsch z. B. "Legendäre Skulptur" / "Universelle legendäre Skulptur".
+Beschreibung sinngemäß: kann für JEDEN legendären Kommandanten verwendet werden (Fertigkeiten aufwerten / freischalten).
+NICHT mitzählen: Skulpturen eines bestimmten Kommandanten (mit Namen, z. B. "Skulptur von Richard I."), epische (lila) Skulpturen.
+- "goldheads" = Anzahl universeller legendärer Skulpturen
+${COUNT_TAIL('goldheads', ['goldheads'])}`;
+
+const PROMPT_KEYS = `${INTRO}
+
+MODUS: Schlüssel (Keys). Alle Screenshots stammen vom Main-Account des Spielers.
+Gesucht ist die Anzahl dieser Schlüssel:
+- "key_gold"     = Goldene Schlüssel / "Gold Key" (Taverne, goldene Truhe)
+- "key_silver"   = Silberne Schlüssel / "Silver Key" (Taverne, silberne Truhe)
+- "key_material" = Material-Schlüssel / "Material Key" bzw. Schlüssel für Material-Truhen (falls vorhanden)
+In der Taverne steht die Anzahl ggf. neben dem Schlüssel-Symbol am Truhen-Button (z. B. "Schlüssel: 12").
+${COUNT_TAIL('keys', ['key_gold', 'key_silver', 'key_material'])}`;
+
+const PROMPT_ARMAMENTS = `${INTRO}
+
+MODUS: Armaments (Formations-Rüstungen / Armament-Teile). Alle Screenshots stammen vom Main-Account des Spielers.
+Zähle die Armament-Teile nach Seltenheit (Rahmenfarbe der Kachel bzw. Seltenheit im Text):
+- "arm_legendary" = Legendär / Legendary (gold/orange)
+- "arm_epic"      = Episch / Epic (lila)
+- "arm_elite"     = Elite (blau)
+- "arm_advanced"  = Fortgeschritten / Advanced (grün)
+- "arm_normal"    = Normal (weiß/grau)
+Zusätzlich:
+- "arm_scrolls"   = Armament-Schriftrollen / Armament Scrolls (zum Aufwerten bzw. Umschreiben der Inschriften), Summe aller Schriftrollen
+Steht in einer Übersicht eine Zahl je Seltenheit, nimm diese. Sonst zähle die sichtbaren Kacheln (Anzahl auf der Kachel beachten).
+${COUNT_TAIL('armaments', ['arm_legendary', 'arm_epic', 'arm_elite', 'arm_advanced', 'arm_normal', 'arm_scrolls'])}`;
 
 // ---------- Statthalter-Profil (Energie, Kill-Punkte, Höchster Verdienst, Tote, Ark of Osiris, Lost Kingdom) ----------
 const PROMPT_GOVERNOR = `${INTRO}
@@ -392,7 +440,7 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
 }`;
 
 // Der Prompt liegt auf dem Server: so kann die Route nicht als allgemeiner Claude-Proxy missbraucht werden.
-const PROMPT = (m) => m === 'armament' ? PROMPT_ARMAMENT : m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'passports' ? PROMPT_PASSPORTS : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : PROMPT_CLASSIC(m);
+const PROMPT = (m) => m === 'armament' ? PROMPT_ARMAMENT : m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'passports' ? PROMPT_PASSPORTS : m === 'goldheads' ? PROMPT_GOLDHEADS : m === 'keys' ? PROMPT_KEYS : m === 'armaments' ? PROMPT_ARMAMENTS : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : PROMPT_CLASSIC(m);
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
