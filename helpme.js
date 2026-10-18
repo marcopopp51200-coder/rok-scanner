@@ -98,7 +98,7 @@ window.RokMods.helpme = (R) => {
     const resultHTML = result.length ? `<div class="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3"><div class="text-[11px] uppercase tracking-widest text-emerald-300 mb-2">📊 Empfehlung der Community · ${ans.length} Antwort${ans.length === 1 ? '' : 'en'}</div>
         <div class="flex flex-col gap-1">${result.slice(0, 8).map((x, i) => `<div class="flex items-center gap-2 text-sm"><span class="w-6 text-center font-bold ${i === 0 ? 'text-gold-300' : 'text-slate-400'}">${i + 1}.</span>${x.g.icon ? `<img src="${esc(x.g.icon)}" alt="" class="w-7 h-7 rounded object-contain bg-ink-900">` : ''}<span class="min-w-0 flex-1 truncate ${RAR[x.g.rarity] || ''}">${esc(x.g.name)} <span class="text-[11px] text-slate-500">${esc(x.g.set)} · ${esc(SLOT_LABEL[x.g.slot] || x.g.slot)}</span></span><span class="text-xs text-slate-400 tabular-nums">${x.votes}× · ${x.score} P.</span></div>`).join('')}</div>
         ${ans.filter((a) => a.note).length ? `<div class="mt-2 pt-2 border-t border-ink-700/60 flex flex-col gap-1">${ans.filter((a) => a.note).map((a) => `<div class="text-xs text-slate-300"><b class="text-slate-200">${esc(u(a.user_id).username || '?')}:</b> ${esc(a.note)}</div>`).join('')}</div>` : ''}</div>` : (own ? '<p class="text-xs text-slate-500">Noch keine Antworten.</p>' : '');
-    return `<article class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3 ${closed ? 'opacity-70' : ''}">
+    return `<article data-help-req="${esc(req.id)}" class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3 transition-shadow ${closed ? 'opacity-70' : ''}">
       <div class="flex items-center gap-3">
         <button type="button" data-help-prof="${esc(req.user_id)}" class="flex items-center gap-2.5 min-w-0 text-left rounded-lg hover:bg-ink-800/60 pr-2">${R.userLine(u(req.user_id), 'w-10 h-10 text-base')}</button>
         <span class="ml-auto text-[11px] text-slate-500 text-right">${closed ? '✓ geschlossen · ' : ''}${R.timeAgo(req.created_at)}<span class="block">${ans.length} Antwort${ans.length === 1 ? '' : 'en'}</span></span>
@@ -149,5 +149,17 @@ window.RokMods.helpme = (R) => {
     else if ((b = c('data-help-del'))) closeReq(b.dataset.helpDel, true);
     else if ((b = c('data-help-prof'))) R.openProfile(b.dataset.helpProf);
   });
+  // Sprung aus dem Feed: Help Me öffnen, Anfrage aufklappen und hinscrollen
+  R.helpOpen = (id) => {
+    st.open = id; R.goView('help');
+    let tries = 0;
+    const go = () => {
+      const el = root.querySelector(`[data-help-req="${CSS.escape(id)}"]`);
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('ring-2', 'ring-gold-400'); setTimeout(() => el.classList.remove('ring-2', 'ring-gold-400'), 2500); return; }
+      if ((!st.loaded || st.loading) && tries++ < 40) { setTimeout(go, 250); return; }
+      msg('Diese Anfrage gibt es nicht mehr.', 'warn');
+    };
+    setTimeout(go, 450);
+  };
   R.viewHooks.help = () => { if (!st.loaded && !st.loading) { load(); return; } st.reqs.filter((r) => r.user_id === me()).forEach((r) => markSeen(r.id)); updateBadge(); render(); };
 };
