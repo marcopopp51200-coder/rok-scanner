@@ -56,9 +56,9 @@ tailwind.config = {
   #areaAside[data-tab] > * { margin-top:0 !important; }
   #areaAside[data-tab="scan"] { display:grid; gap:1.5rem; align-items:start; }
   @media (min-width:1024px) { #areaAside[data-tab="scan"] { grid-template-columns:1fr 1fr; } }
-  #areaAside[data-tab="scan"] > #passiveInputs { display:none !important; }
-  #areaAside[data-tab="passive"] > section:not(#passiveInputs) { display:none !important; }
-  #areaAside[data-tab="passive"] { max-width:42rem; width:100%; margin:0 auto; }
+  .ap-tog[aria-checked="true"] { background:#10b981; border-color:#34d399; }
+  .ap-tog[aria-checked="true"] > span { transform:translateX(18px); background:#fff; }
+  .ap-src[data-on="false"] .ap-src-body { opacity:.45; }
   .seg-btn[aria-pressed="true"] { background: linear-gradient(180deg,#f5c542,#b7830f); color:#07090f; box-shadow: 0 0 18px rgba(245,197,66,.35); }
 </style>
 </head>
@@ -348,9 +348,6 @@ tailwind.config = {
       </section>
 
 
-      <!-- Passive Income (scanner.js füllt den Inhalt je Bereich) -->
-      <section id="passiveInputs" class="hidden panel rounded-2xl p-5"></section>
-
     </aside>
 
     <!-- Right: results -->
@@ -570,6 +567,12 @@ tailwind.config = {
         <p class="text-xs text-slate-500 mt-3">Eingabe als Zahl oder Kurzform, z. B. 12500000, 12,5M oder 850K. Wird automatisch gespeichert.</p>
       </section>
     </main>
+
+    <!-- Statistics (linke Kachel): Was kann ich damit machen + Passive Income mit Hochrechnung -->
+    <div id="statsArea" class="hidden space-y-6 min-w-0">
+      <div id="statsTop" class="space-y-6"></div>
+      <section id="passiveInputs" class="hidden panel rounded-2xl p-5"></section>
+    </div>
   </div>
   </div><!-- /scanArea -->
   </div>

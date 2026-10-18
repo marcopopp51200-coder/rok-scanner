@@ -1559,8 +1559,7 @@ window.RokApp = () => {
     $('cntInputs').classList.toggle('hidden', !isCnt);
     $('cntSection').classList.toggle('hidden', !isCnt || !has);
     if (isCnt && $('cntInputs').dataset.m !== R.mode) { renderCntInputs(R.mode); $('cntInputs').dataset.m = R.mode; }
-    if (typeof setAreaTab === 'function' && R.areaTab === 'passive' && !passiveFields(R.mode)) setAreaTab('dash');
-    if (passiveReady) renderPassive(R.mode); else if ($('passiveInputs')) $('passiveInputs').classList.add('hidden');
+    if (passiveReady) renderStats(R.mode); else if ($('passiveInputs')) $('passiveInputs').classList.add('hidden');
     $('speedSection').classList.toggle('hidden', R.mode !== 'speedups' || !hasSpeed);
     $('speedInputs').classList.toggle('hidden', R.mode !== 'speedups');
     $('speedOpts').classList.toggle('hidden', R.mode !== 'speedups');
@@ -1663,7 +1662,7 @@ window.RokApp = () => {
     if (sec.dataset.m !== m) {
       const st = pState(m);
       const inp = 'w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500';
-      sec.innerHTML = `<h2 class="font-display text-lg text-gold-300">${m === 'gems' ? 2 : 3} · Passive Income</h2>
+      sec.innerHTML = `<h2 class="font-display text-lg text-gold-300">Passive Income</h2>
         <p class="text-xs text-slate-400 mb-3">Was regelmäßig dazukommt (Events, Truhen, Allianz-Shop, Farmen …). Wird automatisch gespeichert und hochgerechnet.</p>
         <div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700 mb-3" role="group">
           ${Object.entries(PERIODS).map(([k, p]) => `<button type="button" data-pper="${k}" aria-pressed="${st.period === k}" class="seg-btn rounded-lg py-1.5 text-xs font-semibold transition">${p.label}</button>`).join('')}
@@ -1671,6 +1670,7 @@ window.RokApp = () => {
         <div class="space-y-2">${fields.map(f => `<label class="grid grid-cols-[1fr_110px] items-center gap-2 text-sm">
             <span class="text-slate-300 min-w-0 truncate">${ico(f, 'w-5 h-5')} ${f.label}${f.unit ? ` <span class="text-slate-500 text-xs">(${f.unit})</span>` : ''}</span>
             <input data-pin="${f.k}" ${f.text ? 'type="text" inputmode="decimal"' : `type="number" min="0" step="${f.dec || m === 'speedups' ? 'any' : '1'}"`} placeholder="0" value="${st.vals[f.k] ?? ''}" class="${inp}"></label>`).join('')}</div>
+        <div class="mt-4">${horizonCtl()}</div>
         <div id="passiveOut" class="mt-3"></div>`;
       sec.dataset.m = m;
       sec.querySelectorAll('[data-pper]').forEach(b => b.onclick = () => {
@@ -1685,68 +1685,214 @@ window.RokApp = () => {
         clearTimeout(renderPassive._t); renderPassive._t = setTimeout(() => LS.set(PASSIVE_KEY, JSON.stringify(passive)), 400);
         renderPassiveOut(m);
       }));
+      bindHorizonCtl(sec, () => renderPassiveOut(m));
       makeFold(sec, 'passive:' + m);
     }
     renderPassiveOut(m);
   }
+  // ---------- Zeiträume für die Hochrechnung: 7 T · 30 T · eigene Tage · bis KvK-Start ----------
+  const hState = () => (passive._h = passive._h || { custom: 14, sel: 'now' });
+  function kvkStartDate() { try { const d = RokAuth.ownMeta?.()?.kvk_start; return /^\d{4}-\d{2}-\d{2}$/.test(d || '') ? d : null; } catch { return null; } }
+  function horizons() {
+    const st = hState(), n = Math.max(1, Math.min(999, Math.round(+st.custom || 14)));
+    const H = [{ k: '7', days: 7, label: '7 Tage' }, { k: '30', days: 30, label: '30 Tage' }, { k: 'custom', days: n, label: `${n} Tage` }];
+    const kd = kvkStartDate();
+    if (kd) { const ms = Date.parse(kd + 'T00:00:00Z') - Date.now(); if (ms > 0) H.push({ k: 'kvk', days: ms / 86400000, label: 'bis KvK' }); }
+    return H;
+  }
+  const savePassive = () => { clearTimeout(savePassive._t); savePassive._t = setTimeout(() => LS.set(PASSIVE_KEY, JSON.stringify(passive)), 400); };
+  // Eingabe für eigene Tage + Hinweis zum KvK-Start
+  function horizonCtl() {
+    const kd = kvkStartDate();
+    return `<div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-400">
+      <label class="inline-flex items-center gap-2">Eigener Zeitraum <input data-hcustom type="number" min="1" max="999" step="1" value="${hState().custom}" class="w-16 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-right tabular-nums text-slate-200 focus:outline-none focus:border-gold-500"> Tage</label>
+      <span>${kd ? `KvK-Start: <b class="text-slate-200">${kd.split('-').reverse().join('.')}</b>` : 'KvK-Start nicht festgelegt (unter KvK → Get Ready)'}</span></div>`;
+  }
+  function bindHorizonCtl(root, rerender) {
+    root.querySelectorAll('[data-hcustom]').forEach(i => i.addEventListener('input', () => {
+      const v = Math.round(+i.value); if (!(v >= 1)) return;
+      hState().custom = Math.min(999, v); savePassive(); rerender();
+    }));
+  }
+
+  // ---------- AP: Statistik (was kann ich machen) + aktivierbare Passive-Quellen ----------
+  const AP_PER_FORT = (430 + 237) * 50 / (720 + 373);   // 720 Forts ≈ 430×50er, 373 Forts ≈ 237×50er → Ø ≈ 30,5 AP
+  const AP_PER_BARB = 915 * 100 / 7000;                 // 7.000 Barbaren ≈ 915×100er → Ø ≈ 13,1 AP
+  const f1 = (v) => (+v).toLocaleString('de-DE', { maximumFractionDigits: 1 });
+  const AP_COSTS = [
+    { k: 'barbOff', label: 'Barbaren (Offseason)', def: 40, icon: '🪓', hint: '50 AP, je Folgeangriff −2 bis 40' },
+    { k: 'barbKvk', label: 'Barbaren (KvK)', def: 40, icon: '⚔️' },
+    { k: 'fortOff', label: 'Forts (Offseason)', def: 150, icon: '🏰' },
+    { k: 'fortKvk', label: 'Forts (KvK)', def: 150, icon: '🏯' },
+    { k: 'maraud', label: 'Marodeure (KvK)', def: 50, icon: '🐎' },
+    { k: 'daily', label: 'Daily', def: 400, icon: '📅', unit: 'Tage' }
+  ];
+  const AP_SRC = [
+    { k: 'daily', label: 'Daily', desc: '100 AP jeden Tag', perDay: () => 100 },
+    { k: 'monday', label: 'Montags-Belohnung', desc: '3.000 AP jeden Montag', perDay: () => 3000 / 7, inc: (s, days) => 3000 * mondays(days) },
+    { k: 'afort', label: 'Allianz-Forts', desc: '100 % = 7.000 AP pro Woche', pct: true, perDay: (s) => 7000 * (s.pct || 100) / 100 / 7 },
+    { k: 'forts', label: 'Eigene Forts', desc: `Ø ${f1(AP_PER_FORT)} AP pro Fort (720 Forts ≈ 430×50er · 373 ≈ 237×50er)`, input: { label: 'Forts pro Tag (Ø)', ph: 'z. B. 5' }, perDay: (s) => (+s.n || 0) * AP_PER_FORT },
+    { k: 'barbs', label: 'Barbaren', desc: `Ø ${f1(AP_PER_BARB)} AP pro Barbar (7.000 Barbaren ≈ 915×100er)`, input: { label: 'Barbaren pro Tag', def: 108 }, perDay: (s) => (s.n ?? 108) * AP_PER_BARB },
+    { k: 'bundle', label: 'Daily Bundle', desc: '500 AP pro Kauf', input: { label: 'Käufe pro Tag', def: 1 }, perDay: (s) => (s.n ?? 1) * 500 }
+  ];
+  function mondays(days) { let c = 0; const d = new Date(); for (let i = 1; i <= Math.floor(days); i++) { d.setDate(d.getDate() + 1); if (d.getDay() === 1) c++; } return c; }
+  const apSrc = (k) => { const a = (passive.apSrc = passive.apSrc || {}); return (a[k] = a[k] || { on: false }); };
+  const apCost = (k) => { const c = (passive.apCost = passive.apCost || {}); const d = AP_COSTS.find(x => x.k === k).def; return +c[k] > 0 ? +c[k] : d; };
+  const apIncome = (days) => AP_SRC.reduce((a, x) => { const s = apSrc(x.k); return a + (s.on ? (x.inc ? x.inc(s, days) : x.perDay(s) * days) : 0); }, 0);
+  const apPerDay = () => AP_SRC.reduce((a, x) => a + (apSrc(x.k).on ? x.perDay(apSrc(x.k)) : 0), 0);
+  const apNow = () => { const e = R.history.filter(x => x.type === 'ap' && x.total_ap != null).sort((a, b) => b.ts - a.ts)[0]; return e ? +e.total_ap : null; };
+  const toggleBtn = (attr, on) => `<button type="button" ${attr} role="switch" aria-checked="${on}" class="ap-tog relative shrink-0 w-11 h-6 rounded-full border border-ink-600 bg-ink-800 transition"><span class="absolute top-0.5 left-0.5 w-[18px] h-[18px] rounded-full bg-slate-400 transition-transform"></span></button>`;
+  function renderApStats() {
+    const top = $('statsTop');
+    const inp = 'w-20 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500';
+    top.innerHTML = `
+      <section id="apCanDo" class="panel rounded-2xl p-5">
+        <h2 class="font-display text-lg text-gold-300">Was kannst du mit deinen AP machen?</h2>
+        <div id="apChips" class="flex flex-wrap gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700 mb-4" role="group"></div>
+        <div id="apCanDoOut"></div>
+        <details class="mt-4 group">
+          <summary class="cursor-pointer select-none text-xs text-slate-400 hover:text-gold-300">⚙ AP-Kosten anpassen</summary>
+          <div class="mt-3 grid sm:grid-cols-2 gap-2">${AP_COSTS.map(c => `<label class="flex items-center justify-between gap-2 text-sm"><span class="text-slate-300">${c.icon} ${c.label}</span>
+            <span class="inline-flex items-center gap-1"><input data-apcost="${c.k}" type="number" min="1" step="1" value="${passive.apCost?.[c.k] ?? ''}" placeholder="${c.def}" class="${inp}"><span class="text-xs text-slate-500">AP</span></span></label>`).join('')}</div>
+          <p class="mt-2 text-[11px] text-slate-500">Barbaren: 50 AP, je Angriff ohne Rückkehr −2 bis 40 (mit Talent „Einsicht“ weniger). Forts und Marodeure sind Schätzwerte – trag hier deine echten Kosten ein.</p>
+        </details>
+      </section>
+      <section id="apPassive" class="panel rounded-2xl p-5">
+        <h2 class="font-display text-lg text-gold-300">Passive AP</h2>
+        <p class="text-xs text-slate-400 mb-3">Aktiviere, was auf dich zutrifft – wird automatisch gespeichert und hochgerechnet.</p>
+        <div class="space-y-2">${AP_SRC.map(x => { const s = apSrc(x.k); return `
+          <div class="ap-src rounded-xl border border-ink-700 bg-ink-950/40 px-3 py-2.5" data-on="${!!s.on}" data-src="${x.k}">
+            <div class="flex items-center gap-3">
+              ${toggleBtn(`data-aptog="${x.k}"`, !!s.on)}
+              <div class="ap-src-body min-w-0 flex-1">
+                <div class="text-sm font-semibold text-white">${ico({ img: AP_IMG }, 'w-4 h-4')} ${x.label}</div>
+                <div class="text-[11px] text-slate-400">${x.desc}</div>
+              </div>
+              <div class="ap-src-body text-right text-xs tabular-nums text-emerald-400 whitespace-nowrap" data-apday="${x.k}"></div>
+            </div>
+            ${x.pct ? `<div class="ap-src-body mt-2 grid grid-cols-4 gap-1 p-1 rounded-lg bg-ink-950 border border-ink-700">${[25, 50, 75, 100].map(p => `<button type="button" data-appct="${p}" data-k="${x.k}" aria-pressed="${(s.pct || 100) === p}" class="seg-btn rounded-md py-1 text-xs font-semibold transition">${p} %</button>`).join('')}</div>` : ''}
+            ${x.input ? `<label class="ap-src-body mt-2 flex items-center justify-between gap-2 text-xs text-slate-300">${x.input.label}<input data-apn="${x.k}" type="number" min="0" step="any" value="${s.n ?? x.input.def ?? ''}" placeholder="${x.input.ph || ''}" class="${inp}"></label>` : ''}
+          </div>`; }).join('')}</div>
+        <div class="mt-4">${horizonCtl()}</div>
+        <div id="apPassiveOut" class="mt-3"></div>
+      </section>`;
+    makeFold($('apCanDo'), 'apstats:cando');
+    makeFold($('apPassive'), 'apstats:passive');
+    renderApChips();
+    top.querySelectorAll('[data-apcost]').forEach(i => i.addEventListener('input', () => { const c = (passive.apCost = passive.apCost || {}); if (+i.value > 0) c[i.dataset.apcost] = +i.value; else delete c[i.dataset.apcost]; savePassive(); renderApStatsOut(); }));
+    top.querySelectorAll('[data-aptog]').forEach(b => b.onclick = () => { const s = apSrc(b.dataset.aptog); s.on = !s.on; b.setAttribute('aria-checked', String(s.on)); b.closest('.ap-src').dataset.on = String(s.on); savePassive(); renderApStatsOut(); });
+    top.querySelectorAll('[data-appct]').forEach(b => b.onclick = () => { const s = apSrc(b.dataset.k); s.pct = +b.dataset.appct; top.querySelectorAll(`[data-appct][data-k="${b.dataset.k}"]`).forEach(x => x.setAttribute('aria-pressed', String(x === b))); savePassive(); renderApStatsOut(); });
+    top.querySelectorAll('[data-apn]').forEach(i => i.addEventListener('input', () => { const s = apSrc(i.dataset.apn); s.n = i.value === '' ? null : Math.max(0, +i.value); savePassive(); renderApStatsOut(); }));
+    bindHorizonCtl(top, () => { renderApChips(); renderApStatsOut(); });
+    renderApStatsOut();
+  }
+  function renderApChips() {
+    const el = $('apChips'); if (!el) return;
+    const H = [{ k: 'now', label: 'Jetzt' }, ...horizons()], st = hState();
+    if (!H.some(h => h.k === st.sel)) st.sel = 'now';
+    el.innerHTML = H.map(h => `<button type="button" data-hsel="${h.k}" aria-pressed="${st.sel === h.k}" class="seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition">${h.label}</button>`).join('');
+    el.querySelectorAll('[data-hsel]').forEach(b => b.onclick = () => { hState().sel = b.dataset.hsel; savePassive(); renderApChips(); renderApStatsOut(); });
+  }
+  function renderApStatsOut() {
+    const H = horizons(), st = hState(), now = apNow();
+    const h = [{ k: 'now', label: 'Jetzt', days: 0 }, ...H].find(x => x.k === st.sel) || { k: 'now', days: 0, label: 'Jetzt' };
+    const ap = (now || 0) + apIncome(h.days);
+    const out = $('apCanDoOut');
+    if (out) out.innerHTML = `
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-14 h-14 shrink-0 rounded-2xl grid place-items-center" style="background:linear-gradient(135deg,#34d39933,#10b98111);border:1px solid #34d39955">${ico({ img: AP_IMG }, 'w-10 h-10')}</div>
+        <div><div class="text-xs uppercase tracking-widest text-slate-400">${h.k === 'now' ? 'AP jetzt' : `AP ${h.k === 'kvk' ? 'zum KvK-Start' : 'in ' + h.label}`}</div>
+          <div class="text-3xl font-extrabold text-white tabular-nums">${fmt(ap)} AP</div>
+          <div class="text-xs text-slate-400">${now == null ? 'Noch kein AP-Scan – nur Passive gerechnet' : h.k === 'now' ? 'aus deinem letzten Scan' : `${fmt(now)} jetzt + ${fmt(ap - now)} passiv`}</div></div>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">${AP_COSTS.map(c => { const cost = apCost(c.k), n = Math.floor(ap / cost); return `
+        <div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3">
+          <div class="text-[10px] uppercase tracking-widest text-slate-400 truncate">${c.icon} ${c.label}</div>
+          <div class="text-2xl font-bold text-gold-300 tabular-nums mt-1">${fmt(n)} <span class="text-xs font-medium text-slate-400">${c.unit || '×'}</span></div>
+          <div class="text-[11px] text-slate-500 tabular-nums">à ${fmt(cost)} AP</div></div>`; }).join('')}</div>`;
+    // Passive-Quellen: pro Tag je Quelle + Hochrechnung
+    AP_SRC.forEach(x => { const el = document.querySelector(`[data-apday="${x.k}"]`); if (el) el.textContent = `+${fmt(x.perDay(apSrc(x.k)))} / Tag`; });
+    const po = $('apPassiveOut'); if (!po) return;
+    const on = AP_SRC.filter(x => apSrc(x.k).on);
+    if (!on.length) { po.innerHTML = '<div class="text-xs text-slate-500">Aktiviere oben mindestens eine Quelle – dann siehst du hier, wie viel AP in 7 Tagen, 30 Tagen, deinem eigenen Zeitraum und bis zum KvK dazukommen.</div>'; renderAreaTabs(); return; }
+    const th = 'py-1.5 px-2 text-right font-medium whitespace-nowrap';
+    const inc = (x, d) => x.inc ? x.inc(apSrc(x.k), d) : x.perDay(apSrc(x.k)) * d;
+    po.innerHTML = `<div class="overflow-x-auto rounded-lg border border-emerald-500/30 bg-emerald-500/5"><table class="w-full text-xs">
+      <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-1.5 px-2 text-left font-medium">Quelle</th><th class="${th}">pro Tag</th>${H.map(h => `<th class="${th}">${h.label}</th>`).join('')}</tr></thead>
+      <tbody>${on.map(x => `<tr class="border-b border-ink-800"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${x.label}</td><td class="py-1.5 px-2 text-right tabular-nums text-emerald-400">+${fmt(x.perDay(apSrc(x.k)))}</td>${H.map(h => `<td class="py-1.5 px-2 text-right tabular-nums text-emerald-400">+${fmt(inc(x, h.days))}</td>`).join('')}</tr>`).join('')}
+        <tr class="border-b border-ink-800 font-semibold"><td class="py-1.5 px-2 text-slate-200">Passiv gesamt</td><td class="py-1.5 px-2 text-right tabular-nums text-emerald-300">+${fmt(apPerDay())}</td>${H.map(h => `<td class="py-1.5 px-2 text-right tabular-nums text-emerald-300">+${fmt(apIncome(h.days))}</td>`).join('')}</tr>
+        ${now != null ? `<tr class="font-bold"><td class="py-2 px-2 text-gold-300">AP gesamt</td><td class="py-2 px-2 text-right tabular-nums text-slate-400">${fmt(now)}</td>${H.map(h => `<td class="py-2 px-2 text-right tabular-nums text-gold-300">${fmt(now + apIncome(h.days))}</td>`).join('')}</tr>` : ''}
+      </tbody></table></div>`;
+    renderAreaTabs();
+  }
+
+  // ---------- Allgemeine Passive-Hochrechnung (alle anderen Bereiche) ----------
   function renderPassiveOut(m) {
     const out = $('passiveOut'); if (!out) return;
-    const fields = passiveFields(m), now = passiveNow(m);
+    const fields = passiveFields(m), now = passiveNow(m), H = horizons();
     const rows = fields.map(f => ({ f, d: pPerDay(m, f) })).filter(r => r.d > 0);
-    if (!rows.length) { out.innerHTML = '<div class="text-xs text-slate-500">Trag ein, wie viel du regelmäßig bekommst – dann siehst du hier, was in 7 und 30 Tagen dazukommt.</div>'; renderAreaTabs(); return; }
-    const line = (r) => {
-      const has = now[r.f.k] != null, in30 = (+now[r.f.k] || 0) + r.d * 30;
-      return `<div class="grid grid-cols-[1fr_auto] gap-x-3 items-center py-1.5 border-t border-ink-700 first:border-t-0">
-        <div class="text-xs text-slate-300 min-w-0 truncate">${ico(r.f, 'w-4 h-4')} ${r.f.label}</div>
-        <div class="text-right text-xs tabular-nums"><span class="text-emerald-400">+${pFmt(m, r.f, r.d * 7)}</span> <span class="text-slate-500">/ Woche</span></div>
-        <div class="text-[11px] text-slate-500">${has ? 'in 30 Tagen' : '+30 Tage'}</div>
-        <div class="text-right text-sm font-semibold tabular-nums text-gold-300">${has ? pFmt(m, r.f, in30) : '+' + pFmt(m, r.f, r.d * 30)}</div></div>`;
-    };
+    if (!rows.length) { out.innerHTML = '<div class="text-xs text-slate-500">Trag ein, wie viel du regelmäßig bekommst – dann siehst du hier, was in 7 Tagen, 30 Tagen, deinem eigenen Zeitraum und bis zum KvK dazukommt.</div>'; renderAreaTabs(); return; }
+    const th = 'py-1.5 px-2 text-right font-medium whitespace-nowrap';
+    const cell = (r, days) => { const has = now[r.f.k] != null; return has ? pFmt(m, r.f, (+now[r.f.k] || 0) + r.d * days) : '+' + pFmt(m, r.f, r.d * days); };
     let extra = '';
     if (m === 'passports') {
       const goal = toCount($('passGoal')?.value), have = +now.passports || 0, d = rows[0]?.d || 0;
       if (goal && d > 0) extra = `<div class="mt-2 text-xs ${have >= goal ? 'text-emerald-400' : 'text-slate-300'}">${have >= goal ? 'Ziel schon erreicht ✓' : `🎯 Migrations-Ziel in ca. <b class="text-indigo-300 tabular-nums">${fmt(Math.ceil((goal - have) / d))}</b> Tagen erreicht`}</div>`;
     }
-    out.innerHTML = `<div class="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2">${rows.map(line).join('')}</div>${extra}`;
+    out.innerHTML = `<div class="overflow-x-auto rounded-lg border border-emerald-500/30 bg-emerald-500/5"><table class="w-full text-xs">
+      <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-1.5 px-2 text-left font-medium"></th><th class="${th}">pro Woche</th>${H.map(h => `<th class="${th}">${h.label}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map(r => `<tr class="border-b border-ink-800 last:border-b-0"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${ico(r.f, 'w-4 h-4')} ${r.f.label}</td>
+        <td class="py-1.5 px-2 text-right tabular-nums text-emerald-400">+${pFmt(m, r.f, r.d * 7)}</td>${H.map(h => `<td class="py-1.5 px-2 text-right tabular-nums font-semibold text-gold-300">${cell(r, h.days)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+      <div class="mt-1 text-[11px] text-slate-500">Gold = Bestand aus dem letzten Scan + Passive · „+“ = nur Passive (noch kein Scan)</div>${extra}`;
     renderAreaTabs();
   }
   passiveReady = true;
 
-
-  // ---------- Bereichs-Kacheln: Scan (links) · Dashboard (Mitte, Start) · Passive (rechts) ----------
+  // ---------- Bereichs-Kacheln: Statistics (links) · Dashboard (Mitte, Start) · Scan (rechts) ----------
   R.areaTab = 'dash';
   function passiveSummary(m) {
     if (!passiveReady) return null;
+    if (m === 'ap') { const d = apPerDay(); return d > 0 ? `+${fmt(d)} AP / Tag` : null; }
     const fields = passiveFields(m); if (!fields) return null;
     const rows = fields.map(f => ({ f, d: pPerDay(m, f) })).filter(r => r.d > 0);
     if (!rows.length) return null;
     if (rows.length === 1) return `+${pFmt(m, rows[0].f, rows[0].d * 7)} / Woche`;
     return `${rows.length} Werte · pro Woche`;
   }
+  function renderStats(m) {
+    const top = $('statsTop'), sec = $('passiveInputs');
+    if (m === 'ap') { sec.classList.add('hidden'); if (R.areaTab === 'stats' || !top.querySelector('#apCanDo')) renderApStats(); else renderApStatsOut(); return; }
+    if (passiveFields(m)) { top.innerHTML = ''; renderPassive(m); return; }
+    sec.classList.add('hidden');
+    top.innerHTML = `<section class="panel rounded-2xl p-6 text-center text-sm text-slate-400">Für diesen Bereich gibt es noch keine Statistik – kommt als Nächstes.</section>`;
+  }
   function renderAreaTabs() {
     const el = $('areaTabs'); if (!el || typeof HUB === 'undefined' || !HUB) return;
-    const h = HUB.find(x => x.m === R.mode) || {}, m = R.mode, hasP = passReadyFields(m);
+    const h = HUB.find(x => x.m === R.mode) || {}, m = R.mode;
     const lastTs = (() => { const t = m === 'mats' ? 'materials' : m; const e = R.history.filter(x => x.type === t).sort((a, b) => b.ts - a.ts)[0]; return e ? e.ts : null; })();
     const upIcon = '<svg class="w-9 h-9 text-gold-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>';
-    const tile = (k, icon, c, title, sub, dis) => `<button type="button" class="hub-tile panel !min-h-[7.5rem] sm:!min-h-[9.5rem]" data-atab="${k}" role="tab" aria-pressed="${R.areaTab === k}" ${dis ? 'aria-disabled="true"' : ''}>
+    const statIcon = '<svg class="w-9 h-9 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M7 16v-5M12 16V7M17 16v-8"/></svg>';
+    const tile = (k, icon, c, title, sub, ph) => `<button type="button" class="hub-tile panel !min-h-[7.5rem] sm:!min-h-[9.5rem]" data-atab="${k}" role="tab" aria-pressed="${R.areaTab === k}">
         <span class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl grid place-items-center text-3xl sm:text-4xl" style="background:linear-gradient(135deg,${c}33,${c}11);border:1px solid ${c}55">${icon}</span>
         <span class="font-display text-sm sm:text-lg text-white tracking-wide leading-tight">${title}</span>
-        <span class="text-[10px] sm:text-xs tabular-nums ${sub ? 'text-slate-300' : 'text-slate-500'} leading-tight">${sub || (dis ? 'nicht verfügbar' : 'noch nichts eingetragen')}</span>
+        <span class="text-[10px] sm:text-xs tabular-nums ${sub ? 'text-slate-300' : 'text-slate-500'} leading-tight">${sub || ph}</span>
       </button>`;
-    el.innerHTML = tile('scan', upIcon, '#f5c542', 'Scan', lastTs ? `Letzter Scan: ${dateLabel(lastTs)}` : 'Screenshot oder von Hand', false)
-      + tile('dash', ico(h, 'w-9 h-9 sm:w-12 sm:h-12'), h.c || '#f5c542', h.label || 'Dashboard', hubValue(m) || 'noch kein Scan', false)
-      + tile('passive', ico({ img: 'sonstiges/calendar.BYQ908Wv.webp', icon: '📈' }, 'w-9 h-9 sm:w-12 sm:h-12'), '#34d399', 'Passive', hasP ? passiveSummary(m) : null, !hasP);
-    el.querySelectorAll('[data-atab]').forEach(b => b.onclick = () => { if (b.getAttribute('aria-disabled') === 'true') return; setAreaTab(b.dataset.atab); });
+    let statSub = passiveSummary(m);
+    if (!statSub && m === 'ap' && apNow() != null) statSub = `≈ ${fmt(Math.floor(apNow() / apCost('barbOff')))} Barbaren`;
+    el.innerHTML = tile('stats', statIcon, '#34d399', 'Statistics', statSub, 'Was kann ich damit machen?')
+      + tile('dash', ico(h, 'w-9 h-9 sm:w-12 sm:h-12'), h.c || '#f5c542', h.label || 'Dashboard', hubValue(m), 'noch kein Scan')
+      + tile('scan', upIcon, '#f5c542', 'Scan', lastTs ? `Letzter Scan: ${dateLabel(lastTs)}` : null, 'Screenshot oder von Hand');
+    el.querySelectorAll('[data-atab]').forEach(b => b.onclick = () => setAreaTab(b.dataset.atab));
   }
-  function passReadyFields(m) { return passiveReady && !!passiveFields(m); }
   function setAreaTab(t) {
-    if (t === 'passive' && !passReadyFields(R.mode)) t = 'dash';
+    if (t === 'passive') t = 'stats';
     R.areaTab = t;
-    const aside = $('areaAside'), main = $('results');
-    aside.dataset.tab = t === 'dash' ? '' : t;
-    if (t === 'dash') delete aside.dataset.tab;
-    aside.classList.toggle('hidden', t === 'dash');
+    const aside = $('areaAside'), main = $('results'), stats = $('statsArea');
+    if (t === 'scan') aside.dataset.tab = 'scan'; else delete aside.dataset.tab;
+    aside.classList.toggle('hidden', t !== 'scan');
     main.classList.toggle('hidden', t !== 'dash');
+    stats.classList.toggle('hidden', t !== 'stats');
+    if (t === 'stats' && passiveReady) renderStats(R.mode);
     renderAreaTabs();
     if (t === 'dash' && chart) setTimeout(() => chart?.resize?.(), 0);
   }
