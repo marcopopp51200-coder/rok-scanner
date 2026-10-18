@@ -181,9 +181,10 @@ MODUS: Schlüssel (Keys). Alle Screenshots stammen vom Main-Account des Spielers
 Gesucht ist die Anzahl dieser Schlüssel:
 - "key_gold"     = Goldene Schlüssel / "Gold Key" (Taverne, goldene Truhe)
 - "key_silver"   = Silberne Schlüssel / "Silver Key" (Taverne, silberne Truhe)
-- "key_material" = Material-Schlüssel / "Material Key" bzw. Schlüssel für Material-Truhen (falls vorhanden)
+- "key_material" = Material-Schlüssel / "Material Key" (goldener Schlüssel mit blauer Kugel im Griff)
+- "key_sovereign" = Sovereign-Schlüssel / "Sovereign Key" (goldener Schlüssel mit grünem Stein im Griff)
 In der Taverne steht die Anzahl ggf. neben dem Schlüssel-Symbol am Truhen-Button (z. B. "Schlüssel: 12").
-${COUNT_TAIL('keys', ['key_gold', 'key_silver', 'key_material'])}`;
+${COUNT_TAIL('keys', ['key_gold', 'key_silver', 'key_material', 'key_sovereign'])}`;
 
 const PROMPT_ARMAMENTS = `${INTRO}
 
@@ -197,7 +198,17 @@ Zähle die Armament-Teile nach Seltenheit (Rahmenfarbe der Kachel bzw. Seltenhei
 Zusätzlich:
 - "arm_scrolls"   = Armament-Schriftrollen / Armament Scrolls (zum Aufwerten bzw. Umschreiben der Inschriften), Summe aller Schriftrollen
 Steht in einer Übersicht eine Zahl je Seltenheit, nimm diese. Sonst zähle die sichtbaren Kacheln (Anzahl auf der Kachel beachten).
-${COUNT_TAIL('armaments', ['arm_legendary', 'arm_epic', 'arm_elite', 'arm_advanced', 'arm_normal', 'arm_scrolls'])}`;
+Außerdem die Anzahl dieser Items aus dem Inventar (Anzahl unten rechts auf der Kachel):
+- "arm_chest"         = Armament-Truhe (goldene Truhe mit blauem Edelstein)
+- "arm_chest2"        = graue/silberne Armament-Kiste mit Schloss
+- "arm_coin"          = Formations-Münze, silbern-blau mit "A"
+- "arm_coin_gold"     = Formations-Münze, golden mit "A"
+- "arm_conv"          = Umwandlungsstein / Conversion Stone (blauer, polierter Stein mit Pfeilen)
+- "arm_conv_frag"     = Umwandlungsstein-Fragment (dunkelblaue Bruchstücke mit Pfeilen)
+- "arm_crystal"       = Kristall (oranger Kristall)
+- "arm_trans_crystal" = Transmutationskristall (schillernder lila-blauer Kristall)
+- "arm_trans_stone"   = Transmutationsstein (oranger Stein mit schwarzem Rand)
+${COUNT_TAIL('armaments', ['arm_legendary', 'arm_epic', 'arm_elite', 'arm_advanced', 'arm_normal', 'arm_scrolls', 'arm_chest', 'arm_chest2', 'arm_coin', 'arm_coin_gold', 'arm_conv', 'arm_conv_frag', 'arm_crystal', 'arm_trans_crystal', 'arm_trans_stone'])}`;
 
 // ---------- Statthalter-Profil (Energie, Kill-Punkte, Höchster Verdienst, Tote, Ark of Osiris, Lost Kingdom) ----------
 const PROMPT_GOVERNOR = `${INTRO}
