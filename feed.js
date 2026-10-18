@@ -17,10 +17,10 @@ window.RokMods.feed = (R) => {
   const KIND = {
     text: ['💬', 'Beitrag'], photo: ['📷', 'Foto / GIF'], showcase: ['🎨', 'Showcase'], kvk: ['🏁', 'KvK-Bilanz'], aoo: ['🏛️', 'AoO-Showcase'],
     craft: ['⚒️', 'Craft-Upgrade'], pass: ['🚪', 'Pass-Start'], stock: ['📦', 'Bestand'], kvkpts: ['⚔️', 'Kill-Punkte & Verdienst'],
-    vip: ['👑', 'VIP-Stufe'], kvkmap: ['🗺️', 'KvK-Karte'], help: ['🆘', 'Help Me'], poll: ['📊', 'Umfrage']
+    vip: ['👑', 'VIP-Stufe'], kvkmap: ['🗺️', 'KvK-Karte'], help: ['🆘', 'Help Me'], poll: ['📊', 'Umfrage'], set: ['⚔️', 'Set']
   };
   // Filter: Art des Beitrags (Name-Suche kommt zusätzlich)
-  const FILTERS = [['all', 'Alle', null], ['mine', '⭐ Meine', null], ['photo', '📷 Fotos', ['photo']], ['showcase', '🎨 Showcases', ['showcase', 'aoo']],
+  const FILTERS = [['all', 'Alle', null], ['mine', '⭐ Meine', null], ['photo', '📷 Fotos', ['photo']], ['showcase', '🎨 Showcases', ['showcase', 'aoo']], ['set', '⚔️ Sets', ['set']],
     ['craft', '⚒️ Craft', ['craft']], ['help', '🆘 Help Me', ['help']], ['pass', '🚪 Pass-Start', ['pass']], ['kvkpts', '⚔️ KP & Verdienst', ['kvkpts']],
     ['kvk', '🏁 KvK-Bilanz & Karte', ['kvk', 'kvkmap']], ['stock', '📦 Bestand', ['stock']], ['vip', '👑 VIP', ['vip']], ['poll', '📊 Umfragen', ['poll']], ['text', '💬 Text', ['text']]];
   const LIMIT = 40, POLL_MS = 20000;
@@ -309,7 +309,8 @@ window.RokMods.feed = (R) => {
     if (a.kind === 'stock' && !d.res && !d.speed && !d.ap) return 'Wähl mindestens Ressourcen, Speedups oder AP aus.';
     if (a.kind === 'kvkpts' && !d.kp && !d.acclaim && !d.deads) return 'Trag Kill-Punkte oder Verdienst ein.';
     if (a.kind === 'help' && !d.rid) return 'Wähl die Help-Me-Anfrage aus.';
-    if (a.kind === 'showcase' && !a.dataUrl && !(d.sets || []).length) return 'Wähl mindestens ein Set aus.';
+    if (a.kind === 'set' && !(d.sets || []).length) return 'Wähl mindestens ein Set aus.';
+    if (a.kind === 'showcase' && !a.dataUrl) return a.busy ? 'Das Showcase-Bild wird noch erstellt – kurz warten.' : 'Das Showcase-Bild fehlt – bitte nochmal auf „Showcase“ tippen.';
     if (a.kind === 'kvk' && d.mode === 'stats' && !d.kp && !d.acclaim && !d.deads && !d.honor && !d.crystal) return 'Für diesen Abschnitt gibt es noch keine Zahlen – anderen Abschnitt wählen oder Werte im KvK-Bereich eintragen.';
     if (a.kind === 'aoo' && d.mode === 'match' && !d.res) return 'Wähl Sieg oder Niederlage.';
     if (a.kind === 'poll') { if (!String(d.q || '').trim()) return 'Schreib eine Frage für die Umfrage.'; if ((d.opts || []).filter((o) => String(o).trim()).length < 2) return 'Die Umfrage braucht mindestens 2 Antworten.'; }
@@ -695,16 +696,45 @@ window.RokMods.feed = (R) => {
     const b = sc.bg || {};
     return { title: String(sc.title || 'Showcase').slice(0, 60), bg: b.type === 'img' ? { type: 'img', src: scImgUrl(b.src) } : b.type === 'lib' ? { type: 'lib', id: String(b.id || '') } : { type: 'preset', id: String(b.id || 'none') }, sets };
   }
-  function attachShowcase() {
+  // ---------- Showcase: das Bild genau wie im Profil (Bühne mit Hintergrund) ----------
+  async function profileShowcaseImage(active) {
+    const pv = $('profileView'), wasHidden = !!pv && pv.classList.contains('hidden'), css = pv ? pv.style.cssText : '';
+    // sichtbar, aber unsichtbar (nicht weit außerhalb) – sonst lädt der Browser die Bilder nicht und das Bild bleibt leer
+    if (wasHidden) { pv.classList.remove('hidden'); pv.style.cssText = 'position:fixed;left:0;top:0;width:1200px;opacity:0;pointer-events:none;z-index:-1'; }
+    try {
+      const opts = { jpeg: true, pixelRatio: 1.25, ...(active ? { active } : {}) };
+      await R.showcaseImage(opts);                                  // 1. Durchgang: Bühne zeichnen, Bilder laden
+      const stg = $('scStage');
+      if (stg) { const imgs = [...stg.querySelectorAll('img')]; imgs.forEach((i) => { i.loading = 'eager'; });
+        await Promise.race([Promise.all(imgs.map((i) => (i.complete && i.naturalWidth ? 0 : (i.decode ? i.decode() : Promise.resolve()).catch(() => 0)))), new Promise((r) => setTimeout(r, 3000))]); }
+      return await R.showcaseImage(opts);                           // 2. Durchgang: jetzt mit allen Bildern
+    } finally { if (wasHidden) { pv.classList.add('hidden'); pv.style.cssText = css; } }
+  }
+  async function attachShowcase(active) {
+    if (!R.showcaseImage) { msg('Der Showcase ist noch nicht geladen.', 'warn'); return; }
+    let doc = null; try { doc = R.ownShowcase ? R.ownShowcase() : null; } catch {}
+    const list = ((doc && doc.list) || []), sid = active || (doc && doc.active) || (list[0] && list[0].id) || '';
+    if (!list.length) { msg('Noch kein Showcase – zuerst unter 🎨 Showcases anlegen.', 'warn'); return; }
+    st.attach = { kind: 'showcase', busy: true, data: { sid, title: (list.find((x) => x.id === sid) || {}).title || '' } };
+    msg('Showcase-Bild aus deinem Profil wird erstellt …', 'busy'); renderComposer();
+    try {
+      const { url, title } = await profileShowcaseImage(active);
+      if (!st.attach || st.attach.kind !== 'showcase') return;   // inzwischen etwas anderes gewählt
+      st.attach = { kind: 'showcase', dataUrl: url, data: { sid, title } }; msg('', '');
+    } catch (e) { if (st.attach && st.attach.kind === 'showcase') st.attach = null; msg('Showcase-Bild fehlgeschlagen: ' + (e.message || e), 'err'); }
+    renderComposer();
+  }
+  // ---------- Set posten: Sets aus dem Showcase als Rauten (bis zu 7) ----------
+  function attachSet() {
     const list = scDocList();
     if (!list.length) { msg('Noch kein Showcase mit Sets – zuerst unter 🎨 Showcases anlegen.', 'warn'); return; }
     let doc = null; try { doc = R.ownShowcase(); } catch {}
     const sc = list.find((x) => x.id === (doc && doc.active)) || list[0];
     const sel = (sc.sets || []).map((x, i) => (scSetFilled(x) ? i : -1)).filter((i) => i >= 0).slice(0, SC_MAX);
-    st.attach = { kind: 'showcase', pick: { sid: sc.id, sel }, data: scBuild(sc, sel) }; renderComposer();
+    st.attach = { kind: 'set', pick: { sid: sc.id, sel }, data: scBuild(sc, sel) }; renderComposer();
   }
   function scRepick(fn) {
-    const a = st.attach; if (!a || a.kind !== 'showcase') return;
+    const a = st.attach; if (!a || a.kind !== 'set') return;
     const list = scDocList(), sc = list.find((x) => x.id === a.pick.sid) || list[0]; if (!sc) return;
     fn(a.pick, sc); a.pick.sid = sc.id === a.pick.sid ? sc.id : a.pick.sid;
     const sc2 = list.find((x) => x.id === a.pick.sid) || sc;
@@ -997,10 +1027,10 @@ window.RokMods.feed = (R) => {
       ${cmds ? `<div class="flex -space-x-2">${cmds}</div>` : ''}
       <div class="max-w-full truncate text-[11px] font-semibold text-slate-100 [text-shadow:0_1px_2px_#000]" translate="no">${esc(x.name || '')}</div>${board}</div>`;
   };
-  const showcaseCard = (d) => `<div class="relative overflow-hidden rounded-xl border border-gold-500/35" style="background:${scBgCss(d.bg)}">
+  const showcaseCard = (d, isSet) => `<div class="relative overflow-hidden rounded-xl border border-gold-500/35" style="background:${scBgCss(d.bg)}">
       <div class="absolute inset-0 bg-gradient-to-b from-ink-950/35 via-ink-950/5 to-ink-950/70 pointer-events-none"></div>
       <div class="relative p-3 flex flex-col gap-2.5">
-        <div class="flex items-center justify-between gap-2"><span class="text-[10px] uppercase tracking-widest text-gold-300">🎨 Showcase · ${(d.sets || []).length} Set${(d.sets || []).length === 1 ? '' : 's'}</span><span class="font-display text-base gold-text truncate">${esc(d.title || '')}</span></div>
+        <div class="flex items-center justify-between gap-2"><span class="text-[10px] uppercase tracking-widest text-gold-300">${isSet ? `⚔️ ${(d.sets || []).length === 1 ? 'Mein Set' : `Meine ${(d.sets || []).length} Sets`}` : `🎨 Showcase · ${(d.sets || []).length} Set${(d.sets || []).length === 1 ? '' : 's'}`}</span><span class="font-display text-base gold-text truncate">${esc(d.title || '')}</span></div>
         <div class="flex flex-wrap justify-center gap-x-3 gap-y-4">${(d.sets || []).map(scSetCol).join('') || '<span class="text-xs text-slate-400 py-4">Keine Sets ausgewählt</span>'}</div>
       </div></div>`;
   // KvK-Ergebnis (Zahlen)
@@ -1159,7 +1189,7 @@ window.RokMods.feed = (R) => {
     if (p.kind === 'kvkmap' && d) return mapTile(d, p.id);
     if (p.kind === 'help' && d) return helpTile(d);
     if (p.kind === 'poll' && d) return pollTile(p);
-    if (p.kind === 'showcase' && d && Array.isArray(d.sets)) return showcaseCard(d);
+    if ((p.kind === 'set' || p.kind === 'showcase') && d && Array.isArray(d.sets)) return showcaseCard(d, p.kind === 'set');
     if (p.kind === 'kvk' && d && d.mode === 'stats') return kvkResTile(d);
     if (p.kind === 'aoo' && d && d.mode === 'match') return aooMatchTile(d);
     if (p.image) return imgHTML(p.image);
@@ -1170,7 +1200,8 @@ window.RokMods.feed = (R) => {
     if (!a) return '';
     if (a.kind === 'craft') return a.data.mode === 'set' ? craftSetTile(a.data) : craftTile(a.data);
     if (a.kind === 'poll') return pollTile({ id: '__prev', data: a.data }, true);
-    if (a.kind === 'showcase' && !a.dataUrl) return showcaseCard(a.data);
+    if (a.kind === 'set') return showcaseCard(a.data, true);
+    if (a.kind === 'showcase' && !a.dataUrl) return '<div class="py-10 text-center text-sm text-slate-400">⏳ Showcase-Bild wird erstellt …</div>';
     if (a.kind === 'kvk' && a.data && a.data.mode === 'stats') return kvkResTile(a.data);
     if (a.kind === 'aoo') return a.data.mode === 'match' ? aooMatchTile(a.data) : R.aooCardHTML ? R.aooCardHTML(a.data) : aooTile(a.data);
     if (a.kind === 'pass') return passTile(a.data);
@@ -1335,6 +1366,12 @@ window.RokMods.feed = (R) => {
       <div class="grid gap-1.5 grid-cols-2 sm:grid-cols-3">${(sc.sets || []).map(chip).join('')}</div>
       <div class="flex gap-3 text-[11px]"><button type="button" data-f-scall="1" class="text-gold-300 hover:underline">Alle laden</button><button type="button" data-f-scall="0" class="text-slate-400 hover:underline">Keine</button></div>`);
   }
+  function showcaseImgForm(a) {
+    let doc = null; try { doc = R.ownShowcase ? R.ownShowcase() : null; } catch {}
+    const list = (doc && doc.list) || [];
+    return box('🎨 Showcase aus deinem Profil', `${list.length > 1 ? `<select data-f="scImg" ${a.busy ? 'disabled' : ''} class="${INP} w-full">${list.map((x) => `<option value="${esc(x.id)}" ${x.id === a.data.sid ? 'selected' : ''}>${esc(x.title || 'Showcase')}</option>`).join('')}</select>` : ''}
+      <p class="text-[11px] text-slate-500">Das Bild sieht genauso aus wie dein Showcase im Profil. Einzelne Sets postest du über <b class="text-slate-300">⚔️ Set</b>.</p>`);
+  }
   function kvkForm(a) {
     const img = (A.ownMeta() || {}).kvk_card, d = a.data || {}, mode = a.dataUrl ? 'img' : 'stats';
     const modes = `<div class="flex flex-wrap gap-1.5">${segBtn(`data-f-kmode="img" ${img ? '' : 'disabled'}`, mode === 'img', '🖼️ KvK-Bild aus dem Profil')}${segBtn('data-f-kmode="stats"', mode === 'stats', '📊 Ergebnis-Zahlen')}</div>${img ? '' : '<p class="text-[11px] text-slate-500">Noch kein KvK-Bild – im KvK-Bereich unter Stats → „Bild für dein Profil“ erstellen.</p>'}`;
@@ -1370,7 +1407,7 @@ window.RokMods.feed = (R) => {
       <div class="flex flex-wrap gap-1.5">${POLL_DUR.map(([h, l]) => segBtn(`data-f-pdur="${h}"`, (d.dur ?? 24) === h, l)).join('')}</div>
       <p class="text-[11px] text-slate-500">${d.dur ? 'Wenn sie endet, rückt sie mit dem Ergebnis wieder nach oben im Feed.' : 'Ohne Ende – Abstimmen geht dauerhaft.'}</p>`);
   }
-  const formHTML = (a) => (!a ? '' : a.kind === 'showcase' && a.pick ? showcaseForm(a) : a.kind === 'kvk' ? kvkForm(a) : a.kind === 'aoo' ? aooForm(a) : a.kind === 'poll' ? pollForm(a.data)
+  const formHTML = (a) => (!a ? '' : a.kind === 'set' && a.pick ? showcaseForm(a) : a.kind === 'showcase' ? showcaseImgForm(a) : a.kind === 'kvk' ? kvkForm(a) : a.kind === 'aoo' ? aooForm(a) : a.kind === 'poll' ? pollForm(a.data)
     : a.kind === 'craft' ? craftForm(a.data) : a.kind === 'pass' ? passForm(a.data) : a.kind === 'stock' ? stockForm(a.data)
     : a.kind === 'kvkpts' ? kvkptsForm(a.data) : a.kind === 'vip' ? vipForm(a.data) : a.kind === 'help' ? helpForm(a) : '');
 
@@ -1386,7 +1423,7 @@ window.RokMods.feed = (R) => {
       <textarea id="feedText" data-mention rows="2" maxlength="1000" placeholder="Was gibt's Neues? (optional) · @ zum Markieren" class="w-full bg-ink-950 border border-ink-600 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 resize-y">${esc(st.text)}</textarea>
       <div class="flex flex-wrap items-center gap-2">
         <span class="text-[11px] text-slate-500 mr-1">Anhängen:</span>
-        ${chip('📷', 'Foto', 'photo')}${chip('🎨', 'Showcase', 'showcase')}${chip('🏁', 'KvK-Bilanz', 'kvk')}${chip('🏛️', 'AoO', 'aoo')}
+        ${chip('📷', 'Foto', 'photo')}${chip('🎨', 'Showcase', 'showcase')}${chip('⚔️', 'Set', 'set')}${chip('🏁', 'KvK-Bilanz', 'kvk')}${chip('🏛️', 'AoO', 'aoo')}
         ${chip('⚒️', 'Craft-Upgrade', 'craft')}${chip('🆘', 'Help Me', 'help')}${chip('🚪', 'Pass-Start', 'pass')}${chip('🗺️', 'KvK-Karte', 'kvkmap')}${chip('⚔️', 'KP & Verdienst', 'kvkpts')}
         ${chip('📦', 'Bestand', 'stock')}${chip('👑', 'VIP', 'vip')}${chip('📊', 'Umfrage', 'poll')}
         ${a ? `<button type="button" data-feed-attach="none" class="text-xs px-2.5 py-1.5 rounded-lg border border-ink-700 text-slate-400 hover:text-red-300 hover:border-red-400/60">✕ Anhang entfernen</button>` : ''}
@@ -1493,8 +1530,8 @@ window.RokMods.feed = (R) => {
       const k = at.dataset.feedAttach;
       if (k !== 'photo' && st.attach && st.attach.kind === k) { st.attach = null; renderComposer(); return; }   // nochmal = abwählen
       msg('', '');
-      ({ none: () => { st.attach = null; renderComposer(); }, photo: () => $('feedFile') && $('feedFile').click(), showcase: attachShowcase, kvk: attachKvk, aoo: attachAoo,
-        craft: attachCraft, pass: attachPass, stock: attachStock, kvkpts: attachKvkPts, vip: attachVip, kvkmap: attachMap, help: attachHelp, poll: attachPoll }[k] || (() => {}))();
+      ({ none: () => { st.attach = null; renderComposer(); }, photo: () => $('feedFile') && $('feedFile').click(), kvk: attachKvk, aoo: attachAoo,
+        craft: attachCraft, pass: attachPass, stock: attachStock, kvkpts: attachKvkPts, vip: attachVip, kvkmap: attachMap, help: attachHelp, poll: attachPoll, set: attachSet, showcase: () => attachShowcase() }[k] || (() => {}))();
       return;
     }
     const gp = t.closest('[data-gpick]');
@@ -1520,9 +1557,9 @@ window.RokMods.feed = (R) => {
     if (fh && st.attach && st.attach.kind === 'help') { const r = (st.attach.list || []).find((x) => x.rid === fh.dataset.fHelp); if (r) st.attach.data = { rid: r.rid, title: r.title, sets: r.sets, items: r.items, icons: r.icons }; renderComposer(); return; }
     const a0 = st.attach;
     const scs = t.closest('[data-f-scset]');
-    if (scs && a0 && a0.kind === 'showcase') { if (scs.disabled) return; const i = +scs.dataset.fScset; scRepick((pk) => { const j = pk.sel.indexOf(i); if (j >= 0) pk.sel.splice(j, 1); else if (pk.sel.length >= SC_MAX) msg(`Höchstens ${SC_MAX} Sets – erst eines abwählen.`, 'warn'); else { pk.sel.push(i); pk.sel.sort((x, y) => x - y); } }); return; }
+    if (scs && a0 && a0.kind === 'set') { if (scs.disabled) return; const i = +scs.dataset.fScset; scRepick((pk) => { const j = pk.sel.indexOf(i); if (j >= 0) pk.sel.splice(j, 1); else if (pk.sel.length >= SC_MAX) msg(`Höchstens ${SC_MAX} Sets – erst eines abwählen.`, 'warn'); else { pk.sel.push(i); pk.sel.sort((x, y) => x - y); } }); return; }
     const sca = t.closest('[data-f-scall]');
-    if (sca && a0 && a0.kind === 'showcase') { scRepick((pk, sc) => { pk.sel = sca.dataset.fScall === '1' ? (sc.sets || []).map((x, i) => (scSetFilled(x) ? i : -1)).filter((i) => i >= 0).slice(0, SC_MAX) : []; }); return; }
+    if (sca && a0 && a0.kind === 'set') { scRepick((pk, sc) => { pk.sel = sca.dataset.fScall === '1' ? (sc.sets || []).map((x, i) => (scSetFilled(x) ? i : -1)).filter((i) => i >= 0).slice(0, SC_MAX) : []; }); return; }
     const km = t.closest('[data-f-kmode]'); if (km && a0 && a0.kind === 'kvk') { if (km.disabled) return; attachKvk(km.dataset.fKmode); return; }
     const ks = t.closest('[data-f-kseg]'); if (ks && a0 && a0.kind === 'kvk') { const o = (a0.data._kx || {}); a0.data = kvkStatsData(ks.dataset.fKseg, { honor: !!o.honor, crystal: !!o.crystal }); renderComposer(); return; }
     const am = t.closest('[data-f-amode]'); if (am && a0 && a0.kind === 'aoo') { if (am.disabled) return; attachAoo(am.dataset.fAmode); return; }
@@ -1578,7 +1615,8 @@ window.RokMods.feed = (R) => {
     }
     if (f === 'refType') { d.refType = t.value; if (t.value) d.exp = true; renderComposer(); return; }
     if (f === 'passTs') { d.ts = fromLocalInput(t.value); renderPreview(); return; }
-    if (f === 'scSel' && a.kind === 'showcase') { const sc = scDocList().find((x) => x.id === t.value); if (sc) { a.pick = { sid: sc.id, sel: (sc.sets || []).map((x, i) => (scSetFilled(x) ? i : -1)).filter((i) => i >= 0).slice(0, SC_MAX) }; a.data = scBuild(sc, a.pick.sel); renderComposer(); } return; }
+    if (f === 'scImg' && a.kind === 'showcase') { attachShowcase(t.value); return; }
+    if (f === 'scSel' && a.kind === 'set') { const sc = scDocList().find((x) => x.id === t.value); if (sc) { a.pick = { sid: sc.id, sel: (sc.sets || []).map((x, i) => (scSetFilled(x) ? i : -1)).filter((i) => i >= 0).slice(0, SC_MAX) }; a.data = scBuild(sc, a.pick.sel); renderComposer(); } return; }
     if ((f === 'kx_honor' || f === 'kx_crystal') && a.kind === 'kvk') { const o = { ...(d._kx || {}), [f.slice(3)]: t.checked }; a.data = kvkStatsData(d.seg, { honor: !!o.honor, crystal: !!o.crystal }); renderComposer(); return; }
     if (f === 'am_mvp') { d.mvp = t.checked; renderPreview(); return; }
     if (f === 'am_role' || f === 'am_date') { d[f.slice(3)] = t.value; renderPreview(); return; }
