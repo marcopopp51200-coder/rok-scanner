@@ -3,7 +3,7 @@
 // Der API-Key kommt ausschließlich aus der Umgebungsvariable ANTHROPIC_API_KEY und verlässt nie den Server.
 
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5';
-const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'mats', 'gear', 'armament']);
+const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'mats', 'gear', 'armament', 'passports']);
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MAX_IMAGES = 5;
 const MAX_TOTAL_B64 = 4_300_000; // Vercel erlaubt max. 4,5 MB pro Anfrage
@@ -120,6 +120,33 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
 {
   "type": "ap",
   "ap": { "ap_50": number|null, "ap_100": number|null, "ap_500": number|null, "ap_1000": number|null },
+  "confidence": "hoch" | "mittel" | "niedrig",
+  "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
+}`;
+
+// ---------- Passports (Passseiten für die Migration) ----------
+const PROMPT_PASSPORTS = `${INTRO}
+
+MODUS: Passports. Alle Screenshots stammen vom Main-Account des Spielers.
+
+Gesucht ist die ANZAHL der Passseiten (englisch "Passport Page", deutsch z. B. "Passseite" / "Reisepass-Seite" / "Pass").
+Das Item sieht aus wie ein aufgeschlagenes Pass-/Ausweisheft und wird für die Migration in ein anderes Königreich benötigt
+(Beschreibung z. B. "Wird für die Migration benötigt" / "Used for migrating to another kingdom").
+
+Mögliche Ansichten – beide auswerten:
+1) Inventar-Kachel: die Anzahl steht UNTEN RECHTS auf der Kachel (z. B. "1.250"). Punkt/Komma ist ein Tausendertrennzeichen: "1.250" = 1250.
+2) Item-Details / Textliste: "Du besitzt: 1.250" / "Owned: 1,250".
+3) Migrations-Fenster: "Passseiten: 1.250/3.600" → passports = 1250, required = 3600 (die zweite Zahl ist der Bedarf).
+
+Ignoriere alle anderen Items (Beschleuniger, Schlüssel, Teleporter, Truhen usw.). Bei mehreren Screenshots nicht doppelt zählen –
+nimm im Zweifel den Wert aus der Textansicht ("Du besitzt").
+Ist kein Passport zu sehen, nutze null.
+
+Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
+{
+  "type": "passports",
+  "passports": number|null,
+  "required": number|null,
   "confidence": "hoch" | "mittel" | "niedrig",
   "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
 }`;
@@ -365,7 +392,7 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
 }`;
 
 // Der Prompt liegt auf dem Server: so kann die Route nicht als allgemeiner Claude-Proxy missbraucht werden.
-const PROMPT = (m) => m === 'armament' ? PROMPT_ARMAMENT : m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : PROMPT_CLASSIC(m);
+const PROMPT = (m) => m === 'armament' ? PROMPT_ARMAMENT : m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'passports' ? PROMPT_PASSPORTS : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : PROMPT_CLASSIC(m);
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
