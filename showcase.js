@@ -1467,7 +1467,12 @@ window.RokMods.showcase = (R) => {
     ['ring-2', 'ring-gold-500/60'].forEach(k => st.classList.toggle(k, sc.edit));
     const ed = (key) => sc.edit ? ` cursor-move touch-none rounded-md ${sc.sel === key ? 'outline outline-2 outline-gold-300' : 'outline-dashed outline-1 outline-gold-400/70 hover:outline-2'}` : '';
     const pos = (o) => `left:${o.x}cqw;top:${o.y}cqw;transform:${scTf(o)}`;
-    R.$('scEls').innerHTML = d.sets.map((x, i) => `<div data-el="set:${i}" class="absolute${ed('set:' + i)}${!sc.edit && d.sets.length > 1 ? ' cursor-pointer' : ''}" style="${pos(x)};${i === sc.si && !sc.exporting ? 'z-index:5;' : ''}width:${x.mode === 'shot' ? SC_SHOT_W : SC_SET_W}cqw${x.split && x.mode !== 'shot' ? ';visibility:hidden;pointer-events:none' : ''}" title="${R.esc(x.name || 'Set ' + (i + 1))}">${scMiniSet(x, i)}</div>`).join('')
+    R.$('scEls').innerHTML = scStageElsHTML(d, pfsAll, ed, pos);
+    scFmOverlay(d);
+  }
+  // HTML aller Elemente der Bühne (auch für den Feed: R.showcaseStageHTML)
+  function scStageElsHTML(d, pfsAll, ed, pos) {
+    return d.sets.map((x, i) => `<div data-el="set:${i}" class="absolute${ed('set:' + i)}${!sc.edit && d.sets.length > 1 ? ' cursor-pointer' : ''}" style="${pos(x)};${i === sc.si && !sc.exporting ? 'z-index:5;' : ''}width:${x.mode === 'shot' ? SC_SHOT_W : SC_SET_W}cqw${x.split && x.mode !== 'shot' ? ';visibility:hidden;pointer-events:none' : ''}" title="${R.esc(x.name || 'Set ' + (i + 1))}">${scMiniSet(x, i)}</div>`).join('')
       + d.sets.map((x, i) => {                                // Freies Set: Teile einzeln
           if (!x.split || x.mode === 'shot') return '';
           const P = (k, t, h) => { if (!h) return ''; const p = x.parts[k]; if (p.x == null) { p.x = x.x; p.y = x.y; p.s = x.s; }
@@ -1483,8 +1488,45 @@ window.RokMods.showcase = (R) => {
       + (d.texts || []).map(t => `<div data-el="tx:${t.id}" class="absolute${ed('tx:' + t.id)}" style="${pos(t)}">${scTxHtml(t)}</div>`).join('')
       + (d.xskins || []).map(x => `<div data-el="xs:${x.id}" class="absolute${ed('xs:' + x.id)}" style="${pos(x)}">${scSkinHtml(x.src, x)}</div>`).join('')
       + d.sets.map((x, i) => scFmAuto(x.arm) && !(x.kind && !x.gearOn) ? `<div data-fma="${i}" class="absolute pointer-events-none" style="left:0;top:0;visibility:hidden">${scFmHtml(x.arm)}</div>` : '').join('');
-    scFmOverlay(d);
   }
+  // Showcase genau wie im Profil als HTML – ohne Bild-Export (der klappt in manchen Browsern nicht zuverlässig)
+  R.showcaseFeedData = (id) => {                         // eigenes Showcase + Kopfzeilen-Werte zum Posten
+    const doc = ownShowcase(), e = doc.list.find((x) => x.id === (id || doc.active)) || doc.list[0];
+    if (!e) return null;
+    const meta = RokAuth.ownMeta() || {}, g = RokAuth.govNow ? RokAuth.govNow() : {};
+    const stats = sc.own && sc.stats && Object.keys(sc.stats).length ? { ...sc.stats } : { name: R.PROFILE.name, avatar: meta.avatar, tag: meta.alliance_tag || '', ally: meta.alliance_name || '', kd: meta.kingdom || '', vip: null, power: g.energy ?? null, kp: g.kill_points ?? null, merit: null };
+    return { entry: JSON.parse(JSON.stringify(e)), stats: JSON.parse(JSON.stringify(stats)) };
+  };
+  R.showcaseStageHTML = (entry, stats) => {
+    const saved = sc;
+    try {
+      const doc = scDocNorm({ pub: true, list: [entry], active: entry && entry.id });
+      sc = { ...sc, own: false, edit: false, exporting: true, sel: null, gsel: null, si: 0, stats: stats || {}, doc };
+      const d = D(), b = d.bg || {}, safe = (u) => String(u || '').replace(/['"()\\]/g, (c) => encodeURIComponent(c));
+      const bg = b.type === 'img' && scImgOk(b.src) ? `background-image:url('${safe(b.src)}');` : b.type === 'lib' ? `background-image:url('${safe(scPicUrl(b.id))}');` : (SC_BGS[b.id]?.css ? `background-image:${SC_BGS[b.id].css};` : '');
+      const filt = (d.bgB ?? 100) !== 100 || (d.bgC ?? 100) !== 100 ? `filter:brightness(${d.bgB ?? 100}%) contrast(${d.bgC ?? 100}%);` : '';
+      const pos = (o) => `left:${o.x}cqw;top:${o.y}cqw;transform:${scTf(o)}`;
+      return `<div data-sc-feed class="relative rounded-xl overflow-hidden border border-ink-700 select-none ${b.type !== 'img' && b.type !== 'lib' && b.id === 'none' ? 'bg-ink-950/40' : 'bg-ink-950'}" style="container-type:inline-size;aspect-ratio:100 / ${scH(d)}">
+        <div class="absolute inset-0 bg-cover bg-center" style="${bg}${filt}"></div>
+        ${b.type === 'img' || b.type === 'lib' ? '<div class="absolute inset-0 bg-gradient-to-b from-ink-950/35 via-ink-950/5 to-ink-950/60"></div>' : ''}
+        <div data-sc-els class="absolute inset-0 pointer-events-none">${scStageElsHTML(d, scArmFsAll(d), () => '', pos)}</div></div>`;
+    } catch (e) { console.warn('showcaseStageHTML', e); return ''; }
+    finally { sc = saved; }
+  };
+  // Armament (Rüstung) eines Sets – für „Gear-Upgrade → Armament posten“ im Feed
+  R.armamentList = () => { try { return ownShowcase().list.flatMap((e) => e.sets.map((x, i) => ({ key: e.id + ':' + (x.id || i), name: x.name || `Set ${i + 1}`, from: e.title || '', arm: JSON.parse(JSON.stringify(x.arm)) }))).filter((x) => scArmBlk(scArmNorm(x.arm))); } catch { return []; } };
+  R.armamentHTML = (arm, px = 9) => { try { const a = scArmNorm(arm); if (!scArmBlk(a)) return ''; const L = (n) => (n * px).toFixed(2) + 'px'; return scArmHtml(a, L, 'all', null, null, null); } catch (e) { console.warn('armamentHTML', e); return ''; } };
+  // Formations-Knoten im Feed an die richtige Stelle legen (wie scFmOverlay, aber für jede Feed-Bühne)
+  R.showcaseFeedFix = (scope) => {
+    (scope || document).querySelectorAll('[data-sc-feed]').forEach((stg) => {
+      const sr = stg.getBoundingClientRect(); if (!sr.width) return;
+      stg.querySelectorAll('[data-fma]').forEach((fe) => { const i = fe.dataset.fma, slot = stg.querySelector(`[data-el="arm:${i}"] [data-fslot]`);
+        if (!slot) { fe.style.visibility = 'hidden'; return; }
+        const r = slot.getBoundingClientRect(), f = 100 / sr.width, arm = stg.querySelector(`[data-el="arm:${i}"]`);
+        fe.style.left = ((r.left + r.width / 2 - sr.left) * f) + 'cqw'; fe.style.top = ((r.top + r.height / 2 - sr.top) * f) + 'cqw';
+        fe.style.transform = arm ? arm.style.transform : 'translate(-50%,-50%)'; fe.style.visibility = ''; });
+    });
+  };
   function drawListBar() {
     const doc = sc.doc, many = doc.list.length > 1, b = 'text-xs px-3 py-1.5 rounded-lg border';
     R.$('scListBar').classList.toggle('hidden', !sc.own && !many);

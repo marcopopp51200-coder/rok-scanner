@@ -11,6 +11,36 @@ window.RokMods.helpme = (R) => {
   const db = () => A.db(), me = () => A.userId();
   const MAX = 5, MAX_SETS = 7, SEEN_KEY = 'rok_help_seen', DRAFT_KEY = 'rok_help_draft';
   const st = { loaded: false, loading: false, err: '', noTable: false, reqs: [], ans: {}, users: {}, pick: {}, note: {}, open: null, choose: null, busy: false, saving: null, msg: ['', ''], compose: false, sel: null, toFeed: true, sharing: null, title: '' };
+  // Englische Texte für Help Me (hängen sich an window.I18N an)
+  (function helpI18n() {
+    const I = window.I18N; if (!I || !I.translations || !I.translations.en) return;
+    Object.assign(I.translations.en.texts, {
+      'Zeig dein Set – die Community sagt dir, was du zuerst refinen oder hochstufen solltest': 'Show your set – the community tells you what to refine or upgrade first',
+      'Anfrage stellen': 'Ask for help', 'Neue Anfrage': 'New request', 'Abbrechen': 'Cancel', 'Posten': 'Post', 'Frage (optional)': 'Question (optional)',
+      'Welche Sets? (bis zu 7)': 'Which sets? (up to 7)', 'Keine': 'None', 'Auch im Feed posten': 'Also post to the feed', 'Im Feed posten': 'Post to feed',
+      'Noch keine Sets mit Ausrüstung – zuerst unter 🎨 Showcases eintragen.': 'No sets with gear yet – add them under 🎨 Showcases first.',
+      'Keine Ausrüstung gefunden – zuerst unter 🎨 Showcases Sets mit Gear anlegen.': 'No gear found – create sets with gear under 🎨 Showcases first.',
+      'Wähl mindestens ein Set aus.': 'Select at least one set.', '✓ Anfrage gepostet': '✓ Request posted', '✓ Anfrage gepostet – auch im Feed': '✓ Request posted – also in the feed',
+      'Schließen': 'Close', 'Anfrage schließen?': 'Close this request?', 'Anfrage löschen?': 'Delete this request?', 'geschlossen': 'closed', 'Noch keine Anfragen.': 'No requests yet.', 'Noch keine Antworten.': 'No answers yet.',
+      'Was soll als Nächstes passieren?': 'What should happen next?', 'T erhöhen': 'Raise tier', 'Refine': 'Refine', 'schon refined': 'already refined', 'schon T5': 'already T5', 'nur bei legendären Items': 'legendary items only',
+      '✓ gewählt – nochmal tippen zum Abwählen': '✓ selected – tap again to deselect', 'Tippe ein Item an und wähle': 'Tap an item and choose', 'oder': 'or', 'höher': 'higher', 'tiefer': 'lower', 'entfernen': 'remove',
+      'Kurze Begründung (optional)': 'Short reason (optional)', 'Speichern': 'Save', 'Verwerfen': 'Discard', 'Speichert …': 'Saving …', '● Nicht gespeicherte Änderungen': '● Unsaved changes',
+      '✓ Gespeichert – du kannst die Empfehlung jederzeit ändern.': '✓ Saved – you can change your recommendation any time.', 'Erst ein Item antippen und „Refine“ oder „T erhöhen“ wählen.': 'Tap an item first and choose “Refine” or “Raise tier”.',
+      'deine Empfehlung ansehen / ändern': 'view / change your recommendation', 'ansehen und empfehlen': 'view and recommend', 'Diese Anfrage gibt es nicht mehr.': 'This request no longer exists.',
+      'Was soll ich als Nächstes verbessern?': 'What should I improve next?', 'Was soll ich als Nächstes craften?': 'What should I craft next?', 'Wird geladen …': 'Loading …', 'craften': 'craft',
+      '⚠ Die Help-Me-Tabellen fehlen noch in Supabase. Bitte das SQL aus dem Chat ausführen.': '⚠ The Help Me tables are missing in Supabase. Please run the SQL from the chat.',
+      'Der Feed ist noch nicht geladen – bitte Seite neu laden.': 'The feed isn’t loaded yet – please reload the page.', '✓ Im Feed gepostet': '✓ Posted to the feed',
+      'Helm': 'Helmet', 'Brust': 'Chest', 'Waffe': 'Weapon', 'Handschuhe': 'Gloves', 'Beine': 'Legs', 'Stiefel': 'Boots', 'Accessoire 1': 'Accessory 1', 'Accessoire 2': 'Accessory 2'
+    });
+    I.translations.en.patterns.unshift(
+      [/^(\d+)\/(\d+) gewählt$/, '$1/$2 selected'], [/^(\d+)\/(\d+) Schritte – Reihenfolge = Priorität \(1 = zuerst\)$/, '$1/$2 steps – order = priority (1 = first)'],
+      [/^\(bis zu (\d+) Schritte\)$/, '(up to $1 steps)'], [/^Höchstens (\d+) Schritte – erst einen wieder abwählen\.$/, 'At most $1 steps – deselect one first.'],
+      [/^Empfehlung der Community · (\d+) Antwort(?:en)?$/, (m, n) => `Community recommendation · ${n} answer${n === '1' ? '' : 's'}`],
+      [/^(\d+) Set(s?) · (\d+) Teile – (deine Empfehlung ansehen \/ ändern|ansehen und empfehlen) ›$/, (m, a, s, b, c) => `${a} set${s} · ${b} pieces – ${c.startsWith('deine') ? 'view / change your recommendation' : 'view and recommend'} ›`],
+      [/^Gespeichert (.+)$/, 'Saved $1'],
+      [/^Alle Sets \((\d+)\)$/, 'All sets ($1)'], [/^(\d+) Teile · (.+)$/, '$1 pieces · $2'], [/^T(\d) → T(\d)$/, 'T$1 → T$2']
+    );
+  })();
   const seen = () => { try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '{}'); } catch { return {}; } };
   const markSeen = (id) => { try { const s = seen(); s[id] = Date.now(); localStorage.setItem(SEEN_KEY, JSON.stringify(s)); } catch {} };
   // Entwurf (noch nicht gespeicherte Auswahl) lokal merken, damit nichts verloren geht

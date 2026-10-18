@@ -1,5 +1,5 @@
 // Wiz fan Club – Feed (Startseite)
-// Beiträge aller Spieler: Text, Foto vom Gerät, Showcase-Bild, KvK-Bilanz, AoO, Craft-Upgrade,
+// Beiträge aller Spieler: Text, Foto vom Gerät, Showcase, Set, KvK-Bilanz, AoO, Gear-Upgrade (Teil, ganzes Set, Armament),
 // Pass-Start, Bestand (Rss / Speedups / AP – auch einzeln), VIP-Stufe, KvK-Karte, Help-Me-Anfrage und
 // Kill-Punkte & Verdienst je Pass/Altar – mit Reaktionen und Kommentaren.
 // Läuft innerhalb von RokApp (scanner.js); R = geteilter Kontext (window.Rok).
@@ -16,19 +16,19 @@ window.RokMods.feed = (R) => {
   const REACTS = [['👍', 'Daumen hoch'], ['👎', 'Daumen runter'], ['🔥', 'Feuer'], ['❤️', 'Herz'], ['😂', 'Lachen'], ['😮', 'Wow'], ['⚔️', 'Kampf'], ['💎', 'Kristall']];
   const KIND = {
     text: ['💬', 'Beitrag'], photo: ['📷', 'Foto / GIF'], showcase: ['🎨', 'Showcase'], kvk: ['🏁', 'KvK-Bilanz'], aoo: ['🏛️', 'AoO-Showcase'],
-    craft: ['⚒️', 'Craft-Upgrade'], pass: ['🚪', 'Pass-Start'], stock: ['📦', 'Bestand'], kvkpts: ['⚔️', 'Kill-Punkte & Verdienst'],
+    craft: ['⚒️', 'Gear-Upgrade'], pass: ['🚪', 'Pass-Start'], stock: ['🌽', 'Rss'], kvkpts: ['⚔️', 'Kill-Punkte & Verdienst'],
     vip: ['👑', 'VIP-Stufe'], kvkmap: ['🗺️', 'KvK-Karte'], help: ['🆘', 'Help Me'], poll: ['📊', 'Umfrage'], set: ['⚔️', 'Set']
   };
   // Filter: Art des Beitrags (Name-Suche kommt zusätzlich)
   const FILTERS = [['all', 'Alle', null], ['mine', '⭐ Meine', null], ['photo', '📷 Fotos', ['photo']], ['showcase', '🎨 Showcases', ['showcase', 'aoo']], ['set', '⚔️ Sets', ['set']],
-    ['craft', '⚒️ Craft', ['craft']], ['help', '🆘 Help Me', ['help']], ['pass', '🚪 Pass-Start', ['pass']], ['kvkpts', '⚔️ KP & Verdienst', ['kvkpts']],
-    ['kvk', '🏁 KvK-Bilanz & Karte', ['kvk', 'kvkmap']], ['stock', '📦 Bestand', ['stock']], ['vip', '👑 VIP', ['vip']], ['poll', '📊 Umfragen', ['poll']], ['text', '💬 Text', ['text']]];
+    ['craft', '⚒️ Gear', ['craft']], ['help', '🆘 Help Me', ['help']], ['pass', '🚪 Pass-Start', ['pass']], ['kvkpts', '⚔️ KP & Verdienst', ['kvkpts']],
+    ['kvk', '🏁 KvK-Bilanz & Karte', ['kvk', 'kvkmap']], ['stock', '🌽 Rss', ['stock']], ['vip', '👑 VIP', ['vip']], ['poll', '📊 Umfragen', ['poll']], ['text', '💬 Text', ['text']]];
   const LIMIT = 40, POLL_MS = 20000;
   const st = { posts: [], pending: [], reacts: {}, users: {}, loaded: false, loading: false, polling: false, err: '', noTable: false,
     attach: null, busy: false, admin: false, text: '', filter: 'all', q: '', hasMore: false, moreBusy: false, gq: '', lastSync: 0,
     comments: {}, cmOpen: new Set(), cmDraft: {}, cmBusy: false, noCm: false, deferRender: false,
     cmGif: {}, cmMsg: {}, gifFor: null, edit: null, editBusy: false, notifs: [], nOpen: false, noNotif: false, flash: null,
-    gset: 'all', gsetOpen: false, fOpen: false, pollChange: new Set(), pollDur: 24, votes: {}, noVotes: false, pollAnim: new Set(), pollSeen: new Set(), reactBump: null };
+    gset: 'all', gmode: 'gear', gsetOpen: false, fOpen: false, pollChange: new Set(), pollDur: 24, votes: {}, noVotes: false, pollAnim: new Set(), pollSeen: new Set(), reactBump: null };
   const db = () => A.db();
   const me = () => A.userId();
   const root = $('feedView');
@@ -151,6 +151,7 @@ window.RokMods.feed = (R) => {
     if (!e.isIntersecting && el._fxT) { clearInterval(el._fxT); el._fxT = null; }
   }), { threshold: 0.4 }) : null;
   function fxScan(scope) {
+    if (R.showcaseFeedFix && (scope || root).querySelector('[data-sc-feed]')) requestAnimationFrame(() => R.showcaseFeedFix(scope || root));
     (scope || root).querySelectorAll('.fx-forge').forEach((el) => { if (el._fxObs) return; el._fxObs = true; if (forgeIO) forgeIO.observe(el); else { forgeBurst(el, 22); fireworkBurst(el); } });
     // Umfrage-Balken: von 0 auf den Wert wachsen lassen
     (scope || root).querySelectorAll('[data-bar-w]').forEach((b) => { const w = b.dataset.barW; b.removeAttribute('data-bar-w'); requestAnimationFrame(() => requestAnimationFrame(() => { b.style.width = w + '%'; })); });
@@ -170,6 +171,115 @@ window.RokMods.feed = (R) => {
     else if (emoji === '💎') { for (let i = 0; i < 4; i++) { const a = (i * 90 + 45 + rr(-20, 20)) * Math.PI / 180, d = rr(14, 22); spawn('fx-glint', '✦', { '--dx': (Math.cos(a) * d).toFixed(0) + 'px', '--dy': (Math.sin(a) * d).toFixed(0) + 'px' }, i * 70); } }
     else if (emoji === '❤️') spawn('fx-heart', '❤️', { '--dx': rr(-10, 10).toFixed(0) + 'px' });
   }
+  // ---------- Englische Texte für den Feed (hängen sich an window.I18N an – i18n.js muss dafür nicht geändert werden) ----------
+  (function feedI18n() {
+    const I = window.I18N; if (!I || !I.translations || !I.translations.en) return;
+    Object.assign(I.translations.en.texts, {
+      'Gear-Upgrade': 'Gear upgrade', 'Rss': 'Rss', 'Meine Rss': 'My Rss', 'Umfrage': 'Poll', 'Umfragen': 'Polls', 'Set': 'Set', 'Sets': 'Sets', 'Gear': 'Gear', 'Meine': 'Mine',
+      'Showcases, KvK, Gear-Upgrades und Bestände aller Spieler': 'Showcases, KvK, gear upgrades and Rss of all players',
+      "Was gibt's Neues? (optional) · @ zum Markieren": "What's new? (optional) · @ to tag",
+      'Anzeigen:': 'Show:', '🔍 Spieler oder Allianz-Tag': '🔍 Player or alliance tag', 'Erwähnungen': 'Mentions', 'Alle als gelesen markieren': 'Mark all as read',
+      'hat dich in einem Beitrag erwähnt': 'mentioned you in a post', 'hat dich in einem Kommentar erwähnt': 'mentioned you in a comment',
+      'Noch keine Erwähnungen. Wenn dich jemand mit @ markiert, erscheint es hier.': 'No mentions yet. When someone tags you with @, it shows up here.',
+      '⚠ Die Tabelle „notifications“ fehlt noch in Supabase (SQL im Chat ausführen).': '⚠ The “notifications” table is missing in Supabase (run the SQL from the chat).',
+      'Kommentieren': 'Comment', 'Antworten': 'Reply', 'Einklappen': 'Collapse', 'Senden': 'Send', 'Kommentar schreiben … (@ zum Markieren)': 'Write a comment … (@ to tag)',
+      'GIF anhängen (nur GIFs)': 'Attach GIF (GIFs only)', 'GIF entfernen': 'Remove GIF', '🚫 Nur GIFs erlaubt – keine Fotos.': '🚫 GIFs only – no photos.', 'GIF wird geprüft …': 'Checking GIF …', 'GIF wird hochgeladen …': 'Uploading GIF …',
+      '🚫 Dieses GIF ist im Feed nicht erlaubt.': '🚫 This GIF is not allowed in the feed.',
+      'Kommentar bearbeiten': 'Edit comment', 'Kommentar löschen': 'Delete comment', 'Text bearbeiten': 'Edit text', 'Löschen': 'Delete', 'bearbeitet': 'edited',
+      '@ zum Markieren · Strg+Enter speichert': '@ to tag · Ctrl+Enter saves', 'Abbrechen': 'Cancel', 'Wird gespeichert …': 'Saving …',
+      'Der Text darf nicht leer sein – sonst lieber löschen (✕).': 'The text can’t be empty – delete the post instead (✕).',
+      'Name oder Governor-ID tippen …': 'Type a name or governor ID …', 'Suche …': 'Searching …',
+      'Dieser Beitrag wurde gelöscht.': 'This post was deleted.', 'Diese Umfrage ist schon beendet.': 'This poll has already ended.',
+      'Allianz-Umfrage': 'Alliance poll', 'Umfrage beendet': 'Poll ended', 'Ergebnis steht fest': 'Result is final', 'Gewonnen:': 'Winner:', 'Niemand hat abgestimmt.': 'Nobody voted.',
+      'Du hast abgestimmt': 'You voted', 'Stimme ändern': 'Change vote', 'Neue Antwort antippen': 'Tap a new answer', 'deine Stimme': 'your vote', 'Vorschau': 'Preview',
+      'Tippe auf eine Antwort – du kannst sie später noch ändern.': 'Tap an answer – you can change it later.',
+      'Frage, z. B. „Wann starten wir die Ark?“': 'Question, e.g. “When do we start Ark?”', '+ Antwort': '+ Answer', 'Antwort entfernen': 'Remove answer', 'Höchstens 4 Antworten.': 'At most 4 answers.',
+      'Wie lange läuft die Umfrage?': 'How long should the poll run?', 'Unbegrenzt': 'Unlimited', '1 Tag': '1 day', '3 Tage': '3 days', '7 Tage': '7 days',
+      'Wenn sie endet, rückt sie mit dem Ergebnis wieder nach oben im Feed.': 'When it ends, it moves back to the top of the feed with the result.',
+      'Ohne Ende – Abstimmen geht dauerhaft.': 'No end – voting stays open.', 'Frage …': 'Question …',
+      'Schreib eine Frage für die Umfrage.': 'Write a question for the poll.', 'Die Umfrage braucht mindestens 2 Antworten.': 'The poll needs at least 2 answers.',
+      'Stimme nur auf diesem Gerät gespeichert – die Tabelle „feed_votes“ fehlt noch in Supabase (SQL im Chat).': 'Vote saved on this device only – the “feed_votes” table is missing in Supabase (SQL in the chat).',
+      'Showcase aus deinem Profil': 'Showcase from your profile', 'Sieht genauso aus wie dein Showcase im Profil. Einzelne Sets postest du über': 'Looks exactly like your showcase in your profile. Post single sets with',
+      'Showcase kann nicht angezeigt werden.': 'Showcase can’t be shown.', 'Showcase nicht gefunden.': 'Showcase not found.',
+      'Der Showcase-Bereich ist noch nicht geladen – Seite neu laden.': 'The showcase section isn’t loaded yet – reload the page.',
+      'Noch kein Showcase – zuerst unter 🎨 Showcases anlegen.': 'No showcase yet – create one under 🎨 Showcases first.',
+      'Noch kein Showcase mit Sets – zuerst unter 🎨 Showcases anlegen.': 'No showcase with sets yet – create one under 🎨 Showcases first.',
+      'Das Showcase fehlt – bitte nochmal auf „Showcase“ tippen.': 'The showcase is missing – tap “Showcase” again.',
+      'Welches Showcase?': 'Which showcase?', 'Sets laden – welche sollen in den Beitrag?': 'Load sets – which ones go into the post?', 'Alle laden': 'Load all', 'Keine': 'None',
+      'Wähl mindestens ein Set aus.': 'Select at least one set.', 'Set ohne Ausrüstung': 'Set without gear', 'Keine Sets ausgewählt': 'No sets selected',
+      'Mein Set': 'My set', 'Mein Showcase': 'My showcase', 'Showcase': 'Showcase',
+      'Welches KvK-Ergebnis?': 'Which KvK result?', 'KvK-Bild aus dem Profil': 'KvK image from your profile', 'Ergebnis-Zahlen': 'Result numbers', 'KvK-Ergebnis': 'KvK result',
+      'Noch kein KvK-Bild – im KvK-Bereich unter Stats → „Bild für dein Profil“ erstellen.': 'No KvK image yet – create one in KvK → Stats → “Image for your profile”.',
+      'Abschnitt (aus deiner KvK-Timeline)': 'Section (from your KvK timeline)', 'Welcher Abschnitt? (aus deiner KvK-Timeline)': 'Which section? (from your KvK timeline)',
+      'Pässe': 'Passes', 'Altäre': 'Altars', 'Gesamt': 'Total', 'KvK gesamt': 'KvK total', 'KvK gesamt (bisher)': 'KvK total (so far)', 'bisher': 'so far', 'Eigene': 'Custom', 'Eigene Angabe': 'Custom entry',
+      'Ehre': 'Honor', 'Kristalle': 'Crystals', 'Zahlen kommen aus KvK → Stats.': 'Numbers come from KvK → Stats.', 'Verdienst': 'Acclaim', 'Deads': 'Deads', 'Deads (optional)': 'Deads (optional)',
+      'Kill-Punkte & Verdienst': 'Kill points & acclaim', 'KP & Verdienst': 'KP & acclaim',
+      'Pässe und KvK gesamt kommen aus KvK → Stats (Zwischenstände je Pass) – Zahlen kannst du anpassen.': 'Passes and KvK total come from KvK → Stats (snapshots per pass) – you can adjust the numbers.',
+      'Für Altäre gibt es keine gespeicherten Zwischenstände – bitte Zahlen eintragen.': 'There are no saved snapshots for altars – please enter the numbers.',
+      'Für diesen Abschnitt gibt es noch keine Zahlen – anderen Abschnitt wählen oder Werte im KvK-Bereich eintragen.': 'No numbers for this section yet – choose another section or enter values in the KvK section.',
+      'z. B. Ruine, Kampftag 3 …': 'e.g. ruins, battle day 3 …',
+      'Was zeigen?': 'What to show?', 'AoO-Showcase (Profil)': 'AoO showcase (profile)', 'Match-Ergebnis': 'Match result', 'Sieg': 'Victory', 'Niederlage': 'Defeat',
+      'Gegner (Allianz)': 'Opponent (alliance)', 'Datum': 'Date', 'Unsere Punkte': 'Our points', 'Punkte Gegner': 'Opponent points', 'Punkte': 'Points', 'Rolle …': 'Role …', 'gegen': 'vs', 'Wähl Sieg oder Niederlage.': 'Choose victory or defeat.',
+      'Noch kein AoO-Showcase – unter 🎨 Showcases anlegen.': 'No AoO showcase yet – create one under 🎨 Showcases.',
+      'Gear-Upgrade – welches Teil, und was wurde verbessert?': 'Gear upgrade – which piece, and what was improved?', 'Ausrüstung': 'Equipment', 'Armament': 'Armament',
+      'Armament posten': 'Post armament', 'Armaments aus deinen Showcase-Sets:': 'Armaments from your showcase sets:', 'Mein Armament': 'My armament', 'Neues Armament': 'New armament',
+      'Noch kein Armament – im Showcase bei einem Set die Rüstung (Inschriften) eintragen.': 'No armament yet – add the armament (inscriptions) to a set in your showcase.',
+      'Neu / verbessert': 'New / improved', 'Armament kann nicht angezeigt werden.': 'Armament can’t be shown.', 'Wähl ein Armament aus.': 'Choose an armament.',
+      'Aus deinen Showcase-Sets': 'From your showcase sets', 'Set wählen → ganzes Set posten': 'Choose a set → post the whole set', 'Ganzes Set posten': 'Post whole set', 'Alle Sets': 'All sets', 'Set:': 'Set:',
+      'Neues Set gecraftet': 'New set crafted', 'Neu gecraftet / fertig': 'Newly crafted / done', 'Dieses Set hat keine Ausrüstung.': 'This set has no gear.',
+      '🔍 Teil suchen (z. B. Dragon, Hope …)': '🔍 Search a piece (e.g. Dragon, Hope …)', 'ändern': 'change', 'Neu gecraftet': 'Newly crafted', 'Expertise freigeschaltet': 'Expertise unlocked', 'Typ …': 'Type …',
+      'Iconic gibt es nur bei legendären Teilen.': 'Iconic only exists on legendary pieces.', 'Sonst noch? z. B. „endlich 5/5 Set“': 'Anything else? e.g. “finally 5/5 set”',
+      'Sonst noch? z. B. „endlich komplett Iconic V“': 'Anything else? e.g. “finally all Iconic V”', 'Sonst noch? z. B. „endlich 4× Rot“': 'Anything else? e.g. “finally 4× red”',
+      'Wähl zuerst das Ausrüstungsteil.': 'Choose the piece first.', 'Gib an, was verbessert wurde (neu gecraftet, Iconic, Expertise oder eigene Angabe).': 'Say what was improved (newly crafted, Iconic, expertise or your own note).',
+      'Help Me – was soll ich verbessern?': 'Help Me – what should I improve?', 'Zum Help-Me-Beitrag →': 'Go to the Help Me post →', 'Was soll ich als Nächstes craften?': 'What should I craft next?', 'Was soll ich als Nächstes verbessern?': 'What should I improve next?',
+      'Mein Pass startet': 'My pass opens', 'deine Zeit': 'your time', '(deine Zeit)': '(your time)', 'Welcher Pass öffnet?': 'Which pass opens?', 'Öffnet am': 'Opens on', 'Trag ein, wann dein Pass öffnet.': 'Enter when your pass opens.',
+      'Zeit kommt aus deinem KvK-Kalender – bei Bedarf anpassen.': 'Time comes from your KvK calendar – adjust if needed.',
+      'Kein KvK-Startdatum gesetzt – Zeit bitte eintragen (oder unter KvK → Get Ready das Startdatum festlegen).': 'No KvK start date set – enter the time (or set the start date under KvK → Get Ready).',
+      'Neue VIP-Stufe erreicht': 'New VIP level reached', 'Mein VIP-Status': 'My VIP status', 'Höchste Stufe erreicht 👑': 'Highest level reached 👑', 'Neue Stufe erreicht': 'New level reached', 'Status': 'Status',
+      'Neue Stufe: VIP': 'New level: VIP', '20 = SVIP': '20 = SVIP', 'Trag deine neue VIP-Stufe ein (1–20).': 'Enter your new VIP level (1–20).', 'Für den VIP-Status fehlt ein VIP-Scan.': 'A VIP scan is missing for the VIP status.',
+      'Noch kein VIP-Scan – für den Status zuerst im Scanner unter VIP erfassen.': 'No VIP scan yet – scan VIP in the scanner first.',
+      'Was zeigen? (alles einzeln wählbar)': 'What to show? (each item selectable)', 'Alles': 'All', 'Nur Rss': 'Rss only', 'Nur Speedups': 'Speedups only', 'Uni + Heilung': 'Uni + healing', 'Nur AP': 'AP only',
+      'Uni + Heilung zusammen': 'Uni + healing combined', 'AP gesamt': 'AP total', 'inkl. Rucksack': 'incl. backpack', 'ohne Rucksack': 'without backpack', 'Proviant': 'Food', 'Holz': 'Wood', 'Stein': 'Stone', 'Gold': 'Gold',
+      'Universal': 'Universal', 'Training': 'Training', 'Heilung': 'Healing', 'Forschung': 'Research', 'Bau': 'Building', 'nichts ausgewählt': 'nothing selected', 'kein Scan': 'no scan',
+      'Werte aus deinen letzten Scans – sie werden beim Posten festgehalten.': 'Values from your latest scans – they are fixed when you post.',
+      'Wähl mindestens Ressourcen, Speedups oder AP aus.': 'Choose at least resources, speedups or AP.', 'Noch keine Scans – zuerst Ressourcen, Speedups oder AP im Scanner erfassen.': 'No scans yet – scan resources, speedups or AP in the scanner first.',
+      'Meine KvK-Karte': 'My KvK map', 'Karte öffnen': 'Open map', 'mein Camp': 'my camp', 'verbündet': 'allied',
+      'Noch keine Karte – unter KvK → Karte die Camps mit ihren Königreichen eintragen.': 'No map yet – enter the camps with their kingdoms under KvK → Map.',
+      'Die Karte kann gerade nicht geöffnet werden.': 'The map can’t be opened right now.', 'Der KvK-Bereich ist noch nicht geladen.': 'The KvK section isn’t loaded yet.',
+      'Welche Anfrage?': 'Which request?', 'Wähl die Help-Me-Anfrage aus.': 'Choose the Help Me request.', 'Deine Help-Me-Anfragen werden geladen …': 'Loading your Help Me requests …',
+      'Keine offene Help-Me-Anfrage – zuerst unter 🆘 Help Me eine stellen.': 'No open Help Me request – create one under 🆘 Help Me first.',
+      'Schreib etwas oder häng etwas an.': 'Write something or attach something.', 'Das ist kein Bild.': 'That is not an image.', '✓ Im Feed gepostet': '✓ Posted to the feed',
+      'Der Feed ist noch nicht geladen – bitte Seite neu laden.': 'The feed isn’t loaded yet – please reload the page.', '✓ Gepostet': '✓ Posted', 'Wird gepostet …': 'Posting …',
+      'Höchstens 7 Sets – erst eines abwählen.': 'At most 7 sets – deselect one first.', 'Nichts gefunden.': 'Nothing found.',
+      'Beitrag': 'Post', 'Foto / GIF': 'Photo / GIF', 'KvK-Bilanz': 'KvK result', 'AoO-Showcase': 'AoO showcase', 'Pass-Start': 'Pass start', 'VIP-Stufe': 'VIP level', 'KvK-Karte': 'KvK map',
+      'Fotos': 'Photos', 'KvK-Bilanz & Karte': 'KvK result & map', 'Text': 'Text', 'Alle': 'All', 'Anhängen:': 'Attach:', 'Anhang entfernen': 'Remove attachment',
+      'Stimme(n)': 'vote(s)', 'Foto': 'Photo', '⬆ Ältere Beiträge laden': '⬆ Load older posts', 'Ältere Beiträge laden': 'Load older posts', 'Lade …': 'Loading …', 'Feed wird geladen …': 'Loading feed …'
+    });
+    const un = (x) => String(x).replace(/(\d+) Std\.?/g, '$1 h').replace(/(\d+) Min\.?/g, '$1 min').replace(/(\d+) Tagen?\b/g, (m, n) => `${n} day${n === '1' ? '' : 's'}`).replace(/(\d+) Tage\b/g, '$1 days');
+    const SLOT = { Helm: 'Helmet', Brust: 'Chest', Waffe: 'Weapon', Handschuhe: 'Gloves', Beine: 'Legs', Stiefel: 'Boots', Accessoire: 'Accessory' };
+    const TROOP = { Infanterie: 'Infantry', Kavallerie: 'Cavalry', 'Bogenschützen': 'Archers', Belagerung: 'Siege', Integration: 'Integration', 'Führung': 'Leadership' };
+    I.translations.en.patterns.unshift(
+      [/^vor (.+?)( · bearbeitet)?$/, (m, a, e) => `${un(a)} ago${e ? ' · edited' : ''}`],
+      [/^((?:.* · )?)(Helm|Brust|Waffe|Handschuhe|Beine|Stiefel|Accessoire)((?: \d)?)((?: · |: ).*|)$/, (m, a, sl, n, b) => `${a}${SLOT[sl]}${n}${b.replace(/^ · Iconic/, ' · Iconic')}`],
+      [/^Refine (\S+) (Voll|\d+%)$/, (m, t, v) => `Refine ${TROOP[t] || t} ${v === 'Voll' ? 'full' : v}`],
+      [/^Antwort (\d)$/, 'Answer $1'], [/^● Live · aktualisiert (.+)$/, '● Live · updated $1'], [/^Live · aktualisiert (.+)$/, 'Live · updated $1'], [/^Gewonnen$/, 'Winner'],
+      [/^(\d+) Stimmen?$/, (m, n) => `${n} vote${n === '1' ? '' : 's'}`],
+      [/^(\d+) Antwort(en)?$/, (m, n) => `${n} answer${n === '1' ? '' : 's'}`],
+      [/^noch (.+)$/, (m, a) => `ends in ${un(a)}`], [/^öffnet in (.+)$/, (m, a) => `opens in ${un(a)}`],
+      [/^(\d+) Teile? · (\d+)× Expertise$/, '$1 pieces · $2× expertise'], [/^(\d+) Teile?$/, '$1 pieces'], [/^(\d+) Set(s?) · (\d+) Teile?$/, '$1 set$2 · $3 pieces'],
+      [/^(.+) · (\d+) Inschriften(.*)$/, '$1 · $2 inscriptions$3'],
+      [/^Umfrage beendet vor (.+) – das Ergebnis steht fest$/, (m, a) => `Poll ended ${un(a)} ago – the result is final`],
+      [/^Meine (\d+) Sets$/, 'My $1 sets'], [/^Showcase · (\d+) Sets?$/, 'Showcase · $1 sets'],
+      [/^(.+) VIP-Punkte inkl\. Rucksack$/, '$1 VIP points incl. backpack'], [/^Punkte bis (.+)$/, 'points to $1'], [/^Noch$/, 'Still'],
+      [/^Scan vom (.+)$/, 'Scan from $1'], [/^Meine KvK-Karte · Start (.+)$/, 'My KvK map · start $1'],
+      [/^(Abstimmen|Speichern|Löschen|Reaktion|Kommentar|Im Feed posten|Posten|Showcase-Bild) fehlgeschlagen: (.*)$/, (m, a, e) => `${({ Abstimmen: 'Voting', Speichern: 'Saving', 'Löschen': 'Deleting', Reaktion: 'Reaction', Kommentar: 'Comment', 'Im Feed posten': 'Posting to the feed', Posten: 'Posting', 'Showcase-Bild': 'Showcase image' })[a] || a} failed: ${e}`],
+      [/^Höchstens (\d+) Sets – erst eines abwählen\.$/, 'At most $1 sets – deselect one first.'],
+      [/^Kein Spieler „(.+)“ gefunden$/, 'No player “$1” found'],
+      [/^(.+) · (\d+) Sets$/, '$1 · $2 sets'], [/^(\d+) Stimme\(n\)$/, '$1 vote(s)']
+    );
+  })();
+  const tt = (x) => { try { return window.I18N && I18N.lang && I18N.lang() === 'en' ? I18N.tr(x) : x; } catch { return x; } };
+  window.addEventListener('langchange', () => { try { renderComposer(); renderList(); } catch {} });
   const short = (n) => (R.short ? R.short(n) : R.fmt(n));
   const fmt = (n) => R.fmt(n);
   const days = (min) => ((+min || 0) / 1440).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -304,13 +414,14 @@ window.RokMods.feed = (R) => {
     if (!a) return '';
     const d = a.data || {};
     if (a.kind === 'craft' && d.mode === 'set') { if (!Object.keys(d.gear || {}).length) return 'Dieses Set hat keine Ausrüstung.'; }
+    else if (a.kind === 'craft' && d.mode === 'arm') { if (!d.arm) return 'Wähl ein Armament aus.'; }
     else if (a.kind === 'craft') { if (!d.item && !d.name) return 'Wähl zuerst das Ausrüstungsteil.'; if (!d.crafted && !d.ic && !d.exp && !(d.note || '').trim()) return 'Gib an, was verbessert wurde (neu gecraftet, Iconic, Expertise oder eigene Angabe).'; }
     if (a.kind === 'pass' && !d.ts) return 'Trag ein, wann dein Pass öffnet.';
     if (a.kind === 'stock' && !d.res && !d.speed && !d.ap) return 'Wähl mindestens Ressourcen, Speedups oder AP aus.';
     if (a.kind === 'kvkpts' && !d.kp && !d.acclaim && !d.deads) return 'Trag Kill-Punkte oder Verdienst ein.';
     if (a.kind === 'help' && !d.rid) return 'Wähl die Help-Me-Anfrage aus.';
     if (a.kind === 'set' && !(d.sets || []).length) return 'Wähl mindestens ein Set aus.';
-    if (a.kind === 'showcase' && !a.dataUrl) return a.busy ? 'Das Showcase-Bild wird noch erstellt – kurz warten.' : 'Das Showcase-Bild fehlt – bitte nochmal auf „Showcase“ tippen.';
+    if (a.kind === 'showcase' && !(d.entry)) return 'Das Showcase fehlt – bitte nochmal auf „Showcase“ tippen.';
     if (a.kind === 'kvk' && d.mode === 'stats' && !d.kp && !d.acclaim && !d.deads && !d.honor && !d.crystal) return 'Für diesen Abschnitt gibt es noch keine Zahlen – anderen Abschnitt wählen oder Werte im KvK-Bereich eintragen.';
     if (a.kind === 'aoo' && d.mode === 'match' && !d.res) return 'Wähl Sieg oder Niederlage.';
     if (a.kind === 'poll') { if (!String(d.q || '').trim()) return 'Schreib eine Frage für die Umfrage.'; if ((d.opts || []).filter((o) => String(o).trim()).length < 2) return 'Die Umfrage braucht mindestens 2 Antworten.'; }
@@ -696,34 +807,17 @@ window.RokMods.feed = (R) => {
     const b = sc.bg || {};
     return { title: String(sc.title || 'Showcase').slice(0, 60), bg: b.type === 'img' ? { type: 'img', src: scImgUrl(b.src) } : b.type === 'lib' ? { type: 'lib', id: String(b.id || '') } : { type: 'preset', id: String(b.id || 'none') }, sets };
   }
-  // ---------- Showcase: das Bild genau wie im Profil (Bühne mit Hintergrund) ----------
-  async function profileShowcaseImage(active) {
-    const pv = $('profileView'), wasHidden = !!pv && pv.classList.contains('hidden'), css = pv ? pv.style.cssText : '';
-    // sichtbar, aber unsichtbar (nicht weit außerhalb) – sonst lädt der Browser die Bilder nicht und das Bild bleibt leer
-    if (wasHidden) { pv.classList.remove('hidden'); pv.style.cssText = 'position:fixed;left:0;top:0;width:1200px;opacity:0;pointer-events:none;z-index:-1'; }
-    try {
-      const opts = { jpeg: true, pixelRatio: 1.25, ...(active ? { active } : {}) };
-      await R.showcaseImage(opts);                                  // 1. Durchgang: Bühne zeichnen, Bilder laden
-      const stg = $('scStage');
-      if (stg) { const imgs = [...stg.querySelectorAll('img')]; imgs.forEach((i) => { i.loading = 'eager'; });
-        await Promise.race([Promise.all(imgs.map((i) => (i.complete && i.naturalWidth ? 0 : (i.decode ? i.decode() : Promise.resolve()).catch(() => 0)))), new Promise((r) => setTimeout(r, 3000))]); }
-      return await R.showcaseImage(opts);                           // 2. Durchgang: jetzt mit allen Bildern
-    } finally { if (wasHidden) { pv.classList.add('hidden'); pv.style.cssText = css; } }
-  }
-  async function attachShowcase(active) {
-    if (!R.showcaseImage) { msg('Der Showcase ist noch nicht geladen.', 'warn'); return; }
+  // ---------- Showcase: genau wie im Profil (Bühne mit Hintergrund) – als echtes HTML, kein Bild-Export mehr ----------
+  function attachShowcase(active) {
+    if (!R.showcaseFeedData || !R.showcaseStageHTML) { msg('Der Showcase-Bereich ist noch nicht geladen – Seite neu laden.', 'warn'); return; }
     let doc = null; try { doc = R.ownShowcase ? R.ownShowcase() : null; } catch {}
-    const list = ((doc && doc.list) || []), sid = active || (doc && doc.active) || (list[0] && list[0].id) || '';
-    if (!list.length) { msg('Noch kein Showcase – zuerst unter 🎨 Showcases anlegen.', 'warn'); return; }
-    st.attach = { kind: 'showcase', busy: true, data: { sid, title: (list.find((x) => x.id === sid) || {}).title || '' } };
-    msg('Showcase-Bild aus deinem Profil wird erstellt …', 'busy'); renderComposer();
-    try {
-      const { url, title } = await profileShowcaseImage(active);
-      if (!st.attach || st.attach.kind !== 'showcase') return;   // inzwischen etwas anderes gewählt
-      st.attach = { kind: 'showcase', dataUrl: url, data: { sid, title } }; msg('', '');
-    } catch (e) { if (st.attach && st.attach.kind === 'showcase') st.attach = null; msg('Showcase-Bild fehlgeschlagen: ' + (e.message || e), 'err'); }
+    if (!doc || !(doc.list || []).length) { msg('Noch kein Showcase – zuerst unter 🎨 Showcases anlegen.', 'warn'); return; }
+    const fd = R.showcaseFeedData(active); if (!fd) { msg('Showcase nicht gefunden.', 'warn'); return; }
+    st.attach = { kind: 'showcase', data: { sid: fd.entry.id, title: fd.entry.title || '', entry: fd.entry, stats: fd.stats } }; msg('', '');
     renderComposer();
   }
+  const showcaseStage = (d) => { let h = ''; try { h = R.showcaseStageHTML ? R.showcaseStageHTML(d.entry, d.stats) : ''; } catch { h = ''; }
+    return h || '<div class="py-8 text-center text-xs text-slate-500">Showcase kann nicht angezeigt werden.</div>'; };
   // ---------- Set posten: Sets aus dem Showcase als Rauten (bis zu 7) ----------
   function attachSet() {
     const list = scDocList();
@@ -790,7 +884,12 @@ window.RokMods.feed = (R) => {
     }));
     return out;
   };
-  // ganzes Set als Craft-Upgrade posten
+  // Armament (Rüstung) eines Sets posten
+  function pickArmament(key) {
+    const x = (R.armamentList ? R.armamentList() : []).find((y) => y.key === key); if (!x || !st.attach) return;
+    st.attach.data = { mode: 'arm', name: x.name, arm: x.arm, note: '', crafted: false }; renderComposer();
+  }
+  // ganzes Set als Gear-Upgrade posten
   function pickWholeSet(key) {
     const x = gearSets().find((y) => y.key === key); if (!x || !st.attach) return;
     const gear = {}; Object.entries(x.set.gear || {}).forEach(([k, g]) => { if (g && (g.item || g.name)) { const it = R.gItem ? R.gItem(g.item) : null;
@@ -807,7 +906,7 @@ window.RokMods.feed = (R) => {
   function attachCraft() {
     if (R.gearDbState === 'idle' && R.loadGearDb) R.loadGearDb();
     st.attach = { kind: 'craft', data: { item: '', name: '', icon: '', rarity: 'legendary', slot: '', crafted: false, ic: null, exp: false, refType: '', note: '' } };
-    st.gq = ''; st.gset = 'all'; renderComposer();
+    st.gq = ''; st.gset = 'all'; st.gmode = 'gear'; renderComposer();
   }
   function pickGear(g) {
     const d = st.attach.data;
@@ -960,6 +1059,8 @@ window.RokMods.feed = (R) => {
     if (!tl.length) {   // ohne KvK-Startdatum: feste Abschnitte
       out.push({ id: 'p4', label: 'Pass 4', ...passVals(4) }, { id: 'a1', label: 'Altar', kp: 0, acclaim: 0, deads: 0 }, { id: 'p7', label: 'Pass 7', ...passVals(7) }, { id: 'p8', label: 'Pass 8', ...passVals(8) });
     }
+    { const p7 = out.find((x) => x.id === 'p7');   // Altäre nach Pass 7 braucht niemand → weglassen
+      if (p7 && p7.ts) for (let i = out.length - 1; i >= 0; i--) if (out[i].id[0] === 'a' && out[i].ts && out[i].ts >= p7.ts) out.splice(i, 1); }
     const cur = has(end) ? end : [now, P[8], P[7], P[4]].find(has);
     out.push({ id: 'kvk', label: has(end) ? 'KvK gesamt' : 'KvK gesamt (bisher)', ...(cur ? vals(cur, start) : { kp: 0, acclaim: 0, deads: 0 }) });
     return out;
@@ -976,6 +1077,11 @@ window.RokMods.feed = (R) => {
   // ======================================================================
   const rarCol = { legendary: 'text-amber-300', epic: 'text-fuchsia-300', elite: 'text-sky-300', advanced: 'text-emerald-300', normal: 'text-slate-300' };
   const icoBox = (src, cls, fallback) => (src ? `<img src="${esc(src)}" alt="" class="${cls} rounded-lg object-contain bg-ink-900">` : `<span class="${cls} rounded-lg grid place-items-center text-2xl bg-ink-900">${fallback}</span>`);
+  const armTile = (d) => { let h = ''; try { h = R.armamentHTML ? R.armamentHTML(d.arm, 13) : ''; } catch { h = ''; }
+    return `<div class="fx-forge rounded-xl border border-orange-400/40 bg-gradient-to-br from-orange-950/40 via-ink-950/80 to-ink-950 p-3 flex flex-col gap-2.5">
+      <div class="flex items-center justify-between gap-2"><span class="text-[10px] uppercase tracking-widest text-orange-300">🛡️ ${d.crafted ? 'Neues Armament' : 'Mein Armament'}</span><span class="font-display text-base text-slate-100 truncate">${esc(d.name || '')}</span></div>
+      <div class="flex justify-center py-1 overflow-x-auto">${h || '<span class="text-xs text-slate-500 py-4">Armament kann nicht angezeigt werden.</span>'}</div>
+      ${d.note ? `<div class="text-sm text-slate-200">📝 ${esc(d.note)}</div>` : ''}</div>`; };
   const craftSetTile = (d) => {
     const n = Object.keys(d.gear || {}).length, cmds = (d.cmd || []).map((c) => R.cmdImg ? `<img src="${esc(R.cmdImg(c.id, c.exp))}" alt="" loading="lazy" class="w-9 h-9 rounded-full object-cover border border-gold-400/60 bg-ink-900">` : '').join('');
     let board = ''; try { board = R.gearBoardHTML ? R.gearBoardHTML(d.gear || {}, d.gfx) : ''; } catch { board = ''; }
@@ -999,7 +1105,7 @@ window.RokMods.feed = (R) => {
       ? `<div class="text-xs text-slate-400">${g.tier ? `Iconic ${ROMAN[g.tier - 1]}` : ''}${g.refine ? ' · Refine fertig' : ''}${g.set ? ` · ${esc(g.set)}` : ''}</div>` : '';
     return `<div class="fx-forge flex items-start gap-3 rounded-xl border border-orange-400/40 bg-gradient-to-br from-orange-950/40 via-ink-950/80 to-ink-950 p-3">
       ${icoBox(g.icon, 'w-14 h-14 shrink-0', '⚒️')}
-      <div class="min-w-0 flex-1"><div class="text-[10px] uppercase tracking-widest text-slate-500">⚒️ Craft-Upgrade${g.slot ? ` · ${esc(g.slot)}` : ''}</div>
+      <div class="min-w-0 flex-1"><div class="text-[10px] uppercase tracking-widest text-slate-500">⚒️ Gear-Upgrade${g.slot ? ` · ${esc(g.slot)}` : ''}</div>
         <div class="font-semibold ${rarCol[g.rarity] || 'text-slate-100'} truncate">${esc(g.name || '?')}</div>
         ${lines.length ? `<ul class="mt-1 space-y-0.5 text-sm text-slate-200">${lines.map(([i, t]) => `<li class="flex gap-1.5"><span class="w-5 shrink-0 text-center">${i}</span><span class="min-w-0 break-words">${t}</span></li>`).join('')}</ul>` : old}
       </div></div>`;
@@ -1027,12 +1133,14 @@ window.RokMods.feed = (R) => {
       ${cmds ? `<div class="flex -space-x-2">${cmds}</div>` : ''}
       <div class="max-w-full truncate text-[11px] font-semibold text-slate-100 [text-shadow:0_1px_2px_#000]" translate="no">${esc(x.name || '')}</div>${board}</div>`;
   };
-  const showcaseCard = (d, isSet) => `<div class="relative overflow-hidden rounded-xl border border-gold-500/35" style="background:${scBgCss(d.bg)}">
+  const showcaseCard = (d, isSet) => { const gic = isSet ? [...new Set((d.sets || []).flatMap((x) => Object.values(x.gear || {}).map((g) => g.icon)).filter((u) => /\.(png|webp|jpe?g)$/i.test(u || '')))] : [];
+    return `<div class="relative overflow-hidden rounded-xl border border-gold-500/35" style="background:${scBgCss(d.bg)}">
       <div class="absolute inset-0 bg-gradient-to-b from-ink-950/35 via-ink-950/5 to-ink-950/70 pointer-events-none"></div>
-      <div class="relative p-3 flex flex-col gap-2.5">
+      ${gic.length ? resLayer(gic, 14) : ''}
+      <div class="fx-body p-3 ${gic.length ? 'pb-10' : ''} flex flex-col gap-2.5">
         <div class="flex items-center justify-between gap-2"><span class="text-[10px] uppercase tracking-widest text-gold-300">${isSet ? `⚔️ ${(d.sets || []).length === 1 ? 'Mein Set' : `Meine ${(d.sets || []).length} Sets`}` : `🎨 Showcase · ${(d.sets || []).length} Set${(d.sets || []).length === 1 ? '' : 's'}`}</span><span class="font-display text-base gold-text truncate">${esc(d.title || '')}</span></div>
         <div class="flex flex-wrap justify-center gap-x-3 gap-y-4">${(d.sets || []).map(scSetCol).join('') || '<span class="text-xs text-slate-400 py-4">Keine Sets ausgewählt</span>'}</div>
-      </div></div>`;
+      </div></div>`; };
   // KvK-Ergebnis (Zahlen)
   const kvkResTile = (d) => { const cells = [statCell('⚔️', 'Kill-Punkte', d.kp ? '+' + short(d.kp) : '–', d.kp ? fmt(d.kp) : ''), statCell('🏅', 'Verdienst', d.acclaim ? '+' + short(d.acclaim) : '–', d.acclaim ? fmt(d.acclaim) : '')];
     if (d.deads) cells.push(statCell('💀', 'Deads', short(d.deads), fmt(d.deads)));
@@ -1120,7 +1228,7 @@ window.RokMods.feed = (R) => {
       ...(d.speed ? [...SPD_K.filter(([k]) => d.speed[k] != null).map(([k]) => SPD_IMG[k]), ...(d.speed.uh != null ? [SPD_IMG.universal, SPD_IMG.healing] : [])] : []),
       ...(d.ap ? [AP_IMG, AP_IMG] : [])];
     return `<div class="fx-stock relative overflow-hidden rounded-xl border border-emerald-400/30 bg-gradient-to-br from-emerald-950/40 to-ink-950 p-3 pb-12">${resLayer(icons, 26)}<div class="fx-body flex flex-col gap-3">
-      <div class="flex items-baseline justify-between gap-2"><span class="text-[10px] uppercase tracking-widest text-emerald-300">📦 Mein Bestand</span>${ts ? `<span class="text-[10px] text-slate-500">Scan vom ${esc(R.dateLabel ? R.dateLabel(ts) : new Date(ts).toLocaleDateString('de-DE'))}</span>` : ''}</div>
+      <div class="flex items-baseline justify-between gap-2"><span class="text-[10px] uppercase tracking-widest text-emerald-300 inline-flex items-center gap-1"><img src="/icons/ressourcen/corn.png" alt="" style="width:14px;height:14px" class="object-contain"> Meine Rss</span>${ts ? `<span class="text-[10px] text-slate-500">Scan vom ${esc(R.dateLabel ? R.dateLabel(ts) : new Date(ts).toLocaleDateString('de-DE'))}</span>` : ''}</div>
       ${parts.join('') || '<p class="text-sm text-slate-500">nichts ausgewählt</p>'}</div></div>`;
   };
   const vipTile = (d) => {
@@ -1180,7 +1288,7 @@ window.RokMods.feed = (R) => {
   const imgHTML = (src) => `<a href="${esc(src)}" target="_blank" rel="noopener" class="block"><img src="${esc(src)}" alt="" loading="lazy" class="w-full max-h-[34rem] object-contain rounded-xl border border-ink-700 bg-ink-950"></a>`;
   const attachHTML = (p) => {
     const d = p.data;
-    if (p.kind === 'craft' && d) return d.mode === 'set' ? craftSetTile(d) : craftTile(d);
+    if (p.kind === 'craft' && d) return d.mode === 'set' ? craftSetTile(d) : d.mode === 'arm' ? armTile(d) : craftTile(d);
     if (p.kind === 'aoo' && d && d.mode !== 'match') return R.aooCardHTML ? R.aooCardHTML(d) : aooTile(d);
     if (p.kind === 'pass' && d) return passTile(d);
     if (p.kind === 'stock' && d) return stockTile(d);
@@ -1189,6 +1297,7 @@ window.RokMods.feed = (R) => {
     if (p.kind === 'kvkmap' && d) return mapTile(d, p.id);
     if (p.kind === 'help' && d) return helpTile(d);
     if (p.kind === 'poll' && d) return pollTile(p);
+    if (p.kind === 'showcase' && d && d.entry) return showcaseStage(d);
     if ((p.kind === 'set' || p.kind === 'showcase') && d && Array.isArray(d.sets)) return showcaseCard(d, p.kind === 'set');
     if (p.kind === 'kvk' && d && d.mode === 'stats') return kvkResTile(d);
     if (p.kind === 'aoo' && d && d.mode === 'match') return aooMatchTile(d);
@@ -1198,10 +1307,10 @@ window.RokMods.feed = (R) => {
   };
   const previewHTML = (a) => {
     if (!a) return '';
-    if (a.kind === 'craft') return a.data.mode === 'set' ? craftSetTile(a.data) : craftTile(a.data);
+    if (a.kind === 'craft') return a.data.mode === 'set' ? craftSetTile(a.data) : a.data.mode === 'arm' ? armTile(a.data) : craftTile(a.data);
     if (a.kind === 'poll') return pollTile({ id: '__prev', data: a.data }, true);
     if (a.kind === 'set') return showcaseCard(a.data, true);
-    if (a.kind === 'showcase' && !a.dataUrl) return '<div class="py-10 text-center text-sm text-slate-400">⏳ Showcase-Bild wird erstellt …</div>';
+    if (a.kind === 'showcase' && a.data && a.data.entry) return showcaseStage(a.data);
     if (a.kind === 'kvk' && a.data && a.data.mode === 'stats') return kvkResTile(a.data);
     if (a.kind === 'aoo') return a.data.mode === 'match' ? aooMatchTile(a.data) : R.aooCardHTML ? R.aooCardHTML(a.data) : aooTile(a.data);
     if (a.kind === 'pass') return passTile(a.data);
@@ -1275,6 +1384,15 @@ window.RokMods.feed = (R) => {
   const segBtn = (attr, on, txt) => `<button type="button" ${attr} aria-pressed="${!!on}" class="seg-btn rounded-lg px-3 py-1.5 text-xs font-semibold border border-ink-600 transition">${txt}</button>`;
   const box = (title, body) => `<div class="rounded-xl border border-ink-700 bg-ink-950/60 p-3 flex flex-col gap-2.5"><div class="text-[11px] uppercase tracking-widest text-slate-500">${title}</div>${body}</div>`;
   function craftForm(d) {
+    if (d.mode === 'arm') return box('🛡️ Armament posten', `<div class="flex items-center gap-2"><span class="text-sm font-semibold text-slate-100 truncate">🛡️ ${esc(d.name || 'Set')}</span>
+        <button type="button" data-f-act="regear" class="ml-auto text-xs px-2.5 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60">ändern</button></div>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-f="crafted" ${d.crafted ? 'checked' : ''} class="w-4 h-4 accent-amber-400"> 🆕 Neu / verbessert</label>
+      <input type="text" data-f="note" maxlength="120" value="${esc(d.note || '')}" placeholder="Sonst noch? z. B. „endlich 4× Rot“" class="${INP} w-full">`);
+    if (st.gmode === 'arm') { const arms = R.armamentList ? R.armamentList() : [];
+      return box('⚒️ Gear-Upgrade', `<div class="flex flex-wrap gap-1.5">${segBtn('data-f-gmode="gear"', false, '⚒️ Ausrüstung')}${segBtn('data-f-gmode="arm"', true, '🛡️ Armament')}</div>
+        ${arms.length ? `<div class="text-[10px] text-slate-500">Armaments aus deinen Showcase-Sets:</div><div class="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3 max-h-60 overflow-y-auto">${arms.map((x) => `<button type="button" data-f-arm="${esc(x.key)}" class="flex flex-col items-start rounded-lg border border-ink-700 hover:border-gold-500/60 px-2.5 py-1.5 text-left min-w-0">
+          <span class="text-sm font-semibold text-slate-100 truncate max-w-full">🛡️ ${esc(x.name)}</span><span class="text-[10px] text-slate-500 truncate max-w-full">${esc(x.from)} · ${(x.arm.insc || []).filter((i) => i.t).length} Inschriften${x.arm.formation ? ` · ${esc(x.arm.formation)}` : ''}</span></button>`).join('')}</div>`
+          : '<p class="text-xs text-slate-500">Noch kein Armament – im Showcase bei einem Set die Rüstung (Inschriften) eintragen.</p>'}`); }
     if (d.mode === 'set') return box('⚒️ Ganzes Set posten', `<div class="flex items-center gap-2"><span class="text-sm font-semibold text-slate-100 truncate">📦 ${esc(d.name || 'Set')}</span><span class="text-[11px] text-slate-500">${Object.keys(d.gear || {}).length} Teile</span>
         <button type="button" data-f-act="regear" class="ml-auto text-xs px-2.5 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60">ändern</button></div>
       <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-f="crafted" ${d.crafted ? 'checked' : ''} class="w-4 h-4 accent-amber-400"> 🆕 Neu gecraftet / fertig</label>
@@ -1309,7 +1427,7 @@ window.RokMods.feed = (R) => {
       <div class="flex flex-wrap items-center gap-2 text-sm"><label class="flex items-center gap-2"><input type="checkbox" data-f="exp" ${d.exp ? 'checked' : ''} class="w-4 h-4 accent-amber-400"> ✦ Expertise freigeschaltet</label>
         <select data-f="refType" class="${INP} !py-1"><option value="">Typ …</option>${Object.entries(REFT).map(([k, v]) => `<option value="${k}" ${d.refType === k ? 'selected' : ''}>${esc(v.label)}</option>`).join('')}</select></div>
       <input type="text" data-f="note" maxlength="120" value="${esc(d.note || '')}" placeholder="Sonst noch? z. B. „endlich 5/5 Set“" class="${INP} w-full">`;
-    return box('⚒️ Welches Teil – und was wurde verbessert?', d.name ? chosen + what : pickArea);
+    return box('⚒️ Gear-Upgrade – welches Teil, und was wurde verbessert?', d.name ? chosen + what : `<div class="flex flex-wrap gap-1.5">${segBtn('data-f-gmode="gear"', true, '⚒️ Ausrüstung')}${segBtn('data-f-gmode="arm"', false, '🛡️ Armament')}</div>` + pickArea);
   }
   function passForm(d) {
     const plan = passPlan();
@@ -1323,7 +1441,7 @@ window.RokMods.feed = (R) => {
     const when = (e) => (e ? 'Scan ' + (R.dateLabel ? R.dateLabel(e.ts) : '') : 'kein Scan');
     const chip = (k, lab, has) => `<label class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border ${o[k] && has ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 text-slate-300'} ${has ? 'cursor-pointer' : 'opacity-40'}"><input type="checkbox" data-f="so_${k}" ${o[k] && has ? 'checked' : ''} ${has ? '' : 'disabled'} class="w-3.5 h-3.5 accent-amber-400">${lab}</label>`;
     const row = (title, sub, body) => `<div class="flex flex-col gap-1.5"><div class="flex items-baseline justify-between gap-2"><span class="text-xs text-slate-300">${title}</span><span class="text-[10px] text-slate-500">${sub}</span></div><div class="flex flex-wrap gap-1.5">${body}</div></div>`;
-    return box('📦 Was zeigen? (alles einzeln wählbar)', `
+    return box('🌽 Was zeigen? (alles einzeln wählbar)', `
       <div class="flex flex-wrap gap-1.5">${STOCK_PRESETS.map(([k, l]) => segBtn(`data-f-preset="${k}"`, false, l)).join('')}</div>
       ${row('🌾 Ressourcen', when(s.res), RES_K.map(([k, i, l]) => chip('r_' + k, `${i} ${l}`, !!s.res)).join('') + (s.res ? chip('bag', '🎒 inkl. Rucksack', true) : ''))}
       ${row('⏱️ Speedups', when(s.spd), chip('uh', '⏱️❤️ Uni + Heilung zusammen', !!s.spd) + SPD_K.map(([k, i, l]) => chip('s_' + k, `${i} ${l}`, !!s.spd)).join(''))}
@@ -1343,12 +1461,26 @@ window.RokMods.feed = (R) => {
     if (list.length < 2) return '';
     return box('🆘 Welche Anfrage?', `<div class="flex flex-col gap-1.5">${list.map((r) => `<button type="button" data-f-help="${esc(r.rid)}" aria-pressed="${a.data.rid === r.rid}" class="seg-btn text-left rounded-lg border border-ink-600 px-3 py-2 text-sm"><span class="font-semibold">${esc(r.title)}</span> <span class="text-[11px] opacity-75">· ${r.sets} Set${r.sets === 1 ? '' : 's'} · ${R.timeAgo(r.at)}</span></button>`).join('')}</div>`);
   }
+  // Abschnitte übersichtlich: Pässe · Altäre (kompakt, nummeriert) · Gesamt
+  function segPicker(segs, sel, attr, own) {
+    const t = Date.now(), part = (s) => { const [a, b] = String(s.label || '').split(' · '); return [a || '', b || '']; };
+    const chip = (s, main, sub, cls) => { const on = sel === s.id, soon = s.ts && s.ts > t;
+      return `<button type="button" ${attr}="${esc(s.id)}" aria-pressed="${on}" title="${esc(s.label)}${soon ? ' (bald)' : ''}" class="${cls} flex flex-col items-center justify-center rounded-lg border transition ${on ? 'border-gold-400 bg-gold-500 text-ink-950 shadow-[0_0_14px_rgba(245,197,66,.35)]' : 'border-ink-600 bg-ink-950 text-slate-200 hover:border-gold-500/60'} ${soon && !on ? 'opacity-50' : ''}">
+        <span class="text-xs font-bold leading-tight">${main}</span>${sub ? `<span class="text-[10px] leading-tight ${on ? 'text-ink-950/70' : 'text-slate-500'}">${esc(sub)}</span>` : ''}</button>`; };
+    const row = (ico, lab, body) => body ? `<div class="flex items-start gap-2"><span class="w-20 shrink-0 pt-2 text-[10px] uppercase tracking-widest text-slate-500 whitespace-nowrap">${ico} ${lab}</span><div class="flex flex-wrap gap-1.5 min-w-0">${body}</div></div>` : '';
+    const passes = segs.filter((s) => s.id[0] === 'p'), altars = segs.filter((s) => s.id[0] === 'a'), tot = segs.filter((s) => s.id === 'kvk');
+    return `<div class="flex flex-col gap-2">
+      ${row('🚪', 'Pässe', passes.map((s) => { const [a, b] = part(s); return chip(s, esc(a), b, 'px-3 py-1.5 min-w-[4.5rem]'); }).join(''))}
+      ${row('⛩️', 'Altäre', altars.map((s) => { const [, b] = part(s); return chip(s, esc(String(s.id).slice(1)), b, 'w-12 py-1.5'); }).join(''))}
+      ${row('🏁', 'Gesamt', tot.map((s) => chip(s, 'KvK gesamt', s.label.includes('bisher') ? 'bisher' : '', 'px-3 py-1.5')).join('') + (own ? chip({ id: 'own', label: 'Eigene Angabe' }, '✏️ Eigene', '', 'px-3 py-1.5') : ''))}
+    </div>`;
+  }
   function kvkptsForm(d) {
     const segs = d._segs || [], t = Date.now();
     const btns = segs.map((s) => segBtn(`data-f-seg="${s.id}"`, d.seg === s.id, `${s.id[0] === 'a' ? '⛩️' : s.id === 'kvk' ? '🏁' : '🚪'} ${esc(s.label)}${s.ts && s.ts > t ? ' <span class="opacity-60">(bald)</span>' : ''}`)).join('') + segBtn('data-f-seg="own"', d.seg === 'own', '✏️ Eigene Angabe');
     const inp = (k, lab) => `<label class="flex flex-col gap-1 text-[11px] text-slate-400">${lab}<input type="text" inputmode="decimal" data-f="kv_${k}" value="${d[k] ? esc(fmt(d[k])) : ''}" placeholder="0" class="${INP} text-right tabular-nums"></label>`;
     const isAltar = String(d.seg || '')[0] === 'a';
-    return box('⚔️ Welcher Abschnitt? (aus deiner KvK-Timeline)', `<div class="flex flex-wrap gap-1.5">${btns}</div>
+    return box('⚔️ Welcher Abschnitt? (aus deiner KvK-Timeline)', `${segPicker(segs, d.seg, 'data-f-seg', true)}
       ${d.seg === 'own' ? `<input type="text" data-f="kv_label" maxlength="40" value="${esc(d.label || '')}" placeholder="z. B. Ruine, Kampftag 3 …" class="${INP} w-full">` : ''}
       <div class="grid grid-cols-3 gap-2">${inp('kp', '⚔️ Kill-Punkte')}${inp('acclaim', '🏅 Verdienst')}${inp('deads', '💀 Deads (optional)')}</div>
       <p class="text-[11px] text-slate-500">${isAltar ? 'Für Altäre gibt es keine gespeicherten Zwischenstände – bitte Zahlen eintragen.' : 'Pässe und KvK gesamt kommen aus KvK → Stats (Zwischenstände je Pass) – Zahlen kannst du anpassen.'}</p>`);
@@ -1369,8 +1501,8 @@ window.RokMods.feed = (R) => {
   function showcaseImgForm(a) {
     let doc = null; try { doc = R.ownShowcase ? R.ownShowcase() : null; } catch {}
     const list = (doc && doc.list) || [];
-    return box('🎨 Showcase aus deinem Profil', `${list.length > 1 ? `<select data-f="scImg" ${a.busy ? 'disabled' : ''} class="${INP} w-full">${list.map((x) => `<option value="${esc(x.id)}" ${x.id === a.data.sid ? 'selected' : ''}>${esc(x.title || 'Showcase')}</option>`).join('')}</select>` : ''}
-      <p class="text-[11px] text-slate-500">Das Bild sieht genauso aus wie dein Showcase im Profil. Einzelne Sets postest du über <b class="text-slate-300">⚔️ Set</b>.</p>`);
+    return box('🎨 Showcase aus deinem Profil', `${list.length > 1 ? `<select data-f="scImg" class="${INP} w-full">${list.map((x) => `<option value="${esc(x.id)}" ${x.id === a.data.sid ? 'selected' : ''}>${esc(x.title || 'Showcase')}</option>`).join('')}</select>` : ''}
+      <p class="text-[11px] text-slate-500">Sieht genauso aus wie dein Showcase im Profil. Einzelne Sets postest du über <b class="text-slate-300">⚔️ Set</b>.</p>`);
   }
   function kvkForm(a) {
     const img = (A.ownMeta() || {}).kvk_card, d = a.data || {}, mode = a.dataUrl ? 'img' : 'stats';
@@ -1380,7 +1512,7 @@ window.RokMods.feed = (R) => {
     const chk = (k, lab, v) => `<label class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border ${kx[k] && v ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 text-slate-300'} ${v ? 'cursor-pointer' : 'opacity-40'}"><input type="checkbox" data-f="kx_${k}" ${kx[k] && v ? 'checked' : ''} ${v ? '' : 'disabled'} class="w-3.5 h-3.5 accent-amber-400">${lab}${v ? ` <span class="opacity-70 tabular-nums">${short(v)}</span>` : ''}</label>`;
     return box('🏁 Welches KvK-Ergebnis?', `${modes}
       <div class="text-xs text-slate-300">Abschnitt (aus deiner KvK-Timeline)</div>
-      <div class="flex flex-wrap gap-1.5">${segs.map((x) => segBtn(`data-f-kseg="${x.id}"`, d.seg === x.id, `${x.id[0] === 'a' ? '⛩️' : x.id === 'kvk' ? '🏁' : '🚪'} ${esc(x.label)}${x.ts && x.ts > t ? ' <span class="opacity-60">(bald)</span>' : ''}`)).join('')}</div>
+      ${segPicker(segs, d.seg, 'data-f-kseg', false)}
       <div class="flex flex-wrap gap-1.5">${chk('honor', '🎖️ Ehre', kx.ex.honor)}${chk('crystal', '💠 Kristalle', kx.ex.crystal)}</div>
       <p class="text-[11px] text-slate-500">Zahlen kommen aus KvK → Stats.</p>`);
   }
@@ -1417,15 +1549,15 @@ window.RokMods.feed = (R) => {
   const composerHTML = () => {
     const a = st.attach;
     const chip = (ic, lab, k) => `<button type="button" data-feed-attach="${k}" ${st.busy ? 'disabled' : ''} class="text-xs px-3 py-1.5 rounded-lg border transition disabled:opacity-50 ${a && a.kind === k ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 hover:border-gold-500/60 hover:text-gold-300'}">${ic} ${lab}</button>`;
-    const showPrev = a && !(a.kind === 'craft' && !a.data.name && a.data.mode !== 'set');
+    const showPrev = a && !(a.kind === 'craft' && !a.data.name && a.data.mode !== 'set' && a.data.mode !== 'arm');
     return `<div class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
       <div class="flex items-center gap-3">${R.userLine({ username: R.PROFILE.name, avatar: (A.ownMeta() || {}).avatar, alliance_tag: (A.ownMeta() || {}).alliance_tag }, 'w-10 h-10 text-base')}<span class="ml-auto text-[11px] uppercase tracking-widest text-slate-500">Neuer Beitrag</span></div>
-      <textarea id="feedText" data-mention rows="2" maxlength="1000" placeholder="Was gibt's Neues? (optional) · @ zum Markieren" class="w-full bg-ink-950 border border-ink-600 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 resize-y">${esc(st.text)}</textarea>
+      <textarea id="feedText" data-mention rows="2" maxlength="1000" placeholder="${esc(tt("Was gibt's Neues? (optional) · @ zum Markieren"))}" class="w-full bg-ink-950 border border-ink-600 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 resize-y">${esc(st.text)}</textarea>
       <div class="flex flex-wrap items-center gap-2">
         <span class="text-[11px] text-slate-500 mr-1">Anhängen:</span>
         ${chip('📷', 'Foto', 'photo')}${chip('🎨', 'Showcase', 'showcase')}${chip('⚔️', 'Set', 'set')}${chip('🏁', 'KvK-Bilanz', 'kvk')}${chip('🏛️', 'AoO', 'aoo')}
-        ${chip('⚒️', 'Craft-Upgrade', 'craft')}${chip('🆘', 'Help Me', 'help')}${chip('🚪', 'Pass-Start', 'pass')}${chip('🗺️', 'KvK-Karte', 'kvkmap')}${chip('⚔️', 'KP & Verdienst', 'kvkpts')}
-        ${chip('📦', 'Bestand', 'stock')}${chip('👑', 'VIP', 'vip')}${chip('📊', 'Umfrage', 'poll')}
+        ${chip('⚒️', 'Gear-Upgrade', 'craft')}${chip('🆘', 'Help Me', 'help')}${chip('🚪', 'Pass-Start', 'pass')}${chip('🗺️', 'KvK-Karte', 'kvkmap')}${chip('⚔️', 'KP & Verdienst', 'kvkpts')}
+        ${chip('<img src="/icons/ressourcen/corn.png" alt="" style="width:16px;height:16px" class="inline-block -mt-0.5 object-contain">', 'Rss', 'stock')}${chip('👑', 'VIP', 'vip')}${chip('📊', 'Umfrage', 'poll')}
         ${a ? `<button type="button" data-feed-attach="none" class="text-xs px-2.5 py-1.5 rounded-lg border border-ink-700 text-slate-400 hover:text-red-300 hover:border-red-400/60">✕ Anhang entfernen</button>` : ''}
         <input type="file" id="feedFile" accept="image/*" class="hidden">
       </div>
@@ -1491,7 +1623,7 @@ window.RokMods.feed = (R) => {
   function render() {
     root.innerHTML = `
       <div class="flex flex-wrap items-end justify-between gap-3">
-        <div><h2 class="font-display text-2xl gold-text">📰 Feed</h2><p class="text-xs text-slate-500">Showcases, KvK, Craft-Upgrades und Bestände aller Spieler</p></div>
+        <div><h2 class="font-display text-2xl gold-text">📰 Feed</h2><p class="text-xs text-slate-500">Showcases, KvK, Gear-Upgrades und Bestände aller Spieler</p></div>
         <div class="flex items-center gap-3"><span id="feedSync" class="text-[11px] text-emerald-400/80"></span>
           ${bellHTML()}
           <button type="button" id="feedReload" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">↻ Aktualisieren</button></div>
@@ -1538,9 +1670,11 @@ window.RokMods.feed = (R) => {
     if (gp && st.attach && st.attach.kind === 'craft') { const [src, i] = gp.dataset.gpick.split(':'); const g = (src === 'o' ? ownGear(st.gset) : gearSearch(st.gq))[+i]; if (g) pickGear(g); return; }
     const gs = t.closest('[data-f-gset]'); if (gs && st.attach && st.attach.kind === 'craft') { st.gset = gs.dataset.fGset; st.gsetOpen = false; renderComposer(); return; }
     if (t.closest('[data-f-gsetopen]') && st.attach && st.attach.kind === 'craft') { st.gsetOpen = !st.gsetOpen; renderComposer(); return; }
+    const gm = t.closest('[data-f-gmode]'); if (gm && st.attach && st.attach.kind === 'craft') { st.gmode = gm.dataset.fGmode; renderComposer(); return; }
+    const fa2 = t.closest('[data-f-arm]'); if (fa2 && st.attach && st.attach.kind === 'craft') { pickArmament(fa2.dataset.fArm); return; }
     const ws = t.closest('[data-f-wholeset]'); if (ws && st.attach && st.attach.kind === 'craft') { pickWholeSet(ws.dataset.fWholeset); return; }
     const fa = t.closest('[data-f-act]');
-    if (fa && fa.dataset.fAct === 'regear' && st.attach) { if (st.attach.data.mode === 'set') { attachCraft(); return; } Object.assign(st.attach.data, { item: '', name: '', icon: '', ic: null }); renderComposer(); return; }
+    if (fa && fa.dataset.fAct === 'regear' && st.attach) { if (st.attach.data.mode === 'set' || st.attach.data.mode === 'arm') { const gm0 = st.attach.data.mode === 'arm' ? 'arm' : 'gear'; attachCraft(); st.gmode = gm0; renderComposer(); return; } Object.assign(st.attach.data, { item: '', name: '', icon: '', ic: null }); renderComposer(); return; }
     const fp = t.closest('[data-f-pass]');
     if (fp && st.attach && st.attach.kind === 'pass') { const n = +fp.dataset.fPass, p = passPlan().find((x) => x.n === n); st.attach.data = { n, ts: p ? p.ts : st.attach.data.ts }; renderComposer(); return; }
     const fs = t.closest('[data-f-seg]');
