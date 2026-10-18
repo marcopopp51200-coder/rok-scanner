@@ -7,6 +7,7 @@
 //           public.feed_reactions (post_id, user_id, emoji, created_at) – ein Eintrag je Spieler und Beitrag
 //           public.feed_comments (id, post_id, user_id, body, image, mentions, edited_at, created_at) – image = GIF (keine Fotos)
 //           public.notifications (id, user_id, from_user, kind, post_id, comment_id, body, read, created_at) – @-Erwähnungen
+//           public.feed_votes (post_id, user_id, opt, created_at) – Umfragen: eine Stimme je Spieler und Umfrage
 // feed_posts.mentions / edited_at: [{ id, name, t }] = markierte Spieler (t = Text nach dem @), Zeitpunkt der letzten Bearbeitung
 // kind ist freier Text – neue Arten brauchen kein SQL.
 window.RokMods = window.RokMods || {};
@@ -16,21 +17,114 @@ window.RokMods.feed = (R) => {
   const KIND = {
     text: ['💬', 'Beitrag'], photo: ['📷', 'Foto / GIF'], showcase: ['🎨', 'Showcase'], kvk: ['🏁', 'KvK-Bilanz'], aoo: ['🏛️', 'AoO-Showcase'],
     craft: ['⚒️', 'Craft-Upgrade'], pass: ['🚪', 'Pass-Start'], stock: ['📦', 'Bestand'], kvkpts: ['⚔️', 'Kill-Punkte & Verdienst'],
-    vip: ['👑', 'VIP-Stufe'], kvkmap: ['🗺️', 'KvK-Karte'], help: ['🆘', 'Help Me']
+    vip: ['👑', 'VIP-Stufe'], kvkmap: ['🗺️', 'KvK-Karte'], help: ['🆘', 'Help Me'], poll: ['📊', 'Umfrage']
   };
   // Filter: Art des Beitrags (Name-Suche kommt zusätzlich)
   const FILTERS = [['all', 'Alle', null], ['mine', '⭐ Meine', null], ['photo', '📷 Fotos', ['photo']], ['showcase', '🎨 Showcases', ['showcase', 'aoo']],
     ['craft', '⚒️ Craft', ['craft']], ['help', '🆘 Help Me', ['help']], ['pass', '🚪 Pass-Start', ['pass']], ['kvkpts', '⚔️ KP & Verdienst', ['kvkpts']],
-    ['kvk', '🏁 KvK-Bilanz & Karte', ['kvk', 'kvkmap']], ['stock', '📦 Bestand', ['stock']], ['vip', '👑 VIP', ['vip']], ['text', '💬 Text', ['text']]];
+    ['kvk', '🏁 KvK-Bilanz & Karte', ['kvk', 'kvkmap']], ['stock', '📦 Bestand', ['stock']], ['vip', '👑 VIP', ['vip']], ['poll', '📊 Umfragen', ['poll']], ['text', '💬 Text', ['text']]];
   const LIMIT = 40, POLL_MS = 20000;
   const st = { posts: [], pending: [], reacts: {}, users: {}, loaded: false, loading: false, polling: false, err: '', noTable: false,
     attach: null, busy: false, admin: false, text: '', filter: 'all', q: '', hasMore: false, moreBusy: false, gq: '', lastSync: 0,
     comments: {}, cmOpen: new Set(), cmDraft: {}, cmBusy: false, noCm: false, deferRender: false,
-    cmGif: {}, cmMsg: {}, gifFor: null, edit: null, editBusy: false, notifs: [], nOpen: false, noNotif: false, flash: null };
+    cmGif: {}, cmMsg: {}, gifFor: null, edit: null, editBusy: false, notifs: [], nOpen: false, noNotif: false, flash: null,
+    votes: {}, noVotes: false, pollAnim: new Set(), pollSeen: new Set(), reactBump: null };
   const db = () => A.db();
   const me = () => A.userId();
   const root = $('feedView');
   if (!root) return;
+
+  // ======================================================================
+  // Effekte (CSS-Keyframes + kleine JS-Helfer) – alles dezent, Partikel werden nach der Animation entfernt
+  // ======================================================================
+  const REDUCE = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  (function injectFx() {
+    if (document.getElementById('feedFxCss')) return;
+    const css = document.createElement('style'); css.id = 'feedFxCss';
+    css.textContent = `
+      .fx-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:inherit;z-index:0}
+      .fx-body{position:relative;z-index:1}
+      .fx-vip .fx-layer::before{content:"";position:absolute;top:-50%;bottom:-50%;left:-40%;width:45%;background:linear-gradient(100deg,rgba(255,236,170,0) 0%,rgba(255,236,170,.10) 35%,rgba(255,246,210,.38) 50%,rgba(255,236,170,.10) 65%,rgba(255,236,170,0) 100%);transform:translateX(-120%) skewX(-12deg);animation:fxSweep 6s ease-in-out infinite}
+      @keyframes fxSweep{0%,12%{transform:translateX(-120%) skewX(-12deg)}55%,100%{transform:translateX(420%) skewX(-12deg)}}
+      .fx-gold{position:absolute;bottom:-8px;width:var(--sz,4px);height:var(--sz,4px);border-radius:50%;background:radial-gradient(circle,#fffbe6 0,#f5c542 45%,rgba(245,197,66,0) 72%);box-shadow:0 0 6px rgba(245,197,66,.65);opacity:0;animation:fxFloat var(--t,7s) linear infinite;animation-delay:var(--d,0s)}
+      .fx-gold.fx-flake{border-radius:1px;width:3px;height:6px;background:linear-gradient(180deg,#fff3c4,#e0a91b)}
+      @keyframes fxFloat{0%{transform:translate(0,0) rotate(0);opacity:0}12%{opacity:.85}80%{opacity:.5}100%{transform:translate(var(--dx,10px),-170px) rotate(220deg);opacity:0}}
+      .fx-pass .fx-layer::after{content:"";position:absolute;left:0;right:0;bottom:0;height:45%;background:radial-gradient(80% 100% at 50% 100%,rgba(255,110,20,.22),rgba(255,110,20,0) 70%);animation:fxGlow 3.2s ease-in-out infinite}
+      @keyframes fxGlow{0%,100%{opacity:.55}50%{opacity:1}}
+      .fx-ember{position:absolute;bottom:-6px;width:var(--sz,3px);height:var(--sz,3px);border-radius:50%;background:radial-gradient(circle,#fff1c2 0,#ffb020 40%,#ff5a00 75%,rgba(255,60,0,0) 100%);box-shadow:0 0 6px 1px rgba(255,110,20,.7);opacity:0;animation:fxEmber var(--t,3.6s) ease-in infinite;animation-delay:var(--d,0s)}
+      @keyframes fxEmber{0%{transform:translate(0,0) scale(1);opacity:0}10%{opacity:1}60%{opacity:.8}100%{transform:translate(var(--dx,6px),-110px) scale(.25);opacity:0}}
+      .fx-forge{position:relative;animation:fxForge 2.6s ease-in-out infinite}
+      @keyframes fxForge{0%,100%{box-shadow:0 0 0 1px rgba(255,140,40,.30),0 0 14px -2px rgba(255,100,20,.25)}50%{box-shadow:0 0 0 1px rgba(255,170,60,.65),0 0 24px 0 rgba(255,110,20,.45)}}
+      .fx-spark{position:absolute;width:var(--sz,3px);height:var(--sz,3px);border-radius:50%;background:#ffe2a0;box-shadow:0 0 6px 1px #ff7a18,0 0 2px #fff;pointer-events:none;z-index:5;animation:fxSpark var(--t,.9s) cubic-bezier(.15,.7,.3,1) forwards}
+      .fx-spark.fx-streak2{width:9px;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(255,200,90,0),#ffd27a,#fff);transform-origin:0 50%}
+      @keyframes fxSpark{0%{transform:translate(0,0) rotate(var(--a,0deg)) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) rotate(var(--a,0deg)) scale(.2);opacity:0}}
+      .fx-pop{animation:fxPop .5s cubic-bezier(.34,1.56,.64,1)}
+      @keyframes fxPop{0%{transform:scale(1)}30%{transform:scale(1.35)}65%{transform:scale(.94)}100%{transform:scale(1)}}
+      .fx-count{display:inline-block;animation:fxCount .4s ease-out}
+      @keyframes fxCount{from{transform:translateY(7px);opacity:0}to{transform:none;opacity:1}}
+      .fx-rp{position:fixed;z-index:70;pointer-events:none;transform:translate(-50%,-50%);will-change:transform,opacity}
+      .fx-flame{width:6px;height:9px;border-radius:50% 50% 45% 45%;background:radial-gradient(circle at 50% 70%,#fff3b0 0,#ffb020 40%,#ff5a00 75%,rgba(255,60,0,0) 100%);box-shadow:0 0 7px #ff7a18;animation:fxFlame .85s ease-out forwards}
+      @keyframes fxFlame{0%{transform:translate(-50%,-50%) scale(.6);opacity:1}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.15);opacity:0}}
+      .fx-flash{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle,#fff 0,rgba(225,238,255,.9) 22%,rgba(180,200,255,0) 70%);animation:fxFlash .32s ease-out forwards}
+      @keyframes fxFlash{0%{transform:translate(-50%,-50%) scale(.2);opacity:1}100%{transform:translate(-50%,-50%) scale(1.5);opacity:0}}
+      .fx-steel{width:15px;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(255,255,255,0),#fff,#ffe9a8);transform-origin:0 50%;animation:fxSteel .38s ease-out forwards}
+      @keyframes fxSteel{0%{transform:translate(0,-50%) rotate(var(--a)) translateX(3px) scaleX(.3);opacity:1}100%{transform:translate(0,-50%) rotate(var(--a)) translateX(20px) scaleX(1);opacity:0}}
+      .fx-glint{font-size:11px;line-height:1;color:#d6f3ff;text-shadow:0 0 6px #7dd3fc,0 0 2px #fff;animation:fxGlint .75s ease-out forwards}
+      @keyframes fxGlint{0%{transform:translate(-50%,-50%) scale(0) rotate(0);opacity:0}30%{opacity:1;transform:translate(calc(-50% + var(--dx) * .6),calc(-50% + var(--dy) * .6)) scale(1.25) rotate(45deg)}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.2) rotate(90deg);opacity:0}}
+      .fx-heart{font-size:15px;line-height:1;animation:fxHeart 1.15s ease-out forwards}
+      @keyframes fxHeart{0%{transform:translate(-50%,-50%) scale(.5);opacity:0}20%{opacity:1;transform:translate(-50%,-110%) scale(1.1)}100%{transform:translate(calc(-50% + var(--dx)),-330%) scale(.85);opacity:0}}
+      .fx-bar{transition:width 1s cubic-bezier(.2,.8,.2,1)}
+      .fx-pollopt{transition:transform .15s ease,border-color .15s ease,background-color .15s ease}
+      .fx-pollopt:hover{transform:translateY(-1px)}
+      @media (prefers-reduced-motion: reduce){.fx-layer,.fx-spark,.fx-rp{display:none!important}.fx-forge,.fx-pop,.fx-count{animation:none!important}.fx-bar{transition:none!important}}`;
+    document.head.appendChild(css);
+  })();
+  // feste „Zufalls“-Werte je Index (gleiches Bild bei jedem Neuzeichnen)
+  const rnd = (i, k = 1) => { const x = Math.sin((i + 1) * 12.9898 * k) * 43758.5453; return x - Math.floor(x); };
+  const goldLayer = (n = 12) => `<div class="fx-layer">${Array.from({ length: n }, (_, i) => `<span class="fx-gold${i % 3 === 2 ? ' fx-flake' : ''}" style="left:${(rnd(i, 1) * 96 + 2).toFixed(1)}%;--sz:${(2 + rnd(i, 2) * 3).toFixed(1)}px;--t:${(5.5 + rnd(i, 3) * 4).toFixed(2)}s;--d:${(-rnd(i, 4) * 9).toFixed(2)}s;--dx:${((rnd(i, 5) - .5) * 40).toFixed(0)}px"></span>`).join('')}</div>`;
+  const emberLayer = (n = 14) => `<div class="fx-layer">${Array.from({ length: n }, (_, i) => `<span class="fx-ember" style="left:${(rnd(i, 7) * 96 + 2).toFixed(1)}%;--sz:${(2 + rnd(i, 8) * 2.5).toFixed(1)}px;--t:${(2.6 + rnd(i, 9) * 2.6).toFixed(2)}s;--d:${(-rnd(i, 10) * 5).toFixed(2)}s;--dx:${((rnd(i, 11) - .5) * 36).toFixed(0)}px"></span>`).join('')}</div>`;
+  // Craft-Upgrade: Funken sprühen außen um die Karte (Schmiedefeuer) – beim Erscheinen und dann alle paar Sekunden, solange sichtbar
+  function forgeBurst(el, n = 14) {
+    if (!el || !el.isConnected || REDUCE()) return;
+    const w = el.offsetWidth, h = el.offsetHeight; if (!w || !h) return;
+    for (let i = 0; i < n; i++) {
+      const side = Math.floor(Math.random() * 4), t = Math.random();
+      const x = side === 0 ? t * w : side === 1 ? w : side === 2 ? t * w : 0, y = side === 0 ? 0 : side === 1 ? t * h : side === 2 ? h : t * h;
+      const nx = side === 1 ? 1 : side === 3 ? -1 : (Math.random() - .5) * .8, ny = side === 0 ? -1 : side === 2 ? 1 : (Math.random() - .5) * .8;
+      const dist = 18 + Math.random() * 34, sp = document.createElement('span');
+      sp.className = 'fx-spark' + (Math.random() < .35 ? ' fx-streak2' : '');
+      sp.style.cssText = `left:${x.toFixed(0)}px;top:${y.toFixed(0)}px;--tx:${(nx * dist).toFixed(0)}px;--ty:${(ny * dist - 8).toFixed(0)}px;--t:${(.6 + Math.random() * .6).toFixed(2)}s;--sz:${(2 + Math.random() * 2).toFixed(1)}px;--a:${(Math.atan2(ny, nx) * 180 / Math.PI).toFixed(0)}deg;animation-delay:${(Math.random() * .25).toFixed(2)}s`;
+      sp.addEventListener('animationend', () => sp.remove(), { once: true }); setTimeout(() => sp.remove(), 2000);
+      el.appendChild(sp);
+    }
+  }
+  const forgeSeen = new WeakSet();
+  const forgeIO = 'IntersectionObserver' in window ? new IntersectionObserver((ents) => ents.forEach((e) => {
+    const el = e.target; el._fxVis = e.isIntersecting;
+    if (e.isIntersecting && !el._fxT) { if (!forgeSeen.has(el)) { forgeSeen.add(el); forgeBurst(el, 18); }
+      el._fxT = setInterval(() => { if (!el.isConnected) { clearInterval(el._fxT); forgeIO.unobserve(el); return; } if (el._fxVis && !document.hidden) forgeBurst(el, 9); }, 5200); }
+    if (!e.isIntersecting && el._fxT) { clearInterval(el._fxT); el._fxT = null; }
+  }), { threshold: 0.4 }) : null;
+  function fxScan(scope) {
+    (scope || root).querySelectorAll('.fx-forge').forEach((el) => { if (el._fxObs) return; el._fxObs = true; if (forgeIO) forgeIO.observe(el); else forgeBurst(el, 16); });
+    // Umfrage-Balken: von 0 auf den Wert wachsen lassen
+    (scope || root).querySelectorAll('[data-bar-w]').forEach((b) => { const w = b.dataset.barW; b.removeAttribute('data-bar-w'); requestAnimationFrame(() => requestAnimationFrame(() => { b.style.width = w + '%'; })); });
+  }
+  // Reaktionen: Pop + Partikel je Emoji
+  function reactFx(btn, emoji) {
+    if (!btn) return;
+    btn.classList.remove('fx-pop'); void btn.offsetWidth; btn.classList.add('fx-pop');
+    if (REDUCE()) return;
+    const r = btn.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const spawn = (cls, html, vars, delay) => { const e = document.createElement('span'); e.className = 'fx-rp ' + cls; if (html) e.textContent = html;
+      e.style.left = cx + 'px'; e.style.top = cy + 'px'; Object.entries(vars || {}).forEach(([k, v]) => e.style.setProperty(k, v)); if (delay) e.style.animationDelay = delay + 'ms';
+      e.addEventListener('animationend', () => e.remove(), { once: true }); setTimeout(() => e.remove(), 2200); document.body.appendChild(e); };
+    const rr = (a, b) => a + Math.random() * (b - a);
+    if (emoji === '🔥') { const n = 3 + Math.floor(Math.random() * 3); for (let i = 0; i < n; i++) spawn('fx-flame', '', { '--dx': rr(-14, 14).toFixed(0) + 'px', '--dy': (-rr(26, 48)).toFixed(0) + 'px' }, i * 55); }
+    else if (emoji === '⚔️') { spawn('fx-flash'); for (let i = 0; i < 6; i++) spawn('fx-steel', '', { '--a': (i * 60 + rr(-12, 12)).toFixed(0) + 'deg' }); }
+    else if (emoji === '💎') { for (let i = 0; i < 4; i++) { const a = (i * 90 + 45 + rr(-20, 20)) * Math.PI / 180, d = rr(14, 22); spawn('fx-glint', '✦', { '--dx': (Math.cos(a) * d).toFixed(0) + 'px', '--dy': (Math.sin(a) * d).toFixed(0) + 'px' }, i * 70); } }
+    else if (emoji === '❤️') spawn('fx-heart', '❤️', { '--dx': rr(-10, 10).toFixed(0) + 'px' });
+  }
   const short = (n) => (R.short ? R.short(n) : R.fmt(n));
   const fmt = (n) => R.fmt(n);
   const days = (min) => ((+min || 0) / 1440).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -58,6 +152,14 @@ window.RokMods.feed = (R) => {
     (r.data || []).forEach((x) => { (out[x.post_id] = out[x.post_id] || []).push(x); });
     return out;
   }
+  async function fetchVotes(posts) {
+    const out = {}, ids = posts.filter((p) => p.kind === 'poll').map((p) => p.id);
+    if (!ids.length || st.noVotes) return out;
+    const r = await db().from('feed_votes').select('*').in('post_id', ids);
+    if (r.error) { if (R.tableMissing(r.error)) st.noVotes = true; return out; }
+    (r.data || []).forEach((x) => { (out[x.post_id] = out[x.post_id] || []).push(x); });
+    return out;
+  }
   async function addUsers(posts) {
     const miss = [...new Set(posts.map((p) => p.user_id))].filter((id) => !st.users[id]);
     if (miss.length) st.users = { ...st.users, ...(await R.users(miss)) };
@@ -69,13 +171,13 @@ window.RokMods.feed = (R) => {
       if (error) throw error;
       st.posts = data || []; st.pending = []; st.hasMore = st.posts.length === LIMIT;
       const ids = st.posts.map((p) => p.id);
-      [st.reacts, st.comments] = await Promise.all([fetchReacts(ids), fetchComments(ids)]);
+      [st.reacts, st.comments, st.votes] = await Promise.all([fetchReacts(ids), fetchComments(ids), fetchVotes(st.posts)]);
       st.users = {}; await addUsers([...st.posts, ...Object.values(st.comments).flat()]);
       st.noTable = false; st.lastSync = Date.now();
     } catch (e) { if (R.tableMissing(e)) st.noTable = true; else st.err = A.germanError ? A.germanError(e) : String(e.message || e); }
     st.loading = false; st.loaded = true; renderList();
   }
-  const sig = () => JSON.stringify([st.posts.map((p) => p.id + (p.image || '') + (p.edited_at || '')), st.pending.length, Object.entries(st.reacts).map(([k, v]) => k + v.map((x) => x.user_id + x.emoji).join()), Object.values(st.comments).flat().map((c) => c.id + (c.image || '') + (c.edited_at || ''))]);
+  const sig = () => JSON.stringify([st.posts.map((p) => p.id + (p.image || '') + (p.edited_at || '')), st.pending.length, Object.entries(st.reacts).map(([k, v]) => k + v.map((x) => x.user_id + x.emoji).join()), Object.values(st.comments).flat().map((c) => c.id + (c.image || '') + (c.edited_at || '')), Object.entries(st.votes).map(([k, v]) => k + v.length)]);
   const typing = () => { const l = $('feedList'), a = document.activeElement; return !!(l && a && l.contains(a) && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) || !!st.edit; };
   const scrolledDown = () => { const l = $('feedList'); return !!l && l.getBoundingClientRect().top < -150; };
   // Leise im Hintergrund: neue Beiträge, gelöschte Beiträge und Reaktionen abgleichen
@@ -99,7 +201,7 @@ window.RokMods.feed = (R) => {
         st.posts = [...fresh.filter((p) => shown.has(p.id) || p.user_id === me()), ...older];
       } else { st.pending = []; st.posts = [...fresh, ...older]; }
       const ids = [...st.pending, ...st.posts].map((p) => p.id);
-      [st.reacts, st.comments] = await Promise.all([fetchReacts(ids), fetchComments(ids)]);
+      [st.reacts, st.comments, st.votes] = await Promise.all([fetchReacts(ids), fetchComments(ids), fetchVotes([...st.pending, ...st.posts])]);
       await addUsers(Object.values(st.comments).flat());
       st.lastSync = Date.now();
       if (sig() === before) renderSync();
@@ -121,8 +223,8 @@ window.RokMods.feed = (R) => {
       if (error) throw error;
       const add = data || [];
       await addUsers(add);
-      const ids = add.map((p) => p.id), [rx, cm] = await Promise.all([fetchReacts(ids), fetchComments(ids)]);
-      Object.assign(st.reacts, rx); Object.assign(st.comments, cm); await addUsers(Object.values(cm).flat());
+      const ids = add.map((p) => p.id), [rx, cm, vt] = await Promise.all([fetchReacts(ids), fetchComments(ids), fetchVotes(add)]);
+      Object.assign(st.reacts, rx); Object.assign(st.comments, cm); Object.assign(st.votes, vt); await addUsers(Object.values(cm).flat());
       st.posts = [...st.posts, ...add]; st.hasMore = add.length === LIMIT;
     } catch (e) { msg('Ältere Beiträge konnten nicht geladen werden: ' + (e.message || e), 'err'); }
     st.moreBusy = false; renderList();
@@ -141,6 +243,10 @@ window.RokMods.feed = (R) => {
     if (a.kind === 'stock' && !d.res && !d.speed && !d.ap) return 'Wähl mindestens Ressourcen, Speedups oder AP aus.';
     if (a.kind === 'kvkpts' && !d.kp && !d.acclaim && !d.deads) return 'Trag Kill-Punkte oder Verdienst ein.';
     if (a.kind === 'help' && !d.rid) return 'Wähl die Help-Me-Anfrage aus.';
+    if (a.kind === 'showcase' && !a.dataUrl && !(d.sets || []).length) return 'Wähl mindestens ein Set aus.';
+    if (a.kind === 'kvk' && d.mode === 'stats' && !d.kp && !d.acclaim && !d.deads && !d.honor && !d.crystal) return 'Für diesen Abschnitt gibt es noch keine Zahlen – anderen Abschnitt wählen oder Werte im KvK-Bereich eintragen.';
+    if (a.kind === 'aoo' && d.mode === 'match' && !d.res) return 'Wähl Sieg oder Niederlage.';
+    if (a.kind === 'poll') { if (!String(d.q || '').trim()) return 'Schreib eine Frage für die Umfrage.'; if ((d.opts || []).filter((o) => String(o).trim()).length < 2) return 'Die Umfrage braucht mindestens 2 Antworten.'; }
     if (a.kind === 'vip' && !(d.lv >= 1)) return d.mode === 'status' ? 'Für den VIP-Status fehlt ein VIP-Scan.' : 'Trag deine neue VIP-Stufe ein (1–20).';
     return '';
   }
@@ -172,7 +278,8 @@ window.RokMods.feed = (R) => {
   // nur die Werte speichern, die der Beitrag zeigt (keine Formular-Hilfsfelder)
   function cleanData(a) {
     const d = { ...(a.data || {}) };
-    delete d._segs; delete d.opt;
+    delete d._segs; delete d.opt; delete d._kx;
+    if (a.kind === 'poll') { d.q = String(d.q || '').trim().slice(0, 140); d.opts = (d.opts || []).map((o) => String(o).trim().slice(0, 60)).filter(Boolean).slice(0, 4); }
     return Object.keys(d).length ? d : null;
   }
   async function del(id) {
@@ -415,18 +522,32 @@ window.RokMods.feed = (R) => {
     st.comments[postId] = (st.comments[postId] || []).filter((c) => c.id !== id); renderList();
   }
   async function react(postId, emoji) {
-    const mine = (st.reacts[postId] || []).find((x) => x.user_id === me());
+    const before = [...(st.reacts[postId] || [])], mine = before.find((x) => x.user_id === me()), off = mine && mine.emoji === emoji;
+    // sofort zeigen (mit Animation), dann speichern – bei Fehler zurücksetzen
+    st.reacts[postId] = off ? before.filter((x) => x.user_id !== me()) : [...before.filter((x) => x.user_id !== me()), { post_id: postId, user_id: me(), emoji }];
+    st.reactBump = off ? null : postId + '|' + emoji; renderList(); st.reactBump = null;
+    if (!off) reactFx(root.querySelector(`[data-react="${CSS.escape(postId + '|' + emoji)}"]`), emoji);
     try {
-      if (mine && mine.emoji === emoji) {
-        await db().from('feed_reactions').delete().eq('post_id', postId).eq('user_id', me());
-        st.reacts[postId] = (st.reacts[postId] || []).filter((x) => x.user_id !== me());
-      } else {
-        const { error } = await db().from('feed_reactions').upsert({ post_id: postId, user_id: me(), emoji });
-        if (error) throw error;
-        st.reacts[postId] = [...(st.reacts[postId] || []).filter((x) => x.user_id !== me()), { post_id: postId, user_id: me(), emoji }];
-      }
-    } catch (e) { msg('Reaktion fehlgeschlagen: ' + (e.message || e), 'err'); }
-    renderList();
+      if (off) { const { error } = await db().from('feed_reactions').delete().eq('post_id', postId).eq('user_id', me()); if (error) throw error; }
+      else { const { error } = await db().from('feed_reactions').upsert({ post_id: postId, user_id: me(), emoji }); if (error) throw error; }
+    } catch (e) { st.reacts[postId] = before; msg('Reaktion fehlgeschlagen: ' + (e.message || e), 'err'); renderList(); }
+  }
+  // ---------- Umfragen: abstimmen (eine Stimme je Spieler) ----------
+  const VOTE_KEY = 'rok_poll_votes';
+  const localVotes = () => { try { return JSON.parse(localStorage.getItem(VOTE_KEY) || '{}'); } catch { return {}; } };
+  const myVote = (pid) => { const v = (st.votes[pid] || []).find((x) => x.user_id === me()); if (v) return +v.opt; const l = localVotes()[pid]; return l == null ? null : +l; };
+  async function vote(pid, i) {
+    if (myVote(pid) != null) return;
+    const p = st.posts.find((x) => x.id === pid); if (!p || !p.data || !(p.data.opts || [])[i]) return;
+    (st.votes[pid] = st.votes[pid] || []).push({ post_id: pid, user_id: me(), opt: i, created_at: new Date().toISOString() });
+    try { const l = localVotes(); l[pid] = i; localStorage.setItem(VOTE_KEY, JSON.stringify(l)); } catch {}
+    st.pollAnim.add(pid); renderList();
+    if (st.noVotes) { msg('Stimme nur auf diesem Gerät gespeichert – die Tabelle „feed_votes“ fehlt noch in Supabase (SQL im Chat).', 'warn'); return; }
+    try { const { error } = await db().from('feed_votes').insert({ post_id: pid, user_id: me(), opt: i }); if (error) throw error; }
+    catch (e) {
+      if (R.tableMissing(e)) { st.noVotes = true; msg('Stimme nur auf diesem Gerät gespeichert – die Tabelle „feed_votes“ fehlt noch in Supabase (SQL im Chat).', 'warn'); }
+      else if (!/duplicate|unique/i.test(String(e.message || e))) msg('Abstimmen fehlgeschlagen: ' + (e.message || e), 'err');
+    }
   }
 
   // ======================================================================
@@ -482,24 +603,58 @@ window.RokMods.feed = (R) => {
   // ======================================================================
   // Anhänge
   // ======================================================================
-  async function attachShowcase() {
-    msg('Showcase wird als Bild erstellt …', 'busy');
-    try {
-      const { url, title } = await R.showcaseImage({ jpeg: true, pixelRatio: 1.25 });
-      st.attach = { kind: 'showcase', dataUrl: url, data: { title } }; msg('', '');
-    } catch (e) { msg('Showcase-Bild fehlgeschlagen: ' + (e.message || e), 'err'); }
+  // ---------- Showcase: welches Showcase + welche Sets (Sets laden, bis zu 7) – als echte Karte statt Bild ----------
+  const SC_MAX = 7;
+  const scDocList = () => { try { const d = R.ownShowcase ? R.ownShowcase() : null; return ((d && d.list) || []).filter((x) => (x.sets || []).length); } catch { return []; } };
+  const scImgUrl = (v) => (typeof v === 'string' && v.length < 600 && /^(https:\/\/|\/icons\/)[A-Za-z0-9/_.:?=&%()+ -]+$/.test(v) ? v : '');
+  const scSetFilled = (x) => x.mode === 'shot' ? !!scImgUrl(x.shot) : Object.values(x.gear || {}).some((g) => g && (g.item || g.name));
+  function scBuild(sc, sel) {
+    const sets = (sc.sets || []).map((x, i) => ({ x, i })).filter(({ x, i }) => sel.includes(i) && scSetFilled(x)).slice(0, SC_MAX).map(({ x, i }) => {
+      const gear = {}; Object.entries(x.gear || {}).forEach(([k, g]) => { if (g && (g.item || g.name)) gear[k] = { item: g.item || '', name: g.name || '', icon: g.icon || '', rarity: g.rarity || 'legendary', tier: +g.tier || 0, refine: +g.refine || 0, refType: g.refType || '' }; });
+      return { name: String(x.name || `Set ${i + 1}`).slice(0, 30), gear, gfx: x.gfx || null, cmd: (x.cmd || []).filter((c) => c && c.id).slice(0, 2).map((c) => ({ id: c.id, exp: !!c.exp })), shot: x.mode === 'shot' ? scImgUrl(x.shot) : '' };
+    });
+    const b = sc.bg || {};
+    return { title: String(sc.title || 'Showcase').slice(0, 60), bg: b.type === 'img' ? { type: 'img', src: scImgUrl(b.src) } : b.type === 'lib' ? { type: 'lib', id: String(b.id || '') } : { type: 'preset', id: String(b.id || 'none') }, sets };
+  }
+  function attachShowcase() {
+    const list = scDocList();
+    if (!list.length) { msg('Noch kein Showcase mit Sets – zuerst unter 🎨 Showcases anlegen.', 'warn'); return; }
+    let doc = null; try { doc = R.ownShowcase(); } catch {}
+    const sc = list.find((x) => x.id === (doc && doc.active)) || list[0];
+    const sel = (sc.sets || []).map((x, i) => (scSetFilled(x) ? i : -1)).filter((i) => i >= 0).slice(0, SC_MAX);
+    st.attach = { kind: 'showcase', pick: { sid: sc.id, sel }, data: scBuild(sc, sel) }; renderComposer();
+  }
+  function scRepick(fn) {
+    const a = st.attach; if (!a || a.kind !== 'showcase') return;
+    const list = scDocList(), sc = list.find((x) => x.id === a.pick.sid) || list[0]; if (!sc) return;
+    fn(a.pick, sc); a.pick.sid = sc.id === a.pick.sid ? sc.id : a.pick.sid;
+    const sc2 = list.find((x) => x.id === a.pick.sid) || sc;
+    a.data = scBuild(sc2, a.pick.sel); renderComposer();
+  }
+  // ---------- KvK: gespeichertes Bild oder Ergebnis-Zahlen je Abschnitt ----------
+  function kvkExtra() { try { const k = window.KvKCalc && window.KvKCalc.kvkStats ? window.KvKCalc.kvkStats() : null; return { honor: +(k && k.honor) || 0, crystal: +(k && k.crystal) || 0 }; } catch { return { honor: 0, crystal: 0 }; } }
+  function kvkStatsData(segId, opt) {
+    const segs = kvkSegs(), t = Date.now();
+    const s = segs.find((x) => x.id === segId) || [...segs].reverse().find((x) => x.kp || x.acclaim) || segs[segs.length - 1];
+    const ex = kvkExtra(), o = opt || { honor: s.id === 'kvk' && ex.honor > 0, crystal: s.id === 'kvk' && ex.crystal > 0 };
+    return { mode: 'stats', seg: s.id, label: s.label, kp: s.kp || 0, acclaim: s.acclaim || 0, deads: s.deads || 0, honor: o.honor ? ex.honor : 0, crystal: o.crystal ? ex.crystal : 0, _segs: segs, _kx: { ...o, ex }, soon: !!(s.ts && s.ts > t) };
+  }
+  function attachKvk(mode) {
+    const img = (A.ownMeta() || {}).kvk_card;
+    if ((mode || (img ? 'img' : 'stats')) === 'img' && img) st.attach = { kind: 'kvk', dataUrl: img, data: { mode: 'img' } };
+    else st.attach = { kind: 'kvk', data: kvkStatsData('kvk') };
     renderComposer();
   }
-  function attachKvk() {
-    const img = (A.ownMeta() || {}).kvk_card;
-    if (!img) { msg('Noch keine KvK-Bilanz – im KvK-Bereich unter Stats → „Bild für dein Profil“ → „Im Profil zeigen“.', 'warn'); return; }
-    st.attach = { kind: 'kvk', dataUrl: img, data: {} }; renderComposer();
-  }
-  function attachAoo() {
+  // ---------- AoO: Showcase-Karte aus dem Profil oder ein Match-Ergebnis ----------
+  const AOO_ROLES = ['Rally-Lead', 'Garnison', 'Feld / Open Field', 'Flanke & Support', 'Fresh / Fresh-Lead', 'Scout'];
+  function attachAoo(mode) {
     const c = (A.ownMeta() || {}).aoo_card;
-    if (!c) { msg('Noch kein AoO-Showcase – unter 🎨 Showcases anlegen.', 'warn'); return; }
-    st.attach = { kind: 'aoo', data: c }; renderComposer();
+    if ((mode || (c ? 'card' : 'match')) === 'card' && c) st.attach = { kind: 'aoo', data: { ...c, mode: 'card' } };
+    else st.attach = { kind: 'aoo', data: { mode: 'match', res: 'win', vs: '', us: '', them: '', mvp: false, role: '', date: new Date().toISOString().slice(0, 10) } };
+    renderComposer();
   }
+  // ---------- Umfrage ----------
+  function attachPoll() { st.attach = { kind: 'poll', data: { q: '', opts: ['', ''] } }; renderComposer(); setTimeout(() => { const q = root.querySelector('[data-f="pq"]'); if (q) q.focus(); }, 30); }
 
   // ---------- Craft-Upgrade: Teil wählen + was genau verbessert wurde ----------
   const CAT_LABEL = { helm: 'Helm', chest: 'Brust', weapon: 'Waffe', gloves: 'Handschuhe', legs: 'Beine', boots: 'Stiefel', accessory: 'Accessoire' };
@@ -702,12 +857,82 @@ window.RokMods.feed = (R) => {
     if (g.note) lines.push(['📝', esc(g.note)]);
     const old = !lines.length && (g.tier || g.refine || g.set)   // ältere Beiträge (nur Stand)
       ? `<div class="text-xs text-slate-400">${g.tier ? `Iconic ${ROMAN[g.tier - 1]}` : ''}${g.refine ? ' · Refine fertig' : ''}${g.set ? ` · ${esc(g.set)}` : ''}</div>` : '';
-    return `<div class="flex items-start gap-3 rounded-xl border border-gold-500/30 bg-ink-950/70 p-3">
+    return `<div class="fx-forge flex items-start gap-3 rounded-xl border border-orange-400/40 bg-gradient-to-br from-orange-950/40 via-ink-950/80 to-ink-950 p-3">
       ${icoBox(g.icon, 'w-14 h-14 shrink-0', '⚒️')}
       <div class="min-w-0 flex-1"><div class="text-[10px] uppercase tracking-widest text-slate-500">⚒️ Craft-Upgrade${g.slot ? ` · ${esc(g.slot)}` : ''}</div>
         <div class="font-semibold ${rarCol[g.rarity] || 'text-slate-100'} truncate">${esc(g.name || '?')}</div>
         ${lines.length ? `<ul class="mt-1 space-y-0.5 text-sm text-slate-200">${lines.map(([i, t]) => `<li class="flex gap-1.5"><span class="w-5 shrink-0 text-center">${i}</span><span class="min-w-0 break-words">${t}</span></li>`).join('')}</ul>` : old}
       </div></div>`;
+  };
+  // Showcase-Karte: Hintergrund + Sets als Rauten wie im Showcase
+  const SC_BG = { none: 'radial-gradient(120% 90% at 50% 0%, rgba(245,197,66,.16), transparent 60%), linear-gradient(180deg,#111725,#07090f)',
+    gold: 'radial-gradient(120% 85% at 50% 0%, rgba(245,197,66,.42), transparent 62%), linear-gradient(180deg,#3a2706,#0c1019)',
+    night: 'radial-gradient(110% 80% at 50% 0%, rgba(56,189,248,.32), transparent 60%), linear-gradient(180deg,#0b1d3a,#07090f)',
+    blood: 'radial-gradient(110% 80% at 50% 0%, rgba(239,68,68,.40), transparent 60%), linear-gradient(180deg,#330c0c,#07090f)',
+    forest: 'radial-gradient(110% 80% at 50% 0%, rgba(74,222,128,.30), transparent 60%), linear-gradient(180deg,#0c2a17,#07090f)',
+    royal: 'radial-gradient(110% 80% at 50% 0%, rgba(192,132,252,.38), transparent 60%), linear-gradient(180deg,#26103d,#07090f)',
+    desert: 'radial-gradient(120% 85% at 50% 0%, rgba(251,191,36,.30), transparent 60%), linear-gradient(180deg,#5a3a17,#1a1208)' };
+  const scBgCss = (b) => { b = b || {};
+    if (b.type === 'img' && scImgUrl(b.src)) return `url("${scImgUrl(b.src).replace(/"/g, '')}") center/cover no-repeat, #07090f`;
+    if (b.type === 'lib' && /^[A-Za-z0-9() _.-]{1,80}\.(webp|png|jpe?g)$/i.test(b.id || '')) return `url("/icons/showcase%20pictures/${encodeURIComponent(b.id)}") center/cover no-repeat, #07090f`;
+    return SC_BG[b.id] || SC_BG.none; };
+  const scSetCol = (x) => {
+    const cmds = (x.cmd || []).filter((c) => c && c.id).map((c) => { const m = (R.COMMANDERS || []).find((k) => k.id === c.id);
+      return R.cmdImg ? `<img src="${esc(R.cmdImg(c.id, c.exp))}" alt="" title="${esc(m ? m.name : c.id)}" loading="lazy" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-gold-400/60 bg-ink-900 shadow">` : ''; }).join('');
+    let board = '';
+    if (x.shot) board = `<img src="${esc(x.shot)}" alt="" loading="lazy" class="w-full rounded-lg border border-ink-700 object-contain">`;
+    else { try { board = R.gearBoardHTML ? R.gearBoardHTML(x.gear || {}, x.gfx) : ''; } catch { board = ''; }
+      board = `<div class="relative w-full aspect-[1/2]">${board || Object.values(x.gear || {}).map((g) => g.icon ? `<img src="${esc(g.icon)}" alt="" class="inline-block w-1/2 aspect-square object-contain">` : '').join('')}</div>`; }
+    return `<div class="flex flex-col items-center gap-1 w-[104px] sm:w-[120px] min-w-0">
+      ${cmds ? `<div class="flex -space-x-2">${cmds}</div>` : ''}
+      <div class="max-w-full truncate text-[11px] font-semibold text-slate-100 [text-shadow:0_1px_2px_#000]" translate="no">${esc(x.name || '')}</div>${board}</div>`;
+  };
+  const showcaseCard = (d) => `<div class="relative overflow-hidden rounded-xl border border-gold-500/35" style="background:${scBgCss(d.bg)}">
+      <div class="absolute inset-0 bg-gradient-to-b from-ink-950/35 via-ink-950/5 to-ink-950/70 pointer-events-none"></div>
+      <div class="relative p-3 flex flex-col gap-2.5">
+        <div class="flex items-center justify-between gap-2"><span class="text-[10px] uppercase tracking-widest text-gold-300">🎨 Showcase · ${(d.sets || []).length} Set${(d.sets || []).length === 1 ? '' : 's'}</span><span class="font-display text-base gold-text truncate">${esc(d.title || '')}</span></div>
+        <div class="flex flex-wrap justify-center gap-x-3 gap-y-4">${(d.sets || []).map(scSetCol).join('') || '<span class="text-xs text-slate-400 py-4">Keine Sets ausgewählt</span>'}</div>
+      </div></div>`;
+  // KvK-Ergebnis (Zahlen)
+  const kvkResTile = (d) => { const cells = [statCell('⚔️', 'Kill-Punkte', d.kp ? '+' + short(d.kp) : '–', d.kp ? fmt(d.kp) : ''), statCell('🏅', 'Verdienst', d.acclaim ? '+' + short(d.acclaim) : '–', d.acclaim ? fmt(d.acclaim) : '')];
+    if (d.deads) cells.push(statCell('💀', 'Deads', short(d.deads), fmt(d.deads)));
+    if (d.honor) cells.push(statCell('🎖️', 'Ehre', short(d.honor), fmt(d.honor)));
+    if (d.crystal) cells.push(statCell('💠', 'Kristalle', short(d.crystal), fmt(d.crystal)));
+    return `<div class="relative overflow-hidden rounded-xl border border-red-400/35 bg-gradient-to-br from-red-950/50 via-ink-950 to-ink-950 p-3">
+      <div class="flex items-center justify-between gap-2"><span class="text-[10px] uppercase tracking-widest text-red-300">🏁 KvK-Ergebnis</span><span class="font-display text-sm text-slate-100">${esc(d.label || 'KvK')}</span></div>
+      <div class="grid grid-cols-2 ${cells.length > 2 ? 'sm:grid-cols-' + Math.min(5, cells.length) : ''} gap-1.5 mt-2">${cells.join('')}</div></div>`; };
+  // AoO-Match
+  const aooMatchTile = (d) => { const win = d.res === 'win';
+    return `<div class="relative overflow-hidden rounded-xl border ${win ? 'border-gold-400/50' : 'border-red-400/40'} p-4" style="background:${win ? 'linear-gradient(135deg,#0b2a4a,#0c1019 55%,#3a2706)' : 'linear-gradient(135deg,#2a0b10,#0c1019 60%)'}">
+      ${win ? goldLayer(8) : ''}
+      <div class="fx-body flex items-start justify-between gap-3">
+        <div class="min-w-0"><div class="text-[10px] uppercase tracking-[.25em] text-sky-300">🏛️ Ark of Osiris${d.date ? ` · ${esc(new Date(d.date + 'T12:00:00').toLocaleDateString('de-DE'))}` : ''}</div>
+          <div class="font-display text-2xl ${win ? 'gold-text' : 'text-red-300'}">${win ? '🏆 Sieg' : '⚔️ Niederlage'}</div>
+          ${d.vs ? `<div class="text-sm text-slate-300 truncate">gegen <b class="text-slate-100" translate="no">${esc(d.vs)}</b></div>` : ''}</div>
+        ${d.us !== '' || d.them !== '' ? `<div class="text-right shrink-0"><div class="text-[10px] uppercase tracking-widest text-slate-400">Punkte</div><div class="font-display text-xl tabular-nums text-slate-100">${esc(short(num(d.us)))} <span class="text-slate-500">:</span> ${esc(short(num(d.them)))}</div></div>` : ''}
+      </div>
+      ${d.mvp || d.role ? `<div class="fx-body mt-2 flex flex-wrap gap-1.5 text-xs">${d.mvp ? '<span class="px-2 py-0.5 rounded-full bg-gold-500/20 border border-gold-400/60 text-gold-200 font-semibold">⭐ MVP</span>' : ''}${d.role ? `<span class="px-2 py-0.5 rounded-full bg-ink-950/60 border border-sky-400/40 text-sky-200">🎯 ${esc(d.role)}</span>` : ''}</div>` : ''}
+    </div>`; };
+  // Umfrage im RoK-Stil: erst Buttons, nach der Stimme animierte Prozentbalken
+  const pollTile = (p, preview) => {
+    const d = p.data || {}, opts = d.opts || [], votes = preview ? [] : st.votes[p.id] || [], mine = preview ? null : myVote(p.id);
+    const cnt = opts.map((_, i) => votes.filter((v) => +v.opt === i).length);
+    if (mine != null && !votes.some((v) => v.user_id === me())) cnt[mine] = (cnt[mine] || 0) + 1;   // nur lokal gespeicherte Stimme mitzählen
+    const total = cnt.reduce((a, b) => a + b, 0), showRes = mine != null, max = Math.max(...cnt, 0);
+    const anim = showRes && (st.pollAnim.has(p.id) || !st.pollSeen.has(p.id)); if (showRes && !preview) { st.pollSeen.add(p.id); st.pollAnim.delete(p.id); }
+    const L = 'ABCD';
+    const rows = opts.map((o, i) => { const pct = total ? Math.round(cnt[i] / total * 100) : 0, me1 = mine === i, top = showRes && cnt[i] === max && max > 0;
+      if (!showRes) return `<button type="button" ${preview ? 'disabled' : `data-poll="${esc(p.id)}|${i}"`} class="fx-pollopt w-full flex items-center gap-3 rounded-lg border border-gold-500/30 bg-ink-950/70 hover:border-gold-400 hover:bg-gold-500/10 px-3 py-2 text-left disabled:cursor-default">
+          <span class="w-6 h-6 shrink-0 rounded-md grid place-items-center text-[11px] font-extrabold bg-gold-500/15 border border-gold-500/50 text-gold-200">${L[i]}</span><span class="text-sm text-slate-100 min-w-0 break-words">${esc(o)}</span></button>`;
+      return `<div class="relative overflow-hidden rounded-lg border ${me1 ? 'border-gold-400' : 'border-ink-600'} bg-ink-950/70 px-3 py-2">
+          <div class="fx-bar absolute inset-y-0 left-0 ${top ? 'bg-gradient-to-r from-gold-600/55 to-gold-400/35' : 'bg-gradient-to-r from-slate-500/30 to-slate-400/15'}" style="width:${anim ? 0 : pct}%"${anim ? ` data-bar-w="${pct}"` : ''}></div>
+          <div class="relative flex items-center gap-3"><span class="w-6 h-6 shrink-0 rounded-md grid place-items-center text-[11px] font-extrabold ${me1 ? 'bg-gold-500 text-ink-950' : 'bg-ink-800 text-slate-300 border border-ink-600'}">${me1 ? '✓' : L[i]}</span>
+            <span class="text-sm text-slate-100 min-w-0 flex-1 break-words">${esc(o)}</span><span class="text-[11px] text-slate-400 tabular-nums whitespace-nowrap">${cnt[i]} Stimme${cnt[i] === 1 ? '' : 'n'}</span><span class="w-11 text-right font-bold tabular-nums ${top ? 'text-gold-200' : 'text-slate-200'}">${pct} %</span></div></div>`; }).join('');
+    return `<div class="relative overflow-hidden rounded-xl border border-gold-500/40 p-3.5 flex flex-col gap-2.5" style="background:radial-gradient(120% 80% at 50% 0%, rgba(245,197,66,.14), transparent 60%), linear-gradient(180deg,#161e2f,#0c1019)">
+      <div class="flex items-center justify-between gap-2"><span class="text-[10px] uppercase tracking-[.25em] text-gold-300">📊 Allianz-Umfrage</span><span class="text-[11px] text-slate-500 tabular-nums">${preview ? 'Vorschau' : `${total} Stimme${total === 1 ? '' : 'n'}`}</span></div>
+      <div class="font-display text-lg text-slate-100 leading-snug break-words">${esc(d.q || 'Frage …')}</div>
+      <div class="flex flex-col gap-1.5">${rows}</div>
+      ${showRes ? '<div class="text-[11px] text-slate-500">✓ Du hast abgestimmt</div>' : preview ? '' : '<div class="text-[11px] text-slate-500">Tippe auf eine Antwort – du kannst einmal abstimmen.</div>'}</div>`;
   };
   const aooTile = (c) => `<div class="rounded-xl border border-sky-400/40 bg-gradient-to-br from-sky-950/60 to-ink-950 p-3">
       <div class="text-[10px] uppercase tracking-widest text-sky-300">🏛️ Ark of Osiris</div>
@@ -718,12 +943,12 @@ window.RokMods.feed = (R) => {
     const t = [dd && `${dd} T`, (dd || h) && `${h} Std`, !dd && `${m} Min`].filter(Boolean).join(' ') || 'gleich';
     return d > 0 ? `öffnet in ${t}` : a < 6 * 36e5 ? `seit ${t} offen` : 'ist offen';
   };
-  const passTile = (d) => `<div class="rounded-xl border border-gold-500/40 bg-gradient-to-br from-amber-950/50 to-ink-950 p-4 flex items-center gap-4">
+  const passTile = (d) => `<div class="fx-pass relative overflow-hidden rounded-xl border border-orange-400/40 bg-gradient-to-br from-amber-950/50 to-ink-950 p-4">${emberLayer(16)}<div class="fx-body flex items-center gap-4">
       <span class="w-14 h-14 shrink-0 rounded-xl grid place-items-center bg-gold-500/15 border border-gold-500/40 text-2xl">🚪</span>
       <div class="min-w-0"><div class="text-[10px] uppercase tracking-widest text-gold-300">Mein Pass startet</div>
         <div class="font-display text-xl text-slate-100">Pass ${esc(String(d.n || '?'))}</div>
         ${d.ts ? `<div class="text-sm text-slate-300">${esc(dateTxt(d.ts))} Uhr <span class="text-slate-500">(deine Zeit)</span></div>
-        <div class="text-sm font-semibold text-gold-200" data-cd="${+d.ts}">${cdText(+d.ts)}</div>` : ''}</div></div>`;
+        <div class="text-sm font-semibold text-gold-200" data-cd="${+d.ts}">${cdText(+d.ts)}</div>` : ''}</div></div></div>`;
   const statCell = (ico, lab, val, sub) => `<div class="rounded-lg bg-ink-900/70 border border-ink-700 px-2.5 py-1.5 min-w-0"><div class="text-[10px] text-slate-500 truncate">${ico} ${lab}</div><div class="font-semibold text-slate-100 tabular-nums">${val}</div>${sub ? `<div class="text-[10px] text-slate-500 truncate">${sub}</div>` : ''}</div>`;
   const stockTile = (d) => {
     const sec = (t, sub, body) => `<div><div class="flex items-baseline justify-between gap-2 mb-1.5"><span class="text-[11px] uppercase tracking-widest text-slate-400">${t}</span>${sub ? `<span class="text-[10px] text-slate-500">${sub}</span>` : ''}</div>${body}</div>`;
@@ -752,7 +977,7 @@ window.RokMods.feed = (R) => {
         <div class="min-w-0"><div class="text-[10px] uppercase tracking-widest text-gold-300">${isNew ? '🎉 Neue VIP-Stufe erreicht' : 'Mein VIP-Status'}</div>
           <div class="font-display text-2xl text-slate-100">${esc(vipName(lv))}</div>
           ${!isNew && d.pts != null ? `<div class="text-xs text-slate-400 tabular-nums">${fmt(d.pts)} VIP-Punkte inkl. Rucksack</div>` : ''}</div></div>`;
-    if (isNew) return `<div class="rounded-xl border border-gold-500/40 bg-gradient-to-br from-amber-950/50 to-ink-950 p-4">${head}</div>`;
+    if (isNew) return `<div class="fx-vip relative overflow-hidden rounded-xl border border-gold-400/60 bg-gradient-to-br from-amber-950/60 via-ink-950 to-amber-950/30 p-4 shadow-[inset_0_0_24px_rgba(245,197,66,.12)]">${goldLayer(14)}<div class="fx-body">${head}</div></div>`;
     const base = VIP_PTS[lv] || 0, next = d.next, pct = next ? Math.max(0, Math.min(100, Math.round((d.pts - base) / (next - base) * 100))) : 100;
     return `<div class="rounded-xl border border-gold-500/40 bg-gradient-to-br from-amber-950/50 to-ink-950 p-4 flex flex-col gap-3">${head}
       ${next ? `<div><div class="flex justify-between text-[11px] text-slate-400 mb-1"><span>${esc(vipName(lv))}</span><span class="text-gold-200 font-semibold">${pct} %</span><span>${esc(vipName(lv + 1))}</span></div>
@@ -789,13 +1014,17 @@ window.RokMods.feed = (R) => {
   const attachHTML = (p) => {
     const d = p.data;
     if (p.kind === 'craft' && d) return craftTile(d);
-    if (p.kind === 'aoo' && d) return aooTile(d);
+    if (p.kind === 'aoo' && d && d.mode !== 'match') return R.aooCardHTML ? R.aooCardHTML(d) : aooTile(d);
     if (p.kind === 'pass' && d) return passTile(d);
     if (p.kind === 'stock' && d) return stockTile(d);
     if (p.kind === 'kvkpts' && d) return kvkptsTile(d);
     if (p.kind === 'vip' && d) return vipTile(d);
     if (p.kind === 'kvkmap' && d) return mapTile(d, p.id);
     if (p.kind === 'help' && d) return helpTile(d);
+    if (p.kind === 'poll' && d) return pollTile(p);
+    if (p.kind === 'showcase' && d && Array.isArray(d.sets)) return showcaseCard(d);
+    if (p.kind === 'kvk' && d && d.mode === 'stats') return kvkResTile(d);
+    if (p.kind === 'aoo' && d && d.mode === 'match') return aooMatchTile(d);
     if (p.image) return imgHTML(p.image);
     if (p.kind !== 'text') return `<div class="text-xs text-slate-500">(${esc(KIND[p.kind]?.[1] || p.kind)} ohne Bild)</div>`;
     return '';
@@ -803,7 +1032,10 @@ window.RokMods.feed = (R) => {
   const previewHTML = (a) => {
     if (!a) return '';
     if (a.kind === 'craft') return craftTile(a.data);
-    if (a.kind === 'aoo') return aooTile(a.data);
+    if (a.kind === 'poll') return pollTile({ id: '__prev', data: a.data }, true);
+    if (a.kind === 'showcase' && !a.dataUrl) return showcaseCard(a.data);
+    if (a.kind === 'kvk' && a.data && a.data.mode === 'stats') return kvkResTile(a.data);
+    if (a.kind === 'aoo') return a.data.mode === 'match' ? aooMatchTile(a.data) : R.aooCardHTML ? R.aooCardHTML(a.data) : aooTile(a.data);
     if (a.kind === 'pass') return passTile(a.data);
     if (a.kind === 'stock') return stockTile(a.data);
     if (a.kind === 'kvkpts') return kvkptsTile(a.data);
@@ -816,7 +1048,7 @@ window.RokMods.feed = (R) => {
     const list = st.reacts[p.id] || [], mine = list.find((x) => x.user_id === me());
     const cnt = {}; list.forEach((x) => { cnt[x.emoji] = (cnt[x.emoji] || 0) + 1; });
     return `<div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-ink-700/70">${REACTS.map(([e, lab]) => `
-      <button type="button" data-react="${esc(p.id)}|${e}" title="${lab}" aria-pressed="${mine && mine.emoji === e}" class="inline-flex items-center gap-1 px-2 py-1 rounded-full border text-sm transition ${mine && mine.emoji === e ? 'border-gold-400 bg-gold-500/15 text-gold-200' : cnt[e] ? 'border-ink-600 bg-ink-900 text-slate-200 hover:border-gold-500/60' : 'border-ink-700 text-slate-500 hover:border-gold-500/60 hover:text-slate-200'}">${e}${cnt[e] ? `<span class="text-[11px] tabular-nums">${cnt[e]}</span>` : ''}</button>`).join('')}</div>`;
+      <button type="button" data-react="${esc(p.id)}|${e}" title="${lab}" aria-pressed="${mine && mine.emoji === e}" class="inline-flex items-center gap-1 px-2 py-1 rounded-full border text-sm transition-colors ${mine && mine.emoji === e ? 'border-gold-400 bg-gold-500/15 text-gold-200' : cnt[e] ? 'border-ink-600 bg-ink-900 text-slate-200 hover:border-gold-500/60' : 'border-ink-700 text-slate-500 hover:border-gold-500/60 hover:text-slate-200'}"><span class="inline-block">${e}</span>${cnt[e] ? `<span class="text-[11px] tabular-nums${st.reactBump === p.id + '|' + e ? ' fx-count' : ''}">${cnt[e]}</span>` : ''}</button>`).join('')}</div>`;
   };
   const commentsHTML = (p) => {
     const list = st.comments[p.id] || [], open = st.cmOpen.has(p.id), n = list.length;
@@ -939,7 +1171,52 @@ window.RokMods.feed = (R) => {
       <div class="grid grid-cols-3 gap-2">${inp('kp', '⚔️ Kill-Punkte')}${inp('acclaim', '🏅 Verdienst')}${inp('deads', '💀 Deads (optional)')}</div>
       <p class="text-[11px] text-slate-500">${isAltar ? 'Für Altäre gibt es keine gespeicherten Zwischenstände – bitte Zahlen eintragen.' : 'Pässe und KvK gesamt kommen aus KvK → Stats (Zwischenstände je Pass) – Zahlen kannst du anpassen.'}</p>`);
   }
-  const formHTML = (a) => (!a ? '' : a.kind === 'craft' ? craftForm(a.data) : a.kind === 'pass' ? passForm(a.data) : a.kind === 'stock' ? stockForm(a.data)
+  function showcaseForm(a) {
+    const list = scDocList(), sc = list.find((x) => x.id === a.pick.sid) || list[0]; if (!sc) return '';
+    const sel = a.pick.sel, n = sel.length;
+    const chip = (x, i) => { const ok = scSetFilled(x), on = sel.includes(i), full = !on && n >= SC_MAX, ic = Object.values(x.gear || {}).filter((g) => g && g.icon).slice(0, 3);
+      return `<button type="button" data-f-scset="${i}" ${ok ? '' : 'disabled'} aria-pressed="${on}" title="${ok ? '' : 'Set ohne Ausrüstung'}" class="flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-left min-w-0 transition ${on ? 'border-gold-400 bg-gold-500/15' : 'border-ink-600 hover:border-gold-500/60'} ${full || !ok ? 'opacity-45' : ''} disabled:cursor-not-allowed">
+        <span class="w-4 h-4 shrink-0 rounded border grid place-items-center text-[10px] font-bold ${on ? 'bg-gold-500 border-gold-400 text-ink-950' : 'border-ink-500'}">${on ? '✓' : ''}</span>
+        <span class="flex -space-x-1.5 shrink-0">${ic.map((g) => `<img src="${esc(g.icon)}" alt="" class="w-5 h-5 rounded bg-ink-900 object-contain ring-1 ring-ink-800">`).join('')}</span>
+        <span class="text-xs font-semibold truncate text-slate-100">${esc(x.name || `Set ${i + 1}`)}</span></button>`; };
+    return box('🎨 Welches Showcase?', `${list.length > 1 ? `<select data-f="scSel" class="${INP} w-full">${list.map((x) => `<option value="${esc(x.id)}" ${x.id === sc.id ? 'selected' : ''}>${esc(x.title || 'Showcase')} · ${(x.sets || []).length} Sets</option>`).join('')}</select>` : `<div class="text-sm font-semibold text-slate-100">${esc(sc.title || 'Showcase')}</div>`}
+      <div class="flex items-baseline justify-between gap-2"><span class="text-xs text-slate-300">⚔️ Sets laden – welche sollen in den Beitrag?</span><span class="text-[11px] tabular-nums ${n >= SC_MAX ? 'text-gold-300' : 'text-slate-500'}">${n}/${Math.min(SC_MAX, (sc.sets || []).length)}</span></div>
+      <div class="grid gap-1.5 grid-cols-2 sm:grid-cols-3">${(sc.sets || []).map(chip).join('')}</div>
+      <div class="flex gap-3 text-[11px]"><button type="button" data-f-scall="1" class="text-gold-300 hover:underline">Alle laden</button><button type="button" data-f-scall="0" class="text-slate-400 hover:underline">Keine</button></div>`);
+  }
+  function kvkForm(a) {
+    const img = (A.ownMeta() || {}).kvk_card, d = a.data || {}, mode = a.dataUrl ? 'img' : 'stats';
+    const modes = `<div class="flex flex-wrap gap-1.5">${segBtn(`data-f-kmode="img" ${img ? '' : 'disabled'}`, mode === 'img', '🖼️ KvK-Bild aus dem Profil')}${segBtn('data-f-kmode="stats"', mode === 'stats', '📊 Ergebnis-Zahlen')}</div>${img ? '' : '<p class="text-[11px] text-slate-500">Noch kein KvK-Bild – im KvK-Bereich unter Stats → „Bild für dein Profil“ erstellen.</p>'}`;
+    if (mode === 'img') return box('🏁 Welches KvK-Ergebnis?', modes);
+    const segs = d._segs || [], kx = d._kx || { ex: {} }, t = Date.now();
+    const chk = (k, lab, v) => `<label class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border ${kx[k] && v ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 text-slate-300'} ${v ? 'cursor-pointer' : 'opacity-40'}"><input type="checkbox" data-f="kx_${k}" ${kx[k] && v ? 'checked' : ''} ${v ? '' : 'disabled'} class="w-3.5 h-3.5 accent-amber-400">${lab}${v ? ` <span class="opacity-70 tabular-nums">${short(v)}</span>` : ''}</label>`;
+    return box('🏁 Welches KvK-Ergebnis?', `${modes}
+      <div class="text-xs text-slate-300">Abschnitt (aus deiner KvK-Timeline)</div>
+      <div class="flex flex-wrap gap-1.5">${segs.map((x) => segBtn(`data-f-kseg="${x.id}"`, d.seg === x.id, `${x.id[0] === 'a' ? '⛩️' : x.id === 'kvk' ? '🏁' : '🚪'} ${esc(x.label)}${x.ts && x.ts > t ? ' <span class="opacity-60">(bald)</span>' : ''}`)).join('')}</div>
+      <div class="flex flex-wrap gap-1.5">${chk('honor', '🎖️ Ehre', kx.ex.honor)}${chk('crystal', '💠 Kristalle', kx.ex.crystal)}</div>
+      <p class="text-[11px] text-slate-500">Zahlen kommen aus KvK → Stats.</p>`);
+  }
+  function aooForm(a) {
+    const c = (A.ownMeta() || {}).aoo_card, d = a.data || {}, mode = d.mode === 'match' ? 'match' : 'card';
+    const modes = `<div class="flex flex-wrap gap-1.5">${segBtn(`data-f-amode="card" ${c ? '' : 'disabled'}`, mode === 'card', '🏛️ AoO-Showcase (Profil)')}${segBtn('data-f-amode="match"', mode === 'match', '🏆 Match-Ergebnis')}</div>${c ? '' : '<p class="text-[11px] text-slate-500">Noch kein AoO-Showcase – unter 🎨 Showcases anlegen.</p>'}`;
+    if (mode === 'card') return box('🏛️ Was zeigen?', modes);
+    const inp = (k, lab, ph, type = 'text') => `<label class="flex flex-col gap-1 text-[11px] text-slate-400">${lab}<input type="${type}" data-f="am_${k}" value="${esc(d[k] ?? '')}" placeholder="${ph}" ${type === 'text' ? 'maxlength="40"' : ''} class="${INP}"></label>`;
+    return box('🏛️ Was zeigen?', `${modes}
+      <div class="flex flex-wrap gap-1.5">${segBtn('data-f-ares="win"', d.res === 'win', '🏆 Sieg')}${segBtn('data-f-ares="loss"', d.res === 'loss', '⚔️ Niederlage')}</div>
+      <div class="grid grid-cols-2 gap-2">${inp('vs', 'Gegner (Allianz)', 'z. B. [ABC] Name')}${inp('date', 'Datum', '', 'date')}${inp('us', 'Unsere Punkte', 'z. B. 1.250.000')}${inp('them', 'Punkte Gegner', 'z. B. 980.000')}</div>
+      <div class="flex flex-wrap items-center gap-3"><label class="flex items-center gap-2 text-sm"><input type="checkbox" data-f="am_mvp" ${d.mvp ? 'checked' : ''} class="w-4 h-4 accent-amber-400"> ⭐ MVP</label>
+        <select data-f="am_role" class="${INP} !py-1"><option value="">Rolle …</option>${AOO_ROLES.map((r) => `<option ${d.role === r ? 'selected' : ''}>${r}</option>`).join('')}</select></div>`);
+  }
+  function pollForm(d) {
+    const opts = d.opts || [];
+    return box('📊 Umfrage', `<input type="text" data-f="pq" maxlength="140" value="${esc(d.q || '')}" placeholder="Frage, z. B. „Wann starten wir die Ark?“" class="${INP} w-full">
+      <div class="flex flex-col gap-1.5">${opts.map((o, i) => `<div class="flex items-center gap-2"><span class="w-6 h-6 shrink-0 rounded-md grid place-items-center text-[11px] font-extrabold bg-gold-500/15 border border-gold-500/50 text-gold-200">${'ABCD'[i]}</span>
+        <input type="text" data-f="po_${i}" maxlength="60" value="${esc(o)}" placeholder="Antwort ${i + 1}" class="${INP} flex-1 min-w-0">
+        ${opts.length > 2 ? `<button type="button" data-f-pdel="${i}" title="Antwort entfernen" class="w-7 h-7 shrink-0 rounded-lg border border-ink-600 text-slate-500 hover:text-red-300 hover:border-red-400/60">✕</button>` : ''}</div>`).join('')}</div>
+      ${opts.length < 4 ? '<button type="button" data-f-padd class="self-start text-xs px-3 py-1.5 rounded-lg border border-dashed border-gold-500/50 text-gold-300 hover:bg-gold-500/10">+ Antwort</button>' : '<p class="text-[11px] text-slate-500">Höchstens 4 Antworten.</p>'}`);
+  }
+  const formHTML = (a) => (!a ? '' : a.kind === 'showcase' && a.pick ? showcaseForm(a) : a.kind === 'kvk' ? kvkForm(a) : a.kind === 'aoo' ? aooForm(a) : a.kind === 'poll' ? pollForm(a.data)
+    : a.kind === 'craft' ? craftForm(a.data) : a.kind === 'pass' ? passForm(a.data) : a.kind === 'stock' ? stockForm(a.data)
     : a.kind === 'kvkpts' ? kvkptsForm(a.data) : a.kind === 'vip' ? vipForm(a.data) : a.kind === 'help' ? helpForm(a) : '');
 
   // ======================================================================
@@ -956,7 +1233,7 @@ window.RokMods.feed = (R) => {
         <span class="text-[11px] text-slate-500 mr-1">Anhängen:</span>
         ${chip('📷', 'Foto', 'photo')}${chip('🎨', 'Showcase', 'showcase')}${chip('🏁', 'KvK-Bilanz', 'kvk')}${chip('🏛️', 'AoO', 'aoo')}
         ${chip('⚒️', 'Craft-Upgrade', 'craft')}${chip('🆘', 'Help Me', 'help')}${chip('🚪', 'Pass-Start', 'pass')}${chip('🗺️', 'KvK-Karte', 'kvkmap')}${chip('⚔️', 'KP & Verdienst', 'kvkpts')}
-        ${chip('📦', 'Bestand', 'stock')}${chip('👑', 'VIP', 'vip')}
+        ${chip('📦', 'Bestand', 'stock')}${chip('👑', 'VIP', 'vip')}${chip('📊', 'Umfrage', 'poll')}
         ${a ? `<button type="button" data-feed-attach="none" class="text-xs px-2.5 py-1.5 rounded-lg border border-ink-700 text-slate-400 hover:text-red-300 hover:border-red-400/60">✕ Anhang entfernen</button>` : ''}
         <input type="file" id="feedFile" accept="image/*" class="hidden">
       </div>
@@ -1004,11 +1281,11 @@ window.RokMods.feed = (R) => {
 
   let lastMsg = ['', ''];
   function msg(t, tone) { lastMsg = [t, tone]; const el = $('feedMsg'); if (!el) return; el.textContent = t; el.className = 'text-xs min-h-[1em] flex-1 ' + ({ ok: 'text-emerald-400', warn: 'text-amber-300', err: 'text-red-300', busy: 'text-slate-300' }[tone] || 'text-slate-500'); }
-  function renderComposer() { const el = $('feedComposer'); if (!el) return; el.innerHTML = composerHTML(); msg(lastMsg[0], lastMsg[1]); }
-  function renderPreview() { const el = root.querySelector('[data-feed-prev]'); if (el && st.attach) el.innerHTML = previewHTML(st.attach); else renderComposer(); }
+  function renderComposer() { const el = $('feedComposer'); if (!el) return; el.innerHTML = composerHTML(); msg(lastMsg[0], lastMsg[1]); fxScan(el); }
+  function renderPreview() { const el = root.querySelector('[data-feed-prev]'); if (el && st.attach) { el.innerHTML = previewHTML(st.attach); fxScan(el); } else renderComposer(); }
   function renderList() {
     st.deferRender = false;
-    const el = $('feedList'); if (el) el.innerHTML = listHTML();
+    const el = $('feedList'); if (el) { el.innerHTML = listHTML(); fxScan(el); }
     const fl = $('feedFilter'); if (fl && !(document.activeElement && document.activeElement.id === 'feedSearch')) fl.innerHTML = filterHTML();
     renderSync();
   }
@@ -1055,7 +1332,7 @@ window.RokMods.feed = (R) => {
       if (k !== 'photo' && st.attach && st.attach.kind === k) { st.attach = null; renderComposer(); return; }   // nochmal = abwählen
       msg('', '');
       ({ none: () => { st.attach = null; renderComposer(); }, photo: () => $('feedFile') && $('feedFile').click(), showcase: attachShowcase, kvk: attachKvk, aoo: attachAoo,
-        craft: attachCraft, pass: attachPass, stock: attachStock, kvkpts: attachKvkPts, vip: attachVip, kvkmap: attachMap, help: attachHelp }[k] || (() => {}))();
+        craft: attachCraft, pass: attachPass, stock: attachStock, kvkpts: attachKvkPts, vip: attachVip, kvkmap: attachMap, help: attachHelp, poll: attachPoll }[k] || (() => {}))();
       return;
     }
     const gp = t.closest('[data-gpick]');
@@ -1076,6 +1353,18 @@ window.RokMods.feed = (R) => {
     if (fv && st.attach && st.attach.kind === 'vip') { st.attach.data = vipBuild(fv.dataset.fVip, st.attach.data && st.attach.data.lv) || { mode: 'status' }; renderComposer(); return; }
     const fh = t.closest('[data-f-help]');
     if (fh && st.attach && st.attach.kind === 'help') { const r = (st.attach.list || []).find((x) => x.rid === fh.dataset.fHelp); if (r) st.attach.data = { rid: r.rid, title: r.title, sets: r.sets, items: r.items, icons: r.icons }; renderComposer(); return; }
+    const a0 = st.attach;
+    const scs = t.closest('[data-f-scset]');
+    if (scs && a0 && a0.kind === 'showcase') { if (scs.disabled) return; const i = +scs.dataset.fScset; scRepick((pk) => { const j = pk.sel.indexOf(i); if (j >= 0) pk.sel.splice(j, 1); else if (pk.sel.length >= SC_MAX) msg(`Höchstens ${SC_MAX} Sets – erst eines abwählen.`, 'warn'); else { pk.sel.push(i); pk.sel.sort((x, y) => x - y); } }); return; }
+    const sca = t.closest('[data-f-scall]');
+    if (sca && a0 && a0.kind === 'showcase') { scRepick((pk, sc) => { pk.sel = sca.dataset.fScall === '1' ? (sc.sets || []).map((x, i) => (scSetFilled(x) ? i : -1)).filter((i) => i >= 0).slice(0, SC_MAX) : []; }); return; }
+    const km = t.closest('[data-f-kmode]'); if (km && a0 && a0.kind === 'kvk') { if (km.disabled) return; attachKvk(km.dataset.fKmode); return; }
+    const ks = t.closest('[data-f-kseg]'); if (ks && a0 && a0.kind === 'kvk') { const o = (a0.data._kx || {}); a0.data = kvkStatsData(ks.dataset.fKseg, { honor: !!o.honor, crystal: !!o.crystal }); renderComposer(); return; }
+    const am = t.closest('[data-f-amode]'); if (am && a0 && a0.kind === 'aoo') { if (am.disabled) return; attachAoo(am.dataset.fAmode); return; }
+    const ar = t.closest('[data-f-ares]'); if (ar && a0 && a0.kind === 'aoo') { a0.data.res = ar.dataset.fAres; renderComposer(); return; }
+    if (t.closest('[data-f-padd]') && a0 && a0.kind === 'poll') { if (a0.data.opts.length < 4) a0.data.opts.push(''); renderComposer(); const l = root.querySelector(`[data-f="po_${a0.data.opts.length - 1}"]`); if (l) l.focus(); return; }
+    const pd = t.closest('[data-f-pdel]'); if (pd && a0 && a0.kind === 'poll') { if (a0.data.opts.length > 2) a0.data.opts.splice(+pd.dataset.fPdel, 1); renderComposer(); return; }
+    const pv = t.closest('[data-poll]'); if (pv) { const [pid, i] = pv.dataset.poll.split('|'); vote(pid, +i); return; }
     const mp = t.closest('[data-feed-map]');
     if (mp) { const id = mp.dataset.feedMap; openMap(id === '__prev' ? (st.attach || {}).data : (st.posts.find((p) => p.id === id) || {}).data); return; }
     const hp = t.closest('[data-feed-help]'); if (hp) { goHelp(hp.dataset.feedHelp); return; }
@@ -1099,6 +1388,9 @@ window.RokMods.feed = (R) => {
     const d = a.data;
     if (f === 'gq') { st.gq = t.value; const h = root.querySelector('[data-ghits]'); if (!st.gq || !h) { renderComposer(); const s = root.querySelector('[data-f="gq"]'); if (s) { s.focus(); s.setSelectionRange(s.value.length, s.value.length); } } else h.innerHTML = gearSearch(st.gq).map((g, i) => `<button type="button" data-gpick="s:${i}" class="flex items-center gap-2 text-left rounded-lg border border-ink-700 hover:border-gold-500/60 px-2 py-1.5 min-w-0">${icoBox(g.icon, 'w-9 h-9 shrink-0', '⚒️')}<span class="min-w-0"><span class="block text-sm truncate ${rarCol[g.rarity] || ''}">${esc(g.name)}</span><span class="block text-[10px] text-slate-500 truncate">${esc(g.slot)}</span></span></button>`).join('') || '<p class="text-xs text-slate-500">Nichts gefunden.</p>'; return; }
     if (f === 'note') { d.note = t.value.slice(0, 120); renderPreview(); return; }
+    if (f === 'pq') { d.q = t.value.slice(0, 140); renderPreview(); return; }
+    if (f.startsWith('po_')) { d.opts[+f.slice(3)] = t.value.slice(0, 60); renderPreview(); return; }
+    if (f === 'am_vs' || f === 'am_us' || f === 'am_them') { d[f.slice(3)] = t.value.slice(0, 40); renderPreview(); return; }
     if (f === 'vipLv') { const v = Math.round(+t.value); if (v >= 1 && v <= 20) { d.lv = v; renderPreview(); } return; }
     if (f === 'kv_label') { d.label = t.value.slice(0, 40); renderPreview(); return; }
     if (f.startsWith('kv_')) { d[f.slice(3)] = num(t.value); renderPreview(); return; }
@@ -1118,6 +1410,10 @@ window.RokMods.feed = (R) => {
     }
     if (f === 'refType') { d.refType = t.value; if (t.value) d.exp = true; renderComposer(); return; }
     if (f === 'passTs') { d.ts = fromLocalInput(t.value); renderPreview(); return; }
+    if (f === 'scSel' && a.kind === 'showcase') { const sc = scDocList().find((x) => x.id === t.value); if (sc) { a.pick = { sid: sc.id, sel: (sc.sets || []).map((x, i) => (scSetFilled(x) ? i : -1)).filter((i) => i >= 0).slice(0, SC_MAX) }; a.data = scBuild(sc, a.pick.sel); renderComposer(); } return; }
+    if ((f === 'kx_honor' || f === 'kx_crystal') && a.kind === 'kvk') { const o = { ...(d._kx || {}), [f.slice(3)]: t.checked }; a.data = kvkStatsData(d.seg, { honor: !!o.honor, crystal: !!o.crystal }); renderComposer(); return; }
+    if (f === 'am_mvp') { d.mvp = t.checked; renderPreview(); return; }
+    if (f === 'am_role' || f === 'am_date') { d[f.slice(3)] = t.value; renderPreview(); return; }
     if (f.startsWith('so_')) { const o = { ...(d.opt || {}), [f.slice(3)]: t.checked }; a.data = stockBuild(o); renderComposer(); return; }
     if (f.startsWith('kv_')) { const el = root.querySelector(`[data-f="${f}"]`); if (el && f !== 'kv_label' && d[f.slice(3)]) el.value = fmt(d[f.slice(3)]); }
   });
