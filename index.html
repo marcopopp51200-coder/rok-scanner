@@ -149,7 +149,8 @@ tailwind.config = {
       </div>
     </div>
     <nav id="mainNav" class="hidden self-start sm:self-end sm:translate-y-6 grid-cols-3 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist" aria-label="Bereiche">
-      <button class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition col-span-full relative" data-view="kingdom" aria-pressed="false" role="tab">🏰 My Kingdom <span data-kd-badge style="display:none" class="absolute -top-1.5 -right-1.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold grid place-items-center"></span></button>
+      <button id="kingdomTab" class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition col-span-2 relative" data-view="kingdom" aria-pressed="false" role="tab">🏰 My Kingdom <span data-kd-badge style="display:none" class="absolute -top-1.5 -right-1.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold grid place-items-center"></span></button>
+      <button class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition relative" data-view="news" aria-pressed="false" role="tab">📢 News <span data-news-badge style="display:none" class="absolute -top-1.5 -right-1.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold grid place-items-center"></span></button>
       <button class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-view="feed" aria-pressed="false" role="tab">📰 Feed</button>
       <button class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition" data-view="rank" aria-pressed="false" role="tab">🏆 Rangliste</button>
       <button id="craftTab" class="main-tab seg-btn rounded-lg px-4 py-2 text-sm font-semibold transition hidden" data-view="craft" aria-pressed="false" role="tab">⚒️ Craft</button>
@@ -1170,6 +1171,7 @@ tailwind.config = {
   <!-- Rangliste -->
   <!-- Neue Bereiche – Inhalt kommt aus feed.js, kingdom.js, helpme.js, showcases.js -->
   <section id="feedView" class="hidden space-y-6"></section>
+  <section id="newsView" class="hidden space-y-6"></section>
   <section id="kingdomView" class="hidden space-y-6"></section>
   <section id="helpView" class="hidden space-y-6"></section>
   <section id="showcasesView" class="hidden space-y-6"></section>
@@ -1228,6 +1230,7 @@ tailwind.config = {
 <script src="showcases.js"></script>
 <script src="kingdom.js"></script>
 <script src="helpme.js"></script>
+<script src="news.js"></script>
 <script src="account.js"></script>
 <script src="scanner.js"></script>
 <script src="image-utils.js"></script>

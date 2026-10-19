@@ -27,7 +27,8 @@ window.I18N = (() => {
         'Bild hinzufügen': 'Add image', 'Anderes Bild': 'Other image', '✕ Bild entfernen': '✕ Remove image', 'Bild wird geprüft …': 'Checking image …',
         'Bleibt oben angeheftet, bis der Code abläuft.': 'Stays pinned at the top until the code expires.', 'Ohne Datum bleibt er 7 Tage oben angeheftet.': 'Without a date it stays pinned for 7 days.',
         'abgelaufen': 'expired', 'gültig': 'valid', '📋 Kopieren': '📋 Copy', '✓ Kopiert': '✓ Copied', 'Angeheftet – aktueller Bonuscode': 'Pinned – current bonus code',
-        'Bonuscodes können nur Admins posten.': 'Only admins can post bonus codes.', 'Trag den Bonuscode ein.': 'Enter the bonus code.', 'Das Ablaufdatum liegt in der Vergangenheit.': 'The expiry date is in the past.',
+        'Bonuscodes können nur Admins posten.': 'Only admins can post bonus codes.', 'Fotos können nur Admins posten.': 'Only admins can post photos.', 'Angeheftet': 'Pinned', 'Oben anheften': 'Pin to top', 'Nicht mehr anheften': 'Unpin', '📢 News': '📢 News',
+        'Zum Anheften fehlt noch die Spalte „pinned“ in Supabase – bitte das SQL aus dem Chat ausführen.': 'The “pinned” column is missing in Supabase – please run the SQL from the chat.', 'Anheften wurde von Supabase abgelehnt – bitte das SQL aus dem Chat ausführen (Admin-Regel für feed_posts).': 'Supabase rejected pinning – please run the SQL from the chat (admin rule for feed_posts).', 'Trag den Bonuscode ein.': 'Enter the bonus code.', 'Das Ablaufdatum liegt in der Vergangenheit.': 'The expiry date is in the past.',
         // Konto: Name & Passwort ändern (account.js)
         'Konto': 'Account', 'Name & Passwort': 'Name & password', 'Name und Passwort ändern': 'Change name and password', '👤 Name': '👤 Name', '🔒 Passwort': '🔒 Password',
         'So sehen dich andere Spieler in Rangliste, Feed und Profil.': 'This is how other players see you in the leaderboard, feed and profile.', 'Neuer Name': 'New name',

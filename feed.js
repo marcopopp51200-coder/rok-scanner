@@ -426,6 +426,7 @@ window.RokMods.feed = (R) => {
     if (a.kind === 'kvk' && d.mode === 'stats' && !d.kp && !d.acclaim && !d.deads && !d.honor && !d.crystal) return 'Für diesen Abschnitt gibt es noch keine Zahlen – anderen Abschnitt wählen oder Werte im KvK-Bereich eintragen.';
     if (a.kind === 'aoo' && d.mode === 'match' && !d.res) return 'Wähl Sieg oder Niederlage.';
     if (a.kind === 'poll') { if (!String(d.q || '').trim()) return 'Schreib eine Frage für die Umfrage.'; if ((d.opts || []).filter((o) => String(o).trim()).length < 2) return 'Die Umfrage braucht mindestens 2 Antworten.'; }
+    if (a.kind === 'photo' && !st.admin) return 'Fotos können nur Admins posten.';
     if (a.kind === 'code') { if (!st.admin) return 'Bonuscodes können nur Admins posten.'; if (!codeNorm(d.code)) return 'Trag den Bonuscode ein.'; if (d.until && Date.parse(d.until + 'T23:59:59') < Date.now()) return 'Das Ablaufdatum liegt in der Vergangenheit.'; }
     if (a.kind === 'vip' && !(d.lv >= 1)) return d.mode === 'status' ? 'Für den VIP-Status fehlt ein VIP-Scan.' : 'Trag deine neue VIP-Stufe ein (1–20).';
     return '';
@@ -464,6 +465,16 @@ window.RokMods.feed = (R) => {
     if (a.kind === 'poll') { d.q = String(d.q || '').trim().slice(0, 140); d.opts = (d.opts || []).map((o) => String(o).trim().slice(0, 60)).filter(Boolean).slice(0, 4);
       const h = +d.dur || 0; d.dur = h; d.ends = h ? new Date(Date.now() + h * 3600e3).toISOString() : null; }
     return Object.keys(d).length ? d : null;
+  }
+  // Anheften (nur Admins) – Spalte feed_posts.pinned, Regel feed_posts_admin_update in Supabase
+  async function togglePin(id) {
+    const p = st.posts.find((x) => x.id === id); if (!p) return;
+    const next = p.pinned !== true;
+    const { data, error } = await db().from('feed_posts').update({ pinned: next }).eq('id', id).select('id');
+    if (!error && !(data || []).length) { window.UI.alert('Anheften wurde von Supabase abgelehnt – bitte das SQL aus dem Chat ausführen (Admin-Regel für feed_posts).'); return; }
+    if (error) { window.UI.alert(colMissing(error) ? 'Zum Anheften fehlt noch die Spalte „pinned“ in Supabase – bitte das SQL aus dem Chat ausführen.' : 'Anheften fehlgeschlagen: ' + (A.germanError ? A.germanError(error) : error.message)); return; }
+    p.pinned = next; renderList();
+    if (next) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   async function del(id) {
     if (!(await window.UI.confirm('Diesen Beitrag löschen?'))) return;
@@ -779,6 +790,7 @@ window.RokMods.feed = (R) => {
   const GIF_MAX = 8 * 1024 * 1024;
   async function pickPhoto(file) {
     if (!file) return;
+    if (!st.admin) { msg('Fotos können nur Admins posten.', 'warn'); return; }
     if (!/^image\//.test(file.type)) { msg('Das ist kein Bild.', 'warn'); return; }
     const gif = file.type === 'image/gif';
     if (gif && file.size > GIF_MAX) { msg(`Das GIF ist zu groß (${(file.size / 1048576).toFixed(1)} MB) – höchstens 8 MB.`, 'warn'); return; }
@@ -1309,6 +1321,7 @@ window.RokMods.feed = (R) => {
   const codeNorm = (v) => String(v || '').trim().replace(/\s+/g, '').toUpperCase().slice(0, 40);
   const CODE_PIN_MS = 7 * 86400e3;   // Codes ohne Ablaufdatum bleiben 7 Tage oben angeheftet
   const codeEnd = (p) => { const d = p && p.data; if (!d) return null; if (d.until) return Date.parse(d.until + 'T23:59:59'); return (Date.parse(p.created_at) || 0) + CODE_PIN_MS; };
+  const isPinned = (p) => !!p && (p.pinned === true || codeActive(p));
   const codeActive = (p) => !!p && p.kind === 'code' && !!p.data && Date.now() < codeEnd(p);
   const codeExpired = (p) => !!p && p.kind === 'code' && !!p.data && !!p.data.until && Date.now() >= codeEnd(p);
   const codeTile = (d, img, p) => {
@@ -1404,13 +1417,14 @@ window.RokMods.feed = (R) => {
         <button type="button" data-edit-save ${st.editBusy ? 'disabled' : ''} class="text-xs px-3 py-1 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold disabled:opacity-50">💾 Speichern</button></div></div>`;
   const postHTML = (p) => {
     const u = st.users[p.user_id] || { username: '?' }, own = p.user_id === me(), k = KIND[p.kind] || KIND.text, ed = st.edit && st.edit.kind === 'post' && st.edit.id === p.id;
-    return `<article class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3 ${codeActive(p) ? 'ring-1 ring-gold-400/50' : ''}" data-post="${esc(p.id)}">
-      ${codeActive(p) ? `<div class="-mt-1 -mx-1 flex items-center gap-2 rounded-lg bg-gold-500/10 border border-gold-400/30 px-3 py-1.5 text-[11px] text-gold-200"><span>📌</span><span>Angeheftet – aktueller Bonuscode</span></div>` : ''}
+    return `<article class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3 ${isPinned(p) ? 'ring-1 ring-gold-400/50' : ''}" data-post="${esc(p.id)}">
+      ${isPinned(p) ? `<div class="-mt-1 -mx-1 flex items-center gap-2 rounded-lg bg-gold-500/10 border border-gold-400/30 px-3 py-1.5 text-[11px] text-gold-200"><span>📌</span><span>${p.pinned === true ? 'Angeheftet' : 'Angeheftet – aktueller Bonuscode'}</span></div>` : ''}
       ${pollOver(p) ? `<div class="-mt-1 -mx-1 flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-400/30 px-3 py-1.5 text-[11px] text-emerald-200"><span>🏁</span><span>Umfrage beendet ${R.timeAgo(new Date(pollEnds(p)).toISOString())} – das Ergebnis steht fest</span></div>` : ''}
       <div class="flex items-center gap-3">
         <button type="button" data-feed-prof="${esc(p.user_id)}" class="flex items-center gap-2.5 min-w-0 text-left rounded-lg hover:bg-ink-800/60 pr-2">${R.userLine(u, 'w-10 h-10 text-base')}</button>
         <span class="ml-auto shrink-0 text-[11px] text-slate-500 text-right"><span class="block">${k[0]} ${k[1]}</span>${R.timeAgo(p.created_at)}${p.edited_at ? ' · bearbeitet' : ''}</span>
         ${own && !ed ? `<button type="button" data-feed-edit="${esc(p.id)}" title="Text bearbeiten" class="shrink-0 w-8 h-8 rounded-lg border border-ink-700 text-slate-500 hover:border-gold-500/60 hover:text-gold-300">✎</button>` : ''}
+        ${st.admin ? `<button type="button" data-feed-pin="${esc(p.id)}" title="${p.pinned === true ? 'Nicht mehr anheften' : 'Oben anheften'}" aria-pressed="${p.pinned === true}" class="shrink-0 w-8 h-8 rounded-lg border ${p.pinned === true ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-700 text-slate-500 hover:border-gold-500/60 hover:text-gold-300'}">📌</button>` : ''}
         ${own || st.admin ? `<button type="button" data-feed-del="${esc(p.id)}" title="Löschen" class="shrink-0 w-8 h-8 rounded-lg border border-ink-700 text-slate-500 hover:border-red-400/60 hover:text-red-300">✕</button>` : ''}
       </div>
       ${ed ? editBoxHTML(1000, 3) : p.body ? `<p class="text-sm text-slate-100 whitespace-pre-wrap break-words">${richText(p.body, p.mentions)}</p>` : ''}
@@ -1608,7 +1622,7 @@ window.RokMods.feed = (R) => {
       <textarea id="feedText" data-mention rows="2" maxlength="1000" placeholder="${esc(tt("Was gibt's Neues? (optional) · @ zum Markieren"))}" class="w-full bg-ink-950 border border-ink-600 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 resize-y">${esc(st.text)}</textarea>
       <div class="flex flex-wrap items-center gap-2">
         <span class="text-[11px] text-slate-500 mr-1">Anhängen:</span>
-        ${st.admin ? chip('🎁', 'Bonuscode', 'code') : ''}${chip('📷', 'Foto', 'photo')}${chip('🎨', 'Showcase', 'showcase')}${chip('⚔️', 'Set', 'set')}${chip('🏁', 'KvK-Bilanz', 'kvk')}${chip('🏛️', 'AoO', 'aoo')}
+        ${st.admin ? chip('🎁', 'Bonuscode', 'code') + chip('📷', 'Foto', 'photo') : ''}${chip('🎨', 'Showcase', 'showcase')}${chip('⚔️', 'Set', 'set')}${chip('🏁', 'KvK-Bilanz', 'kvk')}${chip('🏛️', 'AoO', 'aoo')}
         ${chip('⚒️', 'Gear-Upgrade', 'craft')}${chip('🆘', 'Help Me', 'help')}${chip('🚪', 'Pass-Start', 'pass')}${chip('🗺️', 'KvK-Karte', 'kvkmap')}${chip('⚔️', 'KP & Verdienst', 'kvkpts')}
         ${chip('<img src="/icons/ressourcen/corn.png" alt="" style="width:16px;height:16px" class="inline-block -mt-0.5 object-contain">', 'Rss', 'stock')}${chip('👑', 'VIP', 'vip')}${chip('📊', 'Umfrage', 'poll')}
         ${a ? `<button type="button" data-feed-attach="none" class="text-xs px-2.5 py-1.5 rounded-lg border border-ink-700 text-slate-400 hover:text-red-300 hover:border-red-400/60">✕ Anhang entfernen</button>` : ''}
@@ -1640,7 +1654,7 @@ window.RokMods.feed = (R) => {
   function visiblePosts() {
     const q = st.q.trim().toLowerCase();
     st.posts.forEach((p) => { if (pollOver(p)) pollEndSeen.add(p.id); });
-    return [...st.posts].sort((a, b) => (codeActive(b) - codeActive(a)) || (sortTs(b) - sortTs(a))).filter((p) => {
+    return [...st.posts].sort((a, b) => (isPinned(b) - isPinned(a)) || (sortTs(b) - sortTs(a))).filter((p) => {
       if (!matchFilter(p, st.filter)) return false;
       if (!q) return true;
       const u = st.users[p.user_id] || {};
@@ -1722,6 +1736,8 @@ window.RokMods.feed = (R) => {
     }
     if (t.closest('[data-f-codeimg]') && st.attach && st.attach.kind === 'code') { $('feedCodeFile') && $('feedCodeFile').click(); return; }
     if (t.closest('[data-f-codeimgx]') && st.attach && st.attach.kind === 'code') { delete st.attach.dataUrl; delete st.attach.gif; renderComposer(); return; }
+    const pin = t.closest('[data-feed-pin]');
+    if (pin && st.admin) { togglePin(pin.dataset.feedPin); return; }
     const cpy = t.closest('[data-copy-code]');
     if (cpy) {
       const code = cpy.dataset.copyCode, done = (ok) => { const old = cpy.textContent; cpy.textContent = ok ? '✓ Kopiert' : code; setTimeout(() => { cpy.textContent = old; }, 1600); };

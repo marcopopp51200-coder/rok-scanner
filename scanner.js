@@ -3267,7 +3267,7 @@ window.RokApp = () => {
   window.RokMods.showcase(R);
   window.RokMods.crafting(R);
   // Neue Bereiche (je eine Datei) – fehlt eine Datei, läuft der Rest trotzdem
-  ['feed', 'showcases', 'kingdom', 'helpme'].forEach((m) => { if (window.RokMods[m]) { try { window.RokMods[m](R); } catch (e) { console.error('Modul ' + m, e); } } });
+  ['feed', 'news', 'showcases', 'kingdom', 'helpme'].forEach((m) => { if (window.RokMods[m]) { try { window.RokMods[m](R); } catch (e) { console.error('Modul ' + m, e); } } });
 
   // Init
   R.renderHeaderAvatar();
@@ -3276,6 +3276,7 @@ window.RokApp = () => {
     craftAllowed = ok;
     $('craftTab').classList.toggle('hidden', !ok);
     $('mainNav').classList.toggle('grid-cols-4', ok); $('mainNav').classList.toggle('grid-cols-3', !ok);
+    $('kingdomTab').classList.toggle('col-span-3', ok); $('kingdomTab').classList.toggle('col-span-2', !ok);   // My Kingdom + 📢 News teilen sich die obere Reihe
   });
   syncTabs();
   renderHistory();
