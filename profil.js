@@ -28,7 +28,7 @@ window.RokMods.profil = (R) => {
   document.addEventListener('click', (ev) => { if (!R.$('userBox').contains(ev.target)) closeMenu(); });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeMenu(); });
   R.$('menuProfile').onclick = () => { closeMenu(); openProfile(RokAuth.userId()); };
-  R.$('menuScanner').onclick = () => { closeMenu(); R.view = 'scanner'; R.applyView(); R.showHub?.(true); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  R.$('menuScanner').onclick = () => { closeMenu(); R.view = 'scanner'; R.applyView(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   R.$('profInvNote').onclick = () => { R.view = 'kvk'; R.applyView(); const K = window.KvKCalc; if (K) { const s = K.getState(); s.tab = 'friends'; K.setState(s); K.render(); } window.scrollTo({ top: 0, behavior: 'smooth' }); };
   R.$('menuKvk').onclick = () => { closeMenu(); R.view = 'kvk'; R.applyView(); window.KvKCalc?.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   R.$('menuShowcases').onclick = () => { closeMenu(); R.goView('showcases'); };
@@ -186,7 +186,7 @@ window.RokMods.profil = (R) => {
   }
   const goRank = () => { R.view = 'feed'; R.navStack = []; R.applyView(); window.scrollTo({ top: 0, behavior: 'smooth' }); };   // Startseite = Feed
   R.$('profBack').onclick = goRank;
-  R.$('scanBack').onclick = () => { if (R.view === 'scanner' && R.scanHub === false) { R.showHub(true); window.scrollTo({ top: 0, behavior: 'smooth' }); } else goRank(); };   // im Bereich → zurück zu den Kacheln
+  R.$('scanBack').onclick = goRank;
   R.$('kvkBack').onclick = goRank;
   R.$('brandHome').onclick = goRank;
   R.$('brandHome').onkeydown = (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); goRank(); } };
@@ -400,12 +400,12 @@ window.RokMods.profil = (R) => {
     R.$('profSpeed').innerHTML = main.map(([k, label]) => {
       const c = R.SPEED.find(x => x.k === k), m = sp?.[k] || 0;
       return `<div class="rounded-xl bg-ink-950/60 border border-ink-700 p-4">
-        <div class="flex items-center gap-2 text-xs uppercase tracking-widest text-slate-400"><span class="text-lg">${R.ico ? R.ico(c, 'w-5 h-5') : c.icon}</span>${label}</div>
+        <div class="flex items-center gap-2 text-xs uppercase tracking-widest text-slate-400"><span class="text-lg">${c.icon}</span>${label}</div>
         <div class="text-2xl font-extrabold text-white tabular-nums mt-1">${sp ? R.days(m) : '–'} <span class="text-sm font-semibold text-slate-400">Tage</span></div>
         <div class="text-xs text-slate-400">${sp ? R.durText(m) : 'keine Daten'}</div>
       </div>`;
     }).join('');
-    R.$('profSpeedMinor').innerHTML = sp ? ['research', 'building'].map(k => { const c = R.SPEED.find(x => x.k === k); return `<span>${R.ico ? R.ico(c, 'w-5 h-5') : c.icon} ${c.label}: <b class="text-slate-200">${R.durText(sp[k] || 0)}</b></span>`; }).join('') : '';
+    R.$('profSpeedMinor').innerHTML = sp ? ['research', 'building'].map(k => { const c = R.SPEED.find(x => x.k === k); return `<span>${c.icon} ${c.label}: <b class="text-slate-200">${R.durText(sp[k] || 0)}</b></span>`; }).join('') : '';
     R.$('profSpeedStamp').textContent = spTs ? `Stand: ${R.dateLabel(spTs)}` : '';
     }
 

@@ -193,12 +193,12 @@ window.RokMods.crafting = (R) => {
   const gTierTxt = (r) => r.tierTo > r.tierFrom ? `T${r.tierFrom} → T${r.tierTo}` + (r.tierMissing.length ? ` (Kosten für ${r.tierMissing.map(t => 'T' + t).join(', ')} fehlen)` : '') : '';
 
   // Rauten-Brett (8 Slots wie im Spiel)
-  function gearBoard(side, set, calc, opt = {}) {
+  function gearBoard(side, set, calc) {
     return GEAR_SLOTS.map(sl => {
       const v = set[side][sl.k], it = gItem(v.item), rr = it?.rarity || v.rarity, f = it ? GFILL[rr] || GFILL.legendary : null, r = calc.rows.find(x => x.sl.k === sl.k);
-      const active = (opt.sel !== undefined ? opt.sel : gearSel[side]) === sl.k;
-      const badge = opt.badge ? opt.badge(sl) : side === 'ziel' ? { same: ['✓', '#34d399'], swap: ['⇄', '#34d399'], tierup: ['⬆', '#7dd3fc'], refine: ['✦', '#fca5a5'], craft: ['⚒', '#fde68a'] }[r.status]
-        : side !== 'ist' ? null : gearFlags[sl.k] ? ['⚠', '#fcd34d'] : r?.back ? ['♻', '#7dd3fc'] : null;
+      const active = gearSel[side] === sl.k;
+      const badge = side === 'ziel' ? { same: ['✓', '#34d399'], swap: ['⇄', '#34d399'], tierup: ['⬆', '#7dd3fc'], refine: ['✦', '#fca5a5'], craft: ['⚒', '#fde68a'] }[r.status]
+        : gearFlags[sl.k] ? ['⚠', '#fcd34d'] : r.back ? ['♻', '#7dd3fc'] : null;
       return `<button type="button" data-tile="${sl.k}" data-side="${side}" title="${R.esc(sl.label + (it ? ': ' + it.name : ''))}"
           class="gdia absolute focus:outline-none" style="left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%">
         <span class="gdia absolute inset-0" style="background:${active ? '#ffffff' : R.gFull(it, v) ? R.GOLD_RIM : f ? f[0] : '#2e3a55'}"></span>
@@ -281,7 +281,6 @@ window.RokMods.crafting = (R) => {
 
   function renderGearMain() {
     const set = activeSet();
-    renderCraftHist();
     R.$('gearSetSel').innerHTML = gear.sets.map(s => `<option value="${R.esc(s.id)}"${s.id === set.id ? ' selected' : ''}>${R.esc(s.name)}</option>`).join('');
     R.$('gearDismantle').checked = set.dismantle; R.$('gearUseChests').checked = set.useChests;
     R.$('gearDisRate').value = gearOpt.rate; R.$('gearDisRate').disabled = !set.dismantle;
@@ -386,14 +385,14 @@ window.RokMods.crafting = (R) => {
     if (ev.type === 'click' && !isBtn) return;     // Klick nur für Buttons (Refine, Bild-Auswahl)
     if (ev.type === 'change' && isBtn) return;
     if (gearPickEvent(t)) { renderGearMain(); return; }
-    const v = activeSet()[t.dataset.side][t.dataset.slot], before = t.dataset.side === 'ist' ? gSnap(v) : null;
+    const v = activeSet()[t.dataset.side][t.dataset.slot];
     if (t.dataset.f === 'clear') { v.item = ''; v.tier = 0; v.refine = 0; }
     else if (t.dataset.f === 'refset') { if (t.dataset.v) { v.refType = gRefType(t.dataset.v); v.refine = 100; } else v.refine = 0; }
-    else if (t.dataset.f === 'item') { v.item = t.dataset.v ?? t.value; const it = gItem(v.item); if (it) v.rarity = it.rarity; v.tier = 0; v.refine = 0; v.refType = v.refType || 'infantry'; }
+    else if (t.dataset.f === 'item') { v.item = t.dataset.v ?? t.value; const it = gItem(t.value); if (it) v.rarity = it.rarity; v.tier = 0; v.refine = 0; v.refType = v.refType || 'infantry'; }
     else if (t.dataset.f === 'refine') v.refine = gRefine(t.dataset.v);
     else if (t.dataset.f === 'refType') v.refType = gRefType(t.dataset.v);
     else v.tier = gTier(t.value);
-    if (t.dataset.side === 'ist') { delete gearFlags[t.dataset.slot]; logIst(activeSet(), t.dataset.slot, before, 'edit'); }
+    if (t.dataset.side === 'ist') delete gearFlags[t.dataset.slot];
     saveGear(); renderGearMain();
   };
   ['gearIstEdit', 'gearZielEdit'].forEach(id => { R.$(id).addEventListener('change', gearEdit); R.$(id).addEventListener('click', gearEdit); });
@@ -497,7 +496,7 @@ window.RokMods.crafting = (R) => {
     return best;
   }
   function applyGearScan(r) {
-    const src = r.slots || r.equipment || r, set = activeSet(), before = Object.fromEntries(GEAR_SLOTS.map(sl => [sl.k, gSnap(set.ist[sl.k])]));
+    const src = r.slots || r.equipment || r, set = activeSet();
     gearFlags = {}; let hit = 0, seen = 0;
     GEAR_SLOTS.forEach(sl => {
       let info = src[sl.k];
@@ -520,7 +519,6 @@ window.RokMods.crafting = (R) => {
     if (!seen) throw new Error('Keine Ausrüstung im Screenshot erkannt. Bitte die Slots von Hand wählen.');
     const firstFlag = GEAR_SLOTS.find(sl => gearFlags[sl.k]);
     if (firstFlag) gearSel.ist = firstFlag.k;
-    GEAR_SLOTS.forEach(sl => logIst(set, sl.k, before[sl.k], 'scan'));
     saveGear(); renderGearMain();
     return { hit, seen };
   }
@@ -557,331 +555,5 @@ window.RokMods.crafting = (R) => {
   ['dragleave', 'drop'].forEach(e => gDrop.addEventListener(e, ev => { ev.preventDefault(); if (e === 'drop' || !gDrop.contains(ev.relatedTarget)) gDrop.classList.remove('drop-active'); }));
   gDrop.addEventListener('drop', ev => gearScan(ev.dataTransfer.files));
   R.$('gearFile').addEventListener('change', ev => { gearScan(ev.target.files); ev.target.value = ''; });
-
-  // ================= Craft-Verlauf (eigenes Fenster im Craft-Tab) =================
-  // Seite 1 „History“: eigene History-Einträge (Set wählen → Item antippen → Tier/Refine frei setzen → hinzufügen),
-  //   dazu automatische Einträge bei Änderungen der Ist-Ausrüstung im Planer und Screenshot-Einträge.
-  // Seite 2 „Gespeicherte Sets“: alle Sets mit Datum sichern, später ansehen, mit heute vergleichen oder wieder laden.
-  // Speicher: Keys "rok_scanner_gear_history" / "rok_scanner_gear_snaps" → landen über LS.set automatisch in public.user_state.
-  const GEAR_HIST = 'rok_scanner_gear_history', GEAR_SNAPS = 'rok_scanner_gear_snaps', HIST_MAX = 400, SNAP_MAX = 60, HIST_MERGE = 15 * 60e3;
-  const gSnap = (v) => ({ item: String(v?.item || ''), name: gItem(v?.item)?.name || String(v?.name || ''), rarity: R.gRar(v?.rarity), tier: gTier(v?.tier), refine: gRefine(v?.refine), refType: gRefType(v?.refType) });
-  const gSame = (a, b) => a.item === b.item && (!a.item || (a.tier === b.tier && a.refine === b.refine && (!a.refine || a.refType === b.refType)));
-  const hNormCh = (c) => c && GEAR_SLOTS.some(s => s.k === c.slot) ? { slot: c.slot, from: gSnap(c.from || {}), to: gSnap(c.to || {}) } : null;
-  const hNorm = (e) => e && typeof e === 'object' && e.id ? {
-    id: String(e.id), ts: +e.ts || Date.now(), kind: ['auto', 'manual', 'hist'].includes(e.kind) ? e.kind : 'auto', src: e.src === 'scan' ? 'scan' : 'edit',
-    setId: String(e.setId || ''), setName: String(e.setName || '').slice(0, 40), slot: GEAR_SLOTS.some(s => s.k === e.slot) ? e.slot : '',
-    changes: (Array.isArray(e.changes) ? e.changes : e.slot && (e.from || e.to) ? [{ slot: e.slot, from: e.from, to: e.to }] : []).map(hNormCh).filter(Boolean),
-    note: String(e.note || '').slice(0, 500),
-    imgs: Array.isArray(e.imgs) ? e.imgs.filter(u => typeof u === 'string' && /^(https:\/\/|data:image\/jpeg;base64,)/.test(u)).slice(0, 6) : [] } : null;
-  let chist = [];
-  try { const h = JSON.parse(R.LS.get(GEAR_HIST, '[]')); if (Array.isArray(h)) chist = h.map(hNorm).filter(Boolean); } catch {}
-  const saveHist = () => { chist.sort((a, b) => b.ts - a.ts); if (chist.length > HIST_MAX) chist.length = HIST_MAX; R.LS.set(GEAR_HIST, JSON.stringify(chist)); };
-  const cloudSave = () => { try { RokAuth.saveNow?.('gear'); } catch {} };
-  // Änderung eines Ist-Slots im Planer eintragen; mehrere Klicks am selben Slot innerhalb von 15 Min. = ein Eintrag
-  function logIst(set, slot, before, src) {
-    if (!before) return;
-    const after = gSnap(set.ist[slot]), now = Date.now();
-    const prev = chist.find(e => e.kind === 'auto' && e.setId === set.id && e.slot === slot && now - e.ts < HIST_MERGE && e.changes.length === 1);
-    if (prev) { prev.changes[0].to = after; prev.ts = now; prev.setName = set.name; if (src === 'scan') prev.src = 'scan'; if (gSame(prev.changes[0].from, after)) chist = chist.filter(e => e !== prev); }
-    else { if (gSame(before, after)) return; chist.unshift({ id: R.newId(), ts: now, kind: 'auto', src, setId: set.id, setName: set.name, slot, changes: [{ slot, from: before, to: after }], note: '', imgs: [] }); }
-    saveHist();
-  }
-
-  // ---- Darstellung: kleine Item-Symbole und Änderungstexte ----
-  const hSlot = (k) => GEAR_SLOTS.find(s => s.k === k);
-  const hIcon = (v) => { const it = gItem(v?.item), f = GFILL[it?.rarity || v?.rarity] || GFILL.legendary;
-    return `<span class="relative shrink-0 w-11 h-11 rounded-lg grid place-items-center border border-ink-700" style="background:${it || v?.item ? `radial-gradient(circle at 50% 40%, ${f[1]}55, ${f[2]}44)` : '#111725'}" title="${R.esc(it?.name || v?.name || 'leer')}">
-      ${it?.icon ? `<img src="${it.icon}" alt="" loading="lazy" class="w-9 h-9 object-contain">` : `<span class="text-base opacity-50">${v?.item ? '❔' : '∅'}</span>`}
-      ${v?.item && v.tier ? `<span class="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1 rounded bg-ink-950/90 border border-gold-400/70 text-[9px] font-extrabold text-gold-300 leading-3">${ROMAN[v.tier - 1]}</span>` : ''}
-      ${v?.item && v.refine ? `<img src="${REFTYPES[v.refType]?.img || REFTYPES.infantry.img}" alt="" class="absolute -top-1 -right-1 w-4 h-4">` : ''}</span>`; };
-  const hName = (v) => R.esc(gItem(v?.item)?.name || v?.name || 'Item');
-  function hChanges(a, b) {                                   // was hat sich geändert? → [[Text, Farbe], …]
-    const out = [];
-    if (!b?.item && a?.item) return [[`✕ ${hName(a)} entfernt`, 'text-slate-400']];
-    if (b?.item && !a?.item) out.push([`⚒ ${hName(b)} neu`, 'text-gold-300']);
-    else if (a?.item !== b?.item) out.push([`⚒ ${hName(a)} → ${hName(b)}`, 'text-gold-300']);
-    if (b?.item) {
-      const tf = a?.item === b.item ? a.tier : 0;
-      if (b.tier > tf) out.push([`⬆ Tier T${tf} → T${b.tier}`, 'text-sky-300']);
-      else if (b.tier < tf) out.push([`⬇ Tier T${tf} → T${b.tier}`, 'text-slate-400']);
-      const rf = a?.item === b.item ? a.refine : 0;
-      if (b.refine && (!rf || a.refType !== b.refType)) out.push([`✦ Refine ${REFTYPES[b.refType]?.label || ''}`, 'text-red-300']);
-      else if (!b.refine && rf) out.push(['Refine entfernt', 'text-slate-400']);
-    }
-    return out.length ? out : [['Geändert', 'text-slate-300']];
-  }
-  const hChangeRow = (c) => { const sl = hSlot(c.slot);
-    return `<div class="flex items-center gap-2 py-1">
-      <span class="w-20 shrink-0 text-[11px] text-slate-400 leading-tight">${sl.icon} ${sl.label}</span>
-      ${hIcon(c.from)}<span class="text-slate-500">→</span>${hIcon(c.to)}
-      <div class="min-w-0 space-y-0.5">${hChanges(c.from, c.to).map(([t, cl]) => `<div class="text-sm font-semibold ${cl} truncate">${t}</div>`).join('')}</div></div>`; };
-  const hDay = (ts) => new Date(ts).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
-  const hTime = (ts) => new Date(ts).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-  const hChip = (on) => `px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${on ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-700 text-slate-400 hover:text-gold-300'}`;
-
-  // ---- Fenster umschalten: Planer | Craft-Verlauf, und darin Seite History | Gespeicherte Sets ----
-  let craftPane = 'plan', chPage = 'hist';
-  function renderCraftPanes() {
-    R.$('craftPlanPane').classList.toggle('hidden', craftPane !== 'plan');
-    R.$('craftHistPane').classList.toggle('hidden', craftPane !== 'hist');
-    document.querySelectorAll('[data-cpane]').forEach(b => { const on = b.dataset.cpane === craftPane;
-      b.className = `px-4 py-2 rounded-lg text-sm font-semibold transition ${on ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'}`; });
-    R.$('chPageHist').classList.toggle('hidden', chPage !== 'hist');
-    R.$('chPageSnaps').classList.toggle('hidden', chPage !== 'snaps');
-    document.querySelectorAll('[data-chpage]').forEach(b => { const on = b.dataset.chpage === chPage;
-      b.className = `px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${on ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-transparent text-slate-400 hover:text-gold-300'}`; });
-    if (craftPane === 'hist') { renderCraftHist(); renderHistEditor(); renderSnaps(); }
-  }
-  document.querySelectorAll('[data-cpane]').forEach(b => b.onclick = () => { craftPane = b.dataset.cpane; renderCraftPanes(); });
-  document.querySelectorAll('[data-chpage]').forEach(b => b.onclick = () => { chPage = b.dataset.chpage; renderCraftPanes(); });
-
-  // ---- Seite 1: Liste ----
-  const hf = { set: 'all', kind: 'all', limit: 25 };
-  const HKIND = { hist: ['⚒ History', 'border-gold-500/30 bg-gold-500/5'], auto: ['✎ Dashboard', 'border-ink-700 bg-ink-950/40'], manual: ['📷 Screenshot', 'border-sky-500/25 bg-sky-500/5'] };
-  function renderCraftHist() {
-    const box = R.$('craftHistList'); if (!box) return;
-    R.$('craftHistSet').innerHTML = `<option value="all">Alle Sets</option>` + gear.sets.map(s => `<option value="${R.esc(s.id)}"${hf.set === s.id ? ' selected' : ''}>${R.esc(s.name)}</option>`).join('');
-    if (hf.set !== 'all' && !gear.sets.some(s => s.id === hf.set)) hf.set = 'all';
-    R.$('craftHistSet').value = hf.set;
-    R.$('craftHistKind').querySelectorAll('[data-hk]').forEach(b => { b.className = hChip(b.dataset.hk === hf.kind); });
-    const list = chist.filter(e => (hf.set === 'all' || e.setId === hf.set) && (hf.kind === 'all' || e.kind === hf.kind));
-    R.$('craftHistCount').textContent = `${list.length} ${list.length === 1 ? 'Eintrag' : 'Einträge'}`;
-    if (!list.length) { box.innerHTML = `<div class="py-8 text-center text-sm text-slate-500">Noch nichts in der History.<br><span class="text-xs">Mit „+ Neue History“ ein Set wählen, Item antippen, Tier/Refine einstellen und hinzufügen.</span></div>`; return; }
-    let day = '', html = '';
-    list.slice(0, hf.limit).forEach(e => {
-      const d = hDay(e.ts); if (d !== day) { day = d; html += `<div class="pt-3 pb-1 text-[11px] uppercase tracking-widest text-slate-500">${d}</div>`; }
-      const k = HKIND[e.kind], sl = hSlot(e.slot);
-      html += `<div class="rounded-xl border ${k[1]} p-3">
-        <div class="flex items-start justify-between gap-2">
-          <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-400">
-            <span class="tabular-nums text-slate-200 font-semibold">${hTime(e.ts)}</span>
-            ${e.setName ? `<span class="px-1.5 rounded border border-ink-600 text-slate-300" translate="no">${R.esc(e.setName)}</span>` : ''}
-            ${e.kind === 'manual' && sl ? `<span>${sl.icon} ${sl.label}</span>` : ''}
-            <span class="${e.kind === 'hist' ? 'text-gold-300' : e.kind === 'manual' ? 'text-sky-300' : 'text-slate-500'}">${e.kind === 'auto' && e.src === 'scan' ? '🤖 per Scan' : k[0]}</span></div>
-          <div class="flex gap-1 shrink-0">
-            <button type="button" data-hnote="${R.esc(e.id)}" class="text-slate-500 hover:text-gold-300 px-1 text-xs" title="Notiz bearbeiten">✎</button>
-            <button type="button" data-hdel="${R.esc(e.id)}" class="text-slate-500 hover:text-red-400 px-1 text-xs" title="Eintrag löschen">✕</button></div></div>
-        ${e.changes.length ? `<div class="mt-1 divide-y divide-ink-800">${e.changes.map(hChangeRow).join('')}</div>` : ''}
-        ${e.note ? `<div class="mt-2 text-sm text-slate-200 whitespace-pre-line break-words">${R.esc(e.note)}</div>` : ''}
-        ${e.imgs.length ? `<div class="mt-2 flex flex-wrap gap-2">${e.imgs.map((u, i) => `<button type="button" data-himg="${R.esc(e.id)}:${i}" class="w-20 h-20 rounded-lg overflow-hidden border border-ink-700 hover:border-gold-500/60"><img src="${R.esc(u)}" alt="Screenshot" loading="lazy" class="w-full h-full object-cover"></button>`).join('')}</div>` : ''}
-      </div>`;
-    });
-    if (list.length > hf.limit) html += `<button type="button" data-hmore class="w-full mt-2 py-2 rounded-lg border border-ink-700 text-xs text-slate-400 hover:text-gold-300 hover:border-gold-500/60">Ältere anzeigen (${list.length - hf.limit} weitere)</button>`;
-    box.innerHTML = html;
-  }
-  R.$('craftHistSet').onchange = () => { hf.set = R.$('craftHistSet').value; hf.limit = 25; renderCraftHist(); };
-  R.$('craftHistKind').addEventListener('click', (ev) => { const b = ev.target.closest('[data-hk]'); if (!b) return; hf.kind = b.dataset.hk; hf.limit = 25; renderCraftHist(); });
-  const hLightbox = (src) => { const ov = document.createElement('div'); ov.className = 'fixed inset-0 z-[100] bg-black/85 grid place-items-center p-4 cursor-zoom-out';
-    ov.innerHTML = `<img src="${R.esc(src)}" alt="" class="max-w-full max-h-full rounded-lg shadow-2xl">`; ov.onclick = () => ov.remove(); document.body.appendChild(ov); };
-  R.$('craftHistList').addEventListener('click', async (ev) => {
-    const t = ev.target;
-    if (t.closest('[data-hmore]')) { hf.limit += 25; renderCraftHist(); return; }
-    const im = t.closest('[data-himg]');
-    if (im) { const [eid, i] = im.dataset.himg.split(':'), e = chist.find(x => x.id === eid); if (e) hLightbox(e.imgs[+i]); return; }
-    const nb = t.closest('[data-hnote]');
-    if (nb) { const e = chist.find(x => x.id === nb.dataset.hnote); if (!e) return;
-      const v = await UI.prompt('Notiz zu diesem Eintrag:', e.note); if (v == null) return;
-      e.note = v.trim().slice(0, 500); saveHist(); renderCraftHist(); return; }
-    const db = t.closest('[data-hdel]');
-    if (db) { const e = chist.find(x => x.id === db.dataset.hdel); if (!e) return;
-      if (!(await UI.confirm('Diesen Eintrag aus der History löschen?'))) return;
-      chist = chist.filter(x => x !== e); saveHist(); renderCraftHist();
-      const base = RokAuth.imgBase?.(), paths = e.imgs.filter(u => base && u.startsWith(base)).map(u => u.slice(base.length).split('?')[0]);
-      if (paths.length) try { await RokAuth.db().storage.from('showcase').remove(paths); } catch {}
-    }
-  });
-
-  // ---- Seite 1: Neue History (Set wählen → Item antippen → Tier/Refine → hinzufügen) ----
-  const hd = { open: false, setId: '', slots: null };
-  const hdSet = () => gear.sets.find(s => s.id === hd.setId) || null;
-  const hdLoad = (id) => { const s = gear.sets.find(x => x.id === id) || activeSet(); hd.setId = s.id; hd.slots = JSON.parse(JSON.stringify(s.ist)); gearSel.hist = gearSel.hist || 'helm'; };
-  const hdChanges = () => { const s = hdSet(); return s && hd.slots ? GEAR_SLOTS.map(sl => ({ slot: sl.k, from: gSnap(s.ist[sl.k]), to: gSnap(hd.slots[sl.k]) })).filter(c => !gSame(c.from, c.to)) : []; };
-  const hMsg = (t, ok = true) => R.flash(R.$('craftHistMsg'), R.esc(t), ok);
-  function renderHistEditor() {
-    R.$('chNew').classList.toggle('hidden', !hd.open);
-    R.$('chNewBtn').classList.toggle('hidden', hd.open);
-    if (!hd.open) return;
-    if (!hdSet()) hdLoad(gear.active);
-    R.$('chSet').innerHTML = gear.sets.map(s => `<option value="${R.esc(s.id)}"${s.id === hd.setId ? ' selected' : ''}>${R.esc(s.name)}</option>`).join('');
-    const ch = hdChanges(), changed = new Set(ch.map(c => c.slot)), hset = { hist: hd.slots };
-    R.$('chBoard').innerHTML = gearBoard('hist', hset, { rows: [] }, { badge: (sl) => changed.has(sl.k) ? ['✎', '#fde68a'] : null });
-    R.$('chEdit').innerHTML = gearEditor('hist', hset, { rows: GEAR_SLOTS.map(sl => ({ sl, status: 'none' })) });
-    R.$('chDiff').innerHTML = ch.length ? `<div class="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Wird eingetragen (${ch.length})</div><div class="divide-y divide-ink-800">${ch.map(hChangeRow).join('')}</div>`
-      : '<div class="text-xs text-slate-500">Noch keine Änderung – tippe ein Item an und stell Tier oder Refine ein.</div>';
-    R.$('chAdd').disabled = !ch.length;
-  }
-  R.$('chNewBtn').onclick = () => { hd.open = true; hdLoad(gear.active); renderHistEditor(); };
-  R.$('chCancel').onclick = () => { hd.open = false; renderHistEditor(); };
-  R.$('chReset').onclick = () => { hdLoad(hd.setId); renderHistEditor(); };
-  R.$('chSet').onchange = async () => {
-    if (hdChanges().length && !(await UI.confirm('Set wechseln? Die noch nicht hinzugefügten Änderungen gehen verloren.'))) { R.$('chSet').value = hd.setId; return; }
-    hdLoad(R.$('chSet').value); renderHistEditor();
-  };
-  R.$('chBoard').addEventListener('click', (ev) => { const t = ev.target.closest('[data-tile]'); if (!t) return; gearSel.hist = t.dataset.tile; renderHistEditor(); });
-  const hdEdit = (ev) => {
-    const t = ev.target.closest('[data-slot]'); if (!t || t.disabled) return;
-    const isBtn = t.tagName === 'BUTTON';
-    if ((ev.type === 'click' && !isBtn) || (ev.type === 'change' && isBtn)) return;
-    if (gearPickEvent(t)) { renderHistEditor(); return; }
-    const v = hd.slots[t.dataset.slot]; if (!v) return;
-    if (t.dataset.f === 'clear') { v.item = ''; v.tier = 0; v.refine = 0; }
-    else if (t.dataset.f === 'refset') { if (t.dataset.v) { v.refType = gRefType(t.dataset.v); v.refine = 100; } else v.refine = 0; }
-    else if (t.dataset.f === 'item') { v.item = t.dataset.v ?? t.value; const it = gItem(v.item); if (it) v.rarity = it.rarity; v.tier = 0; v.refine = 0; v.refType = v.refType || 'infantry'; }
-    else if (t.dataset.f === 'tier') v.tier = gTier(t.value);
-    renderHistEditor();
-  };
-  R.$('chEdit').addEventListener('change', hdEdit); R.$('chEdit').addEventListener('click', hdEdit);
-  R.$('chAdd').onclick = () => {
-    const s = hdSet(), ch = hdChanges(); if (!s || !ch.length) return;
-    chist.unshift({ id: R.newId(), ts: Date.now(), kind: 'hist', src: 'edit', setId: s.id, setName: s.name, slot: '', changes: ch, note: R.$('chNote').value.trim().slice(0, 500), imgs: [] });
-    saveHist();
-    if (R.$('chApply').checked) { GEAR_SLOTS.forEach(sl => { s.ist[sl.k] = { ...hd.slots[sl.k] }; }); s.updated = Date.now(); R.LS.set(GEAR_SETS, JSON.stringify(gear)); }
-    cloudSave();
-    R.$('chNote').value = ''; hd.open = false; hf.kind = hf.kind === 'auto' || hf.kind === 'manual' ? 'all' : hf.kind;
-    renderGearMain(); renderHistEditor();
-    hMsg(`✓ ${ch.length} ${ch.length === 1 ? 'Änderung' : 'Änderungen'} am ${hDay(Date.now())} um ${hTime(Date.now())} zur History hinzugefügt`);
-  };
-
-  // ---- Seite 1: Screenshot-Eintrag ----
-  const hDraft = { slot: '', files: [] };
-  const hLocalNow = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
-  function hShrink(file, max) {                             // Bild verkleinern → JPEG-Blob
-    return new Promise((ok, bad) => { const url = URL.createObjectURL(file), img = new Image();
-      img.onload = () => { const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas');
-        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
-        c.toBlob(b => b ? ok(b) : bad(new Error('Bild konnte nicht umgewandelt werden.')), 'image/jpeg', 0.85); };
-      img.onerror = () => { URL.revokeObjectURL(url); bad(new Error('Bild konnte nicht gelesen werden.')); }; img.src = url; });
-  }
-  function renderHDraft() {
-    R.$('craftHistPrev').innerHTML = hDraft.files.map((f, i) => `<span class="relative w-16 h-16 rounded-lg overflow-hidden border border-ink-700"><img src="${f.url}" alt="" class="w-full h-full object-cover">
-      <button type="button" data-hrm="${i}" class="absolute top-0 right-0 w-5 h-5 grid place-items-center rounded-bl bg-ink-950/90 text-[11px] text-slate-300 hover:text-red-400">✕</button></span>`).join('');
-  }
-  const hAddFiles = (fl) => { [...(fl || [])].filter(f => f && f.type.startsWith('image/')).forEach(f => { if (hDraft.files.length < 6) hDraft.files.push({ file: f, url: URL.createObjectURL(f) }); }); renderHDraft(); };
-  R.$('craftHistFile').addEventListener('change', (ev) => { hAddFiles(ev.target.files); ev.target.value = ''; });
-  const hDrop = R.$('craftHistForm');
-  ['dragenter', 'dragover'].forEach(e => hDrop.addEventListener(e, ev => { ev.preventDefault(); hDrop.classList.add('drop-active'); }));
-  ['dragleave', 'drop'].forEach(e => hDrop.addEventListener(e, ev => { ev.preventDefault(); if (e === 'drop' || !hDrop.contains(ev.relatedTarget)) hDrop.classList.remove('drop-active'); }));
-  hDrop.addEventListener('drop', ev => hAddFiles(ev.dataTransfer.files));
-  R.$('craftHistPrev').addEventListener('click', (ev) => { const b = ev.target.closest('[data-hrm]'); if (!b) return; const [f] = hDraft.files.splice(+b.dataset.hrm, 1); if (f) URL.revokeObjectURL(f.url); renderHDraft(); });
-  R.$('craftHistSlot').onchange = () => { hDraft.slot = R.$('craftHistSlot').value; };
-  R.$('craftHistOpen').onclick = () => { const f = R.$('craftHistForm'); f.classList.toggle('hidden');
-    if (!f.classList.contains('hidden')) { R.$('craftHistSlot').innerHTML = `<option value="">– kein bestimmter Slot –</option>` + GEAR_SLOTS.map(s => `<option value="${s.k}">${s.icon} ${s.label}</option>`).join(''); R.$('craftHistSlot').value = hDraft.slot;
-      R.$('craftHistDate').value = R.$('craftHistDate').dataset.def = hLocalNow(); R.$('craftHistNote').focus(); } };
-  R.$('craftHistCancel').onclick = () => { R.$('craftHistForm').classList.add('hidden'); };
-  R.$('craftHistForm').onsubmit = async (ev) => {
-    ev.preventDefault();
-    const note = R.$('craftHistNote').value.trim().slice(0, 500), btn = R.$('craftHistSave');
-    if (!note && !hDraft.files.length) { hMsg('Bitte einen Screenshot hinzufügen oder eine Notiz schreiben.', false); return; }
-    const dv = R.$('craftHistDate').value, ts = dv === R.$('craftHistDate').dataset.def ? Date.now() : Date.parse(dv) || Date.now(), set = activeSet(), id = R.newId(), imgs = [];
-    btn.disabled = true; btn.textContent = hDraft.files.length ? 'Lädt hoch …' : 'Speichert …';
-    try {
-      for (let i = 0; i < hDraft.files.length; i++) {
-        const blob = await hShrink(hDraft.files[i].file, 1600);
-        try { imgs.push(await RokAuth.uploadImage(blob, `crafthist_${id}_${i}`)); }
-        catch (e) { throw new Error(/eingeloggt/i.test(e.message || '') ? 'Zum Hochladen von Screenshots bitte einloggen.' : 'Upload fehlgeschlagen: ' + (RokAuth.germanError ? RokAuth.germanError(e) : e.message || e)); }
-      }
-      chist.push({ id, ts, kind: 'manual', src: 'edit', setId: set.id, setName: set.name, slot: hDraft.slot, changes: [], note, imgs });
-      saveHist(); cloudSave();
-      hDraft.files.forEach(f => URL.revokeObjectURL(f.url)); hDraft.files = []; hDraft.slot = ''; R.$('craftHistNote').value = '';
-      R.$('craftHistForm').classList.add('hidden'); renderHDraft(); renderCraftHist(); hMsg('✓ Screenshot-Eintrag gespeichert');
-    } catch (e) { hMsg(e.message || String(e), false); }
-    finally { btn.disabled = false; btn.textContent = '💾 Eintrag speichern'; }
-  };
-
-  // ---- Seite 2: Gespeicherte Sets (Sicherungen mit Datum) ----
-  const snNorm = (x) => x && x.id && Array.isArray(x.sets) ? { id: String(x.id), ts: +x.ts || Date.now(), name: String(x.name || '').slice(0, 50), sets: x.sets.map(gNormSet) } : null;
-  let snaps = [];
-  try { const s = JSON.parse(R.LS.get(GEAR_SNAPS, '[]')); if (Array.isArray(s)) snaps = s.map(snNorm).filter(Boolean); } catch {}
-  const saveSnaps = () => { snaps.sort((a, b) => b.ts - a.ts); if (snaps.length > SNAP_MAX) snaps.length = SNAP_MAX; R.LS.set(GEAR_SNAPS, JSON.stringify(snaps)); };
-  const snTake = (name) => ({ id: R.newId(), ts: Date.now(), name, sets: gear.sets.map(s => gNormSet(JSON.parse(JSON.stringify(s)))) });
-  const snUi = { open: '', set: {} };
-  // Fortschritt eines Sets zwischen damals (a) und heute (b)
-  function snProgress(a, b) {
-    const p = { tiers: 0, items: 0, refines: 0, changes: [] };
-    if (!a || !b) return p;
-    GEAR_SLOTS.forEach(sl => {
-      const x = gSnap(a.ist[sl.k]), y = gSnap(b.ist[sl.k]); if (gSame(x, y)) return;
-      p.changes.push({ slot: sl.k, from: x, to: y });
-      if (!y.item) return;
-      const same = x.item === y.item;
-      if (!same) p.items++;
-      p.tiers += Math.max(0, y.tier - (same ? x.tier : 0));
-      if (y.refine && !(same && x.refine && x.refType === y.refType)) p.refines++;
-    });
-    return p;
-  }
-  const snSum = (p) => [p.tiers ? `+${p.tiers} Tier-${p.tiers === 1 ? 'Stufe' : 'Stufen'}` : '', p.items ? `${p.items} ${p.items === 1 ? 'neues Item' : 'neue Items'}` : '', p.refines ? `${p.refines} Refine` : ''].filter(Boolean).join(' · ');
-  const snBoard = (slots, changed) => `<div class="relative mx-auto w-full max-w-[220px] aspect-[1/2] pointer-events-none">${gearBoard('snap', { snap: slots }, { rows: [] }, { sel: null, badge: (sl) => changed?.has(sl.k) ? ['⬆', '#7dd3fc'] : null })}</div>`;
-  function renderSnaps() {
-    const box = R.$('chSnapList'); if (!box) return;
-    if (!snaps.length) { box.innerHTML = `<div class="panel rounded-2xl p-8 text-center text-sm text-slate-500">Noch keine Sicherung.<br><span class="text-xs">„💾 Alle Sets sichern“ speichert alle deine Sets mit Datum – später kannst du sie wieder laden und deinen Fortschritt sehen.</span></div>`; return; }
-    box.innerHTML = snaps.map(sn => {
-      const total = { tiers: 0, items: 0, refines: 0 };
-      sn.sets.forEach(s => { const p = snProgress(s, gear.sets.find(x => x.id === s.id)); total.tiers += p.tiers; total.items += p.items; total.refines += p.refines; });
-      const sum = snSum(total), open = snUi.open === sn.id;
-      let detail = '';
-      if (open) {
-        const selId = sn.sets.some(s => s.id === snUi.set[sn.id]) ? snUi.set[sn.id] : sn.sets[0]?.id, then = sn.sets.find(s => s.id === selId), now = gear.sets.find(s => s.id === selId);
-        const p = snProgress(then, now), changed = new Set(p.changes.map(c => c.slot));
-        detail = `<div class="mt-4 border-t border-ink-700 pt-4">
-          <div class="flex flex-wrap gap-1.5">${sn.sets.map(s => `<button type="button" data-snset="${R.esc(sn.id)}:${R.esc(s.id)}" class="${hChip(s.id === selId)}" translate="no">${R.esc(s.name)}</button>`).join('')}</div>
-          ${then ? `<div class="mt-4 grid grid-cols-2 gap-3">
-            <div><div class="text-center text-[11px] uppercase tracking-widest text-slate-400 mb-2">Damals · ${R.dateLabel(sn.ts)}</div>${snBoard(then.ist)}</div>
-            <div><div class="text-center text-[11px] uppercase tracking-widest text-slate-400 mb-2">Heute</div>${now ? snBoard(now.ist, changed) : '<div class="h-full grid place-items-center text-xs text-slate-500 text-center px-2">Dieses Set gibt es im Planer nicht mehr.</div>'}</div>
-          </div>
-          ${now ? `<div class="mt-3">${p.changes.length ? `<div class="text-sm font-semibold text-emerald-300 mb-1">Fortschritt seitdem: ${snSum(p) || 'geändert'}</div><div class="divide-y divide-ink-800">${p.changes.map(hChangeRow).join('')}</div>` : '<div class="text-sm text-slate-400">Seitdem keine Änderung an diesem Set.</div>'}</div>` : ''}
-          <div class="mt-3 flex flex-wrap gap-2">
-            <button type="button" data-sncopy="${R.esc(sn.id)}:${R.esc(then.id)}" class="text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">⤓ Dieses Set als Kopie in den Planer laden</button>
-          </div>` : ''}
-        </div>`;
-      }
-      return `<section class="panel rounded-2xl p-4 ${open ? 'ring-1 ring-gold-500/30' : ''}">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <button type="button" data-snopen="${R.esc(sn.id)}" class="min-w-0 flex-1 text-left">
-            <div class="flex flex-wrap items-baseline gap-x-2"><span class="font-display text-lg gold-text">${R.esc(sn.name || 'Sicherung')}</span><span class="text-xs text-slate-400 tabular-nums">${hDay(sn.ts)} · ${hTime(sn.ts)}</span></div>
-            <div class="text-xs text-slate-400 mt-0.5">${sn.sets.length} ${sn.sets.length === 1 ? 'Set' : 'Sets'} · ${sum ? `<span class="text-emerald-300 font-semibold">seitdem ${sum}</span>` : 'seitdem kein Fortschritt'} <span class="text-gold-300 ml-1">${open ? '▲ zuklappen' : '▼ ansehen'}</span></div>
-          </button>
-          <div class="flex gap-2">
-            <button type="button" data-snrestore="${R.esc(sn.id)}" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300" title="Alle Sets aus dieser Sicherung wieder in den Planer laden">↺ Wiederherstellen</button>
-            <button type="button" data-sndel="${R.esc(sn.id)}" class="text-xs px-2 py-2 rounded-lg border border-red-500/30 text-red-300 hover:bg-red-500/10" title="Sicherung löschen">🗑</button>
-          </div>
-        </div>${detail}</section>`;
-    }).join('');
-  }
-  const snMsg = (t, ok = true) => R.flash(R.$('chSnapMsg'), R.esc(t), ok);
-  R.$('chSnapForm').onsubmit = (ev) => {
-    ev.preventDefault();
-    const sn = snTake(R.$('chSnapName').value.trim().replace(/\s+/g, ' ').slice(0, 50));
-    snaps.unshift(sn); saveSnaps(); cloudSave();
-    R.$('chSnapName').value = ''; snUi.open = sn.id; renderSnaps();
-    snMsg(`✓ ${sn.sets.length} ${sn.sets.length === 1 ? 'Set' : 'Sets'} gesichert am ${hDay(sn.ts)} um ${hTime(sn.ts)}`);
-  };
-  R.$('chSnapList').addEventListener('click', async (ev) => {
-    const t = ev.target, b = (a) => t.closest(`[data-${a}]`);
-    if (b('snopen')) { const id = b('snopen').dataset.snopen; snUi.open = snUi.open === id ? '' : id; renderSnaps(); return; }
-    if (b('snset')) { const [sid, setId] = b('snset').dataset.snset.split(':'); snUi.set[sid] = setId; renderSnaps(); return; }
-    if (b('sncopy')) {
-      const [sid, setId] = b('sncopy').dataset.sncopy.split(':'), sn = snaps.find(x => x.id === sid), s = sn?.sets.find(x => x.id === setId); if (!s) return;
-      let name = `${s.name} (${new Date(sn.ts).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })})`.slice(0, 40), n = 2;
-      while (gear.sets.some(x => x.name.toLowerCase() === name.toLowerCase())) name = `${s.name.slice(0, 32)} (${n++})`;
-      const c = gNormSet({ ...JSON.parse(JSON.stringify(s)), id: R.newId(), name }); gear.sets.push(c); gear.active = c.id;
-      R.LS.set(GEAR_SETS, JSON.stringify(gear)); cloudSave(); renderGearMain();
-      snMsg(`✓ Set „${name}“ in den Planer geladen`); return;
-    }
-    if (b('snrestore')) {
-      const sn = snaps.find(x => x.id === b('snrestore').dataset.snrestore); if (!sn) return;
-      if (!(await UI.confirm(`Alle Sets aus der Sicherung vom ${hDay(sn.ts)} wiederherstellen?\n\nDeine jetzigen Sets werden vorher automatisch gesichert.`))) return;
-      snaps.unshift(snTake('Automatisch vor Wiederherstellen'));
-      gear.sets = sn.sets.map(s => gNormSet(JSON.parse(JSON.stringify(s)))); gear.active = gear.sets[0]?.id; if (!gear.sets.length) { gear.sets.push(newGearSet('Neues Set')); gear.active = gear.sets[0].id; }
-      gearFlags = {}; R.LS.set(GEAR_SETS, JSON.stringify(gear)); saveSnaps(); cloudSave(); renderGearMain(); renderSnaps();
-      snMsg(`✓ Sets vom ${hDay(sn.ts)} wiederhergestellt`); return;
-    }
-    if (b('sndel')) {
-      const sn = snaps.find(x => x.id === b('sndel').dataset.sndel); if (!sn) return;
-      if (!(await UI.confirm(`Sicherung vom ${hDay(sn.ts)} löschen?`))) return;
-      snaps = snaps.filter(x => x !== sn); saveSnaps(); renderSnaps();
-    }
-  });
-  renderCraftPanes();
 
 };
