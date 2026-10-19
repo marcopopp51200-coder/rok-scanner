@@ -964,6 +964,14 @@ tailwind.config = {
       <p class="text-sm text-slate-400 mt-1">Ist-Ausrüstung scannen, Wunsch-Set wählen – der Planer rechnet aus, welche Materialien dir noch fehlen.</p>
     </div>
 
+    <!-- Fenster: Planer | Craft-Verlauf -->
+    <div class="inline-flex gap-1 p-1 rounded-xl bg-ink-950/70 border border-ink-700">
+      <button type="button" data-cpane="plan">⚒ Planer</button>
+      <button type="button" data-cpane="hist">📜 Craft-Verlauf</button>
+    </div>
+
+    <div id="craftPlanPane" class="space-y-6">
+
     <!-- Set-Verwaltung -->
     <section class="panel rounded-2xl p-5">
       <div class="flex flex-wrap items-end gap-3">
@@ -1031,45 +1039,6 @@ tailwind.config = {
     <section id="gearResult" class="space-y-4"></section>
     <section id="gearPlan" class="panel rounded-2xl p-5"></section>
 
-    <!-- Craft-Verlauf -->
-    <section id="craftHist" class="panel rounded-2xl p-5">
-      <div class="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h3 class="font-display text-xl gold-text">📜 Craft-Verlauf</h3>
-          <p class="text-xs text-slate-400">Änderungen an deiner aktuellen Ausrüstung werden automatisch eingetragen · eigene Screenshots hochladen</p>
-        </div>
-        <button id="craftHistOpen" type="button" class="text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400 whitespace-nowrap">📷 Craft hochladen</button>
-      </div>
-      <form id="craftHistForm" class="hidden mt-4 rounded-xl border border-ink-700 bg-ink-950/40 p-4 space-y-3 transition">
-        <div class="grid sm:grid-cols-2 gap-3">
-          <label class="text-xs text-slate-400">Datum &amp; Uhrzeit
-            <input id="craftHistDate" type="datetime-local" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500"></label>
-          <label class="text-xs text-slate-400">Slot (optional)
-            <select id="craftHistSlot" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500"></select></label>
-        </div>
-        <label class="block text-xs text-slate-400">Notiz
-          <textarea id="craftHistNote" rows="2" maxlength="500" placeholder="z. B. Helm auf T3 gebracht, 2 Versuche" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500"></textarea></label>
-        <div>
-          <label for="craftHistFile" class="inline-block cursor-pointer text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">🖼 Screenshots wählen</label>
-          <input id="craftHistFile" type="file" accept="image/*" multiple class="hidden">
-          <span class="ml-2 text-[11px] text-slate-500">max. 6 Bilder · auch per Drag &amp; Drop</span>
-          <div id="craftHistPrev" class="mt-2 flex flex-wrap gap-2"></div>
-        </div>
-        <div class="flex flex-wrap gap-2">
-          <button id="craftHistSave" type="submit" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold disabled:opacity-60">💾 Eintrag speichern</button>
-          <button id="craftHistCancel" type="button" class="px-4 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">Abbrechen</button>
-        </div>
-      </form>
-      <div id="craftHistMsg" class="hidden mt-2 text-xs"></div>
-      <div class="mt-4 flex flex-wrap items-center gap-2">
-        <select id="craftHistSet" translate="no" class="bg-ink-950 border border-ink-600 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-gold-500"></select>
-        <div id="craftHistKind" class="flex flex-wrap gap-1">
-          <button type="button" data-hk="all">Alle</button><button type="button" data-hk="auto">✎ Dashboard</button><button type="button" data-hk="manual">📷 Hochgeladen</button>
-        </div>
-        <span id="craftHistCount" class="ml-auto text-[11px] text-slate-500"></span>
-      </div>
-      <div id="craftHistList" class="mt-1 max-h-[640px] overflow-y-auto pr-1 space-y-2"></div>
-    </section>
 
     <!-- Katalog -->
     <details id="gearCatBox" class="panel rounded-2xl p-5">
@@ -1092,6 +1061,98 @@ tailwind.config = {
         <button id="gearCatReload" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">↻ Katalog aus Supabase neu laden</button>
       </div>
     </details>
+    </div>
+
+    <!-- Craft-Verlauf: eigenes Fenster mit 2 Seiten -->
+    <div id="craftHistPane" class="hidden space-y-5">
+      <div class="flex flex-wrap gap-1">
+        <button type="button" data-chpage="hist">📜 History</button>
+        <button type="button" data-chpage="snaps">💾 Gespeicherte Sets</button>
+      </div>
+
+      <!-- Seite 1: History -->
+      <div id="chPageHist" class="space-y-5">
+        <section class="panel rounded-2xl p-5">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 class="font-display text-xl gold-text">Craft-History</h3>
+              <p class="text-xs text-slate-400">Set wählen, Item antippen, Tier oder Refine einstellen – Datum und Uhrzeit werden beim Hinzufügen gespeichert</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button id="chNewBtn" type="button" class="px-3 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold">+ Neue History</button>
+              <button id="craftHistOpen" type="button" class="px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">📷 Screenshot</button>
+            </div>
+          </div>
+          <div id="chNew" class="hidden mt-4 rounded-xl border border-gold-500/30 bg-ink-950/40 p-4">
+            <div class="grid lg:grid-cols-[minmax(0,320px)_1fr] gap-5">
+              <div>
+                <label for="chSet" class="text-xs text-slate-400">Set</label>
+                <select id="chSet" translate="no" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 font-semibold"></select>
+                <div id="chBoard" class="relative mx-auto mt-5 w-full max-w-[280px] aspect-[1/2]"></div>
+              </div>
+              <div class="min-w-0 space-y-3">
+                <div id="chEdit"></div>
+                <div id="chDiff" class="rounded-xl border border-ink-700 bg-ink-950/40 p-3"></div>
+                <label class="block text-xs text-slate-400">Notiz (optional)
+                  <input id="chNote" maxlength="500" placeholder="z. B. für KvK 3 vorbereitet" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500"></label>
+                <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input id="chApply" type="checkbox" checked class="w-4 h-4 accent-yellow-500">Auch als aktuelle Ausrüstung im Planer übernehmen</label>
+                <div class="flex flex-wrap gap-2">
+                  <button id="chAdd" type="button" class="px-4 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold disabled:opacity-40">➕ Zur History hinzufügen</button>
+                  <button id="chReset" type="button" class="px-3 py-2.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">↺ Zurücksetzen</button>
+                  <button id="chCancel" type="button" class="px-3 py-2.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">Abbrechen</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <form id="craftHistForm" class="hidden mt-4 rounded-xl border border-ink-700 bg-ink-950/40 p-4 space-y-3 transition">
+            <div class="grid sm:grid-cols-2 gap-3">
+              <label class="text-xs text-slate-400">Datum &amp; Uhrzeit
+                <input id="craftHistDate" type="datetime-local" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500"></label>
+              <label class="text-xs text-slate-400">Slot (optional)
+                <select id="craftHistSlot" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500"></select></label>
+            </div>
+            <label class="block text-xs text-slate-400">Notiz
+              <textarea id="craftHistNote" rows="2" maxlength="500" placeholder="z. B. Helm auf T3 gebracht" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500"></textarea></label>
+            <div>
+              <label for="craftHistFile" class="inline-block cursor-pointer text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">🖼 Screenshots wählen</label>
+              <input id="craftHistFile" type="file" accept="image/*" multiple class="hidden">
+              <span class="ml-2 text-[11px] text-slate-500">max. 6 Bilder · auch per Drag &amp; Drop</span>
+              <div id="craftHistPrev" class="mt-2 flex flex-wrap gap-2"></div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button id="craftHistSave" type="submit" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold disabled:opacity-60">💾 Eintrag speichern</button>
+              <button id="craftHistCancel" type="button" class="px-4 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">Abbrechen</button>
+            </div>
+          </form>
+          <div id="craftHistMsg" class="hidden mt-2 text-xs"></div>
+        </section>
+        <section class="panel rounded-2xl p-5">
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="craftHistSet" translate="no" class="bg-ink-950 border border-ink-600 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-gold-500"></select>
+            <div id="craftHistKind" class="flex flex-wrap gap-1">
+              <button type="button" data-hk="all">Alle</button><button type="button" data-hk="hist">⚒ History</button><button type="button" data-hk="auto">✎ Dashboard</button><button type="button" data-hk="manual">📷 Screenshots</button>
+            </div>
+            <span id="craftHistCount" class="ml-auto text-[11px] text-slate-500"></span>
+          </div>
+          <div id="craftHistList" class="mt-1 space-y-2"></div>
+        </section>
+      </div>
+
+      <!-- Seite 2: Gespeicherte Sets -->
+      <div id="chPageSnaps" class="hidden space-y-4">
+        <section class="panel rounded-2xl p-5">
+          <h3 class="font-display text-xl gold-text">Gespeicherte Sets</h3>
+          <p class="text-xs text-slate-400">Sichert alle deine aktuellen Sets mit Datum. Später wieder laden oder mit heute vergleichen, um deinen Fortschritt zu sehen.</p>
+          <form id="chSnapForm" class="mt-4 flex flex-wrap items-end gap-2">
+            <label class="flex-1 min-w-[200px] text-xs text-slate-400">Name (optional)
+              <input id="chSnapName" maxlength="50" placeholder="z. B. vor KvK 3" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500"></label>
+            <button type="submit" class="px-4 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold">💾 Alle Sets sichern</button>
+          </form>
+          <div id="chSnapMsg" class="hidden mt-2 text-xs"></div>
+        </section>
+        <div id="chSnapList" class="space-y-3"></div>
+      </div>
+    </div>
   </section>
 
   <!-- KvK-Vorbereitung -->

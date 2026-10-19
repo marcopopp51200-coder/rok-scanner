@@ -2007,6 +2007,8 @@ window.RokApp = () => {
   // Passports: 600.000 Credits = 1 Passseite (Allianz-Shop)
   var PP_CR = 600000;
   const crPP = (c) => ({ credits: c, passports: c / PP_CR });
+  const ppEvery = (perDay) => (PP_CR / perDay).toLocaleString('de-DE', { maximumFractionDigits: 1 });
+  const ppHaveEq = () => (ppPages() || 0) + ((typeof creditsNow === 'function' ? creditsNow() : 0) || 0) / PP_CR;
   const ppPages = () => { const e = lastOf('passports', x => x.passports != null); return e ? +e.passports : null; };
   const PMOD = {
     vip: { title: 'Passive VIP', units: [{ k: 'vip', label: 'VIP-Punkte', c: '#f5c542', img: 'sonstiges/svip._LSdqpwn.webp', icon: '👑' }], now: () => ({ vip: vipNowPts() }),
@@ -2027,9 +2029,10 @@ window.RokApp = () => {
         { k: 'alliance', label: 'Allianz-Ressourcen', desc: 'Selbst eintragen – pro Stunde', inputs: RES.map(r => ({ key: r.k, label: `${r.label} pro Stunde`, ph: '0', text: true })), perDay: (s) => Object.fromEntries(RES.map(r => [r.k, nv(s[r.k], 0) * 24])) },
         { k: 'daily', label: 'Daily', desc: 'Proviant/Holz 270.000 · Stein 202.000 · Gold 27.000 pro Tag', perDay: () => ({ food: 270000, wood: 270000, stone: 202000, gold: 27000 }) }
       ] },
-    passports: { title: 'Passive Passports & Credits', summaryUnit: 'passports',
-      units: [{ k: 'passports', label: 'Passseiten (inkl. Credits)', c: '#818cf8', img: 'sonstiges/passport.webp', icon: '🛂' }, { k: 'credits', label: 'Credits', c: '#cbd5e1', img: 'ressourcen/allianccredits.png', icon: '🤝' }],
-      now: () => { const p = ppPages(), c = typeof creditsNow === 'function' ? creditsNow() : null; return { passports: p == null && c == null ? null : (p || 0) + (c || 0) / PP_CR, credits: c }; },
+    passports: { title: 'Passive Credits', weekCol: true,
+      summary: () => { const c = pmDayTotal('passports').credits || 0; return c > 0 ? `+${short(c * 7)} Credits / Woche · 1 Passport alle ${ppEvery(c)} Tage` : null; },
+      units: [{ k: 'credits', label: 'Credits', c: '#cbd5e1', img: 'ressourcen/allianccredits.png', icon: '🤝' }],
+      now: () => ({ credits: typeof creditsNow === 'function' ? creditsNow() : null }),
       src: [
         { k: 'ethel', label: 'Ethelfleda-Statue', desc: '3× am Tag = 15.000 Credits', inputs: [{ key: 'n', label: 'Credits pro Tag', def: 15000 }], perDay: (s) => crPP(nv(s.n, 15000)) },
         { k: 'donate', label: 'Spenden', desc: 'Allianz-Technologie spenden', inputs: [{ key: 'w', label: 'Ø Credits pro Woche', def: 70000 }], perDay: (s) => crPP(nv(s.w, 70000) / 7) },
@@ -2099,15 +2102,15 @@ window.RokApp = () => {
   function renderPMOut(m) {
     const cf = PMOD[m], out = $('pmOut'); if (!out) return;
     const H = horizons(), now = cf.now(), on = pmOn(m), U = cf.units, multi = U.length > 1;
-    cf.src.forEach(x => { const el = document.querySelector(`[data-pmday="${x.k}"]`); if (el) { const d = pmPerDay(m, x); el.textContent = multi ? (U.filter(u => d[u.k]).map(u => `${pmSg(m, d[u.k])} ${u.label}`).join(' · ') || '+0') + ' / Tag' : `${pmSg(m, d[U[0].k] || 0)} / Tag`; } });
+    cf.src.forEach(x => { const el = document.querySelector(`[data-pmday="${x.k}"]`); if (el) { const d = pmPerDay(m, x); el.textContent = multi ? (U.filter(u => d[u.k]).map(u => `${pmSg(m, d[u.k])} ${u.label}`).join(' · ') || '+0') + ' / Tag' : cf.weekCol ? `${pmSg(m, (d[U[0].k] || 0) * 7)} / Woche` : `${pmSg(m, d[U[0].k] || 0)} / Tag`; } });
     const th = 'py-1.5 px-2 text-right font-medium whitespace-nowrap', td = 'py-1.5 px-2 text-right tabular-nums';
     if (!on.length) out.innerHTML = '<div class="text-xs text-slate-500">Aktiviere unten mindestens eine Quelle – dann siehst du hier, was in 7 Tagen, 30 Tagen, deinem eigenen Zeitraum und bis zum KvK dazukommt.</div>';
     else if (!multi) {
       const k = U[0].k, hasNow = now[k] != null;
       out.innerHTML = `<div class="overflow-x-auto rounded-lg border border-emerald-500/30 bg-emerald-500/5"><table class="w-full text-xs">
-        <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-1.5 px-2 text-left font-medium">Quelle</th><th class="${th}">pro Tag</th>${H.map(h => `<th class="${th}">${h.label}</th>`).join('')}</tr></thead>
-        <tbody>${on.map(x => `<tr class="border-b border-ink-800"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${x.label}</td><td class="${td} text-emerald-400">${pmSg(m, pmPerDay(m, x)[k] || 0)}</td>${H.map(h => `<td class="${td} text-emerald-400">${pmSg(m, pmInc(m, x, h.days)[k] || 0)}</td>`).join('')}</tr>`).join('')}
-          <tr class="border-b border-ink-800 font-semibold"><td class="py-1.5 px-2 text-slate-200">Passiv gesamt</td><td class="${td} text-emerald-300">${pmSg(m, pmDayTotal(m)[k] || 0)}</td>${H.map(h => `<td class="${td} text-emerald-300">${pmSg(m, pmIncome(m, h.days)[k] || 0)}</td>`).join('')}</tr>
+        <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-1.5 px-2 text-left font-medium">Quelle</th><th class="${th}">${cf.weekCol ? 'pro Woche' : 'pro Tag'}</th>${H.map(h => `<th class="${th}">${h.label}</th>`).join('')}</tr></thead>
+        <tbody>${on.map(x => `<tr class="border-b border-ink-800"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${x.label}</td><td class="${td} text-emerald-400">${pmSg(m, (pmPerDay(m, x)[k] || 0) * (cf.weekCol ? 7 : 1))}</td>${H.map(h => `<td class="${td} text-emerald-400">${pmSg(m, pmInc(m, x, h.days)[k] || 0)}</td>`).join('')}</tr>`).join('')}
+          <tr class="border-b border-ink-800 font-semibold"><td class="py-1.5 px-2 text-slate-200">Passiv gesamt</td><td class="${td} text-emerald-300">${pmSg(m, (pmDayTotal(m)[k] || 0) * (cf.weekCol ? 7 : 1))}</td>${H.map(h => `<td class="${td} text-emerald-300">${pmSg(m, pmIncome(m, h.days)[k] || 0)}</td>`).join('')}</tr>
           ${hasNow ? `<tr class="font-bold"><td class="py-2 px-2 text-gold-300">${U[0].label} gesamt</td><td class="${td} text-slate-400">${pmFmt(m, now[k])}</td>${H.map(h => `<td class="${td} text-gold-300">${pmFmt(m, now[k] + (pmIncome(m, h.days)[k] || 0))}</td>`).join('')}</tr>` : ''}
         </tbody></table></div>`;
     } else {
@@ -2149,7 +2152,7 @@ window.RokApp = () => {
         plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${pmFmt(m, c.raw)}` } } },
         scales: { y: { ticks: { callback: (v) => short(v) } }, x: { ticks: { maxTicksLimit: 8 } } } } });
   }
-  const pmSummary = (m) => { const cf = PMOD[m], d = pmDayTotal(m);
+  const pmSummary = (m) => { const cf = PMOD[m], d = pmDayTotal(m); if (cf.summary) return cf.summary();
     if (cf.summaryUnit) { const v = d[cf.summaryUnit] || 0; return v ? `${pmSg(m, v)} ${cf.units.find(u => u.k === cf.summaryUnit).label} / Tag` : null; }
     const t = pmSum(d); if (!(t > 0)) return null; return cf.units.length > 1 ? `+${short(t)} / Tag` : `+${pmFmt(m, t)} / Tag`; };
   const daysTo = (need, perDay) => need <= 0 ? 0 : perDay > 0 ? Math.ceil(need / perDay) : null;
@@ -2170,10 +2173,21 @@ window.RokApp = () => {
   // Passports: Tage bis zum Migrations-Ziel
   PMOD.passports.extra = () => {
     const el = $('pmExtra'); if (!el) return;
-    const need = migNeed(), goal = need ? need.passports : passGoalNum(), have = +PMOD.passports.now().passports || 0, d = pmDayTotal('passports').passports || 0;
+    const need = migNeed(), goal = need ? need.passports : passGoalNum(), have = ppHaveEq(), d = pmDayTotal('passports').passports || 0;
     if (ppPages() != null) renderPassGoal(ppPages());   // Dashboard in der Mitte mit aktualisieren
     el.innerHTML = goal ? `<div class="mt-3 text-xs text-slate-300">🎯 Migration ${fmt(goal)} Passseiten (= ${short(goal * PP_CR)} Credits): ${have >= goal ? '<b class="text-emerald-400">schon erreicht ✓</b>' : `fehlen ${pmFmt('passports', goal - have)} Seiten · ${d > 0 ? `in ca. <b class="text-indigo-300 tabular-nums">${fmt(daysTo((goal - have) * PP_CR, d * PP_CR))}</b> Tagen` : 'Quelle aktivieren, um die Tage zu sehen'}`}</div>
       <div class="mt-1 text-[11px] text-slate-500">Gerechnet mit 600.000 Credits = 1 Passseite.</div>` : '';
+    const cd = pmDayTotal('passports').credits || 0;
+    if (cd > 0) {   // Wann aus den Credits jeweils 1 Passport wird
+      const c0 = creditsNow() || 0, H = horizons(), maxD = Math.max(...H.map(h => h.days), 30), list = [];
+      let k = Math.floor(c0 / PP_CR) + 1;
+      for (let dd = 1; dd <= Math.min(730, maxD + 60) && list.length < 10; dd++) { const c = c0 + (pmIncome('passports', dd).credits || 0); while (c >= k * PP_CR && list.length < 10) { list.push({ n: k, d: dd }); k++; } }
+      el.innerHTML += `<div class="mt-4 rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-3">
+        <div class="flex flex-wrap items-baseline justify-between gap-2"><div class="text-sm font-semibold text-white">🛂 1 Passport alle <span class="text-indigo-300 tabular-nums">${ppEvery(cd)}</span> Tage</div>
+          <div class="text-[11px] text-slate-400">+${short(cd * 7)} Credits pro Woche · 1 Passport = 600.000 Credits</div></div>
+        <div class="mt-2 flex flex-wrap gap-2">${list.map((x, i) => `<div class="rounded-lg border border-ink-700 bg-ink-950/60 px-2.5 py-1.5 text-center"><div class="text-[10px] text-slate-400">${i ? `+${x.d - list[i - 1].d} Tage` : `in ${x.d} Tagen`}</div><div class="text-xs font-semibold text-indigo-200 tabular-nums">${dayPlus(x.d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}</div><div class="text-[10px] text-slate-500">${ico({ img: 'sonstiges/passport.webp', icon: '🛂' }, 'w-3.5 h-3.5')} ${x.n}${c0 ? '' : ''}</div></div>`).join('')}</div>
+        <div class="mt-1 text-[11px] text-slate-500">${c0 ? `Ab deinem Credits-Stand ${short(c0)} – Zahl = Passports aus Credits insgesamt.` : 'Credits-Stand unter Statistics eintragen, dann zählt er ab deinem Stand.'}</div></div>`;
+    }
   };
 
   // ---------- Statistics: Ziel-Linie (Gems-Event, Goldheads) ----------
