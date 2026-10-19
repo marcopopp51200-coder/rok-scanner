@@ -21,6 +21,13 @@ window.I18N = (() => {
         '👁 Andere Spieler sehen nur den ausgewählten Showcase.': '👁 Other players only see the selected showcase.',
         'Details sind privat – andere sehen nur das Bild.': 'Details are private – others only see the image.',
         '🔒 Details sind jetzt privat – andere sehen nur das Bild': '🔒 Details are now private – others only see the image', '🔓 Details sind jetzt für andere sichtbar': '🔓 Details are now visible to others',
+        // Feed: Bonuscode (nur Admins)
+        '🎁 Bonuscode': '🎁 Bonus code', 'Bonuscode': 'Bonus code', '🎁 Bonuscodes': '🎁 Bonus codes', '🎁 Bonuscode – sehen alle Spieler, steht oben im Feed': '🎁 Bonus code – visible to all players, pinned at the top of the feed',
+        'Code': 'Code', 'Belohnung (optional)': 'Reward (optional)', 'Belohnung:': 'Reward:', 'Gültig bis (optional)': 'Valid until (optional)', 'z. B. 500 Edelsteine, 2× 8h Speedup': 'e.g. 500 gems, 2× 8h speedup',
+        'Bild hinzufügen': 'Add image', 'Anderes Bild': 'Other image', '✕ Bild entfernen': '✕ Remove image', 'Bild wird geprüft …': 'Checking image …',
+        'Bleibt oben angeheftet, bis der Code abläuft.': 'Stays pinned at the top until the code expires.', 'Ohne Datum bleibt er 7 Tage oben angeheftet.': 'Without a date it stays pinned for 7 days.',
+        'abgelaufen': 'expired', 'gültig': 'valid', '📋 Kopieren': '📋 Copy', '✓ Kopiert': '✓ Copied', 'Angeheftet – aktueller Bonuscode': 'Pinned – current bonus code',
+        'Bonuscodes können nur Admins posten.': 'Only admins can post bonus codes.', 'Trag den Bonuscode ein.': 'Enter the bonus code.', 'Das Ablaufdatum liegt in der Vergangenheit.': 'The expiry date is in the past.',
         // Konto: Name & Passwort ändern (account.js)
         'Konto': 'Account', 'Name & Passwort': 'Name & password', 'Name und Passwort ändern': 'Change name and password', '👤 Name': '👤 Name', '🔒 Passwort': '🔒 Password',
         'So sehen dich andere Spieler in Rangliste, Feed und Profil.': 'This is how other players see you in the leaderboard, feed and profile.', 'Neuer Name': 'New name',
@@ -408,6 +415,7 @@ window.I18N = (() => {
         'Set gespeichert · in der Cloud (user_state)': 'Set saved · in the cloud (user_state)', 'Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': 'Saved locally · cloud unreachable, will sync automatically'
       },
       patterns: [
+        [/^gültig bis (\d{2})\.(\d{2})\.(\d{4})$/, 'valid until $2/$1/$3'],
         [/^✓ Name geändert\. Ab jetzt loggst du dich mit „(.+)“ ein\.$/, '✓ Name changed. From now on you log in with “$1”.'],
         [/^✓ Name geändert\. Der Login-Name bleibt vorerst der alte .*$/s, '✓ Name changed. Your login name stays the old one for now (Supabase requires e-mail confirmation – turn off “Confirm email”).'],
         [/^Bitte nur Zahlen eintragen, z\. B\. 85\.141\.754 oder 85,1M: (.+)$/, (m, f) => 'Please enter numbers only, e.g. 85,141,754 or 85.1M: ' + f.split(', ').map(x => tr(x)).join(', ')],

@@ -17,10 +17,11 @@ window.RokMods.feed = (R) => {
   const KIND = {
     text: ['💬', 'Beitrag'], photo: ['📷', 'Foto / GIF'], showcase: ['🎨', 'Showcase'], kvk: ['🏁', 'KvK-Bilanz'], aoo: ['🏛️', 'AoO-Showcase'],
     craft: ['⚒️', 'Gear-Upgrade'], pass: ['🚪', 'Pass-Start'], stock: ['🌽', 'Rss'], kvkpts: ['⚔️', 'Kill-Punkte & Verdienst'],
-    vip: ['👑', 'VIP-Stufe'], kvkmap: ['🗺️', 'KvK-Karte'], help: ['🆘', 'Help Me'], poll: ['📊', 'Umfrage'], set: ['⚔️', 'Set']
+    vip: ['👑', 'VIP-Stufe'], kvkmap: ['🗺️', 'KvK-Karte'], help: ['🆘', 'Help Me'], poll: ['📊', 'Umfrage'], set: ['⚔️', 'Set'],
+    code: ['🎁', 'Bonuscode']   // nur Admins (Supabase-Regel feed_posts_insert prüft feature_access 'admin')
   };
   // Filter: Art des Beitrags (Name-Suche kommt zusätzlich)
-  const FILTERS = [['all', 'Alle', null], ['mine', '⭐ Meine', null], ['photo', '📷 Fotos', ['photo']], ['showcase', '🎨 Showcases', ['showcase', 'aoo']], ['set', '⚔️ Sets', ['set']],
+  const FILTERS = [['all', 'Alle', null], ['mine', '⭐ Meine', null], ['code', '🎁 Bonuscodes', ['code']], ['photo', '📷 Fotos', ['photo']], ['showcase', '🎨 Showcases', ['showcase', 'aoo']], ['set', '⚔️ Sets', ['set']],
     ['craft', '⚒️ Gear', ['craft']], ['help', '🆘 Help Me', ['help']], ['pass', '🚪 Pass-Start', ['pass']], ['kvkpts', '⚔️ KP & Verdienst', ['kvkpts']],
     ['kvk', '🏁 KvK-Bilanz & Karte', ['kvk', 'kvkmap']], ['stock', '🌽 Rss', ['stock']], ['vip', '👑 VIP', ['vip']], ['poll', '📊 Umfragen', ['poll']], ['text', '💬 Text', ['text']]];
   const LIMIT = 40, POLL_MS = 20000;
@@ -404,7 +405,7 @@ window.RokMods.feed = (R) => {
     } catch (e) { msg('Ältere Beiträge konnten nicht geladen werden: ' + (e.message || e), 'err'); }
     st.moreBusy = false; renderList();
   }
-  A.isAdmin().then((ok) => { st.admin = !!ok; if (st.loaded) renderList(); }).catch(() => {});
+  A.isAdmin().then((ok) => { st.admin = !!ok; if (st.loaded) renderList(); if (st.admin && !st.busy) renderComposer(); }).catch(() => {});
 
   // ======================================================================
   // Beitrag anlegen · löschen · reagieren
@@ -425,6 +426,7 @@ window.RokMods.feed = (R) => {
     if (a.kind === 'kvk' && d.mode === 'stats' && !d.kp && !d.acclaim && !d.deads && !d.honor && !d.crystal) return 'Für diesen Abschnitt gibt es noch keine Zahlen – anderen Abschnitt wählen oder Werte im KvK-Bereich eintragen.';
     if (a.kind === 'aoo' && d.mode === 'match' && !d.res) return 'Wähl Sieg oder Niederlage.';
     if (a.kind === 'poll') { if (!String(d.q || '').trim()) return 'Schreib eine Frage für die Umfrage.'; if ((d.opts || []).filter((o) => String(o).trim()).length < 2) return 'Die Umfrage braucht mindestens 2 Antworten.'; }
+    if (a.kind === 'code') { if (!st.admin) return 'Bonuscodes können nur Admins posten.'; if (!codeNorm(d.code)) return 'Trag den Bonuscode ein.'; if (d.until && Date.parse(d.until + 'T23:59:59') < Date.now()) return 'Das Ablaufdatum liegt in der Vergangenheit.'; }
     if (a.kind === 'vip' && !(d.lv >= 1)) return d.mode === 'status' ? 'Für den VIP-Status fehlt ein VIP-Scan.' : 'Trag deine neue VIP-Stufe ein (1–20).';
     return '';
   }
@@ -457,6 +459,8 @@ window.RokMods.feed = (R) => {
   function cleanData(a) {
     const d = { ...(a.data || {}) };
     delete d._segs; delete d.opt; delete d._kx;
+    if (a.kind === 'code') { d.code = codeNorm(d.code); d.reward = String(d.reward || '').trim().slice(0, 120); d.until = /^\d{4}-\d{2}-\d{2}$/.test(d.until || '') ? d.until : '';
+      if (!d.reward) delete d.reward; if (!d.until) delete d.until; }
     if (a.kind === 'poll') { d.q = String(d.q || '').trim().slice(0, 140); d.opts = (d.opts || []).map((o) => String(o).trim().slice(0, 60)).filter(Boolean).slice(0, 4);
       const h = +d.dur || 0; d.dur = h; d.ends = h ? new Date(Date.now() + h * 3600e3).toISOString() : null; }
     return Object.keys(d).length ? d : null;
@@ -788,6 +792,20 @@ window.RokMods.feed = (R) => {
       st.attach = null;
       msg(e.block ? '🚫 Dieses Bild ist im Feed nicht erlaubt.' : 'Bild nicht angehängt: ' + (e.message || e) + ' – bitte später nochmal versuchen.', e.block ? 'err' : 'warn');
     }
+    st.busy = false; renderComposer();
+  }
+
+  async function pickCodeImage(file) {
+    const a = st.attach; if (!file || !a || a.kind !== 'code') return;
+    if (!/^image\//.test(file.type)) { msg('Das ist kein Bild.', 'warn'); return; }
+    const gif = file.type === 'image/gif';
+    if (gif && file.size > GIF_MAX) { msg(`Das GIF ist zu groß (${(file.size / 1048576).toFixed(1)} MB) – höchstens 8 MB.`, 'warn'); return; }
+    st.busy = true; msg('Bild wird geprüft …', 'busy'); renderComposer();
+    try {
+      const dataUrl = gif ? await readDataUrl(file) : (await R.prepareImage(file)).dataUrl;
+      await checkImage(dataUrl);
+      a.dataUrl = dataUrl; a.gif = gif; msg('', '');
+    } catch (e) { msg(e.block ? '🚫 Dieses Bild ist im Feed nicht erlaubt.' : 'Bild nicht angehängt: ' + (e.message || e), e.block ? 'err' : 'warn'); }
     st.busy = false; renderComposer();
   }
 
@@ -1287,8 +1305,30 @@ window.RokMods.feed = (R) => {
         ${d.deads ? statCell('💀', 'Deads', short(d.deads), fmt(d.deads)) : ''}
       </div></div></div>`;
   const imgHTML = (src) => `<a href="${esc(src)}" target="_blank" rel="noopener" class="block"><img src="${esc(src)}" alt="" loading="lazy" class="w-full max-h-[34rem] object-contain rounded-xl border border-ink-700 bg-ink-950"></a>`;
+  // ---------- Bonuscode (nur Admins posten; alle sehen ihn, aktive Codes stehen oben im Feed) ----------
+  const codeNorm = (v) => String(v || '').trim().replace(/\s+/g, '').toUpperCase().slice(0, 40);
+  const CODE_PIN_MS = 7 * 86400e3;   // Codes ohne Ablaufdatum bleiben 7 Tage oben angeheftet
+  const codeEnd = (p) => { const d = p && p.data; if (!d) return null; if (d.until) return Date.parse(d.until + 'T23:59:59'); return (Date.parse(p.created_at) || 0) + CODE_PIN_MS; };
+  const codeActive = (p) => !!p && p.kind === 'code' && !!p.data && Date.now() < codeEnd(p);
+  const codeExpired = (p) => !!p && p.kind === 'code' && !!p.data && !!p.data.until && Date.now() >= codeEnd(p);
+  const codeTile = (d, img, p) => {
+    const exp = p ? codeExpired(p) : false, until = d.until ? new Date(d.until + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+    return `<div class="flex flex-col gap-2.5">
+      <div class="relative overflow-hidden rounded-xl border ${exp ? 'border-ink-600 bg-ink-950/60' : 'border-gold-400/60 bg-gradient-to-br from-gold-500/15 via-ink-950 to-ink-950'} p-4 flex flex-col gap-3">
+        <div class="flex items-center gap-2 text-[11px] uppercase tracking-widest ${exp ? 'text-slate-500' : 'text-gold-300'}"><span>🎁 Bonuscode</span>
+          <span class="ml-auto normal-case tracking-normal rounded-full px-2 py-0.5 border ${exp ? 'border-red-400/40 text-red-300' : until ? 'border-emerald-400/40 text-emerald-300' : 'border-ink-600 text-slate-400'}">${exp ? 'abgelaufen' : until ? 'gültig bis ' + until : 'gültig'}</span></div>
+        <div class="flex flex-wrap items-center gap-2">
+          <code translate="no" class="min-w-0 flex-1 break-all font-mono text-2xl sm:text-3xl font-bold tracking-wider ${exp ? 'text-slate-500 line-through' : 'text-gold-200'}">${esc(codeNorm(d.code) || 'CODE')}</code>
+          ${p && d.code ? `<button type="button" data-copy-code="${esc(d.code)}" class="shrink-0 px-3.5 py-2 rounded-lg ${exp ? 'border border-ink-600 text-slate-400' : 'bg-gold-500 hover:bg-gold-400 text-ink-950'} text-sm font-semibold">📋 Kopieren</button>` : ''}
+        </div>
+        ${d.reward ? `<div class="text-sm text-slate-200"><span class="text-slate-500">Belohnung:</span> ${esc(d.reward)}</div>` : ''}
+      </div>
+      ${img ? (p ? imgHTML(img) : `<img src="${esc(img)}" alt="" class="w-full max-h-72 object-contain rounded-lg">`) : ''}
+    </div>`;
+  };
   const attachHTML = (p) => {
     const d = p.data;
+    if (p.kind === 'code' && d) return codeTile(d, p.image, p);
     if (p.kind === 'craft' && d) return d.mode === 'set' ? craftSetTile(d) : d.mode === 'arm' ? armTile(d) : craftTile(d);
     if (p.kind === 'aoo' && d && d.mode !== 'match') return R.aooCardHTML ? R.aooCardHTML(d) : aooTile(d);
     if (p.kind === 'pass' && d) return passTile(d);
@@ -1320,6 +1360,7 @@ window.RokMods.feed = (R) => {
     if (a.kind === 'vip') return vipTile(a.data);
     if (a.kind === 'kvkmap') return mapTile(a.data, '__prev');
     if (a.kind === 'help') return helpTile(a.data);
+    if (a.kind === 'code') return codeTile(a.data, a.dataUrl, null);
     return `<img src="${esc(a.dataUrl)}" alt="" class="w-full max-h-72 object-contain rounded-lg">`;
   };
   const reactBar = (p) => {
@@ -1363,7 +1404,8 @@ window.RokMods.feed = (R) => {
         <button type="button" data-edit-save ${st.editBusy ? 'disabled' : ''} class="text-xs px-3 py-1 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold disabled:opacity-50">💾 Speichern</button></div></div>`;
   const postHTML = (p) => {
     const u = st.users[p.user_id] || { username: '?' }, own = p.user_id === me(), k = KIND[p.kind] || KIND.text, ed = st.edit && st.edit.kind === 'post' && st.edit.id === p.id;
-    return `<article class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3" data-post="${esc(p.id)}">
+    return `<article class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3 ${codeActive(p) ? 'ring-1 ring-gold-400/50' : ''}" data-post="${esc(p.id)}">
+      ${codeActive(p) ? `<div class="-mt-1 -mx-1 flex items-center gap-2 rounded-lg bg-gold-500/10 border border-gold-400/30 px-3 py-1.5 text-[11px] text-gold-200"><span>📌</span><span>Angeheftet – aktueller Bonuscode</span></div>` : ''}
       ${pollOver(p) ? `<div class="-mt-1 -mx-1 flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-400/30 px-3 py-1.5 text-[11px] text-emerald-200"><span>🏁</span><span>Umfrage beendet ${R.timeAgo(new Date(pollEnds(p)).toISOString())} – das Ergebnis steht fest</span></div>` : ''}
       <div class="flex items-center gap-3">
         <button type="button" data-feed-prof="${esc(p.user_id)}" class="flex items-center gap-2.5 min-w-0 text-left rounded-lg hover:bg-ink-800/60 pr-2">${R.userLine(u, 'w-10 h-10 text-base')}</button>
@@ -1540,7 +1582,17 @@ window.RokMods.feed = (R) => {
       <div class="flex flex-wrap gap-1.5">${POLL_DUR.map(([h, l]) => segBtn(`data-f-pdur="${h}"`, (d.dur ?? 24) === h, l)).join('')}</div>
       <p class="text-[11px] text-slate-500">${d.dur ? 'Wenn sie endet, rückt sie mit dem Ergebnis wieder nach oben im Feed.' : 'Ohne Ende – Abstimmen geht dauerhaft.'}</p>`);
   }
-  const formHTML = (a) => (!a ? '' : a.kind === 'set' && a.pick ? showcaseForm(a) : a.kind === 'showcase' ? showcaseImgForm(a) : a.kind === 'kvk' ? kvkForm(a) : a.kind === 'aoo' ? aooForm(a) : a.kind === 'poll' ? pollForm(a.data)
+  const codeForm = (a) => { const d = a.data; return box('🎁 Bonuscode – sehen alle Spieler, steht oben im Feed', `
+      <label class="text-xs text-slate-400 flex flex-col gap-1">Code<input data-f="cd_code" value="${esc(d.code)}" maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="z. B. ROKSUMMER26" class="${INP} font-mono uppercase"></label>
+      <label class="text-xs text-slate-400 flex flex-col gap-1">Belohnung (optional)<input data-f="cd_reward" value="${esc(d.reward)}" maxlength="120" placeholder="z. B. 500 Edelsteine, 2× 8h Speedup" class="${INP}"></label>
+      <label class="text-xs text-slate-400 flex flex-col gap-1">Gültig bis (optional)<input type="date" data-f="cd_until" value="${esc(d.until)}" class="${INP} w-full sm:w-48"></label>
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" data-f-codeimg class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">🖼️ ${a.dataUrl ? 'Anderes Bild' : 'Bild hinzufügen'}</button>
+        ${a.dataUrl ? `<button type="button" data-f-codeimgx class="text-xs px-2.5 py-1.5 rounded-lg border border-ink-700 text-slate-400 hover:text-red-300 hover:border-red-400/60">✕ Bild entfernen</button>` : ''}
+        <input type="file" id="feedCodeFile" accept="image/*" class="hidden">
+      </div>
+      <p class="text-[11px] text-slate-500">${d.until ? 'Bleibt oben angeheftet, bis der Code abläuft.' : 'Ohne Datum bleibt er 7 Tage oben angeheftet.'}</p>`); };
+  const formHTML = (a) => (!a ? '' : a.kind === 'code' ? codeForm(a) : a.kind === 'set' && a.pick ? showcaseForm(a) : a.kind === 'showcase' ? showcaseImgForm(a) : a.kind === 'kvk' ? kvkForm(a) : a.kind === 'aoo' ? aooForm(a) : a.kind === 'poll' ? pollForm(a.data)
     : a.kind === 'craft' ? craftForm(a.data) : a.kind === 'pass' ? passForm(a.data) : a.kind === 'stock' ? stockForm(a.data)
     : a.kind === 'kvkpts' ? kvkptsForm(a.data) : a.kind === 'vip' ? vipForm(a.data) : a.kind === 'help' ? helpForm(a) : '');
 
@@ -1556,7 +1608,7 @@ window.RokMods.feed = (R) => {
       <textarea id="feedText" data-mention rows="2" maxlength="1000" placeholder="${esc(tt("Was gibt's Neues? (optional) · @ zum Markieren"))}" class="w-full bg-ink-950 border border-ink-600 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 resize-y">${esc(st.text)}</textarea>
       <div class="flex flex-wrap items-center gap-2">
         <span class="text-[11px] text-slate-500 mr-1">Anhängen:</span>
-        ${chip('📷', 'Foto', 'photo')}${chip('🎨', 'Showcase', 'showcase')}${chip('⚔️', 'Set', 'set')}${chip('🏁', 'KvK-Bilanz', 'kvk')}${chip('🏛️', 'AoO', 'aoo')}
+        ${st.admin ? chip('🎁', 'Bonuscode', 'code') : ''}${chip('📷', 'Foto', 'photo')}${chip('🎨', 'Showcase', 'showcase')}${chip('⚔️', 'Set', 'set')}${chip('🏁', 'KvK-Bilanz', 'kvk')}${chip('🏛️', 'AoO', 'aoo')}
         ${chip('⚒️', 'Gear-Upgrade', 'craft')}${chip('🆘', 'Help Me', 'help')}${chip('🚪', 'Pass-Start', 'pass')}${chip('🗺️', 'KvK-Karte', 'kvkmap')}${chip('⚔️', 'KP & Verdienst', 'kvkpts')}
         ${chip('<img src="/icons/ressourcen/corn.png" alt="" style="width:16px;height:16px" class="inline-block -mt-0.5 object-contain">', 'Rss', 'stock')}${chip('👑', 'VIP', 'vip')}${chip('📊', 'Umfrage', 'poll')}
         ${a ? `<button type="button" data-feed-attach="none" class="text-xs px-2.5 py-1.5 rounded-lg border border-ink-700 text-slate-400 hover:text-red-300 hover:border-red-400/60">✕ Anhang entfernen</button>` : ''}
@@ -1588,7 +1640,7 @@ window.RokMods.feed = (R) => {
   function visiblePosts() {
     const q = st.q.trim().toLowerCase();
     st.posts.forEach((p) => { if (pollOver(p)) pollEndSeen.add(p.id); });
-    return [...st.posts].sort((a, b) => sortTs(b) - sortTs(a)).filter((p) => {
+    return [...st.posts].sort((a, b) => (codeActive(b) - codeActive(a)) || (sortTs(b) - sortTs(a))).filter((p) => {
       if (!matchFilter(p, st.filter)) return false;
       if (!q) return true;
       const u = st.users[p.user_id] || {};
@@ -1664,7 +1716,16 @@ window.RokMods.feed = (R) => {
       if (k !== 'photo' && st.attach && st.attach.kind === k) { st.attach = null; renderComposer(); return; }   // nochmal = abwählen
       msg('', '');
       ({ none: () => { st.attach = null; renderComposer(); }, photo: () => $('feedFile') && $('feedFile').click(), kvk: attachKvk, aoo: attachAoo,
+        code: () => { st.attach = { kind: 'code', data: { code: '', reward: '', until: '' } }; renderComposer(); setTimeout(() => { const c = root.querySelector('[data-f="cd_code"]'); if (c) c.focus(); }, 30); },
         craft: attachCraft, pass: attachPass, stock: attachStock, kvkpts: attachKvkPts, vip: attachVip, kvkmap: attachMap, help: attachHelp, poll: attachPoll, set: attachSet, showcase: () => attachShowcase() }[k] || (() => {}))();
+      return;
+    }
+    if (t.closest('[data-f-codeimg]') && st.attach && st.attach.kind === 'code') { $('feedCodeFile') && $('feedCodeFile').click(); return; }
+    if (t.closest('[data-f-codeimgx]') && st.attach && st.attach.kind === 'code') { delete st.attach.dataUrl; delete st.attach.gif; renderComposer(); return; }
+    const cpy = t.closest('[data-copy-code]');
+    if (cpy) {
+      const code = cpy.dataset.copyCode, done = (ok) => { const old = cpy.textContent; cpy.textContent = ok ? '✓ Kopiert' : code; setTimeout(() => { cpy.textContent = old; }, 1600); };
+      try { navigator.clipboard.writeText(code).then(() => done(true), () => done(false)); } catch { done(false); }
       return;
     }
     const gp = t.closest('[data-gpick]');
@@ -1728,6 +1789,8 @@ window.RokMods.feed = (R) => {
     const d = a.data;
     if (f === 'gq') { st.gq = t.value; const h = root.querySelector('[data-ghits]'); if (!st.gq || !h) { renderComposer(); const s = root.querySelector('[data-f="gq"]'); if (s) { s.focus(); s.setSelectionRange(s.value.length, s.value.length); } } else h.innerHTML = gearSearch(st.gq).map((g, i) => `<button type="button" data-gpick="s:${i}" class="flex items-center gap-2 text-left rounded-lg border border-ink-700 hover:border-gold-500/60 px-2 py-1.5 min-w-0">${icoBox(g.icon, 'w-9 h-9 shrink-0', '⚒️')}<span class="min-w-0"><span class="block text-sm truncate ${rarCol[g.rarity] || ''}">${esc(g.name)}</span><span class="block text-[10px] text-slate-500 truncate">${esc(g.slot)}</span></span></button>`).join('') || '<p class="text-xs text-slate-500">Nichts gefunden.</p>'; return; }
     if (f === 'note') { d.note = t.value.slice(0, 120); renderPreview(); return; }
+    if (f === 'cd_code') { d.code = t.value.slice(0, 40); renderPreview(); return; }
+    if (f === 'cd_reward') { d.reward = t.value.slice(0, 120); renderPreview(); return; }
     if (f === 'pq') { d.q = t.value.slice(0, 140); renderPreview(); return; }
     if (f.startsWith('po_')) { d.opts[+f.slice(3)] = t.value.slice(0, 60); renderPreview(); return; }
     if (f === 'am_vs' || f === 'am_us' || f === 'am_them') { d[f.slice(3)] = t.value.slice(0, 40); renderPreview(); return; }
@@ -1738,6 +1801,7 @@ window.RokMods.feed = (R) => {
   root.addEventListener('change', (ev) => {
     const t = ev.target;
     if (t.id === 'feedFile') { const file = t.files && t.files[0]; t.value = ''; pickPhoto(file); return; }
+    if (t.id === 'feedCodeFile') { const file = t.files && t.files[0]; t.value = ''; pickCodeImage(file); return; }
     if (t.id === 'feedCmFile') { const file = t.files && t.files[0]; t.value = ''; pickCmGif(st.gifFor, file); return; }
     const f = t.dataset && t.dataset.f, a = st.attach; if (!f || !a) return;
     const d = a.data;
@@ -1749,6 +1813,7 @@ window.RokMods.feed = (R) => {
       d.ic = [a0, b0]; renderComposer(); return;
     }
     if (f === 'refType') { d.refType = t.value; if (t.value) d.exp = true; renderComposer(); return; }
+    if (f === 'cd_until') { d.until = t.value; renderComposer(); return; }
     if (f === 'passTs') { d.ts = fromLocalInput(t.value); renderPreview(); return; }
     if (f === 'scImg' && a.kind === 'showcase') { attachShowcase(t.value); return; }
     if (f === 'scSel' && a.kind === 'set') { const sc = scDocList().find((x) => x.id === t.value); if (sc) { a.pick = { sid: sc.id, sel: (sc.sets || []).map((x, i) => (scSetFilled(x) ? i : -1)).filter((i) => i >= 0).slice(0, SC_MAX) }; a.data = scBuild(sc, a.pick.sel); renderComposer(); } return; }
