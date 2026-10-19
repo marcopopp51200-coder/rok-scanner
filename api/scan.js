@@ -3,7 +3,7 @@
 // Der API-Key kommt ausschließlich aus der Umgebungsvariable ANTHROPIC_API_KEY und verlässt nie den Server.
 
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5';
-const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'mats', 'gear', 'armament']);
+const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'mats', 'gear', 'armament', 'passports', 'goldheads', 'keys', 'armaments']);
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MAX_IMAGES = 5;
 const MAX_TOTAL_B64 = 4_300_000; // Vercel erlaubt max. 4,5 MB pro Anfrage
@@ -124,6 +124,92 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
   "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
 }`;
 
+// ---------- Passports (Passseiten für die Migration) ----------
+const PROMPT_PASSPORTS = `${INTRO}
+
+MODUS: Passports. Alle Screenshots stammen vom Main-Account des Spielers.
+
+Gesucht ist die ANZAHL der Passseiten (englisch "Passport Page", deutsch z. B. "Passseite" / "Reisepass-Seite" / "Pass").
+Das Item sieht aus wie ein aufgeschlagenes Pass-/Ausweisheft und wird für die Migration in ein anderes Königreich benötigt
+(Beschreibung z. B. "Wird für die Migration benötigt" / "Used for migrating to another kingdom").
+
+Mögliche Ansichten – beide auswerten:
+1) Inventar-Kachel: die Anzahl steht UNTEN RECHTS auf der Kachel (z. B. "1.250"). Punkt/Komma ist ein Tausendertrennzeichen: "1.250" = 1250.
+2) Item-Details / Textliste: "Du besitzt: 1.250" / "Owned: 1,250".
+3) Migrations-Fenster: "Passseiten: 1.250/3.600" → passports = 1250, required = 3600 (die zweite Zahl ist der Bedarf).
+
+Ignoriere alle anderen Items (Beschleuniger, Schlüssel, Teleporter, Truhen usw.). Bei mehreren Screenshots nicht doppelt zählen –
+nimm im Zweifel den Wert aus der Textansicht ("Du besitzt").
+Ist kein Passport zu sehen, nutze null.
+
+Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
+{
+  "type": "passports",
+  "passports": number|null,
+  "required": number|null,
+  "confidence": "hoch" | "mittel" | "niedrig",
+  "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
+}`;
+
+// ---------- Goldheads / Keys / Armaments (Anzahl aus dem Inventar) ----------
+const COUNT_TAIL = (type, keys) => `
+Punkt/Komma in einer Anzahl ist ein Tausendertrennzeichen: "1.250" = 1250. Die Anzahl steht auf Inventar-Kacheln UNTEN RECHTS,
+in Textansichten hinter "Du besitzt:" / "Owned:". Bei mehreren Screenshots dasselbe Item nicht doppelt zählen.
+Ist ein Item nicht zu sehen, nutze null (nicht 0 raten). Ignoriere alle anderen Items.
+
+Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
+{
+  "type": "${type}",
+  "counts": { ${keys.map(k => `"${k}": number|null`).join(', ')} },
+  "confidence": "hoch" | "mittel" | "niedrig",
+  "notes": "kurzer Hinweis auf Deutsch, z. B. unsichere Werte"
+}`;
+
+const PROMPT_GOLDHEADS = `${INTRO}
+
+MODUS: Goldheads. Alle Screenshots stammen vom Main-Account des Spielers.
+Gesucht ist die Anzahl der UNIVERSELLEN legendären Skulpturen ("Goldheads"): goldene Büste/Kopf-Skulptur,
+englisch z. B. "Legendary Sculpture" / "Universal Legendary Sculpture", deutsch z. B. "Legendäre Skulptur" / "Universelle legendäre Skulptur".
+Beschreibung sinngemäß: kann für JEDEN legendären Kommandanten verwendet werden (Fertigkeiten aufwerten / freischalten).
+NICHT mitzählen: Skulpturen eines bestimmten Kommandanten (mit Namen, z. B. "Skulptur von Richard I."), epische (lila) Skulpturen.
+- "goldheads" = Anzahl universeller legendärer Skulpturen
+${COUNT_TAIL('goldheads', ['goldheads'])}`;
+
+const PROMPT_KEYS = `${INTRO}
+
+MODUS: Schlüssel (Keys). Alle Screenshots stammen vom Main-Account des Spielers.
+Gesucht ist die Anzahl dieser Schlüssel:
+- "key_gold"     = Goldene Schlüssel / "Gold Key" (Taverne, goldene Truhe)
+- "key_silver"   = Silberne Schlüssel / "Silver Key" (Taverne, silberne Truhe)
+- "key_material" = Material-Schlüssel / "Material Key" (goldener Schlüssel mit blauer Kugel im Griff)
+- "key_sovereign" = Sovereign-Schlüssel / "Sovereign Key" (goldener Schlüssel mit grünem Stein im Griff)
+In der Taverne steht die Anzahl ggf. neben dem Schlüssel-Symbol am Truhen-Button (z. B. "Schlüssel: 12").
+${COUNT_TAIL('keys', ['key_gold', 'key_silver', 'key_material', 'key_sovereign'])}`;
+
+const PROMPT_ARMAMENTS = `${INTRO}
+
+MODUS: Armaments (Formations-Rüstungen / Armament-Teile). Alle Screenshots stammen vom Main-Account des Spielers.
+Zähle die Armament-Teile nach Seltenheit (Rahmenfarbe der Kachel bzw. Seltenheit im Text):
+- "arm_legendary" = Legendär / Legendary (gold/orange)
+- "arm_epic"      = Episch / Epic (lila)
+- "arm_elite"     = Elite (blau)
+- "arm_advanced"  = Fortgeschritten / Advanced (grün)
+- "arm_normal"    = Normal (weiß/grau)
+Zusätzlich:
+- "arm_scrolls"   = Armament-Schriftrollen / Armament Scrolls (zum Aufwerten bzw. Umschreiben der Inschriften), Summe aller Schriftrollen
+Steht in einer Übersicht eine Zahl je Seltenheit, nimm diese. Sonst zähle die sichtbaren Kacheln (Anzahl auf der Kachel beachten).
+Außerdem die Anzahl dieser Items aus dem Inventar (Anzahl unten rechts auf der Kachel):
+- "arm_chest"         = Armament-Truhe (goldene Truhe mit blauem Edelstein)
+- "arm_chest2"        = graue/silberne Armament-Kiste mit Schloss
+- "arm_coin"          = Formations-Münze, silbern-blau mit "A"
+- "arm_coin_gold"     = Formations-Münze, golden mit "A"
+- "arm_conv"          = Umwandlungsstein / Conversion Stone (blauer, polierter Stein mit Pfeilen)
+- "arm_conv_frag"     = Umwandlungsstein-Fragment (dunkelblaue Bruchstücke mit Pfeilen)
+- "arm_crystal"       = Kristall (oranger Kristall)
+- "arm_trans_crystal" = Transmutationskristall (schillernder lila-blauer Kristall)
+- "arm_trans_stone"   = Transmutationsstein (oranger Stein mit schwarzem Rand)
+${COUNT_TAIL('armaments', ['arm_legendary', 'arm_epic', 'arm_elite', 'arm_advanced', 'arm_normal', 'arm_scrolls', 'arm_chest', 'arm_chest2', 'arm_coin', 'arm_coin_gold', 'arm_conv', 'arm_conv_frag', 'arm_crystal', 'arm_trans_crystal', 'arm_trans_stone'])}`;
+
 // ---------- Statthalter-Profil (Energie, Kill-Punkte, Höchster Verdienst, Tote, Ark of Osiris, Lost Kingdom) ----------
 const PROMPT_GOVERNOR = `${INTRO}
 
@@ -149,6 +235,12 @@ B) FREMDES PROFIL (quer, Banner links): rechts oben "Governor(ID: 149655218)" un
 
 C) "WEITERE INFOS / MORE INFO": Liste mit u. a. "Tote / Dead" (gefallene Einheiten), ggf. auch Kill-Punkte und Macht.
 
+D) LOST-KINGDOM-STATISTIK ("Most Units", gelbe Kacheln): oben drei Kacheln mit Beschriftung oben und Zahl darunter:
+     "Times Named Autarch" / "Mal Alleinherrscher" 4 | "Times Participated" / "Teilnahmen" 13 | "Most Units Killed" / "Meiste getötete Einheiten" 89,827,934
+   darunter zwei Zeilen: "Most Units Lost" 1,949,570 und "Most Units Healed" 42,174,599.
+   → view = "lk_stats". Hier NUR lk_autarch, lk_participated, units_killed, units_lost, units_healed füllen.
+   "Most Units Killed" ist NICHT kill_points! kill_points, energy, highest_merit, acclaim, deads, ark_wins = null.
+
 Ordne jeden Wert seiner Beschriftung zu (Ansicht A: gleiche Zeile rechts, Ansicht B: direkt darunter) – nicht nach Größe raten.
 - "governor_id"   = Ziffern hinter "ID:" (als Text, z. B. "148759624")
 - "name"          = Name des Statthalters
@@ -160,6 +252,7 @@ Ordne jeden Wert seiner Beschriftung zu (Ansicht A: gleiche Zeile rechts, Ansich
 - "acclaim"       = aktueller Verdienst / Acclaim (die Zeile OHNE "Höchster"; oft 0 – dann 0, nicht null)
 - "ark_wins"      = Zahl vor "Wins"/"Siege" beim Abzeichen Ark of Osiris / Truhe des Osiris / Arche des Osiris
 - "lk_autarch"    = Zahl vor "x Autarch" / "x Alleinherrscher" beim Abzeichen Lost Kingdom / Verlorenes Königreich ("0x" = 0)
+- "lk_participated" = "Times Participated" / "Teilnahmen" (nur Ansicht D, sonst null)
 - "units_killed"  = "Most Units Killed" / "Meiste getötete Einheiten" (nur wenn sichtbar, sonst null)
 - "units_lost"    = "Most Units Lost" / "Meiste verlorene Einheiten" (nur wenn sichtbar, sonst null)
 - "units_healed"  = "Most Units Healed" / "Meiste geheilte Einheiten" (nur wenn sichtbar, sonst null)
@@ -169,7 +262,7 @@ Lies jede Ziffer einzeln und genau ab – lieber null als geraten. Fehlt ein Wer
 Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Format:
 {
   "type": "governor",
-  "view": "own" | "other" | "more_info",
+  "view": "own" | "other" | "more_info" | "lk_stats",
   "governor_id": string|null,
   "name": string|null,
   "alliance_tag": string|null,
@@ -181,6 +274,7 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
   "deads": number|null,
   "ark_wins": number|null,
   "lk_autarch": number|null,
+  "lk_participated": number|null,
   "units_killed": number|null,
   "units_lost": number|null,
   "units_healed": number|null,
@@ -357,7 +451,7 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
 }`;
 
 // Der Prompt liegt auf dem Server: so kann die Route nicht als allgemeiner Claude-Proxy missbraucht werden.
-const PROMPT = (m) => m === 'armament' ? PROMPT_ARMAMENT : m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : PROMPT_CLASSIC(m);
+const PROMPT = (m) => m === 'armament' ? PROMPT_ARMAMENT : m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'passports' ? PROMPT_PASSPORTS : m === 'goldheads' ? PROMPT_GOLDHEADS : m === 'keys' ? PROMPT_KEYS : m === 'armaments' ? PROMPT_ARMAMENTS : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : PROMPT_CLASSIC(m);
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
