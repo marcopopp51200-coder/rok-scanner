@@ -2378,7 +2378,15 @@ window.RokApp = () => {
   const autoSt = () => (passive.gemAuto = passive.gemAuto || {});
   const skipSt = () => (passive.gemSkip = passive.gemSkip || []);
   // Eigene Käufe mit Stufen (z. B. VIP-Shop: Blaue Mats 2.250 · Lila Mats 9.000) – einmalig oder wiederkehrend
-  const buySt = () => (passive.gemBuys = passive.gemBuys || []);
+  const buySt = () => {
+    const a = (passive.gemBuys = passive.gemBuys || []);
+    if (!a.some(b => b.fixed)) {   // VIP Mats fest dabei (eigener gleichnamiger Kauf wird übernommen)
+      const own = a.find(b => /^vip\s*mats$/i.test((b.name || '').trim()));
+      if (own) { own.fixed = true; own.name = 'VIP Mats'; }
+      else a.unshift({ id: 'vipmats', fixed: true, name: 'VIP Mats', stages: [{ label: 'Blaue Mats', cost: 2250 }, { label: 'Lila Mats', cost: 9000 }], sel: [], date: isoDay(dayPlus(0)), rep: 'week' });
+    }
+    return a;
+  };
   const BUY_REP = { once: 'einmalig', day: 'jeden Tag', week: 'jede Woche', week2: 'alle 2 Wochen', month: 'jeden Monat' };
   const buyCost = (b) => (b.sel || []).reduce((a, i) => a + (+b.stages[i]?.cost || 0), 0);
   function buyOccDays(b, maxD) {
@@ -2526,11 +2534,12 @@ window.RokApp = () => {
     gemPlanChart = new Chart($('gemPlanChart'), { type: 'line',
       data: { labels: days.map(d => dayPlus(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })),
         datasets: [{ label: 'Gems mit Events', data: days.map(d => Math.round(gemsAt(d, true))), borderColor: '#f472b6', borderWidth: 3, stepped: false, tension: 0, pointRadius: days.map(d => spentOn(d) ? 4 : 0), fill: false },
-                   { label: 'Ohne Events', data: days.map(d => Math.round(gemsBase() + (pmIncome('gems', d).gems || 0))), borderColor: '#34d399', borderWidth: 2, borderDash: [6, 4], tension: 0, pointRadius: 0, fill: false },
-                   { type: 'bar', label: 'Event-Kosten', data: days.map(d => spentOn(d) || null), backgroundColor: '#facc15aa', borderColor: '#facc15', borderWidth: 0, borderRadius: 3, barThickness: 6 }] },
+                   { label: 'Event-Kosten (aufsummiert)', yAxisID: 'y1', data: days.map(d => Math.round(spentBefore(d, true))), borderColor: '#facc15', backgroundColor: '#facc1522', borderWidth: 2, stepped: 'before', pointRadius: days.map(d => spentOn(d) ? 3 : 0), pointBackgroundColor: '#facc15', fill: true }] },
       options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-        plugins: { legend: { labels: { boxWidth: 12, color: '#94a3b8' } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${fmt(c.raw)}` } } },
-        scales: { y: { ticks: { callback: (v) => short(v) } }, x: { ticks: { maxTicksLimit: 8 } } } } });
+        plugins: { legend: { labels: { boxWidth: 12, color: '#94a3b8' } }, tooltip: { callbacks: { label: (c) => { if (c.datasetIndex === 1) { const t = spentOn(days[c.dataIndex]); return `Event-Kosten: ${t ? 'heute ' + fmt(t) + ' · ' : ''}gesamt ${fmt(c.raw)}`; } return `${c.dataset.label}: ${fmt(c.raw)}`; } } } },
+        scales: { y: { position: 'left', title: { display: true, text: 'Gems', color: '#f472b6' }, ticks: { color: '#f9a8d4', callback: (v) => short(v) } },
+          y1: { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, title: { display: true, text: 'Event-Kosten', color: '#facc15' }, ticks: { color: '#fde047', callback: (v) => short(v) } },
+          x: { ticks: { maxTicksLimit: 8 } } } } });
   }
   function addPlan(k, date, rot) {
     if (!date) return;
@@ -2683,9 +2692,11 @@ window.RokApp = () => {
     const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
     const list = buySt().map(b => { const c = buyCost(b); return `<div class="rounded-xl border ${c ? 'border-gold-500/40 bg-gold-500/5' : 'border-ink-700 bg-ink-950/30'} p-3">
         <div class="flex flex-wrap items-start justify-between gap-2 mb-2"><div><div class="text-sm font-semibold text-white">${esc(b.name || 'Eigener Kauf')}</div>
-          <div class="text-[11px] text-slate-400">ab ${dLabel(b.date, true)} · ${BUY_REP[b.rep] || BUY_REP.once}</div></div>
+          <div class="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">ab <input data-bdate="${b.id}" type="date" value="${b.date}" class="bg-ink-950 border border-ink-600 rounded-lg px-1.5 py-0.5 text-xs focus:outline-none focus:border-gold-500">
+            <select data-brep="${b.id}" class="bg-ink-950 border border-ink-600 rounded-lg px-1.5 py-0.5 text-xs focus:outline-none focus:border-gold-500">${Object.entries(BUY_REP).map(([k, v]) => `<option value="${k}" ${k === (b.rep || 'once') ? 'selected' : ''}>${v}</option>`).join('')}</select>
+            ${b.fixed ? '<span class="px-1.5 rounded bg-ink-800 text-slate-400">fest</span>' : ''}</div></div>
           <div class="flex items-center gap-3"><div class="text-right"><div class="text-[10px] uppercase tracking-widest text-slate-500">Kosten je Termin</div><div class="text-sm font-bold tabular-nums ${c ? 'text-gold-300' : 'text-slate-500'}">${c ? fmt(c) : '–'}</div></div>
-            <button type="button" data-bdel="${b.id}" class="text-slate-500 hover:text-red-400 px-1" title="Entfernen">✕</button></div></div>
+            ${b.fixed ? '' : `<button type="button" data-bdel="${b.id}" class="text-slate-500 hover:text-red-400 px-1" title="Entfernen">✕</button>`}</div></div>
         <div class="flex flex-wrap gap-2">${b.stages.map((st, i) => { const on = (b.sel || []).includes(i); return `<button type="button" data-bsel="${b.id}" data-i="${i}" aria-pressed="${on}" class="flex flex-col items-center rounded-xl border px-3 py-1.5 min-w-[5rem] transition ${on ? 'border-gold-400 bg-gold-500/15' : 'border-ink-700 bg-ink-950/50 hover:border-gold-500/50'}">
           <span class="text-xs font-semibold ${on ? 'text-gold-200' : 'text-slate-200'}">${esc(st.label || 'Stufe ' + (i + 1))}</span><span class="text-[10px] tabular-nums ${on ? 'text-gold-300' : 'text-slate-400'}">${fmt(st.cost)}</span></button>`; }).join('')}</div></div>`; }).join('');
     return `<section id="gemBuyBox" class="panel rounded-2xl p-5">
@@ -2694,11 +2705,11 @@ window.RokApp = () => {
       <div class="space-y-3">${list || '<div class="text-xs text-slate-500">Noch nichts angelegt.</div>'}</div>
       <div class="mt-4 rounded-xl border border-ink-700 bg-ink-950/40 p-3">
         <div class="flex flex-wrap items-end gap-2">
-          <label class="text-xs text-slate-400">Name<input id="gbName" type="text" placeholder="z. B. VIP Mats" class="mt-1 block w-40 ${inp}"></label>
+          <label class="text-xs text-slate-400">Name<input id="gbName" type="text" placeholder="z. B. Speedups" class="mt-1 block w-40 ${inp}"></label>
           <label class="text-xs text-slate-400">Ab Datum<input id="gbDate" type="date" value="${isoDay(dayPlus(0))}" class="mt-1 block ${inp}"></label>
           <label class="text-xs text-slate-400">Wiederholung<select id="gbRep" class="mt-1 block ${inp}">${Object.entries(BUY_REP).map(([k, v]) => `<option value="${k}" ${k === 'week' ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
         </div>
-        <div id="gbStages" class="mt-3 space-y-2">${[['Blaue Mats', 2250], ['Lila Mats', 9000]].map(([l, c], i) => buyStageRow(l, c, i)).join('')}</div>
+        <div id="gbStages" class="mt-3 space-y-2">${[['', ''], ['', '']].map(([l, c], i) => buyStageRow(l, c, i)).join('')}</div>
         <div class="mt-2 flex flex-wrap gap-2">
           <button type="button" id="gbAddStage" class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs">+ Stufe</button>
           <button type="button" id="gbAdd" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">+ Kauf anlegen</button>
@@ -2712,6 +2723,8 @@ window.RokApp = () => {
   function bindBuys(top) {
     makeFold($('gemBuyBox'), 'gembuy');
     top.querySelectorAll('[data-bdel]').forEach(b => b.onclick = () => { passive.gemBuys = buySt().filter(x => x.id !== b.dataset.bdel); savePassive(); renderGemsStats(); });
+    top.querySelectorAll('[data-bdate]').forEach(i => i.addEventListener('change', () => { const x = buySt().find(y => y.id === i.dataset.bdate); if (!x || !pDate(i.value)) return; x.date = i.value; savePassive(); renderGemsStats(); }));
+    top.querySelectorAll('[data-brep]').forEach(i => i.addEventListener('change', () => { const x = buySt().find(y => y.id === i.dataset.brep); if (!x) return; x.rep = i.value; savePassive(); renderGemsStats(); }));
     top.querySelectorAll('[data-bsel]').forEach(b => b.onclick = () => { const x = buySt().find(y => y.id === b.dataset.bsel); if (!x) return; const i = +b.dataset.i;
       x.sel = (x.sel || []).includes(i) ? x.sel.filter(v => v !== i) : [...(x.sel || []), i]; savePassive(); renderGemsStats(); });
     $('gbAddStage').onclick = () => { const box = $('gbStages'), n = box.querySelectorAll('[data-gbrow]').length; if (n >= 8) return; box.insertAdjacentHTML('beforeend', buyStageRow('', '', n)); };

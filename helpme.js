@@ -10,7 +10,7 @@ window.RokMods.helpme = (R) => {
   const $ = R.$, esc = R.esc, A = window.RokAuth, root = $('helpView');
   const db = () => A.db(), me = () => A.userId();
   const MAX = 5, MAX_SETS = 7, SEEN_KEY = 'rok_help_seen', DRAFT_KEY = 'rok_help_draft';
-  const st = { loaded: false, loading: false, err: '', noTable: false, reqs: [], ans: {}, users: {}, pick: {}, note: {}, open: null, choose: null, busy: false, saving: null, msg: ['', ''], compose: false, sel: null, toFeed: true, sharing: null, title: '' };
+  const st = { loaded: false, loading: false, err: '', noTable: false, reqs: [], ans: {}, users: {}, pick: {}, note: {}, open: null, choose: null, busy: false, saving: null, msg: ['', ''], compose: false, tab: (() => { try { return localStorage.getItem('rok_help_tab') === 'mine' ? 'mine' : 'all'; } catch { return 'all'; } })(), sel: null, toFeed: true, sharing: null, title: '' };
   // Englische Texte für Help Me (hängen sich an window.I18N an)
   (function helpI18n() {
     const I = window.I18N; if (!I || !I.translations || !I.translations.en) return;
@@ -30,10 +30,15 @@ window.RokMods.helpme = (R) => {
       'Was soll ich als Nächstes verbessern?': 'What should I improve next?', 'Was soll ich als Nächstes craften?': 'What should I craft next?', 'Wird geladen …': 'Loading …', 'craften': 'craft',
       '⚠ Die Help-Me-Tabellen fehlen noch in Supabase. Bitte das SQL aus dem Chat ausführen.': '⚠ The Help Me tables are missing in Supabase. Please run the SQL from the chat.',
       'Der Feed ist noch nicht geladen – bitte Seite neu laden.': 'The feed isn’t loaded yet – please reload the page.', '✓ Im Feed gepostet': '✓ Posted to the feed',
+      'Alle': 'All', 'Deine Empfehlung für': 'Your recommendation for', '✓ Gespeichert – steht jetzt auch unter ⭐ Deine.': '✓ Saved – it’s now also under ⭐ Yours.',
+      'Noch nichts gespeichert. Unter 🌍 Alle eine Anfrage öffnen, Items antippen und „💾 Speichern“.': 'Nothing saved yet. Open a request under 🌍 All, tap items and “💾 Save”.',
+      'Alle Anfragen': 'All requests', 'hier helfen': 'help here', 'Deine': 'Yours', 'Deine Anfragen': 'Your requests', 'Deine gespeicherten Empfehlungen': 'Your saved recommendations',
+      'Gerade fragt niemand um Hilfe.': 'Nobody is asking for help right now.', 'Du hast noch keine Anfrage gestellt – oben auf „➕ Anfrage stellen“.': 'You haven’t asked for help yet – use “➕ Ask for help” above.',
+      'Noch nichts gespeichert. Links eine Anfrage öffnen, Items antippen und „💾 Speichern“.': 'Nothing saved yet. Open a request on the left, tap items and “💾 Save”.', 'für': 'for',
       'Helm': 'Helmet', 'Brust': 'Chest', 'Waffe': 'Weapon', 'Handschuhe': 'Gloves', 'Beine': 'Legs', 'Stiefel': 'Boots', 'Accessoire 1': 'Accessory 1', 'Accessoire 2': 'Accessory 2'
     });
     I.translations.en.patterns.unshift(
-      [/^(\d+)\/(\d+) gewählt$/, '$1/$2 selected'], [/^(\d+)\/(\d+) Schritte – Reihenfolge = Priorität \(1 = zuerst\)$/, '$1/$2 steps – order = priority (1 = first)'],
+      [/^(\d+)\/(\d+) gewählt$/, '$1/$2 selected'], [/^(\d+) Anfragen?$/, (m, n) => `${n} request${n === '1' ? '' : 's'}`], [/^(\d+) gespeichert$/, '$1 saved'], [/^(\d+)\/(\d+) Schritte – Reihenfolge = Priorität \(1 = zuerst\)$/, '$1/$2 steps – order = priority (1 = first)'],
       [/^\(bis zu (\d+) Schritte\)$/, '(up to $1 steps)'], [/^Höchstens (\d+) Schritte – erst einen wieder abwählen\.$/, 'At most $1 steps – deselect one first.'],
       [/^Empfehlung der Community · (\d+) Antwort(?:en)?$/, (m, n) => `Community recommendation · ${n} answer${n === '1' ? '' : 's'}`],
       [/^(\d+) Set(s?) · (\d+) Teile – (deine Empfehlung ansehen \/ ändern|ansehen und empfehlen) ›$/, (m, a, s, b, c) => `${a} set${s} · ${b} pieces – ${c.startsWith('deine') ? 'view / change your recommendation' : 'view and recommend'} ›`],
@@ -145,7 +150,7 @@ window.RokMods.helpme = (R) => {
       const m = mineOf(rid);
       const { error } = await db().from('help_answers').upsert({ request_id: rid, user_id: me(), picks, note: (st.note[rid] ?? m?.note ?? '').slice(0, 300), created_at: new Date().toISOString() }); if (error) throw error;
       delete st.pick[rid]; delete st.note[rid]; saveDraft(rid);
-      msg('✓ Gespeichert – du kannst die Empfehlung jederzeit ändern.', 'ok'); st.saving = null; await load(); return;
+      msg(st.tab === 'mine' ? '✓ Gespeichert – du kannst die Empfehlung jederzeit ändern.' : '✓ Gespeichert – steht jetzt auch unter ⭐ Deine.', 'ok'); st.saving = null; await load(); return;
     } catch (e) { msg('Speichern fehlgeschlagen: ' + (A.germanError ? A.germanError(e) : e.message), 'err'); }
     st.saving = null; render();
   }
@@ -171,7 +176,7 @@ window.RokMods.helpme = (R) => {
       </div>`; }).join('');
   }
   // Brett eines Sets + klickbare Ebene darüber (Nummern = Priorität, ⚔/⬆ = gewählte Aktion)
-  function setBoard(req, si, set, mode, picks, result) {
+  function setBoard(req, si, set, mode, picks, result, big) {
     const map = gearMap(set);
     let board = ''; try { board = R.gearBoardHTML ? R.gearBoardHTML(map, set.gfx) : fallbackBoard(map); } catch { board = fallbackBoard(map); }
     const layer = SLOTS.map((sl) => {
@@ -190,7 +195,7 @@ window.RokMods.helpme = (R) => {
     }).join('');
     return `<div class="flex flex-col items-center gap-1.5">
       <div class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold">${esc(set.name)}</div>
-      <div class="relative w-[170px] sm:w-[190px] aspect-[1/2] select-none">${board}${layer}</div>
+      <div class="relative ${big ? 'w-[190px] sm:w-[250px]' : 'w-[170px] sm:w-[190px]'} aspect-[1/2] select-none">${board}${layer}</div>
     </div>`;
   }
   // Auswahl nach dem Antippen eines Items: Refine oder T erhöhen
@@ -232,11 +237,11 @@ window.RokMods.helpme = (R) => {
   const inp = 'w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500';
   const btn = (attr, lab, tone) => `<button type="button" ${attr} class="text-xs px-3 py-1.5 rounded-lg border whitespace-nowrap ${tone === 'gold' ? 'border-gold-400 bg-gold-500 text-ink-950 font-semibold hover:bg-gold-400' : tone === 'red' ? 'border-ink-600 text-slate-400 hover:border-red-400/60 hover:text-red-300' : 'border-gold-500/50 text-gold-300 hover:bg-gold-500/10'} disabled:opacity-50">${lab}</button>`;
   const u = (id) => st.users[id] || { username: '?' };
-  function reqHTML(req) {
+  function reqHTML(req, o = {}) {
     const own = req.user_id === me(), ans = st.ans[req.id] || [], mine = mineOf(req.id), picks = picksOf(req.id);
-    const open = st.open === req.id, closed = req.status === 'closed', result = tally(req);
+    const open = o.force || st.open === req.id, closed = req.status === 'closed', result = tally(req);
     const mode = own ? 'own' : closed ? 'view' : 'pick';
-    const boards = `<div class="flex flex-wrap justify-center gap-4 rounded-xl bg-ink-950/40 border border-ink-700/60 p-3">${(req.sets || []).map((s, si) => setBoard(req, si, s, mode, own ? [] : picks, result)).join('')}</div>`;
+    const boards = `<div class="flex flex-wrap justify-center gap-4 rounded-xl bg-ink-950/40 border border-ink-700/60 p-3">${(req.sets || []).map((s, si) => setBoard(req, si, s, mode, own ? [] : picks, result, o.big)).join('')}</div>`;
     const resultHTML = result.length ? `<div class="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3"><div class="text-[11px] uppercase tracking-widest text-emerald-300 mb-2">📊 Empfehlung der Community · ${ans.length} Antwort${ans.length === 1 ? '' : 'en'}</div>
         <div class="flex flex-col gap-1">${result.slice(0, 8).map((x, i) => { const a = ACT[x.act] || ACT['']; return `<div class="flex items-center gap-2 text-sm"><span class="w-6 text-center font-bold ${i === 0 ? 'text-gold-300' : 'text-slate-400'}">${i + 1}.</span>${x.g.icon ? `<img src="${esc(x.g.icon)}" alt="" class="w-7 h-7 rounded object-contain bg-ink-900">` : ''}<span class="min-w-0 flex-1 truncate ${RAR[x.g.rarity] || ''}">${esc(x.g.name)} <span class="text-[11px] text-slate-500">${esc(x.set)} · ${esc(SLOT_LABEL[x.g.slot] || x.g.slot)}</span></span><span class="text-xs whitespace-nowrap ${a.cls}">${a.icon} ${actText(x.g, x.act)}</span><span class="text-xs text-slate-400 tabular-nums whitespace-nowrap">${x.votes}× · ${x.score} P.</span></div>`; }).join('')}</div>
         ${ans.filter((a) => a.note).length ? `<div class="mt-2 pt-2 border-t border-ink-700/60 flex flex-col gap-1">${ans.filter((a) => a.note).map((a) => `<div class="text-xs text-slate-300"><b class="text-slate-200">${esc(u(a.user_id).username || '?')}:</b> ${esc(a.note)}</div>`).join('')}</div>` : ''}</div>` : (own ? '<p class="text-xs text-slate-500">Noch keine Antworten.</p>' : '');
@@ -258,7 +263,7 @@ window.RokMods.helpme = (R) => {
         ${own ? `${closed ? '' : btn(`data-help-share="${esc(req.id)}"${st.sharing === req.id ? ' disabled' : ''}`, st.sharing === req.id ? '⏳' : '📰 Im Feed posten')}${closed ? '' : btn(`data-help-close="${esc(req.id)}"`, 'Schließen')}${btn(`data-help-del="${esc(req.id)}"`, '✕', 'red')}` : ''}
       </div>
       <div class="font-semibold text-slate-100">🆘 ${esc(req.title)}</div>
-      ${open || own ? `${boards}${helper}${resultHTML}`
+      ${open || own ? (o.big ? `<div class="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] items-start">${boards}<div class="flex flex-col gap-3 min-w-0">${helper}${resultHTML || (own ? '' : '')}</div></div>` : `${boards}${helper}${resultHTML}`)
         : `<button type="button" data-help-open="${esc(req.id)}" class="text-left text-xs text-gold-300 hover:underline">${(req.sets || []).length} Set${(req.sets || []).length === 1 ? '' : 's'} · ${(req.sets || []).reduce((a, s) => a + (s.gear || []).length, 0)} Teile – ${mine ? 'deine Empfehlung ansehen / ändern' : 'ansehen und empfehlen'} ›</button>`}
     </article>`;
   }
@@ -281,6 +286,21 @@ window.RokMods.helpme = (R) => {
         ${btn('data-help-post' + (st.busy || !selIds().length ? ' disabled' : ''), '📨 Posten', 'gold')}</div>` : '<p class="text-sm text-amber-300">Noch keine Sets mit Ausrüstung – zuerst unter 🎨 Showcases eintragen.</p>'}</div>`;
   }
   function msg(t, tone) { st.msg = [t, tone]; const el = $('helpMsg'); if (!el) return; el.textContent = t; el.className = 'text-xs min-h-[1em] ' + ({ ok: 'text-emerald-400', warn: 'text-amber-300', err: 'text-red-300' }[tone] || 'text-slate-500'); }
+  // Zwei Seiten: 🌍 Alle (Anfragen der anderen) · ⭐ Deine (eigene Anfragen + gespeicherte Empfehlungen, groß über die ganze Breite)
+  function pagesHTML() {
+    const others = st.reqs.filter((r) => r.user_id !== me()), own = st.reqs.filter((r) => r.user_id === me()), saved = others.filter((r) => mineOf(r.id));
+    const tab = (k, lab, n) => `<button type="button" data-help-tab="${k}" aria-pressed="${st.tab === k}" class="seg-btn rounded-lg px-4 py-2 text-sm font-semibold border border-ink-600 transition">${lab} <span class="opacity-70 tabular-nums">${n}</span></button>`;
+    const empty = (t) => `<p class="panel rounded-2xl text-sm text-slate-500 text-center py-6 px-4">${t}</p>`;
+    const bar = `<div class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700 max-w-md" role="tablist">${tab('all', '🌍 Alle', others.length)}${tab('mine', '⭐ Deine', own.length + saved.length)}</div>`;
+    if (st.tab !== 'mine') return `${bar}<div class="grid gap-4 xl:grid-cols-2 items-start">${others.length ? others.map((r) => reqHTML(r)).join('') : empty('Gerade fragt niemand um Hilfe.')}</div>`;
+    const sec = (t, n) => `<div class="flex items-baseline justify-between gap-2 px-1 pt-1"><h3 class="font-display text-lg gold-text">${t}</h3><span class="text-[11px] text-slate-500 tabular-nums">${n}</span></div>`;
+    const savedCard = (r) => `<div class="flex flex-col gap-1.5"><div class="flex items-center gap-2 px-1 text-[11px] text-emerald-300">💾 <span>Deine Empfehlung für</span> <b class="text-slate-200" translate="no">${esc(u(r.user_id).username || '?')}</b><span class="text-slate-500">· ${R.timeAgo(mineOf(r.id).created_at)}</span></div>${reqHTML(r, { force: true, big: true })}</div>`;
+    return `${bar}
+      ${sec('🆘 Deine Anfragen', own.length)}
+      <div class="flex flex-col gap-4">${own.length ? own.map((r) => reqHTML(r, { force: true, big: true })).join('') : empty('Du hast noch keine Anfrage gestellt – oben auf „➕ Anfrage stellen“.')}</div>
+      ${sec('💾 Deine gespeicherten Empfehlungen', saved.length)}
+      <div class="flex flex-col gap-5">${saved.length ? saved.map(savedCard).join('') : empty('Noch nichts gespeichert. Unter 🌍 Alle eine Anfrage öffnen, Items antippen und „💾 Speichern“.')}</div>`;
+  }
   function render() {
     if (!root) return;
     const focus = document.activeElement && root.contains(document.activeElement) && document.activeElement.dataset.helpNote ? [document.activeElement.dataset.helpNote, document.activeElement.selectionStart] : null;
@@ -292,8 +312,7 @@ window.RokMods.helpme = (R) => {
       ${st.noTable ? '<div class="panel rounded-2xl p-5 text-sm text-amber-300">⚠ Die Help-Me-Tabellen fehlen noch in Supabase. Bitte das SQL aus dem Chat ausführen.</div>' : ''}
       ${st.err ? `<div class="panel rounded-2xl p-5 text-sm text-red-300">⚠ ${esc(st.err)}</div>` : ''}
       ${!st.loaded || st.loading ? '<p class="text-sm text-slate-500 text-center py-6">⏳ Wird geladen …</p>' : ''}
-      <div class="grid gap-4 xl:grid-cols-2 items-start">${st.reqs.map(reqHTML).join('')}</div>
-      ${st.loaded && !st.loading && !st.reqs.length && !st.noTable ? '<p class="text-sm text-slate-500 text-center py-6">Noch keine Anfragen.</p>' : ''}`;
+      ${st.loaded && !st.loading && !st.noTable ? pagesHTML() : ''}`;
     msg(st.msg[0], st.msg[1]);
     if (focus) { const el = root.querySelector(`[data-help-note="${CSS.escape(focus[0])}"]`); if (el) { el.focus(); try { el.setSelectionRange(focus[1], focus[1]); } catch {} } }
   }
@@ -314,6 +333,8 @@ window.RokMods.helpme = (R) => {
     else if ((b = c('data-help-share'))) { const r = st.reqs.find((x) => x.id === b.dataset.helpShare); if (r) share(r); }
     else if (c('data-help-reload')) load();
     else if ((b = c('data-help-open'))) { st.open = b.dataset.helpOpen; render(); }
+    else if ((b = c('data-help-tab'))) { st.tab = b.dataset.helpTab === 'mine' ? 'mine' : 'all'; try { localStorage.setItem('rok_help_tab', st.tab); } catch {} render(); }
+    else if ((b = c('data-help-goto'))) { const id = b.dataset.helpGoto; st.open = id; render(); const el = root.querySelector(`[data-help-req="${CSS.escape(id)}"]`); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('ring-2', 'ring-gold-400'); setTimeout(() => el.classList.remove('ring-2', 'ring-gold-400'), 2200); } }
     else if ((b = c('data-help-tile'))) { const [rid, item] = b.dataset.helpTile.split('|'); st.choose = st.choose && st.choose.rid === rid && st.choose.item === item ? null : { rid, item }; render(); }
     else if ((b = c('data-help-act'))) { if (b.disabled) return; const [rid, item, act] = b.dataset.helpAct.split('|'); setAction(rid, item, act); }
     else if (c('data-help-choose-x')) { st.choose = null; render(); }

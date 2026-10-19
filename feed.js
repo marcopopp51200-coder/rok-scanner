@@ -1134,7 +1134,7 @@ window.RokMods.feed = (R) => {
       <div class="max-w-full truncate text-[11px] font-semibold text-slate-100 [text-shadow:0_1px_2px_#000]" translate="no">${esc(x.name || '')}</div>${board}</div>`;
   };
   const showcaseCard = (d, isSet) => { const gic = isSet ? [...new Set((d.sets || []).flatMap((x) => Object.values(x.gear || {}).map((g) => g.icon)).filter((u) => /\.(png|webp|jpe?g)$/i.test(u || '')))] : [];
-    return `<div class="relative overflow-hidden rounded-xl border border-gold-500/35" style="background:${isSet ? "#120d08 url('/icons/feed/set-vault.webp') center / cover no-repeat" : scBgCss(d.bg)}">
+    return `<div class="relative overflow-hidden rounded-xl border border-gold-500/35" style="background:${isSet ? "#120d08 url('/icons/feed/candlelit-tavern-cellar.webp') center / cover no-repeat" : scBgCss(d.bg)}">
       <div class="absolute inset-0 bg-gradient-to-b from-ink-950/35 via-ink-950/5 to-ink-950/70 pointer-events-none"></div>
       ${gic.length ? resLayer(gic, 14) : ''}
       <div class="fx-body p-3 ${gic.length ? 'pb-10' : ''} flex flex-col gap-2.5">
@@ -1227,7 +1227,7 @@ window.RokMods.feed = (R) => {
     const icons = [...(d.res ? RES_K.filter(([k]) => d.res[k] != null).flatMap(([k]) => RES_IMG[k]) : []),
       ...(d.speed ? [...SPD_K.filter(([k]) => d.speed[k] != null).map(([k]) => SPD_IMG[k]), ...(d.speed.uh != null ? [SPD_IMG.universal, SPD_IMG.healing] : [])] : []),
       ...(d.ap ? [AP_IMG, AP_IMG] : [])];
-    return `<div class="fx-stock relative overflow-hidden rounded-xl border border-emerald-400/30 p-3 pb-12" style="background:#0b1d2a url('/icons/feed/landscape-waterfall.webp') center 40% / cover no-repeat">
+    return `<div class="fx-stock relative overflow-hidden rounded-xl border border-emerald-400/30 p-3 pb-12" style="background:#0b1d2a url('/icons/feed/Screenshot%202026-10-18%20181316.png') center 40% / cover no-repeat">
       <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(180deg,rgba(7,9,15,.55),rgba(7,9,15,.35) 45%,rgba(7,9,15,.75))"></div>${resLayer(icons, 26)}<div class="fx-body flex flex-col gap-3">
       <div class="flex items-baseline justify-between gap-2"><span class="text-[10px] uppercase tracking-widest text-emerald-300 inline-flex items-center gap-1"><img src="/icons/ressourcen/corn.png" alt="" style="width:14px;height:14px" class="object-contain"> Meine Rss</span>${ts ? `<span class="text-[10px] text-slate-500">Scan vom ${esc(R.dateLabel ? R.dateLabel(ts) : new Date(ts).toLocaleDateString('de-DE'))}</span>` : ''}</div>
       ${parts.join('') || '<p class="text-sm text-slate-500">nichts ausgewählt</p>'}</div></div>`;
