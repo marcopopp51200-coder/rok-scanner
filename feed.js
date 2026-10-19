@@ -35,6 +35,48 @@ window.RokMods.feed = (R) => {
   const root = $('feedView');
   if (!root) return;
 
+  // ---------- Umschalter 📢 News | 📰 Feed (oben links auf beiden Seiten) – news.js nutzt ihn mit ----------
+  R.newsUnread = R.newsUnread || 0; R.newsLatest = R.newsLatest || '';
+  R.feedNewsSwitch = (active) => {
+    const btn = (v, label) => `<button type="button" data-go-view="${v}" aria-pressed="${active === v}" class="seg-btn relative rounded-lg px-4 sm:px-5 py-2 font-display text-lg sm:text-xl transition ${active === v ? '' : 'text-slate-300 hover:text-gold-300'}">${label}${v === 'news' ? `<span data-news-badge style="${R.newsUnread > 0 ? '' : 'display:none'}" title="Neue News" class="absolute -top-1.5 -right-1.5 min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-[11px] font-sans font-bold grid place-items-center">${R.newsUnread > 9 ? '9+' : R.newsUnread || ''}</span>` : ''}</button>`;
+    return `<div class="inline-grid grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist" aria-label="News und Feed">${btn('news', '📢 News')}${btn('feed', '📰 Feed')}</div>`;
+  };
+  // Hinweis im Feed, wenn es ungelesene News gibt
+  R.newsHintHTML = () => (R.newsUnread > 0 ? `<button type="button" data-go-view="news" class="w-full flex items-center gap-3 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-left hover:border-red-400/70">
+      <span class="shrink-0 min-w-[1.5rem] h-6 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold grid place-items-center">${R.newsUnread > 9 ? '9+' : R.newsUnread}</span>
+      <span class="min-w-0 flex-1"><span class="block text-sm font-semibold text-slate-100">📢 ${R.newsUnread === 1 ? 'Neue News' : R.newsUnread + ' neue News'}</span>${R.newsLatest ? `<span class="block truncate text-xs text-slate-400">${esc(R.newsLatest)}</span>` : ''}</span>
+      <span class="shrink-0 text-xs font-semibold text-gold-300">Lesen →</span></button>` : '');
+  R.renderNewsHint = () => { document.querySelectorAll('[data-news-hint]').forEach((el) => { el.innerHTML = R.newsHintHTML(); }); R.setBadge('[data-news-badge]', R.newsUnread); };
+  document.addEventListener('click', (ev) => { const g = ev.target.closest && ev.target.closest('[data-go-view]'); if (g && R.goView) R.goView(g.dataset.goView); });
+
+  // ---------- Bilder: klein als Vorschau, Antippen öffnet sie groß (Zoomen mit Tippen / Mausrad-Ziehen) ----------
+  R.zoomImgHTML = (src, cls) => `<button type="button" data-zoom-img="${esc(src)}" title="Vergrößern" class="group relative block w-full cursor-zoom-in rounded-xl overflow-hidden border border-ink-700 bg-ink-950">
+      <img src="${esc(src)}" alt="" loading="lazy" class="${cls} mx-auto">
+      <span class="absolute bottom-2 right-2 rounded-full bg-ink-950/80 border border-ink-600 px-2.5 py-1 text-[11px] text-slate-200 group-hover:border-gold-400/70">🔍 Vergrößern</span></button>`;
+  R.openImage = (src) => {
+    const box = document.createElement('div'), prev = document.body.style.overflow;
+    box.className = 'fixed inset-0 z-[95] bg-ink-950/95 backdrop-blur-sm ui-fade overflow-auto';
+    box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Bild');
+    box.innerHTML = `<div class="min-h-full grid place-items-center p-3 sm:p-6"><img src="${esc(src)}" alt="" class="max-w-full max-h-[92vh] object-contain rounded-lg shadow-2xl cursor-zoom-in select-none"></div>
+      <button type="button" data-zclose aria-label="Schließen" class="fixed top-3 right-3 w-11 h-11 grid place-items-center rounded-full bg-ink-900 border border-ink-600 text-xl hover:border-gold-400 hover:text-gold-300">✕</button>`;
+    const img = box.querySelector('img');
+    const close = () => { document.removeEventListener('keydown', onKey, true); box.remove(); document.body.style.overflow = prev; };
+    const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); } };
+    box.addEventListener('click', (e) => {
+      if (e.target.closest('[data-zclose]')) return close();
+      if (e.target === img) {   // Antippen: Originalgröße ↔ eingepasst
+        const big = img.classList.toggle('max-h-[92vh]') === false;
+        img.classList.toggle('max-w-full', !big); img.classList.toggle('cursor-zoom-in', !big); img.classList.toggle('cursor-zoom-out', big);
+        if (big) { const r = e.offsetX / img.clientWidth; setTimeout(() => { box.scrollLeft = Math.max(0, img.naturalWidth * r - box.clientWidth / 2); }, 0); }
+        return;
+      }
+      close();
+    });
+    document.addEventListener('keydown', onKey, true);
+    document.body.appendChild(box); document.body.style.overflow = 'hidden';
+  };
+  document.addEventListener('click', (ev) => { const z = ev.target.closest && ev.target.closest('[data-zoom-img]'); if (z) { ev.preventDefault(); R.openImage(z.dataset.zoomImg); } });
+
   // ======================================================================
   // Effekte (CSS-Keyframes + kleine JS-Helfer) – alles dezent, Partikel werden nach der Animation entfernt
   // ======================================================================
@@ -1316,7 +1358,7 @@ window.RokMods.feed = (R) => {
         ${statCell('🏅', 'Verdienst', d.acclaim ? '+' + short(d.acclaim) : '–', d.acclaim ? fmt(d.acclaim) : '')}
         ${d.deads ? statCell('💀', 'Deads', short(d.deads), fmt(d.deads)) : ''}
       </div></div></div>`;
-  const imgHTML = (src) => `<a href="${esc(src)}" target="_blank" rel="noopener" class="block"><img src="${esc(src)}" alt="" loading="lazy" class="w-full max-h-[34rem] object-contain rounded-xl border border-ink-700 bg-ink-950"></a>`;
+  const imgHTML = (src) => R.zoomImgHTML(src, 'w-full max-h-80 object-contain');
   // ---------- Bonuscode (nur Admins posten; alle sehen ihn, aktive Codes stehen oben im Feed) ----------
   const codeNorm = (v) => String(v || '').trim().replace(/\s+/g, '').toUpperCase().slice(0, 40);
   const CODE_PIN_MS = 7 * 86400e3;   // Codes ohne Ablaufdatum bleiben 7 Tage oben angeheftet
@@ -1690,11 +1732,12 @@ window.RokMods.feed = (R) => {
   function render() {
     root.innerHTML = `
       <div class="flex flex-wrap items-end justify-between gap-3">
-        <div><h2 class="font-display text-2xl gold-text">📰 Feed</h2><p class="text-xs text-slate-500">Showcases, KvK, Gear-Upgrades und Bestände aller Spieler</p></div>
+        <div>${R.feedNewsSwitch('feed')}<p class="mt-1.5 text-xs text-slate-500">Showcases, KvK, Gear-Upgrades und Bestände aller Spieler</p></div>
         <div class="flex items-center gap-3"><span id="feedSync" class="text-[11px] text-emerald-400/80"></span>
           ${bellHTML()}
           <button type="button" id="feedReload" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">↻ Aktualisieren</button></div>
       </div>
+      <div data-news-hint>${R.newsHintHTML()}</div>
       <div id="feedNotifs">${notifsHTML()}</div>
       <div id="feedComposer"></div>
       <input type="file" id="feedCmFile" accept="image/gif,.gif" class="hidden">

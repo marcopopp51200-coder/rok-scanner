@@ -23,13 +23,16 @@ window.RokMods.news = (R) => {
       '🖼️ Bild hinzufügen': '🖼️ Add image', '🖼️ Anderes Bild': '🖼️ Other image', '✕ Bild entfernen': '✕ Remove image', 'Angeheftet': 'Pinned', 'bearbeitet': 'edited',
       'Noch keine News.': 'No news yet.', 'News werden geladen …': 'Loading news …', 'Diese News löschen?': 'Delete this news post?', 'Bitte einen Titel eingeben.': 'Please enter a title.',
       '✓ Veröffentlicht': '✓ Published', '✓ Gespeichert': '✓ Saved', 'Wird gespeichert …': 'Saving …', 'Bearbeiten': 'Edit', 'Löschen': 'Delete', 'Nicht mehr anheften': 'Unpin',
-      'Nur Admins können News posten.': 'Only admins can post news.', '↻ Aktualisieren': '↻ Refresh',
-      '⚠ Die News-Tabelle fehlt noch in Supabase. Bitte das SQL aus dem Chat ausführen.': '⚠ The news table is missing in Supabase. Please run the SQL from the chat.'
+      'Nur Admins können News posten.': 'Only admins can post news.', 'Neue News': 'New news', 'Lesen →': 'Read →', '🔍 Vergrößern': '🔍 Enlarge', 'Vergrößern': 'Enlarge', '↻ Aktualisieren': '↻ Refresh',
+      '⚠ Die News-Tabelle fehlt noch in Supabase. Bitte das SQL aus dem Chat ausführen.': '⚠ The news table is missing in Supabase. Please run the SQL from the chat.',
+      '📢 Neue News': '📢 New news', '📰 Feed': '📰 Feed'
     });
+    if (I.translations.en.patterns) I.translations.en.patterns.unshift([/^📢 (\d+) neue News$/, '📢 $1 new news']);
   })();
 
   const seen = () => { try { return +localStorage.getItem(SEEN_KEY) || 0; } catch { return 0; } };
-  const markSeen = () => { const top = Math.max(0, ...st.posts.map((p) => Date.parse(p.created_at) || 0)); try { localStorage.setItem(SEEN_KEY, String(Math.max(top, Date.now()))); } catch {} R.setBadge('[data-news-badge]', 0); };
+  const setUnread = (n, latest) => { R.newsUnread = n; R.newsLatest = latest || ''; if (R.renderNewsHint) R.renderNewsHint(); else R.setBadge('[data-news-badge]', n); };
+  const markSeen = () => { const top = Math.max(0, ...st.posts.map((p) => Date.parse(p.created_at) || 0)); try { localStorage.setItem(SEEN_KEY, String(Math.max(top, Date.now()))); } catch {} setUnread(0); };
   const unread = (list) => { const s = seen(); return list.filter((p) => (Date.parse(p.created_at) || 0) > s && p.user_id !== me()).length; };
   const sorted = () => [...st.posts].sort((a, b) => ((b.pinned === true) - (a.pinned === true)) || (Date.parse(b.created_at) - Date.parse(a.created_at)));
   const fail = (e) => (R.tableMissing(e) ? 'Die News-Tabelle fehlt noch in Supabase – bitte das SQL aus dem Chat ausführen.' : (A.germanError ? A.germanError(e) : String(e.message || e)));
@@ -53,9 +56,15 @@ window.RokMods.news = (R) => {
   }
   async function pollBadge() {
     if (R.view === 'news') return;
-    try { const { data, error } = await db().from('news_posts').select('created_at,user_id').order('created_at', { ascending: false }).limit(20); if (!error) R.setBadge('[data-news-badge]', unread(data || [])); } catch {}
+    try {
+      const { data, error } = await db().from('news_posts').select('created_at,user_id,title').order('created_at', { ascending: false }).limit(20);
+      if (error) return;
+      const s = seen(), fresh = (data || []).filter((p) => (Date.parse(p.created_at) || 0) > s && p.user_id !== me());
+      setUnread(fresh.length, fresh[0] ? fresh[0].title : '');
+    } catch {}
   }
-  setTimeout(pollBadge, 2000); setInterval(() => { if (!document.hidden) pollBadge(); }, 5 * 60000);
+  setTimeout(pollBadge, 2000); setInterval(() => { if (!document.hidden) pollBadge(); }, 2 * 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) pollBadge(); });
 
   // ---------- Schreiben (nur Admins) ----------
   function openForm(p) {
@@ -127,7 +136,7 @@ window.RokMods.news = (R) => {
         <label class="ml-auto inline-flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="checkbox" data-n="pinned" ${f.pinned ? 'checked' : ''} class="accent-amber-400 w-4 h-4"> 📌 Oben anheften</label>
         <input type="file" id="newsFile" accept="image/*" class="hidden">
       </div>
-      ${img ? `<img src="${esc(img)}" alt="" class="w-full max-h-72 object-contain rounded-lg border border-ink-700 bg-ink-950">` : ''}
+      ${img ? `<img src="${esc(img)}" alt="" class="w-full h-48 object-cover object-top rounded-lg border border-ink-700 bg-ink-950">` : ''}
       <div class="flex flex-wrap items-center gap-3">
         <div data-n-msg class="${msgCls(st.msg[1])}">${esc(st.msg[0])}</div>
         <button type="button" data-n-cancel class="px-4 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">Abbrechen</button>
@@ -149,7 +158,7 @@ window.RokMods.news = (R) => {
           <button type="button" data-n-edit="${esc(p.id)}" title="Bearbeiten" class="w-8 h-8 rounded-lg border border-ink-700 text-slate-500 hover:border-gold-500/60 hover:text-gold-300">✎</button>
           <button type="button" data-n-del="${esc(p.id)}" title="Löschen" class="w-8 h-8 rounded-lg border border-ink-700 text-slate-500 hover:border-red-400/60 hover:text-red-300">✕</button></div>` : ''}
       </div>
-      ${p.image ? `<a href="${esc(p.image)}" target="_blank" rel="noopener" class="block"><img src="${esc(p.image)}" alt="" loading="lazy" class="w-full max-h-[34rem] object-contain rounded-xl border border-ink-700 bg-ink-950"></a>` : ''}
+      ${p.image ? (R.zoomImgHTML ? R.zoomImgHTML(p.image, 'w-full h-56 sm:h-64 object-cover object-top') : `<img src="${esc(p.image)}" alt="" loading="lazy" class="w-full h-56 object-cover object-top rounded-xl">`) : ''}
       ${p.body ? `<p class="text-sm leading-relaxed text-slate-200 whitespace-pre-wrap break-words">${richText(p.body)}</p>` : ''}
     </article>`;
   };
@@ -164,7 +173,7 @@ window.RokMods.news = (R) => {
   function render() {
     root.innerHTML = `
       <div class="flex flex-wrap items-end justify-between gap-3">
-        <div><h2 class="font-display text-3xl gold-text">📢 News</h2><p class="text-xs text-slate-400">Neuigkeiten rund um den Wiz fan Club</p></div>
+        <div>${R.feedNewsSwitch ? R.feedNewsSwitch('news') : '<h2 class="font-display text-2xl gold-text">📢 News</h2>'}<p class="mt-1.5 text-xs text-slate-500">Neuigkeiten rund um den Wiz fan Club</p></div>
         <div class="flex gap-2">
           <button type="button" data-n-reload class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">↻ Aktualisieren</button>
           ${st.admin && !st.open ? '<button type="button" data-n-new class="text-sm px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">➕ News schreiben</button>' : ''}
@@ -203,6 +212,7 @@ window.RokMods.news = (R) => {
   R.VIEW_EL.news = 'newsView';
   if (!R.MAIN_VIEWS.includes('news')) R.MAIN_VIEWS.push('news');
   R.viewHooks.news = () => { if (!st.loaded && !st.loading) load(); else { markSeen(); render(); } };
+  document.addEventListener('rok:view', (e) => { if (e.detail === 'news') document.querySelectorAll('.main-tab[data-view="feed"]').forEach((b) => b.setAttribute('aria-pressed', 'true')); });
   A.isAdmin().then((ok) => { st.admin = !!ok; render(); }).catch(() => {});
   render();
 };

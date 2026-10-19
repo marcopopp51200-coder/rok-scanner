@@ -3276,7 +3276,6 @@ window.RokApp = () => {
     craftAllowed = ok;
     $('craftTab').classList.toggle('hidden', !ok);
     $('mainNav').classList.toggle('grid-cols-4', ok); $('mainNav').classList.toggle('grid-cols-3', !ok);
-    $('kingdomTab').classList.toggle('col-span-3', ok); $('kingdomTab').classList.toggle('col-span-2', !ok);   // My Kingdom + 📢 News teilen sich die obere Reihe
   });
   syncTabs();
   renderHistory();
