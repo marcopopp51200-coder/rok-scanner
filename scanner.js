@@ -537,6 +537,7 @@ window.RokApp = () => {
     const n = vipNumbers(), p0 = (n.current != null || n.inventory > 0) ? n.after : (typeof pmReady !== 'undefined' && pmReady ? vipNowPts() : null);
     const show = R.mode === 'vip' && p0 != null;
     box.classList.toggle('hidden', !show);
+    $('gemsReqSection')?.classList.toggle('hidden', !show);
     if (!show) return;
     const p = p0, nx = lbNext(p);
     const line = (label, miss) => `<div class="rounded-xl bg-ink-950/60 border border-ink-700 px-4 py-3">
@@ -555,6 +556,26 @@ window.RokApp = () => {
       </div>
       ${toTarget > 0 && (nx.max || targetLevel > nx.next) ? `<div class="mt-4">${line(`Bis zum Ziel ${vipName(targetLevel)}`, toTarget)}</div>` : ''}
       <p class="mt-3 text-[11px] text-slate-500">Grundlage: 100 VIP-Punkte = 50.000 Bündnis-Credits (500 Credits je Punkt). Gerechnet mit ${fmt(p)} VIP-Punkten inkl. Gegenständen.</p>`;
+    // Gleiche Box mit Gems (1 Gem = 1 VIP-Punkt)
+    const gb = $('gemsReqSection');
+    if (gb) {
+      const have = typeof pmReady !== 'undefined' && pmReady ? gemsNow() : null;
+      const gLine = (label, need) => { const rest = need - (have || 0);
+        return `<div class="rounded-xl bg-ink-950/60 border border-ink-700 px-4 py-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">${label}</div>
+          <div class="mt-1 text-sm text-slate-300"><b class="text-white tabular-nums">${fmt(need)}</b> Gems benötigt${have != null ? ` · du hast <b class="text-pink-300 tabular-nums">${fmt(have)}</b> → ${rest > 0 ? `es fehlen <b class="text-red-400 tabular-nums">${fmt(rest)}</b>` : `<b class="text-emerald-400">reicht ✓ (+${fmt(-rest)})</b>`}` : ''}</div></div>`; };
+      const restNext = nx.max ? 0 : nx.need - (have || 0);
+      gb.classList.remove('hidden');
+      gb.innerHTML = `<div class="flex items-center gap-4">
+          <div class="w-14 h-14 shrink-0 rounded-2xl grid place-items-center" style="background:linear-gradient(135deg,#f472b633,#a855f722);border:1px solid #f472b655">${ico({ img: 'ressourcen/gemsmore.png', icon: '💎' }, 'w-10 h-10')}</div>
+          <div class="min-w-0">
+            <div class="text-xs uppercase tracking-widest text-slate-400">Benötigte Gems${nx.max ? '' : ` · bis ${vipName(nx.next)}`}</div>
+            <div class="text-3xl sm:text-4xl font-extrabold text-pink-300 tabular-nums">${nx.max ? '–' : fmt(nx.need)}</div>
+            <div class="text-sm text-slate-300 mt-0.5">${nx.max ? 'Max Level erreicht 👑' : have == null ? 'Noch kein Gems-Scan' : restNext > 0 ? `Du hast <b class="text-pink-300 tabular-nums">${fmt(have)}</b> Gems → es fehlen <b class="text-red-400 tabular-nums">${fmt(restNext)}</b>` : `Du hast <b class="text-pink-300 tabular-nums">${fmt(have)}</b> Gems → <b class="text-emerald-400">reicht ✓</b>`}</div>
+          </div>
+        </div>
+        ${toTarget > 0 && (nx.max || targetLevel > nx.next) ? `<div class="mt-4">${gLine(`Bis zum Ziel ${vipName(targetLevel)}`, toTarget)}</div>` : ''}
+        <p class="mt-3 text-[11px] text-slate-500">Grundlage: 1 Gem = 1 VIP-Punkt. Gems aus deinem letzten Scan im Bereich Gems.</p>`;
+    }
   }
 
   function renderVip(r) {
@@ -1997,22 +2018,34 @@ window.RokApp = () => {
         { k: 'alliance', label: 'Allianz-Ressourcen', desc: 'Selbst eintragen – pro Stunde', inputs: RES.map(r => ({ key: r.k, label: `${r.label} pro Stunde`, ph: '0', text: true })), perDay: (s) => Object.fromEntries(RES.map(r => [r.k, nv(s[r.k], 0) * 24])) },
         { k: 'daily', label: 'Daily', desc: 'Proviant/Holz 270.000 · Stein 202.000 · Gold 27.000 pro Tag', perDay: () => ({ food: 270000, wood: 270000, stone: 202000, gold: 27000 }) }
       ] },
-    passports: { title: 'Passive Passports', units: [{ k: 'passports', label: 'Passseiten', c: '#818cf8', img: 'sonstiges/passport.webp', icon: '🛂' }], now: () => { const e = lastOf('passports', x => x.passports != null); return { passports: e ? +e.passports : null }; },
-      src: [{ k: 'credits', label: 'Allianz-Credits (Shop)', desc: 'Genaue Werte folgen – vorerst selbst eintragen', inputs: [{ key: 'w', label: 'Passseiten pro Woche', ph: 'z. B. 50' }], perDay: (s) => ({ passports: nv(s.w, 0) / 7 }) }] },
+    passports: { title: 'Passive Passports & Credits', summaryUnit: 'credits',
+      units: [{ k: 'passports', label: 'Passseiten', c: '#818cf8', img: 'sonstiges/passport.webp', icon: '🛂' }, { k: 'credits', label: 'Credits', c: '#cbd5e1', img: 'ressourcen/allianccredits.png', icon: '🤝' }],
+      now: () => { const e = lastOf('passports', x => x.passports != null); return { passports: e ? +e.passports : null, credits: typeof creditsNow === 'function' ? creditsNow() : null }; },
+      src: [
+        { k: 'credits', label: 'Passseiten (Shop)', desc: 'Passseiten, die du pro Woche bekommst/kaufst', inputs: [{ key: 'w', label: 'Passseiten pro Woche', ph: 'z. B. 2' }], perDay: (s) => ({ passports: nv(s.w, 0) / 7 }) },
+        { k: 'ethel', label: 'Ethelfleda-Statue', desc: '3× am Tag = 15.000 Credits', inputs: [{ key: 'n', label: 'Credits pro Tag', def: 15000 }], perDay: (s) => ({ credits: nv(s.n, 15000) }) },
+        { k: 'donate', label: 'Spenden', desc: 'Allianz-Technologie spenden', inputs: [{ key: 'w', label: 'Ø Credits pro Woche', def: 70000 }], perDay: (s) => ({ credits: nv(s.w, 70000) / 7 }) },
+        { k: 'build', label: 'Bauen helfen', desc: '20.000 Credits jeden Tag', inputs: [{ key: 'n', label: 'Credits pro Tag', def: 20000 }], perDay: (s) => ({ credits: nv(s.n, 20000) }) },
+        { k: 'vipgreen', label: 'VIP-Shop: grüne Kisten', desc: '−8.000 Credits pro Woche · ℹ️ Grüne Kisten nehmen und damit das Kavallerie-Waffen-Set craften', perDay: () => ({ credits: -8000 / 7 }) },
+        { k: 'vipblue', label: 'VIP-Shop: blaue Kiste', desc: '15 Blueprints für 4.000 Credits pro Woche · ℹ️ Nur nehmen, wenn du das Teil damit voll craften kannst', perDay: () => ({ credits: -4000 / 7 }) }
+      ] },
     goldheads: { title: 'Passive Goldheads', units: [{ k: 'goldheads', label: 'Goldheads', c: '#facc15', icon: '🗿', img: 'goldhead.webp' }], now: () => { const e = lastOf('goldheads'); return { goldheads: e ? +e.goldheads || 0 : null }; },
       src: [
-        { k: 'vip', label: 'VIP', desc: 'Genaue Werte folgen – vorerst selbst eintragen', inputs: [{ key: 'w', label: 'Goldheads pro Woche', ph: 'z. B. 20' }], perDay: (s) => ({ goldheads: nv(s.w, 0) / 7 }) },
-        { k: 'events', label: 'Events', desc: 'Genaue Werte folgen – vorerst selbst eintragen', inputs: [{ key: 'w', label: 'Goldheads pro Woche (Ø)', ph: 'z. B. 30' }], perDay: (s) => ({ goldheads: nv(s.w, 0) / 7 }) }
+        { k: 'vipd', label: 'VIP täglich', desc: 'VIP 10–11: 1 · VIP 12–13: 2 · VIP 14–19 & SVIP: 3 pro Tag (aus deinem VIP-Stand)', perDay: () => ({ goldheads: ghVipDaily() }) },
+        { k: 'olympia', label: 'Champions of Olympia', desc: '2 Goldheads jedes Wochenende', perDay: () => ({ goldheads: 2 / 7 }), inc: (s, days) => ({ goldheads: 2 * weekdaysIn(days, 6) }) },
+        { k: 'aoo', label: 'Ark of Osiris', desc: 'alle 2 Wochen · Sieg 10, Niederlage 5', inputs: [{ key: 'w', label: 'Gewinnquote (%)', def: 50 }], perDay: (s) => ({ goldheads: (nv(s.w, 50) / 100 * 10 + (1 - nv(s.w, 50) / 100) * 5) / 14 }) },
+        { k: 'karuak', label: 'Karuak (monatlich)', desc: 'einmal im Monat', inputs: [{ key: 'n', label: 'Goldheads pro Monat', ph: 'z. B. 20' }], perDay: (s) => ({ goldheads: nv(s.n, 0) / 30 }) }
       ] }
   };
   const PM_COL = ['#38bdf8', '#a78bfa', '#f97316', '#f472b6', '#e2e8f0', '#ef4444', '#2dd4bf'];
   const pmSt = (m) => { const a = (passive.pm = passive.pm || {}); return (a[m] = a[m] || { src: {}, lines: { total: true } }); };
   const pmSrc = (m, k) => { const st = pmSt(m); return (st.src[k] = st.src[k] || { on: false }); };
-  const pmFmt = (m, v) => PMOD[m].short ? short(v) : fmt(v);
+  const pmFmt = (m, v) => PMOD[m].short || Math.abs(v) >= 1e6 ? short(v) : Math.abs(v) < 10 && v % 1 ? (+v).toLocaleString('de-DE', { maximumFractionDigits: 1 }) : fmt(v);
+  const pmSg = (m, v) => (v < 0 ? '−' : '+') + pmFmt(m, Math.abs(v));
   const pmAdd = (a, b, f = 1) => { const o = { ...a }; Object.entries(b || {}).forEach(([k, v]) => o[k] = (o[k] || 0) + v * f); return o; };
   const pmPerDay = (m, x) => x.perDay(pmSrc(m, x.k));
   const pmInc = (m, x, days) => x.inc ? x.inc(pmSrc(m, x.k), days) : pmAdd({}, pmPerDay(m, x), days);
-  const pmOn = (m) => PMOD[m].src.filter(x => pmSrc(m, x.k).on);
+  const pmOn = (m) => PMOD[m].src.filter(x => x.always ? x.active() : pmSrc(m, x.k).on);
   const pmIncome = (m, days) => pmOn(m).reduce((a, x) => pmAdd(a, pmInc(m, x, days)), {});
   const pmDayTotal = (m) => pmOn(m).reduce((a, x) => pmAdd(a, pmPerDay(m, x)), {});
   const pmSum = (o) => Object.values(o || {}).reduce((a, v) => a + (+v || 0), 0);
@@ -2031,12 +2064,12 @@ window.RokApp = () => {
         <section id="pmSrcBox" class="mt-5 rounded-xl border border-ink-700 bg-ink-950/30 p-4">
           <h2 class="font-display text-base text-gold-300">Quellen aktivieren</h2>
           <p class="text-xs text-slate-400 mb-3">Aktiviere, was auf dich zutrifft – wird automatisch gespeichert und hochgerechnet.</p>
-          <div class="space-y-2">${cf.src.map(x => { const s = pmSrc(m, x.k); return `
+          <div class="space-y-2">${cf.src.filter(x => !x.hidden).map(x => { const s = pmSrc(m, x.k); return `
             <div class="ap-src rounded-xl border border-ink-700 bg-ink-950/40 px-3 py-2.5" data-on="${!!s.on}">
               <div class="flex items-center gap-3">
                 ${toggleBtn(`data-pmtog="${x.k}"`, !!s.on)}
                 <div class="ap-src-body min-w-0 flex-1">
-                  <div class="text-sm font-semibold text-white">${ico(cf.units[0], 'w-4 h-4')} ${x.label}</div>
+                  <div class="text-sm font-semibold text-white">${ico(cf.units.find(u => pmPerDay(m, x)[u.k]) || cf.units[0], 'w-4 h-4')} ${x.label}</div>
                   <div class="text-[11px] text-slate-400">${x.desc}</div>
                 </div>
                 <div class="ap-src-body text-right text-xs tabular-nums text-emerald-400 whitespace-nowrap" data-pmday="${x.k}"></div>
@@ -2058,22 +2091,22 @@ window.RokApp = () => {
   function renderPMOut(m) {
     const cf = PMOD[m], out = $('pmOut'); if (!out) return;
     const H = horizons(), now = cf.now(), on = pmOn(m), U = cf.units, multi = U.length > 1;
-    cf.src.forEach(x => { const el = document.querySelector(`[data-pmday="${x.k}"]`); if (el) { const d = pmPerDay(m, x); el.textContent = multi ? `+${pmFmt(m, pmSum(d))} / Tag` : `+${pmFmt(m, d[U[0].k] || 0)} / Tag`; } });
+    cf.src.forEach(x => { const el = document.querySelector(`[data-pmday="${x.k}"]`); if (el) { const d = pmPerDay(m, x); el.textContent = multi ? (U.filter(u => d[u.k]).map(u => `${pmSg(m, d[u.k])} ${u.label}`).join(' · ') || '+0') + ' / Tag' : `${pmSg(m, d[U[0].k] || 0)} / Tag`; } });
     const th = 'py-1.5 px-2 text-right font-medium whitespace-nowrap', td = 'py-1.5 px-2 text-right tabular-nums';
     if (!on.length) out.innerHTML = '<div class="text-xs text-slate-500">Aktiviere unten mindestens eine Quelle – dann siehst du hier, was in 7 Tagen, 30 Tagen, deinem eigenen Zeitraum und bis zum KvK dazukommt.</div>';
     else if (!multi) {
       const k = U[0].k, hasNow = now[k] != null;
       out.innerHTML = `<div class="overflow-x-auto rounded-lg border border-emerald-500/30 bg-emerald-500/5"><table class="w-full text-xs">
         <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-1.5 px-2 text-left font-medium">Quelle</th><th class="${th}">pro Tag</th>${H.map(h => `<th class="${th}">${h.label}</th>`).join('')}</tr></thead>
-        <tbody>${on.map(x => `<tr class="border-b border-ink-800"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${x.label}</td><td class="${td} text-emerald-400">+${pmFmt(m, pmPerDay(m, x)[k] || 0)}</td>${H.map(h => `<td class="${td} text-emerald-400">+${pmFmt(m, pmInc(m, x, h.days)[k] || 0)}</td>`).join('')}</tr>`).join('')}
-          <tr class="border-b border-ink-800 font-semibold"><td class="py-1.5 px-2 text-slate-200">Passiv gesamt</td><td class="${td} text-emerald-300">+${pmFmt(m, pmDayTotal(m)[k] || 0)}</td>${H.map(h => `<td class="${td} text-emerald-300">+${pmFmt(m, pmIncome(m, h.days)[k] || 0)}</td>`).join('')}</tr>
+        <tbody>${on.map(x => `<tr class="border-b border-ink-800"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${x.label}</td><td class="${td} text-emerald-400">${pmSg(m, pmPerDay(m, x)[k] || 0)}</td>${H.map(h => `<td class="${td} text-emerald-400">${pmSg(m, pmInc(m, x, h.days)[k] || 0)}</td>`).join('')}</tr>`).join('')}
+          <tr class="border-b border-ink-800 font-semibold"><td class="py-1.5 px-2 text-slate-200">Passiv gesamt</td><td class="${td} text-emerald-300">${pmSg(m, pmDayTotal(m)[k] || 0)}</td>${H.map(h => `<td class="${td} text-emerald-300">${pmSg(m, pmIncome(m, h.days)[k] || 0)}</td>`).join('')}</tr>
           ${hasNow ? `<tr class="font-bold"><td class="py-2 px-2 text-gold-300">${U[0].label} gesamt</td><td class="${td} text-slate-400">${pmFmt(m, now[k])}</td>${H.map(h => `<td class="${td} text-gold-300">${pmFmt(m, now[k] + (pmIncome(m, h.days)[k] || 0))}</td>`).join('')}</tr>` : ''}
         </tbody></table></div>`;
     } else {
       out.innerHTML = `<div class="overflow-x-auto rounded-lg border border-emerald-500/30 bg-emerald-500/5"><table class="w-full text-xs">
         <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-1.5 px-2 text-left font-medium">Quelle · pro Tag</th>${U.map(u => `<th class="${th}">${ico(u, 'w-4 h-4')} ${u.label}</th>`).join('')}</tr></thead>
-        <tbody>${on.map(x => { const d = pmPerDay(m, x); return `<tr class="border-b border-ink-800"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${x.label}</td>${U.map(u => `<td class="${td} text-emerald-400">+${pmFmt(m, d[u.k] || 0)}</td>`).join('')}</tr>`; }).join('')}
-          <tr class="font-semibold"><td class="py-1.5 px-2 text-slate-200">Passiv gesamt</td>${U.map(u => `<td class="${td} text-emerald-300">+${pmFmt(m, pmDayTotal(m)[u.k] || 0)}</td>`).join('')}</tr></tbody></table></div>
+        <tbody>${on.map(x => { const d = pmPerDay(m, x); return `<tr class="border-b border-ink-800"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${x.label}</td>${U.map(u => `<td class="${td} text-emerald-400">${pmSg(m, d[u.k] || 0)}</td>`).join('')}</tr>`; }).join('')}
+          <tr class="font-semibold"><td class="py-1.5 px-2 text-slate-200">Passiv gesamt</td>${U.map(u => `<td class="${td} text-emerald-300">${pmSg(m, pmDayTotal(m)[u.k] || 0)}</td>`).join('')}</tr></tbody></table></div>
         <div class="mt-3 overflow-x-auto rounded-lg border border-gold-500/30 bg-gold-500/5"><table class="w-full text-xs">
         <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-1.5 px-2 text-left font-medium">Bestand</th><th class="${th}">Jetzt</th>${H.map(h => `<th class="${th}">${h.label}</th>`).join('')}</tr></thead>
         <tbody>${U.map(u => `<tr class="border-b border-ink-800 last:border-b-0"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${ico(u, 'w-4 h-4')} ${u.label}</td><td class="${td} text-slate-400">${now[u.k] != null ? pmFmt(m, now[u.k]) : '–'}</td>${H.map(h => `<td class="${td} font-semibold text-gold-300">${now[u.k] != null ? '' : '+'}${pmFmt(m, (+now[u.k] || 0) + (pmIncome(m, h.days)[u.k] || 0))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
@@ -2108,7 +2141,9 @@ window.RokApp = () => {
         plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${pmFmt(m, c.raw)}` } } },
         scales: { y: { ticks: { callback: (v) => short(v) } }, x: { ticks: { maxTicksLimit: 8 } } } } });
   }
-  const pmSummary = (m) => { const d = pmDayTotal(m), t = pmSum(d); if (!(t > 0)) return null; return PMOD[m].units.length > 1 ? `+${short(t)} / Tag` : `+${pmFmt(m, t)} / Tag`; };
+  const pmSummary = (m) => { const cf = PMOD[m], d = pmDayTotal(m);
+    if (cf.summaryUnit) { const v = d[cf.summaryUnit] || 0; return v ? `${pmSg(m, v)} ${cf.units.find(u => u.k === cf.summaryUnit).label} / Tag` : null; }
+    const t = pmSum(d); if (!(t > 0)) return null; return cf.units.length > 1 ? `+${short(t)} / Tag` : `+${pmFmt(m, t)} / Tag`; };
   const daysTo = (need, perDay) => need <= 0 ? 0 : perDay > 0 ? Math.ceil(need / perDay) : null;
 
   // VIP: Tage bis zum nächsten Level / Ziel + schlafender Panda
@@ -2129,13 +2164,14 @@ window.RokApp = () => {
     const el = $('pmExtra'); if (!el) return;
     const goal = passGoalNum(), have = +PMOD.passports.now().passports || 0, d = pmDayTotal('passports').passports || 0;
     if (PMOD.passports.now().passports != null) renderPassGoal(have);   // Dashboard in der Mitte mit aktualisieren
-    el.innerHTML = goal ? `<div class="mt-3 text-xs text-slate-300">🎯 Migrations-Ziel ${fmt(goal)}: ${have >= goal ? '<b class="text-emerald-400">schon erreicht ✓</b>' : d > 0 ? `in ca. <b class="text-indigo-300 tabular-nums">${fmt(daysTo(goal - have, d))}</b> Tagen` : 'Quelle aktivieren, um die Tage zu sehen'}</div>` : '';
+    const need = migNeed(), cr = creditsNow(), dc = pmDayTotal('passports').credits || 0;
+    el.innerHTML = (goal ? `<div class="mt-3 text-xs text-slate-300">🎯 Migrations-Ziel ${fmt(goal)} Passseiten: ${have >= goal ? '<b class="text-emerald-400">schon erreicht ✓</b>' : d > 0 ? `in ca. <b class="text-indigo-300 tabular-nums">${fmt(daysTo(goal - have, d))}</b> Tagen` : 'Quelle aktivieren, um die Tage zu sehen'}</div>` : '')
+      + (need ? `<div class="mt-1 text-xs text-slate-300">🤝 Credits für die Migration ${short(need.credits)}: ${cr == null ? 'Credits-Stand unter Statistics eintragen' : cr >= need.credits ? '<b class="text-emerald-400">reicht ✓</b>' : dc > 0 ? `in ca. <b class="text-indigo-300 tabular-nums">${fmt(daysTo(need.credits - cr, dc))}</b> Tagen` : 'Quelle aktivieren, um die Tage zu sehen'}</div>` : '');
   };
 
   // ---------- Statistics: Ziel-Linie (Gems-Event, Goldheads) ----------
-  const GOALS = {
-    gems: { title: 'Wann hast du genug Gems?', name: 'Eigenes Event (optional)', namePh: 'z. B. Wheel of Fortune', unit: 'Gems', def: 0, extra: true },
-    goldheads: { title: 'Goldheads für deinen Kommandanten', name: 'Ziel', namePh: 'z. B. nächste Expertise', unit: 'Goldheads', def: 5555, note: 'Max. 5.555 Goldheads für eine komplette Expertise. Die Tabelle je Kommandanten-Stufe kommt noch.' }
+  const GOALS = {   // (Goldheads & Gems haben jetzt eigene Statistiken)
+    _none: null
   };
   const goalSt = (m) => { const g = (passive.goal = passive.goal || {}); return (g[m] = g[m] || { name: '', target: null }); };
   let goalChart = null;
@@ -2198,18 +2234,18 @@ window.RokApp = () => {
   const GEM_EV = [
     { k: 'egg', name: 'Egg Event', sub: "Holy Knight's Treasure", type: 'spin', days: 2, disc: 300, single: 600, pack: 2400, stages: [10, 25, 45, 70, 100, 180], max: 180,
       note: '2 Tage · pro Tag 1 Spin gratis, 2. Spin 300, danach 600 · 5 Spins 2.400 · max. 180 Spins' },
-    { k: 'mtg', name: 'More than Gems', type: 'days', days: 2, stages: [7000, 12000, 25000], note: '2 Tage · Stufen je Tag: 7.000 / 12.000 / 25.000 Gems' },
     { k: 'hammer', name: 'Hammer Event', type: 'fixed', stages: [24000], note: 'Max-Kauf 24.000 Gems' },
-    { k: 'wheel', name: 'Esmeraldas Wheel', type: 'cum', steps: [4500, 4500, 27000], note: '2 Stufen à 4.500 Gems + 1 Stufe 27.000 Gems' },
+    { k: 'mtg', name: 'More than Gems', type: 'days', days: 2, stages: [7000, 12000, 25000], note: '2 Tage · Stufen je Tag: 7.000 / 12.000 / 25.000 Gems' },
+    { k: 'mge', name: 'MGE', type: 'spin', days: 3, disc: 400, single: 800, pack: 3600, stages: [10, 25, 45, 70, 100, 180], max: 180,
+      note: '3 Tage · pro Tag 1 Spin gratis, 1 Spin 400, danach 800 · 5 Spins 3.600 · max. 60 Käufe pro Tag (180 in 3 Tagen)' },
     { k: 'house', name: 'Esmeraldas House', type: 'spin', days: 2, disc: 400, single: 800, pack: 3600, stages: [10, 20, 40, 70, 100, 150], max: 150,
       note: '2 Tage · pro Tag 1 Spin gratis, 1 Spin 400, danach 800 · 5 Spins 3.600 · max. 150 Spins (75 pro Tag)' },
-    { k: 'mge', name: 'MGE', type: 'spin', days: 3, disc: 400, single: 800, pack: 3600, stages: [10, 25, 45, 70, 100, 180], max: 180,
-      note: '3 Tage · pro Tag 1 Spin gratis, 1 Spin 400, danach 800 · 5 Spins 3.600 · max. 60 Käufe pro Tag (180 in 3 Tagen)' }
+    { k: 'wheel', name: 'Esmeraldas Wheel', type: 'cum', steps: [4500, 4500, 27000], note: '2 Stufen à 4.500 Gems + 1 Stufe 27.000 Gems' }
   ];
   const evSt = () => (passive.gemEv = passive.gemEv || {});
   // Auswahl → Kosten je Event
-  function evCost(ev) {
-    const v = evSt()[ev.k];
+  function evCost(ev, v = evSt()[ev?.k]) {
+    if (!ev) return 0;
     if (ev.type === 'spin') return v ? spinCost(v, ev) : 0;
     if (ev.type === 'days') return (+v?.d1 || 0) + (+v?.d2 || 0);
     if (ev.type === 'fixed') return +v || 0;
@@ -2237,8 +2273,8 @@ window.RokApp = () => {
         ${body}</div>`;
     };
     return `<section id="gemEvBox" class="panel rounded-2xl p-5">
-      <h2 class="font-display text-lg text-gold-300">Gems-Events planen</h2>
-      <p class="text-xs text-slate-400 mb-3">Stufe anklicken (nochmal klicken = abwählen). Mehrere Events werden zusammengerechnet.</p>
+      <h2 class="font-display text-lg text-gold-300">Events & Stufen</h2>
+      <p class="text-xs text-slate-400 mb-3">Schnellrechner: Stufe anklicken (nochmal klicken = abwählen), mehrere Events werden zusammengerechnet. Die gewählte Stufe ist auch die Vorauswahl, wenn du das Event im Plan oder Kalender hinzufügst.</p>
       <div class="space-y-3">${GEM_EV.map(card).join('')}</div>
       <div id="gemEvSum" class="mt-4"></div>
     </section>`;
@@ -2264,6 +2300,413 @@ window.RokApp = () => {
       <div class="mt-2 text-lg font-extrabold tabular-nums ${diff >= 0 ? 'text-emerald-400' : 'text-red-400'}">${diff >= 0 ? `Überschuss: +${fmt(diff)} Gems` : `Es fehlen: ${fmt(-diff)} Gems`}</div>
     </div>`;
   }
+
+  // ---------- Gems-Plan: Dashboard (oben) · Event-Kalender · Events & Stufen (eingeklappt) ----------
+  // Rhythmen (aus deinem Kalender): Egg ↔ Hammer im 2-Wochen-Wechsel (Fr–Sa), MGE-Wheel alle 2 Wochen (Di–Do),
+  // More than Gems alle 4 Wochen (Sa–So), Esmeraldas House alle 8 Wochen (Mo–Di). Ankerdatum + „was kam zuletzt“ einstellbar.
+  const GEM_CAL = {
+    egg: { every: 28, days: 2, def: '2026-10-16', rot: ['Brust, Handschuhe, Stiefel', 'Helm, Hose', 'Waffe, Accessoire'], rotDef: 2, c: '#22d3ee', rotLabel: 'Kam zuletzt' },
+    hammer: { every: 28, days: 2, def: '2026-10-30', c: '#f97316' },
+    mtg: { every: 28, days: 2, def: '2026-12-05', c: '#e11d48' },
+    mge: { every: 14, days: 3, def: '2026-10-20', rot: ['Infanterie', 'Bogenschützen', 'Führung', 'Kavallerie'], rotDef: 0, c: '#a855f7', rotLabel: 'Kommandant' },
+    house: { every: 56, days: 2, def: '2026-09-28', c: '#10b981' }
+  };
+  const evByK = (k) => GEM_EV.find(e => e.k === k);
+  const calSt = (k) => { const a = (passive.gemCal = passive.gemCal || {}); return (a[k] = a[k] || {}); };
+  const pDate = (s) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };
+  const dOff = (s) => { const d = pDate(s); return d ? Math.round((d - dayPlus(0)) / 864e5) : null; };
+  const dLabel = (s, wd) => { const d = pDate(s); return d ? d.toLocaleDateString('de-DE', wd ? { weekday: 'short', day: '2-digit', month: '2-digit' } : { day: '2-digit', month: '2-digit', year: 'numeric' }) : '–'; };
+  function calOcc(k, from, to) {   // Vorkommen eines Events zwischen zwei Daten
+    const cf = GEM_CAL[k], st = calSt(k), A = pDate(st.date) || pDate(cf.def), out = [];
+    const ri = st.rot != null ? +st.rot : cf.rotDef;
+    let i = Math.floor((from - A) / 864e5 / cf.every) - 1;
+    for (;; i++) {
+      const o = new Date(A); o.setDate(o.getDate() + i * cf.every);
+      if (o > new Date(to.getTime() + 21 * 864e5)) break;
+      const orig = isoDay(o), mv = (passive.gemMove || {})[k + '|' + orig], s = mv ? pDate(mv) || o : o;   // im Kalender verschoben?
+      if (s > to) continue;
+      const e = new Date(s); e.setDate(e.getDate() + cf.days - 1);
+      if (e >= from) out.push({ k, start: s, end: e, date: isoDay(s), orig, moved: !!mv, rot: cf.rot ? cf.rot[(((ri + i) % cf.rot.length) + cf.rot.length) % cf.rot.length] : '' });
+    }
+    return out.sort((a, b) => a.start - b.start);
+  }
+  const nextOcc = (k) => calOcc(k, dayPlus(0), dayPlus(400))[0];
+  const planSt = () => (passive.gemPlan = passive.gemPlan || []);
+  // Setup: Events, die du immer machst, werden automatisch eingeplant (Stufe aus „Setup“), einzelne Termine lassen sich abwählen
+  const autoSt = () => (passive.gemAuto = passive.gemAuto || {});
+  const skipSt = () => (passive.gemSkip = passive.gemSkip || []);
+  function allPlan() {
+    const ex = planSt(), out = ex.slice(), skip = new Set(skipSt());
+    Object.keys(GEM_CAL).filter(k => autoSt()[k]).forEach(k => calOcc(k, dayPlus(0), dayPlus(180)).forEach(o => {
+      if (skip.has(k + '|' + o.date) || ex.some(p => p.k === k && p.date === o.date)) return;
+      out.push({ id: 'auto|' + k + '|' + o.date, k, date: o.date, val: defVal(k), rot: o.rot, auto: true });
+    }));
+    return out;
+  }
+  const entryCost = (p) => p.k === 'custom' ? (+p.val || 0) : evCost(evByK(p.k), p.val);
+  const entryName = (p) => p.k === 'custom' ? (p.name || 'Eigenes Event') : evByK(p.k)?.name || p.k;
+  const defVal = (k) => { const ev = evByK(k), v = evSt()[k]; if (v && (typeof v !== 'object' || v.d1 || v.d2)) return JSON.parse(JSON.stringify(v));
+    return ev.type === 'spin' ? ev.stages[0] : ev.type === 'days' ? { d1: 7000, d2: 7000 } : ev.type === 'fixed' ? ev.stages[0] : 1; };
+  // Gems-Stand an Tag d (Beginn des Tages): Bestand + Passive − geplante Events davor
+  const gemsBase = () => +gemsNow() || 0;
+  const spentBefore = (d, incl) => allPlan().reduce((a, p) => { const o = dOff(p.date); return o != null && o >= 0 && (incl ? o <= d : o < d) ? a + entryCost(p) : a; }, 0);
+  const gemsAt = (d, incl) => gemsBase() + (pmIncome('gems', Math.max(0, d)).gems || 0) - spentBefore(d, incl);
+
+  function stageSelect(p) {
+    const ev = evByK(p.k), cls = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-gold-500';
+    if (p.k === 'custom') return `<input data-pname="${p.id}" type="text" value="${esc(p.name || '')}" placeholder="Name" class="w-28 ${cls}"> <input data-pval="${p.id}" type="number" min="0" step="1" value="${p.val || ''}" placeholder="Gems" class="w-24 text-right ${cls}">`;
+    if (ev.type === 'spin') return `<select data-pval="${p.id}" class="${cls}">${ev.stages.map(n => `<option value="${n}" ${+p.val === n ? 'selected' : ''}>${n === ev.max ? 'Max ' : ''}${n} Spins · ${fmt(spinCost(n, ev))}</option>`).join('')}</select>`;
+    if (ev.type === 'days') return ['d1', 'd2'].map((d, i) => `<select data-pval="${p.id}" data-day="${d}" class="${cls}"><option value="0">Tag ${i + 1}: –</option>${ev.stages.map(n => `<option value="${n}" ${+p.val?.[d] === n ? 'selected' : ''}>Tag ${i + 1}: ${fmt(n)}</option>`).join('')}</select>`).join(' ');
+    if (ev.type === 'fixed') return `<span class="text-xs text-slate-400">Max-Kauf</span>`;
+    if (ev.type === 'cum') { let c = 0; return `<select data-pval="${p.id}" class="${cls}">${ev.steps.map((x, i) => { c += x; return `<option value="${i + 1}" ${+p.val === i + 1 ? 'selected' : ''}>Stufe ${i + 1} · ${fmt(c)}</option>`; }).join('')}</select>`; }
+    return '';
+  }
+  function gemDashHtml() {
+    const opts = [...GEM_EV.map(e => `<option value="${e.k}">${e.name}</option>`), '<option value="custom">Eigenes Event</option>'].join('');
+    const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
+    return `<section id="gemDash" class="panel rounded-2xl p-5">
+      <h2 class="font-display text-lg text-gold-300">Gems-Plan</h2>
+      <div id="gemDashCards" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4"></div>
+      <div id="gemPlanChartWrap" class="h-64"></div>
+      <div id="gemPlanRows" class="mt-4"></div>
+      <div class="mt-4 rounded-xl border border-ink-700 bg-ink-950/40 p-3 flex flex-wrap items-end gap-2">
+        <label class="text-xs text-slate-400">Event<select id="gpAddK" class="mt-1 block ${inp}">${opts}</select></label>
+        <label class="text-xs text-slate-400">Startdatum<input id="gpAddDate" type="date" class="mt-1 block ${inp}"></label>
+        <button id="gpAdd" type="button" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">+ Event hinzufügen</button>
+        <span class="text-[11px] text-slate-500">oder im Kalender auf ein Event klicken</span>
+      </div>
+    </section>`;
+  }
+  let gemPlanChart = null, calWeek = 0;
+  function renderGemDash() {
+    const plan = allPlan().filter(p => (dOff(p.date) ?? -1) >= -3).sort((a, b) => (a.date || '').localeCompare(b.date || '')), now = gemsNow(), perDay = pmDayTotal('gems').gems || 0;
+    // Zeilen: Gems vor/nach jedem Event
+    let rows = '', minAfter = Infinity, minDate = null, running = {};
+    let hiddenN = 0;
+    plan.forEach(p => {
+      const o = dOff(p.date), past = o == null || o < 0, cost = entryCost(p);
+      if (o != null && o > 90) { const b = gemsAt(o, true); if (b < minAfter) { minAfter = b; minDate = p.date; } hiddenN++; return; }
+      const before = past ? null : gemsAt(o) - plan.filter(q => q !== p && q.date === p.date && plan.indexOf(q) < plan.indexOf(p)).reduce((a, q) => a + entryCost(q), 0);
+      const after = before == null ? null : before - cost;
+      if (after != null && after < minAfter) { minAfter = after; minDate = p.date; }
+      rows += `<tr class="border-b border-ink-800 ${past ? 'opacity-50' : ''}"><td class="py-2 pr-2 whitespace-nowrap text-slate-300">${dLabel(p.date, true)}</td>
+        <td class="py-2 px-2 whitespace-nowrap"><i class="inline-block w-2 h-2 rounded-full mr-1" style="background:${GEM_CAL[p.k]?.c || '#94a3b8'}"></i>${esc(entryName(p))}${p.rot ? ` <span class="text-[11px] text-slate-500">· ${p.rot}</span>` : ''}${p.auto ? ' <span class="text-[10px] px-1.5 py-0.5 rounded bg-ink-800 text-slate-400">Setup</span>' : ''}</td>
+        <td class="py-2 px-2">${stageSelect(p)}</td>
+        <td class="py-2 px-2 text-right tabular-nums text-gold-300">${fmt(cost)}</td>
+        <td class="py-2 px-2 text-right tabular-nums text-slate-300">${before == null ? 'vorbei' : fmt(before)}</td>
+        <td class="py-2 px-2 text-right tabular-nums font-semibold ${after == null ? 'text-slate-500' : after >= 0 ? 'text-emerald-400' : 'text-red-400'}">${after == null ? '–' : (after >= 0 ? '' : '−') + fmt(Math.abs(after))}</td>
+        <td class="text-right"><button data-pdel="${p.id}" class="text-slate-500 hover:text-red-400 px-1" title="Entfernen">✕</button></td></tr>`;
+    });
+    const total = plan.filter(p => (dOff(p.date) ?? -1) >= 0).reduce((a, p) => a + entryCost(p), 0);
+    const nUp = plan.filter(p => (dOff(p.date) ?? -1) >= 0).length;
+    const card = (l, v, c, sub) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">${l}</div><div class="text-xl font-bold tabular-nums ${c}">${v}</div>${sub ? `<div class="text-[11px] text-slate-500">${sub}</div>` : ''}</div>`;
+    const ok = !plan.length || minAfter >= 0;
+    $('gemDashCards').innerHTML = card('Gems jetzt', now == null ? '–' : fmt(now), 'text-pink-300', now == null ? 'noch kein Scan' : '')
+      + card('Passiv pro Tag', perDay > 0 ? '+' + fmt(perDay) : '–', 'text-emerald-300', perDay > 0 ? '' : 'rechts aktivieren')
+      + card('Geplante Events', fmt(total), 'text-gold-300', `${nUp} Event${nUp === 1 ? '' : 's'}`)
+      + card(ok ? 'Überschuss' : 'Es fehlen', !plan.length ? '–' : ok ? '+' + fmt(minAfter) : fmt(-minAfter), ok ? 'text-emerald-400' : 'text-red-400', !plan.length ? 'Event hinzufügen' : ok ? 'kleinster Stand nach einem Event' : `bis ${dLabel(minDate)}`);
+    $('gemPlanRows').innerHTML = plan.length ? `<div class="overflow-x-auto"><table class="w-full text-xs"><thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700">
+        <th class="py-2 pr-2 text-left font-medium">Start</th><th class="py-2 px-2 text-left font-medium">Event</th><th class="py-2 px-2 text-left font-medium">Stufe</th><th class="py-2 px-2 text-right font-medium">Kosten</th><th class="py-2 px-2 text-right font-medium">Gems davor</th><th class="py-2 px-2 text-right font-medium">Danach</th><th class="w-6"></th></tr></thead>
+        <tbody>${rows}</tbody></table></div>${hiddenN ? `<div class="mt-1 text-[11px] text-slate-500">+ ${hiddenN} weitere Termine nach 90 Tagen (werden mitgerechnet)</div>` : ''}` : '<div class="text-xs text-slate-500">Noch keine Events geplant – unten hinzufügen oder im Kalender anklicken.</div>';
+    const pr = $('gemPlanRows');
+    pr.querySelectorAll('[data-pdel]').forEach(b => b.onclick = () => { const id = b.dataset.pdel;
+      if (id.startsWith('auto|')) { const [, k, date] = id.split('|'); skipSt().push(k + '|' + date); } else passive.gemPlan = planSt().filter(p => p.id !== id);
+      savePassive(); renderGemsPlanAll(); });
+    // Stufe eines Setup-Termins ändern → wird zu einem eigenen Eintrag
+    const materialize = (id) => { if (!id.startsWith('auto|')) return planSt().find(x => x.id === id); const a = allPlan().find(x => x.id === id); if (!a) return null;
+      const p = { ...a, id: 'p' + Date.now().toString(36), auto: false }; delete p.auto; planSt().push(p); return p; };
+    pr.querySelectorAll('[data-pval]').forEach(el => el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', () => {
+      const p = materialize(el.dataset.pval); if (!p) return;
+      if (el.dataset.day) { p.val = p.val && typeof p.val === 'object' ? p.val : { d1: 0, d2: 0 }; p.val[el.dataset.day] = +el.value; } else p.val = +el.value;
+      savePassive(); if (el.tagName === 'SELECT') renderGemsPlanAll(); else { clearTimeout(el._t); el._t = setTimeout(renderGemsPlanAll, 600); }
+    }));
+    pr.querySelectorAll('[data-pname]').forEach(el => el.addEventListener('input', () => { const p = planSt().find(x => x.id === el.dataset.pname); if (p) { p.name = el.value.slice(0, 30); savePassive(); } }));
+    renderGemPlanChart(plan.filter(p => (dOff(p.date) ?? -1) >= 0));
+    renderAreaTabs();
+  }
+  function renderGemPlanChart(plan) {
+    const wrap = $('gemPlanChartWrap'); if (!wrap) return;
+    const last = Math.max(0, ...plan.map(p => dOff(p.date) ?? 0));
+    const maxD = Math.max(30, last + 7), step = maxD > 90 ? Math.ceil(maxD / 90) : 1, days = [];
+    for (let d = 0; d <= maxD; d += step) days.push(d);
+    if (days[days.length - 1] !== maxD) days.push(maxD);
+    plan.forEach(p => { const o = dOff(p.date); if (o != null && o >= 0 && !days.includes(o)) days.push(o); });
+    days.sort((a, b) => a - b);
+    if (gemPlanChart) { try { gemPlanChart.destroy(); } catch {} gemPlanChart = null; }
+    if (!window.Chart) { wrap.innerHTML = '<div class="h-full grid place-items-center text-xs text-slate-500">Diagramm konnte nicht geladen werden.</div>'; return; }
+    wrap.innerHTML = '<canvas id="gemPlanChart"></canvas>';
+    gemPlanChart = new Chart($('gemPlanChart'), { type: 'line',
+      data: { labels: days.map(d => dayPlus(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })),
+        datasets: [{ label: 'Gems mit Events', data: days.map(d => Math.round(gemsAt(d, true))), borderColor: '#f472b6', borderWidth: 3, stepped: false, tension: 0, pointRadius: days.map(d => plan.some(p => dOff(p.date) === d) ? 4 : 0), fill: false },
+                   { label: 'Ohne Events', data: days.map(d => Math.round(gemsBase() + (pmIncome('gems', d).gems || 0))), borderColor: '#34d399', borderWidth: 2, borderDash: [6, 4], tension: 0, pointRadius: 0, fill: false }] },
+      options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { labels: { boxWidth: 12, color: '#94a3b8' } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${fmt(c.raw)}` } } },
+        scales: { y: { ticks: { callback: (v) => short(v) } }, x: { ticks: { maxTicksLimit: 8 } } } } });
+  }
+  function addPlan(k, date, rot) {
+    if (!date) return;
+    const id = 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+    planSt().push(k === 'custom' ? { id, k, date, val: 0, name: '' } : { id, k, date, val: defVal(k), rot: rot || '' });
+    savePassive(); renderGemsPlanAll();
+  }
+  // ---------- Event-Kalender (Mo–So) mit Gems-Stand in jedem Kästchen ----------
+  function gemCalHtml() {
+    return `<section id="gemCal" class="panel rounded-2xl p-5">
+      <h2 class="font-display text-lg text-gold-300">Event-Kalender</h2>
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <button type="button" data-calnav="-1" class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">‹</button>
+        <div id="gemCalTitle" class="text-sm text-slate-300"></div>
+        <button type="button" data-calnav="1" class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">›</button>
+      </div>
+      <div id="gemCalGrid"></div>
+      <div id="gemCalDetail"></div>
+      <p class="mt-2 text-[11px] text-slate-500">Zahl unten im Kästchen = deine Gems zu Tagesbeginn (aktueller Stand + Passive − geplante Events). Event anklicken = einplanen, Stufe wählen oder Termin verschieben (↔).</p>
+      <section id="gemCalRules" class="mt-4 rounded-xl border border-ink-700 bg-ink-950/30 p-4">
+        <h2 class="font-display text-base text-gold-300">Setup: Rhythmus, was zuletzt kam & was du immer kaufst</h2>
+        <p class="text-[11px] text-slate-400 mt-1">„Immer einplanen“ nimmt alle kommenden Termine mit der Stufe aus „Events & Stufen“ in den Plan auf. Einzelne Termine kannst du im Kalender wieder abwählen.</p>
+        <div id="gemCalRulesBody" class="grid sm:grid-cols-2 gap-3 mt-3"></div>
+      </section>
+    </section>`;
+  }
+  function renderGemCal() {
+    const grid = $('gemCalGrid'); if (!grid) return;
+    const mon = dayPlus(0); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7) + calWeek * 7);
+    const end = new Date(mon); end.setDate(end.getDate() + 6 * 7 - 1);
+    $('gemCalTitle').textContent = `${mon.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' })} – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+    const occ = Object.keys(GEM_CAL).flatMap(k => calOcc(k, mon, end)), plan = allPlan();
+    const planned = (o) => plan.find(p => p.k === o.k && p.date === o.date);
+    const wd = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+    let html = `<div class="grid grid-cols-7 gap-px text-[10px] uppercase tracking-widest text-slate-500 mb-1">${wd.map(w => `<div class="px-1">${w}</div>`).join('')}</div>`;
+    for (let w = 0; w < 6; w++) {
+      const ws = new Date(mon); ws.setDate(ws.getDate() + w * 7);
+      const we = new Date(ws); we.setDate(we.getDate() + 6);
+      const cells = [...Array(7)].map((_, i) => { const d = new Date(ws); d.setDate(d.getDate() + i); return d; });
+      const bars = occ.filter(o => o.end >= ws && o.start <= we).sort((a, b) => a.start - b.start || GEM_EV.findIndex(e => e.k === a.k) - GEM_EV.findIndex(e => e.k === b.k));
+      // Balken in Spuren legen (keine Überlappung)
+      const lanes = []; bars.forEach(b => { const s = Math.max(0, Math.round((b.start - ws) / 864e5)), e = Math.min(6, Math.round((b.end - ws) / 864e5)); let l = 0; while (lanes[l] && lanes[l].some(x => !(e < x.s || s > x.e))) l++; (lanes[l] = lanes[l] || []).push({ s, e, b }); });
+      html += `<div class="relative grid grid-cols-7 gap-px bg-ink-700/40 rounded-lg overflow-hidden mb-1">${cells.map((d, i) => {
+        const o = Math.round((d - dayPlus(0)) / 864e5), today = o === 0, past = o < 0, bal = past ? null : gemsAt(o);
+        const inc = past ? null : customGemsOn(o);
+        return `<div class="bg-ink-950/80 px-1 pt-1 pb-1 flex flex-col justify-between ${today ? 'ring-1 ring-gold-400 ring-inset' : ''}" style="min-height:${3.4 + lanes.length * 1.5}rem">
+          <div class="flex items-start justify-between gap-1"><span class="text-[11px] ${today ? 'text-gold-300 font-bold' : past ? 'text-slate-600' : 'text-slate-400'}">${d.getDate()}${d.getDate() === 1 || i === 0 && w === 0 ? '.' + (d.getMonth() + 1) + '.' : ''}</span>${inc ? `<span class="text-[9px] text-emerald-400 tabular-nums" title="Eigene Einnahme">+${short(inc)}</span>` : ''}</div>
+          ${bal == null ? '' : `<div class="text-right text-[11px] font-semibold tabular-nums ${bal < 0 ? 'text-red-400' : 'text-pink-300'}">${ico({ img: 'ressourcen/gems.png', icon: '💎' }, 'w-3 h-3')} ${bal < 0 ? '−' : ''}${short(Math.abs(bal))}</div>`}</div>`; }).join('')}
+        ${lanes.map((ln, li) => ln.map(x => { const p = planned(x.b), ev = evByK(x.b.k), cf = GEM_CAL[x.b.k];
+          return `<button type="button" data-calev="${x.b.k}" data-date="${x.b.date}" data-rot="${esc(x.b.rot)}" title="${ev.name}${x.b.rot ? ' · ' + x.b.rot : ''}${p ? ' · eingeplant: ' + fmt(entryCost(p)) + ' Gems' : ' · anklicken zum Einplanen'}"
+            class="absolute h-5 rounded-md px-1.5 text-[10px] font-semibold text-white truncate text-left ${p ? 'ring-2 ring-gold-300' : 'opacity-70 hover:opacity-100'} ${calSel === x.b.k + '|' + x.b.date ? 'outline outline-2 outline-white' : ''}"
+            style="left:calc(${x.s} * 100% / 7 + 2px);width:calc(${x.e - x.s + 1} * 100% / 7 - 4px);top:${1.35 + li * 1.5}rem;background:${cf.c}cc">${p ? '★ ' : ''}${x.b.moved ? '↔ ' : ''}${ev.name}${x.b.rot ? ' · ' + x.b.rot : ''}${p ? ' · ' + short(entryCost(p)) : ''}</button>`; }).join('')).join('')}
+      </div>`;
+    }
+    grid.innerHTML = html;
+    grid.querySelectorAll('[data-calev]').forEach(b => b.onclick = () => { const key = b.dataset.calev + '|' + b.dataset.date; calSel = calSel === key ? null : key; renderGemCal(); });
+    renderCalDetail(occ);
+    // Regeln
+    const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-gold-500';
+    $('gemCalRulesBody').innerHTML = Object.entries(GEM_CAL).map(([k, cf]) => { const st = calSt(k), ev = evByK(k);
+      return `<div class="rounded-lg border border-ink-700 p-3 text-xs"><div class="font-semibold text-white mb-1"><i class="inline-block w-2 h-2 rounded-full mr-1" style="background:${cf.c}"></i>${ev.name}</div>
+        <div class="text-slate-400 mb-2">alle ${cf.every / 7} Wochen · ${cf.days} Tage${k === 'mge' ? ' (Di–Do)' : ''}</div>
+        <label class="flex items-center justify-between gap-2 text-slate-300">Zuletzt am <input type="date" data-calrule="${k}" value="${st.date || cf.def}" class="${inp}"></label>
+        <label class="mt-1 flex items-center justify-between gap-2 text-slate-300">Immer einplanen (Setup) ${toggleBtn(`data-calauto="${k}"`, !!autoSt()[k])}</label>
+        ${cf.rot ? `<label class="mt-1 flex items-center justify-between gap-2 text-slate-300">${cf.rotLabel} <select data-calrot="${k}" class="${inp}">${cf.rot.map((r, i) => `<option value="${i}" ${(st.rot != null ? +st.rot : cf.rotDef) === i ? 'selected' : ''}>${i + 1}. ${r}</option>`).join('')}</select></label>
+        <div class="text-[10px] text-slate-500 mt-0.5">Reihenfolge: ${cf.rot.map((r, i) => `${i + 1}. ${r}`).join(' → ')}</div>` : ''}
+        <div class="mt-1 text-[11px] text-slate-500">Nächstes: ${(() => { const n = nextOcc(k); return n ? dLabel(n.date, true) + (n.rot ? ' · ' + n.rot : '') : '–'; })()}</div></div>`; }).join('');
+    $('gemCalRulesBody').querySelectorAll('[data-calrule]').forEach(i => i.addEventListener('change', () => { if (!pDate(i.value)) return; calSt(i.dataset.calrule).date = i.value; savePassive(); renderGemsPlanAll(); }));
+    $('gemCalRulesBody').querySelectorAll('[data-calrot]').forEach(i => i.addEventListener('change', () => { calSt(i.dataset.calrot).rot = +i.value; savePassive(); renderGemsPlanAll(); }));
+    $('gemCalRulesBody').querySelectorAll('[data-calauto]').forEach(b => b.onclick = () => { const a = autoSt(); a[b.dataset.calauto] = !a[b.dataset.calauto]; savePassive(); renderGemsPlanAll(); });
+  }
+  let calSel = null;
+  // Detail zu einem angeklickten Kalender-Event: einplanen, Stufe, Termin verschieben
+  function renderCalDetail(occ) {
+    const el = $('gemCalDetail'); if (!el) return;
+    const o = calSel && occ.find(x => x.k + '|' + x.date === calSel);
+    if (!o) { el.innerHTML = ''; return; }
+    const ev = evByK(o.k), cf = GEM_CAL[o.k], p = allPlan().find(x => x.k === o.k && x.date === o.date);
+    const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-gold-500';
+    el.innerHTML = `<div class="mt-3 rounded-xl border p-3 text-xs" style="border-color:${cf.c}88;background:${cf.c}11">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-2"><div class="text-sm font-semibold text-white">${ev.name}${o.rot ? ` · ${o.rot}` : ''} <span class="font-normal text-slate-400">· ${dLabel(o.date, true)}${o.moved ? ` (verschoben, ursprünglich ${dLabel(o.orig, true)})` : ''}</span></div>
+        <button type="button" data-cdclose class="text-slate-400 hover:text-white px-1">✕</button></div>
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="inline-flex items-center gap-2 text-slate-300">Einplanen ${toggleBtn('data-cdplan', !!p)}</span>
+        ${p ? `<span class="inline-flex items-center gap-2 text-slate-300">Stufe ${stageSelect(p)}</span><b class="text-gold-300 tabular-nums">${fmt(entryCost(p))} Gems</b>` : ''}
+        <label class="inline-flex items-center gap-2 text-slate-300">Termin verschieben <input data-cdmove type="date" value="${o.date}" class="${inp}"></label>
+        ${o.moved ? '<button type="button" data-cdreset class="px-2 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60">Zurücksetzen</button>' : ''}
+      </div></div>`;
+    el.querySelector('[data-cdclose]').onclick = () => { calSel = null; renderGemCal(); };
+    el.querySelector('[data-cdplan]').onclick = () => {
+      if (p) { if (p.auto) skipSt().push(o.k + '|' + o.date); else passive.gemPlan = planSt().filter(x => x.id !== p.id); }
+      else { passive.gemSkip = skipSt().filter(x => x !== o.k + '|' + o.date); if (!allPlan().some(x => x.k === o.k && x.date === o.date)) planSt().push({ id: 'p' + Date.now().toString(36), k: o.k, date: o.date, val: defVal(o.k), rot: o.rot }); }
+      savePassive(); renderGemsPlanAll();
+    };
+    el.querySelectorAll('[data-pval]').forEach(s => s.addEventListener('change', () => {
+      let q = p; if (q.auto) { q = { ...p, id: 'p' + Date.now().toString(36) }; delete q.auto; planSt().push(q); }
+      if (s.dataset.day) { q.val = q.val && typeof q.val === 'object' ? { ...q.val } : { d1: 0, d2: 0 }; q.val[s.dataset.day] = +s.value; } else q.val = +s.value;
+      savePassive(); renderGemsPlanAll();
+    }));
+    el.querySelector('[data-cdmove]').addEventListener('change', (e) => {
+      const nd = e.target.value; if (!pDate(nd)) return;
+      const mv = (passive.gemMove = passive.gemMove || {}); if (nd === o.orig) delete mv[o.k + '|' + o.orig]; else mv[o.k + '|' + o.orig] = nd;
+      planSt().forEach(x => { if (x.k === o.k && x.date === o.date) x.date = nd; });   // geplanter Eintrag zieht mit
+      calSel = o.k + '|' + nd; savePassive(); renderGemsPlanAll();
+    });
+    el.querySelector('[data-cdreset]')?.addEventListener('click', () => {
+      delete (passive.gemMove || {})[o.k + '|' + o.orig]; planSt().forEach(x => { if (x.k === o.k && x.date === o.date) x.date = o.orig; });
+      calSel = o.k + '|' + o.orig; savePassive(); renderGemsPlanAll();
+    });
+  }
+  function renderGemsPlanAll() { renderGemDash(); renderGemCal(); }
+  // ---------- Gems: eigene Einnahmen (z. B. andere Bundles) – einmalig, wöchentlich oder monatlich ----------
+  const custGems = () => (passive.gemCustom = passive.gemCustom || []);
+  function custOccDays(c, maxD) {   // Tages-Abstände ab heute (1 … maxD), an denen die Einnahme kommt
+    const d0 = dOff(c.date); if (d0 == null) return [];
+    const out = [];
+    if (c.rep === 'week') { for (let d = d0; d <= maxD; d += 7) if (d >= 1) out.push(d); }
+    else if (c.rep === 'month') { const b = pDate(c.date); for (let i = 0; i < 60; i++) { const t = new Date(b); t.setMonth(t.getMonth() + i); const d = Math.round((t - dayPlus(0)) / 864e5); if (d > maxD) break; if (d >= 1) out.push(d); } }
+    else if (d0 >= 1 && d0 <= maxD) out.push(d0);
+    return out;
+  }
+  const custInc = (days) => custGems().reduce((a, c) => a + custOccDays(c, Math.floor(days + 1e-9)).length * (+c.amount || 0), 0);
+  function customGemsOn(d) { return d < 1 ? 0 : custGems().reduce((a, c) => a + (custOccDays(c, d).includes(d) ? +c.amount || 0 : 0), 0); }
+  PMOD.gems.src.push({ k: 'custom', label: 'Eigene Einnahmen', desc: 'Selbst hinzugefügt', hidden: true, always: true, active: () => custGems().length > 0,
+    perDay: () => ({ gems: custInc(30) / 30 }), inc: (s, days) => ({ gems: custInc(days) }) });
+  PMOD.gems.extra = () => {
+    const el = $('pmExtra'); if (!el) return;
+    const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
+    const REP = { once: 'einmalig', week: 'jede Woche', month: 'jeden Monat' };
+    el.innerHTML = `<section id="gemCustBox" class="mt-5 rounded-xl border border-ink-700 bg-ink-950/30 p-4">
+      <h2 class="font-display text-base text-gold-300">Eigene Einnahmen</h2>
+      <p class="text-xs text-slate-400 mb-3">Zum Beispiel ein anderes Bundle, das du kaufst – fließt in Passive, Plan und Kalender ein.</p>
+      ${custGems().length ? `<div class="space-y-1 mb-3">${custGems().map(c => `<div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-ink-700 bg-ink-950/50 px-3 py-2 text-sm">
+        <span class="text-slate-200">${esc(c.name || 'Einnahme')} <span class="text-xs text-slate-400">· ${dLabel(c.date, true)} · ${REP[c.rep] || REP.once}</span></span>
+        <span class="inline-flex items-center gap-2"><b class="tabular-nums text-emerald-400">+${fmt(c.amount)}</b><button type="button" data-cdel="${c.id}" class="text-slate-500 hover:text-red-400 px-1" title="Entfernen">✕</button></span></div>`).join('')}</div>` : ''}
+      <div class="flex flex-wrap items-end gap-2">
+        <label class="text-xs text-slate-400">Name<input id="gcName" type="text" placeholder="z. B. Bundle 10 €" class="mt-1 block w-40 ${inp}"></label>
+        <label class="text-xs text-slate-400">Gems<input id="gcAmt" type="number" min="1" step="1" placeholder="z. B. 5000" class="mt-1 block w-28 text-right ${inp}"></label>
+        <label class="text-xs text-slate-400">Datum<input id="gcDate" type="date" value="${isoDay(dayPlus(1))}" class="mt-1 block ${inp}"></label>
+        <label class="text-xs text-slate-400">Wiederholung<select id="gcRep" class="mt-1 block ${inp}">${Object.entries(REP).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></label>
+        <button type="button" id="gcAdd" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">+ Hinzufügen</button>
+      </div></section>`;
+    makeFold($('gemCustBox'), 'gemcust');
+    el.querySelectorAll('[data-cdel]').forEach(b => b.onclick = () => { passive.gemCustom = custGems().filter(c => c.id !== b.dataset.cdel); savePassive(); renderPMOut('gems'); });
+    $('gcAdd').onclick = () => { const a = Math.round(+$('gcAmt').value), dt = $('gcDate').value; if (!(a > 0) || !pDate(dt)) { $('gcAmt').focus(); return; }
+      custGems().push({ id: 'c' + Date.now().toString(36), name: $('gcName').value.slice(0, 30), amount: a, date: dt, rep: $('gcRep').value }); savePassive(); renderPMOut('gems'); };
+  };
+
+  function renderGemsStats() {
+    const top = $('statsTop');
+    top.innerHTML = gemCalHtml() + gemDashHtml() + gemEvHtml();
+    if (loadFolds()['gemev'] === undefined) folds['gemev'] = true;       // Events & Stufen: standardmäßig eingeklappt
+    if (folds['gemcalrules'] === undefined) folds['gemcalrules'] = true;
+    makeFold($('gemDash'), 'gemdash'); makeFold($('gemCal'), 'gemcal'); makeFold($('gemCalRules'), 'gemcalrules'); makeFold($('gemEvBox'), 'gemev');
+    top.querySelectorAll('[data-calnav]').forEach(b => b.onclick = () => { calWeek += +b.dataset.calnav * 4; renderGemCal(); });
+    const sel = $('gpAddK'), dt = $('gpAddDate');
+    const setDef = () => { const n = sel.value !== 'custom' && GEM_CAL[sel.value] ? nextOcc(sel.value) : null; dt.value = n ? n.date : isoDay(dayPlus(1)); };
+    sel.onchange = setDef; setDef();
+    $('gpAdd').onclick = () => { const k = sel.value, n = GEM_CAL[k] ? calOcc(k, pDate(dt.value) || dayPlus(0), pDate(dt.value) || dayPlus(0))[0] : null; addPlan(k, dt.value, n ? n.rot : ''); };
+    top.querySelectorAll('[data-ev]').forEach(b => b.onclick = () => {
+      const st = evSt(), k = b.dataset.ev, v = +b.dataset.val, d = b.dataset.day;
+      if (d) { const o = (st[k] = st[k] || {}); o[d] = o[d] === v ? 0 : v; } else st[k] = st[k] === v ? 0 : v;
+      savePassive(); renderGemsStats();
+    });
+    renderGemEvSum();
+    renderGemsPlanAll();
+  }
+
+  // ---------- Passports: Migrationskosten nach Power (Normal / Same-KvK) ----------
+  const MIG = [ // [bis Power (Mio.), Passseiten normal, Same-KvK, Credits normal, Same-KvK]
+    [10, 1, 1, 600000, 600000], [15, 2, 1, 1200000, 600000], [20, 3, 1, 1800000, 600000], [25, 4, 1, 2400000, 600000], [30, 6, 1, 3600000, 600000],
+    [35, 9, 2, 5400000, 1200000], [40, 12, 3, 7200000, 1800000], [45, 15, 5, 9000000, 3000000], [50, 20, 8, 12000000, 4800000], [55, 25, 12, 15000000, 7200000],
+    [60, 30, 15, 18000000, 9000000], [65, 35, 20, 21000000, 12000000], [70, 40, 25, 24000000, 15000000], [75, 45, 32, 27000000, 19200000], [80, 50, 40, 30000000, 24000000],
+    [85, 55, 47, 33000000, 28200000], [90, 60, 54, 36000000, 32400000], [95, 65, 61, 39000000, 36600000], [100, 70, 67, 42000000, 40200000], [Infinity, 75, 73, 45000000, 43800000]];
+  const migSt = () => (passive.mig = passive.mig || { mode: 'normal' });
+  const profPower = () => govLatest('energy');
+  const migPower = () => { const p = +migSt().power; return p > 0 ? p : profPower(); };
+  const migRow = (pw) => pw == null ? null : MIG.find(r => pw < r[0] * 1e6) || MIG[MIG.length - 1];
+  const migNeed = () => { const r = migRow(migPower()); if (!r) return null; const s = migSt().mode === 'same'; return { passports: s ? r[2] : r[1], credits: s ? r[4] : r[3], row: r }; };
+  const creditsNow = () => { const c = +migSt().credits; return c >= 0 && migSt().credits !== '' && migSt().credits != null ? c : null; };
+  function renderMigStats() {
+    const top = $('statsTop'), st = migSt(), need = migNeed(), pw = migPower(), have = PMOD.passports.now().passports, cr = creditsNow();
+    const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:border-gold-500';
+    const card = (l, v, c, sub) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">${l}</div><div class="text-xl font-bold tabular-nums ${c}">${v}</div>${sub ? `<div class="text-[11px] text-slate-500">${sub}</div>` : ''}</div>`;
+    const missP = need && have != null ? need.passports - have : null, missC = need && cr != null ? need.credits - cr : null;
+    top.innerHTML = `<section id="migBox" class="panel rounded-2xl p-5">
+      <h2 class="font-display text-lg text-gold-300">Migration</h2>
+      <div class="grid sm:grid-cols-3 gap-3 mb-4">
+        <label class="text-xs text-slate-400">Power (Mio.)<input id="migPower" type="text" inputmode="decimal" value="${st.power ? String(st.power / 1e6).replace('.', ',') : ''}" placeholder="${profPower() ? (profPower() / 1e6).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' (Profil)' : 'z. B. 85'}" class="mt-1 w-full text-right ${inp}"></label>
+        <div class="text-xs text-slate-400">Art<div class="mt-1 grid grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700">${[['normal', 'Normal'], ['same', 'Same-KvK']].map(([k, l]) => `<button type="button" data-migmode="${k}" aria-pressed="${st.mode === k}" class="seg-btn rounded-lg py-1.5 text-xs font-semibold transition">${l}</button>`).join('')}</div></div>
+        <label class="text-xs text-slate-400">Credits jetzt<input id="migCredits" type="text" inputmode="numeric" value="${cr != null ? cr : ''}" placeholder="z. B. 12.500.000" class="mt-1 w-full text-right ${inp}"></label>
+      </div>
+      <div class="text-[11px] text-slate-500 mb-3">${pw == null ? 'Keine Power im Profil – bitte oben eintragen.' : `Gerechnet mit ${(pw / 1e6).toLocaleString('de-DE', { maximumFractionDigits: 1 })} Mio. Power${st.power ? '' : ' aus deinem Profil'}.`}</div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        ${card('Passseiten nötig', need ? fmt(need.passports) : '–', 'text-indigo-300')}
+        ${card('Passseiten jetzt', have != null ? fmt(have) : '–', 'text-white', have == null ? 'noch kein Scan' : missP > 0 ? `<span class="text-red-400">fehlen ${fmt(missP)}</span>` : '<span class="text-emerald-400">reicht ✓</span>')}
+        ${card('Credits nötig', need ? short(need.credits) : '–', 'text-slate-200')}
+        ${card('Credits jetzt', cr != null ? short(cr) : '–', 'text-white', cr == null ? 'oben eintragen' : missC > 0 ? `<span class="text-red-400">fehlen ${short(missC)}</span>` : '<span class="text-emerald-400">reicht ✓</span>')}
+      </div>
+      ${need ? `<button type="button" id="migGoal" class="mt-3 text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">🎯 ${fmt(need.passports)} Passseiten als Migrations-Ziel übernehmen</button>` : ''}
+      <div class="mt-4 overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs">
+        <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-2 px-3 text-left font-medium">Power</th><th class="py-2 px-3 text-right font-medium">Passseiten normal</th><th class="py-2 px-3 text-right font-medium">Same-KvK</th><th class="py-2 px-3 text-right font-medium">Credits normal</th><th class="py-2 px-3 text-right font-medium">Same-KvK</th></tr></thead>
+        <tbody>${MIG.map((r, i) => { const on = need && need.row === r, sm = st.mode === 'same';
+          return `<tr class="border-b border-ink-800 last:border-b-0 ${on ? 'bg-gold-500/10' : ''}"><td class="py-1.5 px-3 ${on ? 'text-gold-300 font-semibold' : 'text-slate-300'}">${r[0] === Infinity ? '> 100 Mio.' : `< ${r[0]} Mio.`}</td>
+            <td class="py-1.5 px-3 text-right tabular-nums ${on && !sm ? 'text-indigo-300 font-bold' : ''}">${r[1]}</td><td class="py-1.5 px-3 text-right tabular-nums ${on && sm ? 'text-indigo-300 font-bold' : ''}">${r[2]}</td>
+            <td class="py-1.5 px-3 text-right tabular-nums ${on && !sm ? 'text-slate-100 font-bold' : 'text-slate-400'}">${fmt(r[3])}</td><td class="py-1.5 px-3 text-right tabular-nums ${on && sm ? 'text-slate-100 font-bold' : 'text-slate-400'}">${fmt(r[4])}</td></tr>`; }).join('')}</tbody></table></div>
+    </section>`;
+    makeFold($('migBox'), 'mig');
+    const upd = () => { savePassive(); renderMigStats(); if (R.areaTab === 'passive') renderPMOut('passports'); renderAreaTabs(); };
+    top.querySelectorAll('[data-migmode]').forEach(b => b.onclick = () => { st.mode = b.dataset.migmode; upd(); });
+    $('migPower').addEventListener('change', (e) => { const v = parseFloat(String(e.target.value).replace(',', '.')); st.power = v > 0 ? Math.round(v * 1e6) : null; upd(); });
+    $('migCredits').addEventListener('change', (e) => { const v = parseAmount(e.target.value); st.credits = e.target.value.trim() === '' || isNaN(v) ? null : v; upd(); });
+    $('migGoal')?.addEventListener('click', () => { $('passGoal').value = need.passports; LS.set(PASS_GOAL, String(need.passports)); renderPassGoal(+have || 0); $('passGoal').dispatchEvent(new Event('input')); upd(); });
+  }
+
+  // ---------- Goldheads: Kommandanten-Expertise (Kosten je Skillpunkt, Bild „Expert 690“) ----------
+  const GH_STEPS = [10, 10, 15, 15, 30, 30, 40, 40, 45, 45, 50, 50, 75, 75, 80, 80];   // vom 5. bis 20. Skillpunkt (1-1-1-1 → 5-5-5-5) = 690
+  const ghCost = (from, to) => { let c = 0; for (let p = Math.max(4, from); p < Math.min(20, to); p++) c += GH_STEPS[p - 4]; return c; };
+  const ghSt = () => (passive.gh = passive.gh || { cur: [1, 1, 1, 1], tgt: [5, 5, 5, 5], date: '' });
+  let ghChart = null;
+  function renderGhStats() {
+    const top = $('statsTop'), st = ghSt(), cur = st.cur.reduce((a, v) => a + v, 0), tgt = st.tgt.reduce((a, v) => a + v, 0);
+    const need = ghCost(cur, tgt), stock = +PMOD.goldheads.now().goldheads || 0, perDay = pmDayTotal('goldheads').goldheads || 0, miss = need - stock;
+    const sel = (arr, key, i) => `<select data-ghsel="${key}" data-i="${i}" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500">${[1, 2, 3, 4, 5].map(v => `<option ${arr[i] === v ? 'selected' : ''}>${v}</option>`).join('')}</select>`;
+    let reach = miss <= 0 ? 0 : null; if (reach == null && perDay > 0) for (let d = 1; d <= 1500; d++) if (stock + (pmIncome('goldheads', d).goldheads || 0) >= need) { reach = d; break; }
+    const dd = st.date ? dOff(st.date) : null, atDate = dd != null && dd >= 0 ? stock + (pmIncome('goldheads', dd).goldheads || 0) : null;
+    const card = (l, v, c, sub) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">${l}</div><div class="text-xl font-bold tabular-nums ${c}">${v}</div>${sub ? `<div class="text-[11px] text-slate-500">${sub}</div>` : ''}</div>`;
+    top.innerHTML = `<section id="ghBox" class="panel rounded-2xl p-5">
+      <h2 class="font-display text-lg text-gold-300">Kommandanten-Expertise</h2>
+      <div class="grid sm:grid-cols-2 gap-4 mb-4">
+        <div class="text-xs text-slate-400">Aktueller Stand<div class="mt-1 flex items-center gap-1">${[0, 1, 2, 3].map(i => sel(st.cur, 'cur', i)).join('<span class="text-slate-600">-</span>')}</div></div>
+        <div class="text-xs text-slate-400">Ziel<div class="mt-1 flex items-center gap-1">${[0, 1, 2, 3].map(i => sel(st.tgt, 'tgt', i)).join('<span class="text-slate-600">-</span>')}
+          <button type="button" id="ghMax" class="ml-2 px-2 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs">Max 5-5-5-5</button></div></div>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        ${card(`${st.cur.join('-')} → ${st.tgt.join('-')}`, fmt(need), 'text-gold-300', 'Goldheads nötig')}
+        ${card('Goldheads jetzt', fmt(stock), 'text-white', PMOD.goldheads.now().goldheads == null ? 'noch kein Scan' : '')}
+        ${card(miss > 0 ? 'Es fehlen' : 'Überschuss', fmt(Math.abs(miss)), miss > 0 ? 'text-red-400' : 'text-emerald-400')}
+        ${card('Erreicht', reach === 0 ? 'jetzt ✓' : reach ? dayPlus(reach).toLocaleDateString('de-DE') : '–', 'text-indigo-300', reach ? `in ${fmt(reach)} Tagen` : perDay > 0 ? '' : 'Passive aktivieren')}
+      </div>
+      <div class="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+        <label class="inline-flex items-center gap-2">Wie viele hast du am <input id="ghDate" type="date" value="${st.date || ''}" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-gold-500">?</label>
+        ${atDate != null ? `<span>→ <b class="tabular-nums ${atDate >= need ? 'text-emerald-400' : 'text-slate-200'}">${fmt(atDate)}</b> Goldheads${atDate >= need ? ' · reicht ✓' : ` · fehlen ${fmt(need - atDate)} – dafür bräuchtest du ${dd > 0 ? fmt(Math.ceil((need - stock) / dd)) : '–'} pro Tag`}</span>` : ''}
+      </div>
+      <div id="ghChartWrap" class="h-56 mt-4"></div>
+      <p class="mt-3 text-[11px] text-slate-500">Kosten je Skillpunkt: ${GH_STEPS.join(' · ')} (1-1-1-1 → 5-5-5-5 = 690). Danach braucht der nächste Kommandant wieder 690.</p>
+    </section>`;
+    makeFold($('ghBox'), 'gh');
+    top.querySelectorAll('[data-ghsel]').forEach(s => s.onchange = () => { st[s.dataset.ghsel][+s.dataset.i] = +s.value; savePassive(); renderGhStats(); renderAreaTabs(); });
+    $('ghMax').onclick = () => { st.tgt = [5, 5, 5, 5]; savePassive(); renderGhStats(); };
+    $('ghDate').addEventListener('change', (e) => { st.date = pDate(e.target.value) ? e.target.value : ''; savePassive(); renderGhStats(); });
+    const wrap = $('ghChartWrap'); if (ghChart) { try { ghChart.destroy(); } catch {} ghChart = null; }
+    if (!window.Chart) { wrap.innerHTML = '<div class="h-full grid place-items-center text-xs text-slate-500">Diagramm konnte nicht geladen werden.</div>'; return; }
+    const maxD = Math.min(1500, Math.max(30, reach ? Math.ceil(reach * 1.15) : dd > 0 ? dd : 90)), step = Math.max(1, Math.ceil(maxD / 90)), days = [];
+    for (let d = 0; d <= maxD; d += step) days.push(d);
+    wrap.innerHTML = '<canvas id="ghChart"></canvas>';
+    ghChart = new Chart($('ghChart'), { type: 'line',
+      data: { labels: days.map(d => dayPlus(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })),
+        datasets: [{ label: 'Goldheads', data: days.map(d => Math.round(stock + (pmIncome('goldheads', d).goldheads || 0))), borderColor: '#facc15', borderWidth: 3, tension: .2, pointRadius: 0, fill: false },
+                   { label: `Ziel ${st.tgt.join('-')}`, data: days.map(() => need), borderColor: '#a78bfa', borderWidth: 2, borderDash: [6, 4], pointRadius: 0, fill: false }] },
+      options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { labels: { boxWidth: 12, color: '#94a3b8' } } },
+        scales: { y: { beginAtZero: true }, x: { ticks: { maxTicksLimit: 8 } } } } });
+  }
+  const ghVipDaily = () => { const p = vipNowPts(); if (p == null) return 0; const l = levelFor(p); return l >= 14 ? 3 : l >= 12 ? 2 : l >= 10 ? 1 : 0; };
+  const weekdaysIn = (days, wd) => { let c = 0; for (let i = 1; i <= Math.floor(days + 1e-9); i++) if (dayPlus(i).getDay() === wd) c++; return c; };
 
   // ---------- VIP Statistics: Gems → VIP (1 Gem = 1 VIP-Punkt) ----------
   function renderVipStats() {
@@ -2323,8 +2766,11 @@ window.RokApp = () => {
     if (m === 'ap') { sec.classList.add('hidden'); if (!top.querySelector('#apCanDo')) renderApStats(); else renderApStatsOut(); renderCredits(); return; }
     // links: Statistics
     if (m === 'vip') renderVipStats();
+    else if (m === 'gems') renderGemsStats();
     else if (GOALS[m]) renderGoalStats(m);
-    else if (m === 'passports') top.innerHTML = `<section class="panel rounded-2xl p-5"><h2 class="font-display text-lg text-gold-300 mb-2">Power → benötigte Passseiten</h2>
+    else if (m === 'passports') renderMigStats();
+    else if (m === 'goldheads') renderGhStats();
+    else if (false) top.innerHTML = `<section class="panel rounded-2xl p-5"><h2 class="font-display text-lg text-gold-300 mb-2">Power → benötigte Passseiten</h2>
         <div class="overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs"><thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-2 px-3 text-left font-medium">Power</th><th class="py-2 px-3 text-right font-medium">Passseiten</th></tr></thead>
         <tbody><tr><td colspan="2" class="py-6 text-center text-slate-500">Tabelle folgt – sobald die Daten da sind, steht hier, wie viele Passseiten du für deine Power brauchst.</td></tr></tbody></table></div></section>`;
     else top.innerHTML = `<section class="panel rounded-2xl p-6 text-center text-sm text-slate-400">Für diesen Bereich gibt es noch keine Statistik – kommt als Nächstes.</section>`;
@@ -2346,6 +2792,12 @@ window.RokApp = () => {
       </button>`;
     let statSub = m === 'ap' && apNow() != null ? `≈ ${fmt(apDoCount('barbOff', apNow()))} Barbaren` : null;
     if (m === 'vip' && pmReady) { const p = vipNowPts(), g = gemsNow(); if (p != null && g) statSub = `mit Gems: ${vipName(levelFor(p + g))}`; }
+    if (m === 'gems' && pmReady) { const plan = planSt().filter(p => (dOff(p.date) ?? -1) >= 0);
+      if (plan.length) { let min = Infinity; plan.sort((a, b) => a.date.localeCompare(b.date)).forEach(p => { min = Math.min(min, gemsAt(dOff(p.date), true)); });
+        statSub = min >= 0 ? `${plan.length} Events · Überschuss +${short(min)}` : `${plan.length} Events · fehlen ${short(-min)}`; } }
+    if (m === 'passports' && pmReady) { const n = migNeed(); if (n) statSub = `Migration: ${fmt(n.passports)} Passseiten · ${short(n.credits)} Credits`; }
+    if (m === 'goldheads' && pmReady) { const st = ghSt(), need = ghCost(st.cur.reduce((a, v) => a + v, 0), st.tgt.reduce((a, v) => a + v, 0)), miss = need - (+PMOD.goldheads.now().goldheads || 0);
+      statSub = `${st.cur.join('-')} → ${st.tgt.join('-')}: ${miss > 0 ? `fehlen ${fmt(miss)}` : 'reicht ✓'}`; }
     if (GOALS[m] && pmReady) { const st = goalSt(m), cf = GOALS[m], k = PMOD[m].units[0].k, now = +PMOD[m].now()[k] || 0, t = m === 'gems' ? gemEvTotal() + (+st.target || 0) : (st.target || cf.def);
       if (m === 'gems' ? t > 0 : st.target) { let r = now >= t ? 0 : null; if (r == null && (pmDayTotal(m)[k] || 0) > 0) for (let d = 1; d <= 730; d++) if (now + (pmIncome(m, d)[k] || 0) >= t) { r = d; break; }
         const nm = m === 'gems' ? 'Events' : (st.name || cf.name);
