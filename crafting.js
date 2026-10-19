@@ -281,6 +281,7 @@ window.RokMods.crafting = (R) => {
 
   function renderGearMain() {
     const set = activeSet();
+    renderCraftHist();
     R.$('gearSetSel').innerHTML = gear.sets.map(s => `<option value="${R.esc(s.id)}"${s.id === set.id ? ' selected' : ''}>${R.esc(s.name)}</option>`).join('');
     R.$('gearDismantle').checked = set.dismantle; R.$('gearUseChests').checked = set.useChests;
     R.$('gearDisRate').value = gearOpt.rate; R.$('gearDisRate').disabled = !set.dismantle;
@@ -385,14 +386,14 @@ window.RokMods.crafting = (R) => {
     if (ev.type === 'click' && !isBtn) return;     // Klick nur für Buttons (Refine, Bild-Auswahl)
     if (ev.type === 'change' && isBtn) return;
     if (gearPickEvent(t)) { renderGearMain(); return; }
-    const v = activeSet()[t.dataset.side][t.dataset.slot];
+    const v = activeSet()[t.dataset.side][t.dataset.slot], before = t.dataset.side === 'ist' ? gSnap(v) : null;
     if (t.dataset.f === 'clear') { v.item = ''; v.tier = 0; v.refine = 0; }
     else if (t.dataset.f === 'refset') { if (t.dataset.v) { v.refType = gRefType(t.dataset.v); v.refine = 100; } else v.refine = 0; }
     else if (t.dataset.f === 'item') { v.item = t.dataset.v ?? t.value; const it = gItem(t.value); if (it) v.rarity = it.rarity; v.tier = 0; v.refine = 0; v.refType = v.refType || 'infantry'; }
     else if (t.dataset.f === 'refine') v.refine = gRefine(t.dataset.v);
     else if (t.dataset.f === 'refType') v.refType = gRefType(t.dataset.v);
     else v.tier = gTier(t.value);
-    if (t.dataset.side === 'ist') delete gearFlags[t.dataset.slot];
+    if (t.dataset.side === 'ist') { delete gearFlags[t.dataset.slot]; logIst(activeSet(), t.dataset.slot, before, 'edit'); }
     saveGear(); renderGearMain();
   };
   ['gearIstEdit', 'gearZielEdit'].forEach(id => { R.$(id).addEventListener('change', gearEdit); R.$(id).addEventListener('click', gearEdit); });
@@ -496,7 +497,7 @@ window.RokMods.crafting = (R) => {
     return best;
   }
   function applyGearScan(r) {
-    const src = r.slots || r.equipment || r, set = activeSet();
+    const src = r.slots || r.equipment || r, set = activeSet(), before = Object.fromEntries(GEAR_SLOTS.map(sl => [sl.k, gSnap(set.ist[sl.k])]));
     gearFlags = {}; let hit = 0, seen = 0;
     GEAR_SLOTS.forEach(sl => {
       let info = src[sl.k];
@@ -519,6 +520,7 @@ window.RokMods.crafting = (R) => {
     if (!seen) throw new Error('Keine Ausrüstung im Screenshot erkannt. Bitte die Slots von Hand wählen.');
     const firstFlag = GEAR_SLOTS.find(sl => gearFlags[sl.k]);
     if (firstFlag) gearSel.ist = firstFlag.k;
+    GEAR_SLOTS.forEach(sl => logIst(set, sl.k, before[sl.k], 'scan'));
     saveGear(); renderGearMain();
     return { hit, seen };
   }
@@ -555,5 +557,154 @@ window.RokMods.crafting = (R) => {
   ['dragleave', 'drop'].forEach(e => gDrop.addEventListener(e, ev => { ev.preventDefault(); if (e === 'drop' || !gDrop.contains(ev.relatedTarget)) gDrop.classList.remove('drop-active'); }));
   gDrop.addEventListener('drop', ev => gearScan(ev.dataTransfer.files));
   R.$('gearFile').addEventListener('change', ev => { gearScan(ev.target.files); ev.target.value = ''; });
+
+  // ================= Craft-Verlauf =================
+  // Automatisch: jede Änderung an der Ist-Ausrüstung (von Hand oder per Scan) wird protokolliert.
+  // Von Hand: eigene Einträge mit Notiz + Screenshots (Bilder → Supabase-Storage, Bucket "showcase").
+  // Speicher: Key "rok_scanner_gear_history" → landet über LS.set automatisch in public.user_state.
+  const GEAR_HIST = 'rok_scanner_gear_history', HIST_MAX = 400, HIST_MERGE = 15 * 60e3;
+  const gSnap = (v) => ({ item: String(v?.item || ''), name: gItem(v?.item)?.name || String(v?.name || ''), rarity: R.gRar(v?.rarity), tier: gTier(v?.tier), refine: gRefine(v?.refine), refType: gRefType(v?.refType) });
+  const gSame = (a, b) => a.item === b.item && (!a.item || (a.tier === b.tier && a.refine === b.refine && (!a.refine || a.refType === b.refType)));
+  const hNorm = (e) => e && typeof e === 'object' && e.id ? {
+    id: String(e.id), ts: +e.ts || Date.now(), kind: e.kind === 'manual' ? 'manual' : 'auto', src: e.src === 'scan' ? 'scan' : 'edit',
+    setId: String(e.setId || ''), setName: String(e.setName || '').slice(0, 40), slot: GEAR_SLOTS.some(s => s.k === e.slot) ? e.slot : '',
+    from: e.from ? gSnap(e.from) : null, to: e.to ? gSnap(e.to) : null, note: String(e.note || '').slice(0, 500),
+    imgs: Array.isArray(e.imgs) ? e.imgs.filter(u => typeof u === 'string' && /^(https:\/\/|data:image\/jpeg;base64,)/.test(u)).slice(0, 6) : [] } : null;
+  let chist = [];
+  try { const h = JSON.parse(R.LS.get(GEAR_HIST, '[]')); if (Array.isArray(h)) chist = h.map(hNorm).filter(Boolean); } catch {}
+  const saveHist = () => { chist.sort((a, b) => b.ts - a.ts); if (chist.length > HIST_MAX) chist.length = HIST_MAX; R.LS.set(GEAR_HIST, JSON.stringify(chist)); };
+  // Änderung eines Ist-Slots eintragen; mehrere Klicks am selben Slot innerhalb von 15 Min. werden zu einem Eintrag zusammengefasst
+  function logIst(set, slot, before, src) {
+    if (!before) return;
+    const after = gSnap(set.ist[slot]), now = Date.now();
+    const prev = chist.find(e => e.kind === 'auto' && e.setId === set.id && e.slot === slot && now - e.ts < HIST_MERGE);
+    if (prev) { prev.to = after; prev.ts = now; prev.setName = set.name; if (src === 'scan') prev.src = 'scan'; if (gSame(prev.from, prev.to)) chist = chist.filter(e => e !== prev); }
+    else { if (gSame(before, after)) return; chist.unshift({ id: R.newId(), ts: now, kind: 'auto', src, setId: set.id, setName: set.name, slot, from: before, to: after, note: '', imgs: [] }); }
+    saveHist();
+  }
+  const hSlot = (k) => GEAR_SLOTS.find(s => s.k === k);
+  const hIcon = (v) => { const it = gItem(v?.item), f = GFILL[it?.rarity || v?.rarity] || GFILL.legendary;
+    return `<span class="relative shrink-0 w-11 h-11 rounded-lg grid place-items-center border border-ink-700" style="background:${it || v?.item ? `radial-gradient(circle at 50% 40%, ${f[1]}55, ${f[2]}44)` : '#111725'}" title="${R.esc(it?.name || v?.name || 'leer')}">
+      ${it?.icon ? `<img src="${it.icon}" alt="" loading="lazy" class="w-9 h-9 object-contain">` : `<span class="text-base opacity-50">${v?.item ? '❔' : '∅'}</span>`}
+      ${v?.item && v.tier ? `<span class="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1 rounded bg-ink-950/90 border border-gold-400/70 text-[9px] font-extrabold text-gold-300 leading-3">${ROMAN[v.tier - 1]}</span>` : ''}
+      ${v?.item && v.refine ? `<img src="${REFTYPES[v.refType]?.img || REFTYPES.infantry.img}" alt="" class="absolute -top-1 -right-1 w-4 h-4">` : ''}</span>`; };
+  const hName = (v) => R.esc(gItem(v?.item)?.name || v?.name || 'Item');
+  function hChanges(e) {                                      // was hat sich geändert? → [Text, Farbe]
+    const a = e.from, b = e.to, out = [];
+    if (!b?.item && a?.item) return [[`✕ ${hName(a)} entfernt`, 'text-slate-400']];
+    if (b?.item && !a?.item) out.push([`⚒ ${hName(b)} neu geschmiedet`, 'text-gold-300']);
+    else if (a?.item !== b?.item) out.push([`⚒ ${hName(a)} → ${hName(b)}`, 'text-gold-300']);
+    if (b?.item) {
+      const tf = a?.item === b.item ? a.tier : 0;
+      if (b.tier > tf) out.push([`⬆ Tier ${tf ? 'T' + tf : 'T0'} → T${b.tier}`, 'text-sky-300']);
+      else if (b.tier < tf) out.push([`⬇ Tier T${tf} → T${b.tier}`, 'text-slate-400']);
+      const rf = a?.item === b.item ? a.refine : 0;
+      if (b.refine && (!rf || a.refType !== b.refType)) out.push([`✦ Refine ${REFTYPES[b.refType]?.label || ''}`, 'text-red-300']);
+      else if (!b.refine && rf) out.push(['Refine entfernt', 'text-slate-400']);
+    }
+    return out.length ? out : [['Geändert', 'text-slate-300']];
+  }
+  const hDay = (ts) => new Date(ts).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+  const hTime = (ts) => new Date(ts).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  const hf = { set: 'all', kind: 'all', limit: 25 };
+  function renderCraftHist() {
+    const box = R.$('craftHistList'); if (!box) return;
+    const set = activeSet();
+    R.$('craftHistSet').innerHTML = `<option value="all">Alle Sets</option><option value="active"${hf.set === 'active' ? ' selected' : ''}>Nur „${R.esc(set.name)}“</option>`;
+    R.$('craftHistSlot').innerHTML = `<option value="">– kein bestimmter Slot –</option>` + GEAR_SLOTS.map(s => `<option value="${s.k}">${s.icon} ${s.label}</option>`).join('');
+    R.$('craftHistSlot').value = hDraft.slot;
+    R.$('craftHistKind').querySelectorAll('[data-hk]').forEach(b => { const on = b.dataset.hk === hf.kind;
+      b.className = `px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${on ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-700 text-slate-400 hover:text-gold-300'}`; });
+    const list = chist.filter(e => (hf.set === 'all' || e.setId === set.id) && (hf.kind === 'all' || e.kind === hf.kind));
+    R.$('craftHistCount').textContent = `${list.length} ${list.length === 1 ? 'Eintrag' : 'Einträge'}`;
+    if (!list.length) { box.innerHTML = `<div class="py-8 text-center text-sm text-slate-500">Noch nichts im Verlauf.<br><span class="text-xs">Sobald du an deiner aktuellen Ausrüstung etwas änderst oder oben einen Eintrag mit Screenshot hochlädst, taucht er hier auf.</span></div>`; return; }
+    let day = '', html = '';
+    list.slice(0, hf.limit).forEach(e => {
+      const d = hDay(e.ts); if (d !== day) { day = d; html += `<div class="pt-3 pb-1 text-[11px] uppercase tracking-widest text-slate-500">${d}</div>`; }
+      const sl = hSlot(e.slot), head = `<div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-400">
+          <span class="tabular-nums text-slate-300">${hTime(e.ts)}</span>
+          ${e.setName ? `<span class="px-1.5 rounded border border-ink-600 text-slate-300" translate="no">${R.esc(e.setName)}</span>` : ''}
+          ${sl ? `<span>${sl.icon} ${sl.label}</span>` : ''}
+          <span class="${e.kind === 'manual' ? 'text-gold-300' : 'text-slate-500'}">${e.kind === 'manual' ? '📷 hochgeladen' : e.src === 'scan' ? '🤖 per Scan' : '✎ am Dashboard geändert'}</span></div>`;
+      const body = e.kind === 'auto' ? `<div class="mt-2 flex items-center gap-2">${hIcon(e.from)}<span class="text-slate-500">→</span>${hIcon(e.to)}
+          <div class="min-w-0 space-y-0.5">${hChanges(e).map(([t, c]) => `<div class="text-sm font-semibold ${c}">${t}</div>`).join('')}</div></div>` : '';
+      const note = e.note ? `<div class="mt-2 text-sm text-slate-200 whitespace-pre-line break-words">${R.esc(e.note)}</div>` : '';
+      const imgs = e.imgs.length ? `<div class="mt-2 flex flex-wrap gap-2">${e.imgs.map((u, i) => `<button type="button" data-himg="${R.esc(e.id)}:${i}" class="w-20 h-20 rounded-lg overflow-hidden border border-ink-700 hover:border-gold-500/60"><img src="${R.esc(u)}" alt="Screenshot" loading="lazy" class="w-full h-full object-cover"></button>`).join('')}</div>` : '';
+      html += `<div class="rounded-xl border ${e.kind === 'manual' ? 'border-gold-500/30 bg-gold-500/5' : 'border-ink-700 bg-ink-950/40'} p-3">
+        <div class="flex items-start justify-between gap-2">${head}
+          <div class="flex gap-1 shrink-0">
+            <button type="button" data-hnote="${R.esc(e.id)}" class="text-slate-500 hover:text-gold-300 px-1 text-xs" title="Notiz bearbeiten">✎</button>
+            <button type="button" data-hdel="${R.esc(e.id)}" class="text-slate-500 hover:text-red-400 px-1 text-xs" title="Eintrag löschen">✕</button></div></div>
+        ${body}${note}${imgs}</div>`;
+    });
+    if (list.length > hf.limit) html += `<button type="button" data-hmore class="w-full mt-2 py-2 rounded-lg border border-ink-700 text-xs text-slate-400 hover:text-gold-300 hover:border-gold-500/60">Ältere anzeigen (${list.length - hf.limit} weitere)</button>`;
+    box.innerHTML = html;
+  }
+  // ---- Neuer Eintrag mit Screenshots ----
+  const hDraft = { slot: '', files: [] };
+  const hMsg = (t, ok = true) => R.flash(R.$('craftHistMsg'), R.esc(t), ok);
+  const hLocalNow = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
+  function hShrink(file, max) {                             // Bild verkleinern → JPEG-Blob
+    return new Promise((ok, bad) => { const url = URL.createObjectURL(file), img = new Image();
+      img.onload = () => { const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas');
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+        c.toBlob(b => b ? ok(b) : bad(new Error('Bild konnte nicht umgewandelt werden.')), 'image/jpeg', 0.85); };
+      img.onerror = () => { URL.revokeObjectURL(url); bad(new Error('Bild konnte nicht gelesen werden.')); }; img.src = url; });
+  }
+  function renderHDraft() {
+    R.$('craftHistPrev').innerHTML = hDraft.files.map((f, i) => `<span class="relative w-16 h-16 rounded-lg overflow-hidden border border-ink-700"><img src="${f.url}" alt="" class="w-full h-full object-cover">
+      <button type="button" data-hrm="${i}" class="absolute top-0 right-0 w-5 h-5 grid place-items-center rounded-bl bg-ink-950/90 text-[11px] text-slate-300 hover:text-red-400">✕</button></span>`).join('');
+  }
+  const hAddFiles = (fl) => { [...(fl || [])].filter(f => f && f.type.startsWith('image/')).forEach(f => { if (hDraft.files.length < 6) hDraft.files.push({ file: f, url: URL.createObjectURL(f) }); }); renderHDraft(); };
+  R.$('craftHistFile').addEventListener('change', (ev) => { hAddFiles(ev.target.files); ev.target.value = ''; });
+  const hDrop = R.$('craftHistForm');
+  ['dragenter', 'dragover'].forEach(e => hDrop.addEventListener(e, ev => { ev.preventDefault(); hDrop.classList.add('drop-active'); }));
+  ['dragleave', 'drop'].forEach(e => hDrop.addEventListener(e, ev => { ev.preventDefault(); if (e === 'drop' || !hDrop.contains(ev.relatedTarget)) hDrop.classList.remove('drop-active'); }));
+  hDrop.addEventListener('drop', ev => hAddFiles(ev.dataTransfer.files));
+  R.$('craftHistPrev').addEventListener('click', (ev) => { const b = ev.target.closest('[data-hrm]'); if (!b) return; const [f] = hDraft.files.splice(+b.dataset.hrm, 1); if (f) URL.revokeObjectURL(f.url); renderHDraft(); });
+  R.$('craftHistSlot').onchange = () => { hDraft.slot = R.$('craftHistSlot').value; };
+  R.$('craftHistOpen').onclick = () => { const f = R.$('craftHistForm'); f.classList.toggle('hidden'); if (!f.classList.contains('hidden')) { R.$('craftHistDate').value = R.$('craftHistDate').dataset.def = hLocalNow(); R.$('craftHistNote').focus(); } };
+  R.$('craftHistCancel').onclick = () => { R.$('craftHistForm').classList.add('hidden'); };
+  R.$('craftHistForm').onsubmit = async (ev) => {
+    ev.preventDefault();
+    const note = R.$('craftHistNote').value.trim().slice(0, 500), btn = R.$('craftHistSave');
+    if (!note && !hDraft.files.length) { hMsg('Bitte einen Screenshot hinzufügen oder eine Notiz schreiben.', false); return; }
+    const dv = R.$('craftHistDate').value, ts = dv === R.$('craftHistDate').dataset.def ? Date.now() : Date.parse(dv) || Date.now(), set = activeSet(), id = R.newId(), imgs = [];
+    btn.disabled = true; btn.textContent = hDraft.files.length ? 'Lädt hoch …' : 'Speichert …';
+    try {
+      for (let i = 0; i < hDraft.files.length; i++) {
+        const blob = await hShrink(hDraft.files[i].file, 1600);
+        try { imgs.push(await RokAuth.uploadImage(blob, `crafthist_${id}_${i}`)); }
+        catch (e) { throw new Error(/eingeloggt/i.test(e.message || '') ? 'Zum Hochladen von Screenshots bitte einloggen.' : 'Upload fehlgeschlagen: ' + (RokAuth.germanError ? RokAuth.germanError(e) : e.message || e)); }
+      }
+      chist.push({ id, ts, kind: 'manual', src: 'edit', setId: set.id, setName: set.name, slot: hDraft.slot, from: null, to: null, note, imgs });
+      saveHist(); RokAuth.saveNow?.('gear');
+      hDraft.files.forEach(f => URL.revokeObjectURL(f.url)); hDraft.files = []; hDraft.slot = ''; R.$('craftHistNote').value = '';
+      R.$('craftHistForm').classList.add('hidden'); renderHDraft(); renderCraftHist(); hMsg('✓ Eintrag im Craft-Verlauf gespeichert');
+    } catch (e) { hMsg(e.message || String(e), false); }
+    finally { btn.disabled = false; btn.textContent = '💾 Eintrag speichern'; }
+  };
+  // ---- Liste: Filter, Löschen, Notiz, Bild groß ----
+  R.$('craftHistSet').onchange = () => { hf.set = R.$('craftHistSet').value; hf.limit = 25; renderCraftHist(); };
+  R.$('craftHistKind').addEventListener('click', (ev) => { const b = ev.target.closest('[data-hk]'); if (!b) return; hf.kind = b.dataset.hk; hf.limit = 25; renderCraftHist(); });
+  R.$('craftHistList').addEventListener('click', async (ev) => {
+    const t = ev.target;
+    if (t.closest('[data-hmore]')) { hf.limit += 25; renderCraftHist(); return; }
+    const im = t.closest('[data-himg]');
+    if (im) { const [eid, i] = im.dataset.himg.split(':'), e = chist.find(x => x.id === eid); if (!e) return;
+      const ov = document.createElement('div'); ov.className = 'fixed inset-0 z-[100] bg-black/85 grid place-items-center p-4 cursor-zoom-out';
+      ov.innerHTML = `<img src="${R.esc(e.imgs[+i])}" alt="" class="max-w-full max-h-full rounded-lg shadow-2xl">`; ov.onclick = () => ov.remove(); document.body.appendChild(ov); return; }
+    const nb = t.closest('[data-hnote]');
+    if (nb) { const e = chist.find(x => x.id === nb.dataset.hnote); if (!e) return;
+      const v = await UI.prompt('Notiz zu diesem Eintrag:', e.note); if (v == null) return;
+      e.note = v.trim().slice(0, 500); saveHist(); renderCraftHist(); return; }
+    const db = t.closest('[data-hdel]');
+    if (db) { const e = chist.find(x => x.id === db.dataset.hdel); if (!e) return;
+      if (!(await UI.confirm('Diesen Eintrag aus dem Craft-Verlauf löschen?'))) return;
+      chist = chist.filter(x => x !== e); saveHist(); renderCraftHist();
+      const base = RokAuth.imgBase?.(), paths = e.imgs.filter(u => base && u.startsWith(base)).map(u => u.slice(base.length).split('?')[0]);
+      if (paths.length) try { await RokAuth.db().storage.from('showcase').remove(paths); } catch {}
+    }
+  });
 
 };
