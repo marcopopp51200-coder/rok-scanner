@@ -327,7 +327,7 @@
         },
         mapFold: 'Karte', mapHint: '4 Camps und ihre Königreiche', camp: 'Camp', campName: 'Name', campKds: 'Königreiche (mit Komma getrennt)',
         myCamp: 'Mein Camp', ally: 'Verbündet', mapDesign: 'Design der Karte', tierG: 'Imperium', tierS: 'Silber', tierN: 'normal', tierHint: 'Antippen wechselt die Schrift: Gold = Imperium, Silber = Silberimperium, sonst weiß · dein Königreich hat immer einen ★', roster: 'Wer ist in welchem Camp', timeline: 'Timeline · Pass 4, 7, 8 & Altäre', noTimeline: 'Keine kommenden Pass-4/7/8- oder Altar-Termine', running: 'läuft', mapEmptyOwn: 'Noch keine Königreiche eingetragen – über „✎ Bearbeiten“ im Reiter Karte nachtragen', mapEmptyOther: 'Dieser Spieler hat noch keine Camps eingetragen', zoneN: 'Zone {n}', altar: 'Altar', mapLegendLk: '🏯 Pass mit Stufe (4–9) · ⛩️ Altar · Zahl im Kreis = Schrein/Tempel/Sanktum-Stufe · kleine Burgen = Forts · Tore und Altäre antippen für Zeiten', mapLegend: 'P4 → Zone 4 · P5 → Zone 5 · P6 = Altar (Camp → Zone 5) · P7 = Zone 5 ↔ Zone 5 · P8 → Ziggurat (Zone 6) · Testanordnung – echte Karte: ✎ Bearbeiten → Welches KvK?', mapStyles: { battle: 'Schlachtfeld', parchment: 'Pergament', night: 'Nacht', flat: 'Klar', holo: 'Taktik', frost: 'Frost', lava: 'Glut', royal: 'Royal', pixel: 'Pixel', sand: 'Wüste', ingame: 'Spielkarte', blueprint: 'Blaupause', marble: 'Marmor', jungle: 'Dschungel' }, mapTitle: 'KvK-Karte', center: 'Ziggurat', mapEmpty: 'noch keine Königreiche', campNames: ['Feuer', 'Erde', 'Wasser', 'Wind'], kdShort: 'KD',
-        title: 'KvK Mitte', hint: 'Kristall-Verlauf, Ziele, Barbaren & Zwischenstand',
+        title: 'KvK Running', hint: 'Kristall-Verlauf, Ziele, AP & Barbaren und Ehre',
         flow: 'Kristall-Verlauf', flowHint: 'Was du wann erwirtschaftest – über die ganze KvK-Dauer',
         goal: 'Roadmap: Ziele je Pass', goalHint: 'Ziele je Pass und am KvK-Ende – was fehlt und wie viele Barbaren dafür',
         apFold: 'AP & Barbaren', apFoldHint: 'Wie viele Barbaren und Forts deine AP schaffen',
@@ -336,9 +336,9 @@
         psupAuto: 'automatisch an, wenn im Start-Tab gekauft', mineBoost: 'Zusätzlicher Minen-Boost (%)',
         mineInfo: 'Kristallmine Stufe', perHour: 'pro Std.', research: 'Kristallforschung',
         rsBarb: 'Barbarian Bounties – Barbaren & Forts', rsBastion: 'Cultural Exchange – Bastion-Quests', rsKaruak: 'Karaku Reports – Kau Karuak',
-        bastion: 'Bastion & weitere Quellen', bastionPerDay: 'Bastion-Quests pro Tag', bastionCr: 'Kristalle pro Quest (1.500–22.500)',
+        bastion: 'Bastion & weitere Quellen', bastionDone: 'Bastion-Kristalle bisher', bastionDoneHint: 'Summe aus allen Bastion-Quests bis jetzt (pro Tag lässt sich das noch nicht verfolgen)', bastionPerDay: 'Bastion-Quests pro Tag', bastionCr: 'Kristalle pro Quest (1.500–22.500)',
         maudara: 'Maudara-Angriffe', maudaraCr: 'Kristalle je Maudara', maudaraHint: '2-Tage-Event vor dem KvK · kostet AP wie Barbaren', maudaraTitle: 'Maudara (Pre-KvK)', other: 'Sonstiges: Kristalle pro Tag', srcTitle: 'Quellen in der Übersicht', srcHint: 'Haken weg = Quelle wird nicht mitgerechnet', crSources: 'Kristall-Quellen', kkPassive: 'Karuak passiv (Kristalle pro Std.)', kkPassiveDay: 'Passiv ab Tag', kkAuto: 'Elite-Ertrag laut Stufen', rPassive: 'Karuak passiv',
-        kk: 'Trial of Kau Karuak', kkLv: 'bis Stufe', kkDay: 'an Tag', kkDiff: { easy: 'Easy', normal: 'Normal', hard: 'Hard' }, kkWhen: { easy: 'vor Pass 4', normal: 'zwischen Pass 4 und 5', hard: 'bei Pass 8 · Nightmare gibt Season Coins, nach Pass 9' }, kkAutoDay: 'automatisch: Tag', kkPassAuto: 'Karuak passiv (aus den Stufen)', kkPassNone: 'erst ab Elite-Stufe 5 · 10 · 15', kkPassFrom: 'ab Tag', kkPerH: 'pro Std.',
+        kk: 'Trial of Kau Karuak', kkLv: 'bis Stufe', kkDay: 'an Tag', kkDiff: { easy: 'Easy', normal: 'Normal', hard: 'Hard' }, kkWhen: { easy: 'vor Pass 4', normal: 'bei Pass 6', hard: 'bei Pass 8 · Nightmare gibt Season Coins, nach Pass 9' }, kkAutoDay: 'automatisch: Tag', kkPassAuto: 'Karuak passiv (aus den Stufen)', kkPassNone: 'erst ab Elite-Stufe 5 · 10 · 15', kkPassFrom: 'ab Tag', kkPerH: 'pro Std.',
         kkBoost: 'Karuak-Boost (Kristalle pro Std.)', kkBoostDay: 'Boost ab Tag',
         roadTitle: 'Roadmap', roadHint: 'Pass antippen = Ziele bearbeiten',
         rStart: 'Start-Bestand', rStand: 'Stand', rElite: 'Elite-Ertrag', rBoost: 'Karuak-Boost', rFrom: 'ab Tag', rUpTo: 'bis Stufe', rGoals: 'Ziele',
@@ -373,7 +373,7 @@
         honReach: 'erreicht an Tag', honNow: 'schon erreicht', honMiss: 'fehlen am KvK-Ende', honExtra: 'dafür zusätzlich pro Tag', honOr: 'oder',
         honChart: 'Ehre über die KvK-Dauer', honBarbsSrc: 'Barbaren & Forts aus deinem AP-Plan', pgMw: 'Mountain Warfare · Pass', pgMwNone: 'keins (Start-Tab → Bundles)',
         reachedNow: 'sofort machbar', missing: 'fehlt', missingEnd: 'fehlen am KvK-Ende', goalsSum: 'Alle Ziele', leftEnd: 'übrig am KvK-Ende',
-        apSrc: 'AP aus deinen Flaschen (Start-Tab / Scan)', apRegen: 'AP-Regeneration (Sek. je Punkt)', apRegenHint: '= {d} AP pro Tag', apNowHint: 'ab jetzt', chain: 'Ø Chain (Barbaren je Angriff, 1–10)',
+        apSrc: 'AP aus deinen Flaschen (Start-Tab / Scan)', tTotal: 'Spielzeit gesamt (1 Barbar = 1 Min.)', tHours: 'Std.', tMin: 'Min.', tPerH: 'Barbaren pro Stunde bis', tHoursLeft: 'Stunden übrig', tPerDay: 'Spielzeit pro Tag', tDaysLeft: 'Tage übrig', apRegen: 'AP-Regeneration (Sek. je Punkt)', apRegenHint: '= {d} AP pro Tag', apNowHint: 'ab jetzt', chain: 'Ø Chain (Barbaren je Angriff, 1–10)',
         barbAp: 'AP pro Barbaren-Angriff', barbCr: 'Kristalle pro Barbar', forts: 'Forts (Anzahl, je Angriff 1 Fort)', fortAp: 'AP pro Fort', fortCr: 'Kristalle pro Fort',
         kahar: 'Kahar the Hidden (Anzahl)', kaharHint: 'je Kahar 45.000 💎', kaharShort: 'Kahar',
         attacks: 'Angriffe', barbs: 'Barbaren', fortsDone: 'Forts', apUsed: 'AP verbraucht', crystals: 'Kristalle', withRs: 'inkl. Forschung',
@@ -473,7 +473,7 @@
         },
         mapFold: 'Map', mapHint: '4 camps and their kingdoms', camp: 'Camp', campName: 'Name', campKds: 'Kingdoms (comma separated)',
         campNames: ['Fire', 'Earth', 'Water', 'Wind'], kdShort: 'KD', myCamp: 'My camp', ally: 'Ally', mapDesign: 'Map design', tierG: 'Empire', tierS: 'Silver', tierN: 'normal', tierHint: 'Tap to change the text: gold = empire, silver = silver empire, otherwise white · your kingdom always has a ★', roster: 'Who is in which camp', timeline: 'Timeline · pass 4, 7, 8 & altars', noTimeline: 'No upcoming pass 4/7/8 or altar dates', running: 'running', mapEmptyOwn: 'No kingdoms entered yet – add them via “✎ Edit” in the Map tab', mapEmptyOther: 'This player has not entered any camps yet', zoneN: 'Zone {n}', altar: 'Altar', mapLegendLk: '🏯 pass with level (4–9) · ⛩️ altar · number in circle = shrine/temple/sanctum level · small castles = forts · tap gates and altars for times', mapLegend: 'P4 → zone 4 · P5 → zone 5 · P6 = altar (camp → zone 5) · P7 = zone 5 ↔ zone 5 · P8 → ziggurat (zone 6) · test layout – real map: ✎ Edit → Which KvK?', mapStyles: { battle: 'Battlefield', parchment: 'Parchment', night: 'Night', flat: 'Clean', holo: 'Tactical', frost: 'Frost', lava: 'Ember', royal: 'Royal', pixel: 'Pixel', sand: 'Desert', ingame: 'Game map', blueprint: 'Blueprint', marble: 'Marble', jungle: 'Jungle' }, mapTitle: 'KvK map', center: 'Ziggurat', mapEmpty: 'no kingdoms yet',
-        title: 'KvK Mid', hint: 'Crystal timeline, goals, barbarians & interim status',
+        title: 'KvK Running', hint: 'Crystal flow, goals, AP & barbarians and honor',
         flow: 'Crystal timeline', flowHint: 'What you earn when – over the whole KvK',
         goal: 'Roadmap: goals per pass', goalHint: 'Goals per pass and at KvK end – what is missing and how many barbarians',
         apFold: 'AP & barbarians', apFoldHint: 'How many barbarians and forts your AP can take',
@@ -482,9 +482,9 @@
         psupAuto: 'on automatically if bought in the Start tab', mineBoost: 'Extra mine boost (%)',
         mineInfo: 'Crystal mine level', perHour: 'per hour', research: 'Crystal research',
         rsBarb: 'Barbarian Bounties – barbarians & forts', rsBastion: 'Cultural Exchange – bastion quests', rsKaruak: 'Karaku Reports – Kau Karuak',
-        bastion: 'Bastion & other sources', bastionPerDay: 'Bastion quests per day', bastionCr: 'Crystals per quest (1,500–22,500)',
+        bastion: 'Bastion & other sources', bastionDone: 'Bastion crystals so far', bastionDoneHint: 'total from all bastion quests until now (per day cannot be tracked yet)', bastionPerDay: 'Bastion quests per day', bastionCr: 'Crystals per quest (1,500–22,500)',
         maudara: 'Maudara attacks', maudaraCr: 'Crystals per Maudara', maudaraHint: '2-day event before KvK · costs AP like barbarians', maudaraTitle: 'Maudara (pre-KvK)', other: 'Other: crystals per day', srcTitle: 'Sources in the overview', srcHint: 'untick = source is not counted', crSources: 'Crystal sources', kkPassive: 'Karuak passive (crystals per hour)', kkPassiveDay: 'Passive from day', kkAuto: 'Elite income from levels', rPassive: 'Karuak passive',
-        kk: 'Trial of Kau Karuak', kkLv: 'up to level', kkDay: 'on day', kkDiff: { easy: 'Easy', normal: 'Normal', hard: 'Hard' }, kkWhen: { easy: 'before pass 4', normal: 'between pass 4 and 5', hard: 'at pass 8 · Nightmare gives season coins, after pass 9' }, kkAutoDay: 'automatic: day', kkPassAuto: 'Karuak passive (from the levels)', kkPassNone: 'only from elite level 5 · 10 · 15', kkPassFrom: 'from day', kkPerH: 'per hour',
+        kk: 'Trial of Kau Karuak', kkLv: 'up to level', kkDay: 'on day', kkDiff: { easy: 'Easy', normal: 'Normal', hard: 'Hard' }, kkWhen: { easy: 'before pass 4', normal: 'at pass 6', hard: 'at pass 8 · Nightmare gives season coins, after pass 9' }, kkAutoDay: 'automatic: day', kkPassAuto: 'Karuak passive (from the levels)', kkPassNone: 'only from elite level 5 · 10 · 15', kkPassFrom: 'from day', kkPerH: 'per hour',
         kkBoost: 'Karuak boost (crystals per hour)', kkBoostDay: 'Boost from day',
         roadTitle: 'Roadmap', roadHint: 'Tap a pass to edit its goals',
         rStart: 'Starting stock', rStand: 'Balance', rElite: 'Elite income', rBoost: 'Karuak boost', rFrom: 'from day', rUpTo: 'up to level', rGoals: 'Goals',
@@ -519,7 +519,7 @@
         honReach: 'reached on day', honNow: 'already reached', honMiss: 'missing at KvK end', honExtra: 'additionally per day', honOr: 'or',
         honChart: 'Honor over the KvK', honBarbsSrc: 'Barbarians & forts from your AP plan', pgMw: 'Mountain Warfare · pass', pgMwNone: 'none (Start tab → Bundles)',
         reachedNow: 'possible right away', missing: 'missing', missingEnd: 'missing at KvK end', goalsSum: 'All goals', leftEnd: 'left at KvK end',
-        apSrc: 'AP from your bottles (Start tab / scan)', apRegen: 'AP regeneration (sec per point)', apRegenHint: '= {d} AP per day', apNowHint: 'from now', chain: 'Avg chain (barbarians per attack, 1–10)',
+        apSrc: 'AP from your bottles (Start tab / scan)', tTotal: 'Play time total (1 barbarian = 1 min)', tHours: 'h', tMin: 'min', tPerH: 'Barbarians per hour until', tHoursLeft: 'hours left', tPerDay: 'Play time per day', tDaysLeft: 'days left', apRegen: 'AP regeneration (sec per point)', apRegenHint: '= {d} AP per day', apNowHint: 'from now', chain: 'Avg chain (barbarians per attack, 1–10)',
         barbAp: 'AP per barbarian attack', barbCr: 'Crystals per barbarian', forts: 'Forts (count, 1 fort per attack)', fortAp: 'AP per fort', fortCr: 'Crystals per fort',
         kahar: 'Kahar the Hidden (count)', kaharHint: '45,000 💎 each', kaharShort: 'Kahar',
         attacks: 'Attacks', barbs: 'Barbarians', fortsDone: 'Forts', apUsed: 'AP used', crystals: 'Crystals', withRs: 'incl. research',
@@ -609,14 +609,14 @@
         days: 60, psup: 0, mineBoost: 0, mineDay: 0,                         // psup: 0 = wie im Start-Tab gekauft, 1 = an, 2 = aus · mineDay = Kristallmine pro Tag (ohne Boost)
         off: { mine: 0, supply: 0, bundles: 0, barbs: 0, kahar: 0, bastion: 0, karuak: 0, maudara: 0, other: 0 },   // 1 = Quelle in der Übersicht ausgeschaltet
         rs: { barb: 0, bastion: 0, karuak: 0 },                                   // Kristallforschung in %
-        bastionPerDay: 0, bastionCr: 1500, maudaraN: 0, maudaraCr: 500, otherPerDay: 0,   // Maudara: 2-Tage-Event vor dem KvK, Angriffe kosten AP wie Barbaren
+        bastionPerDay: 0, bastionCr: 1500, bastionDone: 0, maudaraN: 0, maudaraCr: 500, otherPerDay: 0,   // Maudara: 2-Tage-Event vor dem KvK, Angriffe kosten AP wie Barbaren
         kk: { easy: 0, normal: 0, hard: 0, easyDay: 0, normalDay: 0, hardDay: 0,   // 0 = automatisch (Easy vor Pass 4, Normal bis Pass 5, Hard bei Pass 8)
                 boost: 0, boostDay: 1, passive: 0, passiveDay: 1 },   // passive = Karuak passiv (Kristalle pro Std.) · boost = zusätzliche Kristalle pro Std.
         apSec: 0, chain: 1,                                                       // apSec = Sekunden pro AP-Punkt (Regeneration)
         barbAp: 60, barbCr: 500, forts: 0, fortAp: 150, fortCr: 3000, kahar: 0,   // kahar = Anzahl Kahar the Hidden
         apSpend: 0, apUntil: 0,                                                   // AP ausgeben (0 = alles) · bis Pass n (0 = KvK-Ende)
         // Ehre: Ruinen/Altäre kommen aus der Timeline (Reiter Karte); share 1 = Altar geteilt (50 %); v = Version der Standardwerte
-        hon: { start: 0, goal: 120000, ruin: 2000, altar: 4000, share: 2, barb: 8, fort: 100, v: 2 },
+        hon: { start: 0, goal: 120000, ruin: 900, altar: 6000, share: 2, barb: 8, fort: 100, v: 3 },
         endGoal: 100000000,                                                       // Ziel-Kristalle am KvK-Ende
         chartTo: 0,                                                               // Diagramm bis Pass n (0 = KvK-Ende)
         pass: 4, pg: { 4: [], 5: [], 6: [], 7: [], 8: [] },
@@ -689,7 +689,9 @@
       if (!(parsed && parsed.mwPass) && mwT.some((x) => st.buy[x.id])) MW_PASSES.forEach((n, j) => { st.mwPass[n] = mwT.filter((x) => (st.buy[x.id] || 0) > j).length; });
       // Ehre: alte Stände ohne Werte bekommen die neuen Standardwerte (Ruine 2.000, Altar 4.000, Barbar 8, Fort 100)
       const ph0 = parsed && parsed.mid && parsed.mid.hon;
-      if (ph0 && ph0.v !== 2) { const H = freshState().mid.hon; ['ruin', 'altar', 'barb', 'fort', 'goal'].forEach((k) => { if (!(+st.mid.hon[k] > 0)) st.mid.hon[k] = H[k]; }); st.mid.hon.v = 2; }
+      if (ph0 && ph0.v !== 2 && ph0.v !== 3) { const H = freshState().mid.hon; ['ruin', 'altar', 'barb', 'fort', 'goal'].forEach((k) => { if (!(+st.mid.hon[k] > 0)) st.mid.hon[k] = H[k]; }); st.mid.hon.v = 2; }
+      // neue Ehre-Werte: Ruine 900, Altar 6.000 (alte Testwerte 2.000 / 4.000 werden ersetzt)
+      if (ph0 && st.mid.hon.v !== 3) { if (+st.mid.hon.ruin === 2000) st.mid.hon.ruin = 900; if (+st.mid.hon.altar === 4000) st.mid.hon.altar = 6000; st.mid.hon.v = 3; }
       // Autarch war früher eine Anzahl → jetzt Ja/Nein
       if (parsed && parsed.end && parsed.end.star == null && +parsed.end.autarch > 0) st.end.autarch = 1;
       mwToBuy(st);
@@ -960,9 +962,9 @@
   // Kau Karuak: wann die Kristalle der Schwierigkeiten kommen (Easy vor Pass 4, Normal Pass 4–5, Hard Pass 7–8; Nightmare-Coins nach Pass 9)
   const KK_DEFAULT_DAY = { easy: 7, normal: 14, hard: 28 };
   // Kau-Karuak-Tag automatisch aus den Pass-Zeiten: Easy vor Pass 4, Normal zwischen Pass 4 und 5, Hard bei Pass 8
-  const kkAutoDay = (d) => { const p = { easy: 4, normal: 5, hard: 8 }[d], pd = passDay(p);
+  const kkAutoDay = (d) => { const p = { easy: 4, normal: 6, hard: 8 }[d], pd = passDay(p);
     if (!pd) return KK_DEFAULT_DAY[d];
-    return Math.max(1, d === 'hard' ? pd + 1 : pd); };
+    return Math.max(1, d === 'easy' ? pd : pd + 1); };   // Easy vor Pass 4 · Normal bei Pass 6 · Hard bei Pass 8
   // gespeicherter Tag: 0 oder alter Standard (7/14/28) = automatisch
   const kkDayOf = (kk, d) => { const v = Math.round(+((kk || {})[d + 'Day']) || 0); return v && v !== KK_DEFAULT_DAY[d] ? v : kkAutoDay(d); };
   const kkDayManual = (kk, d) => { const v = Math.round(+((kk || {})[d + 'Day']) || 0); return v && v !== KK_DEFAULT_DAY[d] ? v : 0; };
@@ -1515,33 +1517,17 @@
               <input type="checkbox" data-path="mid.psup" ${midPsupOn ? 'checked' : ''} class="mt-0.5 w-4 h-4 accent-yellow-500">
               <span>🚀 ${M.psup}<span class="block text-[11px] text-slate-500">${M.psupAuto}</span></span>
             </label>`)}
-          ${card(`${secH('🔬 ' + M.research)}
-            ${midSmall('🪓 ' + M.rsBarb + ' (%)', 'mid.rs.barb', inVal(md.rs.barb), 25)}
-            ${midSmall('🏰 ' + M.rsBastion + ' (%)', 'mid.rs.bastion', inVal(md.rs.bastion), 100)}
-            ${midSmall('🗿 ' + M.rsKaruak + ' (%)', 'mid.rs.karuak', inVal(md.rs.karuak), 100)}`)}
           ${card(`${secH('🏰 ' + M.bastion)}
-            <div class="grid gap-3 grid-cols-2">
-              ${midSmall(M.bastionPerDay, 'mid.bastionPerDay', inVal(md.bastionPerDay), null)}
-              ${midSmall(M.bastionCr, 'mid.bastionCr', inVal(md.bastionCr), 22500)}
-              <div class="col-span-2">${midSmall('➕ ' + M.other, 'mid.otherPerDay', inVal(md.otherPerDay), null)}</div>
-            </div>
+            ${midSmall('🏰 ' + M.bastionDone, 'mid.bastionDone', inVal(md.bastionDone), null, M.bastionDoneHint)}
+            ${midSmall('➕ ' + M.other, 'mid.otherPerDay', inVal(md.otherPerDay), null)}
             <p class="text-[11px] text-slate-500">🪓 ${M.barbsFrom}</p>`)}
-          ${card(`${secH('🐉 ' + M.maudaraTitle)}
-            <div class="grid gap-3 grid-cols-2">
-              ${midSmall('⚔️ ' + M.maudara, 'mid.maudaraN', inVal(md.maudaraN), null)}
-              ${midSmall('💎 ' + M.maudaraCr, 'mid.maudaraCr', inVal(md.maudaraCr), null)}
-            </div>
-            <p class="text-[11px] text-slate-500">⏳ ${M.maudaraHint} (${fmt(+md.barbAp || 60)} AP)</p>`)}
           <div class="lg:col-span-2">${card(`${secH('🗿 ' + M.kk)}
             <div class="grid gap-x-4 gap-y-3 md:grid-cols-3">
             ${['easy', 'normal', 'hard'].map((d) => `
               <div class="rounded-lg border border-ink-700 bg-ink-900/50 p-2.5 flex flex-col gap-2">
                 <span class="text-sm font-semibold text-slate-200">${M.kkDiff[d]}</span>
-                <div class="grid grid-cols-2 gap-2">
-                  ${midSmall(M.kkLv, 'mid.kk.' + d, inVal(md.kk[d]), 15)}
-                  ${midSmall(M.kkDay, 'mid.kk.' + d + 'Day', inVal(kkDayManual(md.kk, d)), null, null, String(kkAutoDay(d)))}
-                </div>
-                <span class="text-[11px] text-slate-500 leading-snug">${M.kkWhen[d]} · ${kkDayManual(md.kk, d) ? `${M.kkDay} ${kkDayManual(md.kk, d)}` : `${M.kkAutoDay} ${kkAutoDay(d)}`}${startTs() != null ? ` · ${shortDate(new Date(startTs() + (kkDayOf(md.kk, d) - 1) * 86400000))}` : ''}</span>
+                ${midSmall(M.kkLv, 'mid.kk.' + d, inVal(md.kk[d]), 15)}
+                <span class="text-[11px] text-slate-500 leading-snug">📅 ${M.kkWhen[d]} · ${M.day} ${kkAutoDay(d)}${startTs() != null ? ` · ${shortDate(new Date(startTs() + (kkAutoDay(d) - 1) * 86400000))}` : ''}</span>
               </div>`).join('')}
             </div>
             <div class="grid gap-3 grid-cols-2 lg:grid-cols-4 pt-2 border-t border-ink-700">
@@ -1633,6 +1619,12 @@
             ${midSmall('⚡ ' + M.fortAp, 'mid.fortAp', inVal(md.fortAp), null)}
             ${lvSel('💎 ' + M.fortCr, 'mid.fortCr', md.fortCr, KVK_DATA.freeSources.forts.map((f) => [f.crystals, `Fort Lvl ${f.level} · ${fmt(f.crystals)}`]))}
             ${midSmall('👹 ' + M.kahar, 'mid.kahar', inVal(md.kahar), null, M.kaharHint)}
+            ${midSmall('🔬 ' + M.rsBarb + ' (%)', 'mid.rs.barb', inVal(md.rs.barb), 25)}
+          </div>
+          <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,2fr)] items-end rounded-xl border border-ink-700 bg-ink-950/40 p-3">
+            ${midSmall('🐉 ' + M.maudara, 'mid.maudaraN', inVal(md.maudaraN), null)}
+            ${midSmall('💎 ' + M.maudaraCr, 'mid.maudaraCr', inVal(md.maudaraCr), null)}
+            <p class="text-[11px] text-slate-500 pb-2">🐉 <b class="text-slate-300">${M.maudaraTitle}</b> · ${M.maudaraHint} (${fmt(+md.barbAp || 60)} AP)</p>
           </div>`)}
       </div>`;
     const honBody = `
@@ -1644,7 +1636,7 @@
             ${midSmall('🎯 ' + M.hn.goal, 'mid.hon.goal', inVal(md.hon.goal), null)}
             ${midSmall('🏛️ ' + M.hRuin, 'mid.hon.ruin', inVal(md.hon.ruin), null)}
             ${midSmall('⛩️ ' + M.hAltar, 'mid.hon.altar', inVal(md.hon.altar), null)}
-            ${midSmall('🪓 ' + M.hBarb, 'mid.hon.barb', inVal(md.hon.barb), null)}
+            ${lvSel('🪓 ' + M.hBarb, 'mid.hon.barb', md.hon.barb, [[5, 'Lvl 26–30 · 5'], [8, 'Lvl 31–35 · 8'], [10, 'Lvl 36–40 · 10']])}
             ${midSmall('🏰 ' + M.hFort, 'mid.hon.fort', inVal(md.hon.fort), null)}
             <label class="col-span-2 flex items-start gap-2.5 text-sm text-slate-200 cursor-pointer rounded-lg border border-ink-700 px-3 py-2 self-end ${+md.hon.share === 1 ? 'bg-gold-500/5 border-gold-500/40' : ''}">
               <input type="checkbox" data-path="mid.hon.share" ${+md.hon.share === 1 ? 'checked' : ''} class="mt-0.5 w-4 h-4 accent-yellow-500">
@@ -2582,7 +2574,7 @@
         ${(sc.passes || []).filter((p) => p.n !== 4).map((p) => row(`🚪 ${L.pass} ${p.n}`, dt(p.ts))).join('')}
         ${r1 ? row(`🏛️ ${L.calRuin}`, dt(r1.ts)) : ''}
         ${a1 ? row(`⛩️ ${L.calAltar}`, dt(a1.ts)) : ''}
-        ${['easy', 'normal', 'hard'].map((d) => { const day = kkDayOf(kk, d); return row(`🗿 ${L.calKk} ${L.m.kkDiff[d]}`, `${L.day} ${day} · ${shortDate(new Date(s0 + (day - 1) * 86400000))}`, 'text-slate-300'); }).join('')}
+        ${['easy', 'normal', 'hard'].map((d) => { const day = kkAutoDay(d); return row(`🗿 ${L.calKk} ${L.m.kkDiff[d]}`, `${L.day} ${day} · ${shortDate(new Date(s0 + (day - 1) * 86400000))}`, 'text-slate-300'); }).join('')}
         <p class="text-[10px] text-slate-500 mt-1.5">↔ ${L.calShift}</p>
       </div>`;
   }
@@ -2920,17 +2912,17 @@
     const apUsed = forts * fortAp + attacks * barbAp;
     const kahar = Math.floor(cl(m.kahar, 0, 1e5)), kaharCr = kahar * KVK_DATA.freeSources.kaharTheHidden;   // 45.000 je Kahar
 
-    const bastionDay = cl(m.bastionPerDay, 0, 1000) * cl(m.bastionCr, 0, 1e6) * (1 + cl(m.rs.bastion, 0, 100) / 100);
+    const bastionDay = 0, bastionDone = cl(m.bastionDone, 0, 1e9), bastionAt = Math.max(1, Math.min(D, nowDay || 1));   // Bastion: nur die Summe bisher
 
     // Kau Karuak: Stufen-Belohnung am gewählten Tag, Elite-Stundenertrag ab dann
-    const kkPct = cl(m.rs.karuak, 0, 100), kkOnce = {}, kkEvents = [];
+    const kkPct = 0, kkOnce = {}, kkEvents = [];   // Karaku-Reports-Forschung entfällt
     // Elite-Stundenertrag: ab dem Tag, an dem eine Schwierigkeit fertig ist, zählen deren Elite-Stufen (5/10/15);
     // es gilt die höchste Anzahl der bis dahin abgeschlossenen Schwierigkeiten (max. 3 × 500/Std.)
     let kkTrial = 0; const kkEl = [];
     ['easy', 'normal', 'hard'].forEach((d) => {
       const lvl = Math.round(cl(m.kk[d], 0, 15));
       if (!lvl) return;
-      const day = Math.round(cl(kkDayOf(m.kk, d), 1, D)), c = kauKaruakCrystals(d, lvl, kkPct);
+      const day = Math.round(cl(kkAutoDay(d), 1, D)), c = kauKaruakCrystals(d, lvl, kkPct);
       kkOnce[day] = (kkOnce[day] || 0) + c; kkTrial += c;
       kkEl.push({ day, elites: KVK_DATA.kauKaruak.eliteLevels.filter((e) => lvl >= e).length });
       kkEvents.push({ kind: 'trial', diff: d, lvl, day, cr: c });
@@ -2953,6 +2945,9 @@
     const start = r.chestCr + r.shop.crNow - mwSum - cwSum - r.goal;   // übrig nach Mine & Forschungszentrum
     const daily = [], cum = { }, bal = [start];
     MID_SRC.forEach((k) => (cum[k] = [0]));
+    // Kahar je Pass (Roadmap) = Einnahme am Öffnungstag dieses Passes
+    const KAH = KVK_DATA.freeSources.kaharTheHidden, passKahar = {}; let passKaharSum = 0;
+    PASS_SCHEDULE.forEach((p) => { const k = Math.floor(cl(((m.pt || {})[p.n] || {}).kahar, 0, 1e5)); if (!k) return; const d = Math.max(1, Math.min(D, p.day)); passKahar[d] = (passKahar[d] || 0) + k * KAH; passKaharSum += k * KAH; });
     // Barbaren/Forts: verteilt von heute bis zum AP-Ziel (vor dem KvK: ab Tag 1)
     const bFrom = Math.min(nowDay, apDays - 1), bSpan = Math.max(1, apDays - bFrom);
     for (let d = 1; d <= D; d++) {
@@ -2961,8 +2956,8 @@
         supply: d <= supplyDays ? 60000 : 0,
         bundles: (mwAt[d] || 0) + cwOn(d),
         barbs: d > bFrom && d <= apDays ? (barbCr + fortCr) / bSpan : 0,
-        kahar: kaharCr / D,
-        bastion: bastionDay,
+        kahar: (d > bFrom && d <= apDays ? kaharCr / bSpan : 0) + (passKahar[d] || 0),
+        bastion: d === bastionAt ? bastionDone : 0,
         karuak: (kkOnce[d] || 0) + kauKaruakHourly(elitesAt(d), 24) + (d >= kkBoostFrom ? kkBoostDay : 0) + (d >= kkPassFrom ? kkPassDay : 0),
         maudara: d === 1 ? maudCr : 0,                                    // Pre-KvK-Event → landet zum Start
         other: cl(m.otherPerDay, 0, 1e8)
@@ -2997,7 +2992,7 @@
       const mwTiers = mwT.slice(0, state.mwPass[p.n] || 0);
       // Vereinfacht: Ziel-Kristalle − passiver Gewinn (ohne Barbaren/Forts/Kahar aus dem AP-Plan) − Kahar → Barbaren
       const pt = (m.pt && m.pt[p.n]) || {}, sT = cl(pt.cr, 0, 1e11), sK = Math.floor(cl(pt.kahar, 0, 1e5));
-      const passive = bal[day] - cum.barbs[day] - cum.kahar[day], sKcr = sK * KVK_DATA.freeSources.kaharTheHidden, sRest = Math.max(0, sT - passive - sKcr);
+      const passive = bal[day] - cum.barbs[day] - cum.kahar[day], sKcr = cum.kahar[day], sRest = Math.max(0, sT - passive - sKcr);   // Kahar steckt jetzt im Kontostand
       const sXb = perBarb > 0 ? Math.ceil(sRest / perBarb) : 0, sXa = Math.ceil(sXb / chain), sXf = perFort > 0 ? Math.ceil(sRest / perFort) : 0;
       const simple = { T: sT, K: sK, Kcr: sKcr, passive, rest: sRest, xb: sXb, xa: sXa, xap: sXa * barbAp, xf: sXf, xfap: sXf * fortAp, apBy: r.apTotal + Math.floor(apRegen * daysTo(p.ts != null ? p.ts : tsOfDay(p.day), p.day)) };
       return { simple, n: p.n, day: p.day, kday: p.day + 1, mwTiers, mwCr: mwTiers.reduce((a, x) => a + x.cr, 0), mwUsd: mwTiers.reduce((a, x) => a + x.usd, 0), list, cost, need, avail, left, miss, xb, xa, xap: xa * barbAp, xf, xfap: xf * fortAp };
@@ -3308,7 +3303,16 @@
         ${kpi('⚔️ ' + M.attacks, fmt(mc.attacks), M.chainInfo.replace(/\{n\}/g, mc.chain).replace('{ap}', fmt(mc.barbAp)))}
         ${kpi('🪓 ' + M.barbs, fmt(mc.barbs), `+ ${fmt(mc.forts)} ${M.fortsDone}${mc.forts < mc.fortsWanted ? ` · <span class="text-red-300">${M.apNoFort}</span>` : ''}`)}
         ${kpi('💎 ' + M.crystals, short(mc.barbCr + mc.fortCr + mc.kaharCr), [mc.barbBonus > 1 ? `${M.withRs} +${fmt((mc.barbBonus - 1) * 100)} %` : '', mc.kahar ? `👹 ${fmt(mc.kahar)} ${M.kaharShort}: ${short(mc.kaharCr)}` : ''].filter(Boolean).join(' · '))}
-      </div>`;
+      </div>
+      ${(() => { // Zeitaufwand: 1 Barbar ≈ 1 Minute zum Töten
+        const n = mc.barbs + mc.forts, hLeft = mc.apLeftDays * 24, play = n / 60, perH = hLeft > 0 ? n / hLeft : 0, perD = mc.apLeftDays > 0 ? play / mc.apLeftDays : play;
+        if (!n) return '';
+        const until = mc.apUntil ? `${L.pass} ${mc.apUntil}` : M.mEnd, tight = perD > 8;
+        return `<div class="mt-2 grid gap-2 grid-cols-1 sm:grid-cols-3 rounded-xl border ${tight ? 'border-red-400/40 bg-red-500/5' : 'border-sky-400/30 bg-sky-500/5'} p-3 text-sm">
+          <div><div class="text-[10px] uppercase tracking-widest text-slate-400">⏱ ${M.tTotal}</div><div class="text-lg font-bold tabular-nums text-slate-100">${fmt(play, 1)} ${M.tHours}</div><div class="text-[11px] text-slate-500">${fmt(n)} × 1 ${M.tMin}</div></div>
+          <div><div class="text-[10px] uppercase tracking-widest text-slate-400">🪓 ${M.tPerH} ${until}</div><div class="text-lg font-bold tabular-nums text-gold-300">${fmt(perH, 1)}</div><div class="text-[11px] text-slate-500">${fmt(hLeft, 0)} ${M.tHoursLeft}</div></div>
+          <div><div class="text-[10px] uppercase tracking-widest text-slate-400">📅 ${M.tPerDay}</div><div class="text-lg font-bold tabular-nums ${tight ? 'text-red-300' : 'text-emerald-400'}">${fmt(perD, 1)} ${M.tHours}</div><div class="text-[11px] text-slate-500">${fmt(mc.apLeftDays, 1)} ${M.tDaysLeft}</div></div>
+        </div>`; })()}`;
     // ---- Ehre ----
     const hi = mc.honInfo, H = M.hn;
     const hTop = Math.max(mc.hon[mc.D], hi.goal, 1000);

@@ -47,6 +47,22 @@ tailwind.config = {
   input[type=number]::-webkit-inner-spin-button { opacity: .4 }
   .gdia { clip-path: polygon(50% 1.5%, 98.5% 50%, 50% 98.5%, 1.5% 50%); }
   .ghex { clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+  .hub-tile { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.6rem; min-height:9.5rem; padding:1.1rem .75rem; border-radius:1rem; text-align:center; transition:transform .15s, border-color .15s, box-shadow .15s; }
+  .hub-tile:hover, .hub-tile:focus-visible { transform:translateY(-2px); border-color:rgba(245,197,66,.55); box-shadow:0 0 22px rgba(245,197,66,.18); outline:none; }
+  .hub-tile:active { transform:translateY(0); }
+  .hub-tile[aria-pressed="true"] { border-color:rgba(245,197,66,.75); box-shadow:0 0 0 1px rgba(245,197,66,.35), 0 0 26px rgba(245,197,66,.22); }
+  .hub-tile[aria-disabled="true"] { opacity:.45; cursor:not-allowed; transform:none; }
+  /* Bereichs-Reiter: Scan zeigt die Eingaben (ohne Passive), Passive nur das Passive-Feld */
+  #areaAside[data-tab] > * { margin-top:0 !important; }
+  #areaAside[data-tab="scan"] { display:grid; gap:1.5rem; align-items:start; }
+  @media (min-width:1024px) { #areaAside[data-tab="scan"] { grid-template-columns:1fr 1fr; } }
+  /* Zahlenfelder ohne Pfeile – nur Zahl eintippen */
+  input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+  input[type="number"] { -moz-appearance:textfield; appearance:textfield; }
+  input[type="date"] { color-scheme:dark; }
+  .ap-tog[aria-checked="true"] { background:#10b981; border-color:#34d399; }
+  .ap-tog[aria-checked="true"] > span { transform:translateX(18px); background:#fff; }
+  .ap-src[data-on="false"] .ap-src-body { opacity:.45; }
   .seg-btn[aria-pressed="true"] { background: linear-gradient(180deg,#f5c542,#b7830f); color:#07090f; box-shadow: 0 0 18px rgba(245,197,66,.35); }
 </style>
 </head>
@@ -186,21 +202,21 @@ tailwind.config = {
     <button id="scanBack" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">← Zurück</button>
   </div>
   <div id="scannerView">
-  <section class="panel rounded-2xl p-5 mb-6">
-    <h2 class="font-display text-lg text-gold-300 mb-3 text-center">Modus</h2>
-    <div class="grid grid-cols-3 sm:grid-cols-6 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="group">
-      <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="speedups" aria-pressed="false">Speedups</button>
-      <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="resources" aria-pressed="true">Ressourcen</button>
-      <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="vip" aria-pressed="false">VIP</button>
-      <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="gems" aria-pressed="false">Gems</button>
-      <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="ap" aria-pressed="false">AP</button>
-      <button class="seg-btn rounded-lg py-3 px-1 text-sm sm:text-base font-semibold transition" data-mode="mats" aria-pressed="false">Mats</button>
+  <!-- Dashboard-Startseite: Kacheln je Bereich (werden in scanner.js gefüllt) -->
+  <section id="scanHub" class="mb-6">
+    <div class="flex flex-wrap items-end justify-between gap-2 mb-4">
+      <h2 class="font-display text-2xl gold-text">Dashboard</h2>
+      <span class="text-xs text-slate-400">Bereich antippen zum Öffnen</span>
     </div>
+    <div id="hubGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"></div>
   </section>
-  <div class="grid lg:grid-cols-[380px_1fr] gap-6">
+  <div id="scanArea" class="hidden">
+  <!-- Bereich: drei Kacheln Scan · Dashboard · Passive (scanner.js füllt sie), Inhalt erscheint darunter -->
+  <div id="areaTabs" class="grid grid-cols-3 gap-2 sm:gap-4 mb-6" role="tablist"></div>
+  <div id="areaGrid" class="grid gap-6">
 
     <!-- Left: input -->
-    <aside class="space-y-6">
+    <aside id="areaAside" class="space-y-6">
 
       <section id="shotsSection" class="panel rounded-2xl p-5">
         <h2 class="font-display text-lg text-gold-300 mb-3">1 · Screenshots</h2>
@@ -227,6 +243,7 @@ tailwind.config = {
 
       <!-- Summen (nur Modus Ressourcen), linke Spalte -->
       <section id="resTotals" class="hidden panel rounded-2xl p-5 space-y-4">
+        <h2 class="font-display text-lg text-gold-300 mb-1">2 · Ressourcen gesamt</h2>
         <div>
           <div class="text-xs uppercase tracking-widest text-slate-400">Gesamt</div>
           <div id="resTotal" class="text-3xl font-bold text-white tabular-nums"></div>
@@ -260,13 +277,13 @@ tailwind.config = {
         <h2 class="font-display text-lg text-gold-300 mb-1">2 · AP-Flaschen</h2>
         <p class="text-xs text-slate-400 mb-3">Anzahl je Flaschengröße aus dem Inventar. Ein Scan füllt die Felder vor – kurz prüfen, dann speichern.</p>
         <div class="space-y-2" id="apFields">
-          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300">🧪 50er Flaschen <span class="text-slate-500 text-xs">× 50</span></span>
+          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300"><img src="icons/ressourcen/ap.png" alt="" draggable="false" class="w-5 h-5 object-contain inline-block align-middle"> 50er Flaschen <span class="text-slate-500 text-xs">× 50</span></span>
             <input id="ap50" data-ap="50" type="number" min="0" step="1" placeholder="0" class="ap-in w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
-          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300">🧪 100er Flaschen <span class="text-slate-500 text-xs">× 100</span></span>
+          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300"><img src="icons/ressourcen/ap.png" alt="" draggable="false" class="w-5 h-5 object-contain inline-block align-middle"> 100er Flaschen <span class="text-slate-500 text-xs">× 100</span></span>
             <input id="ap100" data-ap="100" type="number" min="0" step="1" placeholder="0" class="ap-in w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
-          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300">⚗️ 500er Flaschen <span class="text-slate-500 text-xs">× 500</span></span>
+          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300"><img src="icons/ressourcen/ap.png" alt="" draggable="false" class="w-5 h-5 object-contain inline-block align-middle"> 500er Flaschen <span class="text-slate-500 text-xs">× 500</span></span>
             <input id="ap500" data-ap="500" type="number" min="0" step="1" placeholder="0" class="ap-in w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
-          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300">⚗️ 1.000er Flaschen <span class="text-slate-500 text-xs">× 1.000</span></span>
+          <label class="grid grid-cols-[1fr_96px] items-center gap-2 text-sm"><span class="text-slate-300"><img src="icons/ressourcen/ap.png" alt="" draggable="false" class="w-5 h-5 object-contain inline-block align-middle"> 1.000er Flaschen <span class="text-slate-500 text-xs">× 1.000</span></span>
             <input id="ap1000" data-ap="1000" type="number" min="0" step="1" placeholder="0" class="ap-in w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
         </div>
         <div class="mt-3 rounded-lg border border-gold-500/30 bg-gold-500/5 px-3 py-2 flex items-center justify-between">
@@ -277,6 +294,40 @@ tailwind.config = {
         <button id="apSave" class="mt-3 w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">AP speichern</button>
         <div id="apSaveMsg" class="hidden mt-2 text-xs"></div>
       </section>
+
+      <section id="gemsInputs" class="hidden panel rounded-2xl p-5">
+        <h2 class="font-display text-lg text-gold-300 mb-1">2 · Gems eingeben</h2>
+        <p class="text-xs text-slate-400 mb-3">Ein Scan füllt die Felder – kurz prüfen, bei Bedarf korrigieren, dann speichern.</p>
+        <div class="space-y-2">
+          <label class="grid grid-cols-[1fr_130px] items-center gap-2 text-sm"><span class="text-slate-300"><img src="icons/ressourcen/gems.png" alt="" draggable="false" class="w-5 h-5 object-contain inline-block align-middle"> Auf Hand</span>
+            <input id="gemsInHand" type="text" inputmode="numeric" placeholder="0" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+          <label class="grid grid-cols-[1fr_130px] items-center gap-2 text-sm"><span class="text-slate-300">🎒 Im Rucksack</span>
+            <input id="gemsInBag" type="text" inputmode="numeric" placeholder="0" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+        </div>
+        <div class="mt-3 rounded-lg border border-gold-500/30 bg-gold-500/5 px-3 py-2 flex items-center justify-between">
+          <span class="text-xs uppercase tracking-widest text-slate-400">Gesamt</span>
+          <span id="gemsInSum" class="text-lg font-extrabold text-pink-300 tabular-nums">0</span>
+        </div>
+        <div id="gemsPrefillMsg" class="hidden mt-2 text-xs text-amber-300"></div>
+        <button id="gemsSave" class="mt-3 w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Gems speichern</button>
+        <div id="gemsSaveMsg" class="hidden mt-2 text-xs"></div>
+      </section>
+
+      <section id="passInputs" class="hidden panel rounded-2xl p-5">
+        <h2 class="font-display text-lg text-gold-300 mb-1">2 · Passports eingeben</h2>
+        <p class="text-xs text-slate-400 mb-3">Anzahl deiner Passseiten aus dem Inventar. Ein Scan füllt das Feld – kurz prüfen, dann speichern.</p>
+        <div class="space-y-2">
+          <label class="grid grid-cols-[1fr_120px] items-center gap-2 text-sm"><span class="text-slate-300"><img src="icons/sonstiges/passport.webp" alt="" draggable="false" class="w-5 h-5 object-contain inline-block align-middle"> Passseiten</span>
+            <input id="passIn" type="number" min="0" step="1" placeholder="0" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+          <label class="grid grid-cols-[1fr_120px] items-center gap-2 text-sm"><span class="text-slate-300">🎯 Benötigt für Migration <span class="text-slate-500 text-xs">(optional)</span></span>
+            <input id="passGoal" type="number" min="0" step="1" placeholder="–" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>
+        </div>
+        <div id="passPrefillMsg" class="hidden mt-2 text-xs text-amber-300"></div>
+        <button id="passSave" class="mt-3 w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">Passports speichern</button>
+        <div id="passSaveMsg" class="hidden mt-2 text-xs"></div>
+      </section>
+
+      <section id="cntInputs" class="hidden panel rounded-2xl p-5"></section>
 
       <section id="matsInputs" class="hidden panel rounded-2xl p-5">
         <h2 class="font-display text-lg text-gold-300 mb-1">2 · Materialien eingeben</h2>
@@ -322,7 +373,7 @@ tailwind.config = {
     </aside>
 
     <!-- Right: results -->
-    <main id="results" class="space-y-6">
+    <main id="results" class="space-y-6 min-w-0">
       <div id="emptyState" class="panel rounded-2xl p-10 text-center">
         <div class="text-5xl mb-3">🏰</div>
         <h3 class="font-display text-xl text-gold-300">Noch keine Auswertung</h3>
@@ -384,7 +435,7 @@ tailwind.config = {
           <span id="speedSource" class="text-xs text-slate-400"></span>
         </div>
         <div class="panel rounded-2xl p-6 flex items-center gap-5">
-          <div class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#38bdf833,#6366f122);border:1px solid #38bdf855">⏱️</div>
+          <div class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#38bdf833,#6366f122);border:1px solid #38bdf855"><img src="icons/sonstiges/SpeedUniversal.png" alt="" draggable="false" class="w-12 h-12 object-contain inline-block align-middle"></div>
           <div>
             <div class="text-xs uppercase tracking-widest text-slate-400">Speedups gesamt</div>
             <div id="speedTotal" class="text-4xl font-extrabold text-white tabular-nums">–</div>
@@ -403,7 +454,7 @@ tailwind.config = {
         </div>
         <div class="panel rounded-2xl p-6 flex items-center gap-5">
           <!-- Gem-Symbol: hier austauschen -->
-          <div id="gemIcon" class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#f472b633,#a855f722);border:1px solid #f472b655">💎</div>
+          <div id="gemIcon" class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#f472b633,#a855f722);border:1px solid #f472b655"><img src="icons/ressourcen/gemsmore.png" alt="" draggable="false" class="w-12 h-12 object-contain inline-block align-middle"></div>
           <div>
             <div class="text-xs uppercase tracking-widest text-slate-400">Edelsteine gesamt (Main)</div>
             <div id="gemsValue" class="text-4xl font-extrabold text-white tabular-nums">–</div>
@@ -440,7 +491,7 @@ tailwind.config = {
           <span id="apSource" class="text-xs text-slate-400"></span>
         </div>
         <div class="panel rounded-2xl p-6 flex items-center gap-5">
-          <div class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#34d39933,#10b98122);border:1px solid #34d39955">⚡</div>
+          <div class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#34d39933,#10b98122);border:1px solid #34d39955"><img src="icons/ressourcen/ap.png" alt="" draggable="false" class="w-12 h-12 object-contain inline-block align-middle"></div>
           <div>
             <div class="text-xs uppercase tracking-widest text-slate-400">AP (Aktionspunkte)</div>
             <div id="apValue" class="text-4xl font-extrabold text-white tabular-nums">–</div>
@@ -449,6 +500,26 @@ tailwind.config = {
         </div>
         <div id="apBreak" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
       </section>
+
+      <!-- Passports -->
+      <section id="passSection" class="hidden space-y-4">
+        <div class="flex items-end justify-between">
+          <h2 class="font-display text-2xl gold-text">Passports</h2>
+          <span id="passSource" class="text-xs text-slate-400"></span>
+        </div>
+        <div class="panel rounded-2xl p-6 flex items-center gap-5">
+          <div class="w-16 h-16 shrink-0 rounded-2xl grid place-items-center text-4xl" style="background:linear-gradient(135deg,#818cf833,#6366f122);border:1px solid #818cf855"><img src="icons/sonstiges/passport.webp" alt="" draggable="false" class="w-12 h-12 object-contain inline-block align-middle"></div>
+          <div>
+            <div class="text-xs uppercase tracking-widest text-slate-400">Passseiten (Main)</div>
+            <div id="passValue" class="text-4xl font-extrabold text-white tabular-nums">–</div>
+            <div id="passDelta" class="text-sm mt-1 text-slate-400"></div>
+          </div>
+        </div>
+        <div id="passGoalCard" class="hidden panel rounded-2xl p-5"></div>
+      </section>
+
+      <!-- Goldheads / Keys / Armaments (scanner.js füllt den Inhalt) -->
+      <section id="cntSection" class="hidden space-y-4"></section>
 
       <!-- History -->
       <section id="historySection" class="panel rounded-2xl p-5">
@@ -468,6 +539,7 @@ tailwind.config = {
 
         <div id="speedOpts" class="hidden flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-xs text-slate-300"></div>
         <div id="matOpts" class="hidden flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-xs text-slate-300"></div>
+        <div id="vipHistOpts" class="hidden flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-xs text-slate-300"></div>
         <div id="resLines" class="hidden grid grid-cols-3 gap-1 p-1 mb-4 rounded-xl bg-ink-950 border border-ink-700 w-full sm:w-fit" role="group" aria-label="Ansicht"></div>
         <div class="relative h-72">
           <canvas id="historyChart"></canvas>
@@ -491,7 +563,6 @@ tailwind.config = {
       </section>
 
       <!-- Bündnis-Credits (nur im Modus VIP), unter dem Verlauf -->
-      <section id="creditSection" class="hidden panel rounded-2xl p-5 ring-1 ring-gold-500/30"></section>
 
       <!-- Farmen (nur im Modus Ressourcen), unter dem Diagramm -->
       <section id="farmSection" class="hidden panel rounded-2xl p-5">
@@ -518,7 +589,23 @@ tailwind.config = {
         <p class="text-xs text-slate-500 mt-3">Eingabe als Zahl oder Kurzform, z. B. 12500000, 12,5M oder 850K. Wird automatisch gespeichert.</p>
       </section>
     </main>
+
+    <!-- Statistics (linke Kachel): Was kann ich damit machen + Passive Income mit Hochrechnung -->
+    <div id="statsArea" class="hidden space-y-6 min-w-0">
+      <div id="statsLeft" class="space-y-6">
+        <div id="statsTop" class="space-y-6"></div>
+        <!-- Bündnis-Credits (VIP) -->
+      <section id="creditSection" class="hidden panel rounded-2xl p-5 ring-1 ring-gold-500/30"></section>
+        <section id="gemsReqSection" class="hidden panel rounded-2xl p-5 ring-1 ring-pink-500/30"></section>
+      </div>
+      <!-- Passive (rechte Kachel) -->
+      <div id="passArea" class="space-y-6">
+        <div id="passTop" class="space-y-6"></div>
+        <section id="passiveInputs" class="hidden panel rounded-2xl p-5"></section>
+      </div>
+    </div>
   </div>
+  </div><!-- /scanArea -->
   </div>
 
   <!-- Game Profil -->
@@ -877,6 +964,14 @@ tailwind.config = {
       <p class="text-sm text-slate-400 mt-1">Ist-Ausrüstung scannen, Wunsch-Set wählen – der Planer rechnet aus, welche Materialien dir noch fehlen.</p>
     </div>
 
+    <!-- Fenster: Planer | Craft-Verlauf -->
+    <div class="inline-flex gap-1 p-1 rounded-xl bg-ink-950/70 border border-ink-700">
+      <button type="button" data-cpane="plan">⚒ Planer</button>
+      <button type="button" data-cpane="hist">📜 Craft-Verlauf</button>
+    </div>
+
+    <div id="craftPlanPane" class="space-y-6">
+
     <!-- Set-Verwaltung -->
     <section class="panel rounded-2xl p-5">
       <div class="flex flex-wrap items-end gap-3">
@@ -944,6 +1039,7 @@ tailwind.config = {
     <section id="gearResult" class="space-y-4"></section>
     <section id="gearPlan" class="panel rounded-2xl p-5"></section>
 
+
     <!-- Katalog -->
     <details id="gearCatBox" class="panel rounded-2xl p-5">
       <summary class="cursor-pointer font-display text-xl gold-text">Item-Katalog</summary>
@@ -965,6 +1061,98 @@ tailwind.config = {
         <button id="gearCatReload" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">↻ Katalog aus Supabase neu laden</button>
       </div>
     </details>
+    </div>
+
+    <!-- Craft-Verlauf: eigenes Fenster mit 2 Seiten -->
+    <div id="craftHistPane" class="hidden space-y-5">
+      <div class="flex flex-wrap gap-1">
+        <button type="button" data-chpage="hist">📜 History</button>
+        <button type="button" data-chpage="snaps">💾 Gespeicherte Sets</button>
+      </div>
+
+      <!-- Seite 1: History -->
+      <div id="chPageHist" class="space-y-5">
+        <section class="panel rounded-2xl p-5">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 class="font-display text-xl gold-text">Craft-History</h3>
+              <p class="text-xs text-slate-400">Set wählen, Item antippen, Tier oder Refine einstellen – Datum und Uhrzeit werden beim Hinzufügen gespeichert</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button id="chNewBtn" type="button" class="px-3 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold">+ Neue History</button>
+              <button id="craftHistOpen" type="button" class="px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">📷 Screenshot</button>
+            </div>
+          </div>
+          <div id="chNew" class="hidden mt-4 rounded-xl border border-gold-500/30 bg-ink-950/40 p-4">
+            <div class="grid lg:grid-cols-[minmax(0,320px)_1fr] gap-5">
+              <div>
+                <label for="chSet" class="text-xs text-slate-400">Set</label>
+                <select id="chSet" translate="no" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 font-semibold"></select>
+                <div id="chBoard" class="relative mx-auto mt-5 w-full max-w-[280px] aspect-[1/2]"></div>
+              </div>
+              <div class="min-w-0 space-y-3">
+                <div id="chEdit"></div>
+                <div id="chDiff" class="rounded-xl border border-ink-700 bg-ink-950/40 p-3"></div>
+                <label class="block text-xs text-slate-400">Notiz (optional)
+                  <input id="chNote" maxlength="500" placeholder="z. B. für KvK 3 vorbereitet" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500"></label>
+                <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input id="chApply" type="checkbox" checked class="w-4 h-4 accent-yellow-500">Auch als aktuelle Ausrüstung im Planer übernehmen</label>
+                <div class="flex flex-wrap gap-2">
+                  <button id="chAdd" type="button" class="px-4 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold disabled:opacity-40">➕ Zur History hinzufügen</button>
+                  <button id="chReset" type="button" class="px-3 py-2.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">↺ Zurücksetzen</button>
+                  <button id="chCancel" type="button" class="px-3 py-2.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">Abbrechen</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <form id="craftHistForm" class="hidden mt-4 rounded-xl border border-ink-700 bg-ink-950/40 p-4 space-y-3 transition">
+            <div class="grid sm:grid-cols-2 gap-3">
+              <label class="text-xs text-slate-400">Datum &amp; Uhrzeit
+                <input id="craftHistDate" type="datetime-local" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500"></label>
+              <label class="text-xs text-slate-400">Slot (optional)
+                <select id="craftHistSlot" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500"></select></label>
+            </div>
+            <label class="block text-xs text-slate-400">Notiz
+              <textarea id="craftHistNote" rows="2" maxlength="500" placeholder="z. B. Helm auf T3 gebracht" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500"></textarea></label>
+            <div>
+              <label for="craftHistFile" class="inline-block cursor-pointer text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">🖼 Screenshots wählen</label>
+              <input id="craftHistFile" type="file" accept="image/*" multiple class="hidden">
+              <span class="ml-2 text-[11px] text-slate-500">max. 6 Bilder · auch per Drag &amp; Drop</span>
+              <div id="craftHistPrev" class="mt-2 flex flex-wrap gap-2"></div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button id="craftHistSave" type="submit" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold disabled:opacity-60">💾 Eintrag speichern</button>
+              <button id="craftHistCancel" type="button" class="px-4 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">Abbrechen</button>
+            </div>
+          </form>
+          <div id="craftHistMsg" class="hidden mt-2 text-xs"></div>
+        </section>
+        <section class="panel rounded-2xl p-5">
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="craftHistSet" translate="no" class="bg-ink-950 border border-ink-600 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-gold-500"></select>
+            <div id="craftHistKind" class="flex flex-wrap gap-1">
+              <button type="button" data-hk="all">Alle</button><button type="button" data-hk="hist">⚒ History</button><button type="button" data-hk="auto">✎ Dashboard</button><button type="button" data-hk="manual">📷 Screenshots</button>
+            </div>
+            <span id="craftHistCount" class="ml-auto text-[11px] text-slate-500"></span>
+          </div>
+          <div id="craftHistList" class="mt-1 space-y-2"></div>
+        </section>
+      </div>
+
+      <!-- Seite 2: Gespeicherte Sets -->
+      <div id="chPageSnaps" class="hidden space-y-4">
+        <section class="panel rounded-2xl p-5">
+          <h3 class="font-display text-xl gold-text">Gespeicherte Sets</h3>
+          <p class="text-xs text-slate-400">Sichert alle deine aktuellen Sets mit Datum. Später wieder laden oder mit heute vergleichen, um deinen Fortschritt zu sehen.</p>
+          <form id="chSnapForm" class="mt-4 flex flex-wrap items-end gap-2">
+            <label class="flex-1 min-w-[200px] text-xs text-slate-400">Name (optional)
+              <input id="chSnapName" maxlength="50" placeholder="z. B. vor KvK 3" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500"></label>
+            <button type="submit" class="px-4 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold">💾 Alle Sets sichern</button>
+          </form>
+          <div id="chSnapMsg" class="hidden mt-2 text-xs"></div>
+        </section>
+        <div id="chSnapList" class="space-y-3"></div>
+      </div>
+    </div>
   </section>
 
   <!-- KvK-Vorbereitung -->
