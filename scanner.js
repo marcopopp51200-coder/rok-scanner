@@ -227,6 +227,7 @@ window.RokApp = () => {
   dz.addEventListener('drop', ev => addFiles(ev.dataTransfer.files));
   $('fileInput').addEventListener('change', ev => { addFiles(ev.target.files); ev.target.value = ''; });
   window.addEventListener('paste', ev => {
+    if (typeof NOSCAN !== 'undefined' && NOSCAN.includes(R.mode)) return;
     const files = [...(ev.clipboardData?.items || [])].filter(i => i.type.startsWith('image/')).map(i => i.getAsFile());
     if (files.length) addFiles(files);
   });
@@ -1416,8 +1417,8 @@ window.RokApp = () => {
   const cntLast = (m) => R.history.filter(e => e.type === m).sort((a, b) => b.ts - a.ts)[0];
   function renderCntInputs(m) {
     const cf = COUNTERS[m], last = cntLast(m);
-    $('cntInputs').innerHTML = `<h2 class="font-display text-lg text-gold-300 mb-1">2 · ${cf.title} eingeben</h2>
-      <p class="text-xs text-slate-400 mb-3">Anzahl aus dem Inventar. Ein Scan füllt die Felder – kurz prüfen, dann speichern.</p>
+    $('cntInputs').innerHTML = `<h2 class="font-display text-lg text-gold-300 mb-1">${cf.title} eingeben</h2>
+      <p class="text-xs text-slate-400 mb-3">Anzahl aus dem Inventar eintragen und speichern.</p>
       <div class="space-y-2">${cf.fields.map(f => `<label class="grid grid-cols-[1fr_110px] items-center gap-2 text-sm"><span class="text-slate-300">${ico(f, 'w-5 h-5')} ${f.label}</span>
         <input data-cnt="${f.k}" type="number" min="0" step="1" placeholder="0" value="${last && last[f.k] != null ? last[f.k] : ''}" class="cnt-in w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>`).join('')}</div>
       ${cf.sum ? `<div class="mt-3 rounded-lg border border-gold-500/30 bg-gold-500/5 px-3 py-2 flex items-center justify-between"><span class="text-xs uppercase tracking-widest text-slate-400">Gesamt</span><span id="cntSum" class="text-lg font-extrabold text-gold-300 tabular-nums"></span></div>` : ''}
@@ -1603,6 +1604,7 @@ window.RokApp = () => {
   $('speedInputRows').addEventListener('input', updateSpeedSum);
 
   // Getrennte Seiten: Ressourcen | VIP | Gems | Speedups | AP
+  const NOSCAN = ['passports', 'goldheads', 'keys', 'armaments'];   // vorerst nur Eingabe von Hand
   function applyMode() {
     const has = { speedups: hasSpeed, resources: hasRes, vip: hasVip, gems: hasGems, ap: hasAp, mats: hasMats, passports: hasPass }[R.mode] ?? (COUNTERS[R.mode] ? renderCnt(R.mode) : false);
     document.querySelectorAll('.seg-btn[data-mode]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mode === R.mode));
@@ -1616,6 +1618,9 @@ window.RokApp = () => {
     $('gemsInputs').classList.toggle('hidden', R.mode !== 'gems');
     $('passSection').classList.toggle('hidden', R.mode !== 'passports' || !hasPass);
     $('passInputs').classList.toggle('hidden', R.mode !== 'passports');
+    const noScan = NOSCAN.includes(R.mode);
+    $('shotsSection').classList.toggle('hidden', noScan);
+    { const h = $('passInputs').querySelector('h2'), pp = $('passInputs').querySelector('p'); if (h) h.textContent = 'Passports eingeben'; if (pp) pp.textContent = 'Anzahl deiner Passseiten aus dem Inventar eintragen und speichern.'; }
     const isCnt = !!COUNTERS[R.mode];
     $('cntInputs').classList.toggle('hidden', !isCnt);
     $('cntSection').classList.toggle('hidden', !isCnt || !has);
@@ -1647,10 +1652,10 @@ window.RokApp = () => {
       ap: 'Lade einen Screenshot deiner AP-Flaschen aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag die Anzahl je Flaschengröße links ein.',
       speedups: 'Lade Screenshots deiner Beschleuniger aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag deinen Bestand links unter „Speedups eingeben“ ein.',
       mats: 'Lade Screenshots deiner Schmiedematerialien aus dem Rucksack hoch und klicke auf „Materialien scannen“ – oder trag die Anzahl links von Hand ein.',
-      passports: 'Lade einen Screenshot deiner Passseiten aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag die Anzahl links von Hand ein.',
-      goldheads: 'Lade einen Screenshot deiner universellen legendären Skulpturen (Goldheads) hoch und klicke auf „Analysieren“ – oder trag die Anzahl links von Hand ein.',
-      keys: 'Lade einen Screenshot deiner Schlüssel aus dem Inventar hoch und klicke auf „Analysieren“ – oder trag die Anzahl links von Hand ein.',
-      armaments: 'Lade Screenshots deiner Armaments und Schriftrollen hoch und klicke auf „Analysieren“ – oder trag die Anzahl links von Hand ein.'
+      passports: 'Trag die Anzahl deiner Passseiten links ein und speichere.',
+      goldheads: 'Trag deine universellen legendären Skulpturen (Goldheads) links ein und speichere.',
+      keys: 'Trag deine Schlüssel links ein und speichere.',
+      armaments: 'Trag deine Armaments und Schriftrollen links ein und speichere.'
     }[R.mode];
     histTab = R.mode === 'mats' ? 'materials' : R.mode; syncTabs(); renderHistory();
     renderHub();
@@ -1999,6 +2004,10 @@ window.RokApp = () => {
   const nv = (v, d) => (v === null || v === undefined || v === '' || isNaN(+v)) ? d : +v;
   const GEM_PER_FORT = 150 * 10 / 1676;   // 150× 10 Gems bei 1.676 Burgen → Ø 0,895 Gems pro Fort (8,95 % Drop)
   const one = (k) => (v) => ({ [k]: v });
+  // Passports: 600.000 Credits = 1 Passseite (Allianz-Shop)
+  var PP_CR = 600000;
+  const crPP = (c) => ({ credits: c, passports: c / PP_CR });
+  const ppPages = () => { const e = lastOf('passports', x => x.passports != null); return e ? +e.passports : null; };
   const PMOD = {
     vip: { title: 'Passive VIP', units: [{ k: 'vip', label: 'VIP-Punkte', c: '#f5c542', img: 'sonstiges/svip._LSdqpwn.webp', icon: '👑' }], now: () => ({ vip: vipNowPts() }),
       src: [{ k: 'daily', label: 'Tägliche VIP-Punkte', desc: 'Login / VIP-Truhe', inputs: [{ key: 'n', label: 'VIP-Punkte pro Tag', def: 200 }], perDay: (s) => ({ vip: nv(s.n, 200) }) }] },
@@ -2018,16 +2027,15 @@ window.RokApp = () => {
         { k: 'alliance', label: 'Allianz-Ressourcen', desc: 'Selbst eintragen – pro Stunde', inputs: RES.map(r => ({ key: r.k, label: `${r.label} pro Stunde`, ph: '0', text: true })), perDay: (s) => Object.fromEntries(RES.map(r => [r.k, nv(s[r.k], 0) * 24])) },
         { k: 'daily', label: 'Daily', desc: 'Proviant/Holz 270.000 · Stein 202.000 · Gold 27.000 pro Tag', perDay: () => ({ food: 270000, wood: 270000, stone: 202000, gold: 27000 }) }
       ] },
-    passports: { title: 'Passive Passports & Credits', summaryUnit: 'credits',
-      units: [{ k: 'passports', label: 'Passseiten', c: '#818cf8', img: 'sonstiges/passport.webp', icon: '🛂' }, { k: 'credits', label: 'Credits', c: '#cbd5e1', img: 'ressourcen/allianccredits.png', icon: '🤝' }],
-      now: () => { const e = lastOf('passports', x => x.passports != null); return { passports: e ? +e.passports : null, credits: typeof creditsNow === 'function' ? creditsNow() : null }; },
+    passports: { title: 'Passive Passports & Credits', summaryUnit: 'passports',
+      units: [{ k: 'passports', label: 'Passseiten (inkl. Credits)', c: '#818cf8', img: 'sonstiges/passport.webp', icon: '🛂' }, { k: 'credits', label: 'Credits', c: '#cbd5e1', img: 'ressourcen/allianccredits.png', icon: '🤝' }],
+      now: () => { const p = ppPages(), c = typeof creditsNow === 'function' ? creditsNow() : null; return { passports: p == null && c == null ? null : (p || 0) + (c || 0) / PP_CR, credits: c }; },
       src: [
-        { k: 'credits', label: 'Passseiten (Shop)', desc: 'Passseiten, die du pro Woche bekommst/kaufst', inputs: [{ key: 'w', label: 'Passseiten pro Woche', ph: 'z. B. 2' }], perDay: (s) => ({ passports: nv(s.w, 0) / 7 }) },
-        { k: 'ethel', label: 'Ethelfleda-Statue', desc: '3× am Tag = 15.000 Credits', inputs: [{ key: 'n', label: 'Credits pro Tag', def: 15000 }], perDay: (s) => ({ credits: nv(s.n, 15000) }) },
-        { k: 'donate', label: 'Spenden', desc: 'Allianz-Technologie spenden', inputs: [{ key: 'w', label: 'Ø Credits pro Woche', def: 70000 }], perDay: (s) => ({ credits: nv(s.w, 70000) / 7 }) },
-        { k: 'build', label: 'Bauen helfen', desc: '20.000 Credits jeden Tag', inputs: [{ key: 'n', label: 'Credits pro Tag', def: 20000 }], perDay: (s) => ({ credits: nv(s.n, 20000) }) },
-        { k: 'vipgreen', label: 'VIP-Shop: grüne Kisten', desc: '−8.000 Credits pro Woche · ℹ️ Grüne Kisten nehmen und damit das Kavallerie-Waffen-Set craften', perDay: () => ({ credits: -8000 / 7 }) },
-        { k: 'vipblue', label: 'VIP-Shop: blaue Kiste', desc: '15 Blueprints für 4.000 Credits pro Woche · ℹ️ Nur nehmen, wenn du das Teil damit voll craften kannst', perDay: () => ({ credits: -4000 / 7 }) }
+        { k: 'ethel', label: 'Ethelfleda-Statue', desc: '3× am Tag = 15.000 Credits', inputs: [{ key: 'n', label: 'Credits pro Tag', def: 15000 }], perDay: (s) => crPP(nv(s.n, 15000)) },
+        { k: 'donate', label: 'Spenden', desc: 'Allianz-Technologie spenden', inputs: [{ key: 'w', label: 'Ø Credits pro Woche', def: 70000 }], perDay: (s) => crPP(nv(s.w, 70000) / 7) },
+        { k: 'build', label: 'Bauen helfen', desc: '20.000 Credits jeden Tag', inputs: [{ key: 'n', label: 'Credits pro Tag', def: 20000 }], perDay: (s) => crPP(nv(s.n, 20000)) },
+        { k: 'vipgreen', label: 'VIP-Shop: grüne Kisten', desc: '+8.000 Credits pro Woche · ℹ️ Grüne Kisten nehmen und damit das Kavallerie-Waffen-Set craften', perDay: () => crPP(8000 / 7) },
+        { k: 'vipblue', label: 'VIP-Shop: blaue Kiste', desc: '15 Blueprints verkaufen = +4.000 Credits pro Woche · ℹ️ Nur behalten, wenn du das Teil damit voll craften kannst', perDay: () => crPP(4000 / 7) }
       ] },
     goldheads: { title: 'Passive Goldheads', units: [{ k: 'goldheads', label: 'Goldheads', c: '#facc15', icon: '🗿', img: 'goldhead.webp' }], now: () => { const e = lastOf('goldheads'); return { goldheads: e ? +e.goldheads || 0 : null }; },
       src: [
@@ -2040,7 +2048,7 @@ window.RokApp = () => {
   const PM_COL = ['#38bdf8', '#a78bfa', '#f97316', '#f472b6', '#e2e8f0', '#ef4444', '#2dd4bf'];
   const pmSt = (m) => { const a = (passive.pm = passive.pm || {}); return (a[m] = a[m] || { src: {}, lines: { total: true } }); };
   const pmSrc = (m, k) => { const st = pmSt(m); return (st.src[k] = st.src[k] || { on: false }); };
-  const pmFmt = (m, v) => PMOD[m].short || Math.abs(v) >= 1e6 ? short(v) : Math.abs(v) < 10 && v % 1 ? (+v).toLocaleString('de-DE', { maximumFractionDigits: 1 }) : fmt(v);
+  const pmFmt = (m, v) => PMOD[m].short || Math.abs(v) >= 1e6 ? short(v) : Math.abs(v) < 10 && v % 1 ? (+v).toLocaleString('de-DE', { maximumFractionDigits: Math.abs(v) < 1 ? 2 : 1 }) : fmt(v);
   const pmSg = (m, v) => (v < 0 ? '−' : '+') + pmFmt(m, Math.abs(v));
   const pmAdd = (a, b, f = 1) => { const o = { ...a }; Object.entries(b || {}).forEach(([k, v]) => o[k] = (o[k] || 0) + v * f); return o; };
   const pmPerDay = (m, x) => x.perDay(pmSrc(m, x.k));
@@ -2162,11 +2170,10 @@ window.RokApp = () => {
   // Passports: Tage bis zum Migrations-Ziel
   PMOD.passports.extra = () => {
     const el = $('pmExtra'); if (!el) return;
-    const goal = passGoalNum(), have = +PMOD.passports.now().passports || 0, d = pmDayTotal('passports').passports || 0;
-    if (PMOD.passports.now().passports != null) renderPassGoal(have);   // Dashboard in der Mitte mit aktualisieren
-    const need = migNeed(), cr = creditsNow(), dc = pmDayTotal('passports').credits || 0;
-    el.innerHTML = (goal ? `<div class="mt-3 text-xs text-slate-300">🎯 Migrations-Ziel ${fmt(goal)} Passseiten: ${have >= goal ? '<b class="text-emerald-400">schon erreicht ✓</b>' : d > 0 ? `in ca. <b class="text-indigo-300 tabular-nums">${fmt(daysTo(goal - have, d))}</b> Tagen` : 'Quelle aktivieren, um die Tage zu sehen'}</div>` : '')
-      + (need ? `<div class="mt-1 text-xs text-slate-300">🤝 Credits für die Migration ${short(need.credits)}: ${cr == null ? 'Credits-Stand unter Statistics eintragen' : cr >= need.credits ? '<b class="text-emerald-400">reicht ✓</b>' : dc > 0 ? `in ca. <b class="text-indigo-300 tabular-nums">${fmt(daysTo(need.credits - cr, dc))}</b> Tagen` : 'Quelle aktivieren, um die Tage zu sehen'}</div>` : '');
+    const need = migNeed(), goal = need ? need.passports : passGoalNum(), have = +PMOD.passports.now().passports || 0, d = pmDayTotal('passports').passports || 0;
+    if (ppPages() != null) renderPassGoal(ppPages());   // Dashboard in der Mitte mit aktualisieren
+    el.innerHTML = goal ? `<div class="mt-3 text-xs text-slate-300">🎯 Migration ${fmt(goal)} Passseiten (= ${short(goal * PP_CR)} Credits): ${have >= goal ? '<b class="text-emerald-400">schon erreicht ✓</b>' : `fehlen ${pmFmt('passports', goal - have)} Seiten · ${d > 0 ? `in ca. <b class="text-indigo-300 tabular-nums">${fmt(daysTo((goal - have) * PP_CR, d * PP_CR))}</b> Tagen` : 'Quelle aktivieren, um die Tage zu sehen'}`}</div>
+      <div class="mt-1 text-[11px] text-slate-500">Gerechnet mit 600.000 Credits = 1 Passseite.</div>` : '';
   };
 
   // ---------- Statistics: Ziel-Linie (Gems-Event, Goldheads) ----------
@@ -2224,21 +2231,27 @@ window.RokApp = () => {
 
   // ---------- Gems-Events: Stufen anklicken → benötigte Gems ----------
   // Spin-Events: pro Tag 1 Spin gratis, 1 Spin zum Rabattpreis, danach Einzelpreis oder 5er-Paket (günstigste Kombination)
-  function spinCost(n, ev) {
-    let left = Math.max(0, n), cost = 0;
-    left -= Math.min(left, ev.days);                       // Gratis-Spins (1 pro Tag)
-    const disc = Math.min(left, ev.days); left -= disc; cost += disc * ev.disc;
-    const packs = Math.floor(left / 5), r = left % 5;
-    return cost + packs * ev.pack + Math.min(r * ev.single, ev.pack);
+  // Spins auf die Event-Tage verteilen: jeden Tag Gratis- + Rabatt-Spin, Rest in 5er-Paketen bis zum Tageslimit (Egg 90, MGE 60, House 75)
+  function spinParts(n, ev) {
+    let left = Math.max(0, n); const D = ev.days, cap = ev.cap || Infinity, c = [], out = [];
+    for (let i = 0; i < D; i++) { c[i] = Math.min(2, left); left -= c[i]; }
+    for (let i = 0; i < D; i++) {
+      const b = Math.min(left, Math.max(0, cap - c[i])); left -= b;
+      const cost = (c[i] >= 2 ? ev.disc : 0) + Math.floor(b / 5) * ev.pack + Math.min((b % 5) * ev.single, ev.pack);
+      out.push({ o: i, spins: c[i] + b, cost });
+    }
+    if (left > 0) out[D - 1].cost += Math.floor(left / 5) * ev.pack + Math.min((left % 5) * ev.single, ev.pack);   // über dem Limit
+    return out;
   }
+  const spinCost = (n, ev) => spinParts(n, ev).reduce((a, x) => a + x.cost, 0);
   const GEM_EV = [
-    { k: 'egg', name: 'Egg Event', sub: "Holy Knight's Treasure", type: 'spin', days: 2, disc: 300, single: 600, pack: 2400, stages: [10, 25, 45, 70, 100, 180], max: 180,
-      note: '2 Tage · pro Tag 1 Spin gratis, 2. Spin 300, danach 600 · 5 Spins 2.400 · max. 180 Spins' },
+    { k: 'egg', name: 'Egg Event', sub: "Holy Knight's Treasure", type: 'spin', days: 2, cap: 90, disc: 300, single: 600, pack: 2400, stages: [10, 25, 45, 70, 100, 180], max: 180,
+      note: '2 Tage · pro Tag 1 Spin gratis, 2. Spin 300, danach 600 · 5 Spins 2.400 · max. 90 Spins pro Tag (180 gesamt)' },
     { k: 'hammer', name: 'Hammer Event', type: 'fixed', stages: [24000], note: 'Max-Kauf 24.000 Gems' },
     { k: 'mtg', name: 'More than Gems', type: 'days', days: 2, stages: [7000, 12000, 25000], note: '2 Tage · Stufen je Tag: 7.000 / 12.000 / 25.000 Gems' },
-    { k: 'mge', name: 'MGE', type: 'spin', days: 3, disc: 400, single: 800, pack: 3600, stages: [10, 25, 45, 70, 100, 180], max: 180,
+    { k: 'mge', name: 'MGE', type: 'spin', days: 3, cap: 60, disc: 400, single: 800, pack: 3600, stages: [10, 25, 45, 70, 100, 180], max: 180,
       note: '3 Tage · pro Tag 1 Spin gratis, 1 Spin 400, danach 800 · 5 Spins 3.600 · max. 60 Käufe pro Tag (180 in 3 Tagen)' },
-    { k: 'house', name: 'Esmeraldas House', type: 'spin', days: 2, disc: 400, single: 800, pack: 3600, stages: [10, 20, 40, 70, 100, 150], max: 150,
+    { k: 'house', name: 'Esmeraldas House', type: 'spin', days: 2, cap: 75, disc: 400, single: 800, pack: 3600, stages: [10, 20, 40, 70, 100, 150], max: 150,
       note: '2 Tage · pro Tag 1 Spin gratis, 1 Spin 400, danach 800 · 5 Spins 3.600 · max. 150 Spins (75 pro Tag)' },
     { k: 'wheel', name: 'Esmeraldas Wheel', type: 'cum', steps: [4500, 4500, 27000], note: '2 Stufen à 4.500 Gems + 1 Stufe 27.000 Gems' }
   ];
@@ -2246,22 +2259,51 @@ window.RokApp = () => {
   // Auswahl → Kosten je Event
   function evCost(ev, v = evSt()[ev?.k]) {
     if (!ev) return 0;
+    if (v && typeof v === 'object' && v.custom != null) return +v.custom || 0;
     if (ev.type === 'spin') return v ? spinCost(v, ev) : 0;
-    if (ev.type === 'days') return (+v?.d1 || 0) + (+v?.d2 || 0);
+    if (ev.type === 'days') return (+v?.d1 || 0) + (+v?.d2 || 0);   // Eigenes je Tag steht ebenfalls in d1/d2
     if (ev.type === 'fixed') return +v || 0;
     if (ev.type === 'cum') return v ? ev.steps.slice(0, v).reduce((a, x) => a + x, 0) : 0;
     return 0;
   }
   const gemEvTotal = () => GEM_EV.reduce((a, ev) => a + evCost(ev), 0);
+  // Nach Klick auf eine Truhe: Stufe auf die nächsten Events übertragen
+  var evApplyK = null;
+  function evApplyBar(ev) {
+    if (typeof GEM_CAL === 'undefined' || !GEM_CAL[ev.k]) return `<div class="mt-3 text-[11px] text-slate-400">Für dieses Event gibt es keinen festen Rhythmus – im Gems-Plan mit Datum hinzufügen.</div>`;
+    const nx = calOcc(ev.k, dayPlus(0), dayPlus(120)).slice(0, 4);
+    const btn = (n, l) => `<button type="button" data-evapply="${ev.k}" data-n="${n}" class="px-3 py-1.5 rounded-lg border border-gold-500/50 hover:bg-gold-500/15 text-gold-200 text-xs font-semibold">${l}</button>`;
+    return `<div class="mt-3 rounded-lg border border-gold-500/30 bg-ink-950/60 p-3">
+      <div class="text-xs text-slate-300 mb-2">Diese Stufe (${fmt(evCost(ev))} Gems) übernehmen für:</div>
+      <div class="flex flex-wrap gap-2">${btn(1, 'Nächstes Event')}${btn(2, 'Nächste 2')}${btn(3, 'Nächste 3')}${btn(4, 'Nächste 4')}${btn('all', 'Alle (immer einplanen)')}
+        <button type="button" data-evapply="${ev.k}" data-n="0" class="px-3 py-1.5 rounded-lg border border-ink-600 text-slate-400 text-xs">Nur als Vorauswahl</button></div>
+      <div class="mt-2 text-[11px] text-slate-500">Nächste Termine: ${nx.map(o => dLabel(o.date, true) + (o.rot ? ' · ' + o.rot : '')).join(' – ') || '–'}</div></div>`;
+  }
+  function evApply(k, n) {
+    const val = JSON.parse(JSON.stringify(evSt()[k] || 0));
+    if (n === 'all') {
+      autoSt()[k] = true;
+      planSt().forEach(p => { if (p.k === k && (dOff(p.date) ?? -1) >= 0) p.val = JSON.parse(JSON.stringify(val)); });
+      passive.gemSkip = skipSt().filter(x => !x.startsWith(k + '|'));
+    } else if (+n > 0) {
+      calOcc(k, dayPlus(0), dayPlus(400)).slice(0, +n).forEach(o => {
+        const ex = planSt().find(p => p.k === k && p.date === o.date);
+        if (ex) ex.val = JSON.parse(JSON.stringify(val)); else planSt().push({ id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), k, date: o.date, val: JSON.parse(JSON.stringify(val)), rot: o.rot });
+        passive.gemSkip = skipSt().filter(x => x !== k + '|' + o.date);
+      });
+    }
+    evApplyK = null; savePassive();
+  }
   const EV_CHEST = 'sonstiges/img_icon_item_273.png';
   function gemEvHtml() {
     const st = evSt();
-    const chip = (ev, attr, on, top, bottom, i, n) => `<button type="button" ${attr} aria-pressed="${on}" class="ev-chip group flex flex-col items-center gap-0.5 rounded-xl border px-2 pt-1.5 pb-1 min-w-[4.5rem] transition ${on ? 'border-gold-400 bg-gold-500/15 shadow-[0_0_14px_rgba(245,197,66,.25)]' : 'border-ink-700 bg-ink-950/50 hover:border-gold-500/50'}">
-        <span class="relative">${ico({ img: EV_CHEST, icon: '🎁' }, 'w-9 h-9')}<span class="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[10px] font-bold px-1.5 rounded-full ${on ? 'bg-gold-400 text-ink-950' : 'bg-ink-800 text-slate-200'}">${top}</span></span>
-        <span class="text-[10px] tabular-nums ${on ? 'text-gold-300' : 'text-slate-400'} mt-1">${bottom}</span></button>`;
+    const chip = (ev, attr, on, top, bottom, i, n) => `<button type="button" ${attr} aria-pressed="${on}" class="ev-chip group flex flex-col items-center gap-1 rounded-xl border px-3 pt-2 pb-1.5 min-w-[6rem] transition ${on ? 'border-gold-400 bg-gold-500/15 shadow-[0_0_14px_rgba(245,197,66,.25)]' : 'border-ink-700 bg-ink-950/50 hover:border-gold-500/50'}">
+        ${ico({ img: EV_CHEST, icon: '🎁' }, 'w-11 h-11')}
+        <span class="text-xs font-bold px-2 rounded-full whitespace-nowrap ${on ? 'bg-gold-400 text-ink-950' : 'bg-ink-800 text-slate-200'}">${top}</span>
+        <span class="text-xs tabular-nums ${on ? 'text-gold-300' : 'text-slate-400'}">${bottom}</span></button>`;
     const card = (ev) => {
       let body = '';
-      if (ev.type === 'spin') body = `<div class="flex flex-wrap gap-2">${ev.stages.map((n, i) => chip(ev, `data-ev="${ev.k}" data-val="${n}"`, st[ev.k] === n, n === ev.max ? `Max ${n}` : n, fmt(spinCost(n, ev)))).join('')}</div>`;
+      if (ev.type === 'spin') body = `<div class="flex flex-wrap gap-2">${ev.stages.map((n, i) => chip(ev, `data-ev="${ev.k}" data-val="${n}"`, st[ev.k] === n, n === ev.max ? `Max · Spins ${n}` : `Spins ${n}`, fmt(spinCost(n, ev)))).join('')}</div>`;
       if (ev.type === 'days') body = ['d1', 'd2'].map((d, i) => `<div class="flex flex-wrap items-center gap-2 ${i ? 'mt-2' : ''}"><span class="text-xs text-slate-400 w-12">Tag ${i + 1}</span>${ev.stages.map(n => chip(ev, `data-ev="${ev.k}" data-day="${d}" data-val="${n}"`, st[ev.k]?.[d] === n, `${n / 1000}k`, fmt(n))).join('')}</div>`).join('');
       if (ev.type === 'fixed') body = `<div class="flex flex-wrap gap-2">${ev.stages.map(n => chip(ev, `data-ev="${ev.k}" data-val="${n}"`, st[ev.k] === n, 'Max', fmt(n))).join('')}</div>`;
       if (ev.type === 'cum') { let c = 0; body = `<div class="flex flex-wrap gap-2">${ev.steps.map((x, i) => { c += x; return chip(ev, `data-ev="${ev.k}" data-val="${i + 1}"`, st[ev.k] === i + 1, i + 1, fmt(c)); }).join('')}</div>`; }
@@ -2270,7 +2312,7 @@ window.RokApp = () => {
         <div class="flex items-start justify-between gap-3 mb-2"><div class="min-w-0"><div class="text-sm font-semibold text-white">${ev.name}${ev.sub ? ` <span class="text-xs font-normal text-slate-400">· ${ev.sub}</span>` : ''}</div>
           <div class="text-[11px] text-slate-400">${ev.note}</div></div>
           <div class="text-right shrink-0"><div class="text-[10px] uppercase tracking-widest text-slate-500">Kosten</div><div class="text-sm font-bold tabular-nums ${cost ? 'text-gold-300' : 'text-slate-500'}" data-evcost="${ev.k}">${cost ? fmt(cost) : '–'}</div></div></div>
-        ${body}</div>`;
+        ${body}${evApplyK === ev.k && cost ? evApplyBar(ev) : ''}</div>`;
     };
     return `<section id="gemEvBox" class="panel rounded-2xl p-5">
       <h2 class="font-display text-lg text-gold-300">Events & Stufen</h2>
@@ -2335,31 +2377,78 @@ window.RokApp = () => {
   // Setup: Events, die du immer machst, werden automatisch eingeplant (Stufe aus „Setup“), einzelne Termine lassen sich abwählen
   const autoSt = () => (passive.gemAuto = passive.gemAuto || {});
   const skipSt = () => (passive.gemSkip = passive.gemSkip || []);
+  // Eigene Käufe mit Stufen (z. B. VIP-Shop: Blaue Mats 2.250 · Lila Mats 9.000) – einmalig oder wiederkehrend
+  const buySt = () => (passive.gemBuys = passive.gemBuys || []);
+  const BUY_REP = { once: 'einmalig', day: 'jeden Tag', week: 'jede Woche', week2: 'alle 2 Wochen', month: 'jeden Monat' };
+  const buyCost = (b) => (b.sel || []).reduce((a, i) => a + (+b.stages[i]?.cost || 0), 0);
+  function buyOccDays(b, maxD) {
+    const d0 = dOff(b.date); if (d0 == null) return [];
+    const step = { day: 1, week: 7, week2: 14 }[b.rep], out = [];
+    if (step) { for (let d = d0; d <= maxD; d += step) if (d >= 0) out.push(d); }
+    else if (b.rep === 'month') { const t0 = pDate(b.date); for (let i = 0; i < 60; i++) { const t = new Date(t0); t.setMonth(t.getMonth() + i); const d = Math.round((t - dayPlus(0)) / 864e5); if (d > maxD) break; if (d >= 0) out.push(d); } }
+    else if (d0 >= 0 && d0 <= maxD) out.push(d0);
+    return out;
+  }
   function allPlan() {
     const ex = planSt(), out = ex.slice(), skip = new Set(skipSt());
+    buySt().forEach(b => { const c = buyCost(b); if (!c) return; buyOccDays(b, 180).forEach(d => { const date = isoDay(dayPlus(d));
+      if (!skip.has('buy:' + b.id + '|' + date)) out.push({ id: 'buy|' + b.id + '|' + date, k: 'buy', date, cost: c, name: b.name, rot: (b.sel || []).map(i => b.stages[i]?.label).filter(Boolean).join(', '), buy: true }); }); });
     Object.keys(GEM_CAL).filter(k => autoSt()[k]).forEach(k => calOcc(k, dayPlus(0), dayPlus(180)).forEach(o => {
       if (skip.has(k + '|' + o.date) || ex.some(p => p.k === k && p.date === o.date)) return;
       out.push({ id: 'auto|' + k + '|' + o.date, k, date: o.date, val: defVal(k), rot: o.rot, auto: true });
     }));
     return out;
   }
-  const entryCost = (p) => p.k === 'custom' ? (+p.val || 0) : evCost(evByK(p.k), p.val);
-  const entryName = (p) => p.k === 'custom' ? (p.name || 'Eigenes Event') : evByK(p.k)?.name || p.k;
+  // Kosten je Event-Tag (o = Tag ab Start)
+  function entryParts(p) {
+    if (p.k === 'buy') return [{ o: 0, cost: +p.cost || 0 }];
+    if (p.k === 'custom') return [{ o: 0, cost: +p.val || 0 }];
+    const ev = evByK(p.k), v = p.val;
+    if (!ev) return [];
+    if (v && typeof v === 'object' && v.custom != null) return [{ o: 0, cost: +v.custom || 0 }];
+    if (ev.type === 'spin') return v ? spinParts(+v, ev) : [];
+    if (ev.type === 'days') return [{ o: 0, cost: +v?.d1 || 0 }, { o: 1, cost: +v?.d2 || 0 }];
+    return [{ o: 0, cost: evCost(ev, v) }];
+  }
+  const entryCost = (p) => entryParts(p).reduce((a, x) => a + x.cost, 0);
+  const entryName = (p) => p.k === 'buy' ? (p.name || 'Eigener Kauf') : p.k === 'custom' ? (p.name || 'Eigenes Event') : evByK(p.k)?.name || p.k;
   const defVal = (k) => { const ev = evByK(k), v = evSt()[k]; if (v && (typeof v !== 'object' || v.d1 || v.d2)) return JSON.parse(JSON.stringify(v));
     return ev.type === 'spin' ? ev.stages[0] : ev.type === 'days' ? { d1: 7000, d2: 7000 } : ev.type === 'fixed' ? ev.stages[0] : 1; };
   // Gems-Stand an Tag d (Beginn des Tages): Bestand + Passive − geplante Events davor
   const gemsBase = () => +gemsNow() || 0;
-  const spentBefore = (d, incl) => allPlan().reduce((a, p) => { const o = dOff(p.date); return o != null && o >= 0 && (incl ? o <= d : o < d) ? a + entryCost(p) : a; }, 0);
+  const spentBefore = (d, incl) => allPlan().reduce((a, p) => { const o0 = dOff(p.date); if (o0 == null) return a;
+    return a + entryParts(p).reduce((b, x) => { const o = o0 + x.o; return o >= 0 && (incl ? o <= d : o < d) ? b + x.cost : b; }, 0); }, 0);
+  const spentOn = (d) => spentBefore(d, true) - spentBefore(d, false);
   const gemsAt = (d, incl) => gemsBase() + (pmIncome('gems', Math.max(0, d)).gems || 0) - spentBefore(d, incl);
 
   function stageSelect(p) {
+    if (p.k === 'buy') return `<span class="text-xs text-slate-400">Eigener Kauf</span>`;
     const ev = evByK(p.k), cls = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-gold-500';
     if (p.k === 'custom') return `<input data-pname="${p.id}" type="text" value="${esc(p.name || '')}" placeholder="Name" class="w-28 ${cls}"> <input data-pval="${p.id}" type="number" min="0" step="1" value="${p.val || ''}" placeholder="Gems" class="w-24 text-right ${cls}">`;
-    if (ev.type === 'spin') return `<select data-pval="${p.id}" class="${cls}">${ev.stages.map(n => `<option value="${n}" ${+p.val === n ? 'selected' : ''}>${n === ev.max ? 'Max ' : ''}${n} Spins · ${fmt(spinCost(n, ev))}</option>`).join('')}</select>`;
-    if (ev.type === 'days') return ['d1', 'd2'].map((d, i) => `<select data-pval="${p.id}" data-day="${d}" class="${cls}"><option value="0">Tag ${i + 1}: –</option>${ev.stages.map(n => `<option value="${n}" ${+p.val?.[d] === n ? 'selected' : ''}>Tag ${i + 1}: ${fmt(n)}</option>`).join('')}</select>`).join(' ');
-    if (ev.type === 'fixed') return `<span class="text-xs text-slate-400">Max-Kauf</span>`;
-    if (ev.type === 'cum') { let c = 0; return `<select data-pval="${p.id}" class="${cls}">${ev.steps.map((x, i) => { c += x; return `<option value="${i + 1}" ${+p.val === i + 1 ? 'selected' : ''}>Stufe ${i + 1} · ${fmt(c)}</option>`; }).join('')}</select>`; }
+    const isC = p.val && typeof p.val === 'object' && p.val.custom != null;
+    const own = isC ? ` <input data-pcg="${p.id}" type="number" min="0" step="1" value="${p.val.custom || ''}" placeholder="Gems" class="w-24 text-right ${cls}">` : '';
+    if (ev.type === 'spin') return `<select data-pval="${p.id}" class="${cls}">${ev.stages.map(n => `<option value="${n}" ${!isC && +p.val === n ? 'selected' : ''}>${n === ev.max ? 'Max ' : ''}${n} Spins · ${fmt(spinCost(n, ev))}</option>`).join('')}<option value="custom" ${isC ? 'selected' : ''}>Eigenes…</option></select>${own}`;
+    if (ev.type === 'days') return ['d1', 'd2'].map((d, i) => { const v = +p.val?.[d] || 0, std = !v || ev.stages.includes(v);
+      return `<select data-pval="${p.id}" data-day="${d}" class="${cls}"><option value="0">Tag ${i + 1}: –</option>${ev.stages.map(n => `<option value="${n}" ${v === n ? 'selected' : ''}>Tag ${i + 1}: ${fmt(n)}</option>`).join('')}<option value="custom" ${!std ? 'selected' : ''}>Tag ${i + 1}: Eigenes…</option></select>${!std || p['own' + d] ? ` <input data-pday="${p.id}" data-day="${d}" type="number" min="0" step="1" value="${v || ''}" placeholder="Gems" class="w-24 text-right ${cls}">` : ''}`; }).join(' ');
+    if (ev.type === 'fixed') return `<select data-pval="${p.id}" class="${cls}"><option value="${ev.stages[0]}" ${!isC ? 'selected' : ''}>Max-Kauf · ${fmt(ev.stages[0])}</option><option value="custom" ${isC ? 'selected' : ''}>Eigenes…</option></select>${own}`;
+    if (ev.type === 'cum') { let c = 0; return `<select data-pval="${p.id}" class="${cls}">${ev.steps.map((x, i) => { c += x; return `<option value="${i + 1}" ${!isC && +p.val === i + 1 ? 'selected' : ''}>Stufe ${i + 1} · ${fmt(c)}</option>`; }).join('')}<option value="custom" ${isC ? 'selected' : ''}>Eigenes…</option></select>${own}`; }
     return '';
+  }
+  // Auswahl „Eigenes“ und Gems-Felder verarbeiten (Plan-Tabelle und Kalender-Detail)
+  function bindStageInputs(root, getEntry, rerender) {
+    root.querySelectorAll('select[data-pval]').forEach(el => el.addEventListener('change', () => {
+      const p = getEntry(el.dataset.pval); if (!p) return;
+      if (el.dataset.day) { const o = p.val && typeof p.val === 'object' && p.val.custom == null ? { ...p.val } : { d1: 0, d2: 0 };
+        if (el.value === 'custom') { p['own' + el.dataset.day] = true; } else { delete p['own' + el.dataset.day]; o[el.dataset.day] = +el.value; } p.val = o; }
+      else p.val = el.value === 'custom' ? { custom: entryCost(p) || 0 } : +el.value;
+      savePassive(); rerender();
+    }));
+    root.querySelectorAll('input[data-pcg],input[data-pday]').forEach(el => el.addEventListener('input', () => {
+      const p = getEntry(el.dataset.pcg || el.dataset.pday); if (!p) return;
+      if (el.dataset.pday) { p.val = { ...(p.val || {}) }; p.val[el.dataset.day] = Math.max(0, Math.round(+el.value || 0)); p['own' + el.dataset.day] = true; }
+      else p.val = { custom: Math.max(0, Math.round(+el.value || 0)) };
+      savePassive(); clearTimeout(el._t); el._t = setTimeout(rerender, 700);
+    }));
   }
   function gemDashHtml() {
     const opts = [...GEM_EV.map(e => `<option value="${e.k}">${e.name}</option>`), '<option value="custom">Eigenes Event</option>'].join('');
@@ -2377,7 +2466,7 @@ window.RokApp = () => {
       </div>
     </section>`;
   }
-  let gemPlanChart = null, calWeek = 0;
+  let gemPlanChart = null, calMonth = 0;
   function renderGemDash() {
     const plan = allPlan().filter(p => (dOff(p.date) ?? -1) >= -3).sort((a, b) => (a.date || '').localeCompare(b.date || '')), now = gemsNow(), perDay = pmDayTotal('gems').gems || 0;
     // Zeilen: Gems vor/nach jedem Event
@@ -2390,7 +2479,7 @@ window.RokApp = () => {
       const after = before == null ? null : before - cost;
       if (after != null && after < minAfter) { minAfter = after; minDate = p.date; }
       rows += `<tr class="border-b border-ink-800 ${past ? 'opacity-50' : ''}"><td class="py-2 pr-2 whitespace-nowrap text-slate-300">${dLabel(p.date, true)}</td>
-        <td class="py-2 px-2 whitespace-nowrap"><i class="inline-block w-2 h-2 rounded-full mr-1" style="background:${GEM_CAL[p.k]?.c || '#94a3b8'}"></i>${esc(entryName(p))}${p.rot ? ` <span class="text-[11px] text-slate-500">· ${p.rot}</span>` : ''}${p.auto ? ' <span class="text-[10px] px-1.5 py-0.5 rounded bg-ink-800 text-slate-400">Setup</span>' : ''}</td>
+        <td class="py-2 px-2 whitespace-nowrap"><i class="inline-block w-2 h-2 rounded-full mr-1" style="background:${GEM_CAL[p.k]?.c || '#94a3b8'}"></i>${esc(entryName(p))}${p.rot ? ` <span class="text-[11px] text-slate-500">· ${p.rot}</span>` : ''}${p.auto ? ' <span class="text-[10px] px-1.5 py-0.5 rounded bg-ink-800 text-slate-400">Setup</span>' : p.buy ? ' <span class="text-[10px] px-1.5 py-0.5 rounded bg-ink-800 text-slate-400">Kauf</span>' : ''}</td>
         <td class="py-2 px-2">${stageSelect(p)}</td>
         <td class="py-2 px-2 text-right tabular-nums text-gold-300">${fmt(cost)}</td>
         <td class="py-2 px-2 text-right tabular-nums text-slate-300">${before == null ? 'vorbei' : fmt(before)}</td>
@@ -2410,16 +2499,15 @@ window.RokApp = () => {
         <tbody>${rows}</tbody></table></div>${hiddenN ? `<div class="mt-1 text-[11px] text-slate-500">+ ${hiddenN} weitere Termine nach 90 Tagen (werden mitgerechnet)</div>` : ''}` : '<div class="text-xs text-slate-500">Noch keine Events geplant – unten hinzufügen oder im Kalender anklicken.</div>';
     const pr = $('gemPlanRows');
     pr.querySelectorAll('[data-pdel]').forEach(b => b.onclick = () => { const id = b.dataset.pdel;
-      if (id.startsWith('auto|')) { const [, k, date] = id.split('|'); skipSt().push(k + '|' + date); } else passive.gemPlan = planSt().filter(p => p.id !== id);
+      if (id.startsWith('auto|')) { const [, k, date] = id.split('|'); skipSt().push(k + '|' + date); }
+      else if (id.startsWith('buy|')) { const [, bid, date] = id.split('|'); skipSt().push('buy:' + bid + '|' + date); }
+      else passive.gemPlan = planSt().filter(p => p.id !== id);
       savePassive(); renderGemsPlanAll(); });
     // Stufe eines Setup-Termins ändern → wird zu einem eigenen Eintrag
     const materialize = (id) => { if (!id.startsWith('auto|')) return planSt().find(x => x.id === id); const a = allPlan().find(x => x.id === id); if (!a) return null;
       const p = { ...a, id: 'p' + Date.now().toString(36), auto: false }; delete p.auto; planSt().push(p); return p; };
-    pr.querySelectorAll('[data-pval]').forEach(el => el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', () => {
-      const p = materialize(el.dataset.pval); if (!p) return;
-      if (el.dataset.day) { p.val = p.val && typeof p.val === 'object' ? p.val : { d1: 0, d2: 0 }; p.val[el.dataset.day] = +el.value; } else p.val = +el.value;
-      savePassive(); if (el.tagName === 'SELECT') renderGemsPlanAll(); else { clearTimeout(el._t); el._t = setTimeout(renderGemsPlanAll, 600); }
-    }));
+    bindStageInputs(pr, materialize, renderGemsPlanAll);
+    pr.querySelectorAll('input[data-pval]').forEach(el => el.addEventListener('input', () => { const p = materialize(el.dataset.pval); if (!p) return; p.val = +el.value || 0; savePassive(); clearTimeout(el._t); el._t = setTimeout(renderGemsPlanAll, 700); }));
     pr.querySelectorAll('[data-pname]').forEach(el => el.addEventListener('input', () => { const p = planSt().find(x => x.id === el.dataset.pname); if (p) { p.name = el.value.slice(0, 30); savePassive(); } }));
     renderGemPlanChart(plan.filter(p => (dOff(p.date) ?? -1) >= 0));
     renderAreaTabs();
@@ -2430,15 +2518,16 @@ window.RokApp = () => {
     const maxD = Math.max(30, last + 7), step = maxD > 90 ? Math.ceil(maxD / 90) : 1, days = [];
     for (let d = 0; d <= maxD; d += step) days.push(d);
     if (days[days.length - 1] !== maxD) days.push(maxD);
-    plan.forEach(p => { const o = dOff(p.date); if (o != null && o >= 0 && !days.includes(o)) days.push(o); });
+    plan.forEach(p => { const o0 = dOff(p.date); if (o0 == null) return; entryParts(p).forEach(x => { const o = o0 + x.o; if (o >= 0 && o <= maxD && !days.includes(o)) days.push(o); }); });
     days.sort((a, b) => a - b);
     if (gemPlanChart) { try { gemPlanChart.destroy(); } catch {} gemPlanChart = null; }
     if (!window.Chart) { wrap.innerHTML = '<div class="h-full grid place-items-center text-xs text-slate-500">Diagramm konnte nicht geladen werden.</div>'; return; }
     wrap.innerHTML = '<canvas id="gemPlanChart"></canvas>';
     gemPlanChart = new Chart($('gemPlanChart'), { type: 'line',
       data: { labels: days.map(d => dayPlus(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })),
-        datasets: [{ label: 'Gems mit Events', data: days.map(d => Math.round(gemsAt(d, true))), borderColor: '#f472b6', borderWidth: 3, stepped: false, tension: 0, pointRadius: days.map(d => plan.some(p => dOff(p.date) === d) ? 4 : 0), fill: false },
-                   { label: 'Ohne Events', data: days.map(d => Math.round(gemsBase() + (pmIncome('gems', d).gems || 0))), borderColor: '#34d399', borderWidth: 2, borderDash: [6, 4], tension: 0, pointRadius: 0, fill: false }] },
+        datasets: [{ label: 'Gems mit Events', data: days.map(d => Math.round(gemsAt(d, true))), borderColor: '#f472b6', borderWidth: 3, stepped: false, tension: 0, pointRadius: days.map(d => spentOn(d) ? 4 : 0), fill: false },
+                   { label: 'Ohne Events', data: days.map(d => Math.round(gemsBase() + (pmIncome('gems', d).gems || 0))), borderColor: '#34d399', borderWidth: 2, borderDash: [6, 4], tension: 0, pointRadius: 0, fill: false },
+                   { type: 'bar', label: 'Event-Kosten', data: days.map(d => spentOn(d) || null), backgroundColor: '#facc15aa', borderColor: '#facc15', borderWidth: 0, borderRadius: 3, barThickness: 6 }] },
       options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
         plugins: { legend: { labels: { boxWidth: 12, color: '#94a3b8' } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${fmt(c.raw)}` } } },
         scales: { y: { ticks: { callback: (v) => short(v) } }, x: { ticks: { maxTicksLimit: 8 } } } } });
@@ -2470,14 +2559,18 @@ window.RokApp = () => {
   }
   function renderGemCal() {
     const grid = $('gemCalGrid'); if (!grid) return;
-    const mon = dayPlus(0); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7) + calWeek * 7);
-    const end = new Date(mon); end.setDate(end.getDate() + 6 * 7 - 1);
-    $('gemCalTitle').textContent = `${mon.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' })} – ${end.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+    // Monatsansicht: beginnt immer mit dem 1. (Woche ab Montag)
+    const first = dayPlus(0); first.setDate(1); first.setMonth(first.getMonth() + calMonth);
+    const last = new Date(first.getFullYear(), first.getMonth() + 1, 0);
+    const mon = new Date(first); mon.setDate(1 - ((first.getDay() + 6) % 7));
+    const nWeeks = Math.ceil(((last - mon) / 864e5 + 1) / 7);
+    const end = new Date(mon); end.setDate(end.getDate() + nWeeks * 7 - 1);
+    $('gemCalTitle').textContent = first.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
     const occ = Object.keys(GEM_CAL).flatMap(k => calOcc(k, mon, end)), plan = allPlan();
     const planned = (o) => plan.find(p => p.k === o.k && p.date === o.date);
     const wd = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
     let html = `<div class="grid grid-cols-7 gap-px text-[10px] uppercase tracking-widest text-slate-500 mb-1">${wd.map(w => `<div class="px-1">${w}</div>`).join('')}</div>`;
-    for (let w = 0; w < 6; w++) {
+    for (let w = 0; w < nWeeks; w++) {
       const ws = new Date(mon); ws.setDate(ws.getDate() + w * 7);
       const we = new Date(ws); we.setDate(we.getDate() + 6);
       const cells = [...Array(7)].map((_, i) => { const d = new Date(ws); d.setDate(d.getDate() + i); return d; });
@@ -2485,10 +2578,10 @@ window.RokApp = () => {
       // Balken in Spuren legen (keine Überlappung)
       const lanes = []; bars.forEach(b => { const s = Math.max(0, Math.round((b.start - ws) / 864e5)), e = Math.min(6, Math.round((b.end - ws) / 864e5)); let l = 0; while (lanes[l] && lanes[l].some(x => !(e < x.s || s > x.e))) l++; (lanes[l] = lanes[l] || []).push({ s, e, b }); });
       html += `<div class="relative grid grid-cols-7 gap-px bg-ink-700/40 rounded-lg overflow-hidden mb-1">${cells.map((d, i) => {
-        const o = Math.round((d - dayPlus(0)) / 864e5), today = o === 0, past = o < 0, bal = past ? null : gemsAt(o);
-        const inc = past ? null : customGemsOn(o);
-        return `<div class="bg-ink-950/80 px-1 pt-1 pb-1 flex flex-col justify-between ${today ? 'ring-1 ring-gold-400 ring-inset' : ''}" style="min-height:${3.4 + lanes.length * 1.5}rem">
-          <div class="flex items-start justify-between gap-1"><span class="text-[11px] ${today ? 'text-gold-300 font-bold' : past ? 'text-slate-600' : 'text-slate-400'}">${d.getDate()}${d.getDate() === 1 || i === 0 && w === 0 ? '.' + (d.getMonth() + 1) + '.' : ''}</span>${inc ? `<span class="text-[9px] text-emerald-400 tabular-nums" title="Eigene Einnahme">+${short(inc)}</span>` : ''}</div>
+        const o = Math.round((d - dayPlus(0)) / 864e5), today = o === 0, past = o < 0, bal = past ? null : gemsAt(o), outM = d.getMonth() !== first.getMonth();
+        const inc = past ? null : customGemsOn(o), buyD = past ? 0 : allPlan().filter(p => p.buy && p.date === isoDay(d)).reduce((a, p) => a + p.cost, 0);
+        return `<div class="${outM ? 'bg-ink-950/40 opacity-50' : 'bg-ink-950/80'} px-1 pt-1 pb-1 flex flex-col justify-between ${today ? 'ring-1 ring-gold-400 ring-inset' : ''}" style="min-height:${3.6 + lanes.length * 1.5}rem">
+          <div class="flex items-start justify-between gap-1"><span class="text-[11px] ${today ? 'text-gold-300 font-bold' : past ? 'text-slate-600' : 'text-slate-400'}">${d.getDate()}${d.getDate() === 1 ? '.' + (d.getMonth() + 1) + '.' : ''}</span><span class="flex flex-col items-end">${inc ? `<span class="text-[9px] text-emerald-400 tabular-nums" title="Eigene Einnahme">+${short(inc)}</span>` : ''}${buyD ? `<span class="text-[9px] text-red-300 tabular-nums" title="Eigener Kauf">−${short(buyD)}</span>` : ''}</span></div>
           ${bal == null ? '' : `<div class="text-right text-[11px] font-semibold tabular-nums ${bal < 0 ? 'text-red-400' : 'text-pink-300'}">${ico({ img: 'ressourcen/gems.png', icon: '💎' }, 'w-3 h-3')} ${bal < 0 ? '−' : ''}${short(Math.abs(bal))}</div>`}</div>`; }).join('')}
         ${lanes.map((ln, li) => ln.map(x => { const p = planned(x.b), ev = evByK(x.b.k), cf = GEM_CAL[x.b.k];
           return `<button type="button" data-calev="${x.b.k}" data-date="${x.b.date}" data-rot="${esc(x.b.rot)}" title="${ev.name}${x.b.rot ? ' · ' + x.b.rot : ''}${p ? ' · eingeplant: ' + fmt(entryCost(p)) + ' Gems' : ' · anklicken zum Einplanen'}"
@@ -2536,11 +2629,7 @@ window.RokApp = () => {
       else { passive.gemSkip = skipSt().filter(x => x !== o.k + '|' + o.date); if (!allPlan().some(x => x.k === o.k && x.date === o.date)) planSt().push({ id: 'p' + Date.now().toString(36), k: o.k, date: o.date, val: defVal(o.k), rot: o.rot }); }
       savePassive(); renderGemsPlanAll();
     };
-    el.querySelectorAll('[data-pval]').forEach(s => s.addEventListener('change', () => {
-      let q = p; if (q.auto) { q = { ...p, id: 'p' + Date.now().toString(36) }; delete q.auto; planSt().push(q); }
-      if (s.dataset.day) { q.val = q.val && typeof q.val === 'object' ? { ...q.val } : { d1: 0, d2: 0 }; q.val[s.dataset.day] = +s.value; } else q.val = +s.value;
-      savePassive(); renderGemsPlanAll();
-    }));
+    bindStageInputs(el, () => { if (!p.auto) return planSt().find(x => x.id === p.id); const q = { ...p, id: 'p' + Date.now().toString(36) }; delete q.auto; planSt().push(q); p.auto = false; p.id = q.id; return q; }, renderGemsPlanAll);
     el.querySelector('[data-cdmove]').addEventListener('change', (e) => {
       const nd = e.target.value; if (!pDate(nd)) return;
       const mv = (passive.gemMove = passive.gemMove || {}); if (nd === o.orig) delete mv[o.k + '|' + o.orig]; else mv[o.k + '|' + o.orig] = nd;
@@ -2590,13 +2679,56 @@ window.RokApp = () => {
       custGems().push({ id: 'c' + Date.now().toString(36), name: $('gcName').value.slice(0, 30), amount: a, date: dt, rep: $('gcRep').value }); savePassive(); renderPMOut('gems'); };
   };
 
+  function gemBuysHtml() {
+    const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
+    const list = buySt().map(b => { const c = buyCost(b); return `<div class="rounded-xl border ${c ? 'border-gold-500/40 bg-gold-500/5' : 'border-ink-700 bg-ink-950/30'} p-3">
+        <div class="flex flex-wrap items-start justify-between gap-2 mb-2"><div><div class="text-sm font-semibold text-white">${esc(b.name || 'Eigener Kauf')}</div>
+          <div class="text-[11px] text-slate-400">ab ${dLabel(b.date, true)} · ${BUY_REP[b.rep] || BUY_REP.once}</div></div>
+          <div class="flex items-center gap-3"><div class="text-right"><div class="text-[10px] uppercase tracking-widest text-slate-500">Kosten je Termin</div><div class="text-sm font-bold tabular-nums ${c ? 'text-gold-300' : 'text-slate-500'}">${c ? fmt(c) : '–'}</div></div>
+            <button type="button" data-bdel="${b.id}" class="text-slate-500 hover:text-red-400 px-1" title="Entfernen">✕</button></div></div>
+        <div class="flex flex-wrap gap-2">${b.stages.map((st, i) => { const on = (b.sel || []).includes(i); return `<button type="button" data-bsel="${b.id}" data-i="${i}" aria-pressed="${on}" class="flex flex-col items-center rounded-xl border px-3 py-1.5 min-w-[5rem] transition ${on ? 'border-gold-400 bg-gold-500/15' : 'border-ink-700 bg-ink-950/50 hover:border-gold-500/50'}">
+          <span class="text-xs font-semibold ${on ? 'text-gold-200' : 'text-slate-200'}">${esc(st.label || 'Stufe ' + (i + 1))}</span><span class="text-[10px] tabular-nums ${on ? 'text-gold-300' : 'text-slate-400'}">${fmt(st.cost)}</span></button>`; }).join('')}</div></div>`; }).join('');
+    return `<section id="gemBuyBox" class="panel rounded-2xl p-5">
+      <h2 class="font-display text-lg text-gold-300">Eigene Käufe</h2>
+      <p class="text-xs text-slate-400 mb-3">Zum Beispiel VIP-Shop: Stufen anlegen (Name + Gems), dann anklicken, was du kaufst. Wird im Plan und Kalender abgezogen.</p>
+      <div class="space-y-3">${list || '<div class="text-xs text-slate-500">Noch nichts angelegt.</div>'}</div>
+      <div class="mt-4 rounded-xl border border-ink-700 bg-ink-950/40 p-3">
+        <div class="flex flex-wrap items-end gap-2">
+          <label class="text-xs text-slate-400">Name<input id="gbName" type="text" placeholder="z. B. VIP Mats" class="mt-1 block w-40 ${inp}"></label>
+          <label class="text-xs text-slate-400">Ab Datum<input id="gbDate" type="date" value="${isoDay(dayPlus(0))}" class="mt-1 block ${inp}"></label>
+          <label class="text-xs text-slate-400">Wiederholung<select id="gbRep" class="mt-1 block ${inp}">${Object.entries(BUY_REP).map(([k, v]) => `<option value="${k}" ${k === 'week' ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+        </div>
+        <div id="gbStages" class="mt-3 space-y-2">${[['Blaue Mats', 2250], ['Lila Mats', 9000]].map(([l, c], i) => buyStageRow(l, c, i)).join('')}</div>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <button type="button" id="gbAddStage" class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs">+ Stufe</button>
+          <button type="button" id="gbAdd" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">+ Kauf anlegen</button>
+        </div>
+      </div>
+    </section>`;
+  }
+  const buyStageRow = (l, c, i) => `<div class="flex flex-wrap items-center gap-2" data-gbrow><span class="text-xs text-slate-500 w-14">Stufe ${i + 1}</span>
+      <input data-gbl type="text" value="${esc(l)}" placeholder="Name" class="w-36 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500">
+      <input data-gbc type="number" min="0" step="1" value="${c}" placeholder="Gems" class="w-28 text-right bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:border-gold-500"></div>`;
+  function bindBuys(top) {
+    makeFold($('gemBuyBox'), 'gembuy');
+    top.querySelectorAll('[data-bdel]').forEach(b => b.onclick = () => { passive.gemBuys = buySt().filter(x => x.id !== b.dataset.bdel); savePassive(); renderGemsStats(); });
+    top.querySelectorAll('[data-bsel]').forEach(b => b.onclick = () => { const x = buySt().find(y => y.id === b.dataset.bsel); if (!x) return; const i = +b.dataset.i;
+      x.sel = (x.sel || []).includes(i) ? x.sel.filter(v => v !== i) : [...(x.sel || []), i]; savePassive(); renderGemsStats(); });
+    $('gbAddStage').onclick = () => { const box = $('gbStages'), n = box.querySelectorAll('[data-gbrow]').length; if (n >= 8) return; box.insertAdjacentHTML('beforeend', buyStageRow('', '', n)); };
+    $('gbAdd').onclick = () => {
+      const stages = [...$('gbStages').querySelectorAll('[data-gbrow]')].map(r => ({ label: r.querySelector('[data-gbl]').value.trim().slice(0, 30), cost: Math.max(0, Math.round(+r.querySelector('[data-gbc]').value || 0)) })).filter(x => x.cost > 0);
+      const date = $('gbDate').value; if (!stages.length || !pDate(date)) { $('gbName').focus(); return; }
+      buySt().push({ id: 'b' + Date.now().toString(36), name: $('gbName').value.trim().slice(0, 30) || 'Eigener Kauf', stages, sel: [0], date, rep: $('gbRep').value });
+      savePassive(); renderGemsStats();
+    };
+  }
   function renderGemsStats() {
     const top = $('statsTop');
-    top.innerHTML = gemCalHtml() + gemDashHtml() + gemEvHtml();
+    top.innerHTML = gemCalHtml() + gemDashHtml() + gemEvHtml() + gemBuysHtml();
     if (loadFolds()['gemev'] === undefined) folds['gemev'] = true;       // Events & Stufen: standardmäßig eingeklappt
     if (folds['gemcalrules'] === undefined) folds['gemcalrules'] = true;
     makeFold($('gemDash'), 'gemdash'); makeFold($('gemCal'), 'gemcal'); makeFold($('gemCalRules'), 'gemcalrules'); makeFold($('gemEvBox'), 'gemev');
-    top.querySelectorAll('[data-calnav]').forEach(b => b.onclick = () => { calWeek += +b.dataset.calnav * 4; renderGemCal(); });
+    top.querySelectorAll('[data-calnav]').forEach(b => b.onclick = () => { calMonth += +b.dataset.calnav; renderGemCal(); });
     const sel = $('gpAddK'), dt = $('gpAddDate');
     const setDef = () => { const n = sel.value !== 'custom' && GEM_CAL[sel.value] ? nextOcc(sel.value) : null; dt.value = n ? n.date : isoDay(dayPlus(1)); };
     sel.onchange = setDef; setDef();
@@ -2604,8 +2736,11 @@ window.RokApp = () => {
     top.querySelectorAll('[data-ev]').forEach(b => b.onclick = () => {
       const st = evSt(), k = b.dataset.ev, v = +b.dataset.val, d = b.dataset.day;
       if (d) { const o = (st[k] = st[k] || {}); o[d] = o[d] === v ? 0 : v; } else st[k] = st[k] === v ? 0 : v;
+      evApplyK = evCost(evByK(k)) ? k : null;
       savePassive(); renderGemsStats();
     });
+    top.querySelectorAll('[data-evapply]').forEach(b => b.onclick = () => { evApply(b.dataset.evapply, b.dataset.n === 'all' ? 'all' : +b.dataset.n); renderGemsStats(); });
+    bindBuys(top);
     renderGemEvSum();
     renderGemsPlanAll();
   }
@@ -2620,13 +2755,18 @@ window.RokApp = () => {
   const profPower = () => govLatest('energy');
   const migPower = () => { const p = +migSt().power; return p > 0 ? p : profPower(); };
   const migRow = (pw) => pw == null ? null : MIG.find(r => pw < r[0] * 1e6) || MIG[MIG.length - 1];
-  const migNeed = () => { const r = migRow(migPower()); if (!r) return null; const s = migSt().mode === 'same'; return { passports: s ? r[2] : r[1], credits: s ? r[4] : r[3], row: r }; };
+  const migSelRow = () => { const i = migSt().sel; return i != null && MIG[i] ? MIG[i] : null; };
+  const migNeed = () => { const r = migSelRow() || migRow(migPower()); if (!r) return null; const s = migSt().mode === 'same'; return { passports: s ? r[2] : r[1], credits: (s ? r[2] : r[1]) * PP_CR, row: r }; };
   const creditsNow = () => { const c = +migSt().credits; return c >= 0 && migSt().credits !== '' && migSt().credits != null ? c : null; };
   function renderMigStats() {
-    const top = $('statsTop'), st = migSt(), need = migNeed(), pw = migPower(), have = PMOD.passports.now().passports, cr = creditsNow();
+    const top = $('statsTop'), st = migSt(), need = migNeed(), pw = migPower(), pages = ppPages(), cr = creditsNow(), sel = migSelRow();
     const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:border-gold-500';
     const card = (l, v, c, sub) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">${l}</div><div class="text-xl font-bold tabular-nums ${c}">${v}</div>${sub ? `<div class="text-[11px] text-slate-500">${sub}</div>` : ''}</div>`;
-    const missP = need && have != null ? need.passports - have : null, missC = need && cr != null ? need.credits - cr : null;
+    const haveEq = (pages || 0) + (cr || 0) / PP_CR, miss = need ? need.passports - haveEq : null;
+    const perDay = pmDayTotal('passports').passports || 0, days = miss != null && miss > 0 ? daysTo(miss * PP_CR, perDay * PP_CR) : 0;
+    const rng = (i) => { const r = MIG[i]; return r[0] === Infinity ? '> 100 Mio.' : `${i ? MIG[i - 1][0] : 0}–${r[0]} Mio.`; };
+    const order = MIG.map((r, i) => i).reverse();   // Power absteigend
+    const cell = (i, mode, txt, cls) => `<td data-migpick="${i}" data-mode="${mode}" class="py-1.5 px-3 text-right tabular-nums cursor-pointer hover:bg-gold-500/10 ${cls}">${txt}</td>`;
     top.innerHTML = `<section id="migBox" class="panel rounded-2xl p-5">
       <h2 class="font-display text-lg text-gold-300">Migration</h2>
       <div class="grid sm:grid-cols-3 gap-3 mb-4">
@@ -2634,27 +2774,32 @@ window.RokApp = () => {
         <div class="text-xs text-slate-400">Art<div class="mt-1 grid grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700">${[['normal', 'Normal'], ['same', 'Same-KvK']].map(([k, l]) => `<button type="button" data-migmode="${k}" aria-pressed="${st.mode === k}" class="seg-btn rounded-lg py-1.5 text-xs font-semibold transition">${l}</button>`).join('')}</div></div>
         <label class="text-xs text-slate-400">Credits jetzt<input id="migCredits" type="text" inputmode="numeric" value="${cr != null ? cr : ''}" placeholder="z. B. 12.500.000" class="mt-1 w-full text-right ${inp}"></label>
       </div>
-      <div class="text-[11px] text-slate-500 mb-3">${pw == null ? 'Keine Power im Profil – bitte oben eintragen.' : `Gerechnet mit ${(pw / 1e6).toLocaleString('de-DE', { maximumFractionDigits: 1 })} Mio. Power${st.power ? '' : ' aus deinem Profil'}.`}</div>
+      <div class="text-[11px] text-slate-500 mb-3">${sel ? `Ausgewählt in der Tabelle: <b class="text-gold-300">${rng(MIG.indexOf(sel))}</b> · ${st.mode === 'same' ? 'Same-KvK' : 'Normal'} <button type="button" id="migAuto" class="ml-1 underline hover:text-gold-300">zurück zu meiner Power</button>`
+        : pw == null ? 'Keine Power im Profil – oben eintragen oder in der Tabelle eine Zeile anklicken.' : `Gerechnet mit ${(pw / 1e6).toLocaleString('de-DE', { maximumFractionDigits: 1 })} Mio. Power${st.power ? '' : ' aus deinem Profil'} · oder in der Tabelle anklicken, was du willst.`} 1 Passseite = 600.000 Credits.</div>
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        ${card('Passseiten nötig', need ? fmt(need.passports) : '–', 'text-indigo-300')}
-        ${card('Passseiten jetzt', have != null ? fmt(have) : '–', 'text-white', have == null ? 'noch kein Scan' : missP > 0 ? `<span class="text-red-400">fehlen ${fmt(missP)}</span>` : '<span class="text-emerald-400">reicht ✓</span>')}
-        ${card('Credits nötig', need ? short(need.credits) : '–', 'text-slate-200')}
-        ${card('Credits jetzt', cr != null ? short(cr) : '–', 'text-white', cr == null ? 'oben eintragen' : missC > 0 ? `<span class="text-red-400">fehlen ${short(missC)}</span>` : '<span class="text-emerald-400">reicht ✓</span>')}
+        ${card('Passseiten nötig', need ? fmt(need.passports) : '–', 'text-indigo-300', need ? `= ${short(need.credits)} Credits` : '')}
+        ${card('Passseiten jetzt', pages != null ? fmt(pages) : '–', 'text-white', pages == null ? 'noch nicht eingetragen' : '')}
+        ${card('Credits jetzt', cr != null ? short(cr) : '–', 'text-white', cr == null ? 'oben eintragen' : `= ${pmFmt('passports', cr / PP_CR)} Passseiten`)}
+        ${card(miss != null && miss > 0 ? 'Fehlen noch' : 'Stand', miss == null ? '–' : miss > 0 ? `${pmFmt('passports', miss)} Seiten` : 'reicht ✓', miss > 0 ? 'text-red-400' : 'text-emerald-400',
+          miss > 0 ? `= ${short(miss * PP_CR)} Credits · ${days == null ? 'Passive aktivieren' : `ca. ${fmt(days)} Tage (${dayPlus(days).toLocaleDateString('de-DE')})`}` : '')}
       </div>
       ${need ? `<button type="button" id="migGoal" class="mt-3 text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">🎯 ${fmt(need.passports)} Passseiten als Migrations-Ziel übernehmen</button>` : ''}
       <div class="mt-4 overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs">
         <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-2 px-3 text-left font-medium">Power</th><th class="py-2 px-3 text-right font-medium">Passseiten normal</th><th class="py-2 px-3 text-right font-medium">Same-KvK</th><th class="py-2 px-3 text-right font-medium">Credits normal</th><th class="py-2 px-3 text-right font-medium">Same-KvK</th></tr></thead>
-        <tbody>${MIG.map((r, i) => { const on = need && need.row === r, sm = st.mode === 'same';
-          return `<tr class="border-b border-ink-800 last:border-b-0 ${on ? 'bg-gold-500/10' : ''}"><td class="py-1.5 px-3 ${on ? 'text-gold-300 font-semibold' : 'text-slate-300'}">${r[0] === Infinity ? '> 100 Mio.' : `< ${r[0]} Mio.`}</td>
-            <td class="py-1.5 px-3 text-right tabular-nums ${on && !sm ? 'text-indigo-300 font-bold' : ''}">${r[1]}</td><td class="py-1.5 px-3 text-right tabular-nums ${on && sm ? 'text-indigo-300 font-bold' : ''}">${r[2]}</td>
-            <td class="py-1.5 px-3 text-right tabular-nums ${on && !sm ? 'text-slate-100 font-bold' : 'text-slate-400'}">${fmt(r[3])}</td><td class="py-1.5 px-3 text-right tabular-nums ${on && sm ? 'text-slate-100 font-bold' : 'text-slate-400'}">${fmt(r[4])}</td></tr>`; }).join('')}</tbody></table></div>
+        <tbody>${order.map(i => { const r = MIG[i], on = need && need.row === r, sm = st.mode === 'same';
+          return `<tr class="border-b border-ink-800 last:border-b-0 ${on ? 'bg-gold-500/10' : ''}"><td data-migpick="${i}" class="py-1.5 px-3 cursor-pointer hover:bg-gold-500/10 ${on ? 'text-gold-300 font-semibold' : 'text-slate-300'}">${rng(i)}</td>
+            ${cell(i, 'normal', r[1], on && !sm ? 'text-indigo-300 font-bold ring-1 ring-inset ring-gold-400/60' : '')}${cell(i, 'same', r[2], on && sm ? 'text-indigo-300 font-bold ring-1 ring-inset ring-gold-400/60' : '')}
+            ${cell(i, 'normal', fmt(r[1] * PP_CR), on && !sm ? 'text-slate-100 font-bold' : 'text-slate-400')}${cell(i, 'same', fmt(r[2] * PP_CR), on && sm ? 'text-slate-100 font-bold' : 'text-slate-400')}</tr>`; }).join('')}</tbody></table></div>
+      <div class="mt-1 text-[11px] text-slate-500">Zeile oder Zahl anklicken → wird oben ausgerechnet.</div>
     </section>`;
     makeFold($('migBox'), 'mig');
     const upd = () => { savePassive(); renderMigStats(); if (R.areaTab === 'passive') renderPMOut('passports'); renderAreaTabs(); };
     top.querySelectorAll('[data-migmode]').forEach(b => b.onclick = () => { st.mode = b.dataset.migmode; upd(); });
-    $('migPower').addEventListener('change', (e) => { const v = parseFloat(String(e.target.value).replace(',', '.')); st.power = v > 0 ? Math.round(v * 1e6) : null; upd(); });
+    top.querySelectorAll('[data-migpick]').forEach(c => c.onclick = () => { st.sel = +c.dataset.migpick; if (c.dataset.mode) st.mode = c.dataset.mode; upd(); });
+    $('migAuto')?.addEventListener('click', () => { delete st.sel; upd(); });
+    $('migPower').addEventListener('change', (e) => { const v = parseFloat(String(e.target.value).replace(',', '.')); st.power = v > 0 ? Math.round(v * 1e6) : null; delete st.sel; upd(); });
     $('migCredits').addEventListener('change', (e) => { const v = parseAmount(e.target.value); st.credits = e.target.value.trim() === '' || isNaN(v) ? null : v; upd(); });
-    $('migGoal')?.addEventListener('click', () => { $('passGoal').value = need.passports; LS.set(PASS_GOAL, String(need.passports)); renderPassGoal(+have || 0); $('passGoal').dispatchEvent(new Event('input')); upd(); });
+    $('migGoal')?.addEventListener('click', () => { $('passGoal').value = need.passports; LS.set(PASS_GOAL, String(need.passports)); renderPassGoal(+pages || 0); $('passGoal').dispatchEvent(new Event('input')); upd(); });
   }
 
   // ---------- Goldheads: Kommandanten-Expertise (Kosten je Skillpunkt, Bild „Expert 690“) ----------
@@ -2795,7 +2940,7 @@ window.RokApp = () => {
     if (m === 'gems' && pmReady) { const plan = planSt().filter(p => (dOff(p.date) ?? -1) >= 0);
       if (plan.length) { let min = Infinity; plan.sort((a, b) => a.date.localeCompare(b.date)).forEach(p => { min = Math.min(min, gemsAt(dOff(p.date), true)); });
         statSub = min >= 0 ? `${plan.length} Events · Überschuss +${short(min)}` : `${plan.length} Events · fehlen ${short(-min)}`; } }
-    if (m === 'passports' && pmReady) { const n = migNeed(); if (n) statSub = `Migration: ${fmt(n.passports)} Passseiten · ${short(n.credits)} Credits`; }
+    if (m === 'passports' && pmReady) { const n = migNeed(); if (n) statSub = `Migration: ${fmt(n.passports)} Passseiten (${short(n.credits)} Credits)`; }
     if (m === 'goldheads' && pmReady) { const st = ghSt(), need = ghCost(st.cur.reduce((a, v) => a + v, 0), st.tgt.reduce((a, v) => a + v, 0)), miss = need - (+PMOD.goldheads.now().goldheads || 0);
       statSub = `${st.cur.join('-')} → ${st.tgt.join('-')}: ${miss > 0 ? `fehlen ${fmt(miss)}` : 'reicht ✓'}`; }
     if (GOALS[m] && pmReady) { const st = goalSt(m), cf = GOALS[m], k = PMOD[m].units[0].k, now = +PMOD[m].now()[k] || 0, t = m === 'gems' ? gemEvTotal() + (+st.target || 0) : (st.target || cf.def);
