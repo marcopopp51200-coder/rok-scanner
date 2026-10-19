@@ -742,6 +742,63 @@ window.RokAuth = (() => {
     return r.data || [];
   }
 
-  return { db: () => sb, germanError, pending: () => hasPending, hasFeature, isAdmin, saveKvkStart, saveKvkMap, saveKvkStats, kvkPeers, kvkUsers, kvkFindId, kvkGroups, kvkGroupCreate, kvkGroupPublic, kvkGroupInvite, kvkGroupJoin, kvkGroupLeave, kvkGroupDelete, refreshInvites, invites: () => inviteN, myId: () => user?.id || null, ownGains: () => ownGains, loadGearItems, saveShowcase, uploadImage, imgBase: () => IMG_BASE, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
+  // ---------- Konto: Name und Passwort ändern (account.js) ----------
+  // Accounts mit Benutzernamen loggen sich mit dem Namen ein (intern name@users.rok-scanner.app).
+  // Bei ihnen ändert ein neuer Name auch den Login-Namen. E-Mail-Accounts behalten ihre E-Mail zum Einloggen.
+  const isNameAccount = () => !!user && String(user.email || '').endsWith('@' + USERNAME_DOMAIN);
+  function accountInfo() {
+    if (!user) return null;
+    const nameAcc = isNameAccount();
+    return { name: profile.name, nameAccount: nameAcc, login: nameAcc ? profile.name : user.email };
+  }
+  async function changeName(newName) {
+    if (!user) throw new Error('Bitte zuerst einloggen.');
+    const name = String(newName || '').trim().replace(/\s+/g, ' ');
+    if (name.length < 2) throw new Error('Der Name muss mindestens 2 Zeichen haben.');
+    if (name.length > 40) throw new Error('Der Name darf höchstens 40 Zeichen haben.');
+    if (name === profile.name) return { changed: false };
+    // Name schon bei einem anderen Spieler in der Rangliste?
+    const pat = name.replace(/[\\%_]/g, (c) => '\\' + c);
+    const taken = await sb.from('leaderboard').select('user_id').ilike('username', pat).neq('user_id', user.id).limit(1);
+    if (!taken.error && taken.data?.length) throw new Error('Dieser Name ist schon vergeben.');
+    const upd = { data: { username: name } };
+    if (isNameAccount()) {
+      const email = usernameToEmail(name);
+      if (!email) throw new Error('Der Name braucht mindestens einen Buchstaben oder eine Zahl.');
+      if (email !== user.email) upd.email = email;           // neuer Login-Name
+    }
+    const { data, error } = await sb.auth.updateUser(upd);
+    if (error) {
+      if (upd.email && /already|exists|registered/i.test(error.message || '')) throw new Error('Dieser Name ist schon vergeben.');
+      throw error;
+    }
+    if (data?.user) user = data.user;
+    const loginChanged = !!upd.email && user.email === upd.email;
+    profile.name = name;
+    const lb = await sb.from('leaderboard').update({ username: name.slice(0, 40) }).eq('user_id', user.id);   // Name in Rangliste, Feed, Profil …
+    if (lb.error) console.warn('Name in der Rangliste nicht aktualisiert', lb.error);
+    return { changed: true, loginChanged, loginPending: !!upd.email && !loginChanged, login: accountInfo().login };
+  }
+  async function changePassword(oldPw, newPw, newPw2) {
+    if (!user) throw new Error('Bitte zuerst einloggen.');
+    if (!oldPw) throw new Error('Bitte dein aktuelles Passwort eingeben.');
+    if (String(newPw).length < 6) throw new Error('Das neue Passwort muss mindestens 6 Zeichen haben.');
+    if (newPw !== newPw2) throw new Error('Die neuen Passwörter stimmen nicht überein.');
+    if (newPw === oldPw) throw new Error('Das neue Passwort ist dasselbe wie das alte.');
+    // aktuelles Passwort prüfen (gleichzeitig frische Anmeldung, die Supabase fürs Ändern verlangen kann)
+    const chk = await sb.auth.signInWithPassword({ email: user.email, password: oldPw });
+    if (chk.error) {
+      if (/invalid login credentials/i.test(chk.error.message || '')) throw new Error('Das aktuelle Passwort ist falsch.');
+      throw chk.error;
+    }
+    const { error } = await sb.auth.updateUser({ password: newPw });
+    if (error) {
+      if (/different from the old/i.test(error.message || '')) throw new Error('Das neue Passwort ist dasselbe wie das alte.');
+      throw error;
+    }
+    return true;
+  }
+
+  return { accountInfo, changeName, changePassword, db: () => sb, germanError, pending: () => hasPending, hasFeature, isAdmin, saveKvkStart, saveKvkMap, saveKvkStats, kvkPeers, kvkUsers, kvkFindId, kvkGroups, kvkGroupCreate, kvkGroupPublic, kvkGroupInvite, kvkGroupJoin, kvkGroupLeave, kvkGroupDelete, refreshInvites, invites: () => inviteN, myId: () => user?.id || null, ownGains: () => ownGains, loadGearItems, saveShowcase, uploadImage, imgBase: () => IMG_BASE, current: () => profile, userId: () => user?.id, showLogin: () => showLogin('login'), logout, nsOf, changed, flushNow,
            pushVip, pushGov, loadLeaderboard, ownMeta: () => ownMeta, saveMeta, saveSkin, saveProfBg, saveProfOrder, saveKvkCard, saveAooCard, loadProfile, govNow: () => ({ energy: lbEnergy, kill_points: lbKills, deads: lbDeads, ark_wins: lbArk, lk_autarch: lbLk }), setPrivate, saveGovId, saveNow, pullScans, markDeleted, missingCols: () => [...missingCols] };
 })();
