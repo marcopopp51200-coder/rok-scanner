@@ -21,6 +21,17 @@ window.I18N = (() => {
         '👁 Andere Spieler sehen nur den ausgewählten Showcase.': '👁 Other players only see the selected showcase.',
         'Details sind privat – andere sehen nur das Bild.': 'Details are private – others only see the image.',
         '🔒 Details sind jetzt privat – andere sehen nur das Bild': '🔒 Details are now private – others only see the image', '🔓 Details sind jetzt für andere sichtbar': '🔓 Details are now visible to others',
+        // Konto: Name & Passwort ändern (account.js)
+        'Konto': 'Account', 'Name & Passwort': 'Name & password', 'Name und Passwort ändern': 'Change name and password', '👤 Name': '👤 Name', '🔒 Passwort': '🔒 Password',
+        'So sehen dich andere Spieler in Rangliste, Feed und Profil.': 'This is how other players see you in the leaderboard, feed and profile.', 'Neuer Name': 'New name',
+        '🔑 Du loggst dich mit deinem Namen ein – nach der Änderung mit dem': '🔑 You log in with your name – after the change with the', 'neuen Namen': 'new name', '🔑 Du loggst dich weiter mit': '🔑 You keep logging in with', 'ein.': '.',
+        'Name speichern': 'Save name', 'Passwort ändern': 'Change password', 'Aktuelles Passwort': 'Current password', 'Neues Passwort (mind. 6 Zeichen)': 'New password (min. 6 characters)', 'Neues Passwort wiederholen': 'Repeat new password',
+        'Passwort anzeigen': 'Show password', 'Schließen': 'Close', 'Das ist schon dein Name.': 'That already is your name.', '✓ Name geändert.': '✓ Name changed.',
+        '✓ Passwort geändert. Beim nächsten Login gilt das neue Passwort.': '✓ Password changed. Use the new password next time you log in.', 'Das aktuelle Passwort ist falsch.': 'The current password is wrong.',
+        'Bitte dein aktuelles Passwort eingeben.': 'Please enter your current password.', 'Das neue Passwort muss mindestens 6 Zeichen haben.': 'The new password must have at least 6 characters.',
+        'Die neuen Passwörter stimmen nicht überein.': 'The new passwords do not match.', 'Das neue Passwort ist dasselbe wie das alte.': 'The new password is the same as the old one.',
+        'Der Name muss mindestens 2 Zeichen haben.': 'The name must have at least 2 characters.', 'Der Name darf höchstens 40 Zeichen haben.': 'The name may have at most 40 characters.',
+        'Dieser Name ist schon vergeben.': 'This name is already taken.', 'Der Name braucht mindestens einen Buchstaben oder eine Zahl.': 'The name needs at least one letter or number.',
         // Neue Bereiche: Feed, My Kingdom, Help Me, Showcases (feed.js, kingdom.js, helpme.js, showcases.js)
         '📰 Feed': '📰 Feed', '🏰 My Kingdom': '🏰 My Kingdom', '🆘 Help Me': '🆘 Help Me', 'Showcases': 'Showcases', '🎨 Showcases': '🎨 Showcases', 'Zur Startseite': 'To the start page',
         'Showcases, KvK-Bilanzen und Craft-Upgrades aller Spieler': 'Showcases, KvK results and craft upgrades of all players', '↻ Aktualisieren': '↻ Refresh', 'Neuer Beitrag': 'New post',
@@ -397,6 +408,8 @@ window.I18N = (() => {
         'Set gespeichert · in der Cloud (user_state)': 'Set saved · in the cloud (user_state)', 'Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': 'Saved locally · cloud unreachable, will sync automatically'
       },
       patterns: [
+        [/^✓ Name geändert\. Ab jetzt loggst du dich mit „(.+)“ ein\.$/, '✓ Name changed. From now on you log in with “$1”.'],
+        [/^✓ Name geändert\. Der Login-Name bleibt vorerst der alte .*$/s, '✓ Name changed. Your login name stays the old one for now (Supabase requires e-mail confirmation – turn off “Confirm email”).'],
         [/^Bitte nur Zahlen eintragen, z\. B\. 85\.141\.754 oder 85,1M: (.+)$/, (m, f) => 'Please enter numbers only, e.g. 85,141,754 or 85.1M: ' + f.split(', ').map(x => tr(x)).join(', ')],
         [/^Der Screenshot zeigt die ID (\d+), in deinem Profil steht die ID (\d+)\.\n\nWerte trotzdem übernehmen\?$/, 'The screenshot shows ID $1, but your profile has ID $2.\n\nUse the values anyway?'],
         [/^✓ Größe (\d+) % übernommen$/, '✓ Size $1 % applied'],
