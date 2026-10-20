@@ -82,7 +82,7 @@ window.RokApp = () => {
   const CNT_TYPES = Object.keys(COUNTERS);
   const cntTotal = (m, e) => { const cf = COUNTERS[m]; const ks = cf.sum || (cf.fields.length === 1 ? [cf.fields[0].k] : null); if (!ks) return null; return ks.reduce((a, k) => a + (+e[k] || 0), 0); };
   const MODE_KEY = 'rok_scanner_mode'; R.MODE_KEY = MODE_KEY;
-  R.mode = ['speedups', 'resources', 'vip', 'gems', 'ap', 'mats', 'passports', 'marauders', ...CNT_TYPES].includes(LS.get(MODE_KEY, '')) ? LS.get(MODE_KEY) : 'resources';
+  R.mode = ['speedups', 'resources', 'vip', 'gems', 'ap', 'mats', 'passports', ...CNT_TYPES].includes(LS.get(MODE_KEY, '')) ? LS.get(MODE_KEY) : 'resources';
   let images = []; // {id, name, dataUrl, mediaType, base64}
   let vipItems = [];
   let vipCurrent = null;
@@ -1604,7 +1604,7 @@ window.RokApp = () => {
   $('speedInputRows').addEventListener('input', updateSpeedSum);
 
   // Getrennte Seiten: Ressourcen | VIP | Gems | Speedups | AP
-  const NOSCAN = ['passports', 'goldheads', 'keys', 'armaments', 'marauders'];   // vorerst nur Eingabe von Hand
+  const NOSCAN = ['passports', 'goldheads', 'keys', 'armaments'];   // vorerst nur Eingabe von Hand
   function applyMode() {
     const has = { speedups: hasSpeed, resources: hasRes, vip: hasVip, gems: hasGems, ap: hasAp, mats: hasMats, passports: hasPass }[R.mode] ?? (COUNTERS[R.mode] ? renderCnt(R.mode) : false);
     document.querySelectorAll('.seg-btn[data-mode]').forEach(x => x.setAttribute('aria-pressed', x.dataset.mode === R.mode));
@@ -1626,13 +1626,6 @@ window.RokApp = () => {
     $('cntSection').classList.toggle('hidden', !isCnt || !has);
     if (isCnt && $('cntInputs').dataset.m !== R.mode) { renderCntInputs(R.mode); $('cntInputs').dataset.m = R.mode; }
     if (passiveReady) renderStats(R.mode); else if ($('passiveInputs')) $('passiveInputs').classList.add('hidden');
-    { // Marodeure: nur Rechner, kein Scan / Verlauf
-      const isMar = R.mode === 'marauders';
-      if (!$('marSection')) $('results').insertAdjacentHTML('afterbegin', '<div id="marSection" class="hidden space-y-6"></div>');
-      $('marSection').classList.toggle('hidden', !isMar);
-      $('historySection')?.classList.toggle('hidden', isMar);
-      if (isMar && passiveReady) renderMar();
-    }
     $('speedSection').classList.toggle('hidden', R.mode !== 'speedups' || !hasSpeed);
     $('speedInputs').classList.toggle('hidden', R.mode !== 'speedups');
     $('speedOpts').classList.toggle('hidden', R.mode !== 'speedups');
@@ -1651,7 +1644,7 @@ window.RokApp = () => {
     $('matsInputs').classList.toggle('hidden', R.mode !== 'mats');
     if ($('loadingState').classList.contains('hidden')) $('analyzeLabel').textContent = R.mode === 'mats' ? 'Materialien scannen' : 'Analysieren';
     renderCredits();
-    $('emptyState').classList.toggle('hidden', !!has || R.mode === 'marauders');
+    $('emptyState').classList.toggle('hidden', !!has);
     $('emptyState').querySelector('p').textContent = {
       resources: 'Lade einen Screenshot der Ressourcen deines Main-Accounts hoch und klicke auf „Analysieren“.',
       vip: 'Lade einen Screenshot deines Inventars mit VIP-Punkte-Items hoch und klicke auf „Analysieren“ – oder nutze „Rechner ohne Scan öffnen“.',
@@ -2011,40 +2004,6 @@ window.RokApp = () => {
   const nv = (v, d) => (v === null || v === undefined || v === '' || isNaN(+v)) ? d : +v;
   const GEM_PER_FORT = 150 * 10 / 1676;   // 150× 10 Gems bei 1.676 Burgen → Ø 0,895 Gems pro Fort (8,95 % Drop)
   const one = (k) => (v) => ({ [k]: v });
-  // ---------- Ressourcen: Farmen sammeln lassen (passiv) ----------
-  const fgSt = () => (passive.farmGather = passive.farmGather || {});
-  const fgOf = (id) => { const a = fgSt(); return (a[id] = a[id] || { res: 'food', load: null, sends: null }); };
-  function farmGatherDay() {
-    const o = {}; farms.forEach(f => { const g = fgOf(f.id), v = (+g.load || 0) * (+g.sends || 0); if (v > 0) o[g.res] = (o[g.res] || 0) + v; }); return o;
-  }
-  function farmGatherHtml() {
-    const c = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
-    return `<div class="space-y-2">${farms.length ? farms.map(f => { const g = fgOf(f.id), d = (+g.load || 0) * (+g.sends || 0);
-      return `<div class="rounded-lg border border-ink-700 bg-ink-950/40 p-2 grid grid-cols-2 sm:grid-cols-[1fr_8rem_8rem_6rem] gap-2 items-end text-xs text-slate-400">
-        <label>Farm<input data-fgname="${f.id}" type="text" value="${esc(f.name)}" class="mt-1 w-full ${c}"></label>
-        <label>Sammelt<select data-fg="${f.id}" data-key="res" class="mt-1 w-full ${c}">${RES.map(r => `<option value="${r.k}" ${g.res === r.k ? 'selected' : ''}>${r.label}</option>`).join('')}</select></label>
-        <label>Menge pro Marsch<input data-fg="${f.id}" data-key="load" type="text" inputmode="decimal" value="${g.load ? fmt(g.load) : ''}" placeholder="z. B. 4.000.000" class="mt-1 w-full text-right ${c}"></label>
-        <label>Sendungen / Tag<input data-fg="${f.id}" data-key="sends" type="number" min="0" step="any" value="${g.sends ?? ''}" placeholder="z. B. 5" class="mt-1 w-full text-right ${c}"></label>
-        <div class="col-span-2 sm:col-span-4 text-right text-emerald-400 tabular-nums">${d > 0 ? `+${short(d)} ${RES.find(r => r.k === g.res)?.label || ''} / Tag` : '–'}</div></div>`; }).join('')
-      : '<div class="text-xs text-slate-500">Noch keine Farmen angelegt.</div>'}
-      <button type="button" data-fgadd class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs">+ Farm</button></div>`;
-  }
-  function bindFarmGather(box, upd, full) {
-    box.querySelectorAll('[data-fg]').forEach(i => i.addEventListener(i.tagName === 'SELECT' ? 'change' : 'change', () => {
-      const g = fgOf(i.dataset.fg);
-      if (i.dataset.key === 'res') g.res = i.value;
-      else { const v = i.value.trim() === '' ? null : i.type === 'text' ? parseAmount(i.value) : +i.value; g[i.dataset.key] = v == null || isNaN(v) ? null : Math.max(0, v); }
-      full();
-    }));
-    box.querySelectorAll('[data-fgname]').forEach(i => i.addEventListener('change', () => { const f = farms.find(x => x.id === i.dataset.fgname); if (!f) return; f.name = i.value.trim() || 'Farm'; saveFarms(); renderFarms(); full(); }));
-    box.querySelector('[data-fgadd]').onclick = () => { farms.push({ id: newId(), name: `Farm ${farms.length + 1}`, food: 0, wood: 0, stone: 0, gold: 0 }); saveFarms(); renderFarms(); full(); };
-  }
-  // ---------- Mats: passive Quellen (in Legendär umgerechnet) ----------
-  const matSrc = (k, label, desc, unitLabel, per, ph) => ({ k, label, desc,
-    inputs: [{ key: 'n', label: unitLabel, ph }, { key: 'r', label: 'Seltenheit', sel: GRADES.map(g => [g.k, g.label]), def: 'white' },
-             { key: 't', label: 'Material', sel: [['all', 'Alle 4 gleich verteilt'], ...MATS.map(x => [x.k, x.label])], def: 'all' }],
-    perDay: (st) => { const n = nv(st.n, 0) / per, g = GRADES.find(x => x.k === (st.r || 'white')) || GRADES[0], leg = n / g.div, o = {};
-      if ((st.t || 'all') === 'all') MATS.forEach(x => o[x.k] = leg / MATS.length); else o[st.t] = leg; return o; } });
   // Passports: 600.000 Credits = 1 Passseite (Allianz-Shop)
   var PP_CR = 600000;
   const crPP = (c) => ({ credits: c, passports: c / PP_CR });
@@ -2068,9 +2027,7 @@ window.RokApp = () => {
       src: [
         { k: 'city', label: 'City-Ressourcen (alle Lv. 25)', desc: 'Proviant/Holz 54.080 · Stein 40.560 · Gold 27.040 pro Stunde', perDay: () => ({ food: 54080 * 24, wood: 54080 * 24, stone: 40560 * 24, gold: 27040 * 24 }) },
         { k: 'alliance', label: 'Allianz-Ressourcen', desc: 'Selbst eintragen – pro Stunde', inputs: RES.map(r => ({ key: r.k, label: `${r.label} pro Stunde`, ph: '0', text: true })), perDay: (s) => Object.fromEntries(RES.map(r => [r.k, nv(s[r.k], 0) * 24])) },
-        { k: 'daily', label: 'Daily', desc: 'Proviant/Holz 270.000 · Stein 202.000 · Gold 27.000 pro Tag', perDay: () => ({ food: 270000, wood: 270000, stone: 202000, gold: 27000 }) },
-        { k: 'farms', label: 'Farmen sammeln', desc: 'Je Farm: was sie sammelt, wie viel pro Marsch und wie oft am Tag du sendest', perDay: () => farmGatherDay(),
-          custom: { html: () => farmGatherHtml(), bind: (box, upd, full) => bindFarmGather(box, upd, full) } }
+        { k: 'daily', label: 'Daily', desc: 'Proviant/Holz 270.000 · Stein 202.000 · Gold 27.000 pro Tag', perDay: () => ({ food: 270000, wood: 270000, stone: 202000, gold: 27000 }) }
       ] },
     passports: { title: 'Passive Credits', weekCol: true,
       summary: () => { const c = pmDayTotal('passports').credits || 0; return c > 0 ? `+${short(c * 7)} Credits / Woche · 1 Passport alle ${ppEvery(c)} Tage` : null; },
@@ -2083,15 +2040,6 @@ window.RokApp = () => {
         { k: 'vipgreen', label: 'VIP-Shop: grüne Kisten', desc: '+8.000 Credits pro Woche · ℹ️ Grüne Kisten nehmen und damit das Kavallerie-Waffen-Set craften', perDay: () => crPP(8000 / 7) },
         { k: 'vipblue', label: 'VIP-Shop: blaue Kiste', desc: '15 Blueprints verkaufen = +4.000 Credits pro Woche · ℹ️ Nur behalten, wenn du das Teil damit voll craften kannst', perDay: () => crPP(4000 / 7) }
       ] },
-    mats: { title: 'Passive Mats', units: MATS.map(x => ({ k: x.k, label: x.label, c: x.c, img: x.img, icon: x.icon })),
-      summary: () => { const t = pmSum(pmDayTotal('mats')); return t > 0 ? `+${pmFmt('mats', t * 7)} Legendär / Woche` : null; },
-      now: () => { const e = lastOf('materials'); return e ? Object.fromEntries(MATS.map(x => [x.k, matLeg(e, x.k)])) : {}; },
-      src: [
-        matSrc('mine', 'Mats-Mine', 'Material-Mine sammeln', 'Stück pro Tag', 1, 'z. B. 40'),
-        matSrc('events', 'Events', 'Mats aus Events (Ø)', 'Stück pro Woche', 7, 'z. B. 200'),
-        matSrc('fight', 'Kampf', 'Barbaren, Forts, Marodeure – Material-Drops', 'Stück pro Tag', 1, 'z. B. 60'),
-        matSrc('vipshop', 'VIP-Shop', 'Mats im VIP-Shop kaufen', 'Stück pro Woche', 7, 'z. B. 2')
-      ] },
     goldheads: { title: 'Passive Goldheads', units: [{ k: 'goldheads', label: 'Goldheads', c: '#facc15', icon: '🗿', img: 'goldhead.webp' }], now: () => { const e = lastOf('goldheads'); return { goldheads: e ? +e.goldheads || 0 : null }; },
       src: [
         { k: 'vipd', label: 'VIP täglich', desc: 'VIP 10–11: 1 · VIP 12–13: 2 · VIP 14–19 & SVIP: 3 pro Tag (aus deinem VIP-Stand)', perDay: () => ({ goldheads: ghVipDaily() }) },
@@ -2103,7 +2051,7 @@ window.RokApp = () => {
   const PM_COL = ['#38bdf8', '#a78bfa', '#f97316', '#f472b6', '#e2e8f0', '#ef4444', '#2dd4bf'];
   const pmSt = (m) => { const a = (passive.pm = passive.pm || {}); return (a[m] = a[m] || { src: {}, lines: { total: true } }); };
   const pmSrc = (m, k) => { const st = pmSt(m); return (st.src[k] = st.src[k] || { on: false }); };
-  const pmFmt = (m, v) => m === 'mats' ? (+v).toLocaleString('de-DE', { maximumFractionDigits: Math.abs(v) < 10 ? 2 : 1 }) : PMOD[m].short || Math.abs(v) >= 1e6 ? short(v) : Math.abs(v) < 10 && v % 1 ? (+v).toLocaleString('de-DE', { maximumFractionDigits: Math.abs(v) < 1 ? 2 : 1 }) : fmt(v);
+  const pmFmt = (m, v) => PMOD[m].short || Math.abs(v) >= 1e6 ? short(v) : Math.abs(v) < 10 && v % 1 ? (+v).toLocaleString('de-DE', { maximumFractionDigits: Math.abs(v) < 1 ? 2 : 1 }) : fmt(v);
   const pmSg = (m, v) => (v < 0 ? '−' : '+') + pmFmt(m, Math.abs(v));
   const pmAdd = (a, b, f = 1) => { const o = { ...a }; Object.entries(b || {}).forEach(([k, v]) => o[k] = (o[k] || 0) + v * f); return o; };
   const pmPerDay = (m, x) => x.perDay(pmSrc(m, x.k));
@@ -2137,23 +2085,17 @@ window.RokApp = () => {
                 </div>
                 <div class="ap-src-body text-right text-xs tabular-nums text-emerald-400 whitespace-nowrap" data-pmday="${x.k}"></div>
               </div>
-              ${(x.inputs || []).map(f => `<label class="ap-src-body mt-2 flex items-center justify-between gap-2 text-xs text-slate-300">${f.label}${f.sel
-                ? `<select data-pmin="${x.k}" data-key="${f.key}" class="w-44 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500">${f.sel.map(([v, l]) => `<option value="${v}" ${(s[f.key] ?? f.def) === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`
-                : `<input data-pmin="${x.k}" data-key="${f.key}" ${f.text ? 'type="text" inputmode="decimal"' : 'type="number" min="0" step="any"'} value="${s[f.key] ?? f.def ?? ''}" placeholder="${f.ph || ''}" class="${inp}">`}</label>`).join('')}
-              ${x.custom ? `<div class="ap-src-body mt-2" data-pmcustom="${x.k}">${x.custom.html(m)}</div>` : ''}
+              ${(x.inputs || []).map(f => `<label class="ap-src-body mt-2 flex items-center justify-between gap-2 text-xs text-slate-300">${f.label}<input data-pmin="${x.k}" data-key="${f.key}" ${f.text ? 'type="text" inputmode="decimal"' : 'type="number" min="0" step="any"'} value="${s[f.key] ?? f.def ?? ''}" placeholder="${f.ph || ''}" class="${inp}"></label>`).join('')}
             </div>`; }).join('')}</div>
         </section>
       </section>`;
     makeFold($('pmPassive'), 'pm:' + m);
     makeFold($('pmSrcBox'), 'pmsrc:' + m);
     pt.querySelectorAll('[data-pmtog]').forEach(b => b.onclick = () => { const s = pmSrc(m, b.dataset.pmtog); s.on = !s.on; b.setAttribute('aria-checked', String(s.on)); b.closest('.ap-src').dataset.on = String(s.on); savePassive(); renderPMOut(m); });
-    pt.querySelectorAll('[data-pmin]').forEach(i => i.addEventListener(i.tagName === 'SELECT' ? 'change' : 'input', () => {
-      const s = pmSrc(m, i.dataset.pmin);
-      if (i.tagName === 'SELECT') { s[i.dataset.key] = i.value; savePassive(); renderPMOut(m); return; }
-      const v = i.value.trim() === '' ? null : i.type === 'text' ? parseAmount(i.value) : +i.value;
+    pt.querySelectorAll('[data-pmin]').forEach(i => i.addEventListener('input', () => {
+      const s = pmSrc(m, i.dataset.pmin), v = i.value.trim() === '' ? null : i.type === 'text' ? parseAmount(i.value) : +i.value;
       s[i.dataset.key] = v == null || isNaN(v) ? null : Math.max(0, v); savePassive(); renderPMOut(m);
     }));
-    cf.src.forEach(x => { const box = pt.querySelector(`[data-pmcustom="${x.k}"]`); if (box && x.custom.bind) x.custom.bind(box, () => { savePassive(); renderPMOut(m); }, () => { savePassive(); renderPM(m); }); });
     bindHorizonCtl(pt, () => renderPMOut(m));
     renderPMOut(m);
   }
@@ -2887,134 +2829,6 @@ window.RokApp = () => {
     $('migGoal')?.addEventListener('click', () => { $('passGoal').value = need.passports; LS.set(PASS_GOAL, String(need.passports)); renderPassGoal(+pages || 0); $('passGoal').dispatchEvent(new Event('input')); upd(); });
   }
 
-  // ---------- Marodeure: Rechner für Gems, Speedups und Mats ----------
-  const marSt = () => (passive.mar = passive.mar || { r: 'white' });
-  function renderMar() {
-    const el = $('marSection'); if (!el) return;
-    const st = marSt(), ap = apNow(), cost = apCost('maraud'), n = +st.n > 0 ? +st.n : 0, pd = +st.pd > 0 ? +st.pd : 0;
-    const g = GRADES.find(x => x.k === (st.r || 'white')) || GRADES[0];
-    const per = { gems: +st.gems || 0, speed: +st.speed || 0, mats: +st.mats || 0 };
-    const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:border-gold-500';
-    const num = (k, ph) => `<input data-mar="${k}" type="text" inputmode="decimal" value="${st[k] != null && st[k] !== '' ? String(st[k]).replace('.', ',') : ''}" placeholder="${ph}" class="mt-1 w-full text-right ${inp}">`;
-    const res = (cnt) => ({ ap: cnt * cost, gems: cnt * per.gems, speed: cnt * per.speed, mats: cnt * per.mats, leg: cnt * per.mats / g.div });
-    const card = (l, v, c, sub, icon) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">${icon || ''} ${l}</div><div class="text-xl font-bold tabular-nums ${c}">${v}</div>${sub ? `<div class="text-[11px] text-slate-500">${sub}</div>` : ''}</div>`;
-    const R1 = res(n), H = [[7, '7 Tage'], [14, '14 Tage'], [30, '30 Tage']];
-    const spd = (min) => min > 0 ? durText(min) : '–';
-    el.innerHTML = `<section id="marBox" class="panel rounded-2xl p-5">
-      <h2 class="font-display text-lg text-gold-300">🐎 Marodeure</h2>
-      <p class="text-xs text-slate-400 mb-4">Trag ein, was ein Marodeur im Schnitt bringt (z. B. aus deinen Kisten: Summe ÷ Anzahl). Kosten: ${fmt(cost)} AP pro Marodeur (unter AP änderbar).</p>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-2">
-        <label class="text-xs text-slate-400">${ico({ img: 'ressourcen/gems.png', icon: '💎' }, 'w-4 h-4')} Gems pro Marodeur${num('gems', 'z. B. 25')}</label>
-        <label class="text-xs text-slate-400">${ico({ img: 'sonstiges/SpeedUniversal.png', icon: '⏱️' }, 'w-4 h-4')} Speedups pro Marodeur (Min.)${num('speed', 'z. B. 60')}</label>
-        <label class="text-xs text-slate-400">${ico({ img: 'mats/choicematchest.png', icon: '🧱' }, 'w-4 h-4')} Mats pro Marodeur (Stück)${num('mats', 'z. B. 3')}</label>
-        <label class="text-xs text-slate-400">Seltenheit der Mats<select data-mar="r" class="mt-1 w-full ${inp}">${GRADES.map(x => `<option value="${x.k}" ${x.k === g.k ? 'selected' : ''}>${x.label}</option>`).join('')}</select></label>
-      </div>
-      <details class="mb-4 text-xs text-slate-400"><summary class="cursor-pointer hover:text-gold-300">Aus einem Testlauf ausrechnen</summary>
-        <div class="mt-2 grid sm:grid-cols-5 gap-2 items-end">
-          <label>Marodeure${num('tn', 'z. B. 50')}</label><label>Gems gesamt${num('tg', '0')}</label><label>Speedups gesamt (Min.)${num('ts', '0')}</label><label>Mats gesamt${num('tm', '0')}</label>
-          <button type="button" id="marTest" class="px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">÷ übernehmen</button></div></details>
-      <div class="grid sm:grid-cols-2 gap-3 mb-4">
-        <label class="text-xs text-slate-400">Wie viele Marodeure?<div class="mt-1 flex gap-2"><input data-mar="n" type="number" min="0" step="1" value="${st.n ?? ''}" placeholder="z. B. 100" class="flex-1 text-right ${inp}">
-          ${ap ? `<button type="button" id="marAll" class="px-3 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-xs whitespace-nowrap">Alle AP (${fmt(Math.floor(ap / cost))})</button>` : ''}</div></label>
-        <label class="text-xs text-slate-400">Marodeure pro Tag (für die Hochrechnung)<input data-mar="pd" type="number" min="0" step="1" value="${st.pd ?? ''}" placeholder="z. B. 20" class="mt-1 w-full text-right ${inp}"></label>
-      </div>
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        ${card('AP nötig', n ? fmt(R1.ap) : '–', ap != null && R1.ap > ap ? 'text-red-400' : 'text-emerald-300', ap != null && n ? (R1.ap > ap ? `fehlen ${fmt(R1.ap - ap)} AP` : `du hast ${fmt(ap)} AP`) : '', ico({ img: AP_IMG, icon: '⚡' }, 'w-4 h-4'))}
-        ${card('Gems', n && per.gems ? fmt(R1.gems) : '–', 'text-pink-300', '', ico({ img: 'ressourcen/gems.png', icon: '💎' }, 'w-4 h-4'))}
-        ${card('Speedups', n && per.speed ? spd(R1.speed) : '–', 'text-sky-300', n && per.speed ? `${fmt(R1.speed)} Min.` : '', ico({ img: 'sonstiges/SpeedUniversal.png', icon: '⏱️' }, 'w-4 h-4'))}
-        ${card('Mats', n && per.mats ? fmt(R1.mats) : '–', 'text-violet-300', n && per.mats ? `${g.label} · ≈ ${pmFmt('mats', R1.leg)} Legendär` : '', ico({ img: 'mats/choicematchest.png', icon: '🧱' }, 'w-4 h-4'))}
-      </div>
-      ${pd ? `<div class="mt-4 overflow-x-auto rounded-lg border border-emerald-500/30 bg-emerald-500/5"><table class="w-full text-xs">
-        <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-1.5 px-2 text-left font-medium">${fmt(pd)} pro Tag</th><th class="py-1.5 px-2 text-right font-medium">Marodeure</th><th class="py-1.5 px-2 text-right font-medium">AP</th><th class="py-1.5 px-2 text-right font-medium">Gems</th><th class="py-1.5 px-2 text-right font-medium">Speedups</th><th class="py-1.5 px-2 text-right font-medium">Mats</th></tr></thead>
-        <tbody>${[[1, 'pro Tag'], ...H].map(([d, l]) => { const r = res(pd * d); return `<tr class="border-b border-ink-800 last:border-b-0"><td class="py-1.5 px-2 text-slate-300">${l}</td><td class="py-1.5 px-2 text-right tabular-nums">${fmt(pd * d)}</td><td class="py-1.5 px-2 text-right tabular-nums text-emerald-300">${fmt(r.ap)}</td>
-          <td class="py-1.5 px-2 text-right tabular-nums text-pink-300">${per.gems ? '+' + fmt(r.gems) : '–'}</td><td class="py-1.5 px-2 text-right tabular-nums text-sky-300">${per.speed ? spd(r.speed) : '–'}</td><td class="py-1.5 px-2 text-right tabular-nums text-violet-300">${per.mats ? `${fmt(r.mats)} <span class="text-slate-500">(${pmFmt('mats', r.leg)} Leg.)</span>` : '–'}</td></tr>`; }).join('')}</tbody></table></div>
-        <div class="mt-1 text-[11px] text-slate-500">${apPerDay() > 0 ? `Dein passives AP: +${fmt(apPerDay())} / Tag → reicht für ca. ${fmt(Math.floor(apPerDay() / cost))} Marodeure am Tag.` : 'Tipp: Unter AP → Passive kannst du dein tägliches AP einstellen.'}</div>` : ''}
-    </section>`;
-    makeFold($('marBox'), 'mar');
-    const save = (rer) => { savePassive(); if (rer) renderMar(); renderHub?.(); };
-    el.querySelectorAll('[data-mar]').forEach(i => i.addEventListener('change', () => {
-      const k = i.dataset.mar;
-      if (i.tagName === 'SELECT') st[k] = i.value;
-      else { const v = i.value.trim() === '' ? null : parseFloat(i.value.replace(/\./g, '').replace(',', '.')); st[k] = v == null || isNaN(v) ? null : Math.max(0, v); }
-      if (!['tn', 'tg', 'ts', 'tm'].includes(k)) save(true); else savePassive();
-    }));
-    $('marAll')?.addEventListener('click', () => { st.n = Math.floor(ap / cost); save(true); });
-    $('marTest').onclick = () => { const tn = +st.tn || 0; if (!tn) return; const r2 = (v) => Math.round((+v || 0) / tn * 100) / 100;
-      st.gems = r2(st.tg); st.speed = r2(st.ts); st.mats = r2(st.tm); save(true); };
-  }
-
-  // ---------- Armaments: Chancen-Rechner (offizielle Wahrscheinlichkeiten von Lilith) ----------
-  const ARM_ODDS = [
-    { k: 'chestLeg', label: 'Formations-Wahltruhe (Legendär)', p: { il: 12.472, l: 87.528 } },
-    { k: 'chestEpic', label: 'Formations-Wahltruhe (Episch)', p: { il: 2.078, l: 14.587, ie: 16.667, e: 66.668 } },
-    { k: 'chestElite', label: 'Formations-Wahltruhe (Elite)', p: { il: 0.48, l: 3.366, ie: 3.846, e: 15.385, el: 76.923 } },
-    { k: 'event', label: 'Event „Armament, Reveal Thyself“ (alles im Shop kaufen)', p: { il: 3.381, l: 24.512, ie: 14.365, e: 57.742 } },
-    { k: 'eventBlind', label: 'Event ohne aufgedeckte Infos', p: { il: 0.23, l: 5.09, ie: 7.49, e: 87.19 } }
-  ];
-  const ARM_TGT = [
-    { k: 'sp', label: 'Spezial-Inschrift (legendär)', f: (p) => (p.il || 0) * 0.0066 },
-    { k: 'il', label: 'Legendär mit Inschrift', f: (p) => p.il || 0 },
-    { k: 'lp', label: 'Legendär (mit oder ohne Inschrift)', f: (p) => (p.il || 0) + (p.l || 0) },
-    { k: 'iep', label: 'Inschrift (Episch oder besser)', f: (p) => (p.il || 0) + (p.ie || 0) },
-    { k: 'ep', label: 'Episch oder besser', f: (p) => (p.il || 0) + (p.l || 0) + (p.ie || 0) + (p.e || 0) }
-  ];
-  const armSt = () => (passive.armOdds = passive.armOdds || { src: 'chestEpic', tgt: 'il' });
-  let armChart = null;
-  const pctTxt = (x) => x >= 0.9995 ? '≈ 100 %' : (x * 100).toLocaleString('de-DE', { maximumFractionDigits: x < 0.01 ? 2 : 1 }) + ' %';
-  const needFor = (p, q) => p <= 0 ? null : p >= 1 ? 1 : Math.ceil(Math.log(1 - q) / Math.log(1 - p));
-  function renderArmStats() {
-    const top = $('statsTop'), st = armSt(), src = ARM_ODDS.find(x => x.k === st.src) || ARM_ODDS[1], tgt = ARM_TGT.find(x => x.k === st.tgt) || ARM_TGT[1];
-    const last = R.history.filter(e => e.type === 'armaments').sort((a, b) => b.ts - a.ts)[0];
-    const n = +st.n > 0 ? +st.n : (last?.arm_chest || 0), wk = +st.wk > 0 ? +st.wk : 0;
-    const p = tgt.f(src.p) / 100, atLeast = n ? 1 - Math.pow(1 - p, n) : 0;
-    const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:border-gold-500';
-    const card = (l, v, c, sub) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">${l}</div><div class="text-xl font-bold tabular-nums ${c}">${v}</div>${sub ? `<div class="text-[11px] text-slate-500">${sub}</div>` : ''}</div>`;
-    const when = (k) => { if (k == null) return ''; if (!wk) return ''; const d = Math.ceil(k / wk * 7); return `ca. ${fmt(Math.ceil(k / wk))} Wochen · ${dayPlus(d).toLocaleDateString('de-DE')}`; };
-    top.innerHTML = `<section id="armOddsBox" class="panel rounded-2xl p-5">
-      <h2 class="font-display text-lg text-gold-300">Chancen-Rechner</h2>
-      <p class="text-xs text-slate-400 mb-3">Wie wahrscheinlich ist ein seltenes Armament – und wie viele Versuche brauchst du dafür?</p>
-      <div class="grid sm:grid-cols-2 gap-3 mb-3">
-        <label class="text-xs text-slate-400">Quelle<select id="armSrc" class="mt-1 w-full ${inp}">${ARM_ODDS.map(x => `<option value="${x.k}" ${x.k === src.k ? 'selected' : ''}>${x.label}</option>`).join('')}</select></label>
-        <div class="grid grid-cols-2 gap-3">
-          <label class="text-xs text-slate-400">Anzahl Versuche<input id="armN" type="number" min="0" step="1" value="${n || ''}" placeholder="z. B. 20" class="mt-1 w-full text-right ${inp}"></label>
-          <label class="text-xs text-slate-400">Versuche pro Woche<input id="armWk" type="number" min="0" step="any" value="${wk || ''}" placeholder="optional" class="mt-1 w-full text-right ${inp}"></label>
-        </div>
-      </div>
-      <div class="flex flex-wrap gap-2 mb-4">${ARM_TGT.map(x => { const on = x.k === tgt.k, v = x.f(src.p); return `<button type="button" data-armtgt="${x.k}" aria-pressed="${on}" ${v ? '' : 'disabled'} class="rounded-xl border px-3 py-1.5 text-left transition disabled:opacity-30 ${on ? 'border-gold-400 bg-gold-500/15' : 'border-ink-700 bg-ink-950/50 hover:border-gold-500/50'}">
-        <div class="text-xs font-semibold ${on ? 'text-gold-200' : 'text-slate-200'}">${x.label}</div><div class="text-[10px] tabular-nums ${on ? 'text-gold-300' : 'text-slate-400'}">${pctTxt(v / 100)} pro Versuch</div></button>`; }).join('')}</div>
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        ${card(`Chance bei ${fmt(n)} Versuchen`, n ? pctTxt(atLeast) : '–', atLeast >= .5 ? 'text-emerald-400' : 'text-gold-300', n ? `mind. 1× ${tgt.label} · erwartet ${(n * p).toLocaleString('de-DE', { maximumFractionDigits: 2 })}×` : 'Anzahl eintragen')}
-        ${card('50 % Chance ab', needFor(p, .5) ? fmt(needFor(p, .5)) + ' Versuchen' : '–', 'text-white', when(needFor(p, .5)))}
-        ${card('90 % Chance ab', needFor(p, .9) ? fmt(needFor(p, .9)) + ' Versuchen' : '–', 'text-white', when(needFor(p, .9)))}
-        ${card('Im Schnitt 1×', p ? 'alle ' + fmt(Math.ceil(1 / p)) + ' Versuche' : '–', 'text-indigo-300', when(p ? Math.ceil(1 / p) : null))}
-      </div>
-      <div class="mt-4 h-56" id="armChartWrap"></div>
-      <div class="mt-4 overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs">
-        <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-2 px-3 text-left font-medium">${src.label}</th><th class="py-2 px-3 text-right font-medium">pro Versuch</th><th class="py-2 px-3 text-right font-medium">bei ${fmt(n)}</th><th class="py-2 px-3 text-right font-medium">50 % ab</th><th class="py-2 px-3 text-right font-medium">90 % ab</th></tr></thead>
-        <tbody>${ARM_TGT.map(x => { const q = x.f(src.p) / 100; if (!q) return ''; const on = x.k === tgt.k; return `<tr data-armtgt="${x.k}" class="border-b border-ink-800 last:border-b-0 cursor-pointer hover:bg-gold-500/10 ${on ? 'bg-gold-500/10' : ''}"><td class="py-1.5 px-3 ${on ? 'text-gold-300 font-semibold' : 'text-slate-300'}">${x.label}</td>
-          <td class="py-1.5 px-3 text-right tabular-nums">${pctTxt(q)}</td><td class="py-1.5 px-3 text-right tabular-nums">${n ? pctTxt(1 - Math.pow(1 - q, n)) : '–'}</td><td class="py-1.5 px-3 text-right tabular-nums">${fmt(needFor(q, .5))}</td><td class="py-1.5 px-3 text-right tabular-nums">${fmt(needFor(q, .9))}</td></tr>`; }).join('')}</tbody></table></div>
-      <div class="mt-2 text-[11px] text-slate-500">Quelle: offizielle Wahrscheinlichkeiten von Lilith (rok.lilith.com/probability). Spezial-Inschrift = 0,66 % der legendären Armaments mit Inschrift (Schriftrolle/Instrument). Jeder Versuch ist unabhängig – Pech kann es immer geben.</div>
-    </section>`;
-    makeFold($('armOddsBox'), 'armodds');
-    const upd = () => { savePassive(); renderArmStats(); };
-    $('armSrc').onchange = (e) => { st.src = e.target.value; if (!ARM_TGT.find(x => x.k === st.tgt).f(ARM_ODDS.find(x => x.k === st.src).p)) st.tgt = 'lp'; upd(); };
-    $('armN').onchange = (e) => { st.n = Math.max(0, Math.round(+e.target.value || 0)) || null; upd(); };
-    $('armWk').onchange = (e) => { st.wk = Math.max(0, +e.target.value || 0) || null; upd(); };
-    top.querySelectorAll('[data-armtgt]').forEach(b => b.onclick = () => { st.tgt = b.dataset.armtgt; upd(); });
-    // Kurve: Chance auf mind. 1 Treffer je Anzahl Versuche
-    const wrap = $('armChartWrap'); if (armChart) { try { armChart.destroy(); } catch {} armChart = null; }
-    if (!p) { wrap.innerHTML = ''; return; }
-    if (!window.Chart) { wrap.innerHTML = '<div class="h-full grid place-items-center text-xs text-slate-500">Diagramm konnte nicht geladen werden.</div>'; return; }
-    const maxN = Math.max(n, needFor(p, .95) || 10, 10), step = Math.max(1, Math.ceil(maxN / 120)), xs = [];
-    for (let k = 0; k <= maxN; k += step) xs.push(k);
-    wrap.innerHTML = '<canvas id="armChart"></canvas>';
-    armChart = new Chart($('armChart'), { type: 'line',
-      data: { labels: xs, datasets: [{ label: `Chance: ${tgt.label}`, data: xs.map(k => Math.round((1 - Math.pow(1 - p, k)) * 1000) / 10), borderColor: '#f97316', backgroundColor: '#f9731622', borderWidth: 3, tension: .2, pointRadius: xs.map(k => n && Math.abs(k - n) < step ? 5 : 0), fill: true }] },
-      options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-        plugins: { legend: { display: false }, tooltip: { callbacks: { title: (c) => `${c[0].label} Versuche`, label: (c) => `${c.raw.toLocaleString('de-DE')} %` } } },
-        scales: { y: { min: 0, max: 100, ticks: { callback: (v) => v + ' %' } }, x: { title: { display: true, text: 'Versuche' }, ticks: { maxTicksLimit: 10 } } } } });
-  }
-
   // ---------- Goldheads: Kommandanten-Expertise (Kosten je Skillpunkt, Bild „Expert 690“) ----------
   const GH_STEPS = [10, 10, 15, 15, 30, 30, 40, 40, 45, 45, 50, 50, 75, 75, 80, 80];   // vom 5. bis 20. Skillpunkt (1-1-1-1 → 5-5-5-5) = 690
   const ghCost = (from, to) => { let c = 0; for (let p = Math.max(4, from); p < Math.min(20, to); p++) c += GH_STEPS[p - 4]; return c; };
@@ -3128,7 +2942,6 @@ window.RokApp = () => {
     else if (GOALS[m]) renderGoalStats(m);
     else if (m === 'passports') renderMigStats();
     else if (m === 'goldheads') renderGhStats();
-    else if (m === 'armaments') renderArmStats();
     else if (false) top.innerHTML = `<section class="panel rounded-2xl p-5"><h2 class="font-display text-lg text-gold-300 mb-2">Power → benötigte Passseiten</h2>
         <div class="overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs"><thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-2 px-3 text-left font-medium">Power</th><th class="py-2 px-3 text-right font-medium">Passseiten</th></tr></thead>
         <tbody><tr><td colspan="2" class="py-6 text-center text-slate-500">Tabelle folgt – sobald die Daten da sind, steht hier, wie viele Passseiten du für deine Power brauchst.</td></tr></tbody></table></div></section>`;
@@ -3140,7 +2953,6 @@ window.RokApp = () => {
   }
   function renderAreaTabs() {
     const el = $('areaTabs'); if (!el || typeof HUB === 'undefined' || !HUB) return;
-    el.classList.toggle('hidden', R.mode === 'marauders');
     const h = HUB.find(x => x.m === R.mode) || {}, m = R.mode;
     const lastTs = (() => { const t = m === 'mats' ? 'materials' : m; const e = R.history.filter(x => x.type === t).sort((a, b) => b.ts - a.ts)[0]; return e ? e.ts : null; })();
     const upIcon = '<svg class="w-9 h-9 text-gold-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>';
@@ -3171,13 +2983,13 @@ window.RokApp = () => {
   }
   // Links Statistics · Mitte Scan + Dashboard (wie früher nebeneinander) · rechts Passive
   function setAreaTab(t) {
-    if (t === 'scan' || R.mode === 'marauders') t = 'dash';
+    if (t === 'scan') t = 'dash';
     if (t === 'passive' && R.mode !== 'ap' && !PMOD[R.mode] && !passiveFields(R.mode)) t = 'dash';
     R.areaTab = t;
     const aside = $('areaAside'), main = $('results'), stats = $('statsArea');
     delete aside.dataset.tab;
-    $('areaGrid').className = t === 'dash' && R.mode !== 'marauders' ? 'grid lg:grid-cols-[380px_1fr] gap-6' : 'grid gap-6';
-    aside.classList.toggle('hidden', t !== 'dash' || R.mode === 'marauders');
+    $('areaGrid').className = t === 'dash' ? 'grid lg:grid-cols-[380px_1fr] gap-6' : 'grid gap-6';
+    aside.classList.toggle('hidden', t !== 'dash');
     main.classList.toggle('hidden', t !== 'dash');
     stats.classList.toggle('hidden', t === 'dash');
     $('statsLeft').classList.toggle('hidden', t !== 'stats');
@@ -3197,7 +3009,6 @@ window.RokApp = () => {
     { m: 'resources', icon: '🌾', img: 'ressourcen/cornmore.png', label: 'Ressourcen', c: '#fb923c' },
     { m: 'mats', icon: '🧱', img: 'mats/choicematchest.png', label: 'Mats', c: '#a78bfa' },
     { m: 'passports', icon: '🛂', img: 'sonstiges/passport.webp', label: 'Passports', c: '#818cf8' },
-    { m: 'marauders', icon: '🐎', label: 'Marodeure', c: '#ef4444' },
     ...CNT_TYPES.map(m => ({ m, icon: COUNTERS[m].icon, img: COUNTERS[m].img, label: COUNTERS[m].title, c: COUNTERS[m].c }))
   ];
   const hubLast = (t, ok) => R.history.filter(e => e.type === t && ok(e)).sort((a, b) => b.ts - a.ts)[0];
@@ -3209,7 +3020,6 @@ window.RokApp = () => {
     if (m === 'resources') { const e = hubLast('resources', x => x.total != null); return e ? short(e.total) : null; }
     if (m === 'mats') { const e = hubLast('materials', x => x.total_leg != null); return e ? fmt(Math.floor(e.total_leg)) + ' Legendär' : null; }
     if (m === 'passports') { const e = hubLast('passports', x => x.passports != null); return e ? fmt(e.passports) : null; }
-    if (m === 'marauders') { const ap = apNow(); return ap ? `${fmt(Math.floor(ap / apCost('maraud')))} mit deinen AP` : 'Rechner'; }
     if (m === 'keys') { const e = hubLast('keys', () => true); return e ? `${fmt(e.key_gold || 0)} Gold · ${fmt(e.key_silver || 0)} Silber` : null; }
     if (COUNTERS[m]) { const e = hubLast(m, () => true); return e ? fmt(cntTotal(m, e)) + ' ' + COUNTERS[m].unit : null; }
     return null;
@@ -3457,7 +3267,7 @@ window.RokApp = () => {
   window.RokMods.showcase(R);
   window.RokMods.crafting(R);
   // Neue Bereiche (je eine Datei) – fehlt eine Datei, läuft der Rest trotzdem
-  ['feed', 'showcases', 'kingdom', 'helpme'].forEach((m) => { if (window.RokMods[m]) { try { window.RokMods[m](R); } catch (e) { console.error('Modul ' + m, e); } } });
+  ['feed', 'news', 'showcases', 'kingdom', 'helpme'].forEach((m) => { if (window.RokMods[m]) { try { window.RokMods[m](R); } catch (e) { console.error('Modul ' + m, e); } } });
 
   // Init
   R.renderHeaderAvatar();
