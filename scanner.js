@@ -2039,6 +2039,53 @@ window.RokApp = () => {
     box.querySelectorAll('[data-fgname]').forEach(i => i.addEventListener('change', () => { const f = farms.find(x => x.id === i.dataset.fgname); if (!f) return; f.name = i.value.trim() || 'Farm'; saveFarms(); renderFarms(); full(); }));
     box.querySelector('[data-fgadd]').onclick = () => { farms.push({ id: newId(), name: `Farm ${farms.length + 1}`, food: 0, wood: 0, stone: 0, gold: 0 }); saveFarms(); renderFarms(); full(); };
   }
+  // ---------- Wiederkehrende Events (Mats + Speedups): nächster Termin + Rhythmus ----------
+  const MEV = [
+    { k: 'ceroli', label: 'Ceroli Crisis', mats: '5 Bosse × 7 blaue Zufallskisten + 15 blaue & 15 grüne Wahlkisten', speed: '50× 60 Min.',
+      matLeg: 35 / 16 + 15 / 16 + 15 / 64, matTxt: { blue: 50, green: 15 }, speedMin: 50 * 60 },
+    { k: 'rom', label: 'Realm of Mystique', mats: '6 epische Zufallskisten', speed: '50× 60 Min.', matLeg: 6 / 4, matTxt: { purple: 6 }, speedMin: 50 * 60 },
+    { k: 'golden', label: 'The Golden Kingdom', mats: '5 epische Zufallskisten', matLeg: 5 / 4, matTxt: { purple: 5 } }
+  ];
+  const mevSt = (k) => { const a = (passive.mev = passive.mev || {}); return (a[k] = a[k] || { on: false, date: '', every: 28 }); };
+  function mevDays(k, maxD) {   // Event-Tage (Offset ab heute) bis maxD
+    const st = mevSt(k), d0 = st.date ? dOff(st.date) : null, every = Math.max(1, +st.every || 28), out = [];
+    if (d0 == null) return out;
+    let d = d0; while (d < 1) d += every;
+    for (; d <= maxD; d += every) out.push(d);
+    return out;
+  }
+  const mevCount = (k, days) => mevDays(k, Math.floor(days + 1e-9)).length;
+  function mevHtml(kind) {
+    const c = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-gold-500';
+    return `<div class="space-y-2">${MEV.filter(e => kind === 'mats' ? e.matLeg : e.speedMin).map(e => { const st = mevSt(e.k), nx = mevDays(e.k, 400)[0];
+      return `<div class="rounded-lg border ${st.on ? 'border-gold-500/40 bg-gold-500/5' : 'border-ink-700 bg-ink-950/40'} p-2">
+        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" data-mev="${e.k}" ${st.on ? 'checked' : ''} class="accent-amber-400"><b class="text-xs text-white">${e.label}</b>
+          <span class="text-[11px] text-slate-400">${kind === 'mats' ? e.mats : e.speed}</span></label>
+        <div class="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">nächster Termin <input data-mevdate="${e.k}" type="date" value="${st.date || ''}" class="${c}">
+          alle <input data-mevevery="${e.k}" type="number" min="1" step="1" value="${st.every || 28}" class="w-16 text-right ${c}"> Tage
+          ${nx != null ? `<span class="text-gold-300">→ ${dayPlus(nx).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}</span>` : '<span>Datum eintragen</span>'}</div></div>`; }).join('')}
+      <div class="text-[11px] text-slate-500">Die Termine gelten für Mats und Speedups gleichzeitig.</div></div>`;
+  }
+  function bindMev(box, full) {
+    box.querySelectorAll('[data-mev]').forEach(i => i.onchange = () => { mevSt(i.dataset.mev).on = i.checked; full(); });
+    box.querySelectorAll('[data-mevdate]').forEach(i => i.onchange = () => { mevSt(i.dataset.mevdate).date = i.value; full(); });
+    box.querySelectorAll('[data-mevevery]').forEach(i => i.onchange = () => { mevSt(i.dataset.mevevery).every = Math.max(1, Math.round(+i.value || 28)); full(); });
+  }
+  const anyMev = (kind) => MEV.some(e => (kind === 'mats' ? e.matLeg : e.speedMin) && mevSt(e.k).on && mevSt(e.k).date);
+  // Anzahl mit Rechnung: „4.570x30“ oder „7697x5 + 100“
+  const evalAmt = (v) => { const t = String(v ?? '').trim(); if (!t) return null; let sum = 0;
+    for (const part of t.split('+')) { let prod = 1; for (const f of part.split(/[x×*]/i)) { const n = parseAmount(f.trim()); if (isNaN(n)) return NaN; prod *= n; } sum += prod; } return sum; };
+  // Mats je Seltenheit → Legendär, gleichmäßig auf die 4 Materialien (Zufalls-/Wahlkisten)
+  const matSplit = (byGrade, t = 'all') => { const leg = Object.entries(byGrade).reduce((a, [g, n]) => a + n / (GRADES.find(x => x.k === g)?.div || 1), 0), o = {};
+    if (t === 'all') MATS.forEach(x => o[x.k] = leg / MATS.length); else o[t] = leg; return o; };
+  const vipLvl = () => { const p = vipNowPts(); return p == null ? 0 : levelFor(p); };
+  const bsFactor = () => vipLvl() >= 16 ? 1.10 : vipLvl() >= 14 ? 1.05 : 1;
+  // Baulurs (6.653 Kills): 1.150 graue, 590 grüne, 221 blaue Materialkisten · 30-Min-Speedups 4.570 Universal, 4.324 Bau, 4.326 Forschung
+  const BAU_N = 6653, BAU_MATS = { white: 1150 / 6653, green: 590 / 6653, blue: 221 / 6653 };
+  const BAU_SPEED = { universal: 4570 * 30 / 6653, building: 4324 * 30 / 6653, research: 4326 * 30 / 6653 };
+  // Forts (1.707 Forts): 7.697× 5-Min-Speedup, 7.972× 5-Min-Heilung
+  const FORT_SPEED = { universal: 7697 * 5 / 1707, healing: 7972 * 5 / 1707 };
+  const baulurDay = (s) => nv(s.n, nv(typeof apSrc === 'function' ? apSrc('barbs').n : null, 108));
   // ---------- Mats: passive Quellen (in Legendär umgerechnet) ----------
   const matSrc = (k, label, desc, unitLabel, per, ph) => ({ k, label, desc,
     inputs: [{ key: 'n', label: unitLabel, ph }, { key: 'r', label: 'Seltenheit', sel: GRADES.map(g => [g.k, g.label]), def: 'white' },
@@ -2085,12 +2132,36 @@ window.RokApp = () => {
       ] },
     mats: { title: 'Passive Mats', units: MATS.map(x => ({ k: x.k, label: x.label, c: x.c, img: x.img, icon: x.icon })),
       summary: () => { const t = pmSum(pmDayTotal('mats')); return t > 0 ? `+${pmFmt('mats', t * 7)} Legendär / Woche` : null; },
-      now: () => { const e = lastOf('materials'); return e ? Object.fromEntries(MATS.map(x => [x.k, matLeg(e, x.k)])) : {}; },
+      now: () => { const e = lastOf('materials'); return e ? Object.fromEntries(MATS.map(x => [x.k, matLeg(e, x.k) + chestLeg(e) / MATS.length])) : {}; },
       src: [
-        matSrc('mine', 'Mats-Mine', 'Material-Mine sammeln', 'Stück pro Tag', 1, 'z. B. 40'),
-        matSrc('events', 'Events', 'Mats aus Events (Ø)', 'Stück pro Woche', 7, 'z. B. 200'),
-        matSrc('fight', 'Kampf', 'Barbaren, Forts, Marodeure – Material-Drops', 'Stück pro Tag', 1, 'z. B. 60'),
-        matSrc('vipshop', 'VIP-Shop', 'Mats im VIP-Shop kaufen', 'Stück pro Woche', 7, 'z. B. 2')
+        { k: 'blacksmith', label: 'Blacksmith', desc: '15 graue Mats alle 3 Stunden = 120 pro Tag · VIP 14: 5 % schneller · VIP 16: 10 % schneller (aus deinem VIP-Stand)',
+          inputs: [{ key: 't', label: 'Material', sel: [['all', 'Alle 4 gleich verteilt'], ...MATS.map(x => [x.k, x.label])], def: 'all' }],
+          perDay: (st) => matSplit({ white: 120 * bsFactor() }, st.t || 'all') },
+        { k: 'vipshop', label: 'VIP-Shop', desc: 'Jede Woche: 50 graue, 15 blaue und 15 lila Materialkisten',
+          inputs: [{ key: 'w', label: 'Graue Kisten pro Woche', def: 50 }, { key: 'b', label: 'Blaue Kisten pro Woche', def: 15 }, { key: 'p', label: 'Lila Kisten pro Woche', def: 15 }],
+          perDay: (st) => matSplit({ white: nv(st.w, 50) / 7, blue: nv(st.b, 15) / 7, purple: nv(st.p, 15) / 7 }) },
+        { k: 'daily', label: 'Daily Quest', desc: '4 graue + 4 grüne Zufallskisten pro Tag', perDay: () => matSplit({ white: 4, green: 4 }) },
+        { k: 'canyon', label: 'Sunset Canyon', desc: 'Jede Chance gibt 1× grüne Mats', inputs: [{ key: 'n', label: 'Chancen pro Tag', def: 5 }], perDay: (st) => matSplit({ green: nv(st.n, 5) }) },
+        { k: 'events', label: 'Events', desc: 'Auswählen, welche Events du machst – mit nächstem Termin und Rhythmus',
+          perDay: () => { let leg = 0; MEV.forEach(e => { if (e.matLeg && mevSt(e.k).on && mevSt(e.k).date) leg += e.matLeg / Math.max(1, +mevSt(e.k).every || 28); }); return matSplit({ gold: leg }); },
+          inc: (st, days) => { let leg = 0; MEV.forEach(e => { if (e.matLeg && mevSt(e.k).on) leg += e.matLeg * mevCount(e.k, days); }); return matSplit({ gold: leg }); },
+          custom: { html: () => mevHtml('mats'), bind: (box, upd, full) => bindMev(box, full) } },
+        { k: 'baulur', label: 'Baulurs', desc: 'Ø aus 6.653 Baulurs: 1.150 graue, 590 grüne, 221 blaue Materialkisten', inputs: [{ key: 'n', label: 'Baulurs pro Tag', def: 108 }],
+          perDay: (st) => { const n = baulurDay(st); return matSplit({ white: BAU_MATS.white * n, green: BAU_MATS.green * n, blue: BAU_MATS.blue * n }); } }
+      ] },
+    speedups: { title: 'Passive Speedups', units: SPEED.map(c => ({ k: c.k, label: c.label, c: c.c, img: c.img, icon: c.icon })), tick: (v) => fmt(v / 1440) + ' T',
+      summary: () => { const t = pmSum(pmDayTotal('speedups')); return t > 0 ? `+${durText(t * 7, true)} / Woche` : null; },
+      now: () => { const e = lastOf('speedups', x => x.total != null); return e ? Object.fromEntries(SPEED.map(c => [c.k, +e[c.k] || 0])) : {}; },
+      src: [
+        { k: 'daily', label: 'Daily', desc: '5× 5 Min. Training · 5× 5 Min. Bau · 10× 5 Min. Forschung · 10× 5 Min. Heilung · 20× 5 Min. Universal', perDay: () => ({ training: 25, building: 25, research: 50, healing: 50, universal: 100 }) },
+        { k: 'forts', label: 'Forts', desc: 'Ø aus 1.707 Forts: 7.697× 5 Min. Universal + 7.972× 5 Min. Heilung (≈ 22,5 + 23,4 Min. pro Fort)', inputs: [{ key: 'w', label: 'Forts pro Woche', ph: 'z. B. 35' }],
+          perDay: (st) => { const n = nv(st.w, nv(typeof apSrc === 'function' ? apSrc('forts').w : null, 0)) / 7; return { universal: FORT_SPEED.universal * n, healing: FORT_SPEED.healing * n }; } },
+        { k: 'baulur', label: 'Baulurs', desc: 'Ø aus 6.653 Baulurs: 4.570× Universal, 4.324× Bau, 4.326× Forschung à 30 Min. (≈ 1 Drop mit 2× 30 Min. pro Baulur)', inputs: [{ key: 'n', label: 'Baulurs pro Tag', def: 108 }],
+          perDay: (st) => { const n = baulurDay(st); return { universal: BAU_SPEED.universal * n, building: BAU_SPEED.building * n, research: BAU_SPEED.research * n }; } },
+        { k: 'events', label: 'Events', desc: 'Ceroli Crisis 50× 60 Min. · Realm of Mystique 50× 60 Min. (als Universal gerechnet)',
+          perDay: () => { let m = 0; MEV.forEach(e => { if (e.speedMin && mevSt(e.k).on && mevSt(e.k).date) m += e.speedMin / Math.max(1, +mevSt(e.k).every || 28); }); return { universal: m }; },
+          inc: (st, days) => { let m = 0; MEV.forEach(e => { if (e.speedMin && mevSt(e.k).on) m += e.speedMin * mevCount(e.k, days); }); return { universal: m }; },
+          custom: { html: () => mevHtml('speed'), bind: (box, upd, full) => bindMev(box, full) } }
       ] },
     goldheads: { title: 'Passive Goldheads', units: [{ k: 'goldheads', label: 'Goldheads', c: '#facc15', icon: '🗿', img: 'goldhead.webp' }], now: () => { const e = lastOf('goldheads'); return { goldheads: e ? +e.goldheads || 0 : null }; },
       src: [
@@ -2103,7 +2174,7 @@ window.RokApp = () => {
   const PM_COL = ['#38bdf8', '#a78bfa', '#f97316', '#f472b6', '#e2e8f0', '#ef4444', '#2dd4bf'];
   const pmSt = (m) => { const a = (passive.pm = passive.pm || {}); return (a[m] = a[m] || { src: {}, lines: { total: true } }); };
   const pmSrc = (m, k) => { const st = pmSt(m); return (st.src[k] = st.src[k] || { on: false }); };
-  const pmFmt = (m, v) => m === 'mats' ? (+v).toLocaleString('de-DE', { maximumFractionDigits: Math.abs(v) < 10 ? 2 : 1 }) : PMOD[m].short || Math.abs(v) >= 1e6 ? short(v) : Math.abs(v) < 10 && v % 1 ? (+v).toLocaleString('de-DE', { maximumFractionDigits: Math.abs(v) < 1 ? 2 : 1 }) : fmt(v);
+  const pmFmt = (m, v) => m === 'speedups' ? durText(Math.abs(v), true) : m === 'mats' ? (+v).toLocaleString('de-DE', { maximumFractionDigits: Math.abs(v) < 10 ? 2 : 1 }) : PMOD[m].short || Math.abs(v) >= 1e6 ? short(v) : Math.abs(v) < 10 && v % 1 ? (+v).toLocaleString('de-DE', { maximumFractionDigits: Math.abs(v) < 1 ? 2 : 1 }) : fmt(v);
   const pmSg = (m, v) => (v < 0 ? '−' : '+') + pmFmt(m, Math.abs(v));
   const pmAdd = (a, b, f = 1) => { const o = { ...a }; Object.entries(b || {}).forEach(([k, v]) => o[k] = (o[k] || 0) + v * f); return o; };
   const pmPerDay = (m, x) => x.perDay(pmSrc(m, x.k));
@@ -2205,10 +2276,10 @@ window.RokApp = () => {
     if (!window.Chart) { wrap.innerHTML = '<div class="h-full grid place-items-center text-xs text-slate-500">Diagramm konnte nicht geladen werden.</div>'; return; }
     wrap.innerHTML = '<canvas id="pmChart"></canvas>';
     pmChart = new Chart($('pmChart'), { type: 'line',
-      data: { labels, datasets: series.map(o => ({ label: o.label, data: days.map(d => Math.round(o.val(d))), borderColor: o.c, backgroundColor: o.c + '22', borderWidth: o.k === 'total' ? 3 : 2, borderDash: o.dash ? [6, 4] : undefined, tension: .25, pointRadius: 0, pointHoverRadius: 5, fill: false })) },
+      data: { labels, datasets: series.map(o => ({ label: o.label, data: days.map(d => m === 'mats' ? Math.round(o.val(d) * 100) / 100 : Math.round(o.val(d))), borderColor: o.c, backgroundColor: o.c + '22', borderWidth: o.k === 'total' ? 3 : 2, borderDash: o.dash ? [6, 4] : undefined, tension: .25, pointRadius: 0, pointHoverRadius: 5, fill: false })) },
       options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
         plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${pmFmt(m, c.raw)}` } } },
-        scales: { y: { ticks: { callback: (v) => short(v) } }, x: { ticks: { maxTicksLimit: 8 } } } } });
+        scales: { y: { ticks: { callback: (v) => cf.tick ? cf.tick(v) : short(v) } }, x: { ticks: { maxTicksLimit: 8 } } } } });
   }
   const pmSummary = (m) => { const cf = PMOD[m], d = pmDayTotal(m); if (cf.summary) return cf.summary();
     if (cf.summaryUnit) { const v = d[cf.summaryUnit] || 0; return v ? `${pmSg(m, v)} ${cf.units.find(u => u.k === cf.summaryUnit).label} / Tag` : null; }
@@ -2887,60 +2958,169 @@ window.RokApp = () => {
     $('migGoal')?.addEventListener('click', () => { $('passGoal').value = need.passports; LS.set(PASS_GOAL, String(need.passports)); renderPassGoal(+pages || 0); $('passGoal').dispatchEvent(new Event('input')); upd(); });
   }
 
-  // ---------- Marodeure: Rechner für Gems, Speedups und Mats ----------
-  const marSt = () => (passive.mar = passive.mar || { r: 'white' });
+  // ---------- Marodeure: Verlauf (z. B. aus rokbattles) → Ø pro 1 AP → Rechner ----------
+  const MAR_F = [   // Beute-Felder eines Laufs
+    { k: 'crystals', label: 'Kristalle', img: 'ressourcen/crystal.webp', icon: '🔷', c: '#38bdf8' },
+    { k: 'gems', label: 'Gems', img: 'ressourcen/gems.png', icon: '💎', c: '#f472b6' },
+    { k: 'silver', label: 'Silber-Schlüssel', img: 'sonstiges/silverkey.png', icon: '🗝️', c: '#c084fc' },
+    { k: 'gold', label: 'Gold-Schlüssel', img: 'sonstiges/goldkey.png', icon: '🔑', c: '#f59e0b' }];
+  const MAR_SP = SPEED.map(c => ({ k: 'sp_' + c.k, label: c.label, img: c.img, icon: c.icon, c: c.c, sk: c.k }));
+  const MAR_CH = GRADES.map(g => ({ k: 'ch_' + g.k, label: g.label, g: g.k, c: g.c, div: g.div }));
+  const MAR_ALL = [...MAR_F, ...MAR_SP, ...MAR_CH];
+  const marSt = () => (passive.mar = passive.mar || {});
+  const marHist = () => (passive.marHist = passive.marHist || []);
+  var marTab = 'calc';
+  function marAvg() {   // Summe aller Läufe → pro 1 AP und pro Marodeur
+    const H = marHist(), ap = H.reduce((a, e) => a + (+e.ap || (+e.n || 0) * apCost('maraud')), 0), n = H.reduce((a, e) => a + (+e.n || 0), 0);
+    const sum = Object.fromEntries(MAR_ALL.map(f => [f.k, H.reduce((a, e) => a + (+e[f.k] || 0), 0)]));
+    return { ap, n, sum, perAp: ap ? Object.fromEntries(MAR_ALL.map(f => [f.k, sum[f.k] / ap])) : null, perN: n ? Object.fromEntries(MAR_ALL.map(f => [f.k, sum[f.k] / n])) : null, runs: H.length };
+  }
+  const dec = (v, d = 2) => (+v || 0).toLocaleString('de-DE', { maximumFractionDigits: d });
   function renderMar() {
     const el = $('marSection'); if (!el) return;
-    const st = marSt(), ap = apNow(), cost = apCost('maraud'), n = +st.n > 0 ? +st.n : 0, pd = +st.pd > 0 ? +st.pd : 0;
-    const g = GRADES.find(x => x.k === (st.r || 'white')) || GRADES[0];
-    const per = { gems: +st.gems || 0, speed: +st.speed || 0, mats: +st.mats || 0 };
+    const st = marSt(), ap = apNow(), cost = apCost('maraud'), A = marAvg();
     const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:border-gold-500';
-    const num = (k, ph) => `<input data-mar="${k}" type="text" inputmode="decimal" value="${st[k] != null && st[k] !== '' ? String(st[k]).replace('.', ',') : ''}" placeholder="${ph}" class="mt-1 w-full text-right ${inp}">`;
-    const res = (cnt) => ({ ap: cnt * cost, gems: cnt * per.gems, speed: cnt * per.speed, mats: cnt * per.mats, leg: cnt * per.mats / g.div });
+    const seg = `<div class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700 mb-4 max-w-sm">${[['calc', 'Rechner'], ['hist', `Verlauf (${A.runs})`]].map(([k, l]) => `<button type="button" data-martab="${k}" aria-pressed="${marTab === k}" class="seg-btn rounded-lg py-1.5 text-xs font-semibold transition">${l}</button>`).join('')}</div>`;
     const card = (l, v, c, sub, icon) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">${icon || ''} ${l}</div><div class="text-xl font-bold tabular-nums ${c}">${v}</div>${sub ? `<div class="text-[11px] text-slate-500">${sub}</div>` : ''}</div>`;
-    const R1 = res(n), H = [[7, '7 Tage'], [14, '14 Tage'], [30, '30 Tage']];
-    const spd = (min) => min > 0 ? durText(min) : '–';
+    let body = '';
+    if (marTab === 'calc') {
+      const useAp = st.ap != null && st.ap !== '' ? +st.ap : (st.n ? st.n * cost : (ap || 0)), n = Math.floor(useAp / cost);
+      const P = A.perAp, v = (k) => P ? P[k] * useAp : 0;
+      const spTot = MAR_SP.reduce((a, f) => a + v(f.k), 0), chLeg = MAR_CH.reduce((a, f) => a + v(f.k) / f.div, 0);
+      body = `${!P ? `<div class="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-200 mb-4">Noch kein Lauf gespeichert. Trag unter <b>Verlauf</b> ein, was du bekommen hast (z. B. aus rokbattles) – dann rechnet er den Ø pro 1 AP aus.</div>` : ''}
+        <div class="grid sm:grid-cols-2 gap-3 mb-4">
+          <label class="text-xs text-slate-400">AP, die du einsetzen willst<div class="mt-1 flex gap-2"><input data-mar="ap" type="text" inputmode="numeric" value="${st.ap != null && st.ap !== '' ? fmt(st.ap) : ''}" placeholder="${ap ? fmt(ap) + ' (alle)' : 'z. B. 100.000'}" class="flex-1 text-right ${inp}">
+            ${ap ? `<button type="button" id="marAll" class="px-3 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-xs whitespace-nowrap">Alle AP</button>` : ''}</div></label>
+          <div class="text-xs text-slate-400">Das sind<div class="mt-1 text-lg font-bold text-white tabular-nums">≈ ${fmt(n)} Marodeure <span class="text-xs font-normal text-slate-500">à ${fmt(cost)} AP</span></div></div>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          ${card('Gems', P ? fmt(v('gems')) : '–', 'text-pink-300', P ? `Ø ${dec(P.gems * 1000)} pro 1.000 AP` : '', ico(MAR_F[1], 'w-4 h-4'))}
+          ${card('Kristalle', P ? fmt(v('crystals')) : '–', 'text-sky-300', P ? `Ø ${dec(P.crystals * 1000)} pro 1.000 AP` : '', ico(MAR_F[0], 'w-4 h-4'))}
+          ${card('Speedups', P ? durText(spTot) : '–', 'text-amber-200', P ? MAR_SP.filter(f => v(f.k) > 0).map(f => `${f.label} ${durText(v(f.k), true)}`).join(' · ') : '', ico(MAR_SP[0], 'w-4 h-4'))}
+          ${card('Schlüssel', P ? `${fmt(v('silver'))} / ${fmt(v('gold'))}` : '–', 'text-violet-300', 'Silber / Gold', ico(MAR_F[2], 'w-4 h-4'))}
+        </div>
+        <section id="marChestBox" class="mt-4 rounded-xl border border-ink-700 bg-ink-950/30 p-4">
+          <h2 class="font-display text-base text-gold-300">${ico({ img: 'mats/choicematchest.png', icon: '📦' }, 'w-5 h-5')} Kisten</h2>
+          <div class="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-2">${MAR_CH.map(f => `<div class="rounded-lg border border-ink-700 bg-ink-950/60 px-3 py-2"><div class="text-[10px] uppercase tracking-widest" style="color:${f.c}">${f.label}</div>
+            <div class="text-lg font-bold text-white tabular-nums">${P ? fmt(v(f.k)) : '–'}</div><div class="text-[10px] text-slate-500">${P ? `Ø ${dec(A.perN?.[f.k] ?? 0, 3)} pro Marodeur` : ''}</div></div>`).join('')}</div>
+          <div class="mt-2 text-xs text-slate-300">Materialkisten gesamt ≈ <b class="text-violet-300 tabular-nums">${P ? dec(chLeg) : '–'}</b> Legendär</div>
+        </section>
+        ${P ? `<div class="mt-3 text-[11px] text-slate-500">Ø aus ${fmt(A.runs)} Läufen · ${fmt(A.n)} Marodeure · ${fmt(A.ap)} AP.${apPerDay() > 0 ? ` Dein passives AP (+${fmt(apPerDay())} / Tag) reicht für ca. ${fmt(Math.floor(apPerDay() / cost))} Marodeure am Tag.` : ''}</div>` : ''}`;
+    } else {
+      const H = marHist().slice().sort((x, y) => (y.date || '').localeCompare(x.date || ''));
+      const f2 = (f, ph) => `<label class="text-[11px] text-slate-400">${ico(f, 'w-3.5 h-3.5')} ${f.label}<input data-marf="${f.k}" type="text" inputmode="decimal" placeholder="${ph || '0'}" class="mt-1 w-full text-right ${inp}"></label>`;
+      body = `<div class="rounded-xl border border-ink-700 bg-ink-950/40 p-4">
+          <div class="text-sm font-semibold text-white mb-1">Neuen Lauf speichern</div>
+          <div class="text-[11px] text-slate-500 mb-3">Werte z. B. aus rokbattles abschreiben. Rechnen geht direkt im Feld: „7697x5“ = 7.697 × 5 Min.</div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <label class="text-[11px] text-slate-400">Datum<input data-marf="date" type="date" value="${isoDay(dayPlus(0))}" class="mt-1 w-full ${inp}"></label>
+            <label class="text-[11px] text-slate-400">Marodeure (Results)<input data-marf="n" type="text" inputmode="numeric" placeholder="z. B. 1.707" class="mt-1 w-full text-right ${inp}"></label>
+            <label class="text-[11px] text-slate-400">AP verbraucht<input data-marf="ap" type="text" inputmode="numeric" placeholder="leer = Anzahl × ${fmt(cost)}" class="mt-1 w-full text-right ${inp}"></label>
+            <div></div>
+            ${MAR_F.map(f => f2(f)).join('')}
+          </div>
+          <details class="mt-3"><summary class="text-xs text-slate-300 cursor-pointer hover:text-gold-300">⏱️ Speedups (Minuten)</summary>
+            <div class="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-2">${MAR_SP.map(f => f2(f, 'z. B. 120x5')).join('')}</div></details>
+          <details class="mt-2"><summary class="text-xs text-slate-300 cursor-pointer hover:text-gold-300">📦 Kisten (Materialkisten je Seltenheit)</summary>
+            <div class="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-2">${MAR_CH.map(f => `<label class="text-[11px]" style="color:${f.c}">${f.label}<input data-marf="${f.k}" type="text" inputmode="numeric" placeholder="0" class="mt-1 w-full text-right ${inp}"></label>`).join('')}</div></details>
+          <button type="button" id="marSave" class="mt-3 px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">+ Lauf speichern</button>
+          <span id="marMsg" class="ml-2 text-xs"></span>
+        </div>
+        ${A.perAp ? `<div class="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+          ${card('Ø Gems pro 1 AP', dec(A.perAp.gems, 4), 'text-pink-300', `${dec(A.perN.gems)} pro Marodeur`)}
+          ${card('Ø Kristalle pro 1 AP', dec(A.perAp.crystals, 2), 'text-sky-300', `${dec(A.perN.crystals)} pro Marodeur`)}
+          ${card('Ø Speedups pro 1 AP', dec(MAR_SP.reduce((a, f) => a + A.perAp[f.k], 0), 3) + ' Min.', 'text-amber-200', `${dec(MAR_SP.reduce((a, f) => a + A.perN[f.k], 0), 1)} Min. pro Marodeur`)}
+          ${card('Ø Mats pro 1.000 AP', dec(MAR_CH.reduce((a, f) => a + A.perAp[f.k] / f.div, 0) * 1000, 2) + ' Leg.', 'text-violet-300', 'aus Materialkisten')}
+        </div>` : ''}
+        <div class="mt-4 overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs">
+          <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-2 px-2 text-left font-medium">Datum</th><th class="py-2 px-2 text-right font-medium">Marodeure</th><th class="py-2 px-2 text-right font-medium">AP</th><th class="py-2 px-2 text-right font-medium">Gems</th><th class="py-2 px-2 text-right font-medium">Kristalle</th><th class="py-2 px-2 text-right font-medium">Speedups</th><th class="py-2 px-2 text-right font-medium">Schlüssel S/G</th><th class="py-2 px-2 text-right font-medium">Kisten</th><th></th></tr></thead>
+          <tbody>${H.length ? H.map(e => `<tr class="border-b border-ink-800 last:border-b-0"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${dLabel(e.date, true)}</td><td class="py-1.5 px-2 text-right tabular-nums">${fmt(e.n)}</td><td class="py-1.5 px-2 text-right tabular-nums text-emerald-300">${fmt(e.ap || e.n * cost)}</td>
+            <td class="py-1.5 px-2 text-right tabular-nums text-pink-300">${fmt(e.gems)}</td><td class="py-1.5 px-2 text-right tabular-nums text-sky-300">${fmt(e.crystals)}</td><td class="py-1.5 px-2 text-right tabular-nums text-amber-200 whitespace-nowrap">${durText(MAR_SP.reduce((a, f) => a + (+e[f.k] || 0), 0), true)}</td>
+            <td class="py-1.5 px-2 text-right tabular-nums">${fmt(e.silver)} / ${fmt(e.gold)}</td><td class="py-1.5 px-2 text-right tabular-nums text-violet-300">${fmt(MAR_CH.reduce((a, f) => a + (+e[f.k] || 0), 0))}</td>
+            <td class="text-right"><button type="button" data-mardel="${e.id}" class="text-slate-500 hover:text-red-400 px-2" title="Löschen">✕</button></td></tr>`).join('')
+            : '<tr><td colspan="9" class="py-6 text-center text-slate-500">Noch keine Läufe gespeichert.</td></tr>'}</tbody></table></div>`;
+    }
     el.innerHTML = `<section id="marBox" class="panel rounded-2xl p-5">
       <h2 class="font-display text-lg text-gold-300">🐎 Marodeure</h2>
-      <p class="text-xs text-slate-400 mb-4">Trag ein, was ein Marodeur im Schnitt bringt (z. B. aus deinen Kisten: Summe ÷ Anzahl). Kosten: ${fmt(cost)} AP pro Marodeur (unter AP änderbar).</p>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-2">
-        <label class="text-xs text-slate-400">${ico({ img: 'ressourcen/gems.png', icon: '💎' }, 'w-4 h-4')} Gems pro Marodeur${num('gems', 'z. B. 25')}</label>
-        <label class="text-xs text-slate-400">${ico({ img: 'sonstiges/SpeedUniversal.png', icon: '⏱️' }, 'w-4 h-4')} Speedups pro Marodeur (Min.)${num('speed', 'z. B. 60')}</label>
-        <label class="text-xs text-slate-400">${ico({ img: 'mats/choicematchest.png', icon: '🧱' }, 'w-4 h-4')} Mats pro Marodeur (Stück)${num('mats', 'z. B. 3')}</label>
-        <label class="text-xs text-slate-400">Seltenheit der Mats<select data-mar="r" class="mt-1 w-full ${inp}">${GRADES.map(x => `<option value="${x.k}" ${x.k === g.k ? 'selected' : ''}>${x.label}</option>`).join('')}</select></label>
-      </div>
-      <details class="mb-4 text-xs text-slate-400"><summary class="cursor-pointer hover:text-gold-300">Aus einem Testlauf ausrechnen</summary>
-        <div class="mt-2 grid sm:grid-cols-5 gap-2 items-end">
-          <label>Marodeure${num('tn', 'z. B. 50')}</label><label>Gems gesamt${num('tg', '0')}</label><label>Speedups gesamt (Min.)${num('ts', '0')}</label><label>Mats gesamt${num('tm', '0')}</label>
-          <button type="button" id="marTest" class="px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">÷ übernehmen</button></div></details>
-      <div class="grid sm:grid-cols-2 gap-3 mb-4">
-        <label class="text-xs text-slate-400">Wie viele Marodeure?<div class="mt-1 flex gap-2"><input data-mar="n" type="number" min="0" step="1" value="${st.n ?? ''}" placeholder="z. B. 100" class="flex-1 text-right ${inp}">
-          ${ap ? `<button type="button" id="marAll" class="px-3 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-xs whitespace-nowrap">Alle AP (${fmt(Math.floor(ap / cost))})</button>` : ''}</div></label>
-        <label class="text-xs text-slate-400">Marodeure pro Tag (für die Hochrechnung)<input data-mar="pd" type="number" min="0" step="1" value="${st.pd ?? ''}" placeholder="z. B. 20" class="mt-1 w-full text-right ${inp}"></label>
-      </div>
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        ${card('AP nötig', n ? fmt(R1.ap) : '–', ap != null && R1.ap > ap ? 'text-red-400' : 'text-emerald-300', ap != null && n ? (R1.ap > ap ? `fehlen ${fmt(R1.ap - ap)} AP` : `du hast ${fmt(ap)} AP`) : '', ico({ img: AP_IMG, icon: '⚡' }, 'w-4 h-4'))}
-        ${card('Gems', n && per.gems ? fmt(R1.gems) : '–', 'text-pink-300', '', ico({ img: 'ressourcen/gems.png', icon: '💎' }, 'w-4 h-4'))}
-        ${card('Speedups', n && per.speed ? spd(R1.speed) : '–', 'text-sky-300', n && per.speed ? `${fmt(R1.speed)} Min.` : '', ico({ img: 'sonstiges/SpeedUniversal.png', icon: '⏱️' }, 'w-4 h-4'))}
-        ${card('Mats', n && per.mats ? fmt(R1.mats) : '–', 'text-violet-300', n && per.mats ? `${g.label} · ≈ ${pmFmt('mats', R1.leg)} Legendär` : '', ico({ img: 'mats/choicematchest.png', icon: '🧱' }, 'w-4 h-4'))}
-      </div>
-      ${pd ? `<div class="mt-4 overflow-x-auto rounded-lg border border-emerald-500/30 bg-emerald-500/5"><table class="w-full text-xs">
-        <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-1.5 px-2 text-left font-medium">${fmt(pd)} pro Tag</th><th class="py-1.5 px-2 text-right font-medium">Marodeure</th><th class="py-1.5 px-2 text-right font-medium">AP</th><th class="py-1.5 px-2 text-right font-medium">Gems</th><th class="py-1.5 px-2 text-right font-medium">Speedups</th><th class="py-1.5 px-2 text-right font-medium">Mats</th></tr></thead>
-        <tbody>${[[1, 'pro Tag'], ...H].map(([d, l]) => { const r = res(pd * d); return `<tr class="border-b border-ink-800 last:border-b-0"><td class="py-1.5 px-2 text-slate-300">${l}</td><td class="py-1.5 px-2 text-right tabular-nums">${fmt(pd * d)}</td><td class="py-1.5 px-2 text-right tabular-nums text-emerald-300">${fmt(r.ap)}</td>
-          <td class="py-1.5 px-2 text-right tabular-nums text-pink-300">${per.gems ? '+' + fmt(r.gems) : '–'}</td><td class="py-1.5 px-2 text-right tabular-nums text-sky-300">${per.speed ? spd(r.speed) : '–'}</td><td class="py-1.5 px-2 text-right tabular-nums text-violet-300">${per.mats ? `${fmt(r.mats)} <span class="text-slate-500">(${pmFmt('mats', r.leg)} Leg.)</span>` : '–'}</td></tr>`; }).join('')}</tbody></table></div>
-        <div class="mt-1 text-[11px] text-slate-500">${apPerDay() > 0 ? `Dein passives AP: +${fmt(apPerDay())} / Tag → reicht für ca. ${fmt(Math.floor(apPerDay() / cost))} Marodeure am Tag.` : 'Tipp: Unter AP → Passive kannst du dein tägliches AP einstellen.'}</div>` : ''}
+      <p class="text-xs text-slate-400 mb-3">Speicher deine Läufe im Verlauf – daraus rechnet er den Ø pro 1 AP und hochgerechnet, was deine AP bringen.</p>
+      ${seg}${body}</section>`;
+    makeFold($('marBox'), 'mar'); if ($('marChestBox')) makeFold($('marChestBox'), 'marchest');
+    el.querySelectorAll('[data-martab]').forEach(b => b.onclick = () => { marTab = b.dataset.martab; renderMar(); });
+    el.querySelectorAll('[data-mar]').forEach(i => i.addEventListener('change', () => { const v = i.value.trim() === '' ? null : parseAmount(i.value); st[i.dataset.mar] = v == null || isNaN(v) ? null : Math.max(0, v); savePassive(); renderMar(); }));
+    $('marAll')?.addEventListener('click', () => { st.ap = null; st.n = null; savePassive(); renderMar(); });
+    el.querySelectorAll('[data-mardel]').forEach(b => b.onclick = async () => { if (!(await UI.confirm('Diesen Lauf löschen?'))) return; passive.marHist = marHist().filter(e => e.id !== b.dataset.mardel); savePassive(); renderMar(); renderHub(); });
+    $('marSave')?.addEventListener('click', () => {
+      const get = (k) => el.querySelector(`[data-marf="${k}"]`)?.value ?? '', e = { id: 'm' + Date.now().toString(36), date: get('date') || isoDay(dayPlus(0)) };
+      let bad = false;
+      ['n', 'ap', ...MAR_ALL.map(f => f.k)].forEach(k => { const v = evalAmt(get(k)); if (v == null) return; if (isNaN(v)) { bad = true; el.querySelector(`[data-marf="${k}"]`).classList.add('border-red-500'); return; } e[k] = Math.max(0, Math.round(v)); });
+      if (bad || !(e.n > 0)) { $('marMsg').className = 'ml-2 text-xs text-red-400'; $('marMsg').textContent = bad ? 'Bitte nur Zahlen (oder z. B. 120x5).' : 'Anzahl Marodeure eintragen.'; return; }
+      if (!e.ap) e.ap = e.n * cost;
+      marHist().push(e); savePassive(); renderMar(); renderHub();
+    });
+  }
+
+  // ---------- Mats Statistics: Kalender + Gear-Prioliste (wann reichen die Mats?) ----------
+  const gearSt = () => (passive.matGear = passive.matGear || []);
+  var matCalM = 0;
+  function matGearReach() {   // Tag, an dem jedes Item (in Reihenfolge) bezahlbar ist
+    const G = gearSt(), now = PMOD.mats.now(), out = [], need = Object.fromEntries(MATS.map(x => [x.k, 0]));
+    const inc = []; for (let d = 0; d <= 730; d++) inc.push(d === 0 ? {} : pmIncome('mats', d));
+    G.forEach(g => { MATS.forEach(x => need[x.k] += +g[x.k] || 0);
+      let day = null; for (let d = 0; d <= 730; d++) { if (MATS.every(x => (now[x.k] || 0) + (inc[d][x.k] || 0) >= need[x.k] - 1e-9)) { day = d; break; } }
+      out.push({ g, day, miss: Object.fromEntries(MATS.map(x => [x.k, Math.max(0, need[x.k] - (now[x.k] || 0))])) }); });
+    return out;
+  }
+  function renderMatStats() {
+    const top = $('statsTop'), G = gearSt(), reach = matGearReach(), now = PMOD.mats.now(), hasNow = MATS.some(x => now[x.k] != null);
+    const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:border-gold-500';
+    // Kalender (Monat ab dem 1.)
+    const first = dayPlus(0); first.setDate(1); first.setMonth(first.getMonth() + matCalM);
+    const last = new Date(first.getFullYear(), first.getMonth() + 1, 0), mon = new Date(first); mon.setDate(1 - ((first.getDay() + 6) % 7));
+    const nW = Math.ceil(((last - mon) / 864e5 + 1) / 7), evDays = {};
+    MEV.forEach(e => { if (mevSt(e.k).on) mevDays(e.k, 400).forEach(d => (evDays[d] = evDays[d] || []).push(e)); });
+    const gearDay = {}; reach.forEach((r, i) => { if (r.day != null) (gearDay[r.day] = gearDay[r.day] || []).push({ ...r, i }); });
+    let cells = '';
+    for (let w = 0; w < nW; w++) for (let i = 0; i < 7; i++) {
+      const d = new Date(mon); d.setDate(mon.getDate() + w * 7 + i);
+      const o = Math.round((d - dayPlus(0)) / 864e5), out = d.getMonth() !== first.getMonth(), today = o === 0;
+      const tot = o >= 0 && hasNow ? MATS.reduce((a, x) => a + (now[x.k] || 0), 0) + (o ? pmSum(pmIncome('mats', o)) : 0) : null;
+      cells += `<div class="${out ? 'bg-ink-950/40 opacity-50' : 'bg-ink-950/80'} px-1 pt-1 pb-1 min-h-[4.2rem] flex flex-col justify-between ${today ? 'ring-1 ring-gold-400 ring-inset' : ''}">
+        <div class="text-[11px] ${today ? 'text-gold-300 font-bold' : o < 0 ? 'text-slate-600' : 'text-slate-400'}">${d.getDate()}${d.getDate() === 1 ? '.' + (d.getMonth() + 1) + '.' : ''}</div>
+        <div class="space-y-0.5">${(evDays[o] || []).map(e => `<div class="text-[9px] leading-tight px-1 py-0.5 rounded bg-sky-500/20 text-sky-200 truncate" title="${e.label}">${e.label}</div>`).join('')}
+          ${(gearDay[o] || []).map(r => `<div class="text-[9px] leading-tight px-1 py-0.5 rounded bg-gold-500/25 text-gold-200 font-semibold truncate" title="${esc(r.g.name || 'Gear')}">⚒ ${r.i + 1}. ${esc(r.g.name || 'Gear')}</div>`).join('')}</div>
+        <div class="text-right text-[10px] tabular-nums text-violet-300">${tot != null ? dec(tot, 1) : ''}</div></div>`;
+    }
+    const mIn = (g, i, k) => `<input data-gear="${i}" data-key="${k}" type="text" inputmode="decimal" value="${g[k] ? String(g[k]).replace('.', ',') : ''}" placeholder="0" class="w-full text-right ${inp}">`;
+    top.innerHTML = `<section id="matCalBox" class="panel rounded-2xl p-5">
+      <h2 class="font-display text-lg text-gold-300">Mats-Kalender</h2>
+      <div class="flex items-center justify-between gap-2 mb-2"><button type="button" data-matcal="-1" class="px-2 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60">‹</button>
+        <div class="text-sm text-slate-200">${first.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}</div>
+        <button type="button" data-matcal="1" class="px-2 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60">›</button></div>
+      <div class="grid grid-cols-7 gap-px text-[10px] uppercase tracking-wider text-slate-500 mb-1">${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(x => `<div class="px-1">${x}</div>`).join('')}</div>
+      <div class="grid grid-cols-7 gap-px rounded-lg overflow-hidden border border-ink-700 bg-ink-700">${cells}</div>
+      <div class="mt-2 text-[11px] text-slate-500">${hasNow ? 'Zahl unten = deine Mats in Legendär (letzter Scan + Passive). ⚒ = an diesem Tag reichen die Mats für das Gear. Blau = Event.' : 'Scanne oder trag deine Mats ein – dann siehst du hier deinen Stand. Jeder neue Scan rechnet den Kalender neu.'}</div>
+    </section>
+    <section id="matGearBox" class="panel rounded-2xl p-5">
+      <h2 class="font-display text-lg text-gold-300">Gear-Prioliste</h2>
+      <p class="text-xs text-slate-400 mb-3">Bis zu 3 Gear-Teile in deiner Reihenfolge. Kosten je Material in Legendär (z. B. 12,5) – später automatisch aus dem Katalog.</p>
+      <div class="space-y-2">${G.map((g, i) => { const r = reach[i]; return `<div class="rounded-xl border ${r.day === 0 ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-700 bg-ink-950/40'} p-3">
+        <div class="flex flex-wrap items-center gap-2 mb-2"><b class="text-gold-300">${i + 1}.</b><input data-gear="${i}" data-key="name" type="text" value="${esc(g.name || '')}" placeholder="z. B. Hope Cloak" class="flex-1 min-w-[10rem] ${inp}">
+          <span class="text-xs ${r.day == null ? 'text-slate-500' : r.day === 0 ? 'text-emerald-400' : 'text-gold-300'}">${r.day == null ? 'nicht in Sicht' : r.day === 0 ? 'reicht schon ✓' : `ca. ${dayPlus(r.day).toLocaleDateString('de-DE')} (in ${fmt(r.day)} Tagen)`}</span>
+          ${i ? `<button type="button" data-gearup="${i}" class="px-2 text-slate-400 hover:text-gold-300" title="nach oben">↑</button>` : ''}<button type="button" data-geardel="${i}" class="px-2 text-slate-500 hover:text-red-400" title="Entfernen">✕</button></div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">${MATS.map(x => `<label class="text-[11px] text-slate-400">${ico(x, 'w-3.5 h-3.5')} ${x.label}${mIn(g, i, x.k)}</label>`).join('')}</div>
+        ${r.day ? `<div class="mt-1 text-[11px] text-slate-500">fehlt jetzt: ${MATS.filter(x => r.miss[x.k] > 0).map(x => `${x.label} ${dec(r.miss[x.k], 1)}`).join(' · ') || '–'}</div>` : ''}</div>`; }).join('')
+        || '<div class="text-xs text-slate-500">Noch kein Gear eingetragen.</div>'}</div>
+      ${G.length < 3 ? '<button type="button" id="gearAdd" class="mt-3 px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs">+ Gear-Teil</button>' : ''}
+      ${!pmOn('mats').length ? '<div class="mt-2 text-[11px] text-amber-300">Tipp: Unter Passive deine Mats-Quellen aktivieren, sonst kann er kein Datum ausrechnen.</div>' : ''}
     </section>`;
-    makeFold($('marBox'), 'mar');
-    const save = (rer) => { savePassive(); if (rer) renderMar(); renderHub?.(); };
-    el.querySelectorAll('[data-mar]').forEach(i => i.addEventListener('change', () => {
-      const k = i.dataset.mar;
-      if (i.tagName === 'SELECT') st[k] = i.value;
-      else { const v = i.value.trim() === '' ? null : parseFloat(i.value.replace(/\./g, '').replace(',', '.')); st[k] = v == null || isNaN(v) ? null : Math.max(0, v); }
-      if (!['tn', 'tg', 'ts', 'tm'].includes(k)) save(true); else savePassive();
-    }));
-    $('marAll')?.addEventListener('click', () => { st.n = Math.floor(ap / cost); save(true); });
-    $('marTest').onclick = () => { const tn = +st.tn || 0; if (!tn) return; const r2 = (v) => Math.round((+v || 0) / tn * 100) / 100;
-      st.gems = r2(st.tg); st.speed = r2(st.ts); st.mats = r2(st.tm); save(true); };
+    makeFold($('matCalBox'), 'matcal'); makeFold($('matGearBox'), 'matgear');
+    const upd = () => { savePassive(); renderMatStats(); renderAreaTabs(); };
+    top.querySelectorAll('[data-matcal]').forEach(b => b.onclick = () => { matCalM += +b.dataset.matcal; renderMatStats(); });
+    top.querySelectorAll('[data-gear]').forEach(i => i.addEventListener('change', () => { const g = G[+i.dataset.gear]; if (!g) return;
+      if (i.dataset.key === 'name') g.name = i.value.trim().slice(0, 40); else { const v = parseFloat(i.value.replace(/\./g, '').replace(',', '.')); g[i.dataset.key] = isNaN(v) ? 0 : Math.max(0, v); } upd(); }));
+    top.querySelectorAll('[data-geardel]').forEach(b => b.onclick = () => { G.splice(+b.dataset.geardel, 1); upd(); });
+    top.querySelectorAll('[data-gearup]').forEach(b => b.onclick = () => { const i = +b.dataset.gearup; [G[i - 1], G[i]] = [G[i], G[i - 1]]; upd(); });
+    $('gearAdd')?.addEventListener('click', () => { G.push({ name: '' }); upd(); });
   }
 
   // ---------- Armaments: Chancen-Rechner (offizielle Wahrscheinlichkeiten von Lilith) ----------
@@ -3129,6 +3309,7 @@ window.RokApp = () => {
     else if (m === 'passports') renderMigStats();
     else if (m === 'goldheads') renderGhStats();
     else if (m === 'armaments') renderArmStats();
+    else if (m === 'mats') renderMatStats();
     else if (false) top.innerHTML = `<section class="panel rounded-2xl p-5"><h2 class="font-display text-lg text-gold-300 mb-2">Power → benötigte Passseiten</h2>
         <div class="overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs"><thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-2 px-3 text-left font-medium">Power</th><th class="py-2 px-3 text-right font-medium">Passseiten</th></tr></thead>
         <tbody><tr><td colspan="2" class="py-6 text-center text-slate-500">Tabelle folgt – sobald die Daten da sind, steht hier, wie viele Passseiten du für deine Power brauchst.</td></tr></tbody></table></div></section>`;
@@ -3209,7 +3390,7 @@ window.RokApp = () => {
     if (m === 'resources') { const e = hubLast('resources', x => x.total != null); return e ? short(e.total) : null; }
     if (m === 'mats') { const e = hubLast('materials', x => x.total_leg != null); return e ? fmt(Math.floor(e.total_leg)) + ' Legendär' : null; }
     if (m === 'passports') { const e = hubLast('passports', x => x.passports != null); return e ? fmt(e.passports) : null; }
-    if (m === 'marauders') { const ap = apNow(); return ap ? `${fmt(Math.floor(ap / apCost('maraud')))} mit deinen AP` : 'Rechner'; }
+    if (m === 'marauders') { const n = (typeof passiveReady !== 'undefined' && passiveReady && passive.marHist || []).length; const ap = apNow(); return n ? `${fmt(n)} Läufe gespeichert` : ap ? `${fmt(Math.floor(ap / apCost('maraud')))} mit deinen AP` : 'Rechner'; }
     if (m === 'keys') { const e = hubLast('keys', () => true); return e ? `${fmt(e.key_gold || 0)} Gold · ${fmt(e.key_silver || 0)} Silber` : null; }
     if (COUNTERS[m]) { const e = hubLast(m, () => true); return e ? fmt(cntTotal(m, e)) + ' ' + COUNTERS[m].unit : null; }
     return null;
@@ -3457,7 +3638,7 @@ window.RokApp = () => {
   window.RokMods.showcase(R);
   window.RokMods.crafting(R);
   // Neue Bereiche (je eine Datei) – fehlt eine Datei, läuft der Rest trotzdem
-  ['feed', 'showcases', 'kingdom', 'helpme'].forEach((m) => { if (window.RokMods[m]) { try { window.RokMods[m](R); } catch (e) { console.error('Modul ' + m, e); } } });
+  ['feed', 'news', 'showcases', 'kingdom', 'helpme'].forEach((m) => { if (window.RokMods[m]) { try { window.RokMods[m](R); } catch (e) { console.error('Modul ' + m, e); } } });
 
   // Init
   R.renderHeaderAvatar();
