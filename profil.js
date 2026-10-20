@@ -28,7 +28,7 @@ window.RokMods.profil = (R) => {
   document.addEventListener('click', (ev) => { if (!R.$('userBox').contains(ev.target)) closeMenu(); });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeMenu(); });
   R.$('menuProfile').onclick = () => { closeMenu(); openProfile(RokAuth.userId()); };
-  R.$('menuScanner').onclick = () => { closeMenu(); R.view = 'scanner'; R.applyView(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  R.$('menuScanner').onclick = () => { closeMenu(); R.view = 'scanner'; R.applyView(); R.showHub?.(true); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   R.$('profInvNote').onclick = () => { R.view = 'kvk'; R.applyView(); const K = window.KvKCalc; if (K) { const s = K.getState(); s.tab = 'friends'; K.setState(s); K.render(); } window.scrollTo({ top: 0, behavior: 'smooth' }); };
   R.$('menuKvk').onclick = () => { closeMenu(); R.view = 'kvk'; R.applyView(); window.KvKCalc?.render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   R.$('menuShowcases').onclick = () => { closeMenu(); R.goView('showcases'); };
@@ -186,7 +186,7 @@ window.RokMods.profil = (R) => {
   }
   const goRank = () => { R.view = 'feed'; R.navStack = []; R.applyView(); window.scrollTo({ top: 0, behavior: 'smooth' }); };   // Startseite = Feed
   R.$('profBack').onclick = goRank;
-  R.$('scanBack').onclick = goRank;
+  R.$('scanBack').onclick = () => { if (R.view === 'scanner' && R.scanHub === false) { R.showHub(true); window.scrollTo({ top: 0, behavior: 'smooth' }); } else goRank(); };   // im Bereich → zurück zu den Kacheln (AP, VIP, Gems …)
   R.$('kvkBack').onclick = goRank;
   R.$('brandHome').onclick = goRank;
   R.$('brandHome').onkeydown = (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); goRank(); } };
