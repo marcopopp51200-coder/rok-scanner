@@ -1816,12 +1816,17 @@ window.RokApp = () => {
     { k: 'fortKvk', label: 'Forts (KvK)', def: 150, icon: '🏯' },
     { k: 'maraud', label: 'Marodeure (KvK)', def: 50, icon: '🐎' }
   ];
+  // Baulurs nur bis zum KvK-Start (danach fallen sie weg)
+  function kvkOffDays() { const d = kvkStartDate(); if (!d) return null; const t = new Date(d + 'T00:00:00'); return Math.round((t - dayPlus(0)) / 864e5); }
+  const baulurDays = (st, days) => { const k = st && st.kvk ? kvkOffDays() : null; return k == null ? days : Math.max(0, Math.min(days, k)); };
+  const KVK_OPT = { key: 'kvk', label: 'Nur bis KvK-Start (danach keine Baulurs)', check: true };
+  const scaleObj = (o, f) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, v * f]));
   const AP_SRC = [
     { k: 'daily', label: 'Daily', desc: '100 AP jeden Tag', perDay: () => 100 },
     { k: 'monday', label: 'Montags-Belohnung', desc: '3.000 AP – wird immer montags komplett eingesammelt', perDay: () => 3000 / 7, inc: (s, days) => 3000 * mondays(days), dayText: () => `+3.000 / Mo · nächster ${nextMonday()}` },
     { k: 'afort', label: 'Allianz-Forts', desc: '100 % = 7.000 AP pro Woche', pct: true, perDay: (s) => 7000 * (s.pct || 100) / 100 / 7 },
     { k: 'forts', label: 'Eigene Forts', desc: `Ø ${f1(AP_PER_FORT)} AP pro Fort (720 Forts ≈ 430×50er · 373 ≈ 237×50er)`, input: { label: 'Forts pro Woche (Ø)', ph: 'z. B. 35' }, perDay: (s) => (+s.w || 0) * AP_PER_FORT / 7 },
-    { k: 'barbs', label: 'Baulurs', desc: `Ø ${f1(AP_PER_BARB)} AP pro Baulur (7.000 Baulurs = 915×100er = 91.500 AP)`, input: { label: 'Baulurs pro Tag', def: 108 }, perDay: (s) => (s.n ?? 108) * AP_PER_BARB },
+    { k: 'barbs', label: 'Baulurs', desc: `Ø ${f1(AP_PER_BARB)} AP pro Baulur (7.000 Baulurs = 915×100er = 91.500 AP)`, input: { label: 'Baulurs pro Tag', def: 108 }, kvkOpt: true, perDay: (s) => (s.n ?? 108) * AP_PER_BARB, inc: (s, days) => (s.n ?? 108) * AP_PER_BARB * baulurDays(s, days) },
     { k: 'bundle', label: 'Daily Bundle', desc: '500 AP pro Kauf', input: { label: 'Käufe pro Tag', def: 1 }, perDay: (s) => (s.n ?? 1) * 500 }
   ];
   // Kalender: zählt die Montage ab morgen bis einschließlich Tag „days“ (heute gilt als schon eingesammelt)
@@ -1875,6 +1880,7 @@ window.RokApp = () => {
             </div>
             ${x.pct ? `<div class="ap-src-body mt-2 grid grid-cols-4 gap-1 p-1 rounded-lg bg-ink-950 border border-ink-700">${[25, 50, 75, 100].map(p => `<button type="button" data-appct="${p}" data-k="${x.k}" aria-pressed="${(s.pct || 100) === p}" class="seg-btn rounded-md py-1 text-xs font-semibold transition">${p} %</button>`).join('')}</div>` : ''}
             ${x.input ? `<label class="ap-src-body mt-2 flex items-center justify-between gap-2 text-xs text-slate-300">${x.input.label}<input data-apn="${x.k}" type="number" min="0" step="any" value="${s[x.k === 'forts' ? 'w' : 'n'] ?? x.input.def ?? ''}" placeholder="${x.input.ph || ''}" class="${inp}"></label>` : ''}
+            ${x.kvkOpt ? `<label class="ap-src-body mt-2 flex items-center justify-between gap-2 text-xs text-slate-300 cursor-pointer">${KVK_OPT.label}${kvkStartDate() ? ` <span class="text-slate-500">(${dLabel(kvkStartDate())})</span>` : ' <span class="text-amber-300">KvK-Start im Profil fehlt</span>'}<input data-apkvk="${x.k}" type="checkbox" ${s.kvk ? 'checked' : ''} class="accent-emerald-500 w-4 h-4 ml-auto"></label>` : ''}
           </div>`; }).join('')}</div>
         </section>
       </section>
@@ -1900,6 +1906,7 @@ window.RokApp = () => {
     top.querySelectorAll('[data-apcost]').forEach(i => i.addEventListener('input', () => { const c = (passive.apCost = passive.apCost || {}); if (+i.value > 0) c[i.dataset.apcost] = +i.value; else delete c[i.dataset.apcost]; savePassive(); renderApStatsOut(); }));
     pt.querySelectorAll('[data-aptog]').forEach(b => b.onclick = () => { const s = apSrc(b.dataset.aptog); s.on = !s.on; b.setAttribute('aria-checked', String(s.on)); b.closest('.ap-src').dataset.on = String(s.on); savePassive(); renderApStatsOut(); });
     pt.querySelectorAll('[data-appct]').forEach(b => b.onclick = () => { const s = apSrc(b.dataset.k); s.pct = +b.dataset.appct; pt.querySelectorAll(`[data-appct][data-k="${b.dataset.k}"]`).forEach(x => x.setAttribute('aria-pressed', String(x === b))); savePassive(); renderApStatsOut(); });
+    pt.querySelectorAll('[data-apkvk]').forEach(i => i.onchange = () => { apSrc(i.dataset.apkvk).kvk = i.checked; savePassive(); renderApStatsOut(); });
     pt.querySelectorAll('[data-apn]').forEach(i => i.addEventListener('input', () => { const s = apSrc(i.dataset.apn); s[i.dataset.apn === 'forts' ? 'w' : 'n'] = i.value === '' ? null : Math.max(0, +i.value); savePassive(); renderApStatsOut(); }));
     // Klappfeld 2: Was schaffst du pro Tag? (nur AP-Regeneration, Armament-Daily abziehbar)
     pt.querySelectorAll('[data-apsec]').forEach(i => i.addEventListener('input', () => { const d = apDay(); d.sec = +i.value > 0 ? +i.value : null; savePassive(); renderApDayOut(); }));
@@ -2042,9 +2049,9 @@ window.RokApp = () => {
   // ---------- Wiederkehrende Events (Mats + Speedups): nächster Termin + Rhythmus ----------
   const MEV = [
     { k: 'ceroli', label: 'Ceroli Crisis', mats: '5 Bosse × 7 blaue Zufallskisten + 15 blaue & 15 grüne Wahlkisten', speed: '50× 60 Min.',
-      matLeg: 35 / 16 + 15 / 16 + 15 / 64, matTxt: { blue: 50, green: 15 }, speedMin: 50 * 60 },
-    { k: 'rom', label: 'Realm of Mystique', mats: '6 epische Zufallskisten', speed: '50× 60 Min.', matLeg: 6 / 4, matTxt: { purple: 6 }, speedMin: 50 * 60 },
-    { k: 'golden', label: 'The Golden Kingdom', mats: '5 epische Zufallskisten', matLeg: 5 / 4, matTxt: { purple: 5 } }
+      matLeg: 35 / 16 + 15 / 16 + 15 / 64, matRand: { blue: 35 }, matChoice: { blue: 15, green: 15 }, speedMin: 50 * 60 },
+    { k: 'rom', label: 'Realm of Mystique', mats: '6 epische Zufallskisten', speed: '50× 60 Min.', matLeg: 6 / 4, matRand: { purple: 6 }, speedMin: 50 * 60 },
+    { k: 'golden', label: 'The Golden Kingdom', mats: '5 epische Zufallskisten', matLeg: 5 / 4, matRand: { purple: 5 } }
   ];
   const mevSt = (k) => { const a = (passive.mev = passive.mev || {}); return (a[k] = a[k] || { on: false, date: '', every: 28 }); };
   function mevDays(k, maxD) {   // Event-Tage (Offset ab heute) bis maxD
@@ -2076,8 +2083,11 @@ window.RokApp = () => {
   const evalAmt = (v) => { const t = String(v ?? '').trim(); if (!t) return null; let sum = 0;
     for (const part of t.split('+')) { let prod = 1; for (const f of part.split(/[x×*]/i)) { const n = parseAmount(f.trim()); if (isNaN(n)) return NaN; prod *= n; } sum += prod; } return sum; };
   // Mats je Seltenheit → Legendär, gleichmäßig auf die 4 Materialien (Zufalls-/Wahlkisten)
-  const matSplit = (byGrade, t = 'all') => { const leg = Object.entries(byGrade).reduce((a, [g, n]) => a + n / (GRADES.find(x => x.k === g)?.div || 1), 0), o = {};
-    if (t === 'all') MATS.forEach(x => o[x.k] = leg / MATS.length); else o[t] = leg; return o; };
+  // Zufalls-Materialkiste: Leder, Eisenerz, Ebenholz je 30 %, Tierknochen 10 % · Wahlkisten → eigener Topf „choice“
+  const MAT_RAND = { leather: .3, iron: .3, ebony: .3, bone: .1 };
+  const gLeg = (byGrade) => Object.entries(byGrade).reduce((a, [g, n]) => a + n / (GRADES.find(x => x.k === g)?.div || 1), 0);
+  const matSplit = (byGrade, t = 'all') => { const leg = gLeg(byGrade), o = {};
+    if (t === 'all') MATS.forEach(x => o[x.k] = leg * MAT_RAND[x.k]); else if (t === 'choice') o.choice = leg; else o[t] = leg; return o; };
   const vipLvl = () => { const p = vipNowPts(); return p == null ? 0 : levelFor(p); };
   const bsFactor = () => vipLvl() >= 16 ? 1.10 : vipLvl() >= 14 ? 1.05 : 1;
   // Baulurs (6.653 Kills): 1.150 graue, 590 grüne, 221 blaue Materialkisten · 30-Min-Speedups 4.570 Universal, 4.324 Bau, 4.326 Forschung
@@ -2089,7 +2099,7 @@ window.RokApp = () => {
   // ---------- Mats: passive Quellen (in Legendär umgerechnet) ----------
   const matSrc = (k, label, desc, unitLabel, per, ph) => ({ k, label, desc,
     inputs: [{ key: 'n', label: unitLabel, ph }, { key: 'r', label: 'Seltenheit', sel: GRADES.map(g => [g.k, g.label]), def: 'white' },
-             { key: 't', label: 'Material', sel: [['all', 'Alle 4 gleich verteilt'], ...MATS.map(x => [x.k, x.label])], def: 'all' }],
+             { key: 't', label: 'Material', sel: [['all', 'Zufällig (je 30 %, Knochen 10 %)'], ...MATS.map(x => [x.k, x.label])], def: 'all' }],
     perDay: (st) => { const n = nv(st.n, 0) / per, g = GRADES.find(x => x.k === (st.r || 'white')) || GRADES[0], leg = n / g.div, o = {};
       if ((st.t || 'all') === 'all') MATS.forEach(x => o[x.k] = leg / MATS.length); else o[st.t] = leg; return o; } });
   // Passports: 600.000 Credits = 1 Passseite (Allianz-Shop)
@@ -2106,7 +2116,7 @@ window.RokApp = () => {
         { k: 'daily', label: 'Daily', desc: '100 Gems jeden Tag', perDay: () => ({ gems: 100 }) },
         { k: 'forts', label: 'Forts', desc: `Ø ${(+GEM_PER_FORT).toLocaleString('de-DE', { maximumFractionDigits: 3 })} Gems pro Fort (10 Gems in 150 von 1.676 Burgen = 8,95 % Drop)`, inputs: [{ key: 'w', label: 'Forts pro Woche (Ø)', ph: 'z. B. 175' }], perDay: (s) => ({ gems: nv(s.w, nv(passive.apSrc?.forts?.w, 0)) * GEM_PER_FORT / 7 }) },
         { k: 'supply', label: 'Gem Supply', desc: '650 Gems jeden Tag', perDay: () => ({ gems: 650 }) },
-        { k: 'karuak', label: 'Baulur', desc: '108 Baulurs am Tag + Ø 9 Karuak = Ø 117 · 30 Gems pro Kill', inputs: [{ key: 'n', label: 'Kills pro Tag (Ø)', def: 117 }], perDay: (s) => ({ gems: nv(s.n, 117) * 30 }) },
+        { k: 'karuak', label: 'Baulur', desc: '108 Baulurs am Tag + Ø 9 Karuak = Ø 117 · 30 Gems pro Kill', inputs: [{ key: 'n', label: 'Kills pro Tag (Ø)', def: 117 }, KVK_OPT], perDay: (s) => ({ gems: nv(s.n, 117) * 30 }), inc: (s, days) => ({ gems: nv(s.n, 117) * 30 * baulurDays(s, days) }) },
         { k: 'bundle', label: 'Daily Bundle', desc: '1.200 Gems pro Kauf', inputs: [{ key: 'n', label: 'Käufe pro Tag', def: 1 }], perDay: (s) => ({ gems: nv(s.n, 1) * 1200 }) },
         { k: 'farm', label: 'Gem-Farming', desc: 'Gems sammeln auf der Karte', inputs: [{ key: 'n', label: 'Ø Gems pro Tag (in der Woche)', ph: 'z. B. 2000' }], perDay: (s) => ({ gems: nv(s.n, 0) }) }
       ] },
@@ -2130,12 +2140,12 @@ window.RokApp = () => {
         { k: 'vipgreen', label: 'VIP-Shop: grüne Kisten', desc: '+8.000 Credits pro Woche · ℹ️ Grüne Kisten nehmen und damit das Kavallerie-Waffen-Set craften', perDay: () => crPP(8000 / 7) },
         { k: 'vipblue', label: 'VIP-Shop: blaue Kiste', desc: '15 Blueprints verkaufen = +4.000 Credits pro Woche · ℹ️ Nur behalten, wenn du das Teil damit voll craften kannst', perDay: () => crPP(4000 / 7) }
       ] },
-    mats: { title: 'Passive Mats', units: MATS.map(x => ({ k: x.k, label: x.label, c: x.c, img: x.img, icon: x.icon })),
+    mats: { title: 'Passive Mats', units: [...MATS.map(x => ({ k: x.k, label: x.label, c: x.c, img: x.img, icon: x.icon })), { k: 'choice', label: 'Wahlkisten', c: '#facc15', img: 'mats/choicematchest.png', icon: '📦' }],
       summary: () => { const t = pmSum(pmDayTotal('mats')); return t > 0 ? `+${pmFmt('mats', t * 7)} Legendär / Woche` : null; },
-      now: () => { const e = lastOf('materials'); return e ? Object.fromEntries(MATS.map(x => [x.k, matLeg(e, x.k) + chestLeg(e) / MATS.length])) : {}; },
+      now: () => { const e = lastOf('materials'); return e ? { ...Object.fromEntries(MATS.map(x => [x.k, matLeg(e, x.k)])), choice: chestLeg(e) } : {}; },
       src: [
         { k: 'blacksmith', label: 'Blacksmith', desc: '15 graue Mats alle 3 Stunden = 120 pro Tag · VIP 14: 5 % schneller · VIP 16: 10 % schneller (aus deinem VIP-Stand)',
-          inputs: [{ key: 't', label: 'Material', sel: [['all', 'Alle 4 gleich verteilt'], ...MATS.map(x => [x.k, x.label])], def: 'all' }],
+          inputs: [{ key: 't', label: 'Material', sel: [['all', 'Zufällig (je 30 %, Knochen 10 %)'], ...MATS.map(x => [x.k, x.label])], def: 'all' }],
           perDay: (st) => matSplit({ white: 120 * bsFactor() }, st.t || 'all') },
         { k: 'vipshop', label: 'VIP-Shop', desc: 'Jede Woche: 50 graue, 15 blaue und 15 lila Materialkisten',
           inputs: [{ key: 'w', label: 'Graue Kisten pro Woche', def: 50 }, { key: 'b', label: 'Blaue Kisten pro Woche', def: 15 }, { key: 'p', label: 'Lila Kisten pro Woche', def: 15 }],
@@ -2143,11 +2153,14 @@ window.RokApp = () => {
         { k: 'daily', label: 'Daily Quest', desc: '4 graue + 4 grüne Zufallskisten pro Tag', perDay: () => matSplit({ white: 4, green: 4 }) },
         { k: 'canyon', label: 'Sunset Canyon', desc: 'Jede Chance gibt 1× grüne Mats', inputs: [{ key: 'n', label: 'Chancen pro Tag', def: 5 }], perDay: (st) => matSplit({ green: nv(st.n, 5) }) },
         { k: 'events', label: 'Events', desc: 'Auswählen, welche Events du machst – mit nächstem Termin und Rhythmus',
-          perDay: () => { let leg = 0; MEV.forEach(e => { if (e.matLeg && mevSt(e.k).on && mevSt(e.k).date) leg += e.matLeg / Math.max(1, +mevSt(e.k).every || 28); }); return matSplit({ gold: leg }); },
-          inc: (st, days) => { let leg = 0; MEV.forEach(e => { if (e.matLeg && mevSt(e.k).on) leg += e.matLeg * mevCount(e.k, days); }); return matSplit({ gold: leg }); },
+          perDay: () => MEV.reduce((a, e) => { const s2 = mevSt(e.k); if (!e.matLeg || !s2.on || !s2.date) return a; const f = 1 / Math.max(1, +s2.every || 28);
+            return pmAdd(pmAdd(a, matSplit(e.matRand || {}), f), matSplit(e.matChoice || {}, 'choice'), f); }, {}),
+          inc: (st, days) => MEV.reduce((a, e) => { if (!e.matLeg || !mevSt(e.k).on) return a; const n = mevCount(e.k, days);
+            return n ? pmAdd(pmAdd(a, matSplit(e.matRand || {}), n), matSplit(e.matChoice || {}, 'choice'), n) : a; }, {}),
           custom: { html: () => mevHtml('mats'), bind: (box, upd, full) => bindMev(box, full) } },
-        { k: 'baulur', label: 'Baulurs', desc: 'Ø aus 6.653 Baulurs: 1.150 graue, 590 grüne, 221 blaue Materialkisten', inputs: [{ key: 'n', label: 'Baulurs pro Tag', def: 108 }],
-          perDay: (st) => { const n = baulurDay(st); return matSplit({ white: BAU_MATS.white * n, green: BAU_MATS.green * n, blue: BAU_MATS.blue * n }); } }
+        { k: 'baulur', label: 'Baulurs', desc: 'Ø aus 6.653 Baulurs: 1.150 graue, 590 grüne, 221 blaue Materialkisten', inputs: [{ key: 'n', label: 'Baulurs pro Tag', def: 108 }, KVK_OPT],
+          perDay: (st) => { const n = baulurDay(st); return matSplit({ white: BAU_MATS.white * n, green: BAU_MATS.green * n, blue: BAU_MATS.blue * n }); },
+          inc: function (st, days) { return scaleObj(this.perDay(st), baulurDays(st, days)); } }
       ] },
     speedups: { title: 'Passive Speedups', units: SPEED.map(c => ({ k: c.k, label: c.label, c: c.c, img: c.img, icon: c.icon })), tick: (v) => fmt(v / 1440) + ' T',
       summary: () => { const t = pmSum(pmDayTotal('speedups')); return t > 0 ? `+${durText(t * 7, true)} / Woche` : null; },
@@ -2156,8 +2169,9 @@ window.RokApp = () => {
         { k: 'daily', label: 'Daily', desc: '5× 5 Min. Training · 5× 5 Min. Bau · 10× 5 Min. Forschung · 10× 5 Min. Heilung · 20× 5 Min. Universal', perDay: () => ({ training: 25, building: 25, research: 50, healing: 50, universal: 100 }) },
         { k: 'forts', label: 'Forts', desc: 'Ø aus 1.707 Forts: 7.697× 5 Min. Universal + 7.972× 5 Min. Heilung (≈ 22,5 + 23,4 Min. pro Fort)', inputs: [{ key: 'w', label: 'Forts pro Woche', ph: 'z. B. 35' }],
           perDay: (st) => { const n = nv(st.w, nv(typeof apSrc === 'function' ? apSrc('forts').w : null, 0)) / 7; return { universal: FORT_SPEED.universal * n, healing: FORT_SPEED.healing * n }; } },
-        { k: 'baulur', label: 'Baulurs', desc: 'Ø aus 6.653 Baulurs: 4.570× Universal, 4.324× Bau, 4.326× Forschung à 30 Min. (≈ 1 Drop mit 2× 30 Min. pro Baulur)', inputs: [{ key: 'n', label: 'Baulurs pro Tag', def: 108 }],
-          perDay: (st) => { const n = baulurDay(st); return { universal: BAU_SPEED.universal * n, building: BAU_SPEED.building * n, research: BAU_SPEED.research * n }; } },
+        { k: 'baulur', label: 'Baulurs', desc: 'Ø aus 6.653 Baulurs: 4.570× Universal, 4.324× Bau, 4.326× Forschung à 30 Min. (≈ 1 Drop mit 2× 30 Min. pro Baulur)', inputs: [{ key: 'n', label: 'Baulurs pro Tag', def: 108 }, KVK_OPT],
+          perDay: (st) => { const n = baulurDay(st); return { universal: BAU_SPEED.universal * n, building: BAU_SPEED.building * n, research: BAU_SPEED.research * n }; },
+          inc: function (st, days) { return scaleObj(this.perDay(st), baulurDays(st, days)); } },
         { k: 'events', label: 'Events', desc: 'Ceroli Crisis 50× 60 Min. · Realm of Mystique 50× 60 Min. (als Universal gerechnet)',
           perDay: () => { let m = 0; MEV.forEach(e => { if (e.speedMin && mevSt(e.k).on && mevSt(e.k).date) m += e.speedMin / Math.max(1, +mevSt(e.k).every || 28); }); return { universal: m }; },
           inc: (st, days) => { let m = 0; MEV.forEach(e => { if (e.speedMin && mevSt(e.k).on) m += e.speedMin * mevCount(e.k, days); }); return { universal: m }; },
@@ -2172,7 +2186,7 @@ window.RokApp = () => {
       ] }
   };
   const PM_COL = ['#38bdf8', '#a78bfa', '#f97316', '#f472b6', '#e2e8f0', '#ef4444', '#2dd4bf'];
-  const pmSt = (m) => { const a = (passive.pm = passive.pm || {}); return (a[m] = a[m] || { src: {}, lines: { total: true } }); };
+  const pmSt = (m) => { const a = (passive.pm = passive.pm || {}); const x = (a[m] = a[m] || { src: {}, lines: { total: true } }); x.src = x.src || {}; x.lines = x.lines || { total: true }; return x; };
   const pmSrc = (m, k) => { const st = pmSt(m); return (st.src[k] = st.src[k] || { on: false }); };
   const pmFmt = (m, v) => m === 'speedups' ? durText(Math.abs(v), true) : m === 'mats' ? (+v).toLocaleString('de-DE', { maximumFractionDigits: Math.abs(v) < 10 ? 2 : 1 }) : PMOD[m].short || Math.abs(v) >= 1e6 ? short(v) : Math.abs(v) < 10 && v % 1 ? (+v).toLocaleString('de-DE', { maximumFractionDigits: Math.abs(v) < 1 ? 2 : 1 }) : fmt(v);
   const pmSg = (m, v) => (v < 0 ? '−' : '+') + pmFmt(m, Math.abs(v));
@@ -2208,7 +2222,8 @@ window.RokApp = () => {
                 </div>
                 <div class="ap-src-body text-right text-xs tabular-nums text-emerald-400 whitespace-nowrap" data-pmday="${x.k}"></div>
               </div>
-              ${(x.inputs || []).map(f => `<label class="ap-src-body mt-2 flex items-center justify-between gap-2 text-xs text-slate-300">${f.label}${f.sel
+              ${(x.inputs || []).map(f => f.check ? `<label class="ap-src-body mt-2 flex items-center justify-between gap-2 text-xs text-slate-300 cursor-pointer"><span>${f.label}${f.key === 'kvk' ? (kvkStartDate() ? ` <span class="text-slate-500">(${dLabel(kvkStartDate())})</span>` : ' <span class="text-amber-300">KvK-Start im Profil fehlt</span>') : ''}</span><input data-pmin="${x.k}" data-key="${f.key}" type="checkbox" ${s[f.key] ? 'checked' : ''} class="accent-emerald-500 w-4 h-4"></label>`
+                : `<label class="ap-src-body mt-2 flex items-center justify-between gap-2 text-xs text-slate-300">${f.label}${f.sel
                 ? `<select data-pmin="${x.k}" data-key="${f.key}" class="w-44 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500">${f.sel.map(([v, l]) => `<option value="${v}" ${(s[f.key] ?? f.def) === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`
                 : `<input data-pmin="${x.k}" data-key="${f.key}" ${f.text ? 'type="text" inputmode="decimal"' : 'type="number" min="0" step="any"'} value="${s[f.key] ?? f.def ?? ''}" placeholder="${f.ph || ''}" class="${inp}">`}</label>`).join('')}
               ${x.custom ? `<div class="ap-src-body mt-2" data-pmcustom="${x.k}">${x.custom.html(m)}</div>` : ''}
@@ -2218,8 +2233,9 @@ window.RokApp = () => {
     makeFold($('pmPassive'), 'pm:' + m);
     makeFold($('pmSrcBox'), 'pmsrc:' + m);
     pt.querySelectorAll('[data-pmtog]').forEach(b => b.onclick = () => { const s = pmSrc(m, b.dataset.pmtog); s.on = !s.on; b.setAttribute('aria-checked', String(s.on)); b.closest('.ap-src').dataset.on = String(s.on); savePassive(); renderPMOut(m); });
-    pt.querySelectorAll('[data-pmin]').forEach(i => i.addEventListener(i.tagName === 'SELECT' ? 'change' : 'input', () => {
+    pt.querySelectorAll('[data-pmin]').forEach(i => i.addEventListener(i.tagName === 'SELECT' || i.type === 'checkbox' ? 'change' : 'input', () => {
       const s = pmSrc(m, i.dataset.pmin);
+      if (i.type === 'checkbox') { s[i.dataset.key] = i.checked; savePassive(); renderPMOut(m); return; }
       if (i.tagName === 'SELECT') { s[i.dataset.key] = i.value; savePassive(); renderPMOut(m); return; }
       const v = i.value.trim() === '' ? null : i.type === 'text' ? parseAmount(i.value) : +i.value;
       s[i.dataset.key] = v == null || isNaN(v) ? null : Math.max(0, v); savePassive(); renderPMOut(m);
@@ -2958,22 +2974,38 @@ window.RokApp = () => {
     $('migGoal')?.addEventListener('click', () => { $('passGoal').value = need.passports; LS.set(PASS_GOAL, String(need.passports)); renderPassGoal(+pages || 0); $('passGoal').dispatchEvent(new Event('input')); upd(); });
   }
 
-  // ---------- Marodeure: Verlauf (z. B. aus rokbattles) → Ø pro 1 AP → Rechner ----------
-  const MAR_F = [   // Beute-Felder eines Laufs
-    { k: 'crystals', label: 'Kristalle', img: 'ressourcen/crystal.webp', icon: '🔷', c: '#38bdf8' },
-    { k: 'gems', label: 'Gems', img: 'ressourcen/gems.png', icon: '💎', c: '#f472b6' },
-    { k: 'silver', label: 'Silber-Schlüssel', img: 'sonstiges/silverkey.png', icon: '🗝️', c: '#c084fc' },
-    { k: 'gold', label: 'Gold-Schlüssel', img: 'sonstiges/goldkey.png', icon: '🔑', c: '#f59e0b' }];
-  const MAR_SP = SPEED.map(c => ({ k: 'sp_' + c.k, label: c.label, img: c.img, icon: c.icon, c: c.c, sk: c.k }));
-  const MAR_CH = GRADES.map(g => ({ k: 'ch_' + g.k, label: g.label, g: g.k, c: g.c, div: g.div }));
-  const MAR_ALL = [...MAR_F, ...MAR_SP, ...MAR_CH];
+  // ---------- Marodeure: Inhalt der Marodeur-Kisten (Tabelle „Chests“) → Verlauf → Ø pro 1 AP → Rechner ----------
+  const MAT4 = [['iron', 'Eisenerz'], ['ebony', 'Ebenholz'], ['leather', 'Leder'], ['bone', 'Tierknochen']];
+  const RES4 = [['food', 'Proviant'], ['wood', 'Holz'], ['stone', 'Stein'], ['gold', 'Gold']];
+  const MAR_GROUPS = [
+    { k: 'gems', title: 'Gems', img: 'ressourcen/gems.png', icon: '💎', items: [50, 100, 200, 500].map(v => ({ k: 'g' + v, label: `${fmt(v)} Gems`, gems: v })) },
+    { k: 'speed', title: 'Speedups', img: 'sonstiges/SpeedUniversal.png', icon: '⏱️', items: [['3h', 180], ['8h', 480], ['1d', 1440], ['3d', 4320]].map(([l, m]) => ({ k: 's' + l, label: l.replace('h', ' Std.').replace('1d', '1 Tag').replace('3d', '3 Tage'), min: m })) },
+    ...[['purple', 'Materialien lila', 4], ['blue', 'Materialien blau', 16], ['green', 'Materialien grün', 64]].map(([g, t, div]) => ({ k: 'm' + g, title: t, img: 'mats/choicematchest.png', icon: '🧱', grade: g,
+      items: MAT4.map(([m, l]) => ({ k: `m${g[0]}_${m}`, label: l, mat: m, leg: 1 / div })) })),
+    ...[['purple', 'Ressourcen lila'], ['blue', 'Ressourcen blau']].map(([g, t]) => ({ k: 'r' + g, title: t, img: 'ressourcen/cornmore.png', icon: '🌾', grade: g,
+      items: RES4.map(([r, l]) => ({ k: `r${g[0]}_${r}`, label: l, res: r, grade: g })) })),
+    { k: 'other', title: 'Sonstiges', img: 'sonstiges/goldkey.png', icon: '🔑', items: [{ k: 'key_mat', label: 'Material-Schlüssel', key: 'mat' }, { k: 'key_gold', label: 'Gold-Schlüssel', key: 'gold' }, { k: 'pc1k', label: 'P-Credits 1k', credits: 1000 }, { k: 'pc5k', label: 'P-Credits 5k', credits: 5000 }] }
+  ];
+  const MAR_ITEMS = MAR_GROUPS.flatMap(g => g.items);
+  // Wert einer Ressourcen-Kiste (änderbar)
+  const RES_VAL_DEF = { blue: { food: 500000, wood: 500000, stone: 375000, gold: 200000 }, purple: { food: 1500000, wood: 1500000, stone: 1125000, gold: 600000 } };
+  const marResVal = (g, r) => { const v = marSt().resVal?.[g]?.[r]; return +v > 0 ? +v : RES_VAL_DEF[g][r]; };
   const marSt = () => (passive.mar = passive.mar || {});
   const marHist = () => (passive.marHist = passive.marHist || []);
   var marTab = 'calc';
-  function marAvg() {   // Summe aller Läufe → pro 1 AP und pro Marodeur
+  // Zusammenfassung wie in der Tabelle unten: Gems · Leg Mats · Speeds · Credits · Ressourcen · Schlüssel
+  function marSum(c) {
+    const o = { gems: 0, leg: 0, speed: 0, credits: 0, food: 0, wood: 0, stone: 0, gold: 0, key_mat: 0, key_gold: 0, mat: { iron: 0, ebony: 0, leather: 0, bone: 0 } };
+    MAR_ITEMS.forEach(it => { const n = +c[it.k] || 0; if (!n) return;
+      if (it.gems) o.gems += n * it.gems; if (it.min) o.speed += n * it.min; if (it.leg) { o.leg += n * it.leg; o.mat[it.mat] += n * it.leg; }
+      if (it.res) o[it.res] += n * marResVal(it.grade, it.res); if (it.credits) o.credits += n * it.credits; if (it.key) o['key_' + it.key] += n; });
+    o.gems += +c.gems || 0;   // ältere Einträge
+    return o;
+  }
+  function marAvg() {
     const H = marHist(), ap = H.reduce((a, e) => a + (+e.ap || (+e.n || 0) * apCost('maraud')), 0), n = H.reduce((a, e) => a + (+e.n || 0), 0);
-    const sum = Object.fromEntries(MAR_ALL.map(f => [f.k, H.reduce((a, e) => a + (+e[f.k] || 0), 0)]));
-    return { ap, n, sum, perAp: ap ? Object.fromEntries(MAR_ALL.map(f => [f.k, sum[f.k] / ap])) : null, perN: n ? Object.fromEntries(MAR_ALL.map(f => [f.k, sum[f.k] / n])) : null, runs: H.length };
+    const cnt = Object.fromEntries(MAR_ITEMS.map(it => [it.k, H.reduce((a, e) => a + (+e[it.k] || 0), 0)])); cnt.gems = H.reduce((a, e) => a + (+e.gems || 0), 0);
+    return { ap, n, cnt, runs: H.length };
   }
   const dec = (v, d = 2) => (+v || 0).toLocaleString('de-DE', { maximumFractionDigits: d });
   function renderMar() {
@@ -2982,78 +3014,75 @@ window.RokApp = () => {
     const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:border-gold-500';
     const seg = `<div class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700 mb-4 max-w-sm">${[['calc', 'Rechner'], ['hist', `Verlauf (${A.runs})`]].map(([k, l]) => `<button type="button" data-martab="${k}" aria-pressed="${marTab === k}" class="seg-btn rounded-lg py-1.5 text-xs font-semibold transition">${l}</button>`).join('')}</div>`;
     const card = (l, v, c, sub, icon) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">${icon || ''} ${l}</div><div class="text-xl font-bold tabular-nums ${c}">${v}</div>${sub ? `<div class="text-[11px] text-slate-500">${sub}</div>` : ''}</div>`;
+    const sumCards = (S, sub) => `<div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        ${card('Gems', fmt(S.gems), 'text-pink-300', sub ? sub('gems', 1) : '', ico({ img: 'ressourcen/gems.png', icon: '💎' }, 'w-4 h-4'))}
+        ${card('Leg. Mats', dec(S.leg), 'text-violet-300', MAT4.map(([m, l]) => `${l} ${dec(S.mat[m], 1)}`).join(' · '), ico({ img: 'mats/choicematchest.png', icon: '🧱' }, 'w-4 h-4'))}
+        ${card('Speedups', dec(S.speed / 1440, 1) + ' Tage', 'text-amber-200', durText(S.speed, true), ico({ img: 'sonstiges/SpeedUniversal.png', icon: '⏱️' }, 'w-4 h-4'))}
+        ${card('Credits', fmt(S.credits), 'text-slate-200', `Schlüssel: ${fmt(S.key_mat)} Material · ${fmt(S.key_gold)} Gold`, ico({ img: 'ressourcen/allianccredits.png', icon: '🤝' }, 'w-4 h-4'))}
+      </div>
+      <div class="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-3">${RES4.map(([r, l]) => card(l, short(S[r]), 'text-orange-200', '', ico(RES.find(x => x.k === r) || {}, 'w-4 h-4'))).join('')}</div>`;
     let body = '';
     if (marTab === 'calc') {
-      const useAp = st.ap != null && st.ap !== '' ? +st.ap : (st.n ? st.n * cost : (ap || 0)), n = Math.floor(useAp / cost);
-      const P = A.perAp, v = (k) => P ? P[k] * useAp : 0;
-      const spTot = MAR_SP.reduce((a, f) => a + v(f.k), 0), chLeg = MAR_CH.reduce((a, f) => a + v(f.k) / f.div, 0);
-      body = `${!P ? `<div class="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-200 mb-4">Noch kein Lauf gespeichert. Trag unter <b>Verlauf</b> ein, was du bekommen hast (z. B. aus rokbattles) – dann rechnet er den Ø pro 1 AP aus.</div>` : ''}
+      const useAp = st.ap != null && st.ap !== '' ? +st.ap : (ap || 0), n = Math.floor(useAp / cost);
+      const f = A.ap ? useAp / A.ap : 0, C = Object.fromEntries(Object.entries(A.cnt).map(([k, v]) => [k, v * f])), S = marSum(C);
+      body = `${!A.ap ? `<div class="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-200 mb-4">Noch kein Lauf gespeichert. Trag unter <b>Verlauf</b> ein, was in deinen Marodeur-Kisten war (z. B. aus rokbattles) – dann rechnet er den Ø pro 1 AP aus.</div>` : ''}
         <div class="grid sm:grid-cols-2 gap-3 mb-4">
           <label class="text-xs text-slate-400">AP, die du einsetzen willst<div class="mt-1 flex gap-2"><input data-mar="ap" type="text" inputmode="numeric" value="${st.ap != null && st.ap !== '' ? fmt(st.ap) : ''}" placeholder="${ap ? fmt(ap) + ' (alle)' : 'z. B. 100.000'}" class="flex-1 text-right ${inp}">
             ${ap ? `<button type="button" id="marAll" class="px-3 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-xs whitespace-nowrap">Alle AP</button>` : ''}</div></label>
           <div class="text-xs text-slate-400">Das sind<div class="mt-1 text-lg font-bold text-white tabular-nums">≈ ${fmt(n)} Marodeure <span class="text-xs font-normal text-slate-500">à ${fmt(cost)} AP</span></div></div>
         </div>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          ${card('Gems', P ? fmt(v('gems')) : '–', 'text-pink-300', P ? `Ø ${dec(P.gems * 1000)} pro 1.000 AP` : '', ico(MAR_F[1], 'w-4 h-4'))}
-          ${card('Kristalle', P ? fmt(v('crystals')) : '–', 'text-sky-300', P ? `Ø ${dec(P.crystals * 1000)} pro 1.000 AP` : '', ico(MAR_F[0], 'w-4 h-4'))}
-          ${card('Speedups', P ? durText(spTot) : '–', 'text-amber-200', P ? MAR_SP.filter(f => v(f.k) > 0).map(f => `${f.label} ${durText(v(f.k), true)}`).join(' · ') : '', ico(MAR_SP[0], 'w-4 h-4'))}
-          ${card('Schlüssel', P ? `${fmt(v('silver'))} / ${fmt(v('gold'))}` : '–', 'text-violet-300', 'Silber / Gold', ico(MAR_F[2], 'w-4 h-4'))}
-        </div>
-        <section id="marChestBox" class="mt-4 rounded-xl border border-ink-700 bg-ink-950/30 p-4">
-          <h2 class="font-display text-base text-gold-300">${ico({ img: 'mats/choicematchest.png', icon: '📦' }, 'w-5 h-5')} Kisten</h2>
-          <div class="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-2">${MAR_CH.map(f => `<div class="rounded-lg border border-ink-700 bg-ink-950/60 px-3 py-2"><div class="text-[10px] uppercase tracking-widest" style="color:${f.c}">${f.label}</div>
-            <div class="text-lg font-bold text-white tabular-nums">${P ? fmt(v(f.k)) : '–'}</div><div class="text-[10px] text-slate-500">${P ? `Ø ${dec(A.perN?.[f.k] ?? 0, 3)} pro Marodeur` : ''}</div></div>`).join('')}</div>
-          <div class="mt-2 text-xs text-slate-300">Materialkisten gesamt ≈ <b class="text-violet-300 tabular-nums">${P ? dec(chLeg) : '–'}</b> Legendär</div>
+        ${A.ap ? sumCards(S, (k) => `Ø ${dec(marSum(A.cnt)[k] / A.ap * 1000)} pro 1.000 AP`) : ''}
+        ${A.ap ? `<section id="marChestBox" class="mt-4 rounded-xl border border-ink-700 bg-ink-950/30 p-4">
+          <h2 class="font-display text-base text-gold-300">${ico({ img: 'mats/choicematchest.png', icon: '📦' }, 'w-5 h-5')} Kisten – was drin ist</h2>
+          <div class="mt-2 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">${MAR_GROUPS.map(g => `<div class="rounded-lg border border-ink-700 bg-ink-950/60 p-2">
+            <div class="text-[10px] uppercase tracking-widest text-slate-400 mb-1">${ico(g, 'w-3.5 h-3.5')} ${g.title}</div>
+            ${g.items.map(it => `<div class="flex justify-between text-xs"><span class="text-slate-300">${it.label}</span><span class="tabular-nums text-white">${dec(C[it.k], 1)} <span class="text-slate-500">(Ø ${dec(A.cnt[it.k] / A.ap * 1000, 2)}/1k AP)</span></span></div>`).join('')}</div>`).join('')}</div>
         </section>
-        ${P ? `<div class="mt-3 text-[11px] text-slate-500">Ø aus ${fmt(A.runs)} Läufen · ${fmt(A.n)} Marodeure · ${fmt(A.ap)} AP.${apPerDay() > 0 ? ` Dein passives AP (+${fmt(apPerDay())} / Tag) reicht für ca. ${fmt(Math.floor(apPerDay() / cost))} Marodeure am Tag.` : ''}</div>` : ''}`;
+        <div class="mt-3 text-[11px] text-slate-500">Ø aus ${fmt(A.runs)} Läufen · ${fmt(A.n)} Marodeure · ${fmt(A.ap)} AP.${apPerDay() > 0 ? ` Dein passives AP (+${fmt(apPerDay())} / Tag) reicht für ca. ${fmt(Math.floor(apPerDay() / cost))} Marodeure am Tag.` : ''}</div>` : ''}`;
     } else {
       const H = marHist().slice().sort((x, y) => (y.date || '').localeCompare(x.date || ''));
-      const f2 = (f, ph) => `<label class="text-[11px] text-slate-400">${ico(f, 'w-3.5 h-3.5')} ${f.label}<input data-marf="${f.k}" type="text" inputmode="decimal" placeholder="${ph || '0'}" class="mt-1 w-full text-right ${inp}"></label>`;
       body = `<div class="rounded-xl border border-ink-700 bg-ink-950/40 p-4">
           <div class="text-sm font-semibold text-white mb-1">Neuen Lauf speichern</div>
-          <div class="text-[11px] text-slate-500 mb-3">Werte z. B. aus rokbattles abschreiben. Rechnen geht direkt im Feld: „7697x5“ = 7.697 × 5 Min.</div>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div class="text-[11px] text-slate-500 mb-3">Trag ein, wie viele Marodeure du gemacht hast und was in den Kisten war. Rechnen geht direkt im Feld, z. B. „12+7“.</div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
             <label class="text-[11px] text-slate-400">Datum<input data-marf="date" type="date" value="${isoDay(dayPlus(0))}" class="mt-1 w-full ${inp}"></label>
-            <label class="text-[11px] text-slate-400">Marodeure (Results)<input data-marf="n" type="text" inputmode="numeric" placeholder="z. B. 1.707" class="mt-1 w-full text-right ${inp}"></label>
+            <label class="text-[11px] text-slate-400">Marodeure (Results)<input data-marf="n" type="text" inputmode="numeric" placeholder="z. B. 120" class="mt-1 w-full text-right ${inp}"></label>
             <label class="text-[11px] text-slate-400">AP verbraucht<input data-marf="ap" type="text" inputmode="numeric" placeholder="leer = Anzahl × ${fmt(cost)}" class="mt-1 w-full text-right ${inp}"></label>
-            <div></div>
-            ${MAR_F.map(f => f2(f)).join('')}
           </div>
-          <details class="mt-3"><summary class="text-xs text-slate-300 cursor-pointer hover:text-gold-300">⏱️ Speedups (Minuten)</summary>
-            <div class="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-2">${MAR_SP.map(f => f2(f, 'z. B. 120x5')).join('')}</div></details>
-          <details class="mt-2"><summary class="text-xs text-slate-300 cursor-pointer hover:text-gold-300">📦 Kisten (Materialkisten je Seltenheit)</summary>
-            <div class="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-2">${MAR_CH.map(f => `<label class="text-[11px]" style="color:${f.c}">${f.label}<input data-marf="${f.k}" type="text" inputmode="numeric" placeholder="0" class="mt-1 w-full text-right ${inp}"></label>`).join('')}</div></details>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">${MAR_GROUPS.map(g => `<div class="rounded-lg border border-ink-700 bg-ink-950/60 p-2">
+            <div class="text-[10px] uppercase tracking-widest text-slate-400 mb-1">${ico(g, 'w-3.5 h-3.5')} ${g.title}</div>
+            ${g.items.map(it => `<label class="grid grid-cols-[1fr_6rem] items-center gap-2 text-xs text-slate-300 mb-1">${it.label}<input data-marf="${it.k}" type="text" inputmode="numeric" placeholder="0" class="w-full text-right ${inp} !py-1"></label>`).join('')}</div>`).join('')}</div>
+          <details class="mt-3"><summary class="text-xs text-slate-400 cursor-pointer hover:text-gold-300">Wert der Ressourcen-Kisten anpassen</summary>
+            <div class="mt-2 grid sm:grid-cols-2 gap-3">${['purple', 'blue'].map(g => `<div class="rounded-lg border border-ink-700 p-2"><div class="text-[10px] uppercase tracking-widest text-slate-400 mb-1">${g === 'purple' ? 'Lila' : 'Blau'} – pro Kiste</div>
+              ${RES4.map(([r, l]) => `<label class="grid grid-cols-[1fr_7rem] items-center gap-2 text-xs text-slate-300 mb-1">${l}<input data-marres="${g}" data-r="${r}" type="text" inputmode="numeric" value="${fmt(marResVal(g, r))}" class="w-full text-right ${inp} !py-1"></label>`).join('')}</div>`).join('')}</div></details>
           <button type="button" id="marSave" class="mt-3 px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">+ Lauf speichern</button>
           <span id="marMsg" class="ml-2 text-xs"></span>
         </div>
-        ${A.perAp ? `<div class="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-          ${card('Ø Gems pro 1 AP', dec(A.perAp.gems, 4), 'text-pink-300', `${dec(A.perN.gems)} pro Marodeur`)}
-          ${card('Ø Kristalle pro 1 AP', dec(A.perAp.crystals, 2), 'text-sky-300', `${dec(A.perN.crystals)} pro Marodeur`)}
-          ${card('Ø Speedups pro 1 AP', dec(MAR_SP.reduce((a, f) => a + A.perAp[f.k], 0), 3) + ' Min.', 'text-amber-200', `${dec(MAR_SP.reduce((a, f) => a + A.perN[f.k], 0), 1)} Min. pro Marodeur`)}
-          ${card('Ø Mats pro 1.000 AP', dec(MAR_CH.reduce((a, f) => a + A.perAp[f.k] / f.div, 0) * 1000, 2) + ' Leg.', 'text-violet-300', 'aus Materialkisten')}
-        </div>` : ''}
+        ${A.ap ? `<div class="mt-4 text-xs uppercase tracking-widest text-slate-400 mb-2">Gesamt aus allen Läufen</div>${sumCards(marSum(A.cnt), (k) => `Ø ${dec(marSum(A.cnt)[k] / A.ap, 4)} pro 1 AP`)}` : ''}
         <div class="mt-4 overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs">
-          <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-2 px-2 text-left font-medium">Datum</th><th class="py-2 px-2 text-right font-medium">Marodeure</th><th class="py-2 px-2 text-right font-medium">AP</th><th class="py-2 px-2 text-right font-medium">Gems</th><th class="py-2 px-2 text-right font-medium">Kristalle</th><th class="py-2 px-2 text-right font-medium">Speedups</th><th class="py-2 px-2 text-right font-medium">Schlüssel S/G</th><th class="py-2 px-2 text-right font-medium">Kisten</th><th></th></tr></thead>
-          <tbody>${H.length ? H.map(e => `<tr class="border-b border-ink-800 last:border-b-0"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${dLabel(e.date, true)}</td><td class="py-1.5 px-2 text-right tabular-nums">${fmt(e.n)}</td><td class="py-1.5 px-2 text-right tabular-nums text-emerald-300">${fmt(e.ap || e.n * cost)}</td>
-            <td class="py-1.5 px-2 text-right tabular-nums text-pink-300">${fmt(e.gems)}</td><td class="py-1.5 px-2 text-right tabular-nums text-sky-300">${fmt(e.crystals)}</td><td class="py-1.5 px-2 text-right tabular-nums text-amber-200 whitespace-nowrap">${durText(MAR_SP.reduce((a, f) => a + (+e[f.k] || 0), 0), true)}</td>
-            <td class="py-1.5 px-2 text-right tabular-nums">${fmt(e.silver)} / ${fmt(e.gold)}</td><td class="py-1.5 px-2 text-right tabular-nums text-violet-300">${fmt(MAR_CH.reduce((a, f) => a + (+e[f.k] || 0), 0))}</td>
-            <td class="text-right"><button type="button" data-mardel="${e.id}" class="text-slate-500 hover:text-red-400 px-2" title="Löschen">✕</button></td></tr>`).join('')
+          <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-2 px-2 text-left font-medium">Datum</th><th class="py-2 px-2 text-right font-medium">Marodeure</th><th class="py-2 px-2 text-right font-medium">AP</th><th class="py-2 px-2 text-right font-medium">Gems</th><th class="py-2 px-2 text-right font-medium">Leg. Mats</th><th class="py-2 px-2 text-right font-medium">Speedups</th><th class="py-2 px-2 text-right font-medium">Credits</th><th class="py-2 px-2 text-right font-medium">Proviant / Holz / Stein / Gold</th><th></th></tr></thead>
+          <tbody>${H.length ? H.map(e => { const S = marSum(e); return `<tr class="border-b border-ink-800 last:border-b-0"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${dLabel(e.date, true)}</td><td class="py-1.5 px-2 text-right tabular-nums">${fmt(e.n)}</td><td class="py-1.5 px-2 text-right tabular-nums text-emerald-300">${fmt(e.ap || e.n * cost)}</td>
+            <td class="py-1.5 px-2 text-right tabular-nums text-pink-300">${fmt(S.gems)}</td><td class="py-1.5 px-2 text-right tabular-nums text-violet-300">${dec(S.leg)}</td><td class="py-1.5 px-2 text-right tabular-nums text-amber-200 whitespace-nowrap">${dec(S.speed / 1440, 1)} T</td>
+            <td class="py-1.5 px-2 text-right tabular-nums">${fmt(S.credits)}</td><td class="py-1.5 px-2 text-right tabular-nums text-orange-200 whitespace-nowrap">${RES4.map(([r]) => short(S[r])).join(' / ')}</td>
+            <td class="text-right"><button type="button" data-mardel="${e.id}" class="text-slate-500 hover:text-red-400 px-2" title="Löschen">✕</button></td></tr>`; }).join('')
             : '<tr><td colspan="9" class="py-6 text-center text-slate-500">Noch keine Läufe gespeichert.</td></tr>'}</tbody></table></div>`;
     }
     el.innerHTML = `<section id="marBox" class="panel rounded-2xl p-5">
       <h2 class="font-display text-lg text-gold-300">🐎 Marodeure</h2>
-      <p class="text-xs text-slate-400 mb-3">Speicher deine Läufe im Verlauf – daraus rechnet er den Ø pro 1 AP und hochgerechnet, was deine AP bringen.</p>
+      <p class="text-xs text-slate-400 mb-3">Speicher deine Läufe mit dem Inhalt der Marodeur-Kisten – daraus rechnet er den Ø pro 1 AP und hochgerechnet, was deine AP bringen.</p>
       ${seg}${body}</section>`;
     makeFold($('marBox'), 'mar'); if ($('marChestBox')) makeFold($('marChestBox'), 'marchest');
     el.querySelectorAll('[data-martab]').forEach(b => b.onclick = () => { marTab = b.dataset.martab; renderMar(); });
     el.querySelectorAll('[data-mar]').forEach(i => i.addEventListener('change', () => { const v = i.value.trim() === '' ? null : parseAmount(i.value); st[i.dataset.mar] = v == null || isNaN(v) ? null : Math.max(0, v); savePassive(); renderMar(); }));
-    $('marAll')?.addEventListener('click', () => { st.ap = null; st.n = null; savePassive(); renderMar(); });
+    el.querySelectorAll('[data-marres]').forEach(i => i.addEventListener('change', () => { const v = parseAmount(i.value); st.resVal = st.resVal || {}; st.resVal[i.dataset.marres] = st.resVal[i.dataset.marres] || {};
+      st.resVal[i.dataset.marres][i.dataset.r] = isNaN(v) || v <= 0 ? null : v; savePassive(); }));
+    $('marAll')?.addEventListener('click', () => { st.ap = null; savePassive(); renderMar(); });
     el.querySelectorAll('[data-mardel]').forEach(b => b.onclick = async () => { if (!(await UI.confirm('Diesen Lauf löschen?'))) return; passive.marHist = marHist().filter(e => e.id !== b.dataset.mardel); savePassive(); renderMar(); renderHub(); });
     $('marSave')?.addEventListener('click', () => {
       const get = (k) => el.querySelector(`[data-marf="${k}"]`)?.value ?? '', e = { id: 'm' + Date.now().toString(36), date: get('date') || isoDay(dayPlus(0)) };
       let bad = false;
-      ['n', 'ap', ...MAR_ALL.map(f => f.k)].forEach(k => { const v = evalAmt(get(k)); if (v == null) return; if (isNaN(v)) { bad = true; el.querySelector(`[data-marf="${k}"]`).classList.add('border-red-500'); return; } e[k] = Math.max(0, Math.round(v)); });
-      if (bad || !(e.n > 0)) { $('marMsg').className = 'ml-2 text-xs text-red-400'; $('marMsg').textContent = bad ? 'Bitte nur Zahlen (oder z. B. 120x5).' : 'Anzahl Marodeure eintragen.'; return; }
+      ['n', 'ap', ...MAR_ITEMS.map(f => f.k)].forEach(k => { const v = evalAmt(get(k)); if (v == null) return; if (isNaN(v)) { bad = true; el.querySelector(`[data-marf="${k}"]`).classList.add('border-red-500'); return; } e[k] = Math.max(0, Math.round(v)); });
+      if (bad || !(e.n > 0)) { $('marMsg').className = 'ml-2 text-xs text-red-400'; $('marMsg').textContent = bad ? 'Bitte nur Zahlen (oder z. B. 12+7).' : 'Anzahl Marodeure eintragen.'; return; }
       if (!e.ap) e.ap = e.n * cost;
       marHist().push(e); savePassive(); renderMar(); renderHub();
     });
@@ -3065,10 +3094,33 @@ window.RokApp = () => {
   function matGearReach() {   // Tag, an dem jedes Item (in Reihenfolge) bezahlbar ist
     const G = gearSt(), now = PMOD.mats.now(), out = [], need = Object.fromEntries(MATS.map(x => [x.k, 0]));
     const inc = []; for (let d = 0; d <= 730; d++) inc.push(d === 0 ? {} : pmIncome('mats', d));
+    // Wahlkisten decken, was bei einem Material fehlt (gehen damit zuerst an das erste Gear der Liste)
+    const gap = (d) => MATS.reduce((a, x) => a + Math.max(0, need[x.k] - (now[x.k] || 0) - (inc[d][x.k] || 0)), 0);
+    const flex = (d) => (now.choice || 0) + (inc[d].choice || 0);
     G.forEach(g => { MATS.forEach(x => need[x.k] += +g[x.k] || 0);
-      let day = null; for (let d = 0; d <= 730; d++) { if (MATS.every(x => (now[x.k] || 0) + (inc[d][x.k] || 0) >= need[x.k] - 1e-9)) { day = d; break; } }
-      out.push({ g, day, miss: Object.fromEntries(MATS.map(x => [x.k, Math.max(0, need[x.k] - (now[x.k] || 0))])) }); });
+      let day = null; for (let d = 0; d <= 730; d++) { if (gap(d) <= flex(d) + 1e-9) { day = d; break; } }
+      const miss = Object.fromEntries(MATS.map(x => [x.k, Math.max(0, need[x.k] - (now[x.k] || 0))]));
+      out.push({ g, day, miss, choiceUse: Math.min(flex(0), gap(0)) }); });
     return out;
+  }
+  // Gear aus den gespeicherten Showcase-Sets (Kosten aus dem Gear-Katalog, in Legendär umgerechnet)
+  const GEAR_DIV = { legendary: 1, epic: 4, elite: 16, normal: 64 };
+  function scGearList() {
+    const out = []; let L = []; try { L = (R.showcaseList?.() || []); } catch {}
+    L.forEach((sc, li) => (sc.sets || []).forEach((set, si) => (R.GEAR_SLOTS || []).forEach(sl => { const v = set.gear?.[sl.k]; if (!v || !(v.item || v.name)) return;
+      const it = R.gItem?.(v.item) || (R.gearCat || []).find(x => x.name && v.name && x.name.toLowerCase() === v.name.toLowerCase()) || null;
+      out.push({ key: `${li}|${si}|${sl.k}`, name: it?.name || v.name || v.item, slot: sl.label, set: set.name || `Set ${si + 1}`, sc: sc.title || 'Showcase', it, rarity: it?.rarity || v.rarity || 'legendary' }); })));
+    return out;
+  }
+  const scGearOpts = () => { const L = scGearList(); if (!L.length) return '';
+    const groups = {}; L.forEach(x => (groups[`${x.sc} · ${x.set}`] = groups[`${x.sc} · ${x.set}`] || []).push(x));
+    return Object.entries(groups).map(([g, xs]) => `<optgroup label="${esc(g)}">${xs.map(x => `<option value="${esc(x.key)}">${esc(x.slot)}: ${esc(x.name)}</option>`).join('')}</optgroup>`).join(''); };
+  function scGearPick(key) {
+    const x = scGearList().find(y => y.key === key); if (!x) return null;
+    const div = GEAR_DIV[x.rarity] || 1, g = { name: String(x.name).slice(0, 40), src: `${x.set} · ${x.slot}` };
+    MATS.forEach(m => g[m.k] = x.it ? Math.round((+x.it[m.k] || 0) / div * 100) / 100 : 0);
+    if (!x.it || !MATS.some(m => g[m.k] > 0)) g.noCost = true;
+    return g;
   }
   function renderMatStats() {
     const top = $('statsTop'), G = gearSt(), reach = matGearReach(), now = PMOD.mats.now(), hasNow = MATS.some(x => now[x.k] != null);
@@ -3083,12 +3135,14 @@ window.RokApp = () => {
     for (let w = 0; w < nW; w++) for (let i = 0; i < 7; i++) {
       const d = new Date(mon); d.setDate(mon.getDate() + w * 7 + i);
       const o = Math.round((d - dayPlus(0)) / 864e5), out = d.getMonth() !== first.getMonth(), today = o === 0;
-      const tot = o >= 0 && hasNow ? MATS.reduce((a, x) => a + (now[x.k] || 0), 0) + (o ? pmSum(pmIncome('mats', o)) : 0) : null;
-      cells += `<div class="${out ? 'bg-ink-950/40 opacity-50' : 'bg-ink-950/80'} px-1 pt-1 pb-1 min-h-[4.2rem] flex flex-col justify-between ${today ? 'ring-1 ring-gold-400 ring-inset' : ''}">
+      const incD = o > 0 ? pmIncome('mats', o) : {}, val = (k) => (now[k] || 0) + (incD[k] || 0);
+      const tot = o >= 0 && hasNow ? MATS.reduce((a, x) => a + val(x.k), 0) + val('choice') : null;
+      const per = o >= 0 && hasNow ? `<div class="mt-1 space-y-px">${[...MATS, { k: 'choice', label: 'Wahl', img: 'mats/choicematchest.png', icon: '📦' }].map(x => `<div class="flex items-center justify-between gap-1 text-[10px] tabular-nums leading-tight"><span class="flex items-center gap-0.5 text-slate-400 min-w-0">${ico(x, 'w-3 h-3')}<span class="hidden sm:inline truncate">${{ leather: 'Leder', iron: 'Eisen', ebony: 'Holz', bone: 'Knochen', choice: 'Wahl' }[x.k]}</span></span><span class="text-slate-200">${dec(val(x.k), 1)}</span></div>`).join('')}</div>` : '';
+      cells += `<div class="${out ? 'bg-ink-950/40 opacity-50' : 'bg-ink-950/80'} px-1.5 pt-1 pb-1 flex flex-col justify-between ${today ? 'ring-1 ring-gold-400 ring-inset' : ''}" style="min-height:8.5rem">
         <div class="text-[11px] ${today ? 'text-gold-300 font-bold' : o < 0 ? 'text-slate-600' : 'text-slate-400'}">${d.getDate()}${d.getDate() === 1 ? '.' + (d.getMonth() + 1) + '.' : ''}</div>
-        <div class="space-y-0.5">${(evDays[o] || []).map(e => `<div class="text-[9px] leading-tight px-1 py-0.5 rounded bg-sky-500/20 text-sky-200 truncate" title="${e.label}">${e.label}</div>`).join('')}
+        <div class="space-y-0.5">${(evDays[o] || []).map(e => `<div class="text-[9px] leading-tight px-1 py-0.5 rounded bg-sky-500/20 text-sky-200 truncate" title="${e.label}: ${e.mats || ''}">${e.label} <b>+${dec(e.matLeg, 1)}</b></div>`).join('')}
           ${(gearDay[o] || []).map(r => `<div class="text-[9px] leading-tight px-1 py-0.5 rounded bg-gold-500/25 text-gold-200 font-semibold truncate" title="${esc(r.g.name || 'Gear')}">⚒ ${r.i + 1}. ${esc(r.g.name || 'Gear')}</div>`).join('')}</div>
-        <div class="text-right text-[10px] tabular-nums text-violet-300">${tot != null ? dec(tot, 1) : ''}</div></div>`;
+        <div>${per}${tot != null ? `<div class="mt-0.5 pt-0.5 border-t border-ink-700 text-right text-[11px] font-semibold tabular-nums text-violet-300">Σ ${dec(tot, 1)}</div>` : ''}</div></div>`;
     }
     const mIn = (g, i, k) => `<input data-gear="${i}" data-key="${k}" type="text" inputmode="decimal" value="${g[k] ? String(g[k]).replace('.', ',') : ''}" placeholder="0" class="w-full text-right ${inp}">`;
     top.innerHTML = `<section id="matCalBox" class="panel rounded-2xl p-5">
@@ -3098,29 +3152,34 @@ window.RokApp = () => {
         <button type="button" data-matcal="1" class="px-2 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60">›</button></div>
       <div class="grid grid-cols-7 gap-px text-[10px] uppercase tracking-wider text-slate-500 mb-1">${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(x => `<div class="px-1">${x}</div>`).join('')}</div>
       <div class="grid grid-cols-7 gap-px rounded-lg overflow-hidden border border-ink-700 bg-ink-700">${cells}</div>
-      <div class="mt-2 text-[11px] text-slate-500">${hasNow ? 'Zahl unten = deine Mats in Legendär (letzter Scan + Passive). ⚒ = an diesem Tag reichen die Mats für das Gear. Blau = Event.' : 'Scanne oder trag deine Mats ein – dann siehst du hier deinen Stand. Jeder neue Scan rechnet den Kalender neu.'}</div>
+      <div class="mt-2 text-[11px] text-slate-500">${hasNow ? 'Im Kästchen: dein Stand je Material in Legendär (letzter Scan + Passive), Σ = gesamt. ⚒ = an diesem Tag reichen die Mats für das Gear. Blau = Event.' : 'Scanne oder trag deine Mats ein – dann siehst du hier deinen Stand. Jeder neue Scan rechnet den Kalender neu.'}</div>
     </section>
     <section id="matGearBox" class="panel rounded-2xl p-5">
       <h2 class="font-display text-lg text-gold-300">Gear-Prioliste</h2>
-      <p class="text-xs text-slate-400 mb-3">Bis zu 3 Gear-Teile in deiner Reihenfolge. Kosten je Material in Legendär (z. B. 12,5) – später automatisch aus dem Katalog.</p>
+      <p class="text-xs text-slate-400 mb-3">Bis zu 3 Gear-Teile in deiner Reihenfolge – aus deinem Showcase wählen (Kosten kommen aus dem Gear-Katalog) oder von Hand in Legendär eintragen. Wahlkisten gehen zuerst an das erste Teil.</p>
       <div class="space-y-2">${G.map((g, i) => { const r = reach[i]; return `<div class="rounded-xl border ${r.day === 0 ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-700 bg-ink-950/40'} p-3">
         <div class="flex flex-wrap items-center gap-2 mb-2"><b class="text-gold-300">${i + 1}.</b><input data-gear="${i}" data-key="name" type="text" value="${esc(g.name || '')}" placeholder="z. B. Hope Cloak" class="flex-1 min-w-[10rem] ${inp}">
           <span class="text-xs ${r.day == null ? 'text-slate-500' : r.day === 0 ? 'text-emerald-400' : 'text-gold-300'}">${r.day == null ? 'nicht in Sicht' : r.day === 0 ? 'reicht schon ✓' : `ca. ${dayPlus(r.day).toLocaleDateString('de-DE')} (in ${fmt(r.day)} Tagen)`}</span>
           ${i ? `<button type="button" data-gearup="${i}" class="px-2 text-slate-400 hover:text-gold-300" title="nach oben">↑</button>` : ''}<button type="button" data-geardel="${i}" class="px-2 text-slate-500 hover:text-red-400" title="Entfernen">✕</button></div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">${MATS.map(x => `<label class="text-[11px] text-slate-400">${ico(x, 'w-3.5 h-3.5')} ${x.label}${mIn(g, i, x.k)}</label>`).join('')}</div>
-        ${r.day ? `<div class="mt-1 text-[11px] text-slate-500">fehlt jetzt: ${MATS.filter(x => r.miss[x.k] > 0).map(x => `${x.label} ${dec(r.miss[x.k], 1)}`).join(' · ') || '–'}</div>` : ''}</div>`; }).join('')
+        ${r.day ? `<div class="mt-1 text-[11px] text-slate-500">fehlt jetzt: ${MATS.filter(x => r.miss[x.k] > 0).map(x => `${x.label} ${dec(r.miss[x.k], 1)}`).join(' · ') || '–'}${r.choiceUse > 0 ? ` · davon aus Wahlkisten ${dec(r.choiceUse, 1)}` : ''}</div>` : ''}
+        ${g.src ? `<div class="mt-1 text-[10px] text-slate-500">aus Showcase: ${esc(g.src)}${g.noCost ? ' · <span class="text-amber-300">Kosten nicht im Katalog – bitte eintragen</span>' : ''}</div>` : ''}</div>`; }).join('')
         || '<div class="text-xs text-slate-500">Noch kein Gear eingetragen.</div>'}</div>
-      ${G.length < 3 ? '<button type="button" id="gearAdd" class="mt-3 px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs">+ Gear-Teil</button>' : ''}
+      ${G.length < 3 ? `<div class="mt-3 flex flex-wrap items-center gap-2">${scGearOpts() ? `<select id="gearPick" class="${inp} max-w-full"><option value="">⚒ Aus deinem Showcase wählen …</option>${scGearOpts()}</select>` : '<span class="text-[11px] text-slate-500">Im Showcase gespeicherte Sets erscheinen hier zur Auswahl.</span>'}
+        <button type="button" id="gearAdd" class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs">+ von Hand</button></div>` : ''}
       ${!pmOn('mats').length ? '<div class="mt-2 text-[11px] text-amber-300">Tipp: Unter Passive deine Mats-Quellen aktivieren, sonst kann er kein Datum ausrechnen.</div>' : ''}
     </section>`;
     makeFold($('matCalBox'), 'matcal'); makeFold($('matGearBox'), 'matgear');
     const upd = () => { savePassive(); renderMatStats(); renderAreaTabs(); };
     top.querySelectorAll('[data-matcal]').forEach(b => b.onclick = () => { matCalM += +b.dataset.matcal; renderMatStats(); });
     top.querySelectorAll('[data-gear]').forEach(i => i.addEventListener('change', () => { const g = G[+i.dataset.gear]; if (!g) return;
-      if (i.dataset.key === 'name') g.name = i.value.trim().slice(0, 40); else { const v = parseFloat(i.value.replace(/\./g, '').replace(',', '.')); g[i.dataset.key] = isNaN(v) ? 0 : Math.max(0, v); } upd(); }));
+      if (i.dataset.key === 'name') g.name = i.value.trim().slice(0, 40); else { const v = parseFloat(i.value.replace(/\./g, '').replace(',', '.')); g[i.dataset.key] = isNaN(v) ? 0 : Math.max(0, v); delete g.noCost; } upd(); }));
     top.querySelectorAll('[data-geardel]').forEach(b => b.onclick = () => { G.splice(+b.dataset.geardel, 1); upd(); });
     top.querySelectorAll('[data-gearup]').forEach(b => b.onclick = () => { const i = +b.dataset.gearup; [G[i - 1], G[i]] = [G[i], G[i - 1]]; upd(); });
     $('gearAdd')?.addEventListener('click', () => { G.push({ name: '' }); upd(); });
+    $('gearPick')?.addEventListener('change', (e) => { const g = scGearPick(e.target.value); if (g) { G.push(g); upd(); } });
+    if (!(R.gearCat || []).length && typeof R.loadGearDb === 'function' && R.gearDbState !== 'loading' && R.gearDbState !== 'ok' && !renderMatStats._load) {
+      renderMatStats._load = true; Promise.resolve(R.loadGearDb()).then(() => { if (R.mode === 'mats' && R.areaTab === 'stats') renderMatStats(); }).catch(() => {}); }
   }
 
   // ---------- Armaments: Chancen-Rechner (offizielle Wahrscheinlichkeiten von Lilith) ----------
@@ -3198,48 +3257,78 @@ window.RokApp = () => {
   // ---------- Goldheads: Kommandanten-Expertise (Kosten je Skillpunkt, Bild „Expert 690“) ----------
   const GH_STEPS = [10, 10, 15, 15, 30, 30, 40, 40, 45, 45, 50, 50, 75, 75, 80, 80];   // vom 5. bis 20. Skillpunkt (1-1-1-1 → 5-5-5-5) = 690
   const ghCost = (from, to) => { let c = 0; for (let p = Math.max(4, from); p < Math.min(20, to); p++) c += GH_STEPS[p - 4]; return c; };
-  const ghSt = () => (passive.gh = passive.gh || { cur: [1, 1, 1, 1], tgt: [5, 5, 5, 5], date: '' });
+  const ghSt = () => {
+    const g = (passive.gh = passive.gh || {});
+    if (!Array.isArray(g.list)) g.list = [{ id: 'c1', name: '', cur: g.cur || [1, 1, 1, 1], tgt: g.tgt || [5, 5, 5, 5], date: g.date || '' }];
+    return g;
+  };
   let ghChart = null;
+  // Reihenfolge: Kommandanten mit Datum zuerst (früheste zuerst), dann der Rest in Listen-Reihenfolge
+  function ghPlan() {
+    const L = ghSt().list, stock = +PMOD.goldheads.now().goldheads || 0, perDay = pmDayTotal('goldheads').goldheads || 0;
+    const order = L.map((c, i) => ({ c, i })).sort((x, y) => (x.c.date && y.c.date ? x.c.date.localeCompare(y.c.date) : x.c.date ? -1 : y.c.date ? 1 : x.i - y.i));
+    let cum = 0; const rows = order.map(({ c, i }) => {
+      const need = ghCost(c.cur.reduce((a, v) => a + v, 0), c.tgt.reduce((a, v) => a + v, 0)); cum += need;
+      let reach = stock >= cum ? 0 : null; if (reach == null && perDay > 0) for (let d = 1; d <= 1500; d++) if (stock + (pmIncome('goldheads', d).goldheads || 0) >= cum) { reach = d; break; }
+      const dd = c.date ? dOff(c.date) : null, atDate = dd != null && dd >= 0 ? stock + (pmIncome('goldheads', dd).goldheads || 0) : null;
+      return { c, i, need, cum, reach, dd, atDate, ok: dd == null ? null : atDate != null && atDate >= cum };
+    });
+    return { rows, stock, perDay, total: cum };
+  }
   function renderGhStats() {
-    const top = $('statsTop'), st = ghSt(), cur = st.cur.reduce((a, v) => a + v, 0), tgt = st.tgt.reduce((a, v) => a + v, 0);
-    const need = ghCost(cur, tgt), stock = +PMOD.goldheads.now().goldheads || 0, perDay = pmDayTotal('goldheads').goldheads || 0, miss = need - stock;
-    const sel = (arr, key, i) => `<select data-ghsel="${key}" data-i="${i}" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500">${[1, 2, 3, 4, 5].map(v => `<option ${arr[i] === v ? 'selected' : ''}>${v}</option>`).join('')}</select>`;
-    let reach = miss <= 0 ? 0 : null; if (reach == null && perDay > 0) for (let d = 1; d <= 1500; d++) if (stock + (pmIncome('goldheads', d).goldheads || 0) >= need) { reach = d; break; }
-    const dd = st.date ? dOff(st.date) : null, atDate = dd != null && dd >= 0 ? stock + (pmIncome('goldheads', dd).goldheads || 0) : null;
+    const top = $('statsTop'), st = ghSt(), P = ghPlan(), miss = P.total - P.stock, last = P.rows[P.rows.length - 1];
+    const sel = (c, key, i) => `<select data-ghsel="${c.id}" data-key="${key}" data-i="${i}" class="bg-ink-950 border border-ink-600 rounded-lg px-1.5 py-1 text-sm focus:outline-none focus:border-gold-500">${[1, 2, 3, 4, 5].map(v => `<option ${c[key][i] === v ? 'selected' : ''}>${v}</option>`).join('')}</select>`;
     const card = (l, v, c, sub) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">${l}</div><div class="text-xl font-bold tabular-nums ${c}">${v}</div>${sub ? `<div class="text-[11px] text-slate-500">${sub}</div>` : ''}</div>`;
+    const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-gold-500';
+    const names = (R.COMMANDERS || []).filter(x => x.r === 'legendary' || !x.r).map(x => x.name);
     top.innerHTML = `<section id="ghBox" class="panel rounded-2xl p-5">
       <h2 class="font-display text-lg text-gold-300">Kommandanten-Expertise</h2>
-      <div class="grid sm:grid-cols-2 gap-4 mb-4">
-        <div class="text-xs text-slate-400">Aktueller Stand<div class="mt-1 flex items-center gap-1">${[0, 1, 2, 3].map(i => sel(st.cur, 'cur', i)).join('<span class="text-slate-600">-</span>')}</div></div>
-        <div class="text-xs text-slate-400">Ziel<div class="mt-1 flex items-center gap-1">${[0, 1, 2, 3].map(i => sel(st.tgt, 'tgt', i)).join('<span class="text-slate-600">-</span>')}
-          <button type="button" id="ghMax" class="ml-2 px-2 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs">Max 5-5-5-5</button></div></div>
-      </div>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        ${card(`${st.cur.join('-')} → ${st.tgt.join('-')}`, fmt(need), 'text-gold-300', 'Goldheads nötig')}
-        ${card('Goldheads jetzt', fmt(stock), 'text-white', PMOD.goldheads.now().goldheads == null ? 'noch kein Scan' : '')}
+      <p class="text-xs text-slate-400 mb-3">Trag alle Kommandanten ein, die du skillen willst – mit Datum, bis wann du sie brauchst. Gerechnet wird in der Reihenfolge der Daten.</p>
+      ${names.length ? `<datalist id="ghNames">${names.map(n => `<option value="${esc(n)}">`).join('')}</datalist>` : ''}
+      <div class="space-y-2">${P.rows.map((r, k) => { const c = r.c; return `<div class="rounded-xl border ${r.ok === false ? 'border-red-500/40 bg-red-500/5' : r.ok ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-700 bg-ink-950/40'} p-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <b class="text-gold-300 w-5">${k + 1}.</b>
+          <input data-ghname="${c.id}" list="ghNames" type="text" value="${esc(c.name || '')}" placeholder="Kommandant" class="flex-1 min-w-[9rem] ${inp}">
+          <span class="text-xs text-slate-400">jetzt</span><span class="inline-flex items-center gap-0.5">${[0, 1, 2, 3].map(i => sel(c, 'cur', i)).join('')}</span>
+          <span class="text-xs text-slate-400">→</span><span class="inline-flex items-center gap-0.5">${[0, 1, 2, 3].map(i => sel(c, 'tgt', i)).join('')}</span>
+          <button type="button" data-ghmax="${c.id}" class="px-2 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60 text-[11px]">5-5-5-5</button>
+          <label class="text-xs text-slate-400 inline-flex items-center gap-1">bis <input data-ghdate="${c.id}" type="date" value="${c.date || ''}" class="${inp} text-xs"></label>
+          ${st.list.length > 1 ? `<button type="button" data-ghdel="${c.id}" class="px-1 text-slate-500 hover:text-red-400" title="Entfernen">✕</button>` : ''}
+        </div>
+        <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
+          <span>Kosten <b class="text-gold-300 tabular-nums">${fmt(r.need)}</b></span><span>mit den vorherigen <b class="text-slate-200 tabular-nums">${fmt(r.cum)}</b></span>
+          <span>erreicht ${r.reach === 0 ? '<b class="text-emerald-400">jetzt ✓</b>' : r.reach ? `<b class="text-indigo-300">${dayPlus(r.reach).toLocaleDateString('de-DE')}</b> (in ${fmt(r.reach)} Tagen)` : '<b class="text-slate-500">–</b>'}</span>
+          ${r.dd != null ? (r.ok ? '<span class="text-emerald-400">pünktlich ✓</span>' : r.dd < 0 ? '<span class="text-slate-500">Datum liegt in der Vergangenheit</span>' : `<span class="text-red-400">am ${dLabel(c.date)} fehlen ${fmt(r.cum - (r.atDate || 0))} – dafür bräuchtest du ${r.dd > 0 ? fmt(Math.ceil((r.cum - P.stock) / r.dd)) : '–'} pro Tag</span>`) : ''}
+        </div></div>`; }).join('')}</div>
+      <button type="button" id="ghAdd" class="mt-3 px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs">+ Kommandant</button>
+      <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+        ${card('Goldheads nötig (alle)', fmt(P.total), 'text-gold-300', `${fmt(P.rows.length)} Kommandanten`)}
+        ${card('Goldheads jetzt', fmt(P.stock), 'text-white', PMOD.goldheads.now().goldheads == null ? 'noch nicht eingetragen' : '')}
         ${card(miss > 0 ? 'Es fehlen' : 'Überschuss', fmt(Math.abs(miss)), miss > 0 ? 'text-red-400' : 'text-emerald-400')}
-        ${card('Erreicht', reach === 0 ? 'jetzt ✓' : reach ? dayPlus(reach).toLocaleDateString('de-DE') : '–', 'text-indigo-300', reach ? `in ${fmt(reach)} Tagen` : perDay > 0 ? '' : 'Passive aktivieren')}
-      </div>
-      <div class="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-        <label class="inline-flex items-center gap-2">Wie viele hast du am <input id="ghDate" type="date" value="${st.date || ''}" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-gold-500">?</label>
-        ${atDate != null ? `<span>→ <b class="tabular-nums ${atDate >= need ? 'text-emerald-400' : 'text-slate-200'}">${fmt(atDate)}</b> Goldheads${atDate >= need ? ' · reicht ✓' : ` · fehlen ${fmt(need - atDate)} – dafür bräuchtest du ${dd > 0 ? fmt(Math.ceil((need - stock) / dd)) : '–'} pro Tag`}</span>` : ''}
+        ${card('Alle fertig', last?.reach === 0 ? 'jetzt ✓' : last?.reach ? dayPlus(last.reach).toLocaleDateString('de-DE') : '–', 'text-indigo-300', last?.reach ? `in ${fmt(last.reach)} Tagen` : P.perDay > 0 ? '' : 'Passive aktivieren')}
       </div>
       <div id="ghChartWrap" class="h-56 mt-4"></div>
-      <p class="mt-3 text-[11px] text-slate-500">Kosten je Skillpunkt: ${GH_STEPS.join(' · ')} (1-1-1-1 → 5-5-5-5 = 690). Danach braucht der nächste Kommandant wieder 690.</p>
+      <p class="mt-3 text-[11px] text-slate-500">Kosten je Skillpunkt: ${GH_STEPS.join(' · ')} (1-1-1-1 → 5-5-5-5 = 690).</p>
     </section>`;
     makeFold($('ghBox'), 'gh');
-    top.querySelectorAll('[data-ghsel]').forEach(s => s.onchange = () => { st[s.dataset.ghsel][+s.dataset.i] = +s.value; savePassive(); renderGhStats(); renderAreaTabs(); });
-    $('ghMax').onclick = () => { st.tgt = [5, 5, 5, 5]; savePassive(); renderGhStats(); };
-    $('ghDate').addEventListener('change', (e) => { st.date = pDate(e.target.value) ? e.target.value : ''; savePassive(); renderGhStats(); });
+    const find = (id) => st.list.find(x => x.id === id), upd = () => { savePassive(); renderGhStats(); renderAreaTabs(); };
+    top.querySelectorAll('[data-ghsel]').forEach(s2 => s2.onchange = () => { const c = find(s2.dataset.ghsel); if (!c) return; c[s2.dataset.key][+s2.dataset.i] = +s2.value; upd(); });
+    top.querySelectorAll('[data-ghmax]').forEach(b => b.onclick = () => { const c = find(b.dataset.ghmax); if (c) { c.tgt = [5, 5, 5, 5]; upd(); } });
+    top.querySelectorAll('[data-ghname]').forEach(i => i.onchange = () => { const c = find(i.dataset.ghname); if (c) { c.name = i.value.trim().slice(0, 40); savePassive(); } });
+    top.querySelectorAll('[data-ghdate]').forEach(i => i.onchange = () => { const c = find(i.dataset.ghdate); if (c) { c.date = pDate(i.value) ? i.value : ''; upd(); } });
+    top.querySelectorAll('[data-ghdel]').forEach(b => b.onclick = () => { st.list = st.list.filter(x => x.id !== b.dataset.ghdel); upd(); });
+    $('ghAdd').onclick = () => { st.list.push({ id: 'c' + Date.now().toString(36), name: '', cur: [1, 1, 1, 1], tgt: [5, 5, 5, 5], date: '' }); upd(); };
     const wrap = $('ghChartWrap'); if (ghChart) { try { ghChart.destroy(); } catch {} ghChart = null; }
     if (!window.Chart) { wrap.innerHTML = '<div class="h-full grid place-items-center text-xs text-slate-500">Diagramm konnte nicht geladen werden.</div>'; return; }
-    const maxD = Math.min(1500, Math.max(30, reach ? Math.ceil(reach * 1.15) : dd > 0 ? dd : 90)), step = Math.max(1, Math.ceil(maxD / 90)), days = [];
+    const far = Math.max(30, ...P.rows.map(r => r.reach || 0), ...P.rows.map(r => r.dd || 0));
+    const maxD = Math.min(1500, Math.ceil(far * 1.1)), step = Math.max(1, Math.ceil(maxD / 90)), days = [];
     for (let d = 0; d <= maxD; d += step) days.push(d);
+    const COLS = ['#a78bfa', '#38bdf8', '#f472b6', '#34d399', '#fb923c', '#f87171'];
     wrap.innerHTML = '<canvas id="ghChart"></canvas>';
     ghChart = new Chart($('ghChart'), { type: 'line',
       data: { labels: days.map(d => dayPlus(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })),
-        datasets: [{ label: 'Goldheads', data: days.map(d => Math.round(stock + (pmIncome('goldheads', d).goldheads || 0))), borderColor: '#facc15', borderWidth: 3, tension: .2, pointRadius: 0, fill: false },
-                   { label: `Ziel ${st.tgt.join('-')}`, data: days.map(() => need), borderColor: '#a78bfa', borderWidth: 2, borderDash: [6, 4], pointRadius: 0, fill: false }] },
+        datasets: [{ label: 'Goldheads', data: days.map(d => Math.round(P.stock + (pmIncome('goldheads', d).goldheads || 0))), borderColor: '#facc15', borderWidth: 3, tension: .2, pointRadius: 0, fill: false },
+          ...P.rows.map((r, k) => ({ label: `${k + 1}. ${r.c.name || 'Kommandant'}`, data: days.map(() => r.cum), borderColor: COLS[k % COLS.length], borderWidth: 2, borderDash: [6, 4], pointRadius: 0, fill: false }))] },
       options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { labels: { boxWidth: 12, color: '#94a3b8' } } },
         scales: { y: { beginAtZero: true }, x: { ticks: { maxTicksLimit: 8 } } } } });
   }
@@ -3337,8 +3426,8 @@ window.RokApp = () => {
       if (plan.length) { let min = Infinity; plan.sort((a, b) => a.date.localeCompare(b.date)).forEach(p => { min = Math.min(min, gemsAt(dOff(p.date), true)); });
         statSub = min >= 0 ? `${plan.length} Events · Überschuss +${short(min)}` : `${plan.length} Events · fehlen ${short(-min)}`; } }
     if (m === 'passports' && pmReady) { const n = migNeed(); if (n) statSub = `Migration: ${fmt(n.passports)} Passseiten (${short(n.credits)} Credits)`; }
-    if (m === 'goldheads' && pmReady) { const st = ghSt(), need = ghCost(st.cur.reduce((a, v) => a + v, 0), st.tgt.reduce((a, v) => a + v, 0)), miss = need - (+PMOD.goldheads.now().goldheads || 0);
-      statSub = `${st.cur.join('-')} → ${st.tgt.join('-')}: ${miss > 0 ? `fehlen ${fmt(miss)}` : 'reicht ✓'}`; }
+    if (m === 'goldheads' && pmReady) { const P = ghPlan(), miss = P.total - P.stock;
+      statSub = `${fmt(P.rows.length)} Kommandanten: ${miss > 0 ? `fehlen ${fmt(miss)}` : 'reicht ✓'}`; }
     if (GOALS[m] && pmReady) { const st = goalSt(m), cf = GOALS[m], k = PMOD[m].units[0].k, now = +PMOD[m].now()[k] || 0, t = m === 'gems' ? gemEvTotal() + (+st.target || 0) : (st.target || cf.def);
       if (m === 'gems' ? t > 0 : st.target) { let r = now >= t ? 0 : null; if (r == null && (pmDayTotal(m)[k] || 0) > 0) for (let d = 1; d <= 730; d++) if (now + (pmIncome(m, d)[k] || 0) >= t) { r = d; break; }
         const nm = m === 'gems' ? 'Events' : (st.name || cf.name);
