@@ -1065,6 +1065,14 @@ window.RokApp = () => {
       farms = farms.filter(x => x.id !== b.dataset.fdel); saveFarms(); renderFarms();
     });
   }
+  // Alle Farmen auf 0 – z. B. nachdem die Ressourcen auf den Main transferiert wurden (alte Scans bleiben unverändert)
+  if (!$('resetFarms')) $('addFarm').insertAdjacentHTML('beforebegin', '<button id="resetFarms" type="button" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-red-500/60 hover:text-red-300 mr-2">↺ Reset all</button>');
+  $('resetFarms').onclick = async () => {
+    if (!farms.length) return;
+    if (!(await UI.confirm('Alle Farmen auf 0 setzen?\n\nZ. B. nachdem du die Ressourcen auf deinen Main transferiert hast. Die Namen bleiben, ältere Scans bleiben unverändert.'))) return;
+    farms.forEach(f => RES.forEach(r => f[r.k] = 0));
+    LS.set(FARMS, JSON.stringify(farms)); rerenderResCards(); renderFarms();
+  };
   $('addFarm').onclick = () => {
     farms.push({ id: newId(), name: `Farm ${farms.length + 1}`, food: 0, wood: 0, stone: 0, gold: 0 });
     saveFarms(); renderFarms();
@@ -1245,6 +1253,23 @@ window.RokApp = () => {
     updateGemsSum();
   }
   ['gemsInHand', 'gemsInBag'].forEach(id => $(id).addEventListener('input', () => { $(id).classList.remove('border-amber-400'); updateGemsSum(); }));
+  // Rucksack nach Gem-Stufen von Hand eintragen (falls der Scan daneben liegt)
+  const GEM_STEPS = [5, 10, 50, 100, 200, 500, 650, 1000, 2000], GEM_BAG_KEY = 'rok_scanner_gem_bag';
+  (() => {
+    const bag = $('gemsInBag'), box = bag?.closest('label')?.parentElement; if (!box || $('gemBagSteps')) return;
+    let cnt = {}; try { cnt = JSON.parse(LS.get(GEM_BAG_KEY, '{}')) || {}; } catch {}
+    box.insertAdjacentHTML('afterend', `<details id="gemBagSteps" class="mt-2 rounded-lg border border-ink-700 bg-ink-950/40 px-3 py-2">
+      <summary class="text-xs text-slate-300 cursor-pointer hover:text-gold-300">🎒 Rucksack nach Stufen eingeben</summary>
+      <div class="mt-2 grid grid-cols-3 gap-2">${GEM_STEPS.map(v => `<label class="text-[11px] text-slate-400">${ico({ img: 'ressourcen/gems.png', icon: '💎' }, 'w-3.5 h-3.5')} ${fmt(v)}er
+        <input data-gemstep="${v}" type="number" min="0" step="1" value="${cnt[v] || ''}" placeholder="0" class="mt-0.5 w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500"></label>`).join('')}</div>
+      <div class="mt-2 flex items-center justify-between text-xs"><span class="text-slate-400">= Rucksack</span><b id="gemBagStepSum" class="text-pink-300 tabular-nums">–</b></div>
+      <button type="button" id="gemBagStepClear" class="mt-1 text-[11px] text-slate-500 hover:text-red-300">Felder leeren</button></details>`);
+    const upd = (apply) => { const sum = GEM_STEPS.reduce((a, v) => a + v * (+cnt[v] || 0), 0); $('gemBagStepSum').textContent = sum ? fmt(sum) : '–';
+      if (apply) { bag.value = sum || ''; bag.classList.remove('border-amber-400'); updateGemsSum(); } };
+    document.querySelectorAll('[data-gemstep]').forEach(i => i.addEventListener('input', () => { const n = Math.max(0, Math.round(+i.value || 0)); if (n) cnt[i.dataset.gemstep] = n; else delete cnt[i.dataset.gemstep]; LS.set(GEM_BAG_KEY, JSON.stringify(cnt)); upd(true); }));
+    $('gemBagStepClear').onclick = () => { cnt = {}; LS.set(GEM_BAG_KEY, '{}'); document.querySelectorAll('[data-gemstep]').forEach(i => i.value = ''); upd(false); };
+    upd(false);
+  })();
   async function saveGemsEntry(ge, confidence) {
     const fresh = activeGems && Date.now() - activeGems.ts < 30 * 60000 && R.history.some(e => e.id === activeGems.id);
     const ts = fresh ? activeGems.ts : Date.now();
