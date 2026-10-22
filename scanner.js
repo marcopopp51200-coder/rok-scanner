@@ -3131,18 +3131,28 @@ window.RokApp = () => {
     const nW = Math.ceil(((last - mon) / 864e5 + 1) / 7), evDays = {};
     MEV.forEach(e => { if (mevSt(e.k).on) mevDays(e.k, 400).forEach(d => (evDays[d] = evDays[d] || []).push(e)); });
     const gearDay = {}; reach.forEach((r, i) => { if (r.day != null) (gearDay[r.day] = gearDay[r.day] || []).push({ ...r, i }); });
+    const hide = (passive.matCalHide = passive.matCalHide || {});
+    const MROWS = [...MATS, { k: 'choice', label: 'Wahl', img: 'mats/choicematchest.png', icon: '📦' }], SHORT = { leather: 'Leder', iron: 'Eisen', ebony: 'Holz', bone: 'Knochen', choice: 'Wahl' };
+    const shown = MROWS.filter(x => !hide[x.k]);
+    const gCost = (g) => MATS.reduce((a, x) => a + (+g[x.k] || 0), 0);
+    const craftedBy = (o) => reach.reduce((a, r) => a + (r.day != null && r.day <= o ? gCost(r.g) : 0), 0);   // Σ der Gear-Kosten, die bis zu diesem Tag gecraftet sind
     let cells = '';
     for (let w = 0; w < nW; w++) for (let i = 0; i < 7; i++) {
       const d = new Date(mon); d.setDate(mon.getDate() + w * 7 + i);
       const o = Math.round((d - dayPlus(0)) / 864e5), out = d.getMonth() !== first.getMonth(), today = o === 0;
       const incD = o > 0 ? pmIncome('mats', o) : {}, val = (k) => (now[k] || 0) + (incD[k] || 0);
-      const tot = o >= 0 && hasNow ? MATS.reduce((a, x) => a + val(x.k), 0) + val('choice') : null;
-      const per = o >= 0 && hasNow ? `<div class="mt-1 space-y-px">${[...MATS, { k: 'choice', label: 'Wahl', img: 'mats/choicematchest.png', icon: '📦' }].map(x => `<div class="flex items-center justify-between gap-1 text-[10px] tabular-nums leading-tight"><span class="flex items-center gap-0.5 text-slate-400 min-w-0">${ico(x, 'w-3 h-3')}<span class="hidden sm:inline truncate">${{ leather: 'Leder', iron: 'Eisen', ebony: 'Holz', bone: 'Knochen', choice: 'Wahl' }[x.k]}</span></span><span class="text-slate-200">${dec(val(x.k), 1)}</span></div>`).join('')}</div>` : '';
-      cells += `<div class="${out ? 'bg-ink-950/40 opacity-50' : 'bg-ink-950/80'} px-1.5 pt-1 pb-1 flex flex-col justify-between ${today ? 'ring-1 ring-gold-400 ring-inset' : ''}" style="min-height:8.5rem">
+      const all = o >= 0 && hasNow ? MROWS.reduce((a, x) => a + val(x.k), 0) : null;
+      const tot = o >= 0 && hasNow ? shown.reduce((a, x) => a + val(x.k), 0) : null;
+      const cr = o >= 0 && hasNow ? craftedBy(o) : 0;
+      const per = o >= 0 && hasNow && shown.length ? `<div class="mt-1 space-y-px">${shown.map(x => `<div class="flex items-center justify-between gap-1 text-[10px] tabular-nums leading-tight"><span class="flex items-center gap-0.5 text-slate-400 min-w-0">${ico(x, 'w-3 h-3')}<span class="hidden sm:inline truncate">${SHORT[x.k]}</span></span><span class="text-slate-200">${dec(val(x.k), 1)}</span></div>`).join('')}</div>` : '';
+      const isEv = !!(evDays[o] || []).length, isCraft = !!(gearDay[o] || []).length;
+      const bg = out ? 'bg-ink-950/40 opacity-50' : 'bg-ink-950/80', tint = out ? '' : isCraft ? 'background:rgba(16,185,129,.22);' : isEv ? 'background:rgba(14,165,233,.2);' : '';
+      cells += `<div class="${bg} px-1.5 pt-1 pb-1 flex flex-col justify-between ${today ? 'ring-1 ring-gold-400 ring-inset' : isCraft ? 'ring-1 ring-emerald-400/70 ring-inset' : ''}" style="${tint}min-height:${o < 0 && !out ? 2.5 : o < 0 ? 2.5 : 8.5}rem">
         <div class="text-[11px] ${today ? 'text-gold-300 font-bold' : o < 0 ? 'text-slate-600' : 'text-slate-400'}">${d.getDate()}${d.getDate() === 1 ? '.' + (d.getMonth() + 1) + '.' : ''}</div>
-        <div class="space-y-0.5">${(evDays[o] || []).map(e => `<div class="text-[9px] leading-tight px-1 py-0.5 rounded bg-sky-500/20 text-sky-200 truncate" title="${e.label}: ${e.mats || ''}">${e.label} <b>+${dec(e.matLeg, 1)}</b></div>`).join('')}
-          ${(gearDay[o] || []).map(r => `<div class="text-[9px] leading-tight px-1 py-0.5 rounded bg-gold-500/25 text-gold-200 font-semibold truncate" title="${esc(r.g.name || 'Gear')}">⚒ ${r.i + 1}. ${esc(r.g.name || 'Gear')}</div>`).join('')}</div>
-        <div>${per}${tot != null ? `<div class="mt-0.5 pt-0.5 border-t border-ink-700 text-right text-[11px] font-semibold tabular-nums text-violet-300">Σ ${dec(tot, 1)}</div>` : ''}</div></div>`;
+        <div class="space-y-0.5">${(evDays[o] || []).map(e => `<div class="text-[9px] leading-tight px-1 py-0.5 rounded bg-sky-500/40 text-sky-50 truncate" title="${e.label}: ${e.mats || ''}">${e.label} <b>+${dec(e.matLeg, 1)}</b></div>`).join('')}
+          ${(gearDay[o] || []).map(r => `<div class="text-[9px] leading-tight px-1 py-0.5 rounded bg-emerald-500/40 text-emerald-50 font-semibold truncate" title="${esc(r.g.name || 'Gear')}">⚒ ${r.i + 1}. ${esc(r.g.name || 'Gear')}</div>`).join('')}</div>
+        <div>${per}${tot != null ? `<div class="mt-0.5 pt-0.5 border-t border-ink-700 text-right text-[11px] font-semibold tabular-nums text-violet-300">Σ ${dec(tot, 1)}</div>
+          ${cr > 0 ? `<div class="text-right text-[10px] tabular-nums text-emerald-300" title="Gesamt nach dem Craften">nach ⚒ ${dec(Math.max(0, all - cr), 1)}</div>` : ''}` : ''}</div></div>`;
     }
     const mIn = (g, i, k) => `<input data-gear="${i}" data-key="${k}" type="text" inputmode="decimal" value="${g[k] ? String(g[k]).replace('.', ',') : ''}" placeholder="0" class="w-full text-right ${inp}">`;
     top.innerHTML = `<section id="matCalBox" class="panel rounded-2xl p-5">
@@ -3152,7 +3162,17 @@ window.RokApp = () => {
         <button type="button" data-matcal="1" class="px-2 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60">›</button></div>
       <div class="grid grid-cols-7 gap-px text-[10px] uppercase tracking-wider text-slate-500 mb-1">${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(x => `<div class="px-1">${x}</div>`).join('')}</div>
       <div class="grid grid-cols-7 gap-px rounded-lg overflow-hidden border border-ink-700 bg-ink-700">${cells}</div>
-      <div class="mt-2 text-[11px] text-slate-500">${hasNow ? 'Im Kästchen: dein Stand je Material in Legendär (letzter Scan + Passive), Σ = gesamt. ⚒ = an diesem Tag reichen die Mats für das Gear. Blau = Event.' : 'Scanne oder trag deine Mats ein – dann siehst du hier deinen Stand. Jeder neue Scan rechnet den Kalender neu.'}</div>
+      <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">Anzeigen:${MROWS.map(x => `<label class="inline-flex items-center gap-1 px-2 py-1 rounded-lg border ${hide[x.k] ? 'border-ink-700 opacity-50' : 'border-ink-600'} cursor-pointer select-none"><input type="checkbox" data-mathide="${x.k}" ${hide[x.k] ? '' : 'checked'} class="accent-violet-500">${ico(x, 'w-3.5 h-3.5')} ${SHORT[x.k]}</label>`).join('')}</div>
+      <div class="mt-2 text-[11px] text-slate-500">${hasNow ? 'Im Kästchen: dein Stand je Material in Legendär (letzter Scan + Passive), Σ = Summe der angezeigten. „nach ⚒“ = was insgesamt übrig bleibt, wenn du das Gear craftest. Grün = Gear kann gecraftet werden. Blau = Event.' : 'Scanne oder trag deine Mats ein – dann siehst du hier deinen Stand. Jeder neue Scan rechnet den Kalender neu.'}</div>
+      <div class="mt-4 rounded-xl border border-ink-700 bg-ink-950/40 p-3">
+        <div class="text-xs uppercase tracking-widest text-slate-400 mb-2">Wann wird was erreicht?</div>
+        <div class="space-y-1 text-sm">${[
+          ...reach.map((r, i) => ({ d: r.day == null ? 1e9 : r.day, html: `<div class="flex flex-wrap items-center justify-between gap-2 rounded-lg px-2 py-1 ${r.day === 0 ? 'bg-emerald-500/15' : r.day != null ? 'bg-emerald-500/5' : ''}"><span>⚒ <b class="text-emerald-300">${i + 1}. ${esc(r.g.name || 'Gear')}</b> <span class="text-xs text-slate-500">(${dec(gCost(r.g), 1)} Leg.)</span></span>
+              <span class="text-xs tabular-nums ${r.day == null ? 'text-slate-500' : 'text-emerald-300'}">${r.day == null ? 'nicht in Sicht' : r.day === 0 ? 'jetzt craftbar ✓' : `${dayPlus(r.day).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })} · in ${fmt(r.day)} Tagen`}</span></div>` })),
+          ...MEV.filter(e => e.matLeg && mevSt(e.k).on).flatMap(e => mevDays(e.k, 120).slice(0, 2).map(d => ({ d, html: `<div class="flex flex-wrap items-center justify-between gap-2 rounded-lg px-2 py-1 bg-sky-500/10"><span>📅 <b class="text-sky-200">${e.label}</b> <span class="text-xs text-slate-500">+${dec(e.matLeg, 1)} Leg.</span></span>
+              <span class="text-xs tabular-nums text-sky-200">${dayPlus(d).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })} · in ${fmt(d)} Tagen</span></div>` })))
+        ].sort((a, b) => a.d - b.d).map(x => x.html).join('') || '<div class="text-xs text-slate-500">Füg unten Gear hinzu oder aktiviere Events unter Passive.</div>'}</div>
+      </div>
     </section>
     <section id="matGearBox" class="panel rounded-2xl p-5">
       <h2 class="font-display text-lg text-gold-300">Gear-Prioliste</h2>
@@ -3172,6 +3192,7 @@ window.RokApp = () => {
     makeFold($('matCalBox'), 'matcal'); makeFold($('matGearBox'), 'matgear');
     const upd = () => { savePassive(); renderMatStats(); renderAreaTabs(); };
     top.querySelectorAll('[data-matcal]').forEach(b => b.onclick = () => { matCalM += +b.dataset.matcal; renderMatStats(); });
+    top.querySelectorAll('[data-mathide]').forEach(c => c.onchange = () => { const h = (passive.matCalHide = passive.matCalHide || {}); if (c.checked) delete h[c.dataset.mathide]; else h[c.dataset.mathide] = true; savePassive(); renderMatStats(); });
     top.querySelectorAll('[data-gear]').forEach(i => i.addEventListener('change', () => { const g = G[+i.dataset.gear]; if (!g) return;
       if (i.dataset.key === 'name') g.name = i.value.trim().slice(0, 40); else { const v = parseFloat(i.value.replace(/\./g, '').replace(',', '.')); g[i.dataset.key] = isNaN(v) ? 0 : Math.max(0, v); delete g.noCost; } upd(); }));
     top.querySelectorAll('[data-geardel]').forEach(b => b.onclick = () => { G.splice(+b.dataset.geardel, 1); upd(); });
