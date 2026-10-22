@@ -3,7 +3,7 @@
 // Der API-Key kommt ausschließlich aus der Umgebungsvariable ANTHROPIC_API_KEY und verlässt nie den Server.
 
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5';
-const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'mats', 'gear', 'armament']);
+const MODES = new Set(['resources', 'vip', 'gems', 'speedups', 'ap', 'governor', 'mats', 'gear', 'armament', 'kvkmap']);
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MAX_IMAGES = 5;
 const MAX_TOTAL_B64 = 4_300_000; // Vercel erlaubt max. 4,5 MB pro Anfrage
@@ -364,8 +364,33 @@ Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, in genau diesem Form
   "notes": "kurzer Hinweis auf Deutsch"
 }`;
 
+// ---------- KvK-Karte (Übersicht der 4 Camps mit Königreichen) ----------
+const PROMPT_KVKMAP = `${INTRO}
+
+MODUS: KvK-Karte. Der Screenshot zeigt die KvK-Karte mit (meist) 4 Camps. Jedes Camp hat eine farbige Fläche auf der Karte und meist ein Info-Kästchen mit Camp-Namen (z. B. FIRE, EARTH, WATER, WIND), einer Tabelle "KD | Power | KP" und unten Summen (Power/Ehre-Symbol und KP/Schwerter-Symbol).
+
+Für JEDES Camp:
+- "name": Camp-Name genau wie angezeigt (z. B. "FIRE").
+- "color": Grundfarbe des Camps als ein Wort: "red" | "orange" | "yellow" | "brown" | "green" | "blue" | "cyan" | "purple" | "pink" | "white" | "grey". Nimm die Farbe der Camp-Fläche bzw. des Kästchen-Rands.
+- "hex": ungefähre Farbe als "#rrggbb".
+- "x", "y": Mittelpunkt der Camp-FLÄCHE auf der Karte (nicht des Kästchens) in Prozent der Bildbreite/-höhe (0 = links/oben, 100 = rechts/unten).
+- "side": Lage auf der Karte: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "top" | "bottom" | "left" | "right".
+- "kds": jede Zeile der Tabelle: "kd" = Königreichsnummer als Text, nur die Ziffern vor einem Bindestrich (z. B. "3060-1" → "3060"); "power" und "kp" als ganze Zahlen ("41B" = 41000000000, "1.1T" = 1100000000000, "193.8B" = 193800000000, "850M" = 850000000); "crown": true, wenn neben der Nummer eine Krone/ein Abzeichen steht, sonst false; "highlight": true, wenn die Nummer farbig (gold/gelb) statt weiß geschrieben ist.
+- "total_power", "total_kp": die Summen unten im Kästchen als ganze Zahlen, sonst null.
+Die Anzahl rechts neben dem Namen (z. B. "3") ist die Anzahl der Königreiche: "count".
+
+Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown:
+{
+  "type": "kvkmap",
+  "camps": [{"name": string, "color": string, "hex": string|null, "x": number, "y": number, "side": string, "count": number|null,
+             "kds": [{"kd": string, "power": number|null, "kp": number|null, "crown": boolean, "highlight": boolean}],
+             "total_power": number|null, "total_kp": number|null}],
+  "confidence": "hoch" | "mittel" | "niedrig",
+  "notes": "kurzer Hinweis auf Deutsch"
+}`;
+
 // Der Prompt liegt auf dem Server: so kann die Route nicht als allgemeiner Claude-Proxy missbraucht werden.
-const PROMPT = (m) => m === 'armament' ? PROMPT_ARMAMENT : m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : PROMPT_CLASSIC(m);
+const PROMPT = (m) => m === 'kvkmap' ? PROMPT_KVKMAP : m === 'armament' ? PROMPT_ARMAMENT : m === 'speedups' ? PROMPT_SPEEDUPS : m === 'ap' ? PROMPT_AP : m === 'governor' ? PROMPT_GOVERNOR : m === 'mats' ? PROMPT_MATS : PROMPT_CLASSIC(m);
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
