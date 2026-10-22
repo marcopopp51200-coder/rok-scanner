@@ -2,7 +2,8 @@
 // Nur Admins posten Neuigkeiten (Titel, Text, optional Bild, anheften). Alle eingeloggten Spieler lesen.
 // Neue News seit dem letzten Besuch erscheinen als rote Zahl am Reiter.
 // Läuft innerhalb von RokApp (scanner.js); R = geteilter Kontext (window.Rok).
-// Supabase: public.news_posts (id, user_id, title, body, image, pinned, created_at, edited_at)
+// Pop-up: News mit popup = true erscheinen jedem Spieler einmal groß über der Seite (gemerkt pro Spieler im Browser).
+// Supabase: public.news_posts (id, user_id, title, body, image, pinned, popup, created_at, edited_at)
 //           Lesen: alle eingeloggten · Schreiben/Ändern/Löschen: nur feature_access 'admin' (SQL im Chat)
 window.RokMods = window.RokMods || {};
 window.RokMods.news = (R) => {
@@ -12,7 +13,7 @@ window.RokMods.news = (R) => {
   const SEEN_KEY = 'rok_news_seen_' + (me() || ''), LIMIT = 50;
   const INP = 'w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500';
   const st = { loaded: false, loading: false, err: '', noTable: false, posts: [], users: {}, admin: false, open: false, busy: false,
-    form: { id: null, title: '', body: '', pinned: false, dataUrl: '', image: '' }, msg: ['', ''] };
+    form: { id: null, title: '', body: '', pinned: false, popup: false, dataUrl: '', image: '' }, msg: ['', ''] };
 
   // Englische Texte (hängen sich an window.I18N an)
   (function newsI18n() {
@@ -23,7 +24,10 @@ window.RokMods.news = (R) => {
       '🖼️ Bild hinzufügen': '🖼️ Add image', '🖼️ Anderes Bild': '🖼️ Other image', '✕ Bild entfernen': '✕ Remove image', 'Angeheftet': 'Pinned', 'bearbeitet': 'edited',
       'Noch keine News.': 'No news yet.', 'News werden geladen …': 'Loading news …', 'Diese News löschen?': 'Delete this news post?', 'Bitte einen Titel eingeben.': 'Please enter a title.',
       '✓ Veröffentlicht': '✓ Published', '✓ Gespeichert': '✓ Saved', 'Wird gespeichert …': 'Saving …', 'Bearbeiten': 'Edit', 'Löschen': 'Delete', 'Nicht mehr anheften': 'Unpin',
-      'Nur Admins können News posten.': 'Only admins can post news.', 'Neue News': 'New news', 'Lesen →': 'Read →', '🔍 Vergrößern': '🔍 Enlarge', 'Vergrößern': 'Enlarge', '↻ Aktualisieren': '↻ Refresh',
+      'Nur Admins können News posten.': 'Only admins can post news.', '📣 Als Pop-up allen zeigen': '📣 Show as pop-up to everyone', '📣 Pop-up': '📣 Pop-up', 'Pop-up ansehen': 'View pop-up',
+      '📣 Neu im Wiz fan Club': '📣 New in Wiz fan Club', 'Vorschau': 'Preview', '📢 Alle News': '📢 All news', 'OK, verstanden': 'OK, got it',
+      '📣 Jeder Spieler sieht diese News einmal groß beim nächsten Öffnen der Seite. Tipp: Zeilen mit „- “ am Anfang werden zu Aufzählungspunkten.': '📣 Every player sees this news once, large, the next time they open the site. Tip: lines starting with “- ” become bullet points.',
+      'Für Pop-ups fehlt noch die Spalte „popup“ in Supabase – bitte das SQL aus dem Chat ausführen.': 'The “popup” column is missing in Supabase – please run the SQL from the chat.', 'Neue News': 'New news', 'Lesen →': 'Read →', '🔍 Vergrößern': '🔍 Enlarge', 'Vergrößern': 'Enlarge', '↻ Aktualisieren': '↻ Refresh',
       '⚠ Die News-Tabelle fehlt noch in Supabase. Bitte das SQL aus dem Chat ausführen.': '⚠ The news table is missing in Supabase. Please run the SQL from the chat.',
       '📢 Neue News': '📢 New news', '📰 Feed': '📰 Feed'
     });
@@ -35,10 +39,10 @@ window.RokMods.news = (R) => {
   const markSeen = () => { const top = Math.max(0, ...st.posts.map((p) => Date.parse(p.created_at) || 0)); try { localStorage.setItem(SEEN_KEY, String(Math.max(top, Date.now()))); } catch {} setUnread(0); };
   const unread = (list) => { const s = seen(); return list.filter((p) => (Date.parse(p.created_at) || 0) > s && p.user_id !== me()).length; };
   const sorted = () => [...st.posts].sort((a, b) => ((b.pinned === true) - (a.pinned === true)) || (Date.parse(b.created_at) - Date.parse(a.created_at)));
-  const fail = (e) => (R.tableMissing(e) ? 'Die News-Tabelle fehlt noch in Supabase – bitte das SQL aus dem Chat ausführen.' : (A.germanError ? A.germanError(e) : String(e.message || e)));
+  const fail = (e) => (/popup/i.test(String(e?.message || '')) ? 'Für Pop-ups fehlt noch die Spalte „popup“ in Supabase – bitte das SQL aus dem Chat ausführen.' : R.tableMissing(e) ? 'Die News-Tabelle fehlt noch in Supabase – bitte das SQL aus dem Chat ausführen.' : (A.germanError ? A.germanError(e) : String(e.message || e)));
 
   // Text: Zeilenumbrüche behalten, Links anklickbar
-  const richText = (t) => esc(t).replace(/https?:\/\/[^\s<]+/g, (u) => `<a href="${u}" target="_blank" rel="noopener" class="text-gold-300 underline break-all">${u}</a>`);
+  const richText = (t) => esc(t).replace(/^[-*•] /gm, '• ').replace(/https?:\/\/[^\s<]+/g, (u) => `<a href="${u}" target="_blank" rel="noopener" class="text-gold-300 underline break-all">${u}</a>`);
   const fmtDate = (ts) => new Date(ts).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
   // ---------- Laden ----------
@@ -68,7 +72,7 @@ window.RokMods.news = (R) => {
 
   // ---------- Schreiben (nur Admins) ----------
   function openForm(p) {
-    st.form = p ? { id: p.id, title: p.title || '', body: p.body || '', pinned: p.pinned === true, dataUrl: '', image: p.image || '' } : { id: null, title: '', body: '', pinned: false, dataUrl: '', image: '' };
+    st.form = p ? { id: p.id, title: p.title || '', body: p.body || '', pinned: p.pinned === true, popup: p.popup === true, dataUrl: '', image: p.image || '' } : { id: null, title: '', body: '', pinned: false, popup: false, dataUrl: '', image: '' };
     st.open = true; st.msg = ['', '']; render();
     setTimeout(() => { const t = root.querySelector('[data-n="title"]'); if (t) { t.focus(); window.scrollTo({ top: 0, behavior: 'smooth' }); } }, 30);
   }
@@ -87,11 +91,11 @@ window.RokMods.news = (R) => {
       let id = f.id;
       const image = f.dataUrl ? null : (f.image || null);
       if (id) {
-        const { data, error } = await db().from('news_posts').update({ title, body, pinned: f.pinned, image, edited_at: new Date().toISOString() }).eq('id', id).select('id');
+        const { data, error } = await db().from('news_posts').update({ title, body, pinned: f.pinned, popup: f.popup, image, edited_at: new Date().toISOString() }).eq('id', id).select('id');
         if (error) throw error;
         if (!(data || []).length) throw new Error('Supabase hat die Änderung abgelehnt (Admin-Regel fehlt?).');
       } else {
-        const { data, error } = await db().from('news_posts').insert({ user_id: me(), title, body, pinned: f.pinned, image: null }).select().single();
+        const { data, error } = await db().from('news_posts').insert({ user_id: me(), title, body, pinned: f.pinned, popup: f.popup, image: null }).select().single();
         if (error) throw error;
         id = data.id;
       }
@@ -133,9 +137,12 @@ window.RokMods.news = (R) => {
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" data-n-img class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">${img ? '🖼️ Anderes Bild' : '🖼️ Bild hinzufügen'}</button>
         ${img ? '<button type="button" data-n-imgx class="text-xs px-2.5 py-1.5 rounded-lg border border-ink-700 text-slate-400 hover:text-red-300 hover:border-red-400/60">✕ Bild entfernen</button>' : ''}
-        <label class="ml-auto inline-flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="checkbox" data-n="pinned" ${f.pinned ? 'checked' : ''} class="accent-amber-400 w-4 h-4"> 📌 Oben anheften</label>
+        <span class="ml-auto flex flex-wrap gap-x-4 gap-y-1">
+          <label class="inline-flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="checkbox" data-n="popup" ${f.popup ? 'checked' : ''} class="accent-amber-400 w-4 h-4"> 📣 Als Pop-up allen zeigen</label>
+          <label class="inline-flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="checkbox" data-n="pinned" ${f.pinned ? 'checked' : ''} class="accent-amber-400 w-4 h-4"> 📌 Oben anheften</label></span>
         <input type="file" id="newsFile" accept="image/*" class="hidden">
       </div>
+      ${f.popup ? '<p class="text-[11px] text-slate-500">📣 Jeder Spieler sieht diese News einmal groß beim nächsten Öffnen der Seite. Tipp: Zeilen mit „- “ am Anfang werden zu Aufzählungspunkten.</p>' : ''}
       ${img ? `<img src="${esc(img)}" alt="" class="w-full h-48 object-cover object-top rounded-lg border border-ink-700 bg-ink-950">` : ''}
       <div class="flex flex-wrap items-center gap-3">
         <div data-n-msg class="${msgCls(st.msg[1])}">${esc(st.msg[0])}</div>
@@ -151,10 +158,11 @@ window.RokMods.news = (R) => {
       <div class="flex items-start gap-3">
         <div class="min-w-0 flex-1">
           <h3 class="font-display text-xl sm:text-2xl gold-text leading-tight break-words">${esc(p.title)}</h3>
-          <div class="mt-1 flex items-center gap-2 text-[11px] text-slate-500"><span translate="no">${esc(u.username || '?')}</span><span>·</span><span>${fmtDate(p.created_at)}</span>${p.edited_at ? '<span>· bearbeitet</span>' : ''}</div>
+          <div class="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-slate-500"><span translate="no">${esc(u.username || '?')}</span><span>·</span><span>${fmtDate(p.created_at)}</span>${p.edited_at ? '<span>· bearbeitet</span>' : ''}${st.admin && p.popup === true ? '<span class="rounded-full border border-gold-400/40 px-2 py-0.5 text-gold-200">📣 Pop-up</span>' : ''}</div>
         </div>
         ${st.admin ? `<div class="shrink-0 flex gap-1.5">
           <button type="button" data-n-pin="${esc(p.id)}" title="${pin ? 'Nicht mehr anheften' : 'Oben anheften'}" class="w-8 h-8 rounded-lg border ${pin ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-700 text-slate-500 hover:border-gold-500/60 hover:text-gold-300'}">📌</button>
+          ${p.popup === true ? `<button type="button" data-n-preview="${esc(p.id)}" title="Pop-up ansehen" class="w-8 h-8 rounded-lg border border-ink-700 text-slate-500 hover:border-gold-500/60 hover:text-gold-300">👁</button>` : ''}
           <button type="button" data-n-edit="${esc(p.id)}" title="Bearbeiten" class="w-8 h-8 rounded-lg border border-ink-700 text-slate-500 hover:border-gold-500/60 hover:text-gold-300">✎</button>
           <button type="button" data-n-del="${esc(p.id)}" title="Löschen" class="w-8 h-8 rounded-lg border border-ink-700 text-slate-500 hover:border-red-400/60 hover:text-red-300">✕</button></div>` : ''}
       </div>
@@ -196,6 +204,7 @@ window.RokMods.news = (R) => {
     const ed = t.closest('[data-n-edit]'); if (ed) { const p = st.posts.find((x) => x.id === ed.dataset.nEdit); if (p) openForm(p); return; }
     const dl = t.closest('[data-n-del]'); if (dl) { del(dl.dataset.nDel); return; }
     const pn = t.closest('[data-n-pin]'); if (pn) { togglePin(pn.dataset.nPin); return; }
+    const pv = t.closest('[data-n-preview]'); if (pv) { const p = st.posts.find((x) => x.id === pv.dataset.nPreview); if (p) showPopup(p, true); return; }
   });
   root.addEventListener('input', (ev) => {
     const k = ev.target.dataset && ev.target.dataset.n;
@@ -206,7 +215,60 @@ window.RokMods.news = (R) => {
     const t = ev.target;
     if (t.id === 'newsFile') { const file = t.files && t.files[0]; t.value = ''; pickImage(file); return; }
     if (t.dataset && t.dataset.n === 'pinned') st.form.pinned = t.checked;
+    if (t.dataset && t.dataset.n === 'popup') { st.form.popup = t.checked; renderForm(); }
   });
+
+  // ---------- Pop-up: neue Updates einmal groß anzeigen ----------
+  const POP_KEY = 'rok_news_popup_' + (me() || '');
+  const popSeen = () => { try { return JSON.parse(localStorage.getItem(POP_KEY) || '[]') || []; } catch { return []; } };
+  const popMark = (id) => { try { localStorage.setItem(POP_KEY, JSON.stringify([...new Set([...popSeen(), id])].slice(-50))); } catch {} };
+  let popOpen = false;
+  function showPopup(p, preview) {
+    if (popOpen) return; popOpen = true;
+    const box = document.createElement('div'), prev = document.body.style.overflow;
+    box.className = 'fixed inset-0 z-[92] grid place-items-center p-4 bg-ink-950/85 backdrop-blur-sm ui-fade overflow-y-auto';
+    box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', 'newsPopTitle');
+    box.innerHTML = `<div class="panel !bg-ink-900 w-full max-w-lg rounded-2xl shadow-2xl ui-pop my-auto overflow-hidden">
+        <div class="px-6 pt-5 pb-3 bg-gradient-to-b from-gold-500/15 to-transparent border-b border-gold-500/20">
+          <div class="flex items-center gap-2 text-[11px] uppercase tracking-widest text-gold-300"><span>📣 Neu im Wiz fan Club</span>${preview ? '<span class="ml-auto normal-case tracking-normal text-slate-400">Vorschau</span>' : ''}</div>
+          <h3 id="newsPopTitle" class="mt-1 font-display text-2xl gold-text leading-tight break-words">${esc(p.title)}</h3>
+          <div class="mt-0.5 text-[11px] text-slate-500">${fmtDate(p.created_at)}</div>
+        </div>
+        <div class="px-6 py-4 flex flex-col gap-3 max-h-[60vh] overflow-y-auto">
+          ${p.image ? (R.zoomImgHTML ? R.zoomImgHTML(p.image, 'w-full max-h-64 object-contain') : `<img src="${esc(p.image)}" alt="" class="w-full max-h-64 object-contain rounded-xl">`) : ''}
+          ${p.body ? `<p class="text-sm leading-relaxed text-slate-200 whitespace-pre-wrap break-words">${richText(p.body)}</p>` : ''}
+        </div>
+        <div class="px-6 pb-5 pt-1 flex flex-wrap justify-end gap-2">
+          <button type="button" data-pop-news class="px-4 py-2.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">📢 Alle News</button>
+          <button type="button" data-pop-ok class="px-5 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">OK, verstanden</button>
+        </div></div>`;
+    const close = (goNews) => {
+      document.removeEventListener('keydown', onKey, true);
+      box.remove(); document.body.style.overflow = prev; popOpen = false;
+      if (!preview) popMark(p.id);
+      if (goNews) R.goView('news'); else if (!preview) setTimeout(checkPopup, 400);   // weitere ungelesene Pop-ups nacheinander
+    };
+    const onKey = (e) => { if (e.key === 'Escape' && !document.querySelector('[aria-label="Bild"]')) { e.preventDefault(); e.stopPropagation(); close(false); } };
+    box.addEventListener('click', (e) => {
+      if (e.target.closest('[data-pop-ok]') || e.target === box) return close(false);
+      if (e.target.closest('[data-pop-news]')) return close(true);
+    });
+    document.addEventListener('keydown', onKey, true);
+    document.body.appendChild(box); document.body.style.overflow = 'hidden';
+    setTimeout(() => box.querySelector('[data-pop-ok]')?.focus(), 30);
+  }
+  async function checkPopup() {
+    if (popOpen || document.hidden) return;
+    try {
+      const since = new Date(Date.now() - 30 * 864e5).toISOString();   // nur Pop-ups der letzten 30 Tage
+      const { data, error } = await db().from('news_posts').select('*').eq('popup', true).gte('created_at', since).order('created_at', { ascending: true }).limit(10);
+      if (error) return;
+      const seenIds = new Set(popSeen()), next = (data || []).find((p) => !seenIds.has(p.id) && p.user_id !== me());
+      if (next) showPopup(next, false);
+    } catch {}
+  }
+  setTimeout(checkPopup, 1500);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(checkPopup, 800); });
 
   // ---------- Start ----------
   R.VIEW_EL.news = 'newsView';

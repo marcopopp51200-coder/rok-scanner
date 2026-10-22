@@ -2158,6 +2158,10 @@ window.RokApp = () => {
           inc: (st, days) => MEV.reduce((a, e) => { if (!e.matLeg || !mevSt(e.k).on) return a; const n = mevCount(e.k, days);
             return n ? pmAdd(pmAdd(a, matSplit(e.matRand || {}), n), matSplit(e.matChoice || {}, 'choice'), n) : a; }, {}),
           custom: { html: () => mevHtml('mats'), bind: (box, upd, full) => bindMev(box, full) } },
+        { k: 'kvk', label: 'KvK-Start', desc: 'Bis zu 15 goldene (legendäre) Mats zum KvK-Start – einmalig am Starttag aus deinem Profil',
+          inputs: [{ key: 'n', label: 'Goldene Mats (max. 15)', def: 15 }, { key: 't', label: 'Material', sel: [['all', 'Zufällig (je 30 %, Knochen 10 %)'], ['choice', 'Wahl (frei wählbar)'], ...MATS.map(x => [x.k, x.label])], def: 'all' }],
+          perDay: () => ({}),
+          inc: (st, days) => { const k = kvkOffDays(); return k != null && k >= 1 && k <= days ? matSplit({ gold: Math.min(15, nv(st.n, 15)) }, st.t || 'all') : {}; } },
         { k: 'baulur', label: 'Baulurs', desc: 'Ø aus 6.653 Baulurs: 1.150 graue, 590 grüne, 221 blaue Materialkisten', inputs: [{ key: 'n', label: 'Baulurs pro Tag', def: 108 }, KVK_OPT],
           perDay: (st) => { const n = baulurDay(st); return matSplit({ white: BAU_MATS.white * n, green: BAU_MATS.green * n, blue: BAU_MATS.blue * n }); },
           inc: function (st, days) { return scaleObj(this.perDay(st), baulurDays(st, days)); } }
@@ -3132,6 +3136,7 @@ window.RokApp = () => {
     MEV.forEach(e => { if (mevSt(e.k).on) mevDays(e.k, 400).forEach(d => (evDays[d] = evDays[d] || []).push(e)); });
     const gearDay = {}; reach.forEach((r, i) => { if (r.day != null) (gearDay[r.day] = gearDay[r.day] || []).push({ ...r, i }); });
     const hide = (passive.matCalHide = passive.matCalHide || {});
+    const kvkD = kvkOffDays(), kvkSrc = pmSrc('mats', 'kvk'), kvkMats = kvkSrc.on ? Math.min(15, nv(kvkSrc.n, 15)) : 0;
     const MROWS = [...MATS, { k: 'choice', label: 'Wahl', img: 'mats/choicematchest.png', icon: '📦' }], SHORT = { leather: 'Leder', iron: 'Eisen', ebony: 'Holz', bone: 'Knochen', choice: 'Wahl' };
     const shown = MROWS.filter(x => !hide[x.k]);
     const gCost = (g) => MATS.reduce((a, x) => a + (+g[x.k] || 0), 0);
@@ -3145,11 +3150,11 @@ window.RokApp = () => {
       const tot = o >= 0 && hasNow ? shown.reduce((a, x) => a + val(x.k), 0) : null;
       const cr = o >= 0 && hasNow ? craftedBy(o) : 0;
       const per = o >= 0 && hasNow && shown.length ? `<div class="mt-1 space-y-px">${shown.map(x => `<div class="flex items-center justify-between gap-1 text-[10px] tabular-nums leading-tight"><span class="flex items-center gap-0.5 text-slate-400 min-w-0">${ico(x, 'w-3 h-3')}<span class="hidden sm:inline truncate">${SHORT[x.k]}</span></span><span class="text-slate-200">${dec(val(x.k), 1)}</span></div>`).join('')}</div>` : '';
-      const isEv = !!(evDays[o] || []).length, isCraft = !!(gearDay[o] || []).length;
-      const bg = out ? 'bg-ink-950/40 opacity-50' : 'bg-ink-950/80', tint = out ? '' : isCraft ? 'background:rgba(16,185,129,.22);' : isEv ? 'background:rgba(14,165,233,.2);' : '';
-      cells += `<div class="${bg} px-1.5 pt-1 pb-1 flex flex-col justify-between ${today ? 'ring-1 ring-gold-400 ring-inset' : isCraft ? 'ring-1 ring-emerald-400/70 ring-inset' : ''}" style="${tint}min-height:${o < 0 && !out ? 2.5 : o < 0 ? 2.5 : 8.5}rem">
+      const isEv = !!(evDays[o] || []).length, isCraft = !!(gearDay[o] || []).length, isKvk = kvkD != null && o === kvkD;
+      const bg = out ? 'bg-ink-950/40 opacity-50' : 'bg-ink-950/80', tint = out ? '' : isCraft ? 'background:rgba(16,185,129,.22);' : isKvk ? 'background:rgba(236,72,153,.22);' : isEv ? 'background:rgba(14,165,233,.2);' : '';
+      cells += `<div class="${bg} px-1.5 pt-1 pb-1 flex flex-col justify-between ${today ? 'ring-1 ring-gold-400 ring-inset' : isCraft ? 'ring-1 ring-emerald-400/70 ring-inset' : isKvk ? 'ring-1 ring-pink-400/70 ring-inset' : ''}" style="${tint}min-height:${o < 0 && !out ? 2.5 : o < 0 ? 2.5 : 8.5}rem">
         <div class="text-[11px] ${today ? 'text-gold-300 font-bold' : o < 0 ? 'text-slate-600' : 'text-slate-400'}">${d.getDate()}${d.getDate() === 1 ? '.' + (d.getMonth() + 1) + '.' : ''}</div>
-        <div class="space-y-0.5">${(evDays[o] || []).map(e => `<div class="text-[9px] leading-tight px-1 py-0.5 rounded bg-sky-500/40 text-sky-50 truncate" title="${e.label}: ${e.mats || ''}">${e.label} <b>+${dec(e.matLeg, 1)}</b></div>`).join('')}
+        <div class="space-y-0.5">${isKvk ? `<div class="text-[9px] leading-tight px-1 py-0.5 rounded text-pink-50 font-semibold truncate" style="background:rgba(236,72,153,.55)">⚔ KvK-Start${kvkMats ? ` <b>+${dec(kvkMats, 0)}</b>` : ''}</div>` : ''}${(evDays[o] || []).map(e => `<div class="text-[9px] leading-tight px-1 py-0.5 rounded bg-sky-500/40 text-sky-50 truncate" title="${e.label}: ${e.mats || ''}">${e.label} <b>+${dec(e.matLeg, 1)}</b></div>`).join('')}
           ${(gearDay[o] || []).map(r => `<div class="text-[9px] leading-tight px-1 py-0.5 rounded bg-emerald-500/40 text-emerald-50 font-semibold truncate" title="${esc(r.g.name || 'Gear')}">⚒ ${r.i + 1}. ${esc(r.g.name || 'Gear')}</div>`).join('')}</div>
         <div>${per}${tot != null ? `<div class="mt-0.5 pt-0.5 border-t border-ink-700 text-right text-[11px] font-semibold tabular-nums text-violet-300">Σ ${dec(tot, 1)}</div>
           ${cr > 0 ? `<div class="text-right text-[10px] tabular-nums text-emerald-300" title="Gesamt nach dem Craften">nach ⚒ ${dec(Math.max(0, all - cr), 1)}</div>` : ''}` : ''}</div></div>`;
@@ -3163,20 +3168,23 @@ window.RokApp = () => {
       <div class="grid grid-cols-7 gap-px text-[10px] uppercase tracking-wider text-slate-500 mb-1">${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(x => `<div class="px-1">${x}</div>`).join('')}</div>
       <div class="grid grid-cols-7 gap-px rounded-lg overflow-hidden border border-ink-700 bg-ink-700">${cells}</div>
       <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">Anzeigen:${MROWS.map(x => `<label class="inline-flex items-center gap-1 px-2 py-1 rounded-lg border ${hide[x.k] ? 'border-ink-700 opacity-50' : 'border-ink-600'} cursor-pointer select-none"><input type="checkbox" data-mathide="${x.k}" ${hide[x.k] ? '' : 'checked'} class="accent-violet-500">${ico(x, 'w-3.5 h-3.5')} ${SHORT[x.k]}</label>`).join('')}</div>
-      <div class="mt-2 text-[11px] text-slate-500">${hasNow ? 'Im Kästchen: dein Stand je Material in Legendär (letzter Scan + Passive), Σ = Summe der angezeigten. „nach ⚒“ = was insgesamt übrig bleibt, wenn du das Gear craftest. Grün = Gear kann gecraftet werden. Blau = Event.' : 'Scanne oder trag deine Mats ein – dann siehst du hier deinen Stand. Jeder neue Scan rechnet den Kalender neu.'}</div>
+      <div class="mt-2 text-[11px] text-slate-500">${hasNow ? 'Im Kästchen: dein Stand je Material in Legendär (letzter Scan + Passive), Σ = Summe der angezeigten. „nach ⚒“ = was insgesamt übrig bleibt, wenn du das Gear craftest. Grün = Gear kann gecraftet werden. Blau = Event. Pink = KvK-Start.' : 'Scanne oder trag deine Mats ein – dann siehst du hier deinen Stand. Jeder neue Scan rechnet den Kalender neu.'}</div>
       <div class="mt-4 rounded-xl border border-ink-700 bg-ink-950/40 p-3">
         <div class="text-xs uppercase tracking-widest text-slate-400 mb-2">Wann wird was erreicht?</div>
-        <div class="space-y-1 text-sm">${[
-          ...reach.map((r, i) => ({ d: r.day == null ? 1e9 : r.day, html: `<div class="flex flex-wrap items-center justify-between gap-2 rounded-lg px-2 py-1 ${r.day === 0 ? 'bg-emerald-500/15' : r.day != null ? 'bg-emerald-500/5' : ''}"><span>⚒ <b class="text-emerald-300">${i + 1}. ${esc(r.g.name || 'Gear')}</b> <span class="text-xs text-slate-500">(${dec(gCost(r.g), 1)} Leg.)</span></span>
-              <span class="text-xs tabular-nums ${r.day == null ? 'text-slate-500' : 'text-emerald-300'}">${r.day == null ? 'nicht in Sicht' : r.day === 0 ? 'jetzt craftbar ✓' : `${dayPlus(r.day).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })} · in ${fmt(r.day)} Tagen`}</span></div>` })),
-          ...MEV.filter(e => e.matLeg && mevSt(e.k).on).flatMap(e => mevDays(e.k, 120).slice(0, 2).map(d => ({ d, html: `<div class="flex flex-wrap items-center justify-between gap-2 rounded-lg px-2 py-1 bg-sky-500/10"><span>📅 <b class="text-sky-200">${e.label}</b> <span class="text-xs text-slate-500">+${dec(e.matLeg, 1)} Leg.</span></span>
-              <span class="text-xs tabular-nums text-sky-200">${dayPlus(d).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })} · in ${fmt(d)} Tagen</span></div>` })))
-        ].sort((a, b) => a.d - b.d).map(x => x.html).join('') || '<div class="text-xs text-slate-500">Füg unten Gear hinzu oder aktiviere Events unter Passive.</div>'}</div>
+        <div class="grid md:grid-cols-2 gap-3">
+          <div><div class="text-[11px] font-semibold text-emerald-300 mb-1">⚒ Gear</div><div class="space-y-1 text-sm">${reach.slice(0, 5).map((r, i) => `<div class="flex flex-wrap items-center justify-between gap-2 rounded-lg px-2 py-1 ${r.day === 0 ? 'bg-emerald-500/15' : r.day != null ? 'bg-emerald-500/5' : 'bg-ink-950/40'}"><span><b class="text-emerald-300">${i + 1}. ${esc(r.g.name || 'Gear')}</b> <span class="text-xs text-slate-500">(${dec(gCost(r.g), 1)} Leg.)</span></span>
+              <span class="text-xs tabular-nums ${r.day == null ? 'text-slate-500' : 'text-emerald-300'}">${r.day == null ? 'nicht in Sicht' : r.day === 0 ? 'jetzt craftbar ✓' : `${dayPlus(r.day).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })} · in ${fmt(r.day)} Tagen`}</span></div>`).join('') || '<div class="text-xs text-slate-500">Noch kein Gear in der Prioliste.</div>'}</div></div>
+          <div><div class="text-[11px] font-semibold text-sky-300 mb-1">📅 Nächste Events</div><div class="space-y-1 text-sm">${[
+            ...(kvkD != null && kvkD >= 1 ? [{ d: kvkD, label: '⚔ KvK-Start', add: kvkMats ? `+${dec(kvkMats, 0)} Leg.` : '', pink: true }] : []),
+            ...MEV.filter(e => e.matLeg && mevSt(e.k).on).flatMap(e => mevDays(e.k, 400).slice(0, 5).map(d => ({ d, label: e.label, add: `+${dec(e.matLeg, 1)} Leg.` })))
+          ].sort((x, y) => x.d - y.d).slice(0, 5).map(x => `<div class="flex flex-wrap items-center justify-between gap-2 rounded-lg px-2 py-1" style="background:${x.pink ? 'rgba(236,72,153,.15)' : 'rgba(14,165,233,.12)'}"><span><b class="${x.pink ? 'text-pink-200' : 'text-sky-200'}">${x.label}</b> <span class="text-xs text-slate-500">${x.add}</span></span>
+              <span class="text-xs tabular-nums ${x.pink ? 'text-pink-200' : 'text-sky-200'}">${dayPlus(x.d).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })} · in ${fmt(x.d)} Tagen</span></div>`).join('') || '<div class="text-xs text-slate-500">Aktiviere Events unter Passive (oder trag den KvK-Start im Profil ein).</div>'}</div></div>
+        </div>
       </div>
     </section>
     <section id="matGearBox" class="panel rounded-2xl p-5">
       <h2 class="font-display text-lg text-gold-300">Gear-Prioliste</h2>
-      <p class="text-xs text-slate-400 mb-3">Bis zu 3 Gear-Teile in deiner Reihenfolge – aus deinem Showcase wählen (Kosten kommen aus dem Gear-Katalog) oder von Hand in Legendär eintragen. Wahlkisten gehen zuerst an das erste Teil.</p>
+      <p class="text-xs text-slate-400 mb-3">Bis zu 5 Gear-Teile in deiner Reihenfolge – aus deinem Showcase wählen (Kosten kommen aus dem Gear-Katalog) oder von Hand in Legendär eintragen. Wahlkisten gehen zuerst an das erste Teil.</p>
       <div class="space-y-2">${G.map((g, i) => { const r = reach[i]; return `<div class="rounded-xl border ${r.day === 0 ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-700 bg-ink-950/40'} p-3">
         <div class="flex flex-wrap items-center gap-2 mb-2"><b class="text-gold-300">${i + 1}.</b><input data-gear="${i}" data-key="name" type="text" value="${esc(g.name || '')}" placeholder="z. B. Hope Cloak" class="flex-1 min-w-[10rem] ${inp}">
           <span class="text-xs ${r.day == null ? 'text-slate-500' : r.day === 0 ? 'text-emerald-400' : 'text-gold-300'}">${r.day == null ? 'nicht in Sicht' : r.day === 0 ? 'reicht schon ✓' : `ca. ${dayPlus(r.day).toLocaleDateString('de-DE')} (in ${fmt(r.day)} Tagen)`}</span>
@@ -3185,7 +3193,7 @@ window.RokApp = () => {
         ${r.day ? `<div class="mt-1 text-[11px] text-slate-500">fehlt jetzt: ${MATS.filter(x => r.miss[x.k] > 0).map(x => `${x.label} ${dec(r.miss[x.k], 1)}`).join(' · ') || '–'}${r.choiceUse > 0 ? ` · davon aus Wahlkisten ${dec(r.choiceUse, 1)}` : ''}</div>` : ''}
         ${g.src ? `<div class="mt-1 text-[10px] text-slate-500">aus Showcase: ${esc(g.src)}${g.noCost ? ' · <span class="text-amber-300">Kosten nicht im Katalog – bitte eintragen</span>' : ''}</div>` : ''}</div>`; }).join('')
         || '<div class="text-xs text-slate-500">Noch kein Gear eingetragen.</div>'}</div>
-      ${G.length < 3 ? `<div class="mt-3 flex flex-wrap items-center gap-2">${scGearOpts() ? `<select id="gearPick" class="${inp} max-w-full"><option value="">⚒ Aus deinem Showcase wählen …</option>${scGearOpts()}</select>` : '<span class="text-[11px] text-slate-500">Im Showcase gespeicherte Sets erscheinen hier zur Auswahl.</span>'}
+      ${G.length < 5 ? `<div class="mt-3 flex flex-wrap items-center gap-2">${scGearOpts() ? `<select id="gearPick" class="${inp} max-w-full"><option value="">⚒ Aus deinem Showcase wählen …</option>${scGearOpts()}</select>` : '<span class="text-[11px] text-slate-500">Im Showcase gespeicherte Sets erscheinen hier zur Auswahl.</span>'}
         <button type="button" id="gearAdd" class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs">+ von Hand</button></div>` : ''}
       ${!pmOn('mats').length ? '<div class="mt-2 text-[11px] text-amber-300">Tipp: Unter Passive deine Mats-Quellen aktivieren, sonst kann er kein Datum ausrechnen.</div>' : ''}
     </section>`;
