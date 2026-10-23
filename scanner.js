@@ -3031,6 +3031,7 @@ window.RokApp = () => {
   const RES_VAL_DEF = { blue: { food: 500000, wood: 500000, stone: 375000, gold: 200000 }, purple: { food: 1500000, wood: 1500000, stone: 1125000, gold: 600000 } };
   const marSt = () => (passive.mar = passive.mar || {});
   const marResVal = (g, r) => { const v = marSt().resVal?.[g]?.[r]; return +v > 0 ? +v : RES_VAL_DEF[g][r]; };
+  const KILL_AP = 60;   // Marodeure und Barbaren: 60 AP pro Kill
   const marHist = () => (passive.marHist = passive.marHist || []);
   const barbHist = () => (passive.barbHist = passive.barbHist || []);
   var marTab = 'calc';
@@ -3045,7 +3046,7 @@ window.RokApp = () => {
     return o;
   }
   function lootAvg(H, items, costKey) {
-    const ap = H.reduce((a, e) => a + (+e.ap || (+e.n || 0) * apCost(costKey)), 0), n = H.reduce((a, e) => a + (+e.n || 0), 0);
+    const ap = H.reduce((a, e) => a + (+e.n || 0) * KILL_AP, 0), n = H.reduce((a, e) => a + (+e.n || 0), 0);
     const cnt = Object.fromEntries(items.map(it => [it.k, H.reduce((a, e) => a + (+e[it.k] || 0), 0)])); cnt.gems = H.reduce((a, e) => a + (+e.gems || 0), 0);
     const chests = H.reduce((a, e) => a + (+e.chests || 0), 0);
     return { ap, n, cnt, chests, runs: H.length };
@@ -3053,9 +3054,37 @@ window.RokApp = () => {
   const marAvg = () => lootAvg(marHist(), ALL_LOOT, 'maraud');
   const barbAvg = () => lootAvg(barbHist(), BARB_ITEMS, 'barbKvk');
   const dec = (v, d = 2) => (+v || 0).toLocaleString('de-DE', { maximumFractionDigits: d });
+  // Vergleichs-Tabelle (wird beim Tippen neu gezeichnet, ohne die Eingabefelder zu ersetzen)
+  function cmpOutHtml() {
+    const C = (passive.marCmp = passive.marCmp || { m: {}, b: {} }), M = C.m, Bb = C.b;
+    const nM = +M.n || 0, nB = +Bb.n || 0, apM = nM * KILL_AP, apB = nB * KILL_AP;
+    const pick = (o, items) => Object.fromEntries(items.map(it => [it.k, +o[it.k] || 0]));
+    const SMk = marSum(pick(M, KILL_ITEMS)), SMc = marSum(pick(M, MAR_ITEMS)), SM = marSum(pick(M, ALL_LOOT)), SB = marSum(pick(Bb, BARB_ITEMS));
+    const rows = [['gems', 'Gems', 0], ['crystals', 'Kristalle', 0], ['leg', 'Leg. Mats', 3], ['speed', 'Speedups', 0], ['tomes', 'Tomes Lv. 3', 0], ['credits', 'Credits', 0], ['key_mat', 'Material-Schlüssel', 0], ['key_gold', 'Gold-Schlüssel', 0], ...RES4.map(([r, l]) => [r, l, 0])];
+    const fv = (k, v, d) => k === 'speed' ? durText(v, true) : ['food', 'wood', 'stone', 'gold'].includes(k) ? short(v) : dec(v, d);
+    let winM = 0, winB = 0;
+    const trs = rows.map(([k, l, d]) => {
+      const m = apM ? SM[k] / apM * 1000 : null, bb = apB ? SB[k] / apB * 1000 : null;
+      const w = m != null && bb != null && (m || bb) ? (m > bb ? 'm' : bb > m ? 'b' : '') : ''; if (w === 'm') winM++; if (w === 'b') winB++;
+      const pct = w && Math.min(m, bb) > 0 ? ` <span class="text-[10px]">(+${dec((Math.max(m, bb) / Math.min(m, bb) - 1) * 100, 0)} %)</span>` : '';
+      if (!SM[k] && !SB[k]) return '';
+      return `<tr class="border-b border-ink-800 last:border-b-0"><td class="py-1.5 px-2 text-slate-300">${l}</td>
+        <td class="py-1.5 px-2 text-right tabular-nums text-slate-400">${SMk[k] ? fv(k, SMk[k], d) : '–'}</td><td class="py-1.5 px-2 text-right tabular-nums text-slate-400">${SMc[k] ? fv(k, SMc[k], d) : '–'}</td>
+        <td class="py-1.5 px-2 text-right tabular-nums font-semibold text-white">${fv(k, SM[k], d)}</td>
+        <td class="py-1.5 px-2 text-right tabular-nums font-semibold text-white border-l border-ink-700">${fv(k, SB[k], d)}</td>
+        <td class="py-1.5 px-2 text-right tabular-nums border-l border-ink-700 ${w === 'm' ? 'text-emerald-300 font-bold' : 'text-slate-300'}">${m == null ? '–' : fv(k, m, d)}${w === 'm' ? pct : ''}</td>
+        <td class="py-1.5 px-2 text-right tabular-nums ${w === 'b' ? 'text-emerald-300 font-bold' : 'text-slate-300'}">${bb == null ? '–' : fv(k, bb, d)}${w === 'b' ? pct : ''}</td>
+        <td class="py-1.5 px-2 text-center">${w === 'm' ? '🐎' : w === 'b' ? '🪓' : '–'}</td></tr>`; }).join('');
+    return `<div class="mt-4 overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs">
+          <thead class="text-[10px] uppercase tracking-wider text-slate-400">
+            <tr class="border-b border-ink-700"><th></th><th colspan="3" class="py-1.5 px-2 text-center font-medium text-red-300">🐎 Marodeure (${fmt(nM)} Kills)</th><th class="py-1.5 px-2 text-center font-medium text-orange-300 border-l border-ink-700">🪓 Barbaren (${fmt(nB)})</th><th colspan="2" class="py-1.5 px-2 text-center font-medium border-l border-ink-700">pro 1.000 AP</th><th></th></tr>
+            <tr class="border-b border-ink-700"><th class="py-1.5 px-2 text-left font-medium"></th><th class="py-1.5 px-2 text-right font-medium">Kills</th><th class="py-1.5 px-2 text-right font-medium">+ Truhen</th><th class="py-1.5 px-2 text-right font-medium">= Gesamt</th><th class="py-1.5 px-2 text-right font-medium border-l border-ink-700">Gesamt</th><th class="py-1.5 px-2 text-right font-medium border-l border-ink-700">🐎</th><th class="py-1.5 px-2 text-right font-medium">🪓</th><th class="py-1.5 px-2 text-center font-medium">Besser</th></tr></thead>
+          <tbody>${trs || '<tr><td colspan="8" class="py-6 text-center text-slate-500">Oben Kills und Belohnungen eintragen.</td></tr>'}</tbody></table></div>
+        ${apM && apB ? `<div class="mt-2 text-sm text-slate-200">Ergebnis: <b class="${winM >= winB ? 'text-emerald-300' : 'text-slate-200'}">Marodeure ${winM}×</b> besser · <b class="${winB > winM ? 'text-emerald-300' : 'text-slate-200'}">Barbaren ${winB}×</b> besser</div>` : ''}`;
+  }
   function renderMar() {
     const el = $('marSection'); if (!el) return;
-    const st = marSt(), ap = apNow(), cost = apCost('maraud'), A = marAvg();
+    const st = marSt(), ap = apNow(), cost = KILL_AP, A = marAvg();
     const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:border-gold-500';
     const seg = `<div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700 mb-4 max-w-lg">${[['calc', 'Rechner'], ['hist', `Verlauf (${A.runs})`], ['cmp', 'Vergleich']].map(([k, l]) => `<button type="button" data-martab="${k}" aria-pressed="${marTab === k}" class="seg-btn rounded-lg py-1.5 text-xs font-semibold transition">${l}</button>`).join('')}</div>`;
     const card = (l, v, c, sub, icon) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">${icon || ''} ${l}</div><div class="text-xl font-bold tabular-nums ${c}">${v}</div>${sub ? `<div class="text-[11px] text-slate-500">${sub}</div>` : ''}</div>`;
@@ -3077,14 +3106,14 @@ window.RokApp = () => {
     const saveRun = (items, list, costKey, msgId, after) => {
       const get = (k) => el.querySelector(`[data-marf="${k}"]`)?.value ?? '', e = { id: 'm' + Date.now().toString(36), date: get('date') || isoDay(dayPlus(0)) };
       let bad = false;
-      ['n', 'ap', 'chests', ...items.map(f => f.k)].forEach(k => { const v = evalAmt(get(k)); if (v == null) return; if (isNaN(v)) { bad = true; el.querySelector(`[data-marf="${k}"]`)?.classList.add('border-red-500'); return; } e[k] = Math.max(0, Math.round(v)); });
+      ['n', 'chests', ...items.map(f => f.k)].forEach(k => { const v = evalAmt(get(k)); if (v == null) return; if (isNaN(v)) { bad = true; el.querySelector(`[data-marf="${k}"]`)?.classList.add('border-red-500'); return; } e[k] = Math.max(0, Math.round(v)); });
       if (bad || !(e.n > 0)) { $(msgId).className = 'ml-2 text-xs text-red-400'; $(msgId).textContent = bad ? 'Bitte nur Zahlen (oder z. B. 12+7).' : 'Anzahl Kills eintragen.'; return; }
-      if (!e.ap) e.ap = e.n * apCost(costKey);
+      e.ap = e.n * KILL_AP;
       list.push(e); savePassive(); after();
     };
     const histTable = (H, costKey, delAttr) => `<div class="mt-4 overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs">
           <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-2 px-2 text-left font-medium">Datum</th><th class="py-2 px-2 text-right font-medium">Kills</th><th class="py-2 px-2 text-right font-medium">AP</th><th class="py-2 px-2 text-right font-medium">Gems</th><th class="py-2 px-2 text-right font-medium">Kristalle</th><th class="py-2 px-2 text-right font-medium">Leg. Mats</th><th class="py-2 px-2 text-right font-medium">Speedups</th><th class="py-2 px-2 text-right font-medium">Proviant / Holz / Stein / Gold</th><th></th></tr></thead>
-          <tbody>${H.length ? H.slice().sort((x, y) => (y.date || '').localeCompare(x.date || '')).map(e => { const S = marSum(e); return `<tr class="border-b border-ink-800 last:border-b-0"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${dLabel(e.date, true)}</td><td class="py-1.5 px-2 text-right tabular-nums">${fmt(e.n)}${e.chests ? ` <span class="text-slate-500">· ${fmt(e.chests)} Truhen</span>` : ''}</td><td class="py-1.5 px-2 text-right tabular-nums text-emerald-300">${fmt(e.ap || e.n * apCost(costKey))}</td>
+          <tbody>${H.length ? H.slice().sort((x, y) => (y.date || '').localeCompare(x.date || '')).map(e => { const S = marSum(e); return `<tr class="border-b border-ink-800 last:border-b-0"><td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${dLabel(e.date, true)}</td><td class="py-1.5 px-2 text-right tabular-nums">${fmt(e.n)}${e.chests ? ` <span class="text-slate-500">· ${fmt(e.chests)} Truhen</span>` : ''}</td><td class="py-1.5 px-2 text-right tabular-nums text-emerald-300">${fmt(e.n * KILL_AP)}</td>
             <td class="py-1.5 px-2 text-right tabular-nums text-pink-300">${fmt(S.gems)}</td><td class="py-1.5 px-2 text-right tabular-nums text-sky-300">${fmt(S.crystals)}</td><td class="py-1.5 px-2 text-right tabular-nums text-violet-300">${dec(S.leg)}</td><td class="py-1.5 px-2 text-right tabular-nums text-amber-200 whitespace-nowrap">${dec(S.speed / 1440, 1)} T</td>
             <td class="py-1.5 px-2 text-right tabular-nums text-orange-200 whitespace-nowrap">${RES4.map(([r]) => short(S[r])).join(' / ')}</td>
             <td class="text-right"><button type="button" ${delAttr}="${e.id}" class="text-slate-500 hover:text-red-400 px-2" title="Löschen">✕</button></td></tr>`; }).join('')
@@ -3114,10 +3143,9 @@ window.RokApp = () => {
       body = `<div class="rounded-xl border border-ink-700 bg-ink-950/40 p-4">
           <div class="text-sm font-semibold text-white mb-1">Neuen Lauf speichern</div>
           <div class="text-[11px] text-slate-500 mb-3">„Amount“ aus rokbattles eintragen. Rechnen geht direkt im Feld, z. B. „12+7“.</div>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
             <label class="text-[11px] text-slate-400">Datum<input data-marf="date" type="date" value="${isoDay(dayPlus(0))}" class="mt-1 w-full ${inp}"></label>
-            <label class="text-[11px] text-slate-400">Marodeure (Results)<input data-marf="n" type="text" inputmode="numeric" placeholder="z. B. 2.807" class="mt-1 w-full text-right ${inp}"></label>
-            <label class="text-[11px] text-slate-400">AP verbraucht<input data-marf="ap" type="text" inputmode="numeric" placeholder="leer = Anzahl × ${fmt(cost)}" class="mt-1 w-full text-right ${inp}"></label>
+            <label class="text-[11px] text-slate-400">Marodeure gekillt (× ${KILL_AP} AP)<input data-marf="n" type="text" inputmode="numeric" placeholder="z. B. 2.807" class="mt-1 w-full text-right ${inp}"></label>
             <label class="text-[11px] text-slate-400">Marodeur-Truhen erhalten<input data-marf="chests" type="text" inputmode="numeric" placeholder="0" class="mt-1 w-full text-right ${inp}"></label>
           </div>
           <details open class="mb-3"><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">⚔ Kill-Belohnungen</summary><div class="mt-2">${formGroups(KILL_GROUPS)}</div></details>
@@ -3131,34 +3159,36 @@ window.RokApp = () => {
         ${A.ap ? `<div class="mt-4 text-xs uppercase tracking-widest text-slate-400 mb-2">Gesamt aus allen Läufen</div>${sumCards(marSum(A.cnt), (k) => `Ø ${dec(marSum(A.cnt)[k] / A.ap, 4)} pro 1 AP`)}` : ''}
         ${histTable(marHist(), 'maraud', 'data-mardel')}`;
     } else {
-      const B = barbAvg(), SA = A.ap ? marSum(A.cnt) : null, SB = B.ap ? marSum(B.cnt) : null;
-      const rows = [['gems', 'Gems', 0], ['crystals', 'Kristalle', 0], ['leg', 'Leg. Mats', 3], ['speed', 'Speedups (Min.)', 1], ['tomes', 'Tomes Lv. 3', 2], ['credits', 'Credits', 0], ...RES4.map(([r, l]) => [r, l, 0])];
-      let winM = 0, winB = 0;
-      const trs = rows.map(([k, l, d]) => { const m = SA ? SA[k] / A.ap * 1000 : null, b = SB ? SB[k] / B.ap * 1000 : null;
-        const w = m != null && b != null && (m || b) ? (m > b ? 'm' : b > m ? 'b' : '') : ''; if (w === 'm') winM++; if (w === 'b') winB++;
-        const pct = w && Math.min(m, b) > 0 ? ` <span class="text-[10px]">(+${dec((Math.max(m, b) / Math.min(m, b) - 1) * 100, 0)} %)</span>` : '';
-        return `<tr class="border-b border-ink-800 last:border-b-0"><td class="py-1.5 px-3 text-slate-300">${l}</td>
-          <td class="py-1.5 px-3 text-right tabular-nums ${w === 'm' ? 'text-emerald-300 font-bold' : 'text-slate-200'}">${m == null ? '–' : dec(m, d)}${w === 'm' ? pct : ''}</td>
-          <td class="py-1.5 px-3 text-right tabular-nums ${w === 'b' ? 'text-emerald-300 font-bold' : 'text-slate-200'}">${b == null ? '–' : dec(b, d)}${w === 'b' ? pct : ''}</td>
-          <td class="py-1.5 px-3 text-center">${w === 'm' ? '🐎' : w === 'b' ? '🪓' : '–'}</td></tr>`; }).join('');
-      body = `<div class="text-xs text-slate-400 mb-3">Was bringt pro AP mehr? Links der Ø aus deinem Marodeur-Verlauf (Kills + Truhen), rechts aus deinen Barbaren-Läufen (gleiche Belohnungen, nur ohne Kristalle). Alles pro 1.000 AP.</div>
-        <div class="overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs">
-          <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-2 px-3 text-left font-medium">pro 1.000 AP</th><th class="py-2 px-3 text-right font-medium">🐎 Marodeure</th><th class="py-2 px-3 text-right font-medium">🪓 Barbaren</th><th class="py-2 px-3 text-center font-medium">Besser</th></tr></thead>
-          <tbody>${trs}</tbody></table></div>
-        ${SA && SB ? `<div class="mt-2 text-sm text-slate-200">Ergebnis: <b class="${winM >= winB ? 'text-emerald-300' : 'text-slate-200'}">Marodeure ${winM}×</b> besser · <b class="${winB > winM ? 'text-emerald-300' : 'text-slate-200'}">Barbaren ${winB}×</b> besser</div>`
-          : `<div class="mt-2 text-xs text-amber-300">${!SA ? 'Für den Vergleich fehlt noch ein Marodeur-Lauf (Verlauf). ' : ''}${!SB ? 'Trag unten einen Barbaren-Lauf ein.' : ''}</div>`}
-        <div class="mt-4 rounded-xl border border-ink-700 bg-ink-950/40 p-4">
-          <div class="text-sm font-semibold text-white mb-1">🪓 Barbaren-Lauf speichern</div>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
-            <label class="text-[11px] text-slate-400">Datum<input data-marf="date" type="date" value="${isoDay(dayPlus(0))}" class="mt-1 w-full ${inp}"></label>
-            <label class="text-[11px] text-slate-400">Barbaren (Results)<input data-marf="n" type="text" inputmode="numeric" placeholder="z. B. 1.500" class="mt-1 w-full text-right ${inp}"></label>
-            <label class="text-[11px] text-slate-400">AP verbraucht<input data-marf="ap" type="text" inputmode="numeric" placeholder="leer = Anzahl × ${fmt(apCost('barbKvk'))}" class="mt-1 w-full text-right ${inp}"></label>
+      // Vergleich: links Marodeure (Kills + Truhen), rechts Barbaren (nur Kills) – je Kill 60 AP
+      const C = (passive.marCmp = passive.marCmp || { m: {}, b: {} }), M = C.m, Bb = C.b;
+      const cf = (side, groups) => `<div class="grid sm:grid-cols-2 gap-2">${groups.map(g => `<div class="rounded-lg border border-ink-700 bg-ink-950/60 p-2">
+            <div class="text-[10px] uppercase tracking-widest text-slate-400 mb-1">${ico(g, 'w-3.5 h-3.5')} ${g.title}</div>
+            ${g.items.map(it => `<label class="grid grid-cols-[1fr_6rem] items-center gap-2 text-xs text-slate-300 mb-1">${it.label}<input data-cmp="${side}" data-k="${it.k}" type="text" inputmode="numeric" value="${(side === 'm' ? M : Bb)[it.k] ? fmt((side === 'm' ? M : Bb)[it.k]) : ''}" placeholder="0" class="w-full text-right ${inp} !py-1"></label>`).join('')}</div>`).join('')}</div>`;
+      const nM = +M.n || 0, nB = +Bb.n || 0, apM = nM * KILL_AP, apB = nB * KILL_AP;
+      body = `<div class="text-xs text-slate-400 mb-3">Links Marodeure, rechts Barbaren – nur die Anzahl Kills eintragen (je Kill ${KILL_AP} AP) und was du bekommen hast. Bei den Marodeuren zählen Kill-Belohnung und Truhen zusammen.</div>
+        <div class="grid lg:grid-cols-2 gap-4">
+          <div class="rounded-xl border border-red-500/30 bg-red-500/5 p-3">
+            <div class="flex flex-wrap items-end justify-between gap-2 mb-2"><div class="font-display text-base text-gold-300">🐎 Marodeure</div>
+              <label class="text-[11px] text-slate-400">Kills<input data-cmp="m" data-k="n" type="text" inputmode="numeric" value="${nM ? fmt(nM) : ''}" placeholder="z. B. 2.807" class="ml-2 w-28 text-right ${inp}"></label></div>
+            <div id="cmpApM" class="text-[11px] text-slate-500 mb-2">= ${fmt(apM)} AP</div>
+            <details open><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">⚔ Kill-Belohnungen</summary><div class="mt-2">${cf('m', KILL_GROUPS)}</div></details>
+            <details class="mt-2" open><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">📦 Marodeur-Truhen</summary>
+              <label class="mt-2 grid grid-cols-[1fr_6rem] items-center gap-2 text-xs text-slate-300">Truhen erhalten<input data-cmp="m" data-k="chests" type="text" inputmode="numeric" value="${M.chests ? fmt(M.chests) : ''}" placeholder="0" class="w-full text-right ${inp} !py-1"></label>
+              <div class="mt-2">${cf('m', MAR_GROUPS)}</div></details>
           </div>
-          ${formGroups(BARB_GROUPS)}
-          <button type="button" id="barbSave" class="mt-3 px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">+ Barbaren-Lauf speichern</button>
-          <span id="barbMsg" class="ml-2 text-xs"></span>
+          <div class="rounded-xl border border-orange-500/30 bg-orange-500/5 p-3">
+            <div class="flex flex-wrap items-end justify-between gap-2 mb-2"><div class="font-display text-base text-gold-300">🪓 Barbaren</div>
+              <label class="text-[11px] text-slate-400">Kills<input data-cmp="b" data-k="n" type="text" inputmode="numeric" value="${nB ? fmt(nB) : ''}" placeholder="z. B. 2.807" class="ml-2 w-28 text-right ${inp}"></label></div>
+            <div id="cmpApB" class="text-[11px] text-slate-500 mb-2">= ${fmt(apB)} AP</div>
+            <details open><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">⚔ Kill-Belohnungen</summary><div class="mt-2">${cf('b', BARB_GROUPS)}</div></details>
+          </div>
         </div>
-        ${histTable(barbHist(), 'barbKvk', 'data-barbdel')}`;
+        <div id="cmpOut">${cmpOutHtml()}</div>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button type="button" id="cmpSaveM" class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs" ${nM ? '' : 'disabled'}>🐎 Marodeure in den Verlauf übernehmen</button>
+          <button type="button" id="cmpSaveB" class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs" ${nB ? '' : 'disabled'}>🪓 Barbaren speichern</button>
+          <button type="button" id="cmpClear" class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-red-500/60 text-xs text-slate-400">Felder leeren</button>
+        </div>`;
     }
     el.innerHTML = `<section id="marBox" class="panel rounded-2xl p-5">
       <h2 class="font-display text-lg text-gold-300">🐎 Marodeure</h2>
@@ -3173,7 +3203,15 @@ window.RokApp = () => {
     el.querySelectorAll('[data-mardel]').forEach(b => b.onclick = async () => { if (!(await UI.confirm('Diesen Lauf löschen?'))) return; passive.marHist = marHist().filter(e => e.id !== b.dataset.mardel); savePassive(); renderMar(); renderHub(); });
     el.querySelectorAll('[data-barbdel]').forEach(b => b.onclick = async () => { if (!(await UI.confirm('Diesen Lauf löschen?'))) return; passive.barbHist = barbHist().filter(e => e.id !== b.dataset.barbdel); savePassive(); renderMar(); });
     $('marSave')?.addEventListener('click', () => saveRun(ALL_LOOT, marHist(), 'maraud', 'marMsg', () => { renderMar(); renderHub(); }));
-    $('barbSave')?.addEventListener('click', () => saveRun(BARB_ITEMS, barbHist(), 'barbKvk', 'barbMsg', () => renderMar()));
+    el.querySelectorAll('[data-cmp]').forEach(i => i.addEventListener('input', () => { const C = (passive.marCmp = passive.marCmp || { m: {}, b: {} }), o = C[i.dataset.cmp], v = evalAmt(i.value);
+      if (v == null) delete o[i.dataset.k]; else if (isNaN(v)) { i.classList.add('border-red-500'); return; } else { i.classList.remove('border-red-500'); o[i.dataset.k] = Math.max(0, Math.round(v)); }
+      clearTimeout(i._t); i._t = setTimeout(() => { savePassive(); $('cmpOut').innerHTML = cmpOutHtml();
+        $('cmpApM').textContent = `= ${fmt((+C.m.n || 0) * KILL_AP)} AP`; $('cmpApB').textContent = `= ${fmt((+C.b.n || 0) * KILL_AP)} AP`;
+        $('cmpSaveM').disabled = !(+C.m.n > 0); $('cmpSaveB').disabled = !(+C.b.n > 0); }, 250); }));
+    const cmpSave = (side, list) => { const o = passive.marCmp?.[side]; if (!o || !(+o.n > 0)) return; list.push({ ...o, id: 'm' + Date.now().toString(36), date: isoDay(dayPlus(0)), ap: o.n * KILL_AP }); savePassive(); renderMar(); renderHub(); };
+    $('cmpSaveM')?.addEventListener('click', () => cmpSave('m', marHist()));
+    $('cmpSaveB')?.addEventListener('click', () => cmpSave('b', barbHist()));
+    $('cmpClear')?.addEventListener('click', async () => { if (!(await UI.confirm('Alle Felder im Vergleich leeren?'))) return; passive.marCmp = { m: {}, b: {} }; savePassive(); renderMar(); });
   }
 
   // ---------- Mats Statistics: Kalender + Gear-Prioliste (wann reichen die Mats?) ----------
