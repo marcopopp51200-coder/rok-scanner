@@ -3073,8 +3073,10 @@ window.RokApp = () => {
   }
   // Vergleichs-Quellen: Eingabe · Mein Verlauf · Öffentlich (Summe aller Läufe)
   const CMP_SRC = { input: 'Eingabe', own: 'Mein Verlauf', pub: 'Öffentlich (alle)' };
+  const MAR_MODE = { both: 'Kills + Truhen', kills: 'nur Kills', chests: 'nur Truhen' };
   function cmpSide(side) {
-    const C = (passive.marCmp = passive.marCmp || { m: {}, b: {} }), src = C['src' + side] || 'input', items = side === 'm' ? ALL_LOOT : BARB_ITEMS;
+    const C = (passive.marCmp = passive.marCmp || { m: {}, b: {} }), src = C['src' + side] || 'input', mm = C.mmode || 'both';
+    const items = side === 'm' ? (mm === 'kills' ? KILL_ITEMS : mm === 'chests' ? MAR_ITEMS : ALL_LOOT) : BARB_ITEMS;
     let runs = null;
     if (src === 'own') runs = side === 'm' ? marHist() : barbHist();
     else if (src === 'pub') runs = (pubRuns || []).filter(r => r.kind === (side === 'm' ? 'marauder' : 'barb'));
@@ -3154,21 +3156,32 @@ window.RokApp = () => {
             ${g.items.map(it => `<label class="grid grid-cols-[1fr_6.5rem] items-center gap-2 text-xs text-slate-300 mb-1">${it.label}<input ${attr} data-k="${it.k}" data-marf="${it.k}" type="text" inputmode="numeric" value="${vals && vals[it.k] ? fmt(vals[it.k]) : ''}" placeholder="0" class="w-full text-right ${inp} !py-1"></label>`).join('')}</div>`).join('')}</div>`;
     const saveRun = (items, list, msgId, after) => {
       const get = (k) => el.querySelector(`[data-marf="${k}"]`)?.value ?? '', e = { id: 'm' + Date.now().toString(36), date: get('date') || isoDay(dayPlus(0)) };
+      const nm = get('name').trim().slice(0, 40); if (nm) e.name = nm;
       let bad = false;
       ['n', 'chests', 'chain', ...items.map(f => f.k)].forEach(k => { const v = evalAmt(get(k)); if (v == null) return; if (isNaN(v)) { bad = true; el.querySelector(`[data-marf="${k}"]`)?.classList.add('border-red-500'); return; } e[k] = k === 'chain' ? Math.max(1, v) : Math.max(0, Math.round(v)); });
       if (bad || !(e.n > 0)) { $(msgId).className = 'ml-2 text-xs text-red-400'; $(msgId).textContent = bad ? 'Bitte nur Zahlen (oder z. B. 12+7).' : 'Anzahl Kills eintragen.'; return; }
       e.ap = e.n * KILL_AP / (e.chain || 1);
       list.push(e); savePassive(); after();
     };
-    const runRow = (e, kind, actions) => { const S = marSum(e); return `<tr class="border-b border-ink-800 last:border-b-0">${actions.user ? `<td class="py-1.5 px-2 text-slate-200 whitespace-nowrap">${esc(e.user)}</td>` : ''}<td class="py-1.5 px-2 text-slate-300 whitespace-nowrap">${kind === 'marauder' ? '🐎' : '🪓'} ${dLabel(e.date, true)}</td>
-      <td class="py-1.5 px-2 text-right tabular-nums">${fmt(e.n)}${e.chests ? ` <span class="text-slate-500">· ${fmt(e.chests)} Truhen</span>` : ''}${e.chain > 1 ? ` <span class="text-slate-500">· ×${dec(e.chain, 2)}</span>` : ''}</td>
-      <td class="py-1.5 px-2 text-right tabular-nums text-pink-300">${fmt(S.gems)}</td><td class="py-1.5 px-2 text-right tabular-nums text-sky-300">${S.crystals ? fmt(S.crystals) : '–'}</td><td class="py-1.5 px-2 text-right tabular-nums text-violet-300">${dec(S.leg)}</td><td class="py-1.5 px-2 text-right tabular-nums text-amber-200 whitespace-nowrap">${durText(S.speed, true)}</td>
-      <td class="py-1.5 px-2 text-right tabular-nums text-orange-200 whitespace-nowrap">${RES4.map(([r]) => short(S[r])).join(' / ')}</td>
-      <td class="text-right whitespace-nowrap">${actions.share ? (e.shared ? '<span class="text-[10px] text-emerald-400 px-1">🌐 geteilt</span>' : `<button type="button" data-share="${kind}|${e.id}" class="text-[11px] px-2 py-0.5 rounded border border-ink-600 hover:border-gold-500/60">🌐 Teilen</button>`) : ''}
-        ${actions.del ? `<button type="button" ${actions.del}="${actions.delId || e.id}" class="text-slate-500 hover:text-red-400 px-2" title="Löschen">✕</button>` : ''}</td></tr>`; };
-    const runTable = (rows, user) => `<div class="mt-3 overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs">
-          <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700">${user ? '<th class="py-2 px-2 text-left font-medium">Spieler</th>' : ''}<th class="py-2 px-2 text-left font-medium">Datum</th><th class="py-2 px-2 text-right font-medium">Kills</th><th class="py-2 px-2 text-right font-medium">Gems</th><th class="py-2 px-2 text-right font-medium">Kristalle</th><th class="py-2 px-2 text-right font-medium">Leg. Mats</th><th class="py-2 px-2 text-right font-medium">Speedups</th><th class="py-2 px-2 text-right font-medium">Proviant / Holz / Stein / Gold</th><th></th></tr></thead>
-          <tbody>${rows || `<tr><td colspan="${user ? 9 : 8}" class="py-6 text-center text-slate-500">Noch keine Läufe.</td></tr>`}</tbody></table></div>`;
+    // Ein Lauf als komplettes Kästchen (Name, Datum, Kills, alle Werte)
+    const runCard = (e, kind, actions) => { const S = marSum(e), isM = kind === 'marauder', apx = (+e.n || 0) * KILL_AP / (+e.chain || 1);
+      const mini = (l, v, c, sub, icon) => `<div class="rounded-lg border border-ink-700 bg-ink-950/60 px-2.5 py-2 min-w-0"><div class="text-[9px] uppercase tracking-widest text-slate-400 truncate">${icon || ''} ${l}</div><div class="text-base font-bold tabular-nums ${c} truncate">${v}</div>${sub ? `<div class="text-[10px] text-slate-500 truncate">${sub}</div>` : ''}</div>`;
+      return `<div class="rounded-xl border ${isM ? 'border-red-500/30 bg-red-500/5' : 'border-orange-500/30 bg-orange-500/5'} p-3">
+        <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+          <div class="min-w-0"><div class="text-sm font-semibold text-white">${isM ? '🐎' : '🪓'} ${esc(e.name || (isM ? 'Marodeur-Lauf' : 'Barbaren-Lauf'))}${actions.rename ? ` <button type="button" data-rename="${kind}|${e.id}" class="text-slate-500 hover:text-gold-300 text-xs" title="Umbenennen">✎</button>` : ''}</div>
+            <div class="text-[11px] text-slate-400">${actions.user ? `<b class="text-slate-200">${esc(e.user)}</b> · ` : ''}${dLabel(e.date, true)} · ${fmt(e.n)} Kills${e.chests ? ` · ${fmt(e.chests)} Truhen` : ''}${e.chain > 1 ? ` · Chain ×${dec(e.chain, 2)}` : ''} · ${fmt(apx)} AP</div></div>
+          <div class="flex items-center gap-1">${actions.share ? (e.shared ? '<span class="text-[10px] text-emerald-400 px-1">🌐 geteilt</span>' : `<button type="button" data-share="${kind}|${e.id}" class="text-[11px] px-2 py-0.5 rounded border border-ink-600 hover:border-gold-500/60">🌐 Teilen</button>`) : ''}
+            ${actions.del ? `<button type="button" ${actions.del}="${actions.delId || e.id}" class="text-slate-500 hover:text-red-400 px-1.5" title="Löschen">✕</button>` : ''}</div></div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+          ${mini('Gems', fmt(S.gems), 'text-pink-300', apx ? `Ø ${dec(S.gems / apx, 4)} / AP` : '', ico({ img: 'ressourcen/gems.png', icon: '💎' }, 'w-3.5 h-3.5'))}
+          ${isM ? mini('Kristalle', fmt(S.crystals), 'text-sky-300', apx ? `Ø ${dec(S.crystals / apx, 2)} / AP` : '', ico({ img: 'ressourcen/crystal.webp', icon: '🔷' }, 'w-3.5 h-3.5')) : ''}
+          ${mini('Leg. Mats', dec(S.leg), 'text-violet-300', MAT4.map(([m]) => dec(S.mat[m], 1)).join(' · '), ico({ img: 'mats/choicematchest.png', icon: '🧱' }, 'w-3.5 h-3.5'))}
+          ${mini('Speedups', dec(S.speed / 1440, 1) + ' T', 'text-amber-200', durText(S.speed, true), ico({ img: 'sonstiges/SpeedUniversal.png', icon: '⏱️' }, 'w-3.5 h-3.5'))}
+          ${isM ? mini('Credits', fmt(S.credits), 'text-slate-200', `Schlüssel ${fmt(S.key_mat)} / ${fmt(S.key_gold)}`, ico({ img: 'ressourcen/allianccredits.png', icon: '🤝' }, 'w-3.5 h-3.5')) : ''}
+          ${mini('Tomes Lv. 3', fmt(S.tomes), 'text-indigo-300', '', ico({ img: 'sonstiges/img_icon_item_273.png', icon: '📘' }, 'w-3.5 h-3.5'))}
+          ${RES4.map(([r, l]) => mini(l, short(S[r]), 'text-orange-200', '', ico(RES.find(x => x.k === r) || {}, 'w-3.5 h-3.5'))).join('')}
+        </div></div>`; };
+    const runList = (cards) => `<div class="mt-4 space-y-3">${cards || '<div class="rounded-xl border border-ink-700 p-6 text-center text-xs text-slate-500">Noch keine Läufe.</div>'}</div>`;
     let body = '';
     if (marTab === 'calc') {
       const useAp = st.ap != null && st.ap !== '' ? +st.ap : (ap || 0), n = Math.floor(useAp / cost);
@@ -3196,7 +3209,8 @@ window.RokApp = () => {
         <div class="rounded-xl border border-ink-700 bg-ink-950/40 p-4">
           <div class="text-sm font-semibold text-white mb-1">${isM ? '🐎 Marodeur-Lauf speichern' : '🪓 Barbaren-Lauf speichern'}</div>
           <div class="text-[11px] text-slate-500 mb-3">„Amount“ aus rokbattles eintragen. Rechnen geht direkt im Feld, z. B. „12+7“. Je Kill ${KILL_AP} AP${isM ? '' : ', geteilt durch die Chain'}.</div>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+            <label class="text-[11px] text-slate-400">Name<input data-marf="name" type="text" maxlength="40" placeholder="${isM ? 'z. B. KvK Woche 3' : 'z. B. Barbs Lv. 30'}" class="mt-1 w-full ${inp}"></label>
             <label class="text-[11px] text-slate-400">Datum<input data-marf="date" type="date" value="${isoDay(dayPlus(0))}" class="mt-1 w-full ${inp}"></label>
             <label class="text-[11px] text-slate-400">${isM ? 'Marodeure' : 'Barbaren'} gekillt<input data-marf="n" type="text" inputmode="numeric" placeholder="z. B. 2.807" class="mt-1 w-full text-right ${inp}"></label>
             ${isM ? `<label class="text-[11px] text-slate-400">Marodeur-Truhen erhalten<input data-marf="chests" type="text" inputmode="numeric" placeholder="0" class="mt-1 w-full text-right ${inp}"></label>`
@@ -3211,7 +3225,7 @@ window.RokApp = () => {
           <span id="runMsg" class="ml-2 text-xs"></span>
         </div>
         ${isM && A.ap ? `<div class="mt-4 text-xs uppercase tracking-widest text-slate-400 mb-2">Gesamt aus allen Marodeur-Läufen</div>${sumCards(marSum(A.cnt), (k) => `Ø ${dec(marSum(A.cnt)[k] / A.ap, 4)} pro 1 AP`)}` : ''}
-        ${runTable((isM ? marHist() : barbHist()).slice().sort((x, y) => (y.date || '').localeCompare(x.date || '')).map(e => runRow(e, kind, { share: true, del: isM ? 'data-mardel' : 'data-barbdel' })).join(''))}`;
+        ${runList((isM ? marHist() : barbHist()).slice().sort((x, y) => (y.date || '').localeCompare(x.date || '') || String(y.id).localeCompare(String(x.id))).map(e => runCard(e, kind, { share: true, rename: true, del: isM ? 'data-mardel' : 'data-barbdel' })).join(''))}`;
     } else if (marTab === 'pub') {
       const me = RokAuth.myId?.(), P = pubRuns || [], pm = P.filter(r => r.kind === 'marauder'), pb = P.filter(r => r.kind === 'barb');
       const avg = (L) => { const S = marSum(Object.fromEntries(ALL_LOOT.map(it => [it.k, L.reduce((a, e) => a + (+e[it.k] || 0), 0)]))), apx = L.reduce((a, e) => a + (+e.n || 0) * KILL_AP / (+e.chain || 1), 0); return { S, ap: apx, n: L.reduce((a, e) => a + (+e.n || 0), 0) }; };
@@ -3224,9 +3238,9 @@ window.RokApp = () => {
           ${card(`🪓 Barbaren · ${fmt(pb.length)} Läufe`, AB.ap ? `${dec(AB.S.gems / AB.ap * 1000)} Gems` : '–', 'text-pink-300', AB.ap ? `pro 1.000 AP · ${dec(AB.S.leg / AB.ap * 1000, 3)} Leg. Mats · ${durText(AB.S.speed / AB.ap * 1000, true)} Speedups · ${fmt(AB.n)} Kills` : 'noch nichts geteilt')}
         </div>
         <button type="button" id="pubReload" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60">↻ Aktualisieren</button>
-        ${runTable(P.map(e => runRow(e, e.kind, { user: true, del: e.uid === me ? 'data-pubdel' : '', delId: e.pid })).join(''), true)}`;
+        ${runList(P.map(e => runCard(e, e.kind, { user: true, del: e.uid === me ? 'data-pubdel' : '', delId: e.pid })).join(''))}`;
     } else {
-      const C = (passive.marCmp = passive.marCmp || { m: {}, b: {} }), M = C.m, Bb = C.b, srcM = C.srcm || 'input', srcB = C.srcb || 'input';
+      const C = (passive.marCmp = passive.marCmp || { m: {}, b: {} }), M = C.m, Bb = C.b, srcM = C.srcm || 'input', srcB = C.srcb || 'input', mmode = C.mmode || 'both';
       const srcSel = (side, cur) => `<select data-cmpsrc="${side}" class="${inp} !py-1 text-xs">${Object.entries(CMP_SRC).map(([k, l]) => `<option value="${k}" ${cur === k ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
       const cf = (side, groups) => `<div class="grid sm:grid-cols-2 gap-2">${groups.map(g => `<div class="rounded-lg border border-ink-700 bg-ink-950/60 p-2">
             <div class="text-[10px] uppercase tracking-widest text-slate-400 mb-1">${ico(g, 'w-3.5 h-3.5')} ${g.title}</div>
@@ -3235,16 +3249,17 @@ window.RokApp = () => {
       body = `<div class="text-xs text-slate-400 mb-3">Links Marodeure, rechts Barbaren. Je Seite wählst du die Daten: selbst eintragen, dein Verlauf oder die öffentlichen Läufe aller Spieler. Bei den Marodeuren zählen Kill-Belohnung und Truhen zusammen.</div>
         <div class="grid lg:grid-cols-2 gap-4">
           <div class="rounded-xl border border-red-500/30 bg-red-500/5 p-3">
-            <div class="flex flex-wrap items-center justify-between gap-2 mb-2"><div class="font-display text-base text-gold-300">🐎 Marodeure</div>${srcSel('m', srcM)}</div>
-            ${srcM === 'input' ? `<label class="text-[11px] text-slate-400 flex items-center justify-between gap-2 mb-2">Kills<input data-cmp="m" data-k="n" type="text" inputmode="numeric" value="${+M.n ? fmt(M.n) : ''}" placeholder="z. B. 2.807" class="w-28 text-right ${inp}"></label>
-            <details open><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">⚔ Kill-Belohnungen</summary><div class="mt-2">${cf('m', KILL_GROUPS.map(g => ({ ...g, items: g.items.filter(it => !it.marOnly) })))}</div></details>
-            <details class="mt-2" open><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">📦 Marodeur-Truhen</summary><div class="mt-2">${cf('m', MAR_GROUPS.filter(g => g.k !== 'other'))}</div></details>` : info('m', srcM)}
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2"><div class="font-display text-base text-gold-300">🐎 Marodeure</div><div class="flex gap-1">${`<select data-cmpmode class="${inp} !py-1 text-xs">${Object.entries(MAR_MODE).map(([k, l]) => `<option value="${k}" ${mmode === k ? 'selected' : ''}>${l}</option>`).join('')}</select>`}${srcSel('m', srcM)}</div></div>
+            ${srcM === 'input' ? `<label class="text-[11px] text-slate-400 flex items-center justify-between gap-2 mb-2 h-9">Kills<input data-cmp="m" data-k="n" type="text" inputmode="numeric" value="${+M.n ? fmt(M.n) : ''}" placeholder="z. B. 2.807" class="w-28 text-right ${inp}"></label>
+            <label class="text-[11px] text-slate-400 flex items-center justify-between gap-2 mb-2 h-9 ${mmode === 'kills' ? 'opacity-40' : ''}">Marodeur-Truhen erhalten<input data-cmp="m" data-k="chests" type="text" inputmode="numeric" value="${+M.chests ? fmt(M.chests) : ''}" placeholder="0" class="w-28 text-right ${inp}" ${mmode === 'kills' ? 'disabled' : ''}></label>
+            ${mmode !== 'chests' ? `<details open><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">⚔ Kill-Belohnungen</summary><div class="mt-2">${cf('m', KILL_GROUPS.map(g => ({ ...g, items: g.items.filter(it => !it.marOnly) })))}</div></details>` : ''}
+            ${mmode !== 'kills' ? `<details class="mt-2" open><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">📦 Marodeur-Truhen</summary><div class="mt-2">${cf('m', MAR_GROUPS.filter(g => g.k !== 'other'))}</div></details>` : ''}` : info('m', srcM)}
           </div>
           <div class="rounded-xl border border-orange-500/30 bg-orange-500/5 p-3">
             <div class="flex flex-wrap items-center justify-between gap-2 mb-2"><div class="font-display text-base text-gold-300">🪓 Barbaren</div>${srcSel('b', srcB)}</div>
-            <label class="text-[11px] text-slate-400 flex items-center justify-between gap-2 mb-2">Chain (Barbaren pro Angriff, AP ÷ Chain)<input data-cmpchain type="text" inputmode="decimal" value="${dec(C.chain || apChain() || 1, 2)}" class="w-20 text-right ${inp}"></label>
-            ${srcB === 'input' ? `<label class="text-[11px] text-slate-400 flex items-center justify-between gap-2 mb-2">Kills<input data-cmp="b" data-k="n" type="text" inputmode="numeric" value="${+Bb.n ? fmt(Bb.n) : ''}" placeholder="z. B. 3.000" class="w-28 text-right ${inp}"></label>
-            <details open><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">⚔ Kill-Belohnungen</summary><div class="mt-2">${cf('b', BARB_GROUPS)}</div></details>` : info('b', srcB)}
+            ${srcB === 'input' ? `<label class="text-[11px] text-slate-400 flex items-center justify-between gap-2 mb-2 h-9">Kills<input data-cmp="b" data-k="n" type="text" inputmode="numeric" value="${+Bb.n ? fmt(Bb.n) : ''}" placeholder="z. B. 3.000" class="w-28 text-right ${inp}"></label>
+            <label class="text-[11px] text-slate-400 flex items-center justify-between gap-2 mb-2 h-9">Chain (Barbaren pro Angriff, AP ÷ Chain)<input data-cmpchain type="text" inputmode="decimal" value="${dec(C.chain || apChain() || 1, 2)}" class="w-28 text-right ${inp}"></label>
+            <details open><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">⚔ Kill-Belohnungen</summary><div class="mt-2">${cf('b', BARB_GROUPS)}</div></details>` : `<label class="text-[11px] text-slate-400 flex items-center justify-between gap-2 mb-2 h-9">Chain (Barbaren pro Angriff, AP ÷ Chain)<input data-cmpchain type="text" inputmode="decimal" value="${dec(C.chain || apChain() || 1, 2)}" class="w-28 text-right ${inp}"></label>${info('b', srcB)}`}
           </div>
         </div>
         <div id="cmpOut">${cmpOutHtml()}</div>
@@ -3267,6 +3282,8 @@ window.RokApp = () => {
     $('marAll')?.addEventListener('click', () => { st.ap = null; savePassive(); renderMar(); });
     el.querySelectorAll('[data-mardel]').forEach(b => b.onclick = async () => { if (!(await UI.confirm('Diesen Lauf löschen?'))) return; passive.marHist = marHist().filter(e => e.id !== b.dataset.mardel); savePassive(); renderMar(); renderHub(); });
     el.querySelectorAll('[data-barbdel]').forEach(b => b.onclick = async () => { if (!(await UI.confirm('Diesen Lauf löschen?'))) return; passive.barbHist = barbHist().filter(e => e.id !== b.dataset.barbdel); savePassive(); renderMar(); });
+    el.querySelectorAll('[data-rename]').forEach(b => b.onclick = async () => { const [kind, id] = b.dataset.rename.split('|'), e = (kind === 'marauder' ? marHist() : barbHist()).find(x => x.id === id); if (!e) return;
+      const nm = await UI.prompt('Name für diesen Lauf', e.name || ''); if (nm == null) return; e.name = nm.trim().slice(0, 40); if (!e.name) delete e.name; savePassive(); renderMar(); });
     el.querySelectorAll('[data-share]').forEach(b => b.onclick = async () => { const [kind, id] = b.dataset.share.split('|'), e = (kind === 'marauder' ? marHist() : barbHist()).find(x => x.id === id); if (!e) return;
       if (!(await UI.confirm('Diesen Lauf öffentlich teilen? Alle Spieler sehen dann deinen Namen und die Zahlen.'))) return; b.disabled = true; await sharePubRun(kind, e); });
     el.querySelectorAll('[data-pubdel]').forEach(b => b.onclick = async () => { if (!(await UI.confirm('Deinen geteilten Lauf wieder entfernen?'))) return;
@@ -3277,12 +3294,15 @@ window.RokApp = () => {
     // Vergleich
     const C = passive.marCmp;
     const refresh = () => { savePassive(); if ($('cmpOut')) $('cmpOut').innerHTML = cmpOutHtml(); };
+    el.querySelector('[data-cmpmode]')?.addEventListener('change', (ev) => { C.mmode = ev.target.value; savePassive(); renderMar(); });
     el.querySelectorAll('[data-cmpsrc]').forEach(s2 => s2.onchange = () => { C['src' + s2.dataset.cmpsrc] = s2.value; if (s2.value === 'pub' && !pubRuns) loadPubRuns(); savePassive(); renderMar(); });
     el.querySelector('[data-cmpchain]')?.addEventListener('input', (ev) => { const v = parseFloat(String(ev.target.value).replace(',', '.')); C.chain = v >= 1 ? v : 1; clearTimeout(ev.target._t); ev.target._t = setTimeout(refresh, 250); });
     el.querySelectorAll('[data-cmp]').forEach(i => i.addEventListener('input', () => { const o = C[i.dataset.cmp], v = evalAmt(i.value);
       if (v == null) delete o[i.dataset.k]; else if (isNaN(v)) { i.classList.add('border-red-500'); return; } else { i.classList.remove('border-red-500'); o[i.dataset.k] = Math.max(0, Math.round(v)); }
       clearTimeout(i._t); i._t = setTimeout(refresh, 250); }));
-    const cmpSave = (side, list) => { const o = C?.[side]; if (!o || !(+o.n > 0)) return UI.alert('Erst die Anzahl Kills eintragen.'); const e = { ...o, id: 'm' + Date.now().toString(36), date: isoDay(dayPlus(0)) };
+    const cmpSave = async (side, list) => { const o = C?.[side]; if (!o || !(+o.n > 0)) return UI.alert('Erst die Anzahl Kills eintragen.');
+      const nm = await UI.prompt('Name für diesen Lauf (optional)', ''); if (nm == null) return;
+      const e = { ...o, id: 'm' + Date.now().toString(36), date: isoDay(dayPlus(0)) }; if (nm.trim()) e.name = nm.trim().slice(0, 40);
       if (side === 'b') e.chain = Math.max(1, +C.chain || 1); e.ap = e.n * KILL_AP / (e.chain || 1); list.push(e); savePassive(); renderMar(); renderHub(); };
     $('cmpSaveM')?.addEventListener('click', () => cmpSave('m', marHist()));
     $('cmpSaveB')?.addEventListener('click', () => cmpSave('b', barbHist()));
