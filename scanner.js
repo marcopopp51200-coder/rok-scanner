@@ -3046,11 +3046,13 @@ window.RokApp = () => {
     return o;
   }
   function lootAvg(H, items, costKey) {
-    const ap = H.reduce((a, e) => a + (+e.n || 0) * KILL_AP / (+e.chain || 1), 0), n = H.reduce((a, e) => a + (+e.n || 0), 0);
+    const kind = costKey === 'maraud' ? 'marauder' : 'barb', ap = H.reduce((a, e) => a + runAp(e, kind), 0), n = H.reduce((a, e) => a + (+e.n || 0), 0);
     const cnt = Object.fromEntries(items.map(it => [it.k, H.reduce((a, e) => a + (+e[it.k] || 0), 0)])); cnt.gems = H.reduce((a, e) => a + (+e.gems || 0), 0);
     const chests = H.reduce((a, e) => a + (+e.chests || 0), 0);
     return { ap, n, cnt, chests, runs: H.length };
   }
+  const runAp = (e, kind) => kind === 'barb' ? (+e.ap > 0 ? +e.ap : (+e.n || 0) * KILL_AP / (+e.chain || 1)) : (+e.n || 0) * KILL_AP;
+  const runChain = (e) => +e.ap > 0 && +e.n > 0 ? (+e.n * KILL_AP) / +e.ap : (+e.chain || 1);
   const marAvg = () => lootAvg(marHist(), ALL_LOOT, 'maraud');
   const barbAvg = () => lootAvg(barbHist(), BARB_ITEMS, 'barbKvk');
   const dec = (v, d = 2) => (+v || 0).toLocaleString('de-DE', { maximumFractionDigits: d });
@@ -3082,8 +3084,10 @@ window.RokApp = () => {
     else if (src === 'pub') runs = (pubRuns || []).filter(r => r.kind === (side === 'm' ? 'marauder' : 'barb'));
     const c = runs ? Object.fromEntries(items.map(it => [it.k, runs.reduce((a, e) => a + (+e[it.k] || 0), 0)])) : Object.fromEntries(items.map(it => [it.k, +C[side][it.k] || 0]));
     const kills = runs ? runs.reduce((a, e) => a + (+e.n || 0), 0) : +C[side].n || 0;
-    const chain = side === 'b' ? Math.max(1, +C.chain || apChain() || 1) : 1;
-    return { src, c, kills, runs: runs ? runs.length : null, ap: kills * KILL_AP / chain, chain };
+    const kind = side === 'm' ? 'marauder' : 'barb';
+    const ap = runs ? runs.reduce((a, e) => a + runAp(e, kind), 0) : side === 'b' ? (+C.b.ap > 0 ? +C.b.ap : kills * KILL_AP) : kills * KILL_AP;
+    const chain = side === 'b' && ap > 0 ? kills * KILL_AP / ap : 1;
+    return { src, c, kills, runs: runs ? runs.length : null, ap, chain };
   }
   // Zeilen im Vergleich – nur was es bei beiden gibt (Kristalle, Schlüssel, Credits nur bei Marodeuren → weggelassen)
   const n0 = (c, k) => +c[k] || 0;
@@ -3122,7 +3126,7 @@ window.RokApp = () => {
     }).join('').replace(/<tr class="border-b border-ink-800 ">(<td class="py-1.5 px-2 text-slate-300 pl-4">Tome[^]*?)<\/tr>/, (m0) => m0);
     // Bücher zählen beim Ergebnis mit
     const tomeM = M.ap ? n0(M.c, 'k_tome3') / M.ap : 0, tomeB = B.ap ? n0(B.c, 'k_tome3') / B.ap : 0; if (M.ap && B.ap && (tomeM || tomeB)) { if (tomeM > tomeB) winM++; else if (tomeB > tomeM) winB++; }
-    const lab = (S, side) => `${fmt(S.kills)} Kills${side === 'b' && S.chain > 1 ? ` · Chain ×${dec(S.chain, 2)}` : ''} · ${fmt(S.ap)} AP${S.runs != null ? ` · ${fmt(S.runs)} Läufe` : ''}`;
+    const lab = (S, side) => `${fmt(S.kills)} Kills · ${fmt(S.ap)} AP${side === 'b' && S.kills ? ` · Ø Chain ×${dec(S.chain, 2)}` : ''}${S.runs != null ? ` · ${fmt(S.runs)} Läufe` : ''}`;
     return `<div class="mt-4 overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs min-w-[44rem]">
       <thead class="text-[10px] uppercase tracking-wider text-slate-400">
         <tr class="border-b border-ink-700"><th></th><th colspan="2" class="py-1.5 px-2 text-center font-medium border-r border-ink-700">Gesamt</th><th colspan="2" class="py-1.5 px-2 text-center font-medium border-r border-ink-700">pro 1.000 AP</th><th colspan="2" class="py-1.5 px-2 text-center font-medium border-r border-ink-700">pro 1 AP</th><th></th></tr>
@@ -3130,7 +3134,7 @@ window.RokApp = () => {
         <tr class="border-b border-ink-700 normal-case tracking-normal"><th></th>${['', '', ''].map(() => `<th class="py-1 px-2 text-right font-normal text-[10px] text-slate-500">${lab(M, 'm')}</th><th class="py-1 px-2 text-right font-normal text-[10px] text-slate-500 border-r border-ink-700">${lab(B, 'b')}</th>`).slice(0, 1).join('')}<th colspan="5"></th></tr></thead>
       <tbody>${M.kills || B.kills ? body : '<tr><td colspan="8" class="py-6 text-center text-slate-500">Oben Kills und Belohnungen eintragen oder eine Quelle wählen.</td></tr>'}</tbody></table></div>
       ${M.ap && B.ap ? `<div class="mt-2 text-sm text-slate-200">Ergebnis (Gesamt-Zeilen + Bücher): <b class="${winM >= winB ? 'text-emerald-300' : 'text-slate-200'}">Marodeure ${winM}×</b> besser · <b class="${winB > winM ? 'text-emerald-300' : 'text-slate-200'}">Barbaren ${winB}×</b> besser</div>` : ''}
-      <div class="mt-1 text-[11px] text-slate-500">Kristalle, Schlüssel und Credits gibt es nur bei Marodeuren – sie stehen deshalb nicht im Vergleich. Je Kill ${KILL_AP} AP, bei Barbaren geteilt durch die Chain.</div>`;
+      <div class="mt-1 text-[11px] text-slate-500">Kristalle, Schlüssel und Credits gibt es nur bei Marodeuren – sie stehen deshalb nicht im Vergleich. Marodeure: ${KILL_AP} AP pro Kill. Barbaren: deine eingetragenen AP (Ø Chain = Kills × ${KILL_AP} ÷ AP).</div>`;
   }
   function renderMar() {
     const el = $('marSection'); if (!el) return;
@@ -3158,18 +3162,19 @@ window.RokApp = () => {
       const get = (k) => el.querySelector(`[data-marf="${k}"]`)?.value ?? '', e = { id: 'm' + Date.now().toString(36), date: get('date') || isoDay(dayPlus(0)) };
       const nm = get('name').trim().slice(0, 40); if (nm) e.name = nm;
       let bad = false;
-      ['n', 'chests', 'chain', ...items.map(f => f.k)].forEach(k => { const v = evalAmt(get(k)); if (v == null) return; if (isNaN(v)) { bad = true; el.querySelector(`[data-marf="${k}"]`)?.classList.add('border-red-500'); return; } e[k] = k === 'chain' ? Math.max(1, v) : Math.max(0, Math.round(v)); });
+      ['n', 'chests', 'ap', ...items.map(f => f.k)].forEach(k => { const v = evalAmt(get(k)); if (v == null) return; if (isNaN(v)) { bad = true; el.querySelector(`[data-marf="${k}"]`)?.classList.add('border-red-500'); return; } e[k] = Math.max(0, Math.round(v)); });
       if (bad || !(e.n > 0)) { $(msgId).className = 'ml-2 text-xs text-red-400'; $(msgId).textContent = bad ? 'Bitte nur Zahlen (oder z. B. 12+7).' : 'Anzahl Kills eintragen.'; return; }
-      e.ap = e.n * KILL_AP / (e.chain || 1);
+      if (items === BARB_ITEMS && e.ap > 0) e.chain = Math.round(e.n * KILL_AP / e.ap * 100) / 100;   // Ø Chain aus Kills und AP
+      else e.ap = e.n * KILL_AP;
       list.push(e); savePassive(); after();
     };
     // Ein Lauf als komplettes Kästchen (Name, Datum, Kills, alle Werte)
-    const runCard = (e, kind, actions) => { const S = marSum(e), isM = kind === 'marauder', apx = (+e.n || 0) * KILL_AP / (+e.chain || 1);
+    const runCard = (e, kind, actions) => { const S = marSum(e), isM = kind === 'marauder', apx = runAp(e, kind), ch = isM ? 1 : runChain(e);
       const mini = (l, v, c, sub, icon) => `<div class="rounded-lg border border-ink-700 bg-ink-950/60 px-2.5 py-2 min-w-0"><div class="text-[9px] uppercase tracking-widest text-slate-400 truncate">${icon || ''} ${l}</div><div class="text-base font-bold tabular-nums ${c} truncate">${v}</div>${sub ? `<div class="text-[10px] text-slate-500 truncate">${sub}</div>` : ''}</div>`;
       return `<div class="rounded-xl border ${isM ? 'border-red-500/30 bg-red-500/5' : 'border-orange-500/30 bg-orange-500/5'} p-3">
         <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
           <div class="min-w-0"><div class="text-sm font-semibold text-white">${isM ? '🐎' : '🪓'} ${esc(e.name || (isM ? 'Marodeur-Lauf' : 'Barbaren-Lauf'))}${actions.rename ? ` <button type="button" data-rename="${kind}|${e.id}" class="text-slate-500 hover:text-gold-300 text-xs" title="Umbenennen">✎</button>` : ''}</div>
-            <div class="text-[11px] text-slate-400">${actions.user ? `<b class="text-slate-200">${esc(e.user)}</b> · ` : ''}${dLabel(e.date, true)} · ${fmt(e.n)} Kills${e.chests ? ` · ${fmt(e.chests)} Truhen` : ''}${e.chain > 1 ? ` · Chain ×${dec(e.chain, 2)}` : ''} · ${fmt(apx)} AP</div></div>
+            <div class="text-[11px] text-slate-400">${actions.user ? `<b class="text-slate-200">${esc(e.user)}</b> · ` : ''}${dLabel(e.date, true)} · ${fmt(e.n)} Kills${e.chests ? ` · ${fmt(e.chests)} Truhen` : ''}${!isM ? ` · Ø Chain ×${dec(ch, 2)}` : ''} · ${fmt(apx)} AP</div></div>
           <div class="flex items-center gap-1">${actions.share ? (e.shared ? '<span class="text-[10px] text-emerald-400 px-1">🌐 geteilt</span>' : `<button type="button" data-share="${kind}|${e.id}" class="text-[11px] px-2 py-0.5 rounded border border-ink-600 hover:border-gold-500/60">🌐 Teilen</button>`) : ''}
             ${actions.del ? `<button type="button" ${actions.del}="${actions.delId || e.id}" class="text-slate-500 hover:text-red-400 px-1.5" title="Löschen">✕</button>` : ''}</div></div>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
@@ -3208,13 +3213,13 @@ window.RokApp = () => {
       body = `<div class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700 mb-3 max-w-xs">${[['marauder', '🐎 Marodeure'], ['barb', '🪓 Barbaren']].map(([k, l]) => `<button type="button" data-histkind="${k}" aria-pressed="${kind === k}" class="seg-btn rounded-lg py-1 text-xs font-semibold transition">${l}</button>`).join('')}</div>
         <div class="rounded-xl border border-ink-700 bg-ink-950/40 p-4">
           <div class="text-sm font-semibold text-white mb-1">${isM ? '🐎 Marodeur-Lauf speichern' : '🪓 Barbaren-Lauf speichern'}</div>
-          <div class="text-[11px] text-slate-500 mb-3">„Amount“ aus rokbattles eintragen. Rechnen geht direkt im Feld, z. B. „12+7“. Je Kill ${KILL_AP} AP${isM ? '' : ', geteilt durch die Chain'}.</div>
+          <div class="text-[11px] text-slate-500 mb-3">„Amount“ aus rokbattles eintragen. Rechnen geht direkt im Feld, z. B. „12+7“. ${isM ? `Je Kill ${KILL_AP} AP.` : `Kills und verbrauchte AP eintragen – daraus rechnet er deine Ø Chain (Kills × ${KILL_AP} ÷ AP).`}</div>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
             <label class="text-[11px] text-slate-400">Name<input data-marf="name" type="text" maxlength="40" placeholder="${isM ? 'z. B. KvK Woche 3' : 'z. B. Barbs Lv. 30'}" class="mt-1 w-full ${inp}"></label>
             <label class="text-[11px] text-slate-400">Datum<input data-marf="date" type="date" value="${isoDay(dayPlus(0))}" class="mt-1 w-full ${inp}"></label>
             <label class="text-[11px] text-slate-400">${isM ? 'Marodeure' : 'Barbaren'} gekillt<input data-marf="n" type="text" inputmode="numeric" placeholder="z. B. 2.807" class="mt-1 w-full text-right ${inp}"></label>
             ${isM ? `<label class="text-[11px] text-slate-400">Marodeur-Truhen erhalten<input data-marf="chests" type="text" inputmode="numeric" placeholder="0" class="mt-1 w-full text-right ${inp}"></label>`
-              : `<label class="text-[11px] text-slate-400">Chain (Barbaren pro Angriff)<input data-marf="chain" type="text" inputmode="decimal" value="${dec(apChain() || 1, 2)}" class="mt-1 w-full text-right ${inp}"></label>`}
+              : `<label class="text-[11px] text-slate-400">AP verbraucht <span class="text-slate-500">(→ Ø Chain)</span><input data-marf="ap" type="text" inputmode="numeric" placeholder="leer = Kills × ${KILL_AP}" class="mt-1 w-full text-right ${inp}"></label>`}
           </div>
           <details open class="mb-3"><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">⚔ Kill-Belohnungen</summary><div class="mt-2">${formGroups(isM ? KILL_GROUPS : BARB_GROUPS, '')}</div></details>
           ${isM ? `<details><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">📦 Inhalt der Marodeur-Truhen</summary><div class="mt-2">${formGroups(MAR_GROUPS, '')}</div>
@@ -3228,7 +3233,7 @@ window.RokApp = () => {
         ${runList((isM ? marHist() : barbHist()).slice().sort((x, y) => (y.date || '').localeCompare(x.date || '') || String(y.id).localeCompare(String(x.id))).map(e => runCard(e, kind, { share: true, rename: true, del: isM ? 'data-mardel' : 'data-barbdel' })).join(''))}`;
     } else if (marTab === 'pub') {
       const me = RokAuth.myId?.(), P = pubRuns || [], pm = P.filter(r => r.kind === 'marauder'), pb = P.filter(r => r.kind === 'barb');
-      const avg = (L) => { const S = marSum(Object.fromEntries(ALL_LOOT.map(it => [it.k, L.reduce((a, e) => a + (+e[it.k] || 0), 0)]))), apx = L.reduce((a, e) => a + (+e.n || 0) * KILL_AP / (+e.chain || 1), 0); return { S, ap: apx, n: L.reduce((a, e) => a + (+e.n || 0), 0) }; };
+      const avg = (L) => { const S = marSum(Object.fromEntries(ALL_LOOT.map(it => [it.k, L.reduce((a, e) => a + (+e[it.k] || 0), 0)]))), apx = L.reduce((a, e) => a + runAp(e, e.kind), 0); return { S, ap: apx, n: L.reduce((a, e) => a + (+e.n || 0), 0) }; };
       const AM = avg(pm), AB = avg(pb);
       body = `<div class="text-xs text-slate-400 mb-3">Läufe, die Spieler freigegeben haben. Eigene Läufe teilst du unter <b>Mein Verlauf</b> mit „🌐 Teilen“.</div>
         ${pubErr === 'missing' ? `<div class="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-200 mb-3">Die Tabelle „loot_runs“ fehlt noch in Supabase – bitte das SQL aus dem Chat ausführen.</div>` : pubErr ? `<div class="text-xs text-red-400 mb-3">${esc(pubErr)}</div>` : ''}
@@ -3258,8 +3263,8 @@ window.RokApp = () => {
           <div class="rounded-xl border border-orange-500/30 bg-orange-500/5 p-3">
             <div class="flex flex-wrap items-center justify-between gap-2 mb-2"><div class="font-display text-base text-gold-300">🪓 Barbaren</div>${srcSel('b', srcB)}</div>
             ${srcB === 'input' ? `<label class="text-[11px] text-slate-400 flex items-center justify-between gap-2 mb-2 h-9">Kills<input data-cmp="b" data-k="n" type="text" inputmode="numeric" value="${+Bb.n ? fmt(Bb.n) : ''}" placeholder="z. B. 3.000" class="w-28 text-right ${inp}"></label>
-            <label class="text-[11px] text-slate-400 flex items-center justify-between gap-2 mb-2 h-9">Chain (Barbaren pro Angriff, AP ÷ Chain)<input data-cmpchain type="text" inputmode="decimal" value="${dec(C.chain || apChain() || 1, 2)}" class="w-28 text-right ${inp}"></label>
-            <details open><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">⚔ Kill-Belohnungen</summary><div class="mt-2">${cf('b', BARB_GROUPS)}</div></details>` : `<label class="text-[11px] text-slate-400 flex items-center justify-between gap-2 mb-2 h-9">Chain (Barbaren pro Angriff, AP ÷ Chain)<input data-cmpchain type="text" inputmode="decimal" value="${dec(C.chain || apChain() || 1, 2)}" class="w-28 text-right ${inp}"></label>${info('b', srcB)}`}
+            <label class="text-[11px] text-slate-400 flex items-center justify-between gap-2 mb-2 h-9"><span>AP verbraucht <span id="cmpChainB" class="text-slate-500">${+Bb.n && +Bb.ap ? `→ Ø Chain ×${dec(Bb.n * KILL_AP / Bb.ap, 2)}` : '(→ Ø Chain)'}</span></span><input data-cmp="b" data-k="ap" type="text" inputmode="numeric" value="${+Bb.ap ? fmt(Bb.ap) : ''}" placeholder="leer = Kills × ${KILL_AP}" class="w-28 text-right ${inp}"></label>
+            <details open><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">⚔ Kill-Belohnungen</summary><div class="mt-2">${cf('b', BARB_GROUPS)}</div></details>` : info('b', srcB)}
           </div>
         </div>
         <div id="cmpOut">${cmpOutHtml()}</div>
@@ -3296,14 +3301,14 @@ window.RokApp = () => {
     const refresh = () => { savePassive(); if ($('cmpOut')) $('cmpOut').innerHTML = cmpOutHtml(); };
     el.querySelector('[data-cmpmode]')?.addEventListener('change', (ev) => { C.mmode = ev.target.value; savePassive(); renderMar(); });
     el.querySelectorAll('[data-cmpsrc]').forEach(s2 => s2.onchange = () => { C['src' + s2.dataset.cmpsrc] = s2.value; if (s2.value === 'pub' && !pubRuns) loadPubRuns(); savePassive(); renderMar(); });
-    el.querySelector('[data-cmpchain]')?.addEventListener('input', (ev) => { const v = parseFloat(String(ev.target.value).replace(',', '.')); C.chain = v >= 1 ? v : 1; clearTimeout(ev.target._t); ev.target._t = setTimeout(refresh, 250); });
+    const chainInfo = () => { const x = $('cmpChainB'); if (x) x.textContent = +C.b.n && +C.b.ap ? `→ Ø Chain ×${dec(C.b.n * KILL_AP / C.b.ap, 2)}` : '(→ Ø Chain)'; };
     el.querySelectorAll('[data-cmp]').forEach(i => i.addEventListener('input', () => { const o = C[i.dataset.cmp], v = evalAmt(i.value);
       if (v == null) delete o[i.dataset.k]; else if (isNaN(v)) { i.classList.add('border-red-500'); return; } else { i.classList.remove('border-red-500'); o[i.dataset.k] = Math.max(0, Math.round(v)); }
-      clearTimeout(i._t); i._t = setTimeout(refresh, 250); }));
+      clearTimeout(i._t); i._t = setTimeout(() => { refresh(); chainInfo(); }, 250); }));
     const cmpSave = async (side, list) => { const o = C?.[side]; if (!o || !(+o.n > 0)) return UI.alert('Erst die Anzahl Kills eintragen.');
       const nm = await UI.prompt('Name für diesen Lauf (optional)', ''); if (nm == null) return;
       const e = { ...o, id: 'm' + Date.now().toString(36), date: isoDay(dayPlus(0)) }; if (nm.trim()) e.name = nm.trim().slice(0, 40);
-      if (side === 'b') e.chain = Math.max(1, +C.chain || 1); e.ap = e.n * KILL_AP / (e.chain || 1); list.push(e); savePassive(); renderMar(); renderHub(); };
+      if (side === 'b') { e.ap = +o.ap > 0 ? +o.ap : e.n * KILL_AP; e.chain = Math.round(e.n * KILL_AP / e.ap * 100) / 100; } else e.ap = e.n * KILL_AP; list.push(e); savePassive(); renderMar(); renderHub(); };
     $('cmpSaveM')?.addEventListener('click', () => cmpSave('m', marHist()));
     $('cmpSaveB')?.addEventListener('click', () => cmpSave('b', barbHist()));
     $('cmpClear')?.addEventListener('click', async () => { if (!(await UI.confirm('Alle Felder im Vergleich leeren?'))) return; C.m = {}; C.b = {}; savePassive(); renderMar(); });
