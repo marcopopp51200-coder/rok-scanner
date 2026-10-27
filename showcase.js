@@ -2773,6 +2773,21 @@ window.RokMods.showcase = (R) => {
     sc.gsel = null; drawShowcase(); scSave(`✓ Übernommen aus „${srcName}“`);
   }
   R.$('scGearTools').addEventListener('change', (ev) => { if (ev.target.id === 'scCopyFrom' && ev.target.value) scCopyFrom(ev.target.value); });
+  // ---- Verbindung zum Crafting-Planer: Sets aller eigenen Showcases lesen und Ausrüstung hineinschreiben ----
+  const scOwnDoc = () => (sc.own && sc.doc) ? sc.doc : ownShowcase();
+  R.scGearSets = () => scOwnDoc().list.flatMap(s => s.sets.map((x, i) => ({ scId: s.id, scTitle: s.title, setId: x.id,
+    setName: x.kind ? SC_KIND[x.kind] : (x.name || 'Set ' + (i + 1)), gear: JSON.parse(JSON.stringify(x.gear)) })));
+  R.scPutGear = async (scId, setId, slots, label) => {
+    const live = !!(sc.own && sc.doc), doc = scOwnDoc();
+    const x = doc.list.find(s => s.id === scId)?.sets.find(y => y.id === setId); if (!x) return false;
+    R.GEAR_SLOTS.forEach(sl => { const v = { item: '', rarity: 'legendary', tier: 0, refine: 0, refType: 'infantry', ...(slots[sl.k] || {}) };
+      const it = R.gItem(v.item); scSnap(v, it); x.gear[sl.k] = scGearNorm({ [sl.k]: v })[sl.k]; });
+    const msg = `✓ Ausrüstung aus dem Planer übernommen${label ? ` („${label}“)` : ''}`;
+    if (live) { if (R.view === 'profile') drawShowcase(); await scSave(msg, true); return true; }
+    doc.updated = Date.now(); R.LS.set(SC_KEY, JSON.stringify(doc));           // Showcase gerade nicht offen → im Account speichern …
+    try { await RokAuth.saveShowcase(scPublicDoc(doc)); } catch {}              // … und die öffentliche Fassung aktualisieren
+    return true;
+  };
   async function scFromCraft() {
     const s = R.activeSet();
     if (R.GEAR_SLOTS.some(sl => scItem(scSet().gear[sl.k])) && !(await UI.confirm(`Showcase-Ausrüstung mit der Ist-Ausrüstung aus „${s.name}“ überschreiben?`))) return;

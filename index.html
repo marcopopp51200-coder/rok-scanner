@@ -999,11 +999,12 @@ tailwind.config = {
         <button type="submit" class="px-4 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold">Übernehmen</button>
         <button type="button" id="gearNameCancel" class="px-4 py-2.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">Abbrechen</button>
       </form>
+      <div id="gearScLink" class="mt-3 flex flex-wrap items-center gap-2 text-xs"></div>
       <div id="gearMsg" class="hidden mt-3 text-xs"></div>
     </section>
 
-    <!-- Split-Screen: Ist | Ziel – Slots in der Rauten-Anordnung wie im Spiel -->
-    <div class="grid lg:grid-cols-2 gap-6">
+    <!-- Drei Spalten: Ist | benötigte Materialien | Ziel – Slots in der Rauten-Anordnung wie im Spiel -->
+    <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(230px,280px)_minmax(0,1fr)] items-start">
       <section id="gearIstPanel" class="panel rounded-2xl p-5 transition">
         <div class="flex flex-wrap items-start justify-between gap-2">
           <div>
@@ -1018,6 +1019,8 @@ tailwind.config = {
         <div id="gearIstEdit" class="mt-4"></div>
         <p class="mt-2 text-[11px] text-slate-500 text-center">Screenshot auch per Drag &amp; Drop auf dieses Feld · max. 2 Bilder · werden nach dem Auslesen verworfen</p>
       </section>
+      <!-- Mitte: nur die Materialien, die für das Ziel gebraucht werden -->
+      <section id="gearMid" class="panel rounded-2xl p-4 lg:sticky lg:top-4 ring-1 ring-gold-500/30"></section>
       <section class="panel rounded-2xl p-5">
         <div class="flex flex-wrap items-start justify-between gap-2">
           <div>
