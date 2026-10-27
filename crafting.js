@@ -35,10 +35,11 @@ window.RokMods.crafting = (R) => {
   const gFromDb = (r) => gNormItem({ id: r.id, name: r.name, cat: r.slot, set: r.set_name || '', rarity: r.rarity,
     leather: r.cost_leather, iron: r.cost_iron, ebony: r.cost_ebony, bone: r.cost_bone, icon: R.gearIconFor(r.icon, r.name, r.rarity), tiers: r.tier_costs, db: true });
 
-  // ---- Ausrüstungsdaten (Codex Helper): Werte, Craft-, Refine- und Awaken-Kosten aller Items ----
-  // Datei /rok-equipment.json im Repo. Mengen gelten in der Qualität des Items (legendäres Item = legendäre Materialien).
+  // ---- Eigene Ausrüstungsdaten: Craft-, Refine- und Awaken-Kosten je Item ----
+  // Datei /gear-data.json im Repo (selbst gepflegt). Mengen gelten in der Qualität des Items (legendäres Item = legendäre Materialien).
+  // Fehlt eine Stufe in der Datei, wird sie als „Kosten fehlen“ markiert und nicht mitgerechnet.
   // Zuordnung zum Katalog über den Bildnamen (icons/gear/<id>.webp) oder den Namen.
-  const EQ_URL = '/rok-equipment.json';
+  const EQ_URL = '/gear-data.json';
   const EQ_QM = { common: 1, advanced: 4, elite: 16, epic: 64, legendary: 256 };          // Wert in normalen Materialien
   const EQ_SLOT = { helmet: 'helm', helm: 'helm', chest: 'chest', weapon: 'weapon', gloves: 'gloves', legs: 'legs', boots: 'boots', accessory: 'accessory' };
   const EQ_RAR = { legendary: 'legendary', epic: 'epic', elite: 'elite', advanced: 'normal', common: 'normal' };
@@ -57,16 +58,38 @@ window.RokMods.crafting = (R) => {
       EQ.sets = Array.isArray(d.sets) ? d.sets : [];
       EQ.map = new Map(); EQ.list.forEach(i => { EQ.map.set(eqKey(i.id), i); EQ.map.set(eqKey(i.name), i); });
       EQ.setOf = new Map(); EQ.sets.forEach(s => (s.pieces || []).forEach(p => EQ.setOf.set(p, s)));
+      EQ.byId = new Map(EQ.list.map(i => [i.id, i]));
       EQ.state = 'ok';
-    } catch (e) { console.warn('rok-equipment.json nicht geladen', e); EQ.state = 'error'; }
+      await loadCostDb();
+    } catch (e) { console.warn('gear-data.json nicht geladen', e); EQ.state = 'error'; }
     rebuildGearCat(); renderGear();
   }
+  // Kosten aus der Eingabemaske: Supabase-Tabelle public.gear_costs (item_id, costs) – überschreibt gear-data.json je Item
+  const COST_FIELDS = ['leather', 'iron', 'ebony', 'bone', 'gold', 'blueprint', 'iconic_crystal'];
+  function cleanCosts(c) {
+    const out = {};
+    EQ_STAGES.forEach(st => { const s = c?.[st]; if (!s || typeof s !== 'object') return;
+      const o = {}; COST_FIELDS.forEach(f => { const n = Math.round(+s[f]); if (Number.isFinite(n) && n > 0) o[f] = n; });
+      if (Object.keys(o).length || s._set) out[st] = o; });
+    return out;
+  }
+  EQ.dbCosts = new Set(); EQ.dbErr = '';
+  async function loadCostDb() {
+    try {
+      const r = await RokAuth.db()?.from('gear_costs').select('item_id,costs');
+      if (!r || r.error) { EQ.dbErr = r?.error ? (R.tableMissing(r.error) ? 'missing' : r.error.message) : ''; return; }
+      EQ.dbErr = '';
+      (r.data || []).forEach(row => { const e = EQ.byId.get(String(row.item_id)); if (e) { e.costs = cleanCosts(row.costs); EQ.dbCosts.add(e.id); } });
+    } catch (e) { EQ.dbErr = e.message || String(e); }
+  }
+  let gAdmin = false;
+  try { RokAuth.isAdmin?.().then(ok => { gAdmin = !!ok; if (R.view === 'craft') renderGearCat(); }).catch(() => {}); } catch {}
   const eqFind = (it) => EQ.map.get(eqKey(R.gearIconStem(it.icon))) || EQ.map.get(eqKey(it.name)) || null;
-  // Katalog-Item mit Codex-Daten anreichern (Kosten, Seltenheit, Set)
+  // Katalog-Item mit den eigenen Daten anreichern (Kosten, Seltenheit, Set)
   function eqApply(it, e) {
     it.eq = e; it.qm = EQ_QM[e.quality] || 256; it.rarity = EQ_RAR[e.quality] || it.rarity; it.cat = EQ_SLOT[e.slot] || it.cat;
-    const c = e.costs?.craft || {};
-    it.leather = gNum(c.leather); it.iron = gNum(c.iron); it.ebony = gNum(c.ebony); it.bone = gNum(c.bone);
+    const c = e.costs?.craft;                                  // nur überschreiben, wenn in der Datei Craft-Kosten stehen
+    if (c) { it.leather = gNum(c.leather); it.iron = gNum(c.iron); it.ebony = gNum(c.ebony); it.bone = gNum(c.bone); }
     const s = EQ.setOf.get(e.id); if (s) it.set = s.name;
     return it;
   }
@@ -83,7 +106,7 @@ window.RokMods.crafting = (R) => {
     R.gearCat = [...gearDb, ...gearCustom.map(i => ({ ...i, db: false }))];
     const have = new Set(R.gearCat.map(i => R.gearIconStem(i.icon)).filter(Boolean));   // Bilder ohne Katalog-Eintrag als eigene Items (ohne Kosten)
     R.GEAR_FILES.filter(f => !have.has(f)).forEach(f => R.gearCat.push({ ...gNormItem({ id: 'lib_' + f, name: R.gearFileName(f), cat: R.GEAR_FILE_CAT[f], rarity: R.gearFileRar(f), icon: `/icons/gear/${f}.webp` }), lib: true }));
-    // Codex-Daten zuordnen; Items ohne Bild trotzdem wählbar machen
+    // eigene Daten zuordnen; Items ohne Bild trotzdem wählbar machen
     if (EQ.state === 'ok') {
       const used = new Set();
       R.gearCat.forEach(it => { if (it.db === false && !it.lib) return; const e = eqFind(it); if (e) { eqApply(it, e); used.add(e.id); if (it.lib) it.name = e.name; } });
@@ -194,22 +217,23 @@ window.RokMods.crafting = (R) => {
   function stageCost(it, stage, rarity) {
     if (!it) return null;
     const c = gZero();
-    if (it.eq) {
-      const s = it.eq.costs?.[stage]; if (!s) return null;
+    const s = it.eq?.costs?.[stage];
+    if (s) {
       R.MATS.forEach(m => c[m.k] = (s[m.k] || 0) * it.qm / 256);
       c.gold = s.gold || 0; c.bp = s.blueprint || 0; c.crystal = s.iconic_crystal || 0;
       return c;
     }
     const d = (rarity || it.rarity) === 'epic' ? 4 : 1;     // alte Katalog-Items: legendäre Mengen, episch = ¼
-    if (stage === 'craft') { R.MATS.forEach(m => c[m.k] = (it[m.k] || 0) / d); return c; }
+    if (stage === 'craft') { if (!R.MATS.some(m => it[m.k] > 0)) return null; R.MATS.forEach(m => c[m.k] = (it[m.k] || 0) / d); return c; }   // keine Mengen = unbekannt
     const t = /^awaken_(\d)$/.exec(stage); const tc = t ? it.tiers?.[+t[1]] : null;
     if (tc) { R.MATS.forEach(m => c[m.k] = (tc[m.k] || 0) / d); return c; }
     return null;
   }
   R.stageCost = stageCost;
-  // höchste Iconic-Stufe des Items (Codex: welche Awaken-Stufen es gibt; sonst legendär = 5)
-  const maxTier = (it) => !it ? 0 : it.eq ? EQ_STAGES.slice(2).filter(s => it.eq.costs?.[s]).length : it.rarity === 'legendary' ? 5 : 0;
-  const canRefine = (it) => !!it && (!it.eq || !!it.eq.costs?.refine);
+  // höchste Iconic-Stufe: stehen Awaken-Stufen in gear-data.json, zählen die; sonst legendär = 5 (Kosten fehlen dann)
+  const eqTiers = (it) => it?.eq ? EQ_STAGES.slice(2).filter(s => it.eq.costs?.[s]).length : 0;
+  const maxTier = (it) => !it ? 0 : eqTiers(it) || (it.rarity === 'legendary' ? 5 : 0);
+  const canRefine = (it) => !!it;
   R.gearMaxTier = maxTier;
   const TROOP_REF = { infantry: 'infantry', cavalry: 'cavalry', archer: 'archer' };
   // Slot auf Maximum: gleiches Item, höchste Tier-Stufe, voll refined
@@ -227,7 +251,7 @@ window.RokMods.crafting = (R) => {
     const ziel = zielOverride || set.ziel;
     const key = (v) => gItem(v.item) ? v.item + '|' + (gItem(v.item).eq ? '' : v.rarity) : '';
     const rows = GEAR_SLOTS.map(sl => ({ sl, a: set.ist[sl.k], z: ziel[sl.k], status: 'none', from: null, cost: null, back: null, used: false,
-      tierFrom: 0, tierTo: 0, tierMissing: [], needRefine: false, refMissing: false, parts: [] }));
+      tierFrom: 0, tierTo: 0, tierMissing: [], needRefine: false, refMissing: false, craftMissing: false, parts: [] }));
     // 1) gleiches Item im gleichen Slot wird behalten
     rows.forEach(r => { if (key(r.z) && key(r.z) === key(r.a)) { r.from = r.a; r.used = true; r.status = 'keep'; } });
     // 2) Accessoires dürfen die Plätze tauschen
@@ -239,7 +263,7 @@ window.RokMods.crafting = (R) => {
       if (!key(r.z)) return;
       const it = gItem(r.z.item), cost = gZero();
       const part = (label, c) => { if (c && gAny(c)) { r.parts.push([label, c]); gAdd(cost, c); } };
-      if (r.status === 'none') { r.status = 'craft'; part('Craften', stageCost(it, 'craft', r.z.rarity)); }
+      if (r.status === 'none') { r.status = 'craft'; const c = stageCost(it, 'craft', r.z.rarity); if (c) part('Craften', c); else r.craftMissing = true; }
       r.tierFrom = r.from ? (r.from.tier || 0) : 0; r.tierTo = r.z.tier || 0;
       for (let t = r.tierFrom + 1; t <= r.tierTo; t++) { const c = stageCost(it, 'awaken_' + t, r.z.rarity); if (c) part('Tier ' + ROMAN[t - 1], c); else r.tierMissing.push(t); }
       r.refFrom = r.from && (r.from.refType || 'infantry') === (r.z.refType || 'infantry') ? (r.from.refine || 0) : 0; r.refTo = r.z.refine || 0; r.needRefine = r.refTo > r.refFrom;
@@ -343,7 +367,7 @@ window.RokMods.crafting = (R) => {
     const sl = GEAR_SLOTS.find(s => s.k === gearSel[side]) || GEAR_SLOTS[0], v = set[side][sl.k], it = gItem(v.item);
     const r = calc.rows.find(x => x.sl.k === sl.k);
     const note = side === 'ist' ? (gearFlags[sl.k] ? ['⚠ ' + gearFlags[sl.k], 'amber'] : r.back ? ['♻ wird zerlegt: + ' + gCostText(r.back), 'sky'] : null)
-      : r.status === 'craft' ? ['⚒ craften: ' + gCostText(r.cost) + (gTierTxt(r) ? ' · inkl. ' + gTierTxt(r) : '') + (r.needRefine ? ' · + ' + gRefStep(r) : ''), 'gold']
+      : r.status === 'craft' ? ['⚒ craften: ' + (r.craftMissing ? 'Kosten fehlen' : gCostText(r.cost)) + (gTierTxt(r) ? ' · inkl. ' + gTierTxt(r) : '') + (r.needRefine ? ' · + ' + gRefStep(r) : ''), 'gold']
       : r.status === 'tierup' ? ['⬆ ' + gTierTxt(r) + (r.cost ? ': ' + gCostText(r.cost) : '') + (r.needRefine ? ' · + ' + gRefStep(r) : ''), 'sky']
       : r.status === 'refine' ? ['⚔ ' + gRefStep(r), 'red'] : GSTATUS[r.status] || null;
     const sel = 'min-w-0 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500 disabled:opacity-40';
@@ -368,6 +392,9 @@ window.RokMods.crafting = (R) => {
         ${Object.entries(REFTYPES).map(([k, t]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refset" data-v="${k}" ${it ? '' : 'disabled'} title="${t.label}" class="${rb(hasRef && v.refType === k)}">
           <img src="${t.img}" alt="" class="w-5 h-5 ${hasRef && v.refType === k ? '' : 'grayscale opacity-70'}"><span class="hidden sm:inline">${t.label}</span></button>`).join('')}
       </div>
+      ${it?.eq && (side === 'ziel' || side === 'ist') ? `<div class="mt-2 text-[11px] ${Object.keys(it.eq.costs || {}).length < 7 && maxTier(it) ? 'text-amber-300' : 'text-slate-500'}">
+        ${(() => { const n = CE_ROWS.filter(([st]) => it.eq.costs?.[st]).length, need = it.rarity === 'legendary' || n > 2 ? 7 : 2; return n >= need ? '✓ Kosten eingetragen' : `⚠ Kosten: ${n} von ${need} Stufen eingetragen`; })()}
+        <button type="button" data-cedit-slot="${R.esc(it.eq.id)}" class="ml-1 underline hover:text-gold-300">${gAdmin ? 'eintragen/ändern' : 'ansehen'}</button></div>` : ''}
       ${gearPickerHtml(side, sl, v)}
       ${note ? `<div class="mt-2 inline-block max-w-full text-[11px] px-2 py-0.5 rounded-full border ${GBADGE[note[1]]}">${R.esc(note[0])}</div>` : ''}
     </div>`;
@@ -393,14 +420,15 @@ window.RokMods.crafting = (R) => {
     const maxCalc = gearCalc(set, gMaxSlots(set)), maxLeg = gMatSum(maxCalc.need);
     const zielIsMax = Math.abs(maxLeg - totalLeg) < 0.01 && Math.abs(maxCalc.need.gold - calc.need.gold) < 1;
     const steps = { tiers: calc.rows.reduce((a, r) => a + Math.max(0, r.tierTo - r.tierFrom), 0), refines: calc.rows.filter(r => r.needRefine).length };
-    const unknown = calc.rows.filter(r => r.tierMissing.length || r.refMissing).map(r => `${r.sl.label}${r.tierMissing.length ? ' ' + r.tierMissing.map(t => 'T' + t).join('/') : ''}${r.refMissing ? ' Refine' : ''}`);
+    const unknown = calc.rows.filter(r => r.craftMissing || r.tierMissing.length || r.refMissing).map(r => `${r.sl.label}${r.craftMissing ? ' Craften' : ''}${r.tierMissing.length ? ' ' + r.tierMissing.map(t => 'T' + t).join('/') : ''}${r.refMissing ? ' Refine' : ''}`);
     const xStock = { gold: gearOpt.gold, crystal: gearOpt.crystal, bp: null };
     const xTile = (x) => { const n = calc.need[x.k] || 0, have = xStock[x.k], miss = have == null ? null : Math.max(0, n - have);
       return `<div class="rounded-xl border border-ink-700 bg-ink-950/40 px-3 py-2">
         <div class="text-[11px] text-slate-400">${x.icon} ${x.label}</div>
         <div class="text-lg font-extrabold tabular-nums ${n > 0 ? 'text-white' : 'text-slate-500'}">${x.f(n)}</div>
         ${n > 0 && have != null && have > 0 ? `<div class="text-[11px] ${miss > 0 ? 'text-red-300' : 'text-emerald-300'}">${miss > 0 ? 'fehlt ' + x.f(miss) : '✓ genug (' + x.f(have) + ')'}</div>` : ''}</div>`; };
-    const verdict = !gAny(calc.need) ? ['✓ Keine Zusatzkosten – das Ziel-Set entspricht der Ist-Ausrüstung oder ist leer.', 'text-emerald-300']
+    const verdict = !gAny(calc.need) && unknown.length ? ['⚠ Für dieses Ziel sind noch keine Kosten eingetragen (gear-data.json).', 'text-amber-300']
+      : !gAny(calc.need) ? ['✓ Keine Zusatzkosten – das Ziel-Set entspricht der Ist-Ausrüstung oder ist leer.', 'text-emerald-300']
       : !st.mats ? ['⚠ Bestand unbekannt – bitte zuerst deine Materialien scannen.', 'text-amber-300']
       : missing ? [`🔴 ${missing} von 4 Materialien reichen noch nicht.`, 'text-red-300'] : ['🟢 Alles vorhanden – das Set kann geschmiedet werden.', 'text-emerald-300'];
     const mcard = (l, rows, status, tone) => `<div class="panel rounded-2xl p-4 ${tone === 'red' ? 'ring-1 ring-red-500/50' : tone === 'green' ? 'ring-1 ring-emerald-500/40' : ''}">
@@ -468,7 +496,8 @@ window.RokMods.crafting = (R) => {
     R.$('gearCatInfo').innerHTML = (R.gearDbState === 'loading' ? 'Lade Katalog aus Supabase …'
       : R.gearDbState === 'error' ? `<span class="text-amber-300">⚠ Katalog aus Supabase nicht geladen (${R.esc(gearDbErr)})${n ? ` – es wird die gespeicherte Kopie mit ${n} Items genutzt.` : '.'}</span>`
       : `☁ ${n} Items aus Supabase (Tabelle <code>gear_items</code>) · ${gearCustom.length} eigene Items`)
-      + (EQ.state === 'ok' ? ` · 📘 ${EQ.list.length} Items mit Craft-, Refine- und Tier-Kosten (Daten: codexhelper.com)` : EQ.state === 'error' ? ' · <span class="text-amber-300">⚠ rok-equipment.json nicht geladen</span>' : '');
+      + (EQ.state === 'ok' ? ` · 📘 Kosten eingetragen bei <b class="text-gold-300">${EQ.list.filter(e => e.costs && Object.keys(e.costs).length).length} von ${EQ.list.length}</b> Items` : EQ.state === 'error' ? ' · <span class="text-amber-300">⚠ gear-data.json nicht geladen</span>' : '')
+      + (gAdmin && EQ.dbErr === 'missing' ? '<div class="mt-1 text-amber-300">⚠ Tabelle gear_costs fehlt noch – bitte das SQL im Supabase SQL Editor ausführen, sonst kann die Eingabe nicht speichern.</div>' : '');
   }
   function renderGearCat() {
     renderGearCatInfo();
@@ -477,11 +506,13 @@ window.RokMods.crafting = (R) => {
       return `<tr class="border-b border-ink-800">
         <td class="py-1 pr-1"><input data-cid="${R.esc(i.id)}" data-f="name" value="${R.esc(i.name)}" ${ro} class="${inp} min-w-[170px]"></td>
         <td class="py-1 px-1"><select data-cid="${R.esc(i.id)}" data-f="cat" ${ro} class="${inp}">${Object.entries(GEAR_CATS).map(([k, l]) => `<option value="${k}"${k === i.cat ? ' selected' : ''}>${l}</option>`).join('')}</select></td>
-        <td class="py-1 px-1 whitespace-nowrap ${i.eq ? 'text-sky-300' : i.db ? 'text-emerald-300' : 'text-gold-300'}">${i.eq ? '📘 Codex' : i.db ? '☁ Supabase' : '✎ eigenes'}</td>
+        <td class="py-1 px-1 whitespace-nowrap ${i.eq ? 'text-sky-300' : i.db ? 'text-emerald-300' : 'text-gold-300'}">${i.eq ? '📘 gear-data' : i.db ? '☁ Supabase' : '✎ eigenes'}</td>
         ${['leather', 'iron', 'ebony', 'bone'].map(k => `<td class="py-1 px-1"><input data-cid="${R.esc(i.id)}" data-f="${k}" type="number" min="0" step="1" value="${i[k]}" ${ro} class="${inp} w-16 text-right tabular-nums"></td>`).join('')}
         <td class="py-1 px-1 text-right tabular-nums whitespace-nowrap text-gold-300" title="Craften + Refine + alle Tier-Stufen, in legendären Materialien">${(() => { const t = gZero(); EQ_STAGES.forEach(st => gAdd(t, stageCost(i, st))); return gMatSum(t) > 0 ? gq(gMatSum(t)) + (t.gold ? ' · 🪙 ' + gGold(t.gold) : '') : '–'; })()}</td>
-        <td class="text-right">${i.db ? '' : `<button data-cdel="${R.esc(i.id)}" class="text-slate-500 hover:text-red-400 px-1" title="Item löschen">✕</button>`}</td></tr>`; };
-    const RO = ['legendary', 'epic', 'elite', 'normal'], list = R.gearCat.filter(i => !i.lib || i.eq)
+        <td class="text-right whitespace-nowrap">${i.eq ? `<button data-cedit="${R.esc(i.eq.id)}" class="text-[11px] px-2 py-1 rounded-md border ${Object.keys(i.eq.costs || {}).length ? 'border-ink-600 text-slate-300' : 'border-gold-500/60 text-gold-300'} hover:border-gold-400 hover:text-gold-300" title="Kosten ansehen/eintragen">${gAdmin ? '✎ Kosten' : '👁 Kosten'}</button>`
+          : i.db ? '' : `<button data-cdel="${R.esc(i.id)}" class="text-slate-500 hover:text-red-400 px-1" title="Item löschen">✕</button>`}</td></tr>`; };
+    R.$('gearCatMissing').className = `text-xs px-3 py-2 rounded-lg border ${catMissing ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 hover:border-gold-500/60 hover:text-gold-300'}`;
+    const RO = ['legendary', 'epic', 'elite', 'normal'], list = R.gearCat.filter(i => (!i.lib || i.eq) && (!catMissing || (i.eq && !Object.keys(i.eq.costs || {}).length)))
       .sort((a, b) => RO.indexOf(a.rarity) - RO.indexOf(b.rarity) || Object.keys(GEAR_CATS).indexOf(a.cat) - Object.keys(GEAR_CATS).indexOf(b.cat) || a.name.localeCompare(b.name));
     R.$('gearCatRows').innerHTML = list.length ? list.map(row).join('')
       : '<tr><td colspan="9" class="py-4 text-center text-slate-500">Noch keine Items – Tabelle gear_items in Supabase füllen oder „+ Eigenes Item“.</td></tr>';
@@ -499,6 +530,7 @@ window.RokMods.crafting = (R) => {
     gearSel[t.dataset.side] = t.dataset.tile; renderGearMain();
   }));
   const gearEdit = (ev) => {
+    const ce = ev.type === 'click' && ev.target.closest('[data-cedit-slot]'); if (ce) { openCostEditor(ce.dataset.ceditSlot); return; }
     const t = ev.target.closest('[data-slot]'); if (!t || t.disabled) return;
     const isBtn = t.tagName === 'BUTTON';
     if (ev.type === 'click' && !isBtn) return;     // Klick nur für Buttons (Refine, Bild-Auswahl)
@@ -584,6 +616,7 @@ window.RokMods.crafting = (R) => {
     saveGearCustom(); rebuildGearCat(); renderGearMain();
   });
   R.$('gearCatRows').addEventListener('click', async (ev) => {
+    const ce = ev.target.closest('[data-cedit]'); if (ce) { openCostEditor(ce.dataset.cedit); return; }
     const b = ev.target.closest('[data-cdel]'); if (!b) return;
     const it = gearCustom.find(i => i.id === b.dataset.cdel); if (!it) return;
     const used = gear.sets.some(s => GEAR_SLOTS.some(sl => s.ist[sl.k].item === it.id || s.ziel[sl.k].item === it.id));
@@ -598,6 +631,113 @@ window.RokMods.crafting = (R) => {
     if (last) { last.focus(); last.select(); }
   };
   R.$('gearCatReload').onclick = () => loadGearDb();
+  let catMissing = false;
+  R.$('gearCatMissing').onclick = () => { catMissing = !catMissing; renderGearCat(); };
+
+  // ---- Kosten-Eingabe: Tabelle Stufen × Materialien je Item (speichern nur für Admins, Tabelle gear_costs) ----
+  const CE_ROWS = [['craft', '⚒ Craften'], ['refine', '✦ Refine'], ['awaken_1', 'Tier I'], ['awaken_2', 'Tier II'], ['awaken_3', 'Tier III'], ['awaken_4', 'Tier IV'], ['awaken_5', 'Tier V']];
+  const CE_COLS = [['leather', '🐂', 'Leder'], ['iron', '⛓️', 'Erz'], ['ebony', '🪵', 'Ebenholz'], ['bone', '🦴', 'Knochen'], ['gold', '🪙', 'Gold'], ['blueprint', '📜', 'Blaupause'], ['iconic_crystal', '💎', 'Kristall']];
+  const Q_LABEL = { legendary: 'legendäre', epic: 'epische (lila)', elite: 'Elite- (blaue)', advanced: 'fortgeschrittene (grüne)', common: 'normale (graue)' };
+  // „20 Mio“, „20m“, „1,5 Mrd“, „20.000.000“, „250k“ → Zahl · leer → null · ungültig → NaN
+  function ceParse(v) {
+    let t = String(v ?? '').trim().toLowerCase().replace(/\s+/g, ''); if (!t) return null;
+    let mult = 1; const u = t.match(/(mrd|mio|tsd|b|m|k)\.?$/);
+    if (u) { mult = { mrd: 1e9, b: 1e9, mio: 1e6, m: 1e6, tsd: 1e3, k: 1e3 }[u[1]]; t = t.slice(0, u.index); }
+    t = mult > 1 ? t.replace(',', '.') : t.replace(/[.,](?=\d{3}(?:[.,]|$))/g, '').replace(',', '.');
+    if (!/^\d+(\.\d+)?$/.test(t)) return NaN;
+    return Math.round(parseFloat(t) * mult);
+  }
+  const ceShow = (k, n) => n == null ? '' : k === 'gold' && n >= 1e6 && n % 1e5 === 0 ? (n / 1e6).toLocaleString('de-DE') + ' Mio' : String(n);
+  function openCostEditor(eqId) {
+    const e = EQ.byId?.get(eqId); if (!e) return;
+    const it = R.gearCat.find(i => i.eq === e), canEdit = gAdmin;
+    const prevOverflow = document.body.style.overflow, root = document.createElement('div');
+    root.className = 'fixed inset-0 z-[90] grid place-items-center p-2 sm:p-4 bg-ink-950/80 backdrop-blur-sm ui-fade';
+    root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true');
+    const others = EQ.list.filter(x => x.id !== e.id && x.costs && Object.keys(x.costs).length && EQ_SLOT[x.slot] === EQ_SLOT[e.slot])
+      .sort((a, b) => (a.quality === e.quality ? 0 : 1) - (b.quality === e.quality ? 0 : 1) || a.name.localeCompare(b.name));
+    const inp = 'w-full min-w-[56px] bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1.5 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500 disabled:opacity-70 disabled:border-transparent';
+    root.innerHTML = `<div class="panel !bg-ink-900 w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-2xl p-4 sm:p-6 shadow-2xl ui-pop">
+      <div class="flex items-start gap-3">
+        ${it?.icon ? `<img src="${it.icon}" alt="" class="w-12 h-12 object-contain shrink-0">` : ''}
+        <div class="min-w-0 flex-1">
+          <h3 class="font-display text-xl gold-text leading-tight" translate="no">${R.esc(e.name)}</h3>
+          <p class="text-xs text-slate-400 mt-1">Zahlen genau wie im Spiel abschreiben – Materialien sind <b class="text-slate-200">${Q_LABEL[e.quality] || 'legendäre'}</b>. Leer = noch unbekannt (wird nicht mitgerechnet). Gold geht auch als „20 Mio“.</p>
+        </div>
+        <button type="button" data-ce="close" class="text-slate-400 hover:text-white text-xl leading-none px-1" title="Schließen">✕</button>
+      </div>
+      ${canEdit && others.length ? `<div class="mt-3 flex flex-wrap items-center gap-2 text-xs"><span class="text-slate-400">Kosten übernehmen von</span>
+        <select data-ce="copyfrom" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs max-w-[220px]"><option value="">– Item wählen –</option>${others.map(x => `<option value="${R.esc(x.id)}">${R.esc(x.name)}</option>`).join('')}</select>
+        <span class="text-slate-500">(danach anpassen)</span></div>` : ''}
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="text-[11px] text-slate-400"><tr><th></th>${CE_COLS.map(([, ic, l]) => `<th class="px-1 pb-1 font-medium text-center whitespace-nowrap">${ic}<div class="text-[10px]">${l}</div></th>`).join('')}</tr></thead>
+          <tbody>${CE_ROWS.map(([st, label]) => `<tr>
+            <td class="pr-2 py-1 whitespace-nowrap font-semibold ${st === 'craft' ? 'text-gold-300' : st === 'refine' ? 'text-red-300' : 'text-sky-300'}">${label}</td>
+            ${CE_COLS.map(([k]) => `<td class="px-0.5 py-1"><input data-st="${st}" data-k="${k}" inputmode="decimal" autocomplete="off" ${canEdit ? '' : 'disabled'} value="${R.esc(ceShow(k, e.costs?.[st]?.[k] ?? (e.costs?.[st] ? 0 : null)))}" class="${inp}"></td>`).join('')}
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+      <div data-ce="sum" class="mt-3 text-xs text-slate-400"></div>
+      <div data-ce="msg" class="mt-2 text-xs"></div>
+      <div class="mt-4 flex flex-wrap justify-end gap-2">
+        <button type="button" data-ce="json" class="px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-xs" title="Kosten dieses Items als JSON für gear-data.json kopieren">📋 Als JSON kopieren</button>
+        <button type="button" data-ce="close" class="px-4 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">${canEdit ? 'Abbrechen' : 'Schließen'}</button>
+        ${canEdit ? '<button type="button" data-ce="save" class="px-5 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold disabled:opacity-50">💾 Speichern</button>' : ''}
+      </div>
+      ${canEdit ? '' : '<div class="mt-2 text-[11px] text-slate-500 text-right">Nur Admins können Kosten ändern.</div>'}
+    </div>`;
+    const $q = (s) => root.querySelector(s), inputs = [...root.querySelectorAll('input[data-st]')];
+    // eingetippte Werte → costs-Objekt; ungültige Felder rot
+    const read = () => { const c = {}; let bad = 0;
+      inputs.forEach(i => { const n = ceParse(i.value); i.classList.toggle('!border-red-500', Number.isNaN(n)); if (Number.isNaN(n)) { bad++; return; }
+        if (n == null) return; (c[i.dataset.st] = c[i.dataset.st] || { _set: 1 })[i.dataset.k] = n; });
+      return { costs: cleanCosts(c), bad }; };
+    const upd = () => { const { costs, bad } = read(), done = CE_ROWS.filter(([st]) => costs[st]).length;
+      const tmp = { eq: { costs }, qm: EQ_QM[e.quality] || 256 }, t = gZero(); EQ_STAGES.forEach(st => gAdd(t, stageCost(tmp, st)));
+      $q('[data-ce="sum"]').innerHTML = `${done} von ${CE_ROWS.length} Stufen ausgefüllt · bis Max: <b class="text-gold-300">${gq(gMatSum(t))}</b> legendäre Mats${t.gold ? ' · 🪙 ' + gGold(t.gold) : ''}${t.crystal ? ' · 💎 ' + gq(t.crystal) : ''}${t.bp ? ' · 📜 ' + gq(t.bp) : ''}`;
+      if ($q('[data-ce="save"]')) $q('[data-ce="save"]').disabled = bad > 0;
+      $q('[data-ce="msg"]').innerHTML = bad ? `<span class="text-red-300">⚠ ${bad} ${bad === 1 ? 'Feld ist' : 'Felder sind'} keine gültige Zahl.</span>` : '';
+      return { costs, bad }; };
+    const close = () => { document.removeEventListener('keydown', onKey, true); root.remove(); document.body.style.overflow = prevOverflow; };
+    const onKey = (ev) => { if (ev.key === 'Escape') { ev.preventDefault(); close(); } };
+    root.addEventListener('input', upd);
+    root.addEventListener('change', (ev) => {
+      if (ev.target.dataset.ce !== 'copyfrom' || !ev.target.value) return;
+      const src = EQ.byId.get(ev.target.value); if (!src) return;
+      inputs.forEach(i => { const v = src.costs?.[i.dataset.st]?.[i.dataset.k]; i.value = ceShow(i.dataset.k, v ?? (src.costs?.[i.dataset.st] ? 0 : null)); });
+      upd();
+    });
+    root.addEventListener('click', async (ev) => {
+      if (ev.target === root) return close();
+      const b = ev.target.closest('[data-ce]'); if (!b || b.tagName === 'SELECT') return;
+      const act = b.dataset.ce;
+      if (act === 'close') return close();
+      if (act === 'json') {
+        const txt = JSON.stringify({ id: e.id, costs: upd().costs });
+        try { await navigator.clipboard.writeText(txt); $q('[data-ce="msg"]').innerHTML = '<span class="text-emerald-300">✓ Kopiert</span>'; }
+        catch { $q('[data-ce="msg"]').innerHTML = `<code class="break-all text-slate-300">${R.esc(txt)}</code>`; }
+        return;
+      }
+      if (act === 'save') {
+        const { costs, bad } = upd(); if (bad) return;
+        b.disabled = true; b.textContent = 'Speichert …';
+        try {
+          const { error } = await RokAuth.db().from('gear_costs').upsert({ item_id: e.id, costs, updated_at: new Date().toISOString() }, { onConflict: 'item_id' });
+          if (error) throw error;
+          e.costs = costs; EQ.dbCosts.add(e.id); EQ.dbErr = '';
+          rebuildGearCat(); renderGear(); close();
+        } catch (err) {
+          $q('[data-ce="msg"]').innerHTML = `<span class="text-red-300">⚠ ${R.esc(R.tableMissing(err) ? 'Die Tabelle gear_costs fehlt noch – bitte zuerst das SQL im Supabase SQL Editor ausführen.' : (RokAuth.germanError ? RokAuth.germanError(err) : err.message || err))}</span>`;
+          b.disabled = false; b.textContent = '💾 Speichern';
+        }
+      }
+    });
+    document.addEventListener('keydown', onKey, true);
+    document.body.appendChild(root); document.body.style.overflow = 'hidden';
+    upd(); setTimeout(() => (inputs.find(i => !i.disabled && !i.value) || inputs[0])?.focus(), 30);
+  }
+  R.openCostEditor = openCostEditor;
 
   // ---- KI-Scan der Ist-Ausrüstung (Modus "gear" in /api/scan, Katalog kommt dort aus gear_items) ----
   function gearRarity(v) { const t = gNorm(v); if (!t) return null; return /legend|gold|orange/.test(t) ? 'legendary' : /elite|blau|blue/.test(t) ? 'elite' : /normal|grau|grey|gray|grun|green|advanced/.test(t) ? 'normal' : 'epic'; }
@@ -692,14 +832,15 @@ window.RokMods.crafting = (R) => {
     const target = set.goal.mode === 'max' ? gMaxSlots(set) : set.ziel;
     const calc = gearCalc(set, target), lines = gearBalance(calc, st, set.useChests);
     const gross = gMatSum(calc.need), covered = lines.reduce((a, l) => a + Math.min(l.gross, l.stock + l.back + l.chest), 0);
-    return { calc, lines, gross, pct: gross > 0.005 ? (st.mats || lines.some(l => l.back > 0) ? covered / gross : null) : 1,
-      days: gDays(set.goal.date), unknown: calc.rows.some(r => r.tierMissing.length || r.refMissing) };
+    const unknown = calc.rows.some(r => r.craftMissing || r.tierMissing.length || r.refMissing);
+    return { calc, lines, gross, pct: gross > 0.005 ? (st.mats || lines.some(l => l.back > 0) ? covered / gross : null) : unknown ? null : 1,
+      days: gDays(set.goal.date), unknown };
   }
   const gBar = (pct) => pct == null ? '<div class="h-2 rounded-full bg-ink-800"></div>'
     : `<div class="h-2 rounded-full bg-ink-800 overflow-hidden"><div class="h-full rounded-full ${pct >= 0.999 ? 'bg-emerald-400' : 'bg-gradient-to-r from-gold-600 to-gold-400'}" style="width:${Math.round(Math.min(1, pct) * 100)}%"></div></div>`;
   const gPct = (pct) => pct == null ? '?' : Math.floor(Math.min(1, pct) * 100) + ' %';
   // Tabelle Bedarf / Bestand / fehlt / pro Tag
-  function goalTable(lines, need, days, hasStock) {
+  function goalTable(lines, need, days, hasStock, unknown) {
     const row = (icon, label, n, have, miss, f) => `<tr class="border-b border-ink-800 last:border-0">
       <td class="py-1 pr-2 whitespace-nowrap text-slate-300">${icon} ${label}</td>
       <td class="py-1 px-2 text-right tabular-nums whitespace-nowrap text-white">${f(n)}</td>
@@ -708,7 +849,7 @@ window.RokMods.crafting = (R) => {
       ${days != null ? `<td class="py-1 pl-2 text-right tabular-nums whitespace-nowrap text-sky-300">${miss == null || miss <= 0.005 ? '–' : f(miss / Math.max(1, days))}</td>` : ''}</tr>`;
     const mats = lines.filter(l => l.gross > 0.005).map(l => row(l.m.icon, l.m.label, l.gross, hasStock || l.back > 0 ? l.stock + l.back + l.chest : null, hasStock ? l.deficit : null, gq));
     const xs = GX.filter(x => need[x.k] > 0.005).map(x => { const have = x.k === 'bp' ? null : gearOpt[x.k]; return row(x.icon, x.label, need[x.k], have, have == null ? null : Math.max(0, need[x.k] - have), x.f); });
-    if (!mats.length && !xs.length) return '<div class="text-xs text-emerald-300">✓ Nichts mehr zu tun – Ziel erreicht.</div>';
+    if (!mats.length && !xs.length) return unknown ? '<div class="text-xs text-amber-300">Noch keine Kosten eingetragen – in gear-data.json ergänzen.</div>' : '<div class="text-xs text-emerald-300">✓ Nichts mehr zu tun – Ziel erreicht.</div>';
     return `<table class="w-full text-xs"><thead class="text-[10px] uppercase tracking-wider text-slate-500"><tr>
       <th class="py-1 pr-2 text-left font-medium"></th><th class="py-1 px-2 text-right font-medium">Bedarf</th><th class="py-1 px-2 text-right font-medium">Hast du</th><th class="py-1 px-2 text-right font-medium">Fehlt</th>
       ${days != null ? '<th class="py-1 pl-2 text-right font-medium">pro Tag</th>' : ''}</tr></thead><tbody>${mats.join('')}${xs.join('')}</tbody></table>
@@ -727,7 +868,7 @@ window.RokMods.crafting = (R) => {
     const on = res.filter(x => x.s.goal.on), total = gZero(), back = gZero();
     on.forEach(x => { gAdd(total, x.g.calc.need); gAdd(back, x.g.calc.back); });
     const tLines = gearBalance({ need: total, back }, st, on.some(x => x.s.useChests));
-    const tGross = gMatSum(total), tPct = tGross > 0.005 ? (st.mats ? tLines.reduce((a, l) => a + Math.min(l.gross, l.stock + l.back + l.chest), 0) / tGross : null) : 1;
+    const tUnknown = on.some(x => x.g.unknown), tGross = gMatSum(total), tPct = tGross > 0.005 ? (st.mats ? tLines.reduce((a, l) => a + Math.min(l.gross, l.stock + l.back + l.chest), 0) / tGross : null) : tUnknown ? null : 1;
     const dated = on.map(x => x.g.days).filter(d => d != null), tDays = dated.length ? Math.min(...dated) : null;
     R.$('goalTotal').innerHTML = `<div class="panel rounded-2xl p-5 ring-1 ring-gold-500/30">
       <div class="flex flex-wrap items-end justify-between gap-3">
@@ -738,7 +879,7 @@ window.RokMods.crafting = (R) => {
           <div class="text-[11px] text-slate-400">der Materialien vorhanden${tDays != null ? ` · nächstes Zieldatum in <b class="text-sky-300">${tDays} ${tDays === 1 ? 'Tag' : 'Tagen'}</b>` : ''}</div></div>
       </div>
       <div class="mt-3">${gBar(tPct)}</div>
-      <div class="mt-4 overflow-x-auto">${on.length ? goalTable(tLines, total, tDays, !!st.mats) : '<div class="text-xs text-slate-500">Kein Set ausgewählt.</div>'}</div>
+      <div class="mt-4 overflow-x-auto">${on.length ? goalTable(tLines, total, tDays, !!st.mats, tUnknown) + (tUnknown ? '<div class="mt-1 text-[11px] text-amber-300">⚠ In manchen Sets fehlen noch Kosten – nicht mitgerechnet.</div>' : '') : '<div class="text-xs text-slate-500">Kein Set ausgewählt.</div>'}</div>
     </div>`;
     box.innerHTML = res.map(({ s, g }) => {
       const c = g.calc, crafts = c.rows.filter(r => r.status === 'craft').length, tiers = c.rows.reduce((a, r) => a + Math.max(0, r.tierTo - r.tierFrom), 0), refs = c.rows.filter(r => r.needRefine).length;
@@ -762,7 +903,7 @@ window.RokMods.crafting = (R) => {
           <span class="text-[10px] uppercase tracking-widest text-slate-500">Ist</span>${gMini(s.ist)}
           <span class="text-[10px] uppercase tracking-widest text-slate-500">${s.goal.mode === 'max' ? 'Max' : 'Ziel'}</span>${gMini(target)}
         </div>
-        <div class="mt-3 overflow-x-auto">${emptyZiel ? '<div class="text-xs text-amber-300">Noch keine Ziel-Ausrüstung – im Planer festlegen oder oben „Alles Max“ wählen.</div>' : goalTable(g.lines, c.need, g.days, !!st.mats)}</div>
+        <div class="mt-3 overflow-x-auto">${emptyZiel ? '<div class="text-xs text-amber-300">Noch keine Ziel-Ausrüstung – im Planer festlegen oder oben „Alles Max“ wählen.</div>' : goalTable(g.lines, c.need, g.days, !!st.mats, g.unknown)}</div>
         ${g.unknown ? '<div class="mt-1 text-[11px] text-amber-300">⚠ Für manche Stufen fehlen Kosten – nicht mitgerechnet.</div>' : ''}
         <div class="mt-3 flex justify-end"><button type="button" data-gopen="${R.esc(s.id)}" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⚒ Im Planer öffnen</button></div>
       </section>`;
