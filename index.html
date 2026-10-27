@@ -968,9 +968,10 @@ tailwind.config = {
     </div>
 
     <!-- Fenster: Planer | Craft-Verlauf -->
-    <div class="inline-flex gap-1 p-1 rounded-xl bg-ink-950/70 border border-ink-700">
+    <div class="inline-flex flex-wrap gap-1 p-1 rounded-xl bg-ink-950/70 border border-ink-700">
       <button type="button" data-cpane="plan">⚒ Planer</button>
       <button type="button" data-cpane="goal">🎯 Ziele</button>
+      <button type="button" data-cpane="cal">📅 Mats-Kalender</button>
       <button type="button" data-cpane="hist">📜 Craft-Verlauf</button>
     </div>
 
@@ -1076,6 +1077,14 @@ tailwind.config = {
       </section>
       <section id="goalTotal"></section>
       <div id="goalSets" class="grid xl:grid-cols-2 gap-4"></div>
+    </div>
+
+    <!-- Mats-Kalender: Rucksack + passiver Zuwachs aus dem Mats-Dashboard → an welchem Tag ist welcher Schritt der Prio-Liste machbar -->
+    <div id="craftCalPane" class="hidden space-y-4">
+      <section id="calHead" class="panel rounded-2xl p-5"></section>
+      <section id="calMonth" class="panel rounded-2xl p-3 sm:p-5"></section>
+      <section id="calDay" class="hidden panel rounded-2xl p-5"></section>
+      <section id="calAgenda" class="panel rounded-2xl p-5"></section>
     </div>
 
     <!-- Craft-Verlauf: eigenes Fenster mit 2 Seiten -->

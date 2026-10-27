@@ -117,6 +117,15 @@ window.RokMods.helpme = (R) => {
     } catch (e) { msg(R.tableMissing(e) ? 'Die Help-Me-Tabellen fehlen noch in Supabase (SQL im Chat).' : 'Posten fehlgeschlagen: ' + (A.germanError ? A.germanError(e) : e.message), 'err'); }
     st.busy = false; render();
   }
+  // Anfrage direkt aus dem Crafting-Planer: Ist-Ausrüstung eines Planer-Sets + sein Plan (Ziel, nächste Schritte, was fehlt) als Info für die Helfer
+  R.helpAsk = async ({ title, set, plan, toFeed }) => {
+    const gear = gearOf(set); if (!gear.length) throw new Error('Die Ist-Ausrüstung ist leer – erst Items eintragen.');
+    const row = { user_id: me(), title: String(title || '').trim().slice(0, 100) || 'Was soll ich als Nächstes verbessern?', sets: [{ id: String(set.id), name: String(set.name || 'Set').slice(0, 40), gear, gfx: null, plan: plan || null }], status: 'open' };
+    const { data: ins, error } = await db().from('help_requests').insert(row).select().single(); if (error) throw error;
+    const fed = toFeed && ins ? await share(ins, true) : false;
+    await load(); st.open = ins?.id || null; R.goView('help'); render();
+    return { fed };
+  };
   async function closeReq(id, del) {
     if (!(await window.UI.confirm(del ? 'Anfrage löschen?' : 'Anfrage schließen?'))) return;
     try { const q = del ? db().from('help_requests').delete().eq('id', id) : db().from('help_requests').update({ status: 'closed' }).eq('id', id); const { error } = await q; if (error) throw error; await load(); } catch (e) { msg(e.message || String(e), 'err'); }
@@ -234,6 +243,18 @@ window.RokMods.helpme = (R) => {
   }
 
   // ---------- Darstellung ----------
+  // Plan aus dem Crafting-Planer (falls die Anfrage von dort kommt)
+  function planHTML(req) {
+    const p = (req.sets || []).map((x) => x.plan).find(Boolean); if (!p || typeof p !== 'object') return '';
+    const steps = Array.isArray(p.steps) ? p.steps.slice(0, 8).map(String) : [];
+    return `<div class="rounded-xl border border-sky-500/30 bg-sky-500/5 p-3 text-xs text-slate-200">
+      <div class="text-[11px] uppercase tracking-widest text-sky-300 mb-1">📋 Plan aus dem Crafting-Planer</div>
+      ${p.goal ? `<div>🎯 Ziel: <b>${esc(String(p.goal))}</b>${p.date ? ` · bis ${esc(String(p.date))}` : ''}</div>` : ''}
+      ${steps.length ? `<div class="mt-1 text-slate-400">Seine Reihenfolge bisher:</div><ol class="list-decimal list-inside space-y-0.5">${steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol>` : ''}
+      ${p.missing ? `<div class="mt-1 text-red-300">Fehlt noch: ${esc(String(p.missing))}</div>` : ''}
+      ${p.eta ? `<div class="mt-1 text-slate-400">📅 Mit seinem passiven Zuwachs fertig: ${esc(String(p.eta))}</div>` : ''}
+    </div>`;
+  }
   const inp = 'w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500';
   const btn = (attr, lab, tone) => `<button type="button" ${attr} class="text-xs px-3 py-1.5 rounded-lg border whitespace-nowrap ${tone === 'gold' ? 'border-gold-400 bg-gold-500 text-ink-950 font-semibold hover:bg-gold-400' : tone === 'red' ? 'border-ink-600 text-slate-400 hover:border-red-400/60 hover:text-red-300' : 'border-gold-500/50 text-gold-300 hover:bg-gold-500/10'} disabled:opacity-50">${lab}</button>`;
   const u = (id) => st.users[id] || { username: '?' };
@@ -263,6 +284,7 @@ window.RokMods.helpme = (R) => {
         ${own ? `${closed ? '' : btn(`data-help-share="${esc(req.id)}"${st.sharing === req.id ? ' disabled' : ''}`, st.sharing === req.id ? '⏳' : '📰 Im Feed posten')}${closed ? '' : btn(`data-help-close="${esc(req.id)}"`, 'Schließen')}${btn(`data-help-del="${esc(req.id)}"`, '✕', 'red')}` : ''}
       </div>
       <div class="font-semibold text-slate-100">🆘 ${esc(req.title)}</div>
+      ${planHTML(req)}
       ${open || own ? (o.big ? `<div class="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] items-start">${boards}<div class="flex flex-col gap-3 min-w-0">${helper}${resultHTML || (own ? '' : '')}</div></div>` : `${boards}${helper}${resultHTML}`)
         : `<button type="button" data-help-open="${esc(req.id)}" class="text-left text-xs text-gold-300 hover:underline">${(req.sets || []).length} Set${(req.sets || []).length === 1 ? '' : 's'} · ${(req.sets || []).reduce((a, s) => a + (s.gear || []).length, 0)} Teile – ${mine ? 'deine Empfehlung ansehen / ändern' : 'ansehen und empfehlen'} ›</button>`}
     </article>`;

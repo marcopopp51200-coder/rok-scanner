@@ -211,6 +211,7 @@ window.RokMods.crafting = (R) => {
   let gearOpt = { rate: 50, gold: null, crystal: null };      // gold/crystal = eigener Bestand (für Ziele), null = nicht angegeben
   try { const o = JSON.parse(R.LS.get(GEAR_OPT, '{}'));
     if (o && o.rate != null) gearOpt.rate = Math.min(100, gNum(o.rate));
+    if (o && o.calChoice === false) gearOpt.calChoice = false;
   } catch {}
   const saveGearOpt = () => R.LS.set(GEAR_OPT, JSON.stringify(gearOpt));
   let gearFlags = {};                                 // Scan-Hinweise je Ist-Slot (nur in dieser Sitzung)
@@ -421,6 +422,9 @@ window.RokMods.crafting = (R) => {
     if (set.prio.upto && !set.prio.ms.some(m => m.id === set.prio.upto)) set.prio.upto = '';
     const part = set.prio.upto ? prioUpto(list, set.prio.upto) : null, need = part ? part.need : calc.need;
     const lines = gearBalance({ need, back: gZero() }, st, set.useChests);
+    const fcM = matForecast(), projM = fcM ? projectList(list, fcM, calChoice()) : null;
+    const etaM = !projM || !projM.rows.some(r => !r.x.ms) ? undefined : part ? projM.rows.find(r => r.x.ms && r.x.ms.id === set.prio.upto)?.day ?? null : projM.end;
+    prioCache.ctx = { need, lines, eta: etaM, part };
 
     R.$('gearIstBoard').innerHTML = gearBoard('ist', set, calc);
     R.$('gearZielBoard').innerHTML = gearBoard('ziel', set, calc);
@@ -470,6 +474,7 @@ window.RokMods.crafting = (R) => {
       <div class="mt-3 space-y-2">${needMats.map(matRow).join('')}${needX.map(xRow).join('')}
         ${!needMats.length && !needX.length ? `<div class="py-4 text-center text-xs ${verdict[1]}">${verdict[0]}</div>` : ''}</div>
       ${needMats.length || needX.length ? `<div class="mt-3 text-xs font-semibold text-center ${verdict[1]}">${verdict[0]}</div>` : ''}
+      ${etaM !== undefined && missing ? `<button type="button" data-cpane-go="cal" class="mt-2 w-full rounded-lg border border-sky-500/40 bg-sky-500/5 px-2 py-1.5 text-xs ${etaM == null ? 'text-red-300' : 'text-sky-200'} hover:border-sky-400" title="mit deinem passiven Zuwachs aus dem Mats-Dashboard – im Mats-Kalender ansehen">📅 ${etaM == null ? 'mit passivem Zuwachs nicht in 12 Monaten' : 'machbar ab ' + dTxt(etaM, true)}</button>` : ''}
       ${unknown.length ? `<div class="mt-2 text-[11px] text-amber-300">⚠ Kosten fehlen (nicht mitgerechnet): ${R.esc(unknown.join(' · '))}</div>` : ''}
       ${maxLeg > 0.005 ? `<div class="mt-3 rounded-xl border ${zielIsMax ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-gold-500/30 bg-gold-500/5'} px-3 py-2 text-[11px]">
         <div class="font-semibold ${zielIsMax ? 'text-emerald-300' : 'text-gold-300'}">${zielIsMax ? '🎯 Ziel ist bereits alles Max' : '🎯 Bis alles Max'}</div>
@@ -531,7 +536,7 @@ window.RokMods.crafting = (R) => {
       ${it?.icon ? `<img src="${it.icon}" alt="" loading="lazy" class="w-[86%] h-[86%] object-contain [filter:drop-shadow(0_2px_2px_rgba(0,0,0,.5))]">` : `<span class="text-[9px] font-bold text-white text-center leading-tight px-0.5">${R.esc(it?.name || '?')}</span>`}</span>`; };
   let prioCache = { list: [] };
   function renderPrio(set, list, st) {
-    const box = R.$('gearPlan'); prioCache = { list };
+    const box = R.$('gearPlan'); prioCache.list = list;
     const steps = list.filter(x => !x.ms);
     const head = `<div class="flex flex-wrap items-start justify-between gap-3 mb-3">
         <div><h3 class="font-display text-xl gold-text">Prio-Liste</h3>
@@ -539,6 +544,7 @@ window.RokMods.crafting = (R) => {
         <div class="flex flex-wrap items-center gap-1.5 text-xs">
           <span class="text-slate-400">Sortieren:</span>${Object.entries(PRIO_MODES).map(([k, l]) => `<button type="button" data-pmode="${k}" class="${hChip(set.prio.mode === k && !set.prio.order.some(o => !o.startsWith('ms:')))}">${l}</button>`).join('')}
           <button type="button" data-pms-add class="px-2.5 py-1 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400 font-semibold">🏁 + Etappe</button>
+          <button type="button" data-phelp class="px-2.5 py-1 rounded-lg border border-red-500/40 text-red-200 hover:border-red-400 font-semibold" title="Deine Ist-Ausrüstung und deinen Plan in Help Me posten – die Community empfiehlt die Reihenfolge">🆘 Help Me fragen</button>
         </div></div>`;
     if (!steps.length && !set.prio.ms.length) { box.innerHTML = head + '<div class="py-6 text-center text-sm text-emerald-300">✓ Nichts mehr zu tun – Ist und Ziel sind gleich.</div>'; return; }
     const run = gZero(); let ok = !!st.mats, n = 0, seg = gZero(), segN = 0;
@@ -596,6 +602,7 @@ window.RokMods.crafting = (R) => {
       if (set.prio.order.some(k => !k.startsWith('ms:')) && !(await UI.confirm('Liste neu sortieren? Deine eigene Reihenfolge geht dabei verloren (Etappen kommen ans Ende).'))) return;
       set.prio.mode = m; set.prio.order = []; saveGear(); renderGearMain(); return;
     }
+    if (b('phelp')) { openHelpAsk(set); return; }
     if (b('pms-add')) {
       const name = await UI.prompt('Name der Etappe (Zwischenziel):', `Etappe ${set.prio.ms.length + 1}`); if (name == null) return;
       const m = { id: R.newId(), name: name.trim().slice(0, 30) || `Etappe ${set.prio.ms.length + 1}` };
@@ -668,6 +675,7 @@ window.RokMods.crafting = (R) => {
     if (EQ.state === 'idle') loadEq();
     renderGearMain(); renderGearCat();
     if (craftPane === 'goal') renderGoals();
+    if (craftPane === 'cal') renderCal();
   }
 
   // ---- Ereignisse: Brett + Slot-Editor ----
@@ -707,7 +715,7 @@ window.RokMods.crafting = (R) => {
     s.ziel = gMaxSlots(s); saveGear(); renderGearMain();
   }
   R.$('gearMaxAll').onclick = gearSetMax;
-  R.$('gearMid').addEventListener('click', (ev) => { const u = ev.target.closest('[data-upto]'); if (u) { activeSet().prio.upto = u.dataset.upto; saveGear(); renderGearMain(); return; } if (ev.target.closest('[data-gmax]')) gearSetMax(); const b = ev.target.closest('[data-goscan]'); if (b) R.goScan(b.dataset.goscan); });
+  R.$('gearMid').addEventListener('click', (ev) => { const cg = ev.target.closest('[data-cpane-go]'); if (cg) { craftPane = cg.dataset.cpaneGo; renderCraftPanes(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; } const u = ev.target.closest('[data-upto]'); if (u) { activeSet().prio.upto = u.dataset.upto; saveGear(); renderGearMain(); return; } if (ev.target.closest('[data-gmax]')) gearSetMax(); const b = ev.target.closest('[data-goscan]'); if (b) R.goScan(b.dataset.goscan); });
   R.$('gearMid').addEventListener('change', (ev) => { if (ev.target.id === 'gearUseChests') { activeSet().useChests = ev.target.checked; saveGear(); renderGearMain(); } });
   R.$('gearResult').addEventListener('click', (ev) => { const b = ev.target.closest('[data-goscan]'); if (b) R.goScan(b.dataset.goscan); });
 
@@ -1071,7 +1079,8 @@ window.RokMods.crafting = (R) => {
     const calc = gearCalc(set, target), lines = gearBalance(calc, st, set.useChests);
     const gross = gMatSum(calc.need), covered = lines.reduce((a, l) => a + Math.min(l.gross, l.stock + l.back + l.chest), 0);
     const unknown = calc.rows.some(r => r.craftMissing || r.tierMissing.length || r.refMissing);
-    return { calc, lines, gross, pct: gross > 0.005 ? (st.mats || lines.some(l => l.back > 0) ? covered / gross : null) : unknown ? null : 1,
+    const fc = matForecast(), list = prioList(set, calc), proj = fc ? projectList(list, fc, calChoice()) : null;   // Prognose mit passivem Zuwachs
+    return { calc, lines, gross, list, eta: proj && proj.rows.some(r => !r.x.ms) ? proj.end : null, etaKnown: !!proj && proj.rows.some(r => !r.x.ms), pct: gross > 0.005 ? (st.mats || lines.some(l => l.back > 0) ? covered / gross : null) : unknown ? null : 1,
       days: gDays(set.goal.date), unknown };
   }
   const gBar = (pct) => pct == null ? '<div class="h-2 rounded-full bg-ink-800"></div>'
@@ -1115,13 +1124,15 @@ window.RokMods.crafting = (R) => {
     const tLines = gearBalance({ need: total, back }, st, on.some(x => x.s.useChests));
     const tUnknown = on.some(x => x.g.unknown), tGross = gMatSum(total), tPct = tGross > 0.005 ? (st.mats ? tLines.reduce((a, l) => a + Math.min(l.gross, l.stock + l.back + l.chest), 0) / tGross : null) : tUnknown ? null : 1;
     const dated = on.map(x => x.g.days).filter(d => d != null), tDays = dated.length ? Math.min(...dated) : null;
+    const fcT = matForecast(), tProj = fcT && on.length ? projectList(on.flatMap(x => x.g.list), fcT, calChoice()) : null, tHas = !!tProj && tProj.rows.some(r => !r.x.ms);
     R.$('goalTotal').innerHTML = `<div class="panel rounded-2xl p-5 ring-1 ring-gold-500/30">
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div><div class="text-xs uppercase tracking-widest text-slate-400">Gesamtziel</div>
           <div class="font-display text-2xl gold-text">${on.length} von ${res.length} ${res.length === 1 ? 'Set' : 'Sets'}</div>
           <div class="text-[11px] text-slate-500">Sets mit Häkchen „im Gesamtziel“ · dein Rucksack wird nur einmal gezählt</div></div>
         <div class="text-right"><div class="text-3xl font-extrabold tabular-nums ${tPct != null && tPct >= 0.999 ? 'text-emerald-300' : 'text-gold-300'}">${gPct(tPct)}</div>
-          <div class="text-[11px] text-slate-400">der Materialien vorhanden${tDays != null ? ` · nächstes Zieldatum in <b class="text-sky-300">${tDays} ${tDays === 1 ? 'Tag' : 'Tagen'}</b>` : ''}</div></div>
+          <div class="text-[11px] text-slate-400">der Materialien vorhanden${tDays != null ? ` · nächstes Zieldatum in <b class="text-sky-300">${tDays} ${tDays === 1 ? 'Tag' : 'Tagen'}</b>` : ''}</div>
+          ${tHas ? `<div class="text-xs mt-0.5 ${tProj.end == null ? 'text-red-300' : 'text-emerald-300'}">📅 ${tProj.end == null ? 'mit passivem Zuwachs nicht in 12 Monaten' : 'alles fertig ca. ' + dTxt(tProj.end, true)}</div>` : ''}</div>
       </div>
       <div class="mt-3">${gBar(tPct)}</div>
       <div class="mt-4 overflow-x-auto">${on.length ? goalTable(tLines, total, tDays, !!st.mats, tUnknown) + (tUnknown ? '<div class="mt-1 text-[11px] text-amber-300">⚠ In manchen Sets fehlen noch Kosten – nicht mitgerechnet.</div>' : '') : '<div class="text-xs text-slate-500">Kein Set ausgewählt.</div>'}</div>
@@ -1135,13 +1146,15 @@ window.RokMods.crafting = (R) => {
           <div class="min-w-0"><div class="font-display text-lg gold-text truncate" translate="no">${R.esc(s.name)}</div>
             <div class="text-[11px] text-slate-400">${crafts} craften · ${tiers} Tier-Stufen · ${refs} Refines</div></div>
           <div class="text-right"><div class="text-xl font-extrabold tabular-nums ${g.pct != null && g.pct >= 0.999 ? 'text-emerald-300' : 'text-white'}">${gPct(g.pct)}</div>
-            ${g.days != null ? `<div class="text-[11px] ${g.days <= 3 ? 'text-red-300' : 'text-sky-300'}">noch ${g.days} ${g.days === 1 ? 'Tag' : 'Tage'}</div>` : ''}</div>
+            ${g.days != null ? `<div class="text-[11px] ${g.days <= 3 ? 'text-red-300' : 'text-sky-300'}">noch ${g.days} ${g.days === 1 ? 'Tag' : 'Tage'}</div>` : ''}
+            ${g.etaKnown ? `<div class="text-[11px] ${g.eta == null || (g.days != null && g.eta > g.days) ? 'text-red-300' : 'text-emerald-300'}" title="mit deinem passiven Zuwachs aus dem Mats-Dashboard">📅 ${g.eta == null ? 'nicht in 12 Monaten' : 'fertig ca. ' + dTxt(g.eta)}</div>` : ''}</div>
         </div>
         <div class="mt-2">${gBar(g.pct)}</div>
         <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
           <span class="text-slate-400">Ziel:</span>${btn('ziel', '🎯 Ziel-Ausrüstung')}${btn('max', '⇧ Alles Max')}
           <label class="inline-flex items-center gap-1 text-slate-400">📅 <input type="date" data-gdate="${R.esc(s.id)}" value="${s.goal.date}" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs text-slate-100 focus:outline-none focus:border-gold-500"></label>
           ${s.goal.date ? `<button type="button" data-gdate-clear="${R.esc(s.id)}" class="text-slate-500 hover:text-red-300" title="Zieldatum entfernen">✕</button>` : ''}
+          ${R.kvkStartDate?.() && s.goal.date !== R.kvkStartDate() ? `<button type="button" data-gkvk="${R.esc(s.id)}" class="px-2 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300" title="KvK-Start aus deinem Profil als Zieldatum">🏰 KvK-Start</button>` : ''}
           <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-300 ml-auto"><input type="checkbox" data-gon="${R.esc(s.id)}" ${s.goal.on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">im Gesamtziel</label>
         </div>
         <div class="mt-3 space-y-1">
@@ -1159,6 +1172,7 @@ window.RokMods.crafting = (R) => {
     if (b('goscan')) { R.goScan(b('goscan').dataset.goscan); return; }
     const setBy = (id) => gear.sets.find(s => s.id === id);
     if (b('gmode')) { const [id, m] = b('gmode').dataset.gmode.split(':'), s = setBy(id); if (s) { s.goal.mode = m === 'max' ? 'max' : 'ziel'; R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderGoals(); } return; }
+    if (b('gkvk')) { const s = setBy(b('gkvk').dataset.gkvk); if (s) { s.goal = gNormGoal({ ...s.goal, date: R.kvkStartDate?.() || '' }); R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderGoals(); } return; }
     if (b('gdate-clear')) { const s = setBy(b('gdate-clear').dataset.gdateClear); if (s) { s.goal.date = ''; R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderGoals(); } return; }
     if (b('gopen')) { const s = setBy(b('gopen').dataset.gopen); if (s) { gear.active = s.id; gearFlags = {}; R.LS.set(GEAR_SETS, JSON.stringify(gear)); craftPane = 'plan'; renderCraftPanes(); window.scrollTo({ top: 0, behavior: 'smooth' }); } }
   });
@@ -1166,6 +1180,179 @@ window.RokMods.crafting = (R) => {
     const t = ev.target, setBy = (id) => gear.sets.find(s => s.id === id);
     if (t.dataset.gdate) { const s = setBy(t.dataset.gdate); if (s) { s.goal = gNormGoal({ ...s.goal, date: t.value }); R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderGoals(); } }
     else if (t.dataset.gon) { const s = setBy(t.dataset.gon); if (s) { s.goal.on = t.checked; R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderGoals(); } }
+  });
+
+  // ---- Help Me: Ist-Ausrüstung + Plan posten ----
+  function openHelpAsk(set) {
+    if (!R.helpAsk) { UI.alert('Help Me ist gerade nicht geladen – bitte Seite neu laden.'); return; }
+    if (!GEAR_SLOTS.some(sl => gItem(set.ist[sl.k].item))) { UI.alert('Trag zuerst deine Ist-Ausrüstung ein – die sehen die Helfer.'); return; }
+    const ctx = prioCache.ctx || {}, steps = prioCache.list.filter(x => !x.ms).slice(0, 8);
+    const msName = set.prio.upto ? set.prio.ms.find(m => m.id === set.prio.upto)?.name : '';
+    const missing = (ctx.lines || []).filter(l => l.deficit > 0.005).map(l => `${l.m.label} ${gq(l.deficit)}`).join(' · ');
+    const plan = { goal: (GEAR_SLOTS.every(sl => { const a = gMaxSlots(set)[sl.k], z = set.ziel[sl.k]; return a.item === z.item && a.tier === z.tier && a.refine === z.refine; }) ? 'Alles Max' : 'eigene Ziel-Ausrüstung') + (msName ? ` · Etappe „${msName}“` : ''),
+      date: set.goal.date ? new Date(set.goal.date + 'T00:00:00').toLocaleDateString('de-DE') : '',
+      steps: steps.map(x => `${x.label} · ${gItem(x.r.z.item)?.name || ''}`), missing, eta: ctx.eta == null ? '' : dTxt(ctx.eta, true) };
+    const prevOverflow = document.body.style.overflow, root = document.createElement('div');
+    root.className = 'fixed inset-0 z-[90] grid place-items-center p-3 bg-ink-950/80 backdrop-blur-sm ui-fade';
+    root.innerHTML = `<div class="panel !bg-ink-900 w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-5 shadow-2xl ui-pop">
+      <div class="flex items-start justify-between gap-3"><h3 class="font-display text-xl gold-text">🆘 Help Me fragen</h3><button type="button" data-ha="close" class="text-slate-400 hover:text-white text-xl leading-none px-1">✕</button></div>
+      <p class="text-xs text-slate-400 mt-1">Die Community sieht die Ist-Ausrüstung von „${R.esc(set.name)}“ und empfiehlt, was du zuerst refinen oder hochstufen sollst.</p>
+      <label class="block mt-3 text-xs text-slate-400">Frage
+        <input data-ha="title" maxlength="100" value="${R.esc(`Welche Reihenfolge für „${set.name}“?`.slice(0, 100))}" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500"></label>
+      <div class="mt-3 flex flex-wrap gap-1.5">${GEAR_SLOTS.map(sl => gBigIcon(set.ist[sl.k])).join('')}</div>
+      <label class="mt-3 flex items-start gap-2 text-sm text-slate-200 cursor-pointer"><input type="checkbox" data-ha="plan" checked class="mt-0.5 w-4 h-4 accent-yellow-500"><span>Meinen Plan mitschicken<span class="block text-[11px] text-slate-400">Ziel${plan.date ? ', Zieldatum' : ''}, die ersten ${steps.length} Schritte meiner Prio-Liste${missing ? ', was mir fehlt' : ''}${plan.eta ? ' und wann ich fertig wäre' : ''}</span></span></label>
+      <label class="mt-2 flex items-center gap-2 text-sm text-slate-200 cursor-pointer"><input type="checkbox" data-ha="feed" checked class="w-4 h-4 accent-yellow-500">Auch im Feed posten</label>
+      <div data-ha="msg" class="mt-2 text-xs"></div>
+      <div class="mt-4 flex justify-end gap-2"><button type="button" data-ha="close" class="px-4 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">Abbrechen</button>
+        <button type="button" data-ha="send" class="px-5 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold disabled:opacity-50">🆘 Posten</button></div></div>`;
+    const close = () => { root.remove(); document.body.style.overflow = prevOverflow; };
+    root.addEventListener('click', async (ev) => {
+      if (ev.target === root) return close();
+      const b = ev.target.closest('button[data-ha]'); if (!b) return;
+      if (b.dataset.ha === 'close') return close();
+      b.disabled = true; b.textContent = '⏳ Postet …';
+      const slots = Object.fromEntries(GEAR_SLOTS.map(sl => { const v = set.ist[sl.k], it = gItem(v.item);
+        return [sl.k, it ? { item: v.item, name: it.name, icon: it.icon || '', rarity: it.rarity, tier: v.tier, refine: v.refine, refType: v.refType } : null]; }));
+      try {
+        const r = await R.helpAsk({ title: root.querySelector('[data-ha="title"]').value, set: { id: set.id, name: set.name, gear: slots },
+          plan: root.querySelector('[data-ha="plan"]').checked ? plan : null, toFeed: root.querySelector('[data-ha="feed"]').checked });
+        close(); UI.alert(r?.fed ? '✓ In Help Me und im Feed gepostet.' : '✓ In Help Me gepostet.');
+      } catch (e) {
+        root.querySelector('[data-ha="msg"]').innerHTML = `<span class="text-red-300">⚠ ${R.esc(R.tableMissing?.(e) ? 'Die Help-Me-Tabellen fehlen noch in Supabase.' : (RokAuth.germanError ? RokAuth.germanError(e) : e.message || e))}</span>`;
+        b.disabled = false; b.textContent = '🆘 Posten';
+      }
+    });
+    document.body.appendChild(root); document.body.style.overflow = 'hidden';
+  }
+
+  // ================= Mats-Kalender =================
+  // Rucksack heute + passiver Zuwachs aus dem Mats-Dashboard (R.matPassive, legendäre Einheiten, 'choice' = Wahlkisten).
+  // Die Schritte der Prio-Liste werden der Reihe nach „bezahlt“: jeder Schritt steht am ersten Tag, an dem der Bestand reicht.
+  const CAL_DAYS = 366, MATK = () => R.MATS.map(m => m.k);
+  let fcCache = null;
+  function matForecast() {
+    if (fcCache && Date.now() - fcCache.t < 20000) return fcCache;
+    const P = R.matPassive; if (!P) return null;
+    let now = {}, perDay = {}, sources = 0;
+    try { now = P.now() || {}; perDay = P.perDay() || {}; sources = P.sources() || 0; } catch (e) { console.warn('Mats-Dashboard nicht lesbar', e); }
+    const keys = [...MATK(), 'choice'], days = [];
+    for (let d = 0; d < CAL_DAYS; d++) { let inc = {}; if (d) { try { inc = P.income(d) || {}; } catch {} }
+      days.push(Object.fromEntries(keys.map(k => [k, (+now[k] || 0) + (+inc[k] || 0)]))); }
+    return (fcCache = { t: Date.now(), days, perDay, sources, hasScan: MATK().some(k => now[k] != null) });
+  }
+  const calChoice = () => gearOpt.calChoice !== false;          // Wahlkisten auf Lücken verteilen
+  const fits = (stock, need, useChoice) => { let gap = 0; MATK().forEach(k => { gap += Math.max(0, (need[k] || 0) - (stock[k] || 0)); }); return gap <= (useChoice ? stock.choice || 0 : 0) + 1e-6; };
+  // Prio-Liste (mit Etappen) → Tag je Schritt (null = nicht innerhalb eines Jahres, unknown = Kosten fehlen)
+  function projectList(list, fc, useChoice) {
+    const need = gZero(), out = []; let d = 0, lost = false, last = 0;
+    for (const x of list) {
+      if (x.ms) { out.push({ x, day: lost ? null : last }); continue; }
+      if (!x.cost) { out.push({ x, day: lost ? null : d, unknown: true }); continue; }
+      gAdd(need, x.cost);
+      while (!lost && d < CAL_DAYS && !fits(fc.days[d], need, useChoice)) d++;
+      if (d >= CAL_DAYS) lost = true;
+      out.push({ x, day: lost ? null : d }); if (!lost) last = d;
+    }
+    return { rows: out, end: lost ? null : last, need };
+  }
+  const dayDate = (d) => { const t = new Date(); t.setHours(0, 0, 0, 0); t.setDate(t.getDate() + d); return t; };
+  const dOffOf = (iso) => { if (!iso) return null; const t = new Date(iso + 'T00:00:00'); return Math.round((t - dayDate(0)) / 864e5); };
+  const dTxt = (d, long) => d == null ? '–' : d === 0 ? 'heute' : dayDate(d).toLocaleDateString('de-DE', long ? { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' } : { weekday: 'short', day: '2-digit', month: '2-digit' });
+  const isoOf = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  // Plan eines Sets fürs Ziel (Ziel-Ausrüstung oder alles Max) inkl. eigener Reihenfolge/Etappen
+  function setPlan(set, fc, mode) {
+    const target = (mode || set.goal.mode) === 'max' ? gMaxSlots(set) : set.ziel, calc = gearCalc(set, target), list = prioList(set, calc);
+    return { calc, list, proj: fc ? projectList(list, fc, calChoice()) : null };
+  }
+  R.matForecast = matForecast;
+
+  const cal = { setId: '', month: 0, sel: null };
+  function renderCal() {
+    const head = R.$('calHead'); if (!head) return;
+    const fc = matForecast();
+    if (!cal.setId || !gear.sets.some(s => s.id === cal.setId)) cal.setId = gear.active;
+    const set = gear.sets.find(s => s.id === cal.setId), plan = setPlan(set, fc, 'ziel');
+    const proj = plan.proj, perWeek = fc ? MATK().reduce((a, k) => a + (fc.perDay[k] || 0), 0) * 7 + (fc.perDay.choice || 0) * 7 : 0;
+    const kvk = R.kvkStartDate?.(), kvkD = dOffOf(kvk), goalD = dOffOf(set.goal.date);
+    const steps = proj ? proj.rows.filter(r => !r.x.ms) : [];
+    const endTxt = !steps.length ? '✓ Nichts zu tun – Ist und Ziel sind gleich.' : proj.end == null ? '⚠ Mit deinem passiven Zuwachs nicht innerhalb von 12 Monaten fertig.'
+      : `🎯 Ziel voraussichtlich erreicht: <b class="text-gold-300">${dTxt(proj.end, true)}</b>`;
+    const late = (d, ref) => d != null && ref != null ? (d <= ref ? `<span class="text-emerald-300">✓ ${ref - d} ${ref - d === 1 ? 'Tag' : 'Tage'} vorher</span>` : `<span class="text-red-300">✗ ${d - ref} ${d - ref === 1 ? 'Tag' : 'Tage'} zu spät</span>`) : '';
+    head.innerHTML = `<div class="flex flex-wrap items-start justify-between gap-3">
+        <div><h3 class="font-display text-xl gold-text">Mats-Kalender</h3>
+          <p class="text-xs text-slate-400 mt-1">Dein Rucksack + passiver Zuwachs aus dem Mats-Dashboard. Jeder Schritt deiner Prio-Liste steht an dem Tag, ab dem du ihn bezahlen kannst – in deiner Reihenfolge.</p></div>
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <select data-cal="set" translate="no" class="bg-ink-950 border border-ink-600 rounded-lg px-2.5 py-1.5 text-sm font-semibold focus:outline-none focus:border-gold-500">${gear.sets.map(s => `<option value="${R.esc(s.id)}"${s.id === set.id ? ' selected' : ''}>${R.esc(s.name)}</option>`).join('')}</select>
+          <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-300"><input type="checkbox" data-cal="choice" ${calChoice() ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">📦 Wahlkisten einrechnen</label>
+        </div></div>
+      <div class="mt-3 grid sm:grid-cols-3 gap-2 text-xs">
+        <div class="rounded-xl border border-ink-700 bg-ink-950/40 px-3 py-2">${fc && fc.sources ? `📈 Passiver Zuwachs: <b class="text-emerald-300">+${gq(perWeek)}</b> legendäre / Woche` : '⚠ Keine passiven Quellen eingestellt'}
+          <button type="button" data-cal="passive" class="block mt-1 underline text-gold-300 hover:text-gold-400">⚙ im Mats-Dashboard einstellen</button></div>
+        <div class="rounded-xl border border-ink-700 bg-ink-950/40 px-3 py-2">${endTxt}${goalD != null ? `<div class="mt-0.5">📅 Dein Zieldatum ${dTxt(goalD)} ${late(proj?.end, goalD)}</div>` : ''}</div>
+        <div class="rounded-xl border border-ink-700 bg-ink-950/40 px-3 py-2">${kvkD != null && kvkD >= 0 ? `🏰 KvK-Start ${dTxt(kvkD)} ${late(proj?.end, kvkD)}` : '🏰 Kein KvK-Start im Profil'}
+          ${kvk && set.goal.date !== kvk ? `<button type="button" data-cal="kvkgoal" class="block mt-1 underline text-gold-300 hover:text-gold-400">als Zieldatum übernehmen</button>` : ''}</div>
+      </div>
+      ${fc && !fc.hasScan ? '<div class="mt-2 text-xs text-amber-300">⚠ Noch kein Material-Scan – der Kalender rechnet nur mit dem passiven Zuwachs ab 0.</div>' : ''}`;
+
+    // Monatsansicht
+    const base = dayDate(0), first = new Date(base.getFullYear(), base.getMonth() + cal.month, 1), lastDay = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+    const byDay = new Map(); (proj?.rows || []).forEach(r => { if (r.day == null) return; if (!byDay.has(r.day)) byDay.set(r.day, []); byDay.get(r.day).push(r); });
+    const lead = (first.getDay() + 6) % 7, cells = [];
+    for (let i = 0; i < lead; i++) cells.push('<div></div>');
+    for (let dd = 1; dd <= lastDay; dd++) {
+      const date = new Date(first.getFullYear(), first.getMonth(), dd), off = Math.round((date - base) / 864e5), past = off < 0, here = byDay.get(off) || [];
+      const stock = !past && off < CAL_DAYS && fc ? fc.days[off] : null, isEnd = proj && proj.end === off && steps.length;
+      const marks = [off === kvkD ? '<span title="KvK-Start">🏰</span>' : '', off === goalD ? '<span title="Dein Zieldatum">📅</span>' : '', isEnd ? '<span title="Ziel erreicht">🎯</span>' : '',
+        ...here.filter(r => r.x.ms).map(r => `<span title="Etappe: ${R.esc(r.x.ms.name)}">🏁</span>`)].join('');
+      const icons = here.filter(r => !r.x.ms);
+      cells.push(`<button type="button" data-cal-day="${off}" ${past ? 'disabled' : ''} class="relative ${past ? 'min-h-[26px]' : 'min-h-[64px] sm:min-h-[104px]'} rounded-lg border text-left p-1 sm:p-1.5 transition ${past ? 'border-transparent opacity-30' : cal.sel === off ? 'border-gold-400 bg-gold-500/10' : off === 0 ? 'border-gold-500/50 bg-ink-950/60' : icons.length || marks ? 'border-ink-600 bg-ink-950/50 hover:border-gold-500/60' : 'border-ink-800 bg-ink-950/30 hover:border-ink-600'}">
+        <div class="flex items-center justify-between gap-1"><span class="text-[11px] font-bold ${off === 0 ? 'text-gold-300' : 'text-slate-300'}">${dd}</span><span class="text-xs leading-none">${marks}</span></div>
+        ${stock ? `<div class="hidden sm:grid grid-cols-2 gap-x-1 mt-0.5 text-[9px] leading-tight tabular-nums text-slate-400">${R.MATS.map(m => `<span>${m.icon}${Math.floor(stock[m.k])}</span>`).join('')}</div>` : ''}
+        ${icons.length ? `<div class="mt-1 flex flex-wrap gap-0.5">${icons.slice(0, 6).map(r => `<span title="${R.esc(r.x.label + ' · ' + (gItem(r.x.r.z.item)?.name || ''))}">${stepIcon(r.x.r.z, 'w-5 h-5 sm:w-7 sm:h-7 !border')}</span>`).join('')}${icons.length > 6 ? `<span class="text-[10px] text-slate-400">+${icons.length - 6}</span>` : ''}</div>` : ''}
+      </button>`);
+    }
+    R.$('calMonth').innerHTML = `<div class="flex items-center justify-between gap-2 mb-3">
+        <button type="button" data-cal="prev" ${cal.month <= 0 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 disabled:opacity-30">◀</button>
+        <div class="font-display text-lg gold-text">${first.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}</div>
+        <button type="button" data-cal="next" ${cal.month >= 11 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 disabled:opacity-30">▶</button></div>
+      <div class="grid grid-cols-7 gap-1 sm:gap-1.5 text-center text-[10px] uppercase tracking-widest text-slate-500 mb-1">${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(x => `<div>${x}</div>`).join('')}</div>
+      <div class="grid grid-cols-7 gap-1 sm:gap-1.5">${cells.join('')}</div>
+      <div class="mt-2 text-[11px] text-slate-500">Item-Symbol = Schritt ab diesem Tag machbar · 🏁 Etappe geschafft · 🎯 Ziel komplett · 📅 dein Zieldatum · 🏰 KvK-Start · Zahlen = dein Bestand an dem Tag (legendär)</div>`;
+
+    // Tag antippen → Details
+    const dayBox = R.$('calDay');
+    if (cal.sel != null && fc && cal.sel < CAL_DAYS) {
+      const off = cal.sel, stock = fc.days[off], here = (byDay.get(off) || []);
+      const next = proj?.rows.find(r => !r.x.ms && (r.day == null || r.day > off));
+      dayBox.classList.remove('hidden');
+      dayBox.innerHTML = `<div class="flex items-center justify-between gap-2"><h3 class="font-display text-lg gold-text">${dTxt(off, true)}</h3><button type="button" data-cal="closeday" class="text-slate-400 hover:text-white px-1">✕</button></div>
+        <div class="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-2">${[...R.MATS.map(m => [m.icon, m.label, stock[m.k]]), ['📦', 'Wahlkisten', stock.choice || 0]].map(([ic, l, v]) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 px-3 py-2"><div class="text-lg font-extrabold tabular-nums text-white">${ic} ${gq(v)}</div><div class="text-[11px] text-slate-400">${l}</div></div>`).join('')}</div>
+        ${here.length ? `<div class="mt-3 space-y-1.5">${here.map(r => r.x.ms ? `<div class="text-sm text-gold-200">🏁 Etappe „${R.esc(r.x.ms.name)}“ geschafft</div>`
+          : `<div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">${stepIcon(r.x.r.z, 'w-9 h-9')}<span class="font-semibold whitespace-nowrap">${R.esc(r.x.label)}</span><span class="text-slate-400 truncate min-w-0 flex-1" translate="no">${R.esc(gItem(r.x.r.z.item)?.name || '')}</span><span class="w-full sm:w-auto pl-11 sm:pl-0 text-xs text-slate-400 tabular-nums">${r.x.cost ? gCostText(r.x.cost) : ''}</span></div>`).join('')}</div>` : '<div class="mt-3 text-sm text-slate-500">An diesem Tag wird kein neuer Schritt machbar.</div>'}
+        ${next ? `<div class="mt-3 text-xs text-slate-400">Als Nächstes: <b class="text-slate-200">${R.esc(next.x.label)} · ${R.esc(gItem(next.x.r.z.item)?.name || '')}</b> ${next.day != null ? '→ ' + dTxt(next.day) : '(nicht innerhalb von 12 Monaten)'}</div>` : ''}`;
+    } else dayBox.classList.add('hidden');
+
+    // Ablauf als Liste (gut fürs Handy)
+    R.$('calAgenda').innerHTML = `<h3 class="font-display text-lg gold-text mb-2">Ablauf</h3>${!proj || !proj.rows.length ? '<div class="text-sm text-slate-500">Keine offenen Schritte – im Planer ein Ziel festlegen.</div>'
+      : `<div class="space-y-1.5">${proj.rows.map(r => r.x.ms
+        ? `<div class="flex items-center gap-2 rounded-lg border border-dashed border-gold-500/50 bg-gold-500/5 px-3 py-1.5"><span>🏁</span><b class="text-gold-200">${R.esc(r.x.ms.name)}</b><span class="ml-auto text-sm font-semibold ${r.day == null ? 'text-red-300' : 'text-emerald-300'}">${r.day == null ? 'nicht in 12 Monaten' : dTxt(r.day, true)}</span></div>`
+        : `<div class="flex items-center gap-2 rounded-lg border border-ink-700 bg-ink-950/40 px-2 py-1.5">${stepIcon(r.x.r.z, 'w-9 h-9')}
+            <div class="min-w-0 flex-1"><div class="text-sm font-semibold ${r.x.meta.k === 'craft' ? 'text-gold-300' : r.x.meta.k === 'tier' ? 'text-sky-300' : 'text-red-300'}">${R.esc(r.x.label)}</div><div class="text-[11px] text-slate-400 truncate" translate="no">${R.esc(gItem(r.x.r.z.item)?.name || '')} · ${r.x.r.sl.label}</div></div>
+            <span class="text-sm tabular-nums whitespace-nowrap ${r.unknown ? 'text-amber-300' : r.day == null ? 'text-red-300' : r.day === 0 ? 'text-emerald-300 font-semibold' : 'text-slate-200'}">${r.unknown ? 'Kosten fehlen' : r.day == null ? 'nicht in 12 Monaten' : r.day === 0 ? '✓ jetzt' : dTxt(r.day)}</span></div>`).join('')}</div>`}`;
+  }
+  R.$('craftCalPane').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-cal],[data-cal-day]'); if (!b || b.tagName === 'SELECT' || b.tagName === 'INPUT') return;
+    if (b.dataset.calDay != null) { const d = +b.dataset.calDay; cal.sel = cal.sel === d ? null : d; renderCal(); return; }
+    const a = b.dataset.cal, set = gear.sets.find(s => s.id === cal.setId);
+    if (a === 'prev' || a === 'next') { cal.month = Math.max(0, Math.min(11, cal.month + (a === 'next' ? 1 : -1))); renderCal(); }
+    else if (a === 'closeday') { cal.sel = null; renderCal(); }
+    else if (a === 'passive') { R.goScan?.('mats'); R.setAreaTab?.('stats'); }
+    else if (a === 'kvkgoal' && set) { set.goal = gNormGoal({ ...set.goal, date: R.kvkStartDate?.() || '' }); R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderCal(); }
+  });
+  R.$('craftCalPane').addEventListener('change', (ev) => {
+    const a = ev.target.dataset.cal;
+    if (a === 'set') { cal.setId = ev.target.value; cal.sel = null; renderCal(); }
+    else if (a === 'choice') { gearOpt.calChoice = ev.target.checked; saveGearOpt(); fcCache = null; renderCal(); }
   });
 
   // ================= Craft-Verlauf (eigenes Fenster im Craft-Tab) =================
@@ -1258,6 +1445,7 @@ window.RokMods.crafting = (R) => {
     R.$('craftPlanPane').classList.toggle('hidden', craftPane !== 'plan');
     R.$('craftHistPane').classList.toggle('hidden', craftPane !== 'hist');
     R.$('craftGoalPane').classList.toggle('hidden', craftPane !== 'goal');
+    R.$('craftCalPane').classList.toggle('hidden', craftPane !== 'cal');
     document.querySelectorAll('[data-cpane]').forEach(b => { const on = b.dataset.cpane === craftPane;
       b.className = `px-4 py-2 rounded-lg text-sm font-semibold transition ${on ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'}`; });
     R.$('chPageHist').classList.toggle('hidden', chPage !== 'hist');
@@ -1266,6 +1454,7 @@ window.RokMods.crafting = (R) => {
       b.className = `px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${on ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-transparent text-slate-400 hover:text-gold-300'}`; });
     if (craftPane === 'hist') { renderCraftHist(); renderHistEditor(); renderSnaps(); }
     if (R.view === 'craft' && craftPane === 'goal') renderGoals();
+    if (R.view === 'craft' && craftPane === 'cal') renderCal();
     if (R.view === 'craft' && craftPane === 'plan') renderGearMain();
   }
   document.querySelectorAll('[data-cpane]').forEach(b => b.onclick = () => { craftPane = b.dataset.cpane; renderCraftPanes(); });

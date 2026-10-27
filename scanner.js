@@ -2226,6 +2226,9 @@ window.RokApp = () => {
   const pmIncome = (m, days) => pmOn(m).reduce((a, x) => pmAdd(a, pmInc(m, x, days)), {});
   const pmDayTotal = (m) => pmOn(m).reduce((a, x) => pmAdd(a, pmPerDay(m, x)), {});
   const pmSum = (o) => Object.values(o || {}).reduce((a, v) => a + (+v || 0), 0);
+  // Für den Craft-Kalender (crafting.js): Rucksack heute + passiver Zuwachs bis Tag d – legendäre Einheiten, 'choice' = Wahlkisten
+  R.matPassive = { now: () => PMOD.mats.now(), income: (d) => pmIncome('mats', d), perDay: () => pmDayTotal('mats'), sources: () => pmOn('mats').length };
+  R.kvkStartDate = () => kvkStartDate();
   function renderPM(m) {
     const cf = PMOD[m], pt = $('passTop');
     const inp = 'w-24 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500';
