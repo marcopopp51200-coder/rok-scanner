@@ -185,7 +185,12 @@ window.RokMods.crafting = (R) => {
   const gTier = (v) => { if (typeof v === 'string' && /^\s*[ivx]+\s*$/i.test(v)) return Math.min(5, ROMAN.indexOf(v.trim().toUpperCase()) + 1); const n = Math.round(+v); return Number.isFinite(n) ? Math.min(5, Math.max(0, n)) : 0; }; R.gTier = gTier;
   // goal: Ziel des Sets – mode 'ziel' (Ziel-Ausrüstung) | 'max' (alles Max), date = Zieldatum JJJJ-MM-TT, on = im Gesamtziel mitrechnen
   const gNormGoal = (g) => ({ mode: g?.mode === 'max' ? 'max' : 'ziel', date: /^\d{4}-\d{2}-\d{2}$/.test(String(g?.date || '')) ? g.date : '', on: g?.on !== false });
-  const newGearSet = (name) => ({ id: R.newId(), name, ist: gEmptySlots(), ziel: gEmptySlots(), dismantle: false, useChests: false, goal: gNormGoal(), updated: Date.now() });
+  // prio: eigene Reihenfolge der Prio-Liste (order = Schritt-Schlüssel und Etappen 'ms:<id>'), mode = Grundsortierung, upto = Mitte rechnet bis Etappe
+  const gNormPrio = (pr) => ({ mode: ['cheap', 'level', 'slot'].includes(pr?.mode) ? pr.mode : 'cheap',
+    order: Array.isArray(pr?.order) ? pr.order.map(String).slice(0, 400) : [],
+    ms: Array.isArray(pr?.ms) ? pr.ms.filter(m => m && m.id).map(m => ({ id: String(m.id), name: String(m.name || 'Etappe').slice(0, 30) })).slice(0, 12) : [],
+    upto: String(pr?.upto || '') });
+  const newGearSet = (name) => ({ id: R.newId(), name, ist: gEmptySlots(), ziel: gEmptySlots(), dismantle: false, useChests: false, goal: gNormGoal(), prio: gNormPrio(), updated: Date.now() });
   function gNormSet(s) {
     const o = newGearSet(String(s?.name || 'Set').slice(0, 40));
     if (s?.id) o.id = String(s.id);
@@ -194,6 +199,7 @@ window.RokMods.crafting = (R) => {
     o.histBase = Object.fromEntries(GEAR_SLOTS.map(sl => { const v = (s?.histBase || o.ist)[sl.k] || {}; return [sl.k, { item: String(v.item || ''), rarity: R.gRar(v.rarity), tier: gTier(v.tier), refine: gRefine(v.refine), refType: gRefType(v.refType) }]; }));
     o.dismantle = !!s?.dismantle; o.useChests = !!s?.useChests; o.goal = gNormGoal(s?.goal); o.updated = +s?.updated || Date.now();
     o.sc = s?.sc?.scId && s?.sc?.setId ? { scId: String(s.sc.scId), setId: String(s.sc.setId) } : null;   // verbundenes Showcase-Set
+    o.prio = gNormPrio(s?.prio);
     return o;
   }
   let gear = { sets: [], active: null };
@@ -389,14 +395,12 @@ window.RokMods.crafting = (R) => {
         ${it ? `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="clear" title="Slot leeren" class="px-2 py-1.5 rounded-lg border border-ink-600 text-slate-400 hover:border-red-500/50 hover:text-red-300 text-xs">✕</button>` : ''}
       </div>
       <div class="flex flex-wrap items-center gap-1.5 text-xs ${it ? '' : 'opacity-40'}">
-        <span class="text-slate-400 mr-1">Refine</span>
-        <button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refset" data-v="" ${it ? '' : 'disabled'} class="${rb(!hasRef)}">Kein</button>
-        ${Object.entries(REFTYPES).map(([k, t]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refset" data-v="${k}" ${it ? '' : 'disabled'} title="${t.label}" class="${rb(hasRef && v.refType === k)}">
-          <img src="${t.img}" alt="" class="w-5 h-5 ${hasRef && v.refType === k ? '' : 'grayscale opacity-70'}"><span class="hidden sm:inline">${t.label}</span></button>`).join('')}
+        <span class="text-slate-400 w-14">Refine</span>
+        ${[0, 25, 50, 75, 100].map(p => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refine" data-v="${p}" ${it ? '' : 'disabled'} class="${rb((v.refine || 0) === p)} font-semibold tabular-nums">${p === 0 ? 'Kein' : p >= 100 ? 'Voll' : p + '%'}</button>`).join('')}
       </div>
-      ${hasRef ? `<div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs"><span class="text-slate-400 mr-1">Fortschritt</span>
-        ${[25, 50, 75, 100].map(p => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refine" data-v="${p}" class="${rb(v.refine === p)} font-semibold tabular-nums">${p >= 100 ? 'Voll' : p + '%'}</button>`).join('')}
-        <span class="text-[10px] text-slate-500">je 25 % = 1 Refine</span></div>` : ''}
+      ${hasRef ? `<div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs"><span class="text-slate-400 w-14">Typ</span>
+        ${Object.entries(REFTYPES).map(([k, t]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refset" data-v="${k}" title="${t.label}" class="${rb(v.refType === k)}">
+          <img src="${t.img}" alt="" class="w-5 h-5 ${v.refType === k ? '' : 'grayscale opacity-70'}"><span class="hidden sm:inline">${t.label}</span></button>`).join('')}</div>` : ''}
       ${it?.eq && (side === 'ziel' || side === 'ist') ? `<div class="mt-2 text-[11px] ${Object.keys(it.eq.costs || {}).length < 7 && maxTier(it) ? 'text-amber-300' : 'text-slate-500'}">
         ${(() => { const n = CE_ROWS.filter(([st]) => it.eq.costs?.[st]).length, need = it.rarity === 'legendary' || n > 2 ? 7 : 2; return n >= need ? '✓ Kosten eingetragen' : `⚠ Kosten: ${n} von ${need} Stufen eingetragen`; })()}
         <button type="button" data-cedit-slot="${R.esc(it.eq.id)}" class="ml-1 underline hover:text-gold-300">${gAdmin ? 'eintragen/ändern' : 'ansehen'}</button></div>` : ''}
@@ -411,7 +415,12 @@ window.RokMods.crafting = (R) => {
     R.$('gearSetSel').innerHTML = gear.sets.map(s => `<option value="${R.esc(s.id)}"${s.id === set.id ? ' selected' : ''}>${R.esc(s.name)}</option>`).join('');
     renderScLink(set);
     renderHistBar(set);
-    const calc = gearCalc(set), st = gearStock(), lines = gearBalance(calc, st, set.useChests);
+    const calc = gearCalc(set), st = gearStock();
+    // Prio-Liste + optional „Rechnen bis Etappe“: die Mitte zeigt dann nur den Bedarf bis dorthin
+    const list = prioList(set, calc);
+    if (set.prio.upto && !set.prio.ms.some(m => m.id === set.prio.upto)) set.prio.upto = '';
+    const part = set.prio.upto ? prioUpto(list, set.prio.upto) : null, need = part ? part.need : calc.need;
+    const lines = gearBalance({ need, back: gZero() }, st, set.useChests);
 
     R.$('gearIstBoard').innerHTML = gearBoard('ist', set, calc);
     R.$('gearZielBoard').innerHTML = gearBoard('ziel', set, calc);
@@ -419,16 +428,17 @@ window.RokMods.crafting = (R) => {
     R.$('gearZielEdit').innerHTML = gearEditor('ziel', set, calc);
 
     // Ergebnis-Dashboard
-    const crafts = calc.rows.filter(r => r.status === 'craft');
-    const totalLeg = R.MATS.reduce((a, m) => a + calc.need[m.k], 0);
+    const crafts = part ? part.steps.filter(x => x.meta.k === 'craft') : calc.rows.filter(r => r.status === 'craft');
+    const totalLeg = gMatSum(need), fullLeg = gMatSum(calc.need);
     const missing = st.mats ? lines.filter(l => l.deficit > 0.005).length : 0;
     const maxCalc = gearCalc(set, gMaxSlots(set)), maxLeg = gMatSum(maxCalc.need);
-    const zielIsMax = Math.abs(maxLeg - totalLeg) < 0.01 && Math.abs(maxCalc.need.gold - calc.need.gold) < 1;
-    const steps = { tiers: calc.rows.reduce((a, r) => a + Math.max(0, r.tierTo - r.tierFrom), 0), refines: calc.rows.filter(r => r.needRefine).length };
-    const unknown = calc.rows.filter(r => r.craftMissing || r.tierMissing.length || r.refMissing).map(r => `${r.sl.label}${r.craftMissing ? ' Craften' : ''}${r.tierMissing.length ? ' ' + r.tierMissing.map(t => 'T' + t).join('/') : ''}${r.refMissing ? ' Refine' : ''}`);
+    const zielIsMax = Math.abs(maxLeg - fullLeg) < 0.01 && Math.abs(maxCalc.need.gold - calc.need.gold) < 1;
+    const steps = part ? { tiers: part.steps.filter(x => x.meta.k === 'tier').length, refines: part.steps.filter(x => x.meta.k === 'refine').length }
+      : { tiers: calc.rows.reduce((a, r) => a + Math.max(0, r.tierTo - r.tierFrom), 0), refines: calc.rows.filter(r => r.needRefine).length };
+    const unknown = part ? part.unknown.map(x => `${x.r.sl.label} ${x.label}`) : calc.rows.filter(r => r.craftMissing || r.tierMissing.length || r.refMissing).map(r => `${r.sl.label}${r.craftMissing ? ' Craften' : ''}${r.tierMissing.length ? ' ' + r.tierMissing.map(t => 'T' + t).join('/') : ''}${r.refMissing ? ' Refine' : ''}`);
     const xStock = { gold: null, crystal: null, bp: null };          // Bestand an Gold/Kristallen wird nicht erfasst
-    const verdict = !gAny(calc.need) && unknown.length ? ['⚠ Für dieses Ziel sind noch keine Kosten eingetragen (gear-data.json).', 'text-amber-300']
-      : !gAny(calc.need) ? ['✓ Keine Zusatzkosten – das Ziel-Set entspricht der Ist-Ausrüstung oder ist leer.', 'text-emerald-300']
+    const verdict = !gAny(need) && unknown.length ? ['⚠ Für dieses Ziel sind noch keine Kosten eingetragen (gear-data.json).', 'text-amber-300']
+      : !gAny(need) ? ['✓ Keine Zusatzkosten – das Ziel-Set entspricht der Ist-Ausrüstung oder ist leer.', 'text-emerald-300']
       : !st.mats ? ['⚠ Bestand unbekannt – bitte zuerst deine Materialien scannen.', 'text-amber-300']
       : missing ? [`🔴 ${missing} von 4 Materialien reichen noch nicht.`, 'text-red-300'] : ['🟢 Alles vorhanden – das Set kann geschmiedet werden.', 'text-emerald-300'];
     // Mitte zwischen Ist und Ziel: nur die Materialien, die gebraucht werden
@@ -441,16 +451,17 @@ window.RokMods.crafting = (R) => {
         <div class="mt-1 flex justify-between gap-2 text-[11px] tabular-nums">
           <span class="text-slate-500">${known ? `hast ${gq(have)}${l.back > 1e-4 ? ' (inkl. ♻ ' + gq(l.back) + ')' : ''}${l.chest > 1e-4 ? ' (inkl. 📦 ' + gq(l.chest) + ')' : ''}` : 'Bestand ?'}</span>
           <span class="font-semibold ${!known ? 'text-slate-500' : l.deficit > 0.005 ? 'text-red-300' : 'text-emerald-300'}">${!known ? '' : l.deficit > 0.005 ? 'fehlt ' + gq(l.deficit) : '✓ genug'}</span></div></div>`; };
-    const xRow = (x) => { const n = calc.need[x.k] || 0, have = xStock[x.k], miss = have == null ? null : Math.max(0, n - have);
+    const xRow = (x) => { const n = need[x.k] || 0, have = xStock[x.k], miss = have == null ? null : Math.max(0, n - have);
       return `<div class="rounded-xl border ${miss == null ? 'border-ink-700' : miss > 0 ? 'border-red-500/40' : 'border-emerald-500/40'} bg-ink-950/50 px-3 py-2">
         <div class="flex items-center gap-2"><span class="text-lg leading-none">${x.icon}</span><span class="text-xs text-slate-300 flex-1">${x.label}</span>
           <span class="text-base font-extrabold tabular-nums text-white">${x.f(n)}</span></div>
         ${miss != null ? `${bar(have, n)}<div class="mt-1 flex justify-between gap-2 text-[11px] tabular-nums"><span class="text-slate-500">hast ${x.f(have)}</span>
           <span class="font-semibold ${miss > 0 ? 'text-red-300' : 'text-emerald-300'}">${miss > 0 ? 'fehlt ' + x.f(miss) : '✓ genug'}</span></div>` : ''}</div>`; };
-    const needMats = lines.filter(l => l.gross > 0.005), needX = GX.filter(x => (calc.need[x.k] || 0) > 0.005);
+    const needMats = lines.filter(l => l.gross > 0.005), needX = GX.filter(x => (need[x.k] || 0) > 0.005);
     R.$('gearMid').innerHTML = `
       <div class="text-center">
-        <div class="text-[10px] uppercase tracking-widest text-slate-400">Benötigt für das Ziel</div>
+        <div class="text-[10px] uppercase tracking-widest text-slate-400">Benötigt ${part ? 'bis Etappe' : 'für das Ziel'}</div>
+        ${set.prio.ms.length ? `<div class="mt-1.5 flex flex-wrap justify-center gap-1">${[['', '🎯 Ziel komplett'], ...list.filter(x => x.ms).map(x => [x.ms.id, '🏁 ' + x.ms.name])].map(([id, l]) => `<button type="button" data-upto="${R.esc(id)}" class="${hChip(set.prio.upto === id)} !text-[10px] !px-2">${R.esc(l)}</button>`).join('')}</div>` : ''}
         <div class="font-display text-lg gold-text truncate" translate="no">${R.esc(set.name)}</div>
         <div class="mt-1 text-3xl font-extrabold text-gold-300 tabular-nums">${gq(totalLeg)}</div>
         <div class="text-[11px] text-slate-400">legendäre Materialien</div>
@@ -470,67 +481,160 @@ window.RokMods.crafting = (R) => {
     R.$('gearResult').innerHTML = '';
 
     // Prio-Liste: nur offene Schritte, günstigste zuerst (je Teil bleibt die Reihenfolge Craften → Tier → Refine)
-    renderPrio(set, calc, st);
+    renderPrio(set, list, st);
   }
 
-  // ---- Prio-Liste ----
+  // ---- Prio-Liste: offene Schritte in frei wählbarer Reihenfolge, mit Etappen (Zwischenzielen) ----
   const stepScore = (c) => c ? gMatSum(c) + (c.gold || 0) / 1e8 : Infinity;
-  function gearSteps(calc) {
-    const queues = calc.rows.filter(r => r.parts.length).map(r => r.parts.map(([label, cost, meta]) => ({ r, label, cost, meta })));
-    const out = [];
-    while (queues.some(q => q.length)) {                    // immer den günstigsten nächsten Schritt nehmen
-      let best = null;
-      queues.forEach(q => { if (q.length && (!best || stepScore(q[0].cost) < stepScore(best[0].cost))) best = q; });
-      out.push(best.shift());
+  const gScale = (c, n) => { const o = gZero(); Object.keys(o).forEach(k => o[k] = (c[k] || 0) * n); return o; };
+  // je Slot eine Kette: Craften → Tier-Stufen → Refine (alle 25-%-Schritte als ein Schritt)
+  function gearQueues(calc) {
+    return calc.rows.filter(r => r.parts.length).map(r => {
+      const id = r.z.item, k = r.sl.k, q = [], refs = r.parts.filter(p => p[2]?.k === 'refine');
+      r.parts.forEach(([label, cost, meta]) => { if (meta?.k !== 'refine') q.push({ key: `${k}|${meta.k}|${meta.t || ''}|${id}`, r, label, cost, meta }); });
+      if (refs.length) { const unit = refs[0][1], n = refs.length;
+        q.push({ key: `${k}|refine||${id}`, r, label: `Refine ${r.refFrom ? gRefTxt(r.refFrom) + ' → ' : ''}${gRefTxt(r.refTo)}`, cost: unit ? gScale(unit, n) : null,
+          meta: { k: 'refine', p: r.refTo, from: r.refFrom, n, unit } }); }
+      q.forEach((x, i) => { x.pre = i ? q[i - 1].key : null; });
+      return q;
+    });
+  }
+  const PRIO_MODES = { cheap: '💰 Günstigste zuerst', level: '⬆ Stufe für Stufe', slot: '🧩 Teil für Teil' };
+  function prioDefault(queues, mode) {
+    if (mode === 'slot') return queues.flat();
+    if (mode === 'level') {                                   // erst alles craften, dann alle Teile auf T1, T2 … – Refine zum Schluss
+      const rank = (x) => x.meta.k === 'craft' ? 0 : x.meta.k === 'tier' ? x.meta.t : 6;
+      return queues.flat().map((x, i) => [x, i]).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(([x]) => x);
     }
+    const qs = queues.map(q => [...q]), out = [];             // günstigster nächster Schritt
+    while (qs.some(q => q.length)) { let best = null; qs.forEach(q => { if (q.length && (!best || stepScore(q[0].cost) < stepScore(best[0].cost))) best = q; }); out.push(best.shift()); }
     return out;
+  }
+  // eigene Reihenfolge anwenden; ein Schritt kommt nie vor seinem Vorgänger im selben Teil (der wird mitgezogen)
+  function prioList(set, calc) {
+    const queues = gearQueues(calc), by = new Map(queues.flat().map(x => [x.key, x])), ms = new Map(set.prio.ms.map(m => [m.id, m]));
+    const out = [], done = new Set();
+    const emit = (k) => { const x = by.get(k); if (!x || done.has(k)) return; if (x.pre) emit(x.pre); done.add(k); out.push(x); };
+    set.prio.order.forEach(k => { if (k.startsWith('ms:')) { const m = ms.get(k.slice(3)); if (m && !done.has(k)) { done.add(k); out.push({ key: k, ms: m }); } } else emit(k); });
+    prioDefault(queues, set.prio.mode).forEach(x => emit(x.key));
+    set.prio.ms.forEach(m => { if (!done.has('ms:' + m.id)) out.push({ key: 'ms:' + m.id, ms: m }); });
+    return out;
+  }
+  // Summe der Schritte bis zu einer Etappe (upto = Etappen-ID, '' = alles)
+  function prioUpto(list, upto) {
+    const need = gZero(), steps = [];
+    for (const x of list) { if (x.ms) { if (x.ms.id === upto) break; continue; } steps.push(x); if (x.cost) gAdd(need, x.cost); }
+    return { need, steps, unknown: steps.filter(x => !x.cost) };
   }
   const stepIcon = (v, cls = 'w-12 h-12') => { const it = gItem(v?.item), f = GFILL[it?.rarity || v?.rarity] || GFILL.legendary;
     return `<span class="relative shrink-0 ${cls} rounded-xl grid place-items-center border-2" style="border-color:${f[1]};background:radial-gradient(circle at 50% 40%, ${f[1]}66, ${f[2]}55)">
       ${it?.icon ? `<img src="${it.icon}" alt="" loading="lazy" class="w-[86%] h-[86%] object-contain [filter:drop-shadow(0_2px_2px_rgba(0,0,0,.5))]">` : `<span class="text-[9px] font-bold text-white text-center leading-tight px-0.5">${R.esc(it?.name || '?')}</span>`}</span>`; };
-  function renderPrio(set, calc, st) {
-    const steps = gearSteps(calc), box = R.$('gearPlan');
-    if (!steps.length) { box.innerHTML = `<h3 class="font-display text-xl gold-text">Prio-Liste</h3><div class="mt-3 py-6 text-center text-sm text-emerald-300">✓ Nichts mehr zu tun – Ist und Ziel sind gleich.</div>`; return; }
-    const run = gZero(); let ok = !!st.mats;
-    const rows = steps.map((x, i) => {
-      if (x.cost) gAdd(run, x.cost);
+  let prioCache = { list: [] };
+  function renderPrio(set, list, st) {
+    const box = R.$('gearPlan'); prioCache = { list };
+    const steps = list.filter(x => !x.ms);
+    const head = `<div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+        <div><h3 class="font-display text-xl gold-text">Prio-Liste</h3>
+          <p class="text-xs text-slate-400">${steps.length} ${steps.length === 1 ? 'Schritt' : 'Schritte'} offen · ziehen oder ▲▼ zum Umsortieren (Stufen eines Teils bleiben in ihrer Reihenfolge) · 🏁 Etappe = Zwischenziel · grün = mit deinem Rucksack machbar</p></div>
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <span class="text-slate-400">Sortieren:</span>${Object.entries(PRIO_MODES).map(([k, l]) => `<button type="button" data-pmode="${k}" class="${hChip(set.prio.mode === k && !set.prio.order.some(o => !o.startsWith('ms:')))}">${l}</button>`).join('')}
+          <button type="button" data-pms-add class="px-2.5 py-1 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400 font-semibold">🏁 + Etappe</button>
+        </div></div>`;
+    if (!steps.length && !set.prio.ms.length) { box.innerHTML = head + '<div class="py-6 text-center text-sm text-emerald-300">✓ Nichts mehr zu tun – Ist und Ziel sind gleich.</div>'; return; }
+    const run = gZero(); let ok = !!st.mats, n = 0, seg = gZero(), segN = 0;
+    const btn = 'w-7 h-7 grid place-items-center rounded-md border border-ink-600 text-slate-400 hover:border-gold-500/60 hover:text-gold-300 text-xs';
+    const rows = list.map((x, i) => {
+      // ▲/▼ gesperrt, wenn der Nachbar im selben Teil davor/danach kommen muss (z. B. Tier II nie vor Tier I)
+      const upLock = i === 0 || (!x.ms && list[i - 1]?.key === x.pre), downLock = i === list.length - 1 || (!x.ms && list[i + 1]?.pre === x.key);
+      const move = `<div class="flex flex-col gap-0.5 shrink-0"><button type="button" data-pmove="${i}:-1" ${upLock ? 'disabled' : ''} class="${btn} !h-6 disabled:opacity-25 disabled:pointer-events-none" title="nach oben">▲</button><button type="button" data-pmove="${i}:1" ${downLock ? 'disabled' : ''} class="${btn} !h-6 disabled:opacity-25 disabled:pointer-events-none" title="nach unten">▼</button></div>`;
+      if (x.ms) {
+        const html = `<div draggable="true" data-pkey="${R.esc(x.key)}" class="prio-row flex items-center gap-3 rounded-xl border-2 border-dashed border-gold-500/60 bg-gold-500/10 px-3 py-2">
+          <span class="cursor-grab text-slate-500 select-none" title="ziehen">⋮⋮</span>
+          <span class="text-2xl">🏁</span>
+          <div class="min-w-0 flex-1">
+            <div class="font-display text-lg gold-text truncate">${R.esc(x.ms.name)}</div>
+            <div class="text-xs text-slate-300 tabular-nums">${segN} ${segN === 1 ? 'Schritt' : 'Schritte'} · ${gq(gMatSum(seg))} leg. Mats${seg.gold ? ' · 🪙 ' + gGold(seg.gold) : ''} <span class="text-slate-500">· bis hier gesamt ${gq(gMatSum(run))}</span></div>
+          </div>
+          <span class="text-xs font-semibold ${ok ? 'text-emerald-300' : 'text-slate-400'}">${ok ? '✓ machbar' : st.mats ? 'noch nicht' : ''}</span>
+          <button type="button" data-pms-ren="${R.esc(x.ms.id)}" class="${btn}" title="umbenennen">✎</button>
+          <button type="button" data-pms-del="${R.esc(x.ms.id)}" class="${btn} hover:!border-red-500/60 hover:!text-red-300" title="Etappe löschen">✕</button>
+          ${move}</div>`;
+        seg = gZero(); segN = 0; return html;
+      }
+      n++; segN++;
+      if (x.cost) { gAdd(run, x.cost); gAdd(seg, x.cost); }
       const lack = st.mats && x.cost ? R.MATS.filter(m => run[m.k] > st.mats[m.k] + 1e-6) : [];
       if (!x.cost || lack.length) ok = false;
       const kind = x.meta.k === 'craft' ? ['⚒', 'text-gold-300'] : x.meta.k === 'tier' ? ['⬆', 'text-sky-300'] : ['✦', 'text-red-300'];
-      return `<div class="flex items-center gap-3 rounded-xl border ${ok ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-700 bg-ink-950/40'} p-2.5">
-        <span class="w-6 text-center text-sm font-bold text-slate-500 tabular-nums">${i + 1}</span>
-        ${stepIcon(x.r.z)}
+      const v = x.r.z, it = gItem(v.item);
+      return `<div draggable="true" data-pkey="${R.esc(x.key)}" class="prio-row flex items-center gap-2 sm:gap-3 rounded-xl border ${ok ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-700 bg-ink-950/40'} p-2">
+        <span class="cursor-grab text-slate-600 select-none hidden sm:inline" title="ziehen">⋮⋮</span>
+        <span class="w-5 text-center text-sm font-bold text-slate-500 tabular-nums">${n}</span>
+        ${stepIcon(v)}
         <div class="min-w-0 flex-1 text-center">
-          <div class="text-base font-bold ${kind[1]}">${kind[0]} ${R.esc(x.label)}</div>
-          <div class="text-xs text-slate-300 truncate" translate="no">${R.esc(gItem(x.r.z.item)?.name || '')} <span class="text-slate-500">· ${x.r.sl.label}</span></div>
+          <div class="text-base font-bold ${kind[1]}">${kind[0]} ${R.esc(x.label)}${x.meta.k === 'refine' && x.meta.n > 1 ? ` <span class="text-xs font-semibold text-slate-400">(${x.meta.n}× Refine)</span>` : ''}</div>
+          <div class="text-xs text-slate-300 truncate" translate="no">${R.esc(it?.name || '')} <span class="text-slate-500">· ${x.r.sl.label}</span></div>
           <div class="mt-0.5 text-xs tabular-nums ${x.cost ? 'text-slate-200' : 'text-amber-300'}">${x.cost ? gCostText(x.cost) : '⚠ Kosten fehlen'}</div>
         </div>
         <div class="shrink-0 flex flex-col items-end gap-1">
           ${ok ? '<span class="text-[11px] font-semibold text-emerald-300">✓ machbar</span>' : st.mats && lack.length ? `<span class="text-[11px] text-red-300">fehlt ${lack.map(m => m.icon).join('')}</span>` : ''}
-          <button type="button" data-step="${i}" class="px-2.5 py-1.5 rounded-lg border border-ink-600 hover:border-emerald-400 hover:text-emerald-300 text-xs font-semibold" title="Schritt erledigt – Ist-Ausrüstung wird angepasst">✓ Erledigt</button>
-        </div></div>`;
+          <div class="flex gap-1">
+            ${x.meta.k === 'refine' && x.meta.n > 1 ? `<button type="button" data-pdone="${i}:1" class="px-2 py-1.5 rounded-lg border border-ink-600 hover:border-emerald-400 hover:text-emerald-300 text-xs font-semibold" title="einen Refine (+25 %) erledigt">+25%</button>` : ''}
+            <button type="button" data-pdone="${i}" class="px-2.5 py-1.5 rounded-lg border border-ink-600 hover:border-emerald-400 hover:text-emerald-300 text-xs font-semibold" title="Schritt erledigt – Ist-Ausrüstung wird angepasst">✓ Erledigt</button>
+          </div></div>
+        ${move}</div>`;
     }).join('');
-    box.innerHTML = `<div class="flex flex-wrap items-end justify-between gap-2 mb-3">
-        <div><h3 class="font-display text-xl gold-text">Prio-Liste</h3>
-          <p class="text-xs text-slate-400">${steps.length} ${steps.length === 1 ? 'Schritt' : 'Schritte'} offen · günstigste zuerst · grün = mit deinem Rucksack machbar (der Reihe nach)</p></div>
-      </div>
-      <div class="space-y-2">${rows}</div>`;
-    box._steps = steps;
+    box.innerHTML = head + `<div id="prioRows" class="space-y-2">${rows}</div>`;
   }
-  // Schritt erledigt → Ist-Ausrüstung anpassen (landet erst mit „In History speichern“ in der History)
-  R.$('gearPlan').addEventListener('click', (ev) => {
-    const b = ev.target.closest('[data-step]'); if (!b) return;
-    const x = R.$('gearPlan')._steps?.[+b.dataset.step]; if (!x) return;
-    const set = activeSet(), k = x.r.sl.k, z = x.r.z;
-    if (x.r.from && x.r.from !== set.ist[k]) {                  // Accessoire kommt aus dem anderen Slot → Plätze tauschen
-      const src = GEAR_SLOTS.find(sl => set.ist[sl.k] === x.r.from);
-      if (src) { const t = set.ist[k]; set.ist[k] = set.ist[src.k]; set.ist[src.k] = t; }
+  // Reihenfolge speichern (alle angezeigten Schlüssel inkl. Etappen)
+  const prioSave = (set, keys) => { set.prio.order = keys; saveGear(); renderGearMain(); };
+  const prioKeys = () => prioCache.list.map(x => x.key);
+  R.$('gearPlan').addEventListener('click', async (ev) => {
+    const t = ev.target, b = (a) => t.closest(`[data-${a}]`), set = activeSet();
+    if (b('pmode')) {
+      const m = b('pmode').dataset.pmode;
+      if (set.prio.order.some(k => !k.startsWith('ms:')) && !(await UI.confirm('Liste neu sortieren? Deine eigene Reihenfolge geht dabei verloren (Etappen kommen ans Ende).'))) return;
+      set.prio.mode = m; set.prio.order = []; saveGear(); renderGearMain(); return;
     }
-    const v = set.ist[k];
-    if (x.meta.k === 'craft') set.ist[k] = { item: z.item, rarity: z.rarity, tier: 0, refine: 0, refType: z.refType };
-    else if (x.meta.k === 'tier') v.tier = x.meta.t;
-    else if (x.meta.k === 'refine') { if (v.refType !== z.refType) v.refine = 0; v.refType = z.refType; v.refine = x.meta.p; }
-    delete gearFlags[k]; saveGear(); renderGearMain();
+    if (b('pms-add')) {
+      const name = await UI.prompt('Name der Etappe (Zwischenziel):', `Etappe ${set.prio.ms.length + 1}`); if (name == null) return;
+      const m = { id: R.newId(), name: name.trim().slice(0, 30) || `Etappe ${set.prio.ms.length + 1}` };
+      set.prio.ms.push(m);
+      const keys = prioKeys(), at = Math.min(keys.length, Math.max(1, Math.ceil(keys.filter(k => !k.startsWith('ms:')).length / 2)));   // erst mal in die Mitte – dann verschieben
+      keys.splice(at, 0, 'ms:' + m.id); prioSave(set, keys); return;
+    }
+    if (b('pms-ren')) { const m = set.prio.ms.find(x => x.id === b('pms-ren').dataset.pmsRen); if (!m) return;
+      const name = await UI.prompt('Neuer Name der Etappe:', m.name); if (name == null) return; m.name = name.trim().slice(0, 30) || m.name; saveGear(); renderGearMain(); return; }
+    if (b('pms-del')) { const id = b('pms-del').dataset.pmsDel; set.prio.ms = set.prio.ms.filter(x => x.id !== id); set.prio.order = set.prio.order.filter(k => k !== 'ms:' + id); if (set.prio.upto === id) set.prio.upto = ''; saveGear(); renderGearMain(); return; }
+    if (b('pmove')) { const [i, d] = b('pmove').dataset.pmove.split(':').map(Number), keys = prioKeys(), j = i + d; if (j < 0 || j >= keys.length) return;
+      [keys[i], keys[j]] = [keys[j], keys[i]]; prioSave(set, keys); return; }
+    if (b('pdone')) {
+      const [i, one] = b('pdone').dataset.pdone.split(':'), x = prioCache.list[+i]; if (!x || x.ms) return;
+      const k = x.r.sl.k, z = x.r.z;
+      if (x.r.from && x.r.from !== set.ist[k]) {                // Accessoire kommt aus dem anderen Slot → Plätze tauschen
+        const src = GEAR_SLOTS.find(sl => set.ist[sl.k] === x.r.from);
+        if (src) { const tmp = set.ist[k]; set.ist[k] = set.ist[src.k]; set.ist[src.k] = tmp; }
+      }
+      const v = set.ist[k];
+      if (x.meta.k === 'craft') set.ist[k] = { item: z.item, rarity: z.rarity, tier: 0, refine: 0, refType: z.refType };
+      else if (x.meta.k === 'tier') v.tier = x.meta.t;
+      else if (x.meta.k === 'refine') { const base = v.refType === z.refType ? v.refine || 0 : 0; v.refType = z.refType; v.refine = one ? Math.min(100, base + 25) : x.meta.p; }
+      delete gearFlags[k]; saveGear(); renderGearMain();
+    }
+  });
+  // Ziehen & Ablegen (am PC)
+  let prioDrag = null;
+  R.$('gearPlan').addEventListener('dragstart', (ev) => { const r = ev.target.closest('.prio-row'); if (!r) return; prioDrag = r.dataset.pkey; ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', prioDrag); } catch {} r.classList.add('opacity-40'); });
+  R.$('gearPlan').addEventListener('dragend', (ev) => { ev.target.closest?.('.prio-row')?.classList.remove('opacity-40'); R.$('gearPlan').querySelectorAll('.prio-row').forEach(r => r.style.boxShadow = ''); prioDrag = null; });
+  R.$('gearPlan').addEventListener('dragover', (ev) => { const r = ev.target.closest('.prio-row'); if (!r || !prioDrag) return; ev.preventDefault();
+    const below = ev.clientY > r.getBoundingClientRect().top + r.offsetHeight / 2;
+    R.$('gearPlan').querySelectorAll('.prio-row').forEach(x => x.style.boxShadow = '');
+    r.style.boxShadow = below ? '0 3px 0 0 #f5c542' : '0 -3px 0 0 #f5c542'; });
+  R.$('gearPlan').addEventListener('drop', (ev) => {
+    const r = ev.target.closest('.prio-row'); if (!r || !prioDrag) return; ev.preventDefault();
+    const below = ev.clientY > r.getBoundingClientRect().top + r.offsetHeight / 2, keys = prioKeys().filter(k => k !== prioDrag);
+    let at = keys.indexOf(r.dataset.pkey); if (at < 0) return; if (below) at++;
+    keys.splice(at, 0, prioDrag); prioDrag = null; prioSave(activeSet(), keys);
   });
 
   function renderGearCatInfo() {
@@ -603,7 +707,7 @@ window.RokMods.crafting = (R) => {
     s.ziel = gMaxSlots(s); saveGear(); renderGearMain();
   }
   R.$('gearMaxAll').onclick = gearSetMax;
-  R.$('gearMid').addEventListener('click', (ev) => { if (ev.target.closest('[data-gmax]')) gearSetMax(); const b = ev.target.closest('[data-goscan]'); if (b) R.goScan(b.dataset.goscan); });
+  R.$('gearMid').addEventListener('click', (ev) => { const u = ev.target.closest('[data-upto]'); if (u) { activeSet().prio.upto = u.dataset.upto; saveGear(); renderGearMain(); return; } if (ev.target.closest('[data-gmax]')) gearSetMax(); const b = ev.target.closest('[data-goscan]'); if (b) R.goScan(b.dataset.goscan); });
   R.$('gearMid').addEventListener('change', (ev) => { if (ev.target.id === 'gearUseChests') { activeSet().useChests = ev.target.checked; saveGear(); renderGearMain(); } });
   R.$('gearResult').addEventListener('click', (ev) => { const b = ev.target.closest('[data-goscan]'); if (b) R.goScan(b.dataset.goscan); });
 

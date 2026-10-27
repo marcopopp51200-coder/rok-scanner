@@ -2705,7 +2705,7 @@ window.RokMods.showcase = (R) => {
     if (R.gearPickEvent(t)) { drawShowcase(); return; }
     const v = scSet().gear[t.dataset.slot];
     if (t.dataset.f === 'clear') { v.item = ''; scSnap(v, null); v.tier = 0; v.refine = 0; }
-    else if (t.dataset.f === 'refset') { if (t.dataset.v) { v.refType = R.gRefType(t.dataset.v); v.refine = 100; } else v.refine = 0; }
+    else if (t.dataset.f === 'refset') { if (t.dataset.v) { v.refType = R.gRefType(t.dataset.v); if (!v.refine) v.refine = 100; } else v.refine = 0; }
     else if (t.dataset.f === 'item') { v.item = t.dataset.v ?? t.value; const it = R.gItem(t.value); v.rarity = it ? it.rarity : 'legendary'; scSnap(v, it); v.tier = 0; v.refine = 0; }
     else if (t.dataset.f === 'tier' && (R.gItem(v.item)?.rarity || v.rarity) !== 'legendary') v.tier = 0;   // Iconic nur bei legendären Items
     else if (t.dataset.f === 'refine') v.refine = R.gRefine(t.dataset.v);
