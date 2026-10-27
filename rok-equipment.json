@@ -1,0 +1,9245 @@
+{
+ "source": "codexhelper.com (mit Erlaubnis)",
+ "quality_multiplier": {
+  "common": 1,
+  "advanced": 4,
+  "elite": 16,
+  "epic": 64,
+  "legendary": 256
+ },
+ "notes": [
+  "Materialmengen gelten in der Qualitaet des Teils.",
+  "stats_refined = Werte nach Refining (Talent).",
+  "iconic.default-accessory gilt fuer Accessoires ohne eigenen Eintrag."
+ ],
+ "items": [
+  {
+   "id": "dragons-breath-bow",
+   "name": "Dragon's Breath Bow",
+   "slot": "weapon",
+   "quality": "legendary",
+   "game_id": 20019,
+   "set": "dragons-breath",
+   "main_troop": "archer",
+   "gold_cost": 20000000,
+   "stats": {
+    "cavalry_health": 5,
+    "infantry_health": 5,
+    "archer_defense": 20
+   },
+   "stats_refined": {
+    "archer_defense": 26,
+    "infantry_health": 6.5,
+    "cavalry_health": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 60,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 7,
+     "iron": 7,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 25,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 50,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "hammer-of-the-sun-and-moon",
+   "name": "Hammer of the Sun and Moon",
+   "slot": "weapon",
+   "quality": "legendary",
+   "game_id": 20002,
+   "set": null,
+   "main_troop": "infantry",
+   "gold_cost": 30000000,
+   "stats": {
+    "infantry_attack": 25,
+    "archer_health": 5
+   },
+   "stats_refined": {
+    "infantry_attack": 32.5,
+    "archer_health": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 70,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 35,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 5,
+     "iron": 20,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 45,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 10,
+     "iron": 55,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 15,
+     "iron": 90,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "lance-of-the-hellish-wasteland",
+   "name": "Lance of the Hellish Wasteland",
+   "slot": "weapon",
+   "quality": "legendary",
+   "game_id": 20007,
+   "set": "hellish-wasteland",
+   "main_troop": "cavalry",
+   "gold_cost": 20000000,
+   "stats": {
+    "cavalry_attack": 20,
+    "infantry_health": 5,
+    "archer_attack": 5
+   },
+   "stats_refined": {
+    "cavalry_attack": 26,
+    "infantry_health": 6.5,
+    "archer_attack": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 60,
+     "iron": 15,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 30,
+     "iron": 7,
+     "ebony": 7,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 25,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 30,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 50,
+     "iron": 15,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "sacred-dominion",
+   "name": "Sacred Dominion",
+   "slot": "weapon",
+   "quality": "legendary",
+   "game_id": 20001,
+   "set": null,
+   "main_troop": "cavalry",
+   "gold_cost": 30000000,
+   "stats": {
+    "cavalry_attack": 25,
+    "archer_defense": 5
+   },
+   "stats_refined": {
+    "cavalry_attack": 32.5,
+    "archer_defense": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 70,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "refine": {
+     "leather": 35,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 20,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 45,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 55,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 90,
+     "iron": 15,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "shield-of-the-eternal-empire",
+   "name": "Shield of the Eternal Empire",
+   "slot": "weapon",
+   "quality": "legendary",
+   "game_id": 20013,
+   "set": "eternal-empire",
+   "main_troop": "infantry",
+   "gold_cost": 20000000,
+   "stats": {
+    "cavalry_attack": 5,
+    "infantry_attack": 20,
+    "archer_attack": 5
+   },
+   "stats_refined": {
+    "infantry_attack": 26,
+    "archer_attack": 6.5,
+    "cavalry_attack": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 15,
+     "iron": 60,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 7,
+     "iron": 30,
+     "ebony": 7,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 5,
+     "iron": 10,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 25,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 10,
+     "iron": 30,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 15,
+     "iron": 50,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "the-hydras-blast",
+   "name": "The Hydra's Blast",
+   "slot": "weapon",
+   "quality": "legendary",
+   "game_id": 20003,
+   "set": null,
+   "main_troop": "archer",
+   "gold_cost": 30000000,
+   "stats": {
+    "cavalry_defense": 5,
+    "archer_defense": 25
+   },
+   "stats_refined": {
+    "archer_defense": 32.5,
+    "cavalry_defense": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 70,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 35,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 45,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 55,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 90,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "trial-of-the-lost-kingdom",
+   "name": "Trial of the Lost Kingdom",
+   "slot": "weapon",
+   "quality": "legendary",
+   "game_id": 20045,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 0,
+   "stats": {
+    "cavalry_defense": 15,
+    "infantry_health": 5,
+    "archer_attack": 5
+   },
+   "stats_refined": {
+    "cavalry_defense": 19.5,
+    "infantry_health": 6.5,
+    "archer_attack": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {}
+  },
+  {
+   "id": "twilight-epiphany",
+   "name": "Twilight Epiphany",
+   "slot": "weapon",
+   "quality": "legendary",
+   "game_id": 20122,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 30000000,
+   "stats": {
+    "siege_attack": 25,
+    "siege_march_speed": 6
+   },
+   "stats_refined": {
+    "siege_attack": 32.5,
+    "siege_march_speed": 8
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 30,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "refine": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 15,
+     "iron": 20,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 30,
+     "iron": 25,
+     "ebony": 25,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "scepter-of-the-glorious-goddess",
+   "name": "Scepter of the Glorious Goddess",
+   "slot": "weapon",
+   "quality": "legendary",
+   "game_id": 20140,
+   "set": "glorious-goddess",
+   "main_troop": null,
+   "gold_cost": 20000000,
+   "stats": {
+    "infantry_march_speed": 3,
+    "troop_attack": 15
+   },
+   "stats_refined": {
+    "troop_attack": 19.5,
+    "infantry_march_speed": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 30,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 15,
+     "iron": 20,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 30,
+     "iron": 25,
+     "ebony": 25,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "witchs-feathered-staff",
+   "name": "Witch's Feathered Staff",
+   "slot": "weapon",
+   "quality": "legendary",
+   "game_id": 20134,
+   "set": "witchs-wardrobe",
+   "main_troop": null,
+   "gold_cost": 20000000,
+   "stats": {
+    "siege_defense": 6,
+    "siege_march_speed": 3,
+    "gathering_speed": 15
+   },
+   "stats_refined": {
+    "siege_defense": 8,
+    "siege_march_speed": 4,
+    "gathering_speed": 19.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 35,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "bone": 17,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "gold-helm-of-the-eternal-empire",
+   "name": "Gold Helm of the Eternal Empire",
+   "slot": "helmet",
+   "quality": "legendary",
+   "game_id": 20014,
+   "set": "eternal-empire",
+   "main_troop": "infantry",
+   "gold_cost": 20000000,
+   "stats": {
+    "cavalry_health": 3,
+    "infantry_defense": 11,
+    "archer_health": 4
+   },
+   "stats_refined": {
+    "infantry_defense": 14.5,
+    "archer_health": 5.5,
+    "cavalry_health": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 40,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 20,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "iron": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 10,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 25,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 10,
+     "iron": 40,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "dragons-breath-helm",
+   "name": "Dragon's Breath Helm",
+   "slot": "helmet",
+   "quality": "legendary",
+   "game_id": 20020,
+   "set": "dragons-breath",
+   "main_troop": "archer",
+   "gold_cost": 20000000,
+   "stats": {
+    "cavalry_attack": 3,
+    "infantry_defense": 4,
+    "archer_attack": 11
+   },
+   "stats_refined": {
+    "archer_attack": 14.5,
+    "cavalry_attack": 4,
+    "infantry_defense": 5.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 25,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "war-helm-of-the-hellish-wasteland",
+   "name": "War Helm of the Hellish Wasteland",
+   "slot": "helmet",
+   "quality": "legendary",
+   "game_id": 20008,
+   "set": "hellish-wasteland",
+   "main_troop": "cavalry",
+   "gold_cost": 20000000,
+   "stats": {
+    "cavalry_defense": 11,
+    "infantry_attack": 4,
+    "archer_defense": 3
+   },
+   "stats_refined": {
+    "cavalry_defense": 14.5,
+    "infantry_attack": 5.5,
+    "archer_defense": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 10,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 25,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "pride-of-the-khan",
+   "name": "Pride of the Khan",
+   "slot": "helmet",
+   "quality": "legendary",
+   "game_id": 20004,
+   "set": null,
+   "main_troop": "cavalry",
+   "gold_cost": 30000000,
+   "stats": {
+    "cavalry_defense": 15,
+    "archer_health": 8
+   },
+   "stats_refined": {
+    "cavalry_defense": 19.5,
+    "archer_health": 10.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 50,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "refine": {
+     "leather": 25,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 20,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 25,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 45,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 75,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "helm-of-the-conqueror",
+   "name": "Helm of the Conqueror",
+   "slot": "helmet",
+   "quality": "legendary",
+   "game_id": 20005,
+   "set": null,
+   "main_troop": "infantry",
+   "gold_cost": 30000000,
+   "stats": {
+    "cavalry_health": 8,
+    "infantry_defense": 15
+   },
+   "stats_refined": {
+    "infantry_defense": 19.5,
+    "cavalry_health": 10.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 50,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 25,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 5,
+     "iron": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 25,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 10,
+     "iron": 45,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 15,
+     "iron": 75,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "ancestral-mask-of-night",
+   "name": "Ancestral Mask of Night",
+   "slot": "helmet",
+   "quality": "legendary",
+   "game_id": 20006,
+   "set": null,
+   "main_troop": "archer",
+   "gold_cost": 30000000,
+   "stats": {
+    "infantry_attack": 8,
+    "archer_attack": 15
+   },
+   "stats_refined": {
+    "archer_attack": 19.5,
+    "infantry_attack": 10.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 10,
+     "ebony": 50,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "refine": {
+     "iron": 5,
+     "ebony": 25,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "iron": 5,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "iron": 5,
+     "ebony": 25,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "iron": 10,
+     "ebony": 45,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "iron": 15,
+     "ebony": 75,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "fierce-wolfs-helmet",
+   "name": "Fierce Wolf's Helmet",
+   "slot": "helmet",
+   "quality": "legendary",
+   "game_id": 20123,
+   "set": "lupine-vestments",
+   "main_troop": null,
+   "gold_cost": 30000000,
+   "stats": {
+    "siege_attack": 14.5,
+    "siege_march_speed": 4
+   },
+   "stats_refined": {
+    "siege_attack": 19,
+    "siege_march_speed": 5.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "refine": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 15,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "diadem-of-the-glorious-goddess",
+   "name": "Diadem of the Glorious Goddess",
+   "slot": "helmet",
+   "quality": "legendary",
+   "game_id": 20141,
+   "set": "glorious-goddess",
+   "main_troop": null,
+   "gold_cost": 20000000,
+   "stats": {
+    "cavalry_march_speed": 2,
+    "troop_attack": 8
+   },
+   "stats_refined": {
+    "troop_attack": 10.5,
+    "cavalry_march_speed": 3
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 15,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "witchs-deadwood-crown",
+   "name": "Witch's Deadwood Crown",
+   "slot": "helmet",
+   "quality": "legendary",
+   "game_id": 20135,
+   "set": "witchs-wardrobe",
+   "main_troop": null,
+   "gold_cost": 20000000,
+   "stats": {
+    "siege_attack": 4,
+    "siege_march_speed": 2,
+    "gathering_speed": 12
+   },
+   "stats_refined": {
+    "siege_attack": 5.5,
+    "siege_march_speed": 3,
+    "gathering_speed": 16
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 25,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "bone": 12,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "shadow-legions-retribution",
+   "name": "Shadow Legion's Retribution",
+   "slot": "chest",
+   "quality": "legendary",
+   "game_id": 20025,
+   "set": null,
+   "main_troop": "cavalry",
+   "gold_cost": 15000000,
+   "stats": {
+    "cavalry_attack": 12,
+    "infantry_attack": 5,
+    "archer_attack": 5
+   },
+   "stats_refined": {
+    "cavalry_attack": 16,
+    "infantry_attack": 6.5,
+    "archer_attack": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 10,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 25,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "the-milky-way",
+   "name": "The Milky Way",
+   "slot": "chest",
+   "quality": "legendary",
+   "game_id": 20027,
+   "set": null,
+   "main_troop": "archer",
+   "gold_cost": 15000000,
+   "stats": {
+    "cavalry_health": 6,
+    "archer_health": 12,
+    "commander_exp": 5
+   },
+   "stats_refined": {
+    "archer_health": 16,
+    "cavalry_health": 8,
+    "commander_exp": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 25,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "plate-of-the-eternal-empire",
+   "name": "Plate of the Eternal Empire",
+   "slot": "chest",
+   "quality": "legendary",
+   "game_id": 20015,
+   "set": "eternal-empire",
+   "main_troop": "infantry",
+   "gold_cost": 20000000,
+   "stats": {
+    "infantry_attack": 11,
+    "archer_defense": 5
+   },
+   "stats_refined": {
+    "infantry_attack": 14.5,
+    "archer_defense": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 40,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 20,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "iron": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 10,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 25,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 10,
+     "iron": 40,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "hope-cloak",
+   "name": "Hope Cloak",
+   "slot": "chest",
+   "quality": "legendary",
+   "game_id": 20026,
+   "set": null,
+   "main_troop": "infantry",
+   "gold_cost": 15000000,
+   "stats": {
+    "cavalry_defense": 5,
+    "infantry_defense": 12,
+    "archer_defense": 5
+   },
+   "stats_refined": {
+    "infantry_defense": 16,
+    "cavalry_defense": 6.5,
+    "archer_defense": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 40,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 20,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "iron": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 10,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 25,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 10,
+     "iron": 40,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "heavy-armor-of-the-hellish-wasteland",
+   "name": "Heavy Armor of the Hellish Wasteland",
+   "slot": "chest",
+   "quality": "legendary",
+   "game_id": 20009,
+   "set": "hellish-wasteland",
+   "main_troop": "cavalry",
+   "gold_cost": 20000000,
+   "stats": {
+    "cavalry_health": 11,
+    "infantry_attack": 5
+   },
+   "stats_refined": {
+    "cavalry_health": 14.5,
+    "infantry_attack": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 10,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 25,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "dragons-breath-plate",
+   "name": "Dragon's Breath Plate",
+   "slot": "chest",
+   "quality": "legendary",
+   "game_id": 20021,
+   "set": "dragons-breath",
+   "main_troop": "archer",
+   "gold_cost": 20000000,
+   "stats": {
+    "cavalry_defense": 5,
+    "archer_health": 11
+   },
+   "stats_refined": {
+    "archer_health": 14.5,
+    "cavalry_defense": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 25,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "vigilant-wolfs-leather-armor",
+   "name": "Vigilant Wolf's Leather Armor",
+   "slot": "chest",
+   "quality": "legendary",
+   "game_id": 20124,
+   "set": "lupine-vestments",
+   "main_troop": null,
+   "gold_cost": 30000000,
+   "stats": {
+    "siege_attack": 14.5,
+    "siege_march_speed": 4
+   },
+   "stats_refined": {
+    "siege_attack": 19,
+    "siege_march_speed": 5.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "refine": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 15,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "plate-of-the-glorious-goddess",
+   "name": "Plate of the Glorious Goddess",
+   "slot": "chest",
+   "quality": "legendary",
+   "game_id": 20142,
+   "set": "glorious-goddess",
+   "main_troop": null,
+   "gold_cost": 20000000,
+   "stats": {
+    "infantry_march_speed": 2,
+    "troop_defense": 8
+   },
+   "stats_refined": {
+    "troop_defense": 10.5,
+    "infantry_march_speed": 3
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 15,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "witchs-hexed-cloak",
+   "name": "Witch's Hexed Cloak",
+   "slot": "chest",
+   "quality": "legendary",
+   "game_id": 20136,
+   "set": "witchs-wardrobe",
+   "main_troop": null,
+   "gold_cost": 20000000,
+   "stats": {
+    "siege_defense": 4,
+    "siege_march_speed": 2,
+    "gathering_speed": 12
+   },
+   "stats_refined": {
+    "siege_defense": 5.5,
+    "siege_march_speed": 3,
+    "gathering_speed": 16
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 25,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "bone": 12,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "vambraces-of-the-eternal-empire",
+   "name": "Vambraces of the Eternal Empire",
+   "slot": "gloves",
+   "quality": "legendary",
+   "game_id": 20016,
+   "set": "eternal-empire",
+   "main_troop": "infantry",
+   "gold_cost": 20000000,
+   "stats": {
+    "cavalry_attack": 3,
+    "infantry_defense": 7.5
+   },
+   "stats_refined": {
+    "infantry_defense": 10,
+    "cavalry_attack": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "iron": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 10,
+     "iron": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "sacred-grips",
+   "name": "Sacred Grips",
+   "slot": "gloves",
+   "quality": "legendary",
+   "game_id": 20029,
+   "set": null,
+   "main_troop": "infantry",
+   "gold_cost": 15000000,
+   "stats": {
+    "infantry_defense": 8,
+    "archer_attack": 5
+   },
+   "stats_refined": {
+    "infantry_defense": 10.5,
+    "archer_attack": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 30,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "refine": {
+     "iron": 15,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "iron": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "iron": 10,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "iron": 15,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "iron": 30,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "ians-choice",
+   "name": "Ian's Choice",
+   "slot": "gloves",
+   "quality": "legendary",
+   "game_id": 20030,
+   "set": null,
+   "main_troop": "archer",
+   "gold_cost": 15000000,
+   "stats": {
+    "archer_attack": 8,
+    "commander_exp": 5
+   },
+   "stats_refined": {
+    "archer_attack": 10.5,
+    "commander_exp": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "refine": {
+     "leather": 5,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 10,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "navars-control",
+   "name": "Navar's Control",
+   "slot": "gloves",
+   "quality": "legendary",
+   "game_id": 20028,
+   "set": null,
+   "main_troop": "cavalry",
+   "gold_cost": 15000000,
+   "stats": {
+    "cavalry_health": 8,
+    "infantry_defense": 5
+   },
+   "stats_refined": {
+    "cavalry_health": 10.5,
+    "infantry_defense": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 30,
+     "iron": 10,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "refine": {
+     "leather": 15,
+     "iron": 5,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 10,
+     "iron": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 15,
+     "iron": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 30,
+     "iron": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "dragons-breath-vambraces",
+   "name": "Dragon's Breath Vambraces",
+   "slot": "gloves",
+   "quality": "legendary",
+   "game_id": 20022,
+   "set": "dragons-breath",
+   "main_troop": "archer",
+   "gold_cost": 20000000,
+   "stats": {
+    "infantry_attack": 3,
+    "archer_attack": 7.5
+   },
+   "stats_refined": {
+    "archer_attack": 10,
+    "infantry_attack": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 10,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "iron": 5,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "iron": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "iron": 5,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "iron": 10,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "armband-of-the-hellish-wasteland",
+   "name": "Armband of the Hellish Wasteland",
+   "slot": "gloves",
+   "quality": "legendary",
+   "game_id": 20010,
+   "set": "hellish-wasteland",
+   "main_troop": "cavalry",
+   "gold_cost": 20000000,
+   "stats": {
+    "cavalry_defense": 7.5,
+    "archer_health": 3
+   },
+   "stats_refined": {
+    "cavalry_defense": 10,
+    "archer_health": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 30,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 15,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 10,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 15,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 30,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "wailing-wolfs-gauntlets",
+   "name": "Wailing Wolf's Gauntlets",
+   "slot": "gloves",
+   "quality": "legendary",
+   "game_id": 20125,
+   "set": "lupine-vestments",
+   "main_troop": null,
+   "gold_cost": 30000000,
+   "stats": {
+    "siege_defense": 10,
+    "siege_march_speed": 3
+   },
+   "stats_refined": {
+    "siege_defense": 13,
+    "siege_march_speed": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 15,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 7,
+     "ebony": 7,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 5,
+     "iron": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 10,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 15,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "gauntlets-of-the-glorious-goddess",
+   "name": "Gauntlets of the Glorious Goddess",
+   "slot": "gloves",
+   "quality": "legendary",
+   "game_id": 20143,
+   "set": "glorious-goddess",
+   "main_troop": null,
+   "gold_cost": 20000000,
+   "stats": {
+    "siege_march_speed": 2,
+    "troop_defense": 6
+   },
+   "stats_refined": {
+    "troop_defense": 8,
+    "siege_march_speed": 3
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 7,
+     "iron": 7,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 5,
+     "iron": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 10,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 15,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "witchs-crimson-bracers",
+   "name": "Witch's Crimson Bracers",
+   "slot": "gloves",
+   "quality": "legendary",
+   "game_id": 20137,
+   "set": "witchs-wardrobe",
+   "main_troop": null,
+   "gold_cost": 20000000,
+   "stats": {
+    "siege_health": 3,
+    "siege_march_speed": 2,
+    "gathering_speed": 8
+   },
+   "stats_refined": {
+    "siege_health": 4,
+    "siege_march_speed": 3,
+    "gathering_speed": 10.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "bone": 7,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "ash-of-the-dawn",
+   "name": "Ash of the Dawn",
+   "slot": "legs",
+   "quality": "legendary",
+   "game_id": 20033,
+   "set": null,
+   "main_troop": "archer",
+   "gold_cost": 15000000,
+   "stats": {
+    "cavalry_health": 12,
+    "infantry_health": 5,
+    "commander_exp": 5
+   },
+   "stats_refined": {
+    "cavalry_health": 16,
+    "infantry_health": 6.5,
+    "commander_exp": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 10,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 25,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "greaves-of-the-eternal-empire",
+   "name": "Greaves of the Eternal Empire",
+   "slot": "legs",
+   "quality": "legendary",
+   "game_id": 20017,
+   "set": "eternal-empire",
+   "main_troop": "infantry",
+   "gold_cost": 20000000,
+   "stats": {
+    "infantry_attack": 11,
+    "archer_defense": 5
+   },
+   "stats_refined": {
+    "infantry_attack": 14.5,
+    "archer_defense": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 40,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 20,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "iron": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 10,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 25,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 10,
+     "iron": 40,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "tassets-of-the-war-god",
+   "name": "Tassets of the War God",
+   "slot": "legs",
+   "quality": "legendary",
+   "game_id": 20031,
+   "set": null,
+   "main_troop": "cavalry",
+   "gold_cost": 15000000,
+   "stats": {
+    "cavalry_attack": 5,
+    "infantry_attack": 5,
+    "archer_attack": 12
+   },
+   "stats_refined": {
+    "archer_attack": 16,
+    "cavalry_attack": 6.5,
+    "infantry_attack": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 25,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "eternal-night",
+   "name": "Eternal Night",
+   "slot": "legs",
+   "quality": "legendary",
+   "game_id": 20032,
+   "set": null,
+   "main_troop": "infantry",
+   "gold_cost": 15000000,
+   "stats": {
+    "cavalry_defense": 5,
+    "infantry_defense": 12,
+    "archer_defense": 5
+   },
+   "stats_refined": {
+    "infantry_defense": 16,
+    "cavalry_defense": 6.5,
+    "archer_defense": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 40,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 20,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "iron": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 10,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 25,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 10,
+     "iron": 40,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "dragons-breath-tassets",
+   "name": "Dragon's Breath Tassets",
+   "slot": "legs",
+   "quality": "legendary",
+   "game_id": 20023,
+   "set": "dragons-breath",
+   "main_troop": "archer",
+   "gold_cost": 20000000,
+   "stats": {
+    "cavalry_attack": 5,
+    "archer_attack": 11
+   },
+   "stats_refined": {
+    "archer_attack": 14.5,
+    "cavalry_attack": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 25,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "tassets-of-the-hellish-wasteland",
+   "name": "Tassets of the Hellish Wasteland",
+   "slot": "legs",
+   "quality": "legendary",
+   "game_id": 20011,
+   "set": "hellish-wasteland",
+   "main_troop": "cavalry",
+   "gold_cost": 20000000,
+   "stats": {
+    "cavalry_attack": 11,
+    "infantry_defense": 5
+   },
+   "stats_refined": {
+    "cavalry_attack": 14.5,
+    "infantry_defense": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 10,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 25,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "lone-wolfs-leather-tassets",
+   "name": "Lone Wolf's Leather Tassets",
+   "slot": "legs",
+   "quality": "legendary",
+   "game_id": 20126,
+   "set": "lupine-vestments",
+   "main_troop": null,
+   "gold_cost": 30000000,
+   "stats": {
+    "siege_health": 14.5,
+    "siege_march_speed": 4
+   },
+   "stats_refined": {
+    "siege_health": 19,
+    "siege_march_speed": 5.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "refine": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 15,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "chausses-of-the-glorious-goddess",
+   "name": "Chausses of the Glorious Goddess",
+   "slot": "legs",
+   "quality": "legendary",
+   "game_id": 20144,
+   "set": "glorious-goddess",
+   "main_troop": null,
+   "gold_cost": 20000000,
+   "stats": {
+    "archer_march_speed": 2,
+    "troop_health": 8
+   },
+   "stats_refined": {
+    "troop_health": 10.5,
+    "archer_march_speed": 3
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 15,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "witchs-ornamented-pants",
+   "name": "Witch's Ornamented Pants",
+   "slot": "legs",
+   "quality": "legendary",
+   "game_id": 20138,
+   "set": "witchs-wardrobe",
+   "main_troop": null,
+   "gold_cost": 20000000,
+   "stats": {
+    "siege_health": 4,
+    "siege_march_speed": 2,
+    "gathering_speed": 12
+   },
+   "stats_refined": {
+    "siege_health": 5.5,
+    "siege_march_speed": 3,
+    "gathering_speed": 16
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 25,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "bone": 12,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "shios-return",
+   "name": "Shio's Return",
+   "slot": "boots",
+   "quality": "legendary",
+   "game_id": 20034,
+   "set": null,
+   "main_troop": "cavalry",
+   "gold_cost": 15000000,
+   "stats": {
+    "infantry_defense": 8,
+    "archer_health": 5
+   },
+   "stats_refined": {
+    "infantry_defense": 10.5,
+    "archer_health": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 30,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "refine": {
+     "iron": 15,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "iron": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "iron": 10,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "iron": 15,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "iron": 30,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "commanders-boots",
+   "name": "Commander's Boots",
+   "slot": "boots",
+   "quality": "legendary",
+   "game_id": 20036,
+   "set": null,
+   "main_troop": "archer",
+   "gold_cost": 15000000,
+   "stats": {
+    "archer_attack": 8,
+    "commander_exp": 5
+   },
+   "stats_refined": {
+    "archer_attack": 10.5,
+    "commander_exp": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "refine": {
+     "leather": 5,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 10,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "sturdy-boots-of-the-eternal-empire",
+   "name": "Sturdy Boots of the Eternal Empire",
+   "slot": "boots",
+   "quality": "legendary",
+   "game_id": 20018,
+   "set": "eternal-empire",
+   "main_troop": "infantry",
+   "gold_cost": 20000000,
+   "stats": {
+    "cavalry_defense": 3,
+    "infantry_defense": 7.5
+   },
+   "stats_refined": {
+    "infantry_defense": 10,
+    "cavalry_defense": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "iron": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 10,
+     "iron": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "mountain-crushers",
+   "name": "Mountain Crushers",
+   "slot": "boots",
+   "quality": "legendary",
+   "game_id": 20035,
+   "set": null,
+   "main_troop": "infantry",
+   "gold_cost": 15000000,
+   "stats": {
+    "cavalry_attack": 8,
+    "archer_attack": 5
+   },
+   "stats_refined": {
+    "cavalry_attack": 10.5,
+    "archer_attack": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 30,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "refine": {
+     "leather": 15,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 15000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 10,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 15,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 30,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "boots-of-the-hellish-wasteland",
+   "name": "Boots of the Hellish Wasteland",
+   "slot": "boots",
+   "quality": "legendary",
+   "game_id": 20012,
+   "set": "hellish-wasteland",
+   "main_troop": "cavalry",
+   "gold_cost": 20000000,
+   "stats": {
+    "cavalry_health": 7.5,
+    "archer_attack": 3
+   },
+   "stats_refined": {
+    "cavalry_health": 10,
+    "archer_attack": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 30,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 15,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 10,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 15,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 30,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "dragons-breath-boots",
+   "name": "Dragon's Breath Boots",
+   "slot": "boots",
+   "quality": "legendary",
+   "game_id": 20024,
+   "set": "dragons-breath",
+   "main_troop": "archer",
+   "gold_cost": 20000000,
+   "stats": {
+    "infantry_defense": 3,
+    "archer_defense": 7.5
+   },
+   "stats_refined": {
+    "archer_defense": 10,
+    "infantry_defense": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 10,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "iron": 5,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "iron": 5,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "iron": 5,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "iron": 10,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "roaring-wolfs-claws",
+   "name": "Roaring Wolf's Claws",
+   "slot": "boots",
+   "quality": "legendary",
+   "game_id": 20127,
+   "set": "lupine-vestments",
+   "main_troop": null,
+   "gold_cost": 30000000,
+   "stats": {
+    "siege_defense": 10,
+    "siege_march_speed": 3
+   },
+   "stats_refined": {
+    "siege_defense": 13,
+    "siege_march_speed": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 15,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "refine": {
+     "leather": 7,
+     "iron": 5,
+     "ebony": 7,
+     "blueprint": 1,
+     "gold": 30000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 5,
+     "iron": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 10,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 15,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "greaves-of-the-glorious-goddess",
+   "name": "Greaves of the Glorious Goddess",
+   "slot": "boots",
+   "quality": "legendary",
+   "game_id": 20145,
+   "set": "glorious-goddess",
+   "main_troop": null,
+   "gold_cost": 20000000,
+   "stats": {
+    "siege_march_speed": 2,
+    "troop_health": 6
+   },
+   "stats_refined": {
+    "troop_health": 8,
+    "siege_march_speed": 3
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 15,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "leather": 5,
+     "iron": 7,
+     "ebony": 7,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 5,
+     "iron": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 5,
+     "iron": 5,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 5,
+     "iron": 10,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 15,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "witchs-mire-waders",
+   "name": "Witch's Mire-Waders",
+   "slot": "boots",
+   "quality": "legendary",
+   "game_id": 20139,
+   "set": "witchs-wardrobe",
+   "main_troop": null,
+   "gold_cost": 20000000,
+   "stats": {
+    "siege_attack": 3,
+    "siege_march_speed": 2,
+    "gathering_speed": 8
+   },
+   "stats_refined": {
+    "siege_attack": 4,
+    "siege_march_speed": 3,
+    "gathering_speed": 10.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "refine": {
+     "bone": 7,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "scolas-lucky-coin",
+   "name": "Scolas' Lucky Coin",
+   "slot": "accessory",
+   "quality": "legendary",
+   "game_id": 20043,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 50000000,
+   "stats": {},
+   "stats_refined": {},
+   "special": [
+    "10% Chance to gain a Shield (Damage Factor 500)"
+   ],
+   "special_refined": [
+    "10% Chance to gain a Shield (Damage Factor 650)"
+   ],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 40,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 20,
+     "iron": 30,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "karuaks-war-drums",
+   "name": "Karuak's War Drums",
+   "slot": "accessory",
+   "quality": "legendary",
+   "game_id": 20118,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 50000000,
+   "stats": {},
+   "stats_refined": {},
+   "special": [
+    "10% Chance to grant 50 Extra Rage for itself & up to 2 allies."
+   ],
+   "special_refined": [
+    "10% Chance to grant 65 Extra Rage for itself & up to 2 allies."
+   ],
+   "costs": {
+    "craft": {
+     "leather": 30,
+     "iron": 40,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "refine": {
+     "leather": 15,
+     "iron": 20,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 20,
+     "iron": 30,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "pendant-of-eternal-night",
+   "name": "Pendant of Eternal Night",
+   "slot": "accessory",
+   "quality": "legendary",
+   "game_id": 20039,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 50000000,
+   "stats": {},
+   "stats_refined": {},
+   "special": [
+    "Skill Damage 5%"
+   ],
+   "special_refined": [
+    "Skill Damage 6.5%"
+   ],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 40,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 20,
+     "iron": 30,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "ring-of-doom",
+   "name": "Ring of Doom",
+   "slot": "accessory",
+   "quality": "legendary",
+   "game_id": 20037,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 50000000,
+   "stats": {},
+   "stats_refined": {},
+   "special": [
+    "10% Chance to gain 50% Bonus Damage"
+   ],
+   "special_refined": [
+    "10% Chance to gain 65% Bonus Damage"
+   ],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 40,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 20,
+     "iron": 30,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "greatest-glory",
+   "name": "Greatest Glory",
+   "slot": "accessory",
+   "quality": "legendary",
+   "game_id": 20038,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 50000000,
+   "stats": {},
+   "stats_refined": {},
+   "special": [
+    "Normal Damage 5%"
+   ],
+   "special_refined": [
+    "Normal Damage 6.5%"
+   ],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 40,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 20,
+     "iron": 30,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "horn-of-fury",
+   "name": "Horn of Fury",
+   "slot": "accessory",
+   "quality": "legendary",
+   "game_id": 20040,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 50000000,
+   "stats": {},
+   "stats_refined": {},
+   "special": [
+    "30% Chance to gain 50 Extra Rage"
+   ],
+   "special_refined": [
+    "30% Chance to gain 65 Extra Rage"
+   ],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 40,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 20,
+     "iron": 30,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "concealed-dagger",
+   "name": "Concealed Dagger",
+   "slot": "accessory",
+   "quality": "legendary",
+   "game_id": 20041,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 50000000,
+   "stats": {},
+   "stats_refined": {},
+   "special": [
+    "30% Chance to reduce target Health 5%"
+   ],
+   "special_refined": [
+    "30% Chance to reduce target Health 6.5%"
+   ],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 40,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 20,
+     "iron": 30,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "moras-web",
+   "name": "Mora's Web",
+   "slot": "accessory",
+   "quality": "legendary",
+   "game_id": 20042,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 50000000,
+   "stats": {},
+   "stats_refined": {},
+   "special": [
+    "30% Chance to reduce target Defence 4% and cavalry March Speed 8%"
+   ],
+   "special_refined": [
+    "30% Chance to reduce target Defence 5.5% and cavalry March Speed 10.5%"
+   ],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 40,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 20,
+     "iron": 30,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "vengeance",
+   "name": "Vengeance",
+   "slot": "accessory",
+   "quality": "legendary",
+   "game_id": 20044,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 50000000,
+   "stats": {},
+   "stats_refined": {},
+   "special": [
+    "Counterattack Damage 8%"
+   ],
+   "special_refined": [
+    "Counterattack Damage 10.5%"
+   ],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 40,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 20,
+     "iron": 30,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "seths-call",
+   "name": "Seth's Call",
+   "slot": "accessory",
+   "quality": "legendary",
+   "game_id": 20119,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 50000000,
+   "stats": {},
+   "stats_refined": {},
+   "special": [
+    "10% Chance to grant 10% Attack Bonus"
+   ],
+   "special_refined": [
+    "10% Chance to grant 13% Attack Bonus"
+   ],
+   "costs": {
+    "craft": {
+     "leather": 30,
+     "iron": 30,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "refine": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 20,
+     "iron": 30,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "immolating-plume",
+   "name": "Immolating Plume",
+   "slot": "accessory",
+   "quality": "legendary",
+   "game_id": 20164,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 50000000,
+   "stats": {},
+   "stats_refined": {},
+   "special": [
+    "50% Chance to increase 30% Damage"
+   ],
+   "special_refined": [
+    "50% Chance to increase 39% Damage"
+   ],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 40,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 20,
+     "iron": 30,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "heros-hilt",
+   "name": "Hero's Hilt",
+   "slot": "accessory",
+   "quality": "legendary",
+   "game_id": 20166,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 50000000,
+   "stats": {},
+   "stats_refined": {},
+   "special": [
+    "50% Chance 3% Combo Attack"
+   ],
+   "special_refined": [
+    "50% Chance 4% Combo Attack"
+   ],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 40,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 20,
+     "iron": 30,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "saddle-of-a-thousand-blessings",
+   "name": "Saddle of a Thousand Blessings",
+   "slot": "accessory",
+   "quality": "legendary",
+   "game_id": 20167,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 50000000,
+   "stats": {},
+   "stats_refined": {},
+   "special": [
+    "Smite Damage 3%, 50% Chance to heal 5% of slight wounds dealt by smite damage"
+   ],
+   "special_refined": [
+    "Smite Damage 4%, 50% Chance to heal 6.5% of slight wounds dealt by smite damage"
+   ],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 40,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "refine": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    },
+    "awaken_2": {
+     "leather": 10,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_3": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_4": {
+     "leather": 20,
+     "iron": 30,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 20000000
+    },
+    "awaken_5": {
+     "leather": 40,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "timeless-amber",
+   "name": "Timeless Amber",
+   "slot": "accessory",
+   "quality": "legendary",
+   "game_id": 20168,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 50000000,
+   "stats": {
+    "gathering_speed": 15
+   },
+   "stats_refined": {
+    "gathering_speed": 19.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 80,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "refine": {
+     "bone": 40,
+     "blueprint": 1,
+     "gold": 50000000
+    },
+    "awaken_1": {
+     "iconic_crystal": 1,
+     "gold": 20000000
+    }
+   }
+  },
+  {
+   "id": "heart-of-the-saint",
+   "name": "Heart of the Saint",
+   "slot": "weapon",
+   "quality": "epic",
+   "game_id": 20061,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "cavalry_defense": 13,
+    "infantry_health": 4,
+    "archer_health": 6
+   },
+   "stats_refined": {
+    "cavalry_defense": 17,
+    "archer_health": 8,
+    "infantry_health": 5.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 70,
+     "iron": 15,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "golden-age",
+   "name": "Golden Age",
+   "slot": "weapon",
+   "quality": "epic",
+   "game_id": 20060,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "cavalry_attack": 4,
+    "infantry_defense": 6,
+    "archer_defense": 13
+   },
+   "stats_refined": {
+    "archer_defense": 17,
+    "infantry_defense": 8,
+    "cavalry_attack": 5.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 15,
+     "iron": 15,
+     "ebony": 70,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "sakura-fubuki",
+   "name": "Sakura Fubuki",
+   "slot": "weapon",
+   "quality": "epic",
+   "game_id": 20059,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "cavalry_health": 6,
+    "infantry_attack": 13,
+    "archer_attack": 4
+   },
+   "stats_refined": {
+    "infantry_attack": 17,
+    "cavalry_health": 8,
+    "archer_attack": 5.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 15,
+     "iron": 70,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "scepter-of-the-forest-guardian",
+   "name": "Scepter of the Forest Guardian",
+   "slot": "weapon",
+   "quality": "epic",
+   "game_id": 20055,
+   "set": "forest-guardian",
+   "main_troop": null,
+   "gold_cost": 6000000,
+   "stats": {
+    "cavalry_attack": 6,
+    "siege_defense": 6,
+    "gathering_speed": 10
+   },
+   "stats_refined": {
+    "siege_defense": 8,
+    "cavalry_attack": 8,
+    "gathering_speed": 13
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 35,
+     "blueprint": 1,
+     "gold": 6000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 6000000
+    }
+   }
+  },
+  {
+   "id": "knights-oathsworn-bow",
+   "name": "Knight's Oathsworn Bow",
+   "slot": "weapon",
+   "quality": "epic",
+   "game_id": 20128,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "siege_attack": 13,
+    "siege_march_speed": 2
+   },
+   "stats_refined": {
+    "siege_attack": 17,
+    "siege_march_speed": 3
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 30,
+     "iron": 30,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "revival-helm",
+   "name": "Revival Helm",
+   "slot": "helmet",
+   "quality": "epic",
+   "game_id": 20051,
+   "set": "revival-set",
+   "main_troop": null,
+   "gold_cost": 6000000,
+   "stats": {
+    "infantry_defense": 5,
+    "archer_defense": 7.5
+   },
+   "stats_refined": {
+    "archer_defense": 10,
+    "infantry_defense": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 10,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 6000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 6000000
+    }
+   }
+  },
+  {
+   "id": "witchs-lineage",
+   "name": "Witch's Lineage",
+   "slot": "helmet",
+   "quality": "epic",
+   "game_id": 20063,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "cavalry_attack": 3,
+    "infantry_attack": 8,
+    "archer_defense": 3
+   },
+   "stats_refined": {
+    "infantry_attack": 10.5,
+    "cavalry_attack": 4,
+    "archer_defense": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 30,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "abyssal-visage",
+   "name": "Abyssal Visage",
+   "slot": "helmet",
+   "quality": "epic",
+   "game_id": 20062,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "cavalry_attack": 8,
+    "infantry_attack": 3,
+    "archer_attack": 3
+   },
+   "stats_refined": {
+    "cavalry_attack": 10.5,
+    "infantry_attack": 4,
+    "archer_attack": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 30,
+     "iron": 10,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "mask-of-the-forest-guardian",
+   "name": "Mask of the Forest Guardian",
+   "slot": "helmet",
+   "quality": "epic",
+   "game_id": 20056,
+   "set": "forest-guardian",
+   "main_troop": null,
+   "gold_cost": 6000000,
+   "stats": {
+    "infantry_attack": 4,
+    "siege_attack": 4,
+    "gathering_speed": 8
+   },
+   "stats_refined": {
+    "siege_attack": 5.5,
+    "infantry_attack": 5.5,
+    "gathering_speed": 10.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 25,
+     "blueprint": 1,
+     "gold": 6000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 6000000
+    }
+   }
+  },
+  {
+   "id": "knights-steel-diadem",
+   "name": "Knight's Steel Diadem",
+   "slot": "helmet",
+   "quality": "epic",
+   "game_id": 20129,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "siege_health": 8,
+    "siege_march_speed": 2
+   },
+   "stats_refined": {
+    "siege_health": 10.5,
+    "siege_march_speed": 3
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "robe-of-the-forest-guardian",
+   "name": "Robe of the Forest Guardian",
+   "slot": "chest",
+   "quality": "epic",
+   "game_id": 20057,
+   "set": "forest-guardian",
+   "main_troop": null,
+   "gold_cost": 6000000,
+   "stats": {
+    "archer_attack": 4,
+    "siege_attack": 4,
+    "gathering_speed": 8
+   },
+   "stats_refined": {
+    "siege_attack": 5.5,
+    "archer_attack": 5.5,
+    "gathering_speed": 10.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 25,
+     "blueprint": 1,
+     "gold": 6000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 6000000
+    }
+   }
+  },
+  {
+   "id": "quinns-soul",
+   "name": "Quinn's Soul",
+   "slot": "chest",
+   "quality": "epic",
+   "game_id": 20065,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "infantry_attack": 8,
+    "archer_health": 4,
+    "damage_to_barbarians": 5
+   },
+   "stats_refined": {
+    "infantry_attack": 10.5,
+    "archer_health": 5.5,
+    "damage_to_barbarians": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 40,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "dark-lords-blessing",
+   "name": "Dark Lord's Blessing",
+   "slot": "chest",
+   "quality": "epic",
+   "game_id": 20064,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "cavalry_defense": 8,
+    "archer_attack": 5
+   },
+   "stats_refined": {
+    "cavalry_defense": 10.5,
+    "archer_attack": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "revival-plate",
+   "name": "Revival Plate",
+   "slot": "chest",
+   "quality": "epic",
+   "game_id": 20052,
+   "set": "revival-set",
+   "main_troop": null,
+   "gold_cost": 6000000,
+   "stats": {
+    "cavalry_defense": 5,
+    "archer_attack": 7.5
+   },
+   "stats_refined": {
+    "archer_attack": 10,
+    "cavalry_defense": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 6000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 6000000
+    }
+   }
+  },
+  {
+   "id": "knights-valorous-cloak",
+   "name": "Knight's Valorous Cloak",
+   "slot": "chest",
+   "quality": "epic",
+   "game_id": 20130,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "siege_attack": 8,
+    "siege_march_speed": 2
+   },
+   "stats_refined": {
+    "siege_attack": 10.5,
+    "siege_march_speed": 3
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "isets-sufferance",
+   "name": "Iset's Sufferance",
+   "slot": "gloves",
+   "quality": "epic",
+   "game_id": 20066,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "cavalry_attack": 3,
+    "cavalry_health": 3
+   },
+   "stats_refined": {
+    "cavalry_attack": 4,
+    "cavalry_health": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "claws-of-the-forest-guardian",
+   "name": "Claws of the Forest Guardian",
+   "slot": "gloves",
+   "quality": "epic",
+   "game_id": 20058,
+   "set": "forest-guardian",
+   "main_troop": null,
+   "gold_cost": 6000000,
+   "stats": {
+    "siege_attack": 2,
+    "siege_defense": 2,
+    "gathering_speed": 6
+   },
+   "stats_refined": {
+    "siege_defense": 3,
+    "siege_attack": 3,
+    "gathering_speed": 8
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 15,
+     "blueprint": 1,
+     "gold": 6000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 6000000
+    }
+   }
+  },
+  {
+   "id": "seths-brutality",
+   "name": "Seth's Brutality",
+   "slot": "gloves",
+   "quality": "epic",
+   "game_id": 20067,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "infantry_defense": 5.5,
+    "archer_defense": 2,
+    "damage_to_barbarians": 5
+   },
+   "stats_refined": {
+    "infantry_defense": 7.5,
+    "archer_defense": 3,
+    "damage_to_barbarians": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 30,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "revival-gauntlets",
+   "name": "Revival Gauntlets",
+   "slot": "gloves",
+   "quality": "epic",
+   "game_id": 20053,
+   "set": "revival-set",
+   "main_troop": null,
+   "gold_cost": 6000000,
+   "stats": {
+    "cavalry_attack": 3,
+    "infantry_attack": 3,
+    "archer_attack": 4.5
+   },
+   "stats_refined": {
+    "archer_attack": 6,
+    "infantry_attack": 4,
+    "cavalry_attack": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 10,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 6000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 6000000
+    }
+   }
+  },
+  {
+   "id": "knights-battleworn-gauntlets",
+   "name": "Knight's Battleworn Gauntlets",
+   "slot": "gloves",
+   "quality": "epic",
+   "game_id": 20131,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "siege_defense": 5.5,
+    "siege_march_speed": 2
+   },
+   "stats_refined": {
+    "siege_defense": 7.5,
+    "siege_march_speed": 3
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 15,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "fanatics-tassets",
+   "name": "Fanatic's Tassets",
+   "slot": "legs",
+   "quality": "epic",
+   "game_id": 20069,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "cavalry_defense": 5,
+    "archer_defense": 8
+   },
+   "stats_refined": {
+    "archer_defense": 10.5,
+    "cavalry_defense": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "gladiator",
+   "name": "Gladiator",
+   "slot": "legs",
+   "quality": "epic",
+   "game_id": 20070,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "cavalry_health": 8,
+    "archer_defense": 4,
+    "damage_to_barbarians": 5
+   },
+   "stats_refined": {
+    "cavalry_health": 10.5,
+    "archer_defense": 5.5,
+    "damage_to_barbarians": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "karuaks-humility",
+   "name": "Karuak's Humility",
+   "slot": "legs",
+   "quality": "epic",
+   "game_id": 20068,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "cavalry_attack": 5,
+    "infantry_health": 8
+   },
+   "stats_refined": {
+    "infantry_health": 10.5,
+    "cavalry_attack": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 40,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "revival-greaves",
+   "name": "Revival Greaves",
+   "slot": "legs",
+   "quality": "epic",
+   "game_id": 20054,
+   "set": "revival-set",
+   "main_troop": null,
+   "gold_cost": 6000000,
+   "stats": {
+    "cavalry_attack": 5,
+    "archer_defense": 7.5
+   },
+   "stats_refined": {
+    "archer_defense": 10,
+    "cavalry_attack": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 6000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 6000000
+    }
+   }
+  },
+  {
+   "id": "knights-triumphant-tassets",
+   "name": "Knight's Triumphant Tassets",
+   "slot": "legs",
+   "quality": "epic",
+   "game_id": 20132,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "siege_defense": 8,
+    "damage_to_barbarians": 5
+   },
+   "stats_refined": {
+    "siege_defense": 10.5,
+    "damage_to_barbarians": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "cloud-racers",
+   "name": "Cloud Racers",
+   "slot": "boots",
+   "quality": "epic",
+   "game_id": 20071,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "cavalry_attack": 5.5,
+    "archer_health": 2,
+    "gathering_speed": 6
+   },
+   "stats_refined": {
+    "cavalry_attack": 7.5,
+    "archer_health": 3,
+    "gathering_speed": 8
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 30,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "flame-treads",
+   "name": "Flame Treads",
+   "slot": "boots",
+   "quality": "epic",
+   "game_id": 20073,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "cavalry_attack": 3,
+    "archer_health": 5.5
+   },
+   "stats_refined": {
+    "archer_health": 7.5,
+    "cavalry_attack": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "frost-treads",
+   "name": "Frost Treads",
+   "slot": "boots",
+   "quality": "epic",
+   "game_id": 20072,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "infantry_defense": 5.5,
+    "damage_to_barbarians": 5
+   },
+   "stats_refined": {
+    "infantry_defense": 7.5,
+    "damage_to_barbarians": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 30,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "knights-winter-sabatons",
+   "name": "Knight's Winter Sabatons",
+   "slot": "boots",
+   "quality": "epic",
+   "game_id": 20133,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 5000000,
+   "stats": {
+    "siege_health": 5.5,
+    "damage_to_barbarians": 5
+   },
+   "stats_refined": {
+    "siege_health": 7.5,
+    "damage_to_barbarians": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 15,
+     "iron": 10,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 5000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 5000000
+    }
+   }
+  },
+  {
+   "id": "peters-sickle",
+   "name": "Peter's Sickle",
+   "slot": "accessory",
+   "quality": "epic",
+   "game_id": 20077,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 8000000,
+   "stats": {
+    "gathering_speed": 10
+   },
+   "stats_refined": {
+    "gathering_speed": 13
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 80,
+     "blueprint": 1,
+     "gold": 8000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 8000000
+    }
+   }
+  },
+  {
+   "id": "wind-scars",
+   "name": "Wind Scars",
+   "slot": "accessory",
+   "quality": "epic",
+   "game_id": 20120,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 8000000,
+   "stats": {
+    "infantry_march_speed": 8
+   },
+   "stats_refined": {
+    "infantry_march_speed": 10.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 30,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 8000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 8000000
+    }
+   }
+  },
+  {
+   "id": "delanes-amulet",
+   "name": "Delane's Amulet",
+   "slot": "accessory",
+   "quality": "epic",
+   "game_id": 20076,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 8000000,
+   "stats": {},
+   "stats_refined": {},
+   "special": [
+    "Less Counterattack Damage 5%"
+   ],
+   "special_refined": [
+    "Less Counterattack Damage 6.5%"
+   ],
+   "costs": {
+    "craft": {
+     "leather": 30,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 8000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 8000000
+    }
+   }
+  },
+  {
+   "id": "silent-trial",
+   "name": "Silent Trial",
+   "slot": "accessory",
+   "quality": "epic",
+   "game_id": 20075,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 8000000,
+   "stats": {},
+   "stats_refined": {},
+   "special": [
+    "Basic Attack, target loses 10 Rage"
+   ],
+   "special_refined": [
+    "Basic Attack, target loses 13 Rage"
+   ],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 8000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 8000000
+    }
+   }
+  },
+  {
+   "id": "the-bards-pendant",
+   "name": "The Bard's Pendant",
+   "slot": "accessory",
+   "quality": "epic",
+   "game_id": 20074,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 8000000,
+   "stats": {
+    "extra_resources": 5
+   },
+   "stats_refined": {
+    "extra_resources": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 80,
+     "blueprint": 1,
+     "gold": 8000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 8000000
+    }
+   }
+  },
+  {
+   "id": "crimson-ring",
+   "name": "Crimson Ring",
+   "slot": "accessory",
+   "quality": "epic",
+   "game_id": 20078,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 8000000,
+   "stats": {
+    "commander_exp": 15
+   },
+   "stats_refined": {
+    "commander_exp": 19.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 80,
+     "blueprint": 1,
+     "gold": 8000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 8000000
+    }
+   }
+  },
+  {
+   "id": "ancient-stratagems",
+   "name": "Ancient Stratagems",
+   "slot": "accessory",
+   "quality": "epic",
+   "game_id": 20121,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 8000000,
+   "stats": {
+    "unit_capacity": 3
+   },
+   "stats_refined": {
+    "unit_capacity": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 8000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 8000000
+    }
+   }
+  },
+  {
+   "id": "blazing-axe",
+   "name": "Blazing Axe",
+   "slot": "weapon",
+   "quality": "elite",
+   "game_id": 20087,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 2000000,
+   "stats": {
+    "cavalry_attack": 8,
+    "infantry_attack": 3,
+    "archer_attack": 5
+   },
+   "stats_refined": {
+    "cavalry_attack": 10.5,
+    "archer_attack": 6.5,
+    "infantry_attack": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 50,
+     "iron": 20,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 2000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 2000000
+    }
+   }
+  },
+  {
+   "id": "gatekeepers-shield",
+   "name": "Gatekeeper's Shield",
+   "slot": "weapon",
+   "quality": "elite",
+   "game_id": 20089,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 2000000,
+   "stats": {
+    "cavalry_health": 5,
+    "infantry_health": 8,
+    "commander_exp": 3
+   },
+   "stats_refined": {
+    "infantry_health": 10.5,
+    "cavalry_health": 6.5,
+    "commander_exp": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 50,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 2000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 2000000
+    }
+   }
+  },
+  {
+   "id": "staff-of-the-lost",
+   "name": "Staff of the Lost",
+   "slot": "weapon",
+   "quality": "elite",
+   "game_id": 20088,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 2000000,
+   "stats": {
+    "cavalry_defense": 3,
+    "infantry_defense": 5,
+    "archer_defense": 8
+   },
+   "stats_refined": {
+    "archer_defense": 10.5,
+    "infantry_defense": 6.5,
+    "cavalry_defense": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 20,
+     "ebony": 50,
+     "blueprint": 1,
+     "gold": 2000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 2000000
+    }
+   }
+  },
+  {
+   "id": "harvesters-headscarf",
+   "name": "Harvester's Headscarf",
+   "slot": "helmet",
+   "quality": "elite",
+   "game_id": 20079,
+   "set": "harvester-set",
+   "main_troop": null,
+   "gold_cost": 3000000,
+   "stats": {
+    "siege_attack": 3,
+    "siege_defense": 3,
+    "gathering_speed": 5
+   },
+   "stats_refined": {
+    "siege_attack": 4,
+    "siege_defense": 4,
+    "gathering_speed": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 30,
+     "blueprint": 1,
+     "gold": 3000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 3000000
+    }
+   }
+  },
+  {
+   "id": "expedition-war-helm",
+   "name": "Expedition War Helm",
+   "slot": "helmet",
+   "quality": "elite",
+   "game_id": 20090,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 2000000,
+   "stats": {
+    "cavalry_defense": 6,
+    "infantry_defense": 2,
+    "commander_exp": 3
+   },
+   "stats_refined": {
+    "cavalry_defense": 8,
+    "infantry_defense": 3,
+    "commander_exp": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 20,
+     "blueprint": 1,
+     "gold": 2000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 2000000
+    }
+   }
+  },
+  {
+   "id": "windswept-war-helm",
+   "name": "Windswept War Helm",
+   "slot": "helmet",
+   "quality": "elite",
+   "game_id": 20083,
+   "set": "windswept-set",
+   "main_troop": null,
+   "gold_cost": 3000000,
+   "stats": {
+    "cavalry_attack": 4.5,
+    "infantry_attack": 4.5,
+    "troop_march_speed": 3
+   },
+   "stats_refined": {
+    "infantry_attack": 6,
+    "cavalry_attack": 6,
+    "troop_march_speed": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 30,
+     "iron": 30,
+     "blueprint": 1,
+     "gold": 3000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 3000000
+    }
+   }
+  },
+  {
+   "id": "commanders-heavy-armor",
+   "name": "Commander's Heavy Armor",
+   "slot": "chest",
+   "quality": "elite",
+   "game_id": 20091,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 2000000,
+   "stats": {
+    "infantry_attack": 3,
+    "archer_health": 6,
+    "commander_exp": 3
+   },
+   "stats_refined": {
+    "archer_health": 8,
+    "infantry_attack": 4,
+    "commander_exp": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 20,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 2000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 2000000
+    }
+   }
+  },
+  {
+   "id": "windswept-breastplate",
+   "name": "Windswept Breastplate",
+   "slot": "chest",
+   "quality": "elite",
+   "game_id": 20084,
+   "set": "windswept-set",
+   "main_troop": null,
+   "gold_cost": 3000000,
+   "stats": {
+    "cavalry_defense": 4.5,
+    "infantry_defense": 4.5,
+    "troop_march_speed": 3
+   },
+   "stats_refined": {
+    "infantry_defense": 6,
+    "cavalry_defense": 6,
+    "troop_march_speed": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 30,
+     "iron": 30,
+     "blueprint": 1,
+     "gold": 3000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 3000000
+    }
+   }
+  },
+  {
+   "id": "harvester-robes",
+   "name": "Harvester Robes",
+   "slot": "chest",
+   "quality": "elite",
+   "game_id": 20080,
+   "set": "harvester-set",
+   "main_troop": null,
+   "gold_cost": 3000000,
+   "stats": {
+    "siege_defense": 3,
+    "siege_health": 3,
+    "gathering_speed": 5
+   },
+   "stats_refined": {
+    "siege_defense": 4,
+    "siege_health": 4,
+    "gathering_speed": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 30,
+     "blueprint": 1,
+     "gold": 3000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 3000000
+    }
+   }
+  },
+  {
+   "id": "saints-song",
+   "name": "Saint's Song",
+   "slot": "gloves",
+   "quality": "elite",
+   "game_id": 20092,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 2000000,
+   "stats": {
+    "cavalry_attack": 2,
+    "archer_attack": 4,
+    "commander_exp": 3
+   },
+   "stats_refined": {
+    "archer_attack": 5.5,
+    "cavalry_attack": 3,
+    "commander_exp": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "ebony": 30,
+     "blueprint": 1,
+     "gold": 2000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 2000000
+    }
+   }
+  },
+  {
+   "id": "windswept-bracers",
+   "name": "Windswept Bracers",
+   "slot": "gloves",
+   "quality": "elite",
+   "game_id": 20085,
+   "set": "windswept-set",
+   "main_troop": null,
+   "gold_cost": 3000000,
+   "stats": {
+    "cavalry_health": 2.5,
+    "infantry_health": 2.5,
+    "troop_march_speed": 3
+   },
+   "stats_refined": {
+    "cavalry_health": 3.5,
+    "infantry_health": 3.5,
+    "troop_march_speed": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 20,
+     "blueprint": 1,
+     "gold": 3000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 3000000
+    }
+   }
+  },
+  {
+   "id": "calvins-hand",
+   "name": "Calvin's Hand",
+   "slot": "gloves",
+   "quality": "elite",
+   "game_id": 20093,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 2000000,
+   "stats": {
+    "infantry_attack": 4,
+    "infantry_health": 1,
+    "archer_attack": 1
+   },
+   "stats_refined": {
+    "infantry_attack": 5.5,
+    "infantry_health": 1.5,
+    "archer_attack": 1.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 5,
+     "iron": 30,
+     "ebony": 5,
+     "blueprint": 1,
+     "gold": 2000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 2000000
+    }
+   }
+  },
+  {
+   "id": "harvester-breeches",
+   "name": "Harvester Breeches",
+   "slot": "legs",
+   "quality": "elite",
+   "game_id": 20081,
+   "set": "harvester-set",
+   "main_troop": null,
+   "gold_cost": 3000000,
+   "stats": {
+    "siege_attack": 3,
+    "siege_defense": 3,
+    "gathering_speed": 5
+   },
+   "stats_refined": {
+    "siege_attack": 4,
+    "siege_defense": 4,
+    "gathering_speed": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 30,
+     "blueprint": 1,
+     "gold": 3000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 3000000
+    }
+   }
+  },
+  {
+   "id": "greaves-of-the-exile",
+   "name": "Greaves of the Exile",
+   "slot": "legs",
+   "quality": "elite",
+   "game_id": 20094,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 2000000,
+   "stats": {
+    "infantry_defense": 3,
+    "archer_defense": 6,
+    "commander_exp": 3
+   },
+   "stats_refined": {
+    "archer_defense": 8,
+    "infantry_defense": 4,
+    "commander_exp": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 20,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 2000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 2000000
+    }
+   }
+  },
+  {
+   "id": "sentry-breeches",
+   "name": "Sentry Breeches",
+   "slot": "legs",
+   "quality": "elite",
+   "game_id": 20095,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 2000000,
+   "stats": {
+    "cavalry_defense": 1,
+    "infantry_attack": 6,
+    "archer_attack": 3
+   },
+   "stats_refined": {
+    "infantry_attack": 8,
+    "archer_attack": 4,
+    "cavalry_defense": 1.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 40,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 2000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 2000000
+    }
+   }
+  },
+  {
+   "id": "harvester-boots",
+   "name": "Harvester Boots",
+   "slot": "boots",
+   "quality": "elite",
+   "game_id": 20082,
+   "set": "harvester-set",
+   "main_troop": null,
+   "gold_cost": 3000000,
+   "stats": {
+    "siege_defense": 2,
+    "siege_health": 2,
+    "gathering_speed": 5
+   },
+   "stats_refined": {
+    "siege_defense": 3,
+    "siege_health": 3,
+    "gathering_speed": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 20,
+     "blueprint": 1,
+     "gold": 3000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 3000000
+    }
+   }
+  },
+  {
+   "id": "the-scarlet-hounds",
+   "name": "The Scarlet Hounds",
+   "slot": "boots",
+   "quality": "elite",
+   "game_id": 20096,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 2000000,
+   "stats": {
+    "infantry_health": 4,
+    "commander_exp": 3
+   },
+   "stats_refined": {
+    "infantry_health": 5.5,
+    "commander_exp": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 40,
+     "blueprint": 1,
+     "gold": 2000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 2000000
+    }
+   }
+  },
+  {
+   "id": "windswept-boots",
+   "name": "Windswept Boots",
+   "slot": "boots",
+   "quality": "elite",
+   "game_id": 20086,
+   "set": "windswept-set",
+   "main_troop": null,
+   "gold_cost": 3000000,
+   "stats": {
+    "cavalry_health": 2.5,
+    "infantry_defense": 2.5,
+    "troop_march_speed": 3
+   },
+   "stats_refined": {
+    "cavalry_health": 3.5,
+    "infantry_defense": 3.5,
+    "troop_march_speed": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 20,
+     "blueprint": 1,
+     "gold": 3000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 3000000
+    }
+   }
+  },
+  {
+   "id": "savage-totem",
+   "name": "Savage Totem",
+   "slot": "accessory",
+   "quality": "elite",
+   "game_id": 20099,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 4000000,
+   "stats": {
+    "damage_to_barbarians": 10
+   },
+   "stats_refined": {
+    "damage_to_barbarians": 13
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 70,
+     "blueprint": 1,
+     "gold": 4000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 4000000
+    }
+   }
+  },
+  {
+   "id": "lohars-bone-necklace",
+   "name": "Lohar's Bone Necklace",
+   "slot": "accessory",
+   "quality": "elite",
+   "game_id": 20098,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 4000000,
+   "stats": {
+    "commander_exp": 10
+   },
+   "stats_refined": {
+    "commander_exp": 13
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "bone": 70,
+     "blueprint": 1,
+     "gold": 4000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 4000000
+    }
+   }
+  },
+  {
+   "id": "call-of-the-loyal",
+   "name": "Call of the Loyal",
+   "slot": "accessory",
+   "quality": "elite",
+   "game_id": 20097,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 4000000,
+   "stats": {
+    "troop_march_speed": 5
+   },
+   "stats_refined": {
+    "troop_march_speed": 6.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 35,
+     "ebony": 35,
+     "blueprint": 1,
+     "gold": 4000000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 4000000
+    }
+   }
+  },
+  {
+   "id": "blessed-blade",
+   "name": "Blessed Blade",
+   "slot": "weapon",
+   "quality": "advanced",
+   "game_id": 20102,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 500000,
+   "stats": {
+    "infantry_health": 6,
+    "archer_attack": 4,
+    "damage_to_barbarians": 3
+   },
+   "stats_refined": {
+    "infantry_health": 8,
+    "archer_attack": 5.5,
+    "damage_to_barbarians": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 60,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 500000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 500000
+    }
+   }
+  },
+  {
+   "id": "vanguard-halberd",
+   "name": "Vanguard Halberd",
+   "slot": "weapon",
+   "quality": "advanced",
+   "game_id": 20100,
+   "set": "vanguard-set",
+   "main_troop": null,
+   "gold_cost": 750000,
+   "stats": {
+    "cavalry_defense": 5,
+    "cavalry_health": 4
+   },
+   "stats_refined": {
+    "cavalry_defense": 6.5,
+    "cavalry_health": 5.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 110,
+     "blueprint": 1,
+     "gold": 750000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 750000
+    }
+   }
+  },
+  {
+   "id": "helm-of-fear",
+   "name": "Helm of Fear",
+   "slot": "helmet",
+   "quality": "advanced",
+   "game_id": 20103,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 500000,
+   "stats": {
+    "cavalry_attack": 4,
+    "infantry_defense": 2,
+    "damage_to_barbarians": 3
+   },
+   "stats_refined": {
+    "cavalry_attack": 5.5,
+    "infantry_defense": 3,
+    "damage_to_barbarians": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "iron": 10,
+     "blueprint": 1,
+     "gold": 500000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 500000
+    }
+   }
+  },
+  {
+   "id": "helm-of-the-phoenix",
+   "name": "Helm of the Phoenix",
+   "slot": "helmet",
+   "quality": "advanced",
+   "game_id": 20104,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 500000,
+   "stats": {
+    "infantry_health": 2,
+    "archer_defense": 4,
+    "damage_to_barbarians": 3
+   },
+   "stats_refined": {
+    "archer_defense": 5.5,
+    "infantry_health": 3,
+    "damage_to_barbarians": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 10,
+     "ebony": 40,
+     "blueprint": 1,
+     "gold": 500000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 500000
+    }
+   }
+  },
+  {
+   "id": "infantry-breastplate",
+   "name": "Infantry Breastplate",
+   "slot": "chest",
+   "quality": "advanced",
+   "game_id": 20105,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 500000,
+   "stats": {
+    "cavalry_health": 2,
+    "infantry_defense": 4,
+    "damage_to_barbarians": 3
+   },
+   "stats_refined": {
+    "infantry_defense": 5.5,
+    "cavalry_health": 3,
+    "damage_to_barbarians": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 10,
+     "iron": 40,
+     "blueprint": 1,
+     "gold": 500000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 500000
+    }
+   }
+  },
+  {
+   "id": "milanese-plate",
+   "name": "Milanese Plate",
+   "slot": "chest",
+   "quality": "advanced",
+   "game_id": 20106,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 500000,
+   "stats": {
+    "cavalry_defense": 4,
+    "archer_attack": 2
+   },
+   "stats_refined": {
+    "cavalry_defense": 5.5,
+    "archer_attack": 3
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 40,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 500000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 500000
+    }
+   }
+  },
+  {
+   "id": "leather-gloves",
+   "name": "Leather Gloves",
+   "slot": "gloves",
+   "quality": "advanced",
+   "game_id": 20108,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 500000,
+   "stats": {
+    "infantry_defense": 1,
+    "archer_health": 2.5
+   },
+   "stats_refined": {
+    "archer_health": 3.5,
+    "infantry_defense": 1.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 500000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 500000
+    }
+   }
+  },
+  {
+   "id": "bronze-bracers",
+   "name": "Bronze Bracers",
+   "slot": "gloves",
+   "quality": "advanced",
+   "game_id": 20109,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 500000,
+   "stats": {
+    "cavalry_defense": 2.5,
+    "infantry_health": 1,
+    "damage_to_barbarians": 3
+   },
+   "stats_refined": {
+    "cavalry_defense": 3.5,
+    "infantry_health": 1.5,
+    "damage_to_barbarians": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 20,
+     "iron": 15,
+     "blueprint": 1,
+     "gold": 500000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 500000
+    }
+   }
+  },
+  {
+   "id": "vanguard-greaves",
+   "name": "Vanguard Greaves",
+   "slot": "legs",
+   "quality": "advanced",
+   "game_id": 20101,
+   "set": "vanguard-set",
+   "main_troop": null,
+   "gold_cost": 750000,
+   "stats": {
+    "cavalry_attack": 4,
+    "cavalry_health": 1
+   },
+   "stats_refined": {
+    "cavalry_attack": 5.5,
+    "cavalry_health": 1.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 70,
+     "blueprint": 1,
+     "gold": 750000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 750000
+    }
+   }
+  },
+  {
+   "id": "ranger-trousers",
+   "name": "Ranger Trousers",
+   "slot": "legs",
+   "quality": "advanced",
+   "game_id": 20107,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 500000,
+   "stats": {
+    "infantry_attack": 4,
+    "archer_defense": 2,
+    "damage_to_barbarians": 3
+   },
+   "stats_refined": {
+    "infantry_attack": 5.5,
+    "archer_defense": 3,
+    "damage_to_barbarians": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 40,
+     "ebony": 10,
+     "blueprint": 1,
+     "gold": 500000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 500000
+    }
+   }
+  },
+  {
+   "id": "edged-boots",
+   "name": "Edged Boots",
+   "slot": "boots",
+   "quality": "advanced",
+   "game_id": 20110,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 500000,
+   "stats": {
+    "cavalry_attack": 1,
+    "archer_attack": 2.5,
+    "damage_to_barbarians": 3
+   },
+   "stats_refined": {
+    "archer_attack": 3.5,
+    "cavalry_attack": 1.5,
+    "damage_to_barbarians": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 15,
+     "ebony": 20,
+     "blueprint": 1,
+     "gold": 500000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 500000
+    }
+   }
+  },
+  {
+   "id": "boots-of-reverence",
+   "name": "Boots of Reverence",
+   "slot": "boots",
+   "quality": "advanced",
+   "game_id": 20111,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 500000,
+   "stats": {
+    "infantry_attack": 2.5,
+    "archer_defense": 1
+   },
+   "stats_refined": {
+    "infantry_attack": 3.5,
+    "archer_defense": 1.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 20,
+     "ebony": 15,
+     "blueprint": 1,
+     "gold": 500000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 500000
+    }
+   }
+  },
+  {
+   "id": "sharp-longsword",
+   "name": "Sharp Longsword",
+   "slot": "weapon",
+   "quality": "common",
+   "game_id": 20112,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 100000,
+   "stats": {
+    "cavalry_defense": 5,
+    "gathering_speed": 2
+   },
+   "stats_refined": {
+    "cavalry_defense": 6.5,
+    "gathering_speed": 3
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 100,
+     "blueprint": 1,
+     "gold": 100000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 100000
+    }
+   }
+  },
+  {
+   "id": "iron-helm",
+   "name": "Iron Helm",
+   "slot": "helmet",
+   "quality": "common",
+   "game_id": 20113,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 100000,
+   "stats": {
+    "infantry_attack": 3
+   },
+   "stats_refined": {
+    "infantry_attack": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 80,
+     "blueprint": 1,
+     "gold": 100000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 100000
+    }
+   }
+  },
+  {
+   "id": "chain-mail",
+   "name": "Chain Mail",
+   "slot": "chest",
+   "quality": "common",
+   "game_id": 20114,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 100000,
+   "stats": {
+    "archer_attack": 3
+   },
+   "stats_refined": {
+    "archer_attack": 4
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "ebony": 80,
+     "blueprint": 1,
+     "gold": 100000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 100000
+    }
+   }
+  },
+  {
+   "id": "cloth-gloves",
+   "name": "Cloth Gloves",
+   "slot": "gloves",
+   "quality": "common",
+   "game_id": 20116,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 100000,
+   "stats": {
+    "infantry_defense": 2
+   },
+   "stats_refined": {
+    "infantry_defense": 3
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "iron": 60,
+     "blueprint": 1,
+     "gold": 100000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 100000
+    }
+   }
+  },
+  {
+   "id": "coarse-breeches",
+   "name": "Coarse Breeches",
+   "slot": "legs",
+   "quality": "common",
+   "game_id": 20115,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 100000,
+   "stats": {
+    "cavalry_attack": 3,
+    "gathering_speed": 1
+   },
+   "stats_refined": {
+    "cavalry_attack": 4,
+    "gathering_speed": 1.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "leather": 60,
+     "blueprint": 1,
+     "gold": 100000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 100000
+    }
+   }
+  },
+  {
+   "id": "sturdy-boots",
+   "name": "Sturdy Boots",
+   "slot": "boots",
+   "quality": "common",
+   "game_id": 20117,
+   "set": null,
+   "main_troop": null,
+   "gold_cost": 100000,
+   "stats": {
+    "archer_defense": 2,
+    "gathering_speed": 1
+   },
+   "stats_refined": {
+    "archer_defense": 3,
+    "gathering_speed": 1.5
+   },
+   "special": [],
+   "special_refined": [],
+   "costs": {
+    "craft": {
+     "ebony": 60,
+     "blueprint": 1,
+     "gold": 100000
+    },
+    "refine": {
+     "blueprint": 1,
+     "gold": 100000
+    }
+   }
+  }
+ ],
+ "sets": [
+  {
+   "id": "lupine-vestments",
+   "name": "Lupine Vestments",
+   "pieces": [
+    "fierce-wolfs-helmet",
+    "vigilant-wolfs-leather-armor",
+    "wailing-wolfs-gauntlets",
+    "lone-wolfs-leather-tassets",
+    "roaring-wolfs-claws"
+   ],
+   "bonuses": [
+    {
+     "pieces": 2,
+     "description": "Siege Unit Defence +5%",
+     "stats": {
+      "siege_defense": 5
+     }
+    },
+    {
+     "pieces": 4,
+     "description": "Ranged Skill Damage +5%, Ranged Smite Damage +5%",
+     "stats": {
+      "ranged_skill_damage": 5,
+      "ranged_smite_damage": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "hellish-wasteland",
+   "name": "Hellish Wasteland Set",
+   "pieces": [
+    "lance-of-the-hellish-wasteland",
+    "war-helm-of-the-hellish-wasteland",
+    "heavy-armor-of-the-hellish-wasteland",
+    "armband-of-the-hellish-wasteland",
+    "tassets-of-the-hellish-wasteland",
+    "boots-of-the-hellish-wasteland"
+   ],
+   "bonuses": [
+    {
+     "pieces": 2,
+     "description": "Troop Health +3%",
+     "stats": {
+      "troop_health": 3
+     }
+    },
+    {
+     "pieces": 4,
+     "description": "Counterattack Damage +3%",
+     "stats": {
+      "counterattack_damage": 3
+     }
+    },
+    {
+     "pieces": 6,
+     "description": "Cavalry Defense +5%",
+     "stats": {
+      "cavalry_defense": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "eternal-empire",
+   "name": "Eternal Empire Set",
+   "pieces": [
+    "shield-of-the-eternal-empire",
+    "gold-helm-of-the-eternal-empire",
+    "plate-of-the-eternal-empire",
+    "vambraces-of-the-eternal-empire",
+    "greaves-of-the-eternal-empire",
+    "sturdy-boots-of-the-eternal-empire"
+   ],
+   "bonuses": [
+    {
+     "pieces": 2,
+     "description": "Troop Defence +3%",
+     "stats": {
+      "troop_defense": 3
+     }
+    },
+    {
+     "pieces": 4,
+     "description": "March Speed +10%",
+     "stats": {
+      "troop_march_speed": 10
+     }
+    },
+    {
+     "pieces": 6,
+     "description": "Infantry Attack +5%",
+     "stats": {
+      "infantry_attack": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "dragons-breath",
+   "name": "Dragon's Breath Set",
+   "pieces": [
+    "dragons-breath-bow",
+    "dragons-breath-helm",
+    "dragons-breath-plate",
+    "dragons-breath-vambraces",
+    "dragons-breath-tassets",
+    "dragons-breath-boots"
+   ],
+   "bonuses": [
+    {
+     "pieces": 2,
+     "description": "Troop Attack 3%",
+     "stats": {
+      "troop_attack": 3
+     }
+    },
+    {
+     "pieces": 4,
+     "description": "Skill Damage 3%",
+     "stats": {
+      "skill_damage": 3
+     }
+    },
+    {
+     "pieces": 6,
+     "description": "Archer Health 5%",
+     "stats": {
+      "archer_health": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "glorious-goddess",
+   "name": "Garb of the Glorious Goddess",
+   "pieces": [
+    "scepter-of-the-glorious-goddess",
+    "diadem-of-the-glorious-goddess",
+    "plate-of-the-glorious-goddess",
+    "gauntlets-of-the-glorious-goddess",
+    "chausses-of-the-glorious-goddess",
+    "greaves-of-the-glorious-goddess"
+   ],
+   "bonuses": [
+    {
+     "pieces": 2,
+     "description": "Troop Defence 3%",
+     "stats": {
+      "troop_defense": 3
+     }
+    },
+    {
+     "pieces": 4,
+     "description": "Skill Damage Reduction 3%",
+     "stats": {
+      "skill_damage_reduction": 3
+     }
+    },
+    {
+     "pieces": 6,
+     "description": "Troop Health 5%",
+     "stats": {
+      "troop_health": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "witchs-wardrobe",
+   "name": "Witch's Wardrobe",
+   "pieces": [
+    "witchs-feathered-staff",
+    "witchs-deadwood-crown",
+    "witchs-hexed-cloak",
+    "witchs-crimson-bracers",
+    "witchs-ornamented-pants",
+    "witchs-mire-waders"
+   ],
+   "bonuses": [
+    {
+     "pieces": 2,
+     "description": "Troop Load +25%",
+     "stats": {
+      "troop_load": 25
+     }
+    },
+    {
+     "pieces": 4,
+     "description": "Extra Resources +5%",
+     "stats": {
+      "extra_resources": 5
+     }
+    },
+    {
+     "pieces": 6,
+     "description": "March Speed +10%",
+     "stats": {
+      "troop_march_speed": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "revival-set",
+   "name": "Revival Set",
+   "pieces": [
+    "revival-helm",
+    "revival-plate",
+    "revival-gauntlets",
+    "revival-greaves"
+   ],
+   "bonuses": [
+    {
+     "pieces": 2,
+     "description": "Troop Attack 3%",
+     "stats": {
+      "troop_attack": 3
+     }
+    },
+    {
+     "pieces": 4,
+     "description": "Troop Defence 3%",
+     "stats": {
+      "troop_defense": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "forest-guardian",
+   "name": "Forest Guardian Set",
+   "pieces": [
+    "scepter-of-the-forest-guardian",
+    "mask-of-the-forest-guardian",
+    "robe-of-the-forest-guardian",
+    "claws-of-the-forest-guardian"
+   ],
+   "bonuses": [
+    {
+     "pieces": 2,
+     "description": "Troop Load +20%",
+     "stats": {
+      "troop_load": 20
+     }
+    },
+    {
+     "pieces": 4,
+     "description": "Extra Resources 5%",
+     "stats": {
+      "extra_resources": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "harvester-set",
+   "name": "Harvester Set",
+   "pieces": [
+    "harvester-robes",
+    "harvesters-headscarf",
+    "harvester-breeches",
+    "harvester-boots"
+   ],
+   "bonuses": [
+    {
+     "pieces": 2,
+     "description": "Gathering Speed +10%",
+     "stats": {
+      "gathering_speed": 10
+     }
+    },
+    {
+     "pieces": 4,
+     "description": "Troop Load +20%",
+     "stats": {
+      "troop_load": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "windswept-set",
+   "name": "Windswept Set",
+   "pieces": [
+    "windswept-war-helm",
+    "windswept-breastplate",
+    "windswept-bracers",
+    "windswept-boots"
+   ],
+   "bonuses": [
+    {
+     "pieces": 2,
+     "description": "Troop Attack 2%",
+     "stats": {
+      "troop_attack": 2
+     }
+    },
+    {
+     "pieces": 4,
+     "description": "March Speed 4%",
+     "stats": {
+      "troop_march_speed": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanguard-set",
+   "name": "Vanguard Set",
+   "pieces": [
+    "vanguard-halberd",
+    "vanguard-greaves"
+   ],
+   "bonuses": [
+    {
+     "pieces": 2,
+     "description": "Cavalry Attack 2%",
+     "stats": {
+      "cavalry_attack": 2
+     }
+    }
+   ]
+  }
+ ],
+ "iconic": {
+  "sacred-dominion": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Cavalry Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Defense Ignored",
+    "value": 2.5,
+    "crit_buff": 1
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 1000,
+    "crit_buff": 300
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 3,
+    "crit_buff": 1
+   },
+   "5": {
+    "type": "special",
+    "name": "Furious Strike",
+    "description": "10% chance on basic attack to gain a {value}% damage boost for 2s.",
+    "values": {
+     "value": 6.5
+    },
+    "crit_bonus": {
+     "value": 2
+    }
+   }
+  },
+  "hammer-of-the-sun-and-moon": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Infantry Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Health Ignored",
+    "value": 2.5,
+    "crit_buff": 1
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 1000,
+    "crit_buff": 300
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 3,
+    "crit_buff": 1
+   },
+   "5": {
+    "type": "special",
+    "name": "Furious Strike",
+    "description": "10% chance on basic attack to gain a {value}% damage boost for 2s.",
+    "values": {
+     "value": 6.5
+    },
+    "crit_bonus": {
+     "value": 2
+    }
+   }
+  },
+  "the-hydras-blast": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Archer Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Defense Ignored",
+    "value": 3,
+    "crit_buff": 1
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 1000,
+    "crit_buff": 300
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 2.5,
+    "crit_buff": 1
+   },
+   "5": {
+    "type": "special",
+    "name": "Furious Strike",
+    "description": "10% chance on basic attack to gain a {value}% damage boost for 2s.",
+    "values": {
+     "value": 6.5
+    },
+    "crit_bonus": {
+     "value": 2
+    }
+   }
+  },
+  "lance-of-the-hellish-wasteland": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Cavalry Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Defense Ignored",
+    "value": 2,
+    "crit_buff": 1
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 800,
+    "crit_buff": 250
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 2,
+    "crit_buff": 1
+   },
+   "5": {
+    "type": "special",
+    "name": "Furious Strike",
+    "description": "10% chance on basic attack to gain a {value}% damage boost for 2s.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "shield-of-the-eternal-empire": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Infantry Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Health Ignored",
+    "value": 2,
+    "crit_buff": 1
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 800,
+    "crit_buff": 250
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 2,
+    "crit_buff": 1
+   },
+   "5": {
+    "type": "special",
+    "name": "Furious Strike",
+    "description": "10% chance on basic attack to gain a {value}% damage boost for 2s.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "dragons-breath-bow": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Archer Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Defense Ignored",
+    "value": 2,
+    "crit_buff": 1
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 800,
+    "crit_buff": 250
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 2,
+    "crit_buff": 1
+   },
+   "5": {
+    "type": "special",
+    "name": "Furious Strike",
+    "description": "10% chance on basic attack to gain a {value}% damage boost for 2s.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "scepter-of-the-glorious-goddess": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Troop Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Defense Ignored",
+    "value": 2,
+    "crit_buff": 1
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 800,
+    "crit_buff": 250
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 2,
+    "crit_buff": 1
+   },
+   "5": {
+    "type": "special",
+    "name": "Furious Strike",
+    "description": "10% chance on basic attack to gain a {value}% damage boost for 2s.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "twilight-epiphany": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Siege Unit Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Defense Ignored",
+    "value": 2,
+    "crit_buff": 1
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 800,
+    "crit_buff": 250
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 2,
+    "crit_buff": 1
+   },
+   "5": {
+    "type": "special",
+    "name": "Furious Strike",
+    "description": "10% chance on basic attack to gain a {value}% damage boost for 2s.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "pride-of-the-khan": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Cavalry Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Cavalry Attack",
+    "value": 1.5,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 650,
+    "crit_buff": 200
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1.5,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Shattering Strike",
+    "description": "10% chance on basic attack to increase next skill damage dealt by {value}%.",
+    "values": {
+     "value": 6.5
+    },
+    "crit_bonus": {
+     "value": 2
+    }
+   }
+  },
+  "helm-of-the-conqueror": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Infantry Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Infantry Health",
+    "value": 1.5,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 650,
+    "crit_buff": 200
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1.5,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Shattering Strike",
+    "description": "10% chance on basic attack to increase next skill damage dealt by {value}%.",
+    "values": {
+     "value": 6.5
+    },
+    "crit_bonus": {
+     "value": 2
+    }
+   }
+  },
+  "ancestral-mask-of-night": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Archer Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Archer Health",
+    "value": 1.5,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 650,
+    "crit_buff": 200
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1.5,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Shattering Strike",
+    "description": "10% chance on basic attack to increase next skill damage dealt by {value}%.",
+    "values": {
+     "value": 6.5
+    },
+    "crit_bonus": {
+     "value": 2
+    }
+   }
+  },
+  "war-helm-of-the-hellish-wasteland": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Cavalry Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Cavalry Attack",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Shattering Strike",
+    "description": "10% chance on basic attack to increase next skill damage dealt by {value}%.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "gold-helm-of-the-eternal-empire": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Infantry Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Infantry Health",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Shattering Strike",
+    "description": "10% chance on basic attack to increase next skill damage dealt by {value}%.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "dragons-breath-helm": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Archer Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Archer Health",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Shattering Strike",
+    "description": "10% chance on basic attack to increase next skill damage dealt by {value}%.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "diadem-of-the-glorious-goddess": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Troop Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Troop Health",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Shattering Strike",
+    "description": "10% chance on basic attack to increase next skill damage dealt by {value}%.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "fierce-wolfs-helmet": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Siege Unit Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Siege Unit Health",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Shattering Strike",
+    "description": "10% chance on basic attack to increase next ranged skill damage dealt by {value}%.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "shadow-legions-retribution": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Cavalry Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Health Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Vengeful Strike",
+    "description": "10% chance when hit by basic attack to gain {value}% counterattack damage for 2s.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "hope-cloak": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Infantry Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Attack Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Rallies/Garrisons",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Vengeful Strike",
+    "description": "10% chance when hit by basic attack to gain {value}% counterattack damage for 2s.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "the-milky-way": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Archer Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Defense Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Rallies/Garrisons",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Vengeful Strike",
+    "description": "10% chance when hit by basic attack to gain {value}% counterattack damage for 2s.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "heavy-armor-of-the-hellish-wasteland": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Cavalry Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Health Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Vengeful Strike",
+    "description": "10% chance when hit by basic attack to gain {value}% counterattack damage for 2s.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "plate-of-the-eternal-empire": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Infantry Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Attack Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Rallies/Garrisons",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Vengeful Strike",
+    "description": "10% chance when hit by basic attack to gain {value}% counterattack damage for 2s.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "dragons-breath-plate": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Archer Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Defense Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Rallies/Garrisons",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Vengeful Strike",
+    "description": "10% chance when hit by basic attack to gain {value}% counterattack damage for 2s.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "plate-of-the-glorious-goddess": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Troop Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Defense Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Rallies/Garrisons",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Vengeful Strike",
+    "description": "10% chance when hit by basic attack to gain {value}% counterattack damage for 2s.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "vigilant-wolfs-leather-armor": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Siege Unit Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Defense Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Field Troops",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Vengeful Strike",
+    "description": "10% chance when hit by basic attack to gain {value}% counterattack damage for 2s.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "navars-control": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Cavalry Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Cavalry Defense",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Unit Cap",
+    "value": 0.5,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Perplexing Ploy",
+    "description": "10% chance on skill/smite damage to reduce target March Speed by {value}% for 3s (stacks 3x).",
+    "values": {
+     "value": 3
+    },
+    "crit_bonus": {
+     "value": 1
+    }
+   }
+  },
+  "sacred-grips": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Infantry Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Infantry Attack",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Unit Cap",
+    "value": 0.5,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Seeing Red",
+    "description": "10% chance when taking damage to gain {value}% March Speed for 3s (stacks 3x).",
+    "values": {
+     "value": 3
+    },
+    "crit_bonus": {
+     "value": 1
+    }
+   }
+  },
+  "ians-choice": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Archer Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Attack Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Unit Cap",
+    "value": 0.5,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Befuddling Blow",
+    "description": "10% chance on basic attack to reduce target March Speed by {value}% for 3s (stacks 3x).",
+    "values": {
+     "value": 3
+    },
+    "crit_bonus": {
+     "value": 1
+    }
+   }
+  },
+  "armband-of-the-hellish-wasteland": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Cavalry Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Cavalry Defense",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Unit Cap",
+    "value": 0.5,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Perplexing Ploy",
+    "description": "10% chance on skill/smite damage to reduce target March Speed by {value}% for 3s (stacks 3x).",
+    "values": {
+     "value": 3
+    },
+    "crit_bonus": {
+     "value": 1
+    }
+   }
+  },
+  "vambraces-of-the-eternal-empire": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Infantry Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Infantry Attack",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Unit Cap",
+    "value": 0.5,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Seeing Red",
+    "description": "10% chance when taking damage to gain {value}% March Speed for 3s (stacks 3x).",
+    "values": {
+     "value": 3
+    },
+    "crit_bonus": {
+     "value": 1
+    }
+   }
+  },
+  "dragons-breath-vambraces": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Archer Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Attack Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Unit Cap",
+    "value": 0.5,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Befuddling Blow",
+    "description": "10% chance on basic attack to reduce target March Speed by {value}% for 3s (stacks 3x).",
+    "values": {
+     "value": 3
+    },
+    "crit_bonus": {
+     "value": 1
+    }
+   }
+  },
+  "gauntlets-of-the-glorious-goddess": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Troop Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Attack Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Unit Cap",
+    "value": 0.5,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Unflinching",
+    "description": "10% chance when taking damage to reduce attacker's Attack by {value}% for 3s (stacks 3x).",
+    "values": {
+     "value": 2
+    },
+    "crit_bonus": {
+     "value": 1
+    }
+   }
+  },
+  "wailing-wolfs-gauntlets": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Siege Unit Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Attack Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Unit Cap",
+    "value": 0.5,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Bewildering Barrage",
+    "description": "10% chance on ranged damage to reduce target March Speed by {value}% for 3s (stacks 3x).",
+    "values": {
+     "value": 3
+    },
+    "crit_bonus": {
+     "value": 1
+    }
+   }
+  },
+  "ash-of-the-dawn": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Cavalry Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Cavalry Health",
+    "value": 2,
+    "crit_buff": 1
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Wily",
+    "description": "10% chance on basic attack to reduce next skill damage taken by {value}%.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "eternal-night": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Infantry Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Health Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Wily",
+    "description": "10% chance on basic attack to reduce next skill damage taken by {value}%.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "tassets-of-the-war-god": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Archer Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Health Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Wily",
+    "description": "10% chance on basic attack to reduce next skill damage taken by {value}%.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "tassets-of-the-hellish-wasteland": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Cavalry Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Cavalry Health",
+    "value": 2,
+    "crit_buff": 1
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Wily",
+    "description": "10% chance on basic attack to reduce next skill damage taken by {value}%.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "greaves-of-the-eternal-empire": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Infantry Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Health Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Wily",
+    "description": "10% chance on basic attack to reduce next skill damage taken by {value}%.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "dragons-breath-tassets": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Archer Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Health Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Wily",
+    "description": "10% chance on basic attack to reduce next skill damage taken by {value}%.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "chausses-of-the-glorious-goddess": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Troop Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Health Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Wily",
+    "description": "10% chance on basic attack to reduce next skill damage taken by {value}%.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "lone-wolfs-leather-tassets": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Siege Unit Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Enemy Health Ignored",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 500,
+    "crit_buff": 150
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Troops on the Map",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Wily",
+    "description": "10% chance on ranged basic attack to reduce next skill damage taken by {value}%.",
+    "values": {
+     "value": 5
+    },
+    "crit_bonus": {
+     "value": 1.5
+    }
+   }
+  },
+  "mountain-crushers": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Cavalry Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Cavalry Attack",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "March Speed",
+    "value": 5,
+    "crit_buff": 1.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Hurried Horsemen",
+    "description": "Cavalry units gain {value1}% March Speed and {value2}% Defense outside alliance territory.",
+    "values": {
+     "value1": 5,
+     "value2": 1
+    },
+    "crit_bonus": {
+     "value1": 1.5,
+     "value2": 0.5
+    }
+   }
+  },
+  "shios-return": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Infantry Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Infantry Defense",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "March Speed",
+    "value": 5,
+    "crit_buff": 1.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Fleetfooted Footmen",
+    "description": "Infantry units gain {value1}% March Speed and {value2}% Defense outside alliance territory.",
+    "values": {
+     "value1": 5,
+     "value2": 1
+    },
+    "crit_bonus": {
+     "value1": 1.5,
+     "value2": 0.5
+    }
+   }
+  },
+  "commanders-boots": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Archer Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Archer Attack",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "March Speed",
+    "value": 5,
+    "crit_buff": 1.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Alacritous Archers",
+    "description": "Archer units gain {value1}% March Speed and {value2}% Defense outside alliance territory.",
+    "values": {
+     "value1": 5,
+     "value2": 1
+    },
+    "crit_bonus": {
+     "value1": 1.5,
+     "value2": 0.5
+    }
+   }
+  },
+  "boots-of-the-hellish-wasteland": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Cavalry Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Cavalry Attack",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "March Speed",
+    "value": 5,
+    "crit_buff": 1.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Hurried Horsemen",
+    "description": "Cavalry units gain {value1}% March Speed and {value2}% Defense outside alliance territory.",
+    "values": {
+     "value1": 5,
+     "value2": 1
+    },
+    "crit_bonus": {
+     "value1": 1.5,
+     "value2": 0.5
+    }
+   }
+  },
+  "sturdy-boots-of-the-eternal-empire": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Infantry Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Infantry Defense",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "March Speed",
+    "value": 5,
+    "crit_buff": 1.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Fleetfooted Footmen",
+    "description": "Infantry units gain {value1}% March Speed and {value2}% Defense outside alliance territory.",
+    "values": {
+     "value1": 5,
+     "value2": 1
+    },
+    "crit_bonus": {
+     "value1": 1.5,
+     "value2": 0.5
+    }
+   }
+  },
+  "dragons-breath-boots": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Archer Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Archer Attack",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "March Speed",
+    "value": 5,
+    "crit_buff": 1.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Alacritous Archers",
+    "description": "Archer units gain {value1}% March Speed and {value2}% Defense outside alliance territory.",
+    "values": {
+     "value1": 5,
+     "value2": 1
+    },
+    "crit_bonus": {
+     "value1": 1.5,
+     "value2": 0.5
+    }
+   }
+  },
+  "greaves-of-the-glorious-goddess": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Troop Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Troop Attack",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "March Speed",
+    "value": 5,
+    "crit_buff": 1.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Holistic Haste",
+    "description": "Troop gains {value1}% March Speed and {value2}% Attack outside alliance territory.",
+    "values": {
+     "value1": 5,
+     "value2": 1
+    },
+    "crit_bonus": {
+     "value1": 1.5,
+     "value2": 0.5
+    }
+   }
+  },
+  "roaring-wolfs-claws": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Siege Unit Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Siege Unit Attack",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "flat_stat",
+    "stat": "Unit Cap",
+    "value": 300,
+    "crit_buff": 100
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "March Speed",
+    "value": 5,
+    "crit_buff": 1.5
+   },
+   "5": {
+    "type": "special",
+    "name": "Breakneck Besiegers",
+    "description": "Siege units gain {value1}% March Speed and {value2}% Defense outside alliance territory.",
+    "values": {
+     "value1": 5,
+     "value2": 1
+    },
+    "crit_bonus": {
+     "value1": 1.5,
+     "value2": 0.5
+    }
+   }
+  },
+  "witchs-feathered-staff": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Siege Unit Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   }
+  },
+  "witchs-deadwood-crown": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Siege Unit Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   }
+  },
+  "witchs-hexed-cloak": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Siege Unit Base Defense",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   }
+  },
+  "witchs-crimson-bracers": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Siege Unit Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   }
+  },
+  "witchs-ornamented-pants": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Siege Unit Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   }
+  },
+  "witchs-mire-waders": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Siege Unit Base Attack",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   }
+  },
+  "immolating-plume": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Troop Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Troop Health",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "percent_stat",
+    "stat": "Unit Cap",
+    "value": 1.5,
+    "crit_buff": 0.5
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Field Troops",
+    "value": 2,
+    "crit_buff": 1
+   },
+   "5": {
+    "type": "special",
+    "name": "Divine Strike",
+    "description": "10% chance on ranged basic attack to gain one effect: +{value1}% ranged normal damage or +{value2}% ranged skill damage.",
+    "values": {
+     "value1": 10,
+     "value2": 10
+    },
+    "crit_bonus": {
+     "value1": 3,
+     "value2": 3
+    }
+   }
+  },
+  "timeless-amber": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Troop Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   }
+  },
+  "default-accessory": {
+   "1": {
+    "type": "base_stat",
+    "stat": "Troop Base Health",
+    "values": {
+     "kvk1_2": 1,
+     "kvk3": 2,
+     "soc": 3
+    },
+    "crit_bonus": 1
+   },
+   "2": {
+    "type": "percent_stat",
+    "stat": "Troop Health",
+    "value": 1,
+    "crit_buff": 0.5
+   },
+   "3": {
+    "type": "percent_stat",
+    "stat": "Unit Cap",
+    "value": 1.5,
+    "crit_buff": 0.5
+   },
+   "4": {
+    "type": "percent_stat",
+    "stat": "Damage to Rallies/Garrisons",
+    "value": 2,
+    "crit_buff": 1
+   },
+   "5": {
+    "type": "special",
+    "name": "Divine Might",
+    "description": "10% chance to gain one effect: ±{value1}% normal damage dealt/taken or ±{value3}% skill damage dealt/taken.",
+    "values": {
+     "value1": 5,
+     "value2": 5,
+     "value3": 5,
+     "value4": 5
+    },
+    "crit_bonus": {
+     "value1": 1.5,
+     "value2": 1.5,
+     "value3": 1.5,
+     "value4": 1.5
+    }
+   }
+  }
+ }
+}
