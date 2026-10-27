@@ -158,7 +158,8 @@ window.RokMods.crafting = (R) => {
   const ROMAN = ['I', 'II', 'III', 'IV', 'V']; R.ROMAN = ROMAN;
   const REFINE = [0, 25, 50, 75, 100];
   // Refine-Fortschritt: 0 | 25 | 50 | 75 | 100 (= voll, rotes Symbol). Alte Sets: true → 100
-  const gRefine = (v) => (v === true || /^\s*(true|voll|full)\s*$/i.test(String(v)) || (parseFloat(v) || 0) >= 100) ? 100 : 0; R.gRefine = gRefine;   // nur fertig (100) oder keins (0) – nichts Halbes
+  // Refine-Fortschritt in 25er-Schritten (0 | 25 | 50 | 75 | 100) – jeder Schritt = ein Refine mit vollen Kosten
+  const gRefine = (v) => (v === true || /^\s*(true|voll|full)\s*$/i.test(String(v))) ? 100 : Math.max(0, Math.min(100, Math.round((parseFloat(v) || 0) / 25) * 25)); R.gRefine = gRefine;
   const gScanRefine = (info) => {                         // "refine_full" vom Scan hat Vorrang vor der Prozentschätzung
     if (info?.refine_full === true) return 100;
     if (info?.refine_full === false) return 0;
@@ -189,6 +190,8 @@ window.RokMods.crafting = (R) => {
     const o = newGearSet(String(s?.name || 'Set').slice(0, 40));
     if (s?.id) o.id = String(s.id);
     ['ist', 'ziel'].forEach(side => GEAR_SLOTS.forEach(sl => { const v = s?.[side]?.[sl.k] || {}; o[side][sl.k] = { item: String(v.item || ''), rarity: R.gRar(v.rarity), tier: gTier(v.tier), refine: gRefine(v.refine), refType: gRefType(v.refType) }; }));
+    // histBase = Ist-Stand beim letzten „In History speichern“ – Unterschied dazu = noch nicht gespeicherte Änderungen
+    o.histBase = Object.fromEntries(GEAR_SLOTS.map(sl => { const v = (s?.histBase || o.ist)[sl.k] || {}; return [sl.k, { item: String(v.item || ''), rarity: R.gRar(v.rarity), tier: gTier(v.tier), refine: gRefine(v.refine), refType: gRefType(v.refType) }]; }));
     o.dismantle = !!s?.dismantle; o.useChests = !!s?.useChests; o.goal = gNormGoal(s?.goal); o.updated = +s?.updated || Date.now();
     o.sc = s?.sc?.scId && s?.sc?.setId ? { scId: String(s.sc.scId), setId: String(s.sc.setId) } : null;   // verbundenes Showcase-Set
     return o;
@@ -202,7 +205,7 @@ window.RokMods.crafting = (R) => {
   let gearOpt = { rate: 50, gold: null, crystal: null };      // gold/crystal = eigener Bestand (für Ziele), null = nicht angegeben
   try { const o = JSON.parse(R.LS.get(GEAR_OPT, '{}'));
     if (o && o.rate != null) gearOpt.rate = Math.min(100, gNum(o.rate));
-    ['gold', 'crystal'].forEach(k => { if (o && o[k] != null && o[k] !== '') gearOpt[k] = gNum(o[k]); }); } catch {}
+  } catch {}
   const saveGearOpt = () => R.LS.set(GEAR_OPT, JSON.stringify(gearOpt));
   let gearFlags = {};                                 // Scan-Hinweise je Ist-Slot (nur in dieser Sitzung)
   const gearSel = { ist: 'helm', ziel: 'helm' }; R.gearSel = gearSel;      // angetippter Slot je Seite
@@ -263,20 +266,18 @@ window.RokMods.crafting = (R) => {
     rows.forEach(r => {
       if (!key(r.z)) return;
       const it = gItem(r.z.item), cost = gZero();
-      const part = (label, c) => { if (c && gAny(c)) { r.parts.push([label, c]); gAdd(cost, c); } };
-      if (r.status === 'none') { r.status = 'craft'; const c = stageCost(it, 'craft', r.z.rarity); if (c) part('Craften', c); else r.craftMissing = true; }
+      const part = (label, c, meta) => { if (c && gAny(c)) { r.parts.push([label, c, meta]); gAdd(cost, c); } };
+      if (r.status === 'none') { r.status = 'craft'; const c = stageCost(it, 'craft', r.z.rarity); if (c) part('Craften', c, { k: 'craft' }); else { r.craftMissing = true; r.parts.push(['Craften', null, { k: 'craft' }]); } }
       r.tierFrom = r.from ? (r.from.tier || 0) : 0; r.tierTo = r.z.tier || 0;
-      for (let t = r.tierFrom + 1; t <= r.tierTo; t++) { const c = stageCost(it, 'awaken_' + t, r.z.rarity); if (c) part('Tier ' + ROMAN[t - 1], c); else r.tierMissing.push(t); }
+      for (let t = r.tierFrom + 1; t <= r.tierTo; t++) { const c = stageCost(it, 'awaken_' + t, r.z.rarity); if (c) part('Tier ' + ROMAN[t - 1], c, { k: 'tier', t }); else { r.tierMissing.push(t); r.parts.push(['Tier ' + ROMAN[t - 1], null, { k: 'tier', t }]); } }
       r.refFrom = r.from && (r.from.refType || 'infantry') === (r.z.refType || 'infantry') ? (r.from.refine || 0) : 0; r.refTo = r.z.refine || 0; r.needRefine = r.refTo > r.refFrom;
-      if (r.needRefine) { const c = stageCost(it, 'refine', r.z.rarity); if (c) part('Refine', c); else r.refMissing = true; }
+      if (r.needRefine) { const c = stageCost(it, 'refine', r.z.rarity);                       // je 25 % ein Refine
+        for (let p = r.refFrom + 25; p <= r.refTo; p += 25) { if (c) part('Refine ' + (p >= 100 ? 'Voll' : p + '%'), c, { k: 'refine', p }); else r.parts.push(['Refine ' + (p >= 100 ? 'Voll' : p + '%'), null, { k: 'refine', p }]); }
+        if (!c) r.refMissing = true; }
       if (r.status !== 'craft') r.status = r.tierTo > r.tierFrom ? 'tierup' : r.needRefine ? 'refine' : r.status === 'keepswap' ? 'swap' : 'same';
       r.cost = gAny(cost) ? cost : null;
       gAdd(need, r.cost);
     });
-    // 4) Zerlegen: altes Teil wird nicht weiterverwendet und sein Slot neu belegt (nur Materialien)
-    if (set.dismantle) rows.forEach(r => { if (!r.used && key(r.a) && key(r.z)) {
-      const c = stageCost(gItem(r.a.item), 'craft', r.a.rarity); if (!c) return;
-      r.back = gZero(); R.MATS.forEach(m => r.back[m.k] = c[m.k] * gearOpt.rate / 100); gAdd(back, r.back); } });
     return { rows, need, back };
   }
   R.gearCalc = gearCalc;
@@ -373,7 +374,7 @@ window.RokMods.crafting = (R) => {
       : r.status === 'refine' ? ['⚔ ' + gRefStep(r), 'red'] : GSTATUS[r.status] || null;
     const sel = 'min-w-0 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500 disabled:opacity-40';
     const rb = (on) => `flex items-center gap-1 px-2 py-1 rounded-lg border ${on ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 bg-ink-950 text-slate-400 hover:text-gold-300'}`;
-    const hasRef = it && v.refine >= 100;
+    const hasRef = it && v.refine > 0;
     return `<div class="rounded-xl border border-ink-700 bg-ink-950/60 p-3">
       <div class="flex flex-wrap items-center gap-2 mb-2">
         ${it?.icon ? `<img src="${it.icon}" alt="" class="w-9 h-9 object-contain">` : `<span class="text-xl">${sl.icon}</span>`}
@@ -393,6 +394,9 @@ window.RokMods.crafting = (R) => {
         ${Object.entries(REFTYPES).map(([k, t]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refset" data-v="${k}" ${it ? '' : 'disabled'} title="${t.label}" class="${rb(hasRef && v.refType === k)}">
           <img src="${t.img}" alt="" class="w-5 h-5 ${hasRef && v.refType === k ? '' : 'grayscale opacity-70'}"><span class="hidden sm:inline">${t.label}</span></button>`).join('')}
       </div>
+      ${hasRef ? `<div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs"><span class="text-slate-400 mr-1">Fortschritt</span>
+        ${[25, 50, 75, 100].map(p => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refine" data-v="${p}" class="${rb(v.refine === p)} font-semibold tabular-nums">${p >= 100 ? 'Voll' : p + '%'}</button>`).join('')}
+        <span class="text-[10px] text-slate-500">je 25 % = 1 Refine</span></div>` : ''}
       ${it?.eq && (side === 'ziel' || side === 'ist') ? `<div class="mt-2 text-[11px] ${Object.keys(it.eq.costs || {}).length < 7 && maxTier(it) ? 'text-amber-300' : 'text-slate-500'}">
         ${(() => { const n = CE_ROWS.filter(([st]) => it.eq.costs?.[st]).length, need = it.rarity === 'legendary' || n > 2 ? 7 : 2; return n >= need ? '✓ Kosten eingetragen' : `⚠ Kosten: ${n} von ${need} Stufen eingetragen`; })()}
         <button type="button" data-cedit-slot="${R.esc(it.eq.id)}" class="ml-1 underline hover:text-gold-300">${gAdmin ? 'eintragen/ändern' : 'ansehen'}</button></div>` : ''}
@@ -406,8 +410,7 @@ window.RokMods.crafting = (R) => {
     renderCraftHist();
     R.$('gearSetSel').innerHTML = gear.sets.map(s => `<option value="${R.esc(s.id)}"${s.id === set.id ? ' selected' : ''}>${R.esc(s.name)}</option>`).join('');
     renderScLink(set);
-    R.$('gearDismantle').checked = set.dismantle; R.$('gearUseChests').checked = set.useChests;
-    R.$('gearDisRate').value = gearOpt.rate; R.$('gearDisRate').disabled = !set.dismantle;
+    renderHistBar(set);
     const calc = gearCalc(set), st = gearStock(), lines = gearBalance(calc, st, set.useChests);
 
     R.$('gearIstBoard').innerHTML = gearBoard('ist', set, calc);
@@ -423,7 +426,7 @@ window.RokMods.crafting = (R) => {
     const zielIsMax = Math.abs(maxLeg - totalLeg) < 0.01 && Math.abs(maxCalc.need.gold - calc.need.gold) < 1;
     const steps = { tiers: calc.rows.reduce((a, r) => a + Math.max(0, r.tierTo - r.tierFrom), 0), refines: calc.rows.filter(r => r.needRefine).length };
     const unknown = calc.rows.filter(r => r.craftMissing || r.tierMissing.length || r.refMissing).map(r => `${r.sl.label}${r.craftMissing ? ' Craften' : ''}${r.tierMissing.length ? ' ' + r.tierMissing.map(t => 'T' + t).join('/') : ''}${r.refMissing ? ' Refine' : ''}`);
-    const xStock = { gold: gearOpt.gold, crystal: gearOpt.crystal, bp: null };
+    const xStock = { gold: null, crystal: null, bp: null };          // Bestand an Gold/Kristallen wird nicht erfasst
     const verdict = !gAny(calc.need) && unknown.length ? ['⚠ Für dieses Ziel sind noch keine Kosten eingetragen (gear-data.json).', 'text-amber-300']
       : !gAny(calc.need) ? ['✓ Keine Zusatzkosten – das Ziel-Set entspricht der Ist-Ausrüstung oder ist leer.', 'text-emerald-300']
       : !st.mats ? ['⚠ Bestand unbekannt – bitte zuerst deine Materialien scannen.', 'text-amber-300']
@@ -461,27 +464,74 @@ window.RokMods.crafting = (R) => {
         <div class="font-semibold ${zielIsMax ? 'text-emerald-300' : 'text-gold-300'}">${zielIsMax ? '🎯 Ziel ist bereits alles Max' : '🎯 Bis alles Max'}</div>
         <div class="tabular-nums text-slate-300 mt-0.5">${gq(maxLeg)} leg. Mats · ${gCostText(maxCalc.need, false)}</div>
         ${zielIsMax ? '' : '<button type="button" data-gmax class="mt-1.5 w-full px-2.5 py-1 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">Als Ziel setzen</button>'}</div>` : ''}
-      <div class="mt-3 text-[11px] text-slate-500 text-center">${st.mats ? `📦 Rucksack aus Scan vom ${R.dateLabel(st.ts)}${st.chests > 0 ? ` · Kisten ≈ ${gq(st.chests)}` : ''}`
+      ${st.chests > 0 ? `<label class="mt-3 flex items-center justify-center gap-2 text-[11px] text-slate-300 cursor-pointer"><input id="gearUseChests" type="checkbox" ${set.useChests ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">📦 Material-Kisten (≈ ${gq(st.chests)}) zum Auffüllen nutzen</label>` : ''}
+      <div class="mt-2 text-[11px] text-slate-500 text-center">${st.mats ? `Rucksack aus Scan vom ${R.dateLabel(st.ts)}`
         : `⚠ Kein Material-Scan – <button data-goscan="mats" class="underline text-gold-300 hover:text-gold-400">Materialien scannen</button>`}</div>`;
     R.$('gearResult').innerHTML = '';
 
-    // Slot-Vergleich
-    const nm = (v) => { const it = gItem(v.item); return it ? `${R.esc(it.name)} <span class="text-[10px] font-semibold text-gold-300">T${v.tier || 0}</span>${v.refine ? ` <span class="inline-flex items-center gap-0.5 text-[10px] font-semibold text-red-300"><img src="${REFTYPES[v.refType].img}" alt="" class="w-3.5 h-3.5">${gRefTxt(v.refine)}</span>` : ''}` : '<span class="text-slate-500">–</span>'; };
-    R.$('gearPlan').innerHTML = `<h3 class="font-display text-xl gold-text mb-3">Slot-Vergleich</h3>
-      <div class="overflow-x-auto"><table class="w-full text-sm">
-        <thead class="text-xs uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700">
-          <th class="py-2 pr-2 text-left font-medium">Slot</th><th class="py-2 px-2 text-left font-medium">Ist</th><th class="py-2 px-2 text-left font-medium">Ziel</th>
-          <th class="py-2 px-2 text-left font-medium">Status</th><th class="py-2 px-2 text-right font-medium">Kosten</th><th class="py-2 pl-2 text-right font-medium">Zerlegen</th></tr></thead>
-        <tbody>${calc.rows.map(r => { const s = GSTATUS[r.status] || [gItem(r.z.item) ? '' : 'kein Ziel', 'slate'];
-          return `<tr class="border-b border-ink-800">
-            <td class="py-2 pr-2 whitespace-nowrap text-slate-300">${r.sl.icon} ${r.sl.label}</td>
-            <td class="py-2 px-2">${nm(r.a)}</td><td class="py-2 px-2">${nm(r.z)}</td>
-            <td class="py-2 px-2 whitespace-nowrap">${s[0] ? `<span class="text-[11px] px-2 py-0.5 rounded-full border ${GBADGE[s[1]]}">${s[0]}</span>` : ''}${gTierTxt(r) ? `<div class="mt-1 text-[10px] text-sky-300">${gTierTxt(r)}</div>` : ''}${gRefStep(r) ? `<div class="mt-1 text-[10px] text-red-300">${gRefStep(r)}</div>` : ''}</td>
-            <td class="py-2 px-2 text-right tabular-nums text-xs">${r.cost ? `<div class="whitespace-nowrap font-semibold text-slate-100">${gCostText(r.cost)}</div>
-              ${r.parts.length > 1 ? r.parts.map(([l, c]) => `<div class="whitespace-nowrap text-[10px] text-slate-500">${l}: ${gCostText(c)}</div>`).join('') : ''}` : '–'}</td>
-            <td class="py-2 pl-2 text-right tabular-nums whitespace-nowrap text-xs text-sky-300">${r.back ? '+ ' + gCostText(r.back) : '–'}</td></tr>`; }).join('')}</tbody>
-      </table></div>`;
+    // Prio-Liste: nur offene Schritte, günstigste zuerst (je Teil bleibt die Reihenfolge Craften → Tier → Refine)
+    renderPrio(set, calc, st);
   }
+
+  // ---- Prio-Liste ----
+  const stepScore = (c) => c ? gMatSum(c) + (c.gold || 0) / 1e8 : Infinity;
+  function gearSteps(calc) {
+    const queues = calc.rows.filter(r => r.parts.length).map(r => r.parts.map(([label, cost, meta]) => ({ r, label, cost, meta })));
+    const out = [];
+    while (queues.some(q => q.length)) {                    // immer den günstigsten nächsten Schritt nehmen
+      let best = null;
+      queues.forEach(q => { if (q.length && (!best || stepScore(q[0].cost) < stepScore(best[0].cost))) best = q; });
+      out.push(best.shift());
+    }
+    return out;
+  }
+  const stepIcon = (v, cls = 'w-12 h-12') => { const it = gItem(v?.item), f = GFILL[it?.rarity || v?.rarity] || GFILL.legendary;
+    return `<span class="relative shrink-0 ${cls} rounded-xl grid place-items-center border-2" style="border-color:${f[1]};background:radial-gradient(circle at 50% 40%, ${f[1]}66, ${f[2]}55)">
+      ${it?.icon ? `<img src="${it.icon}" alt="" loading="lazy" class="w-[86%] h-[86%] object-contain [filter:drop-shadow(0_2px_2px_rgba(0,0,0,.5))]">` : `<span class="text-[9px] font-bold text-white text-center leading-tight px-0.5">${R.esc(it?.name || '?')}</span>`}</span>`; };
+  function renderPrio(set, calc, st) {
+    const steps = gearSteps(calc), box = R.$('gearPlan');
+    if (!steps.length) { box.innerHTML = `<h3 class="font-display text-xl gold-text">Prio-Liste</h3><div class="mt-3 py-6 text-center text-sm text-emerald-300">✓ Nichts mehr zu tun – Ist und Ziel sind gleich.</div>`; return; }
+    const run = gZero(); let ok = !!st.mats;
+    const rows = steps.map((x, i) => {
+      if (x.cost) gAdd(run, x.cost);
+      const lack = st.mats && x.cost ? R.MATS.filter(m => run[m.k] > st.mats[m.k] + 1e-6) : [];
+      if (!x.cost || lack.length) ok = false;
+      const kind = x.meta.k === 'craft' ? ['⚒', 'text-gold-300'] : x.meta.k === 'tier' ? ['⬆', 'text-sky-300'] : ['✦', 'text-red-300'];
+      return `<div class="flex items-center gap-3 rounded-xl border ${ok ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-700 bg-ink-950/40'} p-2.5">
+        <span class="w-6 text-center text-sm font-bold text-slate-500 tabular-nums">${i + 1}</span>
+        ${stepIcon(x.r.z)}
+        <div class="min-w-0 flex-1 text-center">
+          <div class="text-base font-bold ${kind[1]}">${kind[0]} ${R.esc(x.label)}</div>
+          <div class="text-xs text-slate-300 truncate" translate="no">${R.esc(gItem(x.r.z.item)?.name || '')} <span class="text-slate-500">· ${x.r.sl.label}</span></div>
+          <div class="mt-0.5 text-xs tabular-nums ${x.cost ? 'text-slate-200' : 'text-amber-300'}">${x.cost ? gCostText(x.cost) : '⚠ Kosten fehlen'}</div>
+        </div>
+        <div class="shrink-0 flex flex-col items-end gap-1">
+          ${ok ? '<span class="text-[11px] font-semibold text-emerald-300">✓ machbar</span>' : st.mats && lack.length ? `<span class="text-[11px] text-red-300">fehlt ${lack.map(m => m.icon).join('')}</span>` : ''}
+          <button type="button" data-step="${i}" class="px-2.5 py-1.5 rounded-lg border border-ink-600 hover:border-emerald-400 hover:text-emerald-300 text-xs font-semibold" title="Schritt erledigt – Ist-Ausrüstung wird angepasst">✓ Erledigt</button>
+        </div></div>`;
+    }).join('');
+    box.innerHTML = `<div class="flex flex-wrap items-end justify-between gap-2 mb-3">
+        <div><h3 class="font-display text-xl gold-text">Prio-Liste</h3>
+          <p class="text-xs text-slate-400">${steps.length} ${steps.length === 1 ? 'Schritt' : 'Schritte'} offen · günstigste zuerst · grün = mit deinem Rucksack machbar (der Reihe nach)</p></div>
+      </div>
+      <div class="space-y-2">${rows}</div>`;
+    box._steps = steps;
+  }
+  // Schritt erledigt → Ist-Ausrüstung anpassen (landet erst mit „In History speichern“ in der History)
+  R.$('gearPlan').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-step]'); if (!b) return;
+    const x = R.$('gearPlan')._steps?.[+b.dataset.step]; if (!x) return;
+    const set = activeSet(), k = x.r.sl.k, z = x.r.z;
+    if (x.r.from && x.r.from !== set.ist[k]) {                  // Accessoire kommt aus dem anderen Slot → Plätze tauschen
+      const src = GEAR_SLOTS.find(sl => set.ist[sl.k] === x.r.from);
+      if (src) { const t = set.ist[k]; set.ist[k] = set.ist[src.k]; set.ist[src.k] = t; }
+    }
+    const v = set.ist[k];
+    if (x.meta.k === 'craft') set.ist[k] = { item: z.item, rarity: z.rarity, tier: 0, refine: 0, refType: z.refType };
+    else if (x.meta.k === 'tier') v.tier = x.meta.t;
+    else if (x.meta.k === 'refine') { if (v.refType !== z.refType) v.refine = 0; v.refType = z.refType; v.refine = x.meta.p; }
+    delete gearFlags[k]; saveGear(); renderGearMain();
+  });
 
   function renderGearCatInfo() {
     const n = gearDb.length;
@@ -528,15 +578,15 @@ window.RokMods.crafting = (R) => {
     if (ev.type === 'click' && !isBtn) return;     // Klick nur für Buttons (Refine, Bild-Auswahl)
     if (ev.type === 'change' && isBtn) return;
     if (gearPickEvent(t)) { renderGearMain(); return; }
-    const v = activeSet()[t.dataset.side][t.dataset.slot], before = t.dataset.side === 'ist' ? gSnap(v) : null;
+    const v = activeSet()[t.dataset.side][t.dataset.slot];
     if (t.dataset.f === 'clear') { v.item = ''; v.tier = 0; v.refine = 0; }
     else if (t.dataset.f === 'max') Object.assign(v, gMaxSlot(v, activeSet().ist[t.dataset.slot]));
-    else if (t.dataset.f === 'refset') { if (t.dataset.v) { v.refType = gRefType(t.dataset.v); v.refine = 100; } else v.refine = 0; }
+    else if (t.dataset.f === 'refset') { if (t.dataset.v) { v.refType = gRefType(t.dataset.v); if (!v.refine) v.refine = 100; } else v.refine = 0; }
     else if (t.dataset.f === 'item') { v.item = t.dataset.v ?? t.value; const it = gItem(v.item); if (it) v.rarity = it.rarity; v.tier = 0; v.refine = 0; v.refType = v.refType || 'infantry'; }
     else if (t.dataset.f === 'refine') v.refine = gRefine(t.dataset.v);
     else if (t.dataset.f === 'refType') v.refType = gRefType(t.dataset.v);
     else v.tier = gTier(t.value);
-    if (t.dataset.side === 'ist') { delete gearFlags[t.dataset.slot]; logIst(activeSet(), t.dataset.slot, before, 'edit'); }
+    if (t.dataset.side === 'ist') delete gearFlags[t.dataset.slot];
     saveGear(); renderGearMain();
   };
   ['gearIstEdit', 'gearZielEdit'].forEach(id => { R.$(id).addEventListener('change', gearEdit); R.$(id).addEventListener('click', gearEdit); });
@@ -554,9 +604,7 @@ window.RokMods.crafting = (R) => {
   }
   R.$('gearMaxAll').onclick = gearSetMax;
   R.$('gearMid').addEventListener('click', (ev) => { if (ev.target.closest('[data-gmax]')) gearSetMax(); const b = ev.target.closest('[data-goscan]'); if (b) R.goScan(b.dataset.goscan); });
-  R.$('gearDismantle').onchange = () => { activeSet().dismantle = R.$('gearDismantle').checked; saveGear(); renderGearMain(); };
-  R.$('gearUseChests').onchange = () => { activeSet().useChests = R.$('gearUseChests').checked; saveGear(); renderGearMain(); };
-  R.$('gearDisRate').onchange = () => { gearOpt.rate = Math.min(100, gNum(R.$('gearDisRate').value)); R.LS.set(GEAR_OPT, JSON.stringify(gearOpt)); renderGearMain(); };
+  R.$('gearMid').addEventListener('change', (ev) => { if (ev.target.id === 'gearUseChests') { activeSet().useChests = ev.target.checked; saveGear(); renderGearMain(); } });
   R.$('gearResult').addEventListener('click', (ev) => { const b = ev.target.closest('[data-goscan]'); if (b) R.goScan(b.dataset.goscan); });
 
   // ---- Verbindung zum Showcase: Set laden (Showcase → Planer) und übertragen (Planer → Showcase) ----
@@ -588,9 +636,7 @@ window.RokMods.crafting = (R) => {
     const slots = scSlots(src.gear);
     if (!slotsFilled(slots)) { await UI.alert(`„${src.setName}“ hat noch keine Ausrüstung.`); return false; }
     if (slotsFilled(set[side]) && !(await UI.confirm(`${side === 'ist' ? 'Ist' : 'Ziel'}-Ausrüstung von „${set.name}“ mit „${src.scTitle} › ${src.setName}“ überschreiben?`))) return false;
-    const before = side === 'ist' ? Object.fromEntries(GEAR_SLOTS.map(sl => [sl.k, gSnap(set.ist[sl.k])])) : null;
     set[side] = slots; set.sc = { scId: src.scId, setId: src.setId };
-    if (before) GEAR_SLOTS.forEach(sl => logIst(set, sl.k, before[sl.k], 'edit'));
     gearFlags = {}; saveGear(); renderGearMain();
     gearMsg(`✓ ${side === 'ist' ? 'Ist' : 'Ziel'} aus „${src.scTitle} › ${src.setName}“ geladen`);
     return true;
@@ -853,7 +899,7 @@ window.RokMods.crafting = (R) => {
     return best;
   }
   function applyGearScan(r) {
-    const src = r.slots || r.equipment || r, set = activeSet(), before = Object.fromEntries(GEAR_SLOTS.map(sl => [sl.k, gSnap(set.ist[sl.k])]));
+    const src = r.slots || r.equipment || r, set = activeSet();
     gearFlags = {}; let hit = 0, seen = 0;
     GEAR_SLOTS.forEach(sl => {
       let info = src[sl.k];
@@ -876,7 +922,6 @@ window.RokMods.crafting = (R) => {
     if (!seen) throw new Error('Keine Ausrüstung im Screenshot erkannt. Bitte die Slots von Hand wählen.');
     const firstFlag = GEAR_SLOTS.find(sl => gearFlags[sl.k]);
     if (firstFlag) gearSel.ist = firstFlag.k;
-    GEAR_SLOTS.forEach(sl => logIst(set, sl.k, before[sl.k], 'scan'));
     saveGear(); renderGearMain();
     return { hit, seen };
   }
@@ -930,28 +975,35 @@ window.RokMods.crafting = (R) => {
   const gPct = (pct) => pct == null ? '?' : Math.floor(Math.min(1, pct) * 100) + ' %';
   // Tabelle Bedarf / Bestand / fehlt / pro Tag
   function goalTable(lines, need, days, hasStock, unknown) {
-    const row = (icon, label, n, have, miss, f) => `<tr class="border-b border-ink-800 last:border-0">
+    const row = (icon, label, n, have, miss, f, plain) => `<tr class="border-b border-ink-800 last:border-0">
       <td class="py-1 pr-2 whitespace-nowrap text-slate-300">${icon} ${label}</td>
       <td class="py-1 px-2 text-right tabular-nums whitespace-nowrap text-white">${f(n)}</td>
-      <td class="py-1 px-2 text-right tabular-nums whitespace-nowrap text-slate-400">${have == null ? '?' : f(have)}</td>
-      <td class="py-1 px-2 text-right tabular-nums whitespace-nowrap font-semibold ${miss == null ? 'text-slate-500' : miss > 0.005 ? 'text-red-300' : 'text-emerald-300'}">${miss == null ? '?' : miss > 0.005 ? f(miss) : '✓'}</td>
+      <td class="py-1 px-2 text-right tabular-nums whitespace-nowrap text-slate-400">${plain ? '' : have == null ? '?' : f(have)}</td>
+      <td class="py-1 px-2 text-right tabular-nums whitespace-nowrap font-semibold ${miss == null ? 'text-slate-500' : miss > 0.005 ? 'text-red-300' : 'text-emerald-300'}">${plain ? '' : miss == null ? '?' : miss > 0.005 ? f(miss) : '✓'}</td>
       ${days != null ? `<td class="py-1 pl-2 text-right tabular-nums whitespace-nowrap text-sky-300">${miss == null || miss <= 0.005 ? '–' : f(miss / Math.max(1, days))}</td>` : ''}</tr>`;
     const mats = lines.filter(l => l.gross > 0.005).map(l => row(l.m.icon, l.m.label, l.gross, hasStock || l.back > 0 ? l.stock + l.back + l.chest : null, hasStock ? l.deficit : null, gq));
-    const xs = GX.filter(x => need[x.k] > 0.005).map(x => { const have = x.k === 'bp' ? null : gearOpt[x.k]; return row(x.icon, x.label, need[x.k], have, have == null ? null : Math.max(0, need[x.k] - have), x.f); });
+    const xs = GX.filter(x => need[x.k] > 0.005).map(x => row(x.icon, x.label, need[x.k], null, null, x.f, true));
     if (!mats.length && !xs.length) return unknown ? '<div class="text-xs text-amber-300">Noch keine Kosten eingetragen – in gear-data.json ergänzen.</div>' : '<div class="text-xs text-emerald-300">✓ Nichts mehr zu tun – Ziel erreicht.</div>';
     return `<table class="w-full text-xs"><thead class="text-[10px] uppercase tracking-wider text-slate-500"><tr>
       <th class="py-1 pr-2 text-left font-medium"></th><th class="py-1 px-2 text-right font-medium">Bedarf</th><th class="py-1 px-2 text-right font-medium">Hast du</th><th class="py-1 px-2 text-right font-medium">Fehlt</th>
       ${days != null ? '<th class="py-1 pl-2 text-right font-medium">pro Tag</th>' : ''}</tr></thead><tbody>${mats.join('')}${xs.join('')}</tbody></table>
-      <div class="mt-1 text-[10px] text-slate-500">Materialien in legendären Einheiten (1 legendär = 4 episch = 16 Elite)${GX.some(x => x.k === 'bp' && need.bp > 0) ? ' · Blaupausen: Bestand wird nicht erfasst' : ''}</div>`;
+      <div class="mt-1 text-[10px] text-slate-500">Materialien in legendären Einheiten (1 legendär = 4 episch = 16 Elite)${GX.some(x => need[x.k] > 0) ? ' · Gold, Kristalle und Blaupausen: nur Bedarf' : ''}</div>`;
   }
-  const gMini = (slots) => `<div class="flex flex-wrap gap-1">${GEAR_SLOTS.map(sl => hIcon(slots[sl.k])).join('')}</div>`;
+  // große, gut sichtbare Item-Symbole (Rahmen in Seltenheitsfarbe, Tier und Refine als Abzeichen)
+  const gBigIcon = (v) => { const it = gItem(v?.item);
+    if (!it) return '<span class="w-14 h-14 shrink-0 rounded-xl grid place-items-center border-2 border-dashed border-ink-700 text-slate-600 text-lg">∅</span>';
+    return `<span class="relative shrink-0" title="${R.esc(it.name)}${v.tier ? ' · T' + v.tier : ''}${v.refine ? ' · Refine ' + gRefTxt(v.refine) : ''}">${stepIcon(v, 'w-14 h-14')}
+      ${v.tier ? `<span class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 px-1.5 rounded-md bg-ink-950 border border-gold-400 text-[11px] font-extrabold text-gold-300 leading-4">${ROMAN[v.tier - 1]}</span>` : ''}
+      ${v.refine ? `<span class="absolute -top-1.5 -right-1.5 w-6 h-6">${gRefIcon(v, 'w-6 h-6')}</span>` : ''}</span>`; };
+  const gMini = (slots) => `<div class="flex flex-wrap gap-1.5 pb-1.5">${GEAR_SLOTS.map(sl => gBigIcon(slots[sl.k])).join('')}</div>`;
   function renderGoals() {
     const box = R.$('goalSets'); if (!box) return;
     const st = gearStock();
-    R.$('goalMatStock').innerHTML = st.mats ? `📦 Materialien aus deinem Scan vom <b class="text-slate-200">${R.dateLabel(st.ts)}</b><div class="mt-1 text-slate-200 tabular-nums">${R.MATS.map(m => `${m.icon} ${gq(st.mats[m.k])}`).join(' · ')}</div>`
-      : `⚠ Noch kein Material-Scan – Fortschritt kann nicht berechnet werden. <button data-goscan="mats" class="underline text-gold-300 hover:text-gold-400">Materialien scannen</button>`;
-    if (document.activeElement !== R.$('goalGold')) R.$('goalGold').value = gearOpt.gold ?? '';
-    if (document.activeElement !== R.$('goalCrystal')) R.$('goalCrystal').value = gearOpt.crystal ?? '';
+    R.$('goalMatStock').innerHTML = st.mats ? `<div class="text-xs text-slate-400 mb-2">📦 Dein Rucksack (legendäre Einheiten) · Scan vom <b class="text-slate-200">${R.dateLabel(st.ts)}</b></div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">${R.MATS.map(m => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 px-4 py-3 flex items-center gap-3">
+        <span class="w-12 h-12 shrink-0 rounded-xl grid place-items-center text-3xl" style="background:${m.c}22;border:1px solid ${m.c}66">${m.icon}</span>
+        <div><div class="text-2xl font-extrabold tabular-nums text-white leading-tight">${gq(st.mats[m.k])}</div><div class="text-xs text-slate-400">${m.label}</div></div></div>`).join('')}</div>`
+      : `<div class="text-sm text-amber-300">⚠ Noch kein Material-Scan – Fortschritt kann nicht berechnet werden. <button data-goscan="mats" class="underline text-gold-300 hover:text-gold-400">Materialien scannen</button></div>`;
     const res = gear.sets.map(s => ({ s, g: goalCalc(s, st) }));
     // Gesamtziel: alle markierten Sets zusammen, Rucksack zählt nur einmal
     const on = res.filter(x => x.s.goal.on), total = gZero(), back = gZero();
@@ -988,9 +1040,9 @@ window.RokMods.crafting = (R) => {
           ${s.goal.date ? `<button type="button" data-gdate-clear="${R.esc(s.id)}" class="text-slate-500 hover:text-red-300" title="Zieldatum entfernen">✕</button>` : ''}
           <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-300 ml-auto"><input type="checkbox" data-gon="${R.esc(s.id)}" ${s.goal.on ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">im Gesamtziel</label>
         </div>
-        <div class="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 items-center">
-          <span class="text-[10px] uppercase tracking-widest text-slate-500">Ist</span>${gMini(s.ist)}
-          <span class="text-[10px] uppercase tracking-widest text-slate-500">${s.goal.mode === 'max' ? 'Max' : 'Ziel'}</span>${gMini(target)}
+        <div class="mt-3 space-y-1">
+          <div class="text-[10px] uppercase tracking-widest text-slate-500">Ist</div>${gMini(s.ist)}
+          <div class="pt-1 text-[10px] uppercase tracking-widest text-gold-300">${s.goal.mode === 'max' ? 'Alles Max' : 'Ziel'}</div>${gMini(target)}
         </div>
         <div class="mt-3 overflow-x-auto">${emptyZiel ? '<div class="text-xs text-amber-300">Noch keine Ziel-Ausrüstung – im Planer festlegen oder oben „Alles Max“ wählen.</div>' : goalTable(g.lines, c.need, g.days, !!st.mats, g.unknown)}</div>
         ${g.unknown ? '<div class="mt-1 text-[11px] text-amber-300">⚠ Für manche Stufen fehlen Kosten – nicht mitgerechnet.</div>' : ''}
@@ -1010,7 +1062,6 @@ window.RokMods.crafting = (R) => {
     const t = ev.target, setBy = (id) => gear.sets.find(s => s.id === id);
     if (t.dataset.gdate) { const s = setBy(t.dataset.gdate); if (s) { s.goal = gNormGoal({ ...s.goal, date: t.value }); R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderGoals(); } }
     else if (t.dataset.gon) { const s = setBy(t.dataset.gon); if (s) { s.goal.on = t.checked; R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderGoals(); } }
-    else if (t.id === 'goalGold' || t.id === 'goalCrystal') { const k = t.id === 'goalGold' ? 'gold' : 'crystal'; gearOpt[k] = t.value === '' ? null : gNum(t.value); saveGearOpt(); renderGoals(); }
   });
 
   // ================= Craft-Verlauf (eigenes Fenster im Craft-Tab) =================
@@ -1041,6 +1092,29 @@ window.RokMods.crafting = (R) => {
     else { if (gSame(before, after)) return; chist.unshift({ id: R.newId(), ts: now, kind: 'auto', src, setId: set.id, setName: set.name, slot, changes: [{ slot, from: before, to: after }], note: '', imgs: [] }); }
     saveHist();
   }
+
+  // Noch nicht gespeicherte Änderungen der Ist-Ausrüstung (seit dem letzten „In History speichern“)
+  const histPending = (set) => GEAR_SLOTS.map(sl => ({ slot: sl.k, from: gSnap(set.histBase[sl.k]), to: gSnap(set.ist[sl.k]) })).filter(c => !gSame(c.from, c.to));
+  function renderHistBar(set) {
+    const box = R.$('gearHistBar'); if (!box) return;
+    const ch = histPending(set);
+    box.innerHTML = ch.length ? `<div class="flex flex-wrap items-center gap-2 rounded-lg border border-gold-500/40 bg-gold-500/5 px-2.5 py-1.5 text-xs">
+        <span class="text-gold-200">✎ ${ch.length} ${ch.length === 1 ? 'Änderung' : 'Änderungen'} noch nicht in der History</span>
+        <button type="button" data-hb="save" class="ml-auto px-2.5 py-1 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">📜 In History speichern</button>
+        <button type="button" data-hb="undo" class="px-2 py-1 rounded-lg border border-ink-600 hover:border-red-500/50 hover:text-red-300" title="Ist-Ausrüstung auf den letzten gespeicherten Stand zurücksetzen">↺</button></div>` : '';
+  }
+  R.$('gearHistBar').addEventListener('click', async (ev) => {
+    const b = ev.target.closest('[data-hb]'); if (!b) return;
+    const set = activeSet(), ch = histPending(set); if (!ch.length) return;
+    if (b.dataset.hb === 'save') {
+      chist.unshift({ id: R.newId(), ts: Date.now(), kind: 'auto', src: 'edit', setId: set.id, setName: set.name, slot: '', changes: ch, note: '', imgs: [] });
+      set.histBase = JSON.parse(JSON.stringify(set.ist)); saveHist(); saveGear(); cloudSave(); renderGearMain();
+      gearMsg(`✓ ${ch.length} ${ch.length === 1 ? 'Änderung' : 'Änderungen'} in der History gespeichert`);
+    } else if (b.dataset.hb === 'undo') {
+      if (!(await UI.confirm(`Ist-Ausrüstung auf den letzten gespeicherten Stand zurücksetzen?\n\n${ch.length} ${ch.length === 1 ? 'Änderung geht' : 'Änderungen gehen'} verloren.`))) return;
+      set.ist = JSON.parse(JSON.stringify(set.histBase)); gearFlags = {}; saveGear(); renderGearMain();
+    }
+  });
 
   // ---- Darstellung: kleine Item-Symbole und Änderungstexte ----
   const hSlot = (k) => GEAR_SLOTS.find(s => s.k === k);
@@ -1183,7 +1257,8 @@ window.RokMods.crafting = (R) => {
     if (gearPickEvent(t)) { renderHistEditor(); return; }
     const v = hd.slots[t.dataset.slot]; if (!v) return;
     if (t.dataset.f === 'clear') { v.item = ''; v.tier = 0; v.refine = 0; }
-    else if (t.dataset.f === 'refset') { if (t.dataset.v) { v.refType = gRefType(t.dataset.v); v.refine = 100; } else v.refine = 0; }
+    else if (t.dataset.f === 'refset') { if (t.dataset.v) { v.refType = gRefType(t.dataset.v); if (!v.refine) v.refine = 100; } else v.refine = 0; }
+    else if (t.dataset.f === 'refine') v.refine = gRefine(t.dataset.v);
     else if (t.dataset.f === 'item') { v.item = t.dataset.v ?? t.value; const it = gItem(v.item); if (it) v.rarity = it.rarity; v.tier = 0; v.refine = 0; v.refType = v.refType || 'infantry'; }
     else if (t.dataset.f === 'tier') v.tier = gTier(t.value);
     renderHistEditor();
@@ -1193,7 +1268,7 @@ window.RokMods.crafting = (R) => {
     const s = hdSet(), ch = hdChanges(); if (!s || !ch.length) return;
     chist.unshift({ id: R.newId(), ts: Date.now(), kind: 'hist', src: 'edit', setId: s.id, setName: s.name, slot: '', changes: ch, note: R.$('chNote').value.trim().slice(0, 500), imgs: [] });
     saveHist();
-    if (R.$('chApply').checked) { GEAR_SLOTS.forEach(sl => { s.ist[sl.k] = { ...hd.slots[sl.k] }; }); s.updated = Date.now(); R.LS.set(GEAR_SETS, JSON.stringify(gear)); }
+    if (R.$('chApply').checked) { GEAR_SLOTS.forEach(sl => { s.ist[sl.k] = { ...hd.slots[sl.k] }; }); s.histBase = JSON.parse(JSON.stringify(s.ist)); s.updated = Date.now(); R.LS.set(GEAR_SETS, JSON.stringify(gear)); }
     cloudSave();
     R.$('chNote').value = ''; hd.open = false; hf.kind = hf.kind === 'auto' || hf.kind === 'manual' ? 'all' : hf.kind;
     renderGearMain(); renderHistEditor();

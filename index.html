@@ -1014,6 +1014,7 @@ tailwind.config = {
           <label for="gearFile" class="cursor-pointer text-xs px-3 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400 whitespace-nowrap">📷 Screenshot scannen</label>
           <input id="gearFile" type="file" accept="image/*" multiple class="hidden">
         </div>
+        <div id="gearHistBar" class="mt-2"></div>
         <div id="gearScanMsg" class="hidden mt-2 text-xs"></div>
         <div id="gearIstBoard" class="relative mx-auto mt-5 w-full max-w-[280px] aspect-[1/2]"></div>
         <div id="gearIstEdit" class="mt-4"></div>
@@ -1036,14 +1037,6 @@ tailwind.config = {
         <div id="gearZielEdit" class="mt-4"></div>
       </section>
     </div>
-
-    <!-- Optionen -->
-    <section class="panel rounded-2xl p-5 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
-      <label class="inline-flex items-center gap-2 cursor-pointer"><input id="gearDismantle" type="checkbox" class="w-4 h-4 accent-yellow-500">Bestehendes Equipment zerlegen (Dismantle)</label>
-      <label class="inline-flex items-center gap-2">Rückgabe beim Zerlegen
-        <input id="gearDisRate" type="number" min="0" max="100" step="5" class="w-20 bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-right tabular-nums focus:outline-none focus:border-gold-500"> %</label>
-      <label class="inline-flex items-center gap-2 cursor-pointer"><input id="gearUseChests" type="checkbox" class="w-4 h-4 accent-yellow-500">Material-Kisten zum Auffüllen nutzen</label>
-    </section>
 
     <!-- Ergebnis -->
     <section id="gearResult" class="space-y-4"></section>
@@ -1079,13 +1072,7 @@ tailwind.config = {
       <section class="panel rounded-2xl p-5">
         <h3 class="font-display text-xl gold-text">Ziele &amp; Übersicht</h3>
         <p class="text-xs text-slate-400 mt-1">Für jedes Set wählen: eigenes Ziel (Ziel-Ausrüstung im Planer) oder alles Max. Mit Zieldatum siehst du, wie viel du pro Tag sammeln musst.</p>
-        <div class="mt-4 grid sm:grid-cols-3 gap-3">
-          <div id="goalMatStock" class="rounded-xl border border-ink-700 bg-ink-950/40 px-3 py-2 text-xs text-slate-400"></div>
-          <label class="rounded-xl border border-ink-700 bg-ink-950/40 px-3 py-2 text-xs text-slate-400">🪙 Gold-Bestand
-            <input id="goalGold" type="number" min="0" step="1000000" placeholder="z. B. 500000000" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm text-right tabular-nums text-slate-100 focus:outline-none focus:border-gold-500"></label>
-          <label class="rounded-xl border border-ink-700 bg-ink-950/40 px-3 py-2 text-xs text-slate-400">💎 Iconic-Kristalle (Bestand)
-            <input id="goalCrystal" type="number" min="0" step="1" placeholder="z. B. 12" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm text-right tabular-nums text-slate-100 focus:outline-none focus:border-gold-500"></label>
-        </div>
+        <div id="goalMatStock" class="mt-4"></div>
       </section>
       <section id="goalTotal"></section>
       <div id="goalSets" class="grid xl:grid-cols-2 gap-4"></div>
