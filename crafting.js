@@ -21,7 +21,11 @@ window.RokMods.crafting = (R) => {
 
   // ---- Charakter-Ansicht: Ausrüstung rund um ein Charakterbild statt Rauten-Brett (Planer, Showcase, Help Me) ----
   // Bild je Truppentyp (freigestellt, PNG/WebP). Fehlt eins, wird automatisch das Rauten-Brett gezeigt.
-  const CHAR_IMG = { infantry: 'icons/chars/infantry.webp', cavalry: 'icons/chars/cavalry.webp', archer: 'icons/chars/archer.webp' };
+  // Dateinamen der Charakterbilder (ohne Endung); gesucht wird in icons/chars/ und icons/schars/, als .webp oder .png
+  const CHAR_FILE = { infantry: 'charles', cavalry: 'caocao', archer: 'qsh' };
+  const CHAR_DIRS = ['icons/chars/', 'icons/schars/'], CHAR_EXT = ['.webp', '.png'];
+  const charCands = (f) => CHAR_DIRS.flatMap(d => CHAR_EXT.map(e => d + f + e));
+  const CHAR_IMG = Object.fromEntries(Object.entries(CHAR_FILE).map(([t, f]) => [t, charCands(f)[0]]));
   const CHAR_TROOP = { infantry: '🛡 Infanterie', cavalry: '🐎 Kavallerie', archer: '🏹 Bogen', engineering: '⚙ Belagerung', integration: '🔀 Gemischt', leadership: '🚩 Führung' };
   // Kachel-Mitte (x/y in % der quadratischen Fläche) + Punkt am Körper, an dem die Linie endet
   const CHAR_POS = { helm: { x: 13, y: 13, px: 52, py: 9 }, weapon: { x: 13, y: 38, px: 36, py: 72 }, gloves: { x: 13, y: 62, px: 32, py: 22 }, acc1: { x: 13, y: 87, px: 53, py: 52 },
@@ -40,7 +44,7 @@ window.RokMods.crafting = (R) => {
   R.charOn = (map) => R.boardStyle() === 'char' && !!R.charImg(map);
   R.charBox = (k) => { const p = CHAR_POS[k] || { x: 50, y: 50 }; return `left:${p.x - CHAR_T / 2}%;top:${p.y - CHAR_T / 2}%;width:${CHAR_T}%;height:${CHAR_T}%`; };
   R.charBack = (map) => `<div class="absolute inset-0 rounded-2xl pointer-events-none" style="background:radial-gradient(55% 50% at 50% 45%,rgba(59,130,246,.22),transparent 70%)"></div>
-    <img src="${R.charImg(map)}" alt="" draggable="false" class="absolute pointer-events-none select-none" style="left:50%;top:3%;height:94%;transform:translateX(-50%);filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))">
+    <img src="${R.charImg(map)}" data-alt="${charCands(CHAR_FILE[R.charTroop(map)] || '').slice(1).join('|')}" onerror="var a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.dataset.alt=a.slice(1).join('|');this.src=a[0]}else{this.onerror=null;this.style.display='none'}" alt="" draggable="false" class="absolute pointer-events-none select-none" style="left:50%;top:3%;height:94%;transform:translateX(-50%);filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))">
     <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">${Object.entries(CHAR_POS).map(([k, q]) => { const o = CHAR_PTS[R.charTroop(map)]?.[k], p = o ? { ...q, px: o[0], py: o[1] } : q; return '' +
       `<line x1="${p.x}" y1="${p.y}" x2="${p.px}" y2="${p.py}" stroke="rgba(246,215,122,.55)" stroke-width=".35" stroke-dasharray="1 .8"/><circle cx="${p.px}" cy="${p.py}" r=".8" fill="#f6d77a"/>`; }).join('')}</svg>`;
   // Container umstellen: 1:2 (Rauten) ↔ 1:1 (Charakter)
