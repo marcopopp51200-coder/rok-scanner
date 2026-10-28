@@ -862,7 +862,8 @@ tailwind.config = {
                 <div id="scManual" class="w-full">
                   <div id="scCmds" class="flex justify-center items-end"></div>
                   <div id="scCgBar" class="mt-2 flex justify-center"></div>
-                  <div class="mt-4 mx-auto w-full max-w-[260px]"><div id="scGearBoard" class="relative w-full aspect-[1/2]"></div></div>
+                  <div id="scViewBar" class="mt-3"></div>
+                  <div class="mt-3 mx-auto w-full max-w-[260px]" id="scGearWrap"><div id="scGearBoard" class="relative w-full aspect-[1/2]"></div></div>
                 </div>
                 <div id="scShot" class="hidden"></div>
               </div>
@@ -1007,7 +1008,8 @@ tailwind.config = {
     <!-- Bedarf: Dieses Set · Alle Sets · bis Etappe -->
     <section id="gearMid" class="panel rounded-2xl p-4 sm:p-5 ring-1 ring-gold-500/30"></section>
 
-    <!-- Ist | Ziel – Slots in der Rauten-Anordnung wie im Spiel -->
+    <!-- Ist | Ziel – Slots in der Rauten-Anordnung wie im Spiel oder rund um den Charakter -->
+    <div id="gearViewBar" class="-mb-3"></div>
     <div class="grid gap-6 lg:grid-cols-2 items-start">
       <section id="gearIstPanel" class="panel rounded-2xl p-5 transition">
         <div class="flex flex-wrap items-start justify-between gap-2">
@@ -1056,7 +1058,7 @@ tailwind.config = {
           <thead class="uppercase tracking-wider text-slate-400">
             <tr class="border-b border-ink-700">
               <th class="py-2 pr-1 text-left font-medium">Item</th><th class="py-2 px-1 text-left font-medium">Slot</th><th class="py-2 px-1 text-left font-medium">Quelle</th>
-              <th class="py-2 px-1 font-medium">🐂</th><th class="py-2 px-1 font-medium">⛓️</th><th class="py-2 px-1 font-medium">🪵</th><th class="py-2 px-1 font-medium">🦴</th><th class="py-2 px-1 text-right font-medium" title="Craften + Refine + alle Tier-Stufen (legendäre Materialien)">bis Max</th><th class="py-2 pl-1 text-right font-medium">Kosten</th>
+              <th class="py-2 px-1 font-medium">🐂</th><th class="py-2 px-1 font-medium">⛓️</th><th class="py-2 px-1 font-medium">🪵</th><th class="py-2 px-1 font-medium">🦴</th><th class="py-2 px-1 text-right font-medium" title="Craften + Refine + alle Tier-Stufen (legendäre Materialien)">bis Max</th><th class="py-2 px-1 font-medium">📊 Werte</th><th class="py-2 pl-1 text-right font-medium">Kosten / Werte</th>
             </tr>
           </thead>
           <tbody id="gearCatRows"></tbody>
@@ -1165,6 +1167,7 @@ tailwind.config = {
 
       <!-- Seite 2: Gespeicherte Sets -->
       <div id="chPageSnaps" class="hidden space-y-4">
+        <section id="chMonthly" class="panel rounded-2xl p-5 ring-1 ring-emerald-500/20"></section>
         <section class="panel rounded-2xl p-5">
           <h3 class="font-display text-xl gold-text">Gespeicherte Sets</h3>
           <p class="text-xs text-slate-400">Sichert alle deine aktuellen Sets mit Datum. Später wieder laden oder mit heute vergleichen, um deinen Fortschritt zu sehen.</p>

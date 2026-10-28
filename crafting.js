@@ -18,6 +18,42 @@ window.RokMods.crafting = (R) => {
     { k: 'acc2',   label: 'Accessoire 2', icon: '📿', cat: 'accessory', x: 1,  y: 5 },
     { k: 'boots',  label: 'Stiefel',      icon: '🥾', cat: 'boots',     x: 0,  y: 6 }
   ]; R.GEAR_SLOTS = GEAR_SLOTS;
+
+  // ---- Charakter-Ansicht: Ausrüstung rund um ein Charakterbild statt Rauten-Brett (Planer, Showcase, Help Me) ----
+  // Bild je Truppentyp (freigestellt, PNG/WebP). Fehlt eins, wird automatisch das Rauten-Brett gezeigt.
+  const CHAR_IMG = { infantry: 'icons/chars/infantry.webp', cavalry: 'icons/chars/cavalry.webp', archer: 'icons/chars/archer.webp' };
+  const CHAR_TROOP = { infantry: '🛡 Infanterie', cavalry: '🐎 Kavallerie', archer: '🏹 Bogen', engineering: '⚙ Belagerung', integration: '🔀 Gemischt', leadership: '🚩 Führung' };
+  // Kachel-Mitte (x/y in % der quadratischen Fläche) + Punkt am Körper, an dem die Linie endet
+  const CHAR_POS = { helm: { x: 13, y: 13, px: 52, py: 9 }, weapon: { x: 13, y: 38, px: 36, py: 72 }, gloves: { x: 13, y: 62, px: 32, py: 22 }, acc1: { x: 13, y: 87, px: 53, py: 52 },
+    chest: { x: 87, y: 13, px: 60, py: 35 }, legs: { x: 87, y: 38, px: 58, py: 66 }, boots: { x: 87, y: 62, px: 57, py: 85 }, acc2: { x: 87, y: 87, px: 77, py: 62 } };
+  // Körperpunkte je Charakter [px, py] (Kacheln bleiben gleich, nur die Linien enden woanders)
+  const CHAR_PTS = {
+    cavalry: { helm: [48, 12], weapon: [17, 61], gloves: [54, 31], acc1: [34, 62], chest: [50, 39], legs: [50, 76], boots: [46, 92], acc2: [38, 55] },
+    archer:  { helm: [50, 13], weapon: [54, 39], gloves: [25, 53], acc1: [63, 81], chest: [42, 41], legs: [44, 76], boots: [30, 90], acc2: [59, 59] } };
+  const CHAR_T = 23;   // Kachelgröße in %
+  const BSTYLE = 'rok_scanner_board_style';
+  R.boardStyle = () => (R.LS?.get(BSTYLE, 'rauten') === 'char' ? 'char' : 'rauten');
+  // Truppentyp eines Sets = häufigster Refine-Typ der eingetragenen Teile
+  R.charTroop = (map) => { const n = {}; Object.values(map || {}).forEach(v => { if (v && (v.item || v.name)) { const t = gRefType(v.refType); n[t] = (n[t] || 0) + 1; } });
+    return Object.entries(n).sort((a, b) => b[1] - a[1])[0]?.[0] || 'infantry'; };
+  R.charImg = (map) => CHAR_IMG[R.charTroop(map)] || '';
+  R.charOn = (map) => R.boardStyle() === 'char' && !!R.charImg(map);
+  R.charBox = (k) => { const p = CHAR_POS[k] || { x: 50, y: 50 }; return `left:${p.x - CHAR_T / 2}%;top:${p.y - CHAR_T / 2}%;width:${CHAR_T}%;height:${CHAR_T}%`; };
+  R.charBack = (map) => `<div class="absolute inset-0 rounded-2xl pointer-events-none" style="background:radial-gradient(55% 50% at 50% 45%,rgba(59,130,246,.22),transparent 70%)"></div>
+    <img src="${R.charImg(map)}" alt="" draggable="false" class="absolute pointer-events-none select-none" style="left:50%;top:3%;height:94%;transform:translateX(-50%);filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))">
+    <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">${Object.entries(CHAR_POS).map(([k, q]) => { const o = CHAR_PTS[R.charTroop(map)]?.[k], p = o ? { ...q, px: o[0], py: o[1] } : q; return '' +
+      `<line x1="${p.x}" y1="${p.y}" x2="${p.px}" y2="${p.py}" stroke="rgba(246,215,122,.55)" stroke-width=".35" stroke-dasharray="1 .8"/><circle cx="${p.px}" cy="${p.py}" r=".8" fill="#f6d77a"/>`; }).join('')}</svg>`;
+  // Container umstellen: 1:2 (Rauten) ↔ 1:1 (Charakter)
+  R.charFrame = (el, on, rautenW) => { if (!el) return; el.classList.toggle('aspect-[1/2]', !on); el.classList.toggle('aspect-square', on);
+    el.style.maxWidth = on ? '460px' : rautenW || ''; };
+  // Umschalter (überall gleich, gilt für alle Bretter)
+  R.boardStyleBar = (map) => { const cur = R.boardStyle(), t = R.charTroop(map), miss = cur === 'char' && !R.charImg(map);
+    const b = (v, l) => `<button type="button" data-bstyle="${v}" class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${cur === v ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'}">${l}</button>`;
+    return `<div class="flex flex-wrap items-center justify-center gap-2"><div class="inline-flex gap-0.5 p-0.5 rounded-lg bg-ink-950 border border-ink-700">${b('rauten', '◇ Rauten')}${b('char', '🧍 Charakter')}</div>
+      ${miss ? `<span class="text-[10px] text-amber-300">Für ${CHAR_TROOP[t] || t} noch kein Bild – Rauten-Ansicht</span>` : ''}</div>`; };
+  document.addEventListener('click', (ev) => { const b = ev.target.closest('[data-bstyle]'); if (!b) return;
+    R.LS.set(BSTYLE, b.dataset.bstyle); (R.boardStyleHooks || []).forEach(f => { try { f(); } catch (e) { console.error(e); } }); });
+  R.boardStyleHooks = R.boardStyleHooks || [];
   const GEAR_CATS = { helm: 'Helm', chest: 'Brust', weapon: 'Waffe', gloves: 'Handschuhe', legs: 'Beine', boots: 'Stiefel', accessory: 'Accessoire' };
   // Episch = gleiche Anzahl lila Materialien → ¼ legendär (4:1)
   const GEAR_RAR = { legendary: { label: 'Legendär', c: '#f97316', div: 1 }, epic: { label: 'Episch', c: '#c084fc', div: 4 }, elite: { label: 'Elite', c: '#60a5fa', div: 16 }, normal: { label: 'Normal', c: '#94a3b8', div: 64 } };
@@ -55,6 +91,7 @@ window.RokMods.crafting = (R) => {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const d = await r.json();
       EQ.list = (d.items || []).filter(i => i && i.id && EQ_SLOT[i.slot]);
+      EQ.list.forEach(i => { i.stats = i.stats ? statNorm(i.stats) : null; });   // Werte aus der Datei (Supabase überschreibt)
       EQ.sets = Array.isArray(d.sets) ? d.sets : [];
       EQ.map = new Map(); EQ.list.forEach(i => { EQ.map.set(eqKey(i.id), i); EQ.map.set(eqKey(i.name), i); });
       EQ.setOf = new Map(); EQ.sets.forEach(s => (s.pieces || []).forEach(p => EQ.setOf.set(p, s)));
@@ -76,10 +113,12 @@ window.RokMods.crafting = (R) => {
   EQ.dbCosts = new Set(); EQ.dbErr = '';
   async function loadCostDb() {
     try {
-      const r = await RokAuth.db()?.from('gear_costs').select('item_id,costs');
+      let r = await RokAuth.db()?.from('gear_costs').select('item_id,costs,stats');
+      EQ.statsCol = !!r && !r.error;
+      if (r?.error && !R.tableMissing(r.error)) r = await RokAuth.db()?.from('gear_costs').select('item_id,costs');   // Spalte stats fehlt noch
       if (!r || r.error) { EQ.dbErr = r?.error ? (R.tableMissing(r.error) ? 'missing' : r.error.message) : ''; return; }
       EQ.dbErr = '';
-      (r.data || []).forEach(row => { const e = EQ.byId.get(String(row.item_id)); if (e) { e.costs = cleanCosts(row.costs); EQ.dbCosts.add(e.id); } });
+      (r.data || []).forEach(row => { const e = EQ.byId.get(String(row.item_id)); if (e) { e.costs = cleanCosts(row.costs); EQ.dbCosts.add(e.id); if (row.stats) e.stats = statNorm(row.stats); } });
     } catch (e) { EQ.dbErr = e.message || String(e); }
   }
   let gAdmin = false;
@@ -325,13 +364,14 @@ window.RokMods.crafting = (R) => {
 
   // Rauten-Brett (8 Slots wie im Spiel)
   function gearBoard(side, set, calc, opt = {}) {
-    return GEAR_SLOTS.map(sl => {
+    const ch = !!opt.char, box = (sl) => ch ? R.charBox(sl.k) : `left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%`;
+    return (ch ? R.charBack(set[side]) : '') + GEAR_SLOTS.map(sl => {
       const v = set[side][sl.k], it = gItem(v.item), rr = it?.rarity || v.rarity, f = it ? GFILL[rr] || GFILL.legendary : null, r = calc.rows.find(x => x.sl.k === sl.k);
       const active = (opt.sel !== undefined ? opt.sel : gearSel[side]) === sl.k;
       const badge = opt.badge ? opt.badge(sl) : side === 'ziel' ? { same: ['✓', '#34d399'], swap: ['⇄', '#34d399'], tierup: ['⬆', '#7dd3fc'], refine: ['✦', '#fca5a5'], craft: ['⚒', '#fde68a'] }[r.status]
         : side !== 'ist' ? null : gearFlags[sl.k] ? ['⚠', '#fcd34d'] : r?.back ? ['♻', '#7dd3fc'] : null;
       return `<button type="button" data-tile="${sl.k}" data-side="${side}" title="${R.esc(sl.label + (it ? ': ' + it.name : ''))}"
-          class="gdia absolute focus:outline-none" style="left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%">
+          class="gdia absolute focus:outline-none" style="${box(sl)}">
         <span class="gdia absolute inset-0" style="background:${active ? '#ffffff' : R.gFull(it, v) ? R.GOLD_RIM : f ? f[0] : '#2e3a55'}"></span>
         ${R.gFull(it, v) ? '<span class="gdia absolute inset-[10px]" style="background:linear-gradient(180deg,#5a3200,#2e1900)"></span>' : ''}
         <span class="gdia absolute ${R.gFull(it, v) ? 'inset-[12px]' : 'inset-[3px]'}" style="background:${f ? R.gFace(rr) : '#111725'}"></span>
@@ -423,8 +463,9 @@ window.RokMods.crafting = (R) => {
     renderScLink(set);
     renderHistBar(set);
     const calc = gearCalc(set), st = gearStock(), list = prioListAll(), P = gear.prio;
-    R.$('gearIstBoard').innerHTML = gearBoard('ist', set, calc);
-    R.$('gearZielBoard').innerHTML = gearBoard('ziel', set, calc);
+    ['ist', 'ziel'].forEach(side => { const el = R.$(side === 'ist' ? 'gearIstBoard' : 'gearZielBoard'), on = R.charOn(set[side]);
+      R.charFrame(el, on, '280px'); el.innerHTML = gearBoard(side, set, calc, { char: on }); });
+    R.$('gearViewBar').innerHTML = R.boardStyleBar(set.ziel);
     R.$('gearIstEdit').innerHTML = gearEditor('ist', set, calc);
     R.$('gearZielEdit').innerHTML = gearEditor('ziel', set, calc);
     renderNeed(set, calc, list, st);
@@ -533,6 +574,14 @@ window.RokMods.crafting = (R) => {
   const stepIcon = (v, cls = 'w-12 h-12') => { const it = gItem(v?.item), f = GFILL[it?.rarity || v?.rarity] || GFILL.legendary;
     return `<span class="relative shrink-0 ${cls} rounded-xl grid place-items-center border-2" style="border-color:${f[1]};background:radial-gradient(circle at 50% 40%, ${f[1]}66, ${f[2]}55)">
       ${it?.icon ? `<img src="${it.icon}" alt="" loading="lazy" class="w-[86%] h-[86%] object-contain [filter:drop-shadow(0_2px_2px_rgba(0,0,0,.5))]">` : `<span class="text-[9px] font-bold text-white text-center leading-tight px-0.5">${R.esc(it?.name || '?')}</span>`}</span>`; };
+  // Kosten als Kästchen (wie die Mats-Kacheln)
+  const costBoxes = (c, cls = '') => !c ? '' : [...R.MATS.filter(m => (c[m.k] || 0) > 1e-4).map(m => [m.icon, gq(c[m.k])]), ...GX.filter(x => (c[x.k] || 0) > 1e-4).map(x => [x.icon, x.f(c[x.k])])]
+    .map(([ic, v]) => `<span class="inline-flex items-center gap-1 rounded-lg border border-ink-600 bg-ink-900/80 px-2 py-0.5 text-[13px] font-bold tabular-nums text-slate-100 whitespace-nowrap ${cls}"><span class="text-[15px] leading-none">${ic}</span>${v}</span>`).join('');
+  const stockChips = (st) => [...R.MATS.map(m => [m.icon, Math.floor(st[m.k] || 0)]), ['📦', Math.floor(st.choice || 0)]]
+    .map(([ic, v]) => `<span class="whitespace-nowrap"><span class="text-[13px]">${ic}</span>${v}</span>`).join('');
+  // Icon mit Tier-Marke / Refine-Stand (für „vorher → nachher“ in der Prio-Liste)
+  const stepIconT = (v, tier, ref, cls) => `<span class="relative inline-block">${stepIcon(v, cls)}${tier > 0 ? `<span class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 px-1.5 rounded-md bg-ink-950/90 border border-gold-400/70 text-[10px] font-extrabold text-gold-300 leading-4">${ROMAN[tier - 1]}</span>` : ''}${ref > 0 ? `<span class="absolute -top-1.5 -right-1.5 px-1 rounded-md bg-red-500/90 text-[9px] font-extrabold text-white leading-4">${ref >= 100 ? '✦' : ref + '%'}</span>` : ''}</span>`;
+  const emptyIcon = (cls) => `<span class="${cls} shrink-0 rounded-xl grid place-items-center border-2 border-dashed border-ink-600 text-slate-500 text-lg">＋</span>`;
   // Farbe je Set (für die Set-Marke in der Liste)
   const SET_COL = ['#f5c542', '#38bdf8', '#f472b6', '#34d399', '#a78bfa', '#fb923c', '#e2e8f0'];
   const setCol = (set) => SET_COL[Math.max(0, gear.sets.indexOf(set)) % SET_COL.length];
@@ -575,21 +624,31 @@ window.RokMods.crafting = (R) => {
       }
       n++; segN++; if (x.cost) { gAdd(seg, x.cost); gAdd(cum, x.cost); }
       const kind = x.meta.k === 'craft' ? ['⚒', 'text-gold-300'] : x.meta.k === 'tier' ? ['⬆', 'text-sky-300'] : ['✦', 'text-red-300'];
-      const it = gItem(x.r.z.item);
-      return `<div draggable="true" data-pkey="${R.esc(x.key)}" class="prio-row flex items-center gap-2 sm:gap-3 rounded-xl border ${o.ok ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-700 bg-ink-950/40'} p-2" style="box-shadow:inset 3px 0 0 ${setCol(x.set)}">
+      const it = gItem(x.r.z.item), z = x.r.z, IC = 'w-11 h-11 sm:w-14 sm:h-14';
+      // vorher → nachher
+      const prevTier = x.meta.k === 'tier' ? (x.meta.t || 1) - 1 : x.meta.k === 'refine' ? (z.tier || 0) : 0;
+      const from = x.meta.k === 'craft' ? [emptyIcon(IC), 'neu'] : x.meta.k === 'tier' ? [stepIconT(z, prevTier, 0, IC), prevTier ? 'Tier ' + ROMAN[prevTier - 1] : 'Tier 0']
+        : [stepIconT(z, prevTier, x.meta.from || 0, IC), x.meta.from ? gRefTxt(x.meta.from) : 'kein Refine'];
+      const to = x.meta.k === 'craft' ? [stepIconT(z, 0, 0, IC), 'Craften'] : x.meta.k === 'tier' ? [stepIconT(z, x.meta.t, 0, IC), 'Tier ' + ROMAN[(x.meta.t || 1) - 1]]
+        : [stepIconT(z, prevTier, x.meta.p, IC), 'Refine ' + gRefTxt(x.meta.p)];
+      const side = (q, cls) => `<div class="shrink-0 w-14 sm:w-20 flex flex-col items-center gap-1.5">${q[0]}<span class="text-[11px] sm:text-xs font-bold text-center leading-tight ${cls}">${q[1]}</span></div>`;
+      return `<div draggable="true" data-pkey="${R.esc(x.key)}" class="prio-row flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-3 rounded-xl border ${o.ok ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-700 bg-ink-950/40'} p-2" style="box-shadow:inset 3px 0 0 ${setCol(x.set)}">
+        <div class="w-full sm:hidden pl-6 text-xs text-slate-300 truncate" translate="no">${R.esc(it?.name || '')} <span class="text-slate-500">· ${x.r.sl.label}</span> ${setTag(x.set)}</div>
         <span class="cursor-grab text-slate-600 select-none hidden sm:inline" title="ziehen">⋮⋮</span>
-        <span class="w-5 text-center text-sm font-bold text-slate-500 tabular-nums">${n}</span>
-        ${stepIcon(x.r.z)}
-        <div class="min-w-0 flex-1 text-center">
-          <div class="text-base font-bold ${kind[1]}">${kind[0]} ${R.esc(x.label)}${x.meta.k === 'refine' && x.meta.n > 1 ? ` <span class="text-xs font-semibold text-slate-400">(${x.meta.n}× Refine)</span>` : ''}${x.last ? ' <span class="text-xs text-emerald-300" title="danach ist das Teil fertig">✓ fertig</span>' : ''}</div>
-          <div class="text-xs text-slate-300 truncate" translate="no">${R.esc(it?.name || '')} <span class="text-slate-500">· ${x.r.sl.label}</span> ${setTag(x.set)}</div>
-          <div class="mt-0.5 text-xs tabular-nums ${x.cost ? 'text-slate-200' : 'text-amber-300'}">${x.cost ? gCostText(x.cost) : '⚠ Kosten fehlen'}</div>
+        <span class="w-4 sm:w-5 text-center text-sm font-bold text-slate-500 tabular-nums">${n}</span>
+        ${side(from, 'text-slate-400')}
+        <div class="min-w-0 flex-1 flex flex-col items-center text-center gap-1">
+          <div class="hidden sm:block text-xs text-slate-300 truncate max-w-full" translate="no">${R.esc(it?.name || '')} <span class="text-slate-500">· ${x.r.sl.label}</span> ${setTag(x.set)}</div>
+          <div class="flex items-center w-full gap-1 ${kind[1]}"><span class="flex-1 h-[3px] rounded-full bg-current opacity-60"></span><span class="text-sm font-bold whitespace-nowrap">${kind[0]}${x.meta.k === 'refine' && x.meta.n > 1 ? ` ${x.meta.n}×` : ''}</span><span class="flex-1 h-[3px] rounded-full bg-current opacity-60"></span><span class="-ml-2 text-lg leading-none">➤</span></div>
+          ${x.cost ? `<div class="flex flex-wrap justify-center gap-1">${costBoxes(x.cost, '!px-1 !gap-0.5 !text-[11px] sm:!px-2 sm:!gap-1 sm:!text-[13px]')}</div>` : '<div class="text-xs text-amber-300">⚠ Kosten fehlen</div>'}
         </div>
+        ${side(to, kind[1])}
         <div class="shrink-0 flex flex-col items-end gap-1">
           ${o.ok ? '<span class="text-[11px] font-semibold text-emerald-300">✓ machbar</span>' : st.mats && o.lack?.length ? `<span class="text-[11px] text-red-300">fehlt ${o.lack.map(m => m.icon).join('')}</span>` : ''}
-          <div class="flex gap-1">
+          ${x.last ? '<span class="text-[10px] text-emerald-300" title="danach ist das Teil fertig">✓ Teil fertig</span>' : ''}
+          <div class="flex flex-col sm:flex-row gap-1">
             ${x.meta.k === 'refine' && x.meta.n > 1 ? `<button type="button" data-pdone="${R.esc(x.key)}|1" class="px-2 py-1.5 rounded-lg border border-ink-600 hover:border-emerald-400 hover:text-emerald-300 text-xs font-semibold" title="einen Refine (+25 %) erledigt">+25%</button>` : ''}
-            <button type="button" data-pdone="${R.esc(x.key)}" class="px-2.5 py-1.5 rounded-lg border border-ink-600 hover:border-emerald-400 hover:text-emerald-300 text-xs font-semibold" title="Schritt erledigt – Ist-Ausrüstung des Sets wird angepasst">✓ Erledigt</button>
+            <button type="button" data-pdone="${R.esc(x.key)}" class="px-2 sm:px-2.5 py-1.5 rounded-lg border border-ink-600 hover:border-emerald-400 hover:text-emerald-300 text-xs font-semibold" title="Schritt erledigt – Ist-Ausrüstung des Sets wird angepasst">✓<span class="hidden sm:inline"> Erledigt</span></button>
           </div></div>${move}</div>`;
     }).join('');
     box.innerHTML = head + `<div id="prioRows" class="space-y-2">${rows}</div>`;
@@ -670,13 +729,14 @@ window.RokMods.crafting = (R) => {
         <td class="py-1 px-1 whitespace-nowrap ${i.eq ? 'text-sky-300' : i.db ? 'text-emerald-300' : 'text-gold-300'}">${i.eq ? '📘 gear-data' : i.db ? '☁ Supabase' : '✎ eigenes'}</td>
         ${['leather', 'iron', 'ebony', 'bone'].map(k => `<td class="py-1 px-1"><input data-cid="${R.esc(i.id)}" data-f="${k}" type="number" min="0" step="1" value="${i[k]}" ${ro} class="${inp} w-16 text-right tabular-nums"></td>`).join('')}
         <td class="py-1 px-1 text-right tabular-nums whitespace-nowrap text-gold-300" title="Craften + Refine + alle Tier-Stufen, in legendären Materialien">${(() => { const t = gZero(); EQ_STAGES.forEach(st => gAdd(t, stageCost(i, st))); return gMatSum(t) > 0 ? gq(gMatSum(t)) + (t.gold ? ' · 🪙 ' + gGold(t.gold) : '') : '–'; })()}</td>
-        <td class="text-right whitespace-nowrap">${i.eq ? `<button data-cedit="${R.esc(i.eq.id)}" class="text-[11px] px-2 py-1 rounded-md border ${Object.keys(i.eq.costs || {}).length ? 'border-ink-600 text-slate-300' : 'border-gold-500/60 text-gold-300'} hover:border-gold-400 hover:text-gold-300" title="Kosten ansehen/eintragen">${gAdmin ? '✎ Kosten' : '👁 Kosten'}</button>`
+        <td class="py-1 px-1 text-[11px] text-slate-300 max-w-[260px]">${i.eq?.stats ? statChips(i.eq.stats) : '<span class="text-slate-600">–</span>'}</td>
+        <td class="text-right whitespace-nowrap">${i.eq ? `<button data-cedit="${R.esc(i.eq.id)}" class="text-[11px] px-2 py-1 rounded-md border ${Object.keys(i.eq.costs || {}).length ? 'border-ink-600 text-slate-300' : 'border-gold-500/60 text-gold-300'} hover:border-gold-400 hover:text-gold-300" title="Kosten und Werte ansehen/eintragen">${gAdmin ? '✎ Kosten & Werte' : '👁 Ansehen'}</button>`
           : i.db ? '' : `<button data-cdel="${R.esc(i.id)}" class="text-slate-500 hover:text-red-400 px-1" title="Item löschen">✕</button>`}</td></tr>`; };
     R.$('gearCatMissing').className = `text-xs px-3 py-2 rounded-lg border ${catMissing ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 hover:border-gold-500/60 hover:text-gold-300'}`;
     const RO = ['legendary', 'epic', 'elite', 'normal'], list = R.gearCat.filter(i => (!i.lib || i.eq) && (!catMissing || (i.eq && !Object.keys(i.eq.costs || {}).length)))
       .sort((a, b) => RO.indexOf(a.rarity) - RO.indexOf(b.rarity) || Object.keys(GEAR_CATS).indexOf(a.cat) - Object.keys(GEAR_CATS).indexOf(b.cat) || a.name.localeCompare(b.name));
     R.$('gearCatRows').innerHTML = list.length ? list.map(row).join('')
-      : '<tr><td colspan="9" class="py-4 text-center text-slate-500">Noch keine Items – Tabelle gear_items in Supabase füllen oder „+ Eigenes Item“.</td></tr>';
+      : '<tr><td colspan="10" class="py-4 text-center text-slate-500">Noch keine Items – Tabelle gear_items in Supabase füllen oder „+ Eigenes Item“.</td></tr>';
   }
   function renderGear() {
     if (R.gearDbState === 'idle') loadGearDb();
@@ -686,6 +746,7 @@ window.RokMods.crafting = (R) => {
     if (craftPane === 'cal') renderCal();
   }
 
+  R.boardStyleHooks.push(() => { if (R.$('gearIstBoard')) renderGearMain(); });
   // ---- Ereignisse: Brett + Slot-Editor ----
   ['gearIstBoard', 'gearZielBoard'].forEach(id => R.$(id).addEventListener('click', (ev) => {
     const t = ev.target.closest('[data-tile]'); if (!t) return;
@@ -889,6 +950,19 @@ window.RokMods.crafting = (R) => {
   let catMissing = false;
   R.$('gearCatMissing').onclick = () => { catMissing = !catMissing; renderGearCat(); };
 
+  // ---- Item-Werte (Statistiken) – Spalte gear_costs.stats: { lines: [{ k, v }], note } ----
+  const STAT_TROOPS = [['all', 'Alle Truppen'], ['inf', 'Infanterie'], ['cav', 'Kavallerie'], ['arch', 'Bogenschützen'], ['siege', 'Belagerung']];
+  const STAT_ATTR = [['atk', 'Angriff'], ['def', 'Verteidigung'], ['hp', 'Lebenspunkte']];
+  const STAT_TYPES = [...STAT_TROOPS.flatMap(([t, tl]) => STAT_ATTR.map(([a, al]) => [`${t}_${a}`, `${tl}-${al}`])),
+    ['march', 'Marschgeschwindigkeit'], ['dmg', 'Schaden'], ['dmg_red', 'Schadensreduktion'], ['skill_dmg', 'Fertigkeitsschaden'], ['skill_red', 'Fertigkeitsschaden-Reduktion'],
+    ['na_dmg', 'Normalangriff-Schaden'], ['na_red', 'Normalangriff-Schaden-Reduktion'], ['counter', 'Gegenangriff-Schaden'], ['heal', 'Heilung'], ['rage', 'Wut-Regeneration'], ['cap', 'Truppenkapazität'], ['load', 'Traglast'], ['gather', 'Sammelgeschwindigkeit']];
+  const STAT_LABEL = Object.fromEntries(STAT_TYPES);
+  const statNorm = (x) => { const lines = (Array.isArray(x?.lines) ? x.lines : []).map(l => ({ k: String(l?.k || ''), v: +String(l?.v ?? '').replace(',', '.') })).filter(l => STAT_LABEL[l.k] && Number.isFinite(l.v) && l.v !== 0).slice(0, 20);
+    const note = String(x?.note || '').slice(0, 500); return lines.length || note ? { lines, note } : null; };
+  const statTxt = (l) => `${STAT_LABEL[l.k]} +${l.v.toLocaleString('de-DE', { maximumFractionDigits: 2 })}${l.k === 'cap' || l.k === 'load' ? '' : ' %'}`;
+  const statChips = (st) => !st ? '' : `<div class="flex flex-wrap gap-1">${st.lines.map(l => `<span class="px-1.5 rounded bg-ink-800 border border-ink-700 whitespace-nowrap">${R.esc(statTxt(l))}</span>`).join('')}${st.note ? '<span class="px-1.5 rounded bg-gold-500/10 border border-gold-500/30 text-gold-200" title="' + R.esc(st.note) + '">✨ Spezial</span>' : ''}</div>`;
+  R.gearStats = (itemId) => { const it = gItem(itemId); return it?.eq?.stats || null; };
+
   // ---- Kosten-Eingabe: Tabelle Stufen × Materialien je Item (speichern nur für Admins, Tabelle gear_costs) ----
   const CE_ROWS = [['craft', '⚒ Craften'], ['refine', '✦ Refine'], ['awaken_1', 'Tier I'], ['awaken_2', 'Tier II'], ['awaken_3', 'Tier III'], ['awaken_4', 'Tier IV'], ['awaken_5', 'Tier V']];
   const CE_COLS = [['leather', '🐂', 'Leder'], ['iron', '⛓️', 'Erz'], ['ebony', '🪵', 'Ebenholz'], ['bone', '🦴', 'Knochen'], ['gold', '🪙', 'Gold'], ['blueprint', '📜', 'Blaupause'], ['iconic_crystal', '💎', 'Kristall']];
@@ -934,6 +1008,14 @@ window.RokMods.crafting = (R) => {
         </table>
       </div>
       <div data-ce="sum" class="mt-3 text-xs text-slate-400"></div>
+      <div class="mt-5 border-t border-ink-700 pt-4">
+        <div class="flex flex-wrap items-baseline justify-between gap-2"><h4 class="font-display text-lg gold-text">📊 Werte</h4><span class="text-[11px] text-slate-500">Werte bei voller Stufe, genau wie im Spiel (z. B. Infanterie-Angriff 5 %)</span></div>
+        <div data-ce="stats" class="mt-2 space-y-1.5"></div>
+        ${canEdit ? '<button type="button" data-ce="addstat" class="mt-2 text-xs px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">＋ Wert hinzufügen</button>' : ''}
+        <label class="block mt-3 text-xs text-slate-400">✨ Spezialeffekt / Iconic (optional)
+          <textarea data-ce="note" rows="2" maxlength="500" ${canEdit ? '' : 'disabled'} placeholder="z. B. Iconic V: 10 % Chance, beim Normalangriff …" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 disabled:opacity-70">${R.esc(e.stats?.note || '')}</textarea></label>
+        ${canEdit && EQ.statsCol === false ? '<div class="mt-2 text-[11px] text-amber-300">⚠ Spalte „stats“ fehlt noch in gear_costs – erst das SQL aus dem Chat ausführen, sonst werden die Werte nicht gespeichert.</div>' : ''}
+      </div>
       <div data-ce="msg" class="mt-2 text-xs"></div>
       <div class="mt-4 flex flex-wrap justify-end gap-2">
         <button type="button" data-ce="json" class="px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-xs" title="Kosten dieses Items als JSON für gear-data.json kopieren">📋 Als JSON kopieren</button>
@@ -943,6 +1025,20 @@ window.RokMods.crafting = (R) => {
       ${canEdit ? '' : '<div class="mt-2 text-[11px] text-slate-500 text-right">Nur Admins können Kosten ändern.</div>'}
     </div>`;
     const $q = (s) => root.querySelector(s), inputs = [...root.querySelectorAll('input[data-st]')];
+    // Werte-Zeilen: Auswahl + Zahl
+    let statRows = (e.stats?.lines || []).map(l => ({ ...l }));
+    if (canEdit && !statRows.length) statRows = [{ k: 'all_atk', v: '' }];
+    const statSel = (k, i) => `<select data-sk="${i}" ${canEdit ? '' : 'disabled'} class="flex-1 min-w-0 bg-ink-950 border border-ink-600 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500 disabled:opacity-70">${STAT_TYPES.map(([v, l]) => `<option value="${v}"${v === k ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
+    const drawStats = () => { const box = $q('[data-ce="stats"]');
+      box.innerHTML = statRows.length ? statRows.map((l, i) => `<div class="flex items-center gap-1.5">${statSel(l.k, i)}
+        <input data-sv="${i}" inputmode="decimal" ${canEdit ? '' : 'disabled'} value="${R.esc(String(l.v ?? '').replace('.', ','))}" placeholder="0" class="w-20 bg-ink-950 border border-ink-600 rounded-md px-2 py-1.5 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500 disabled:opacity-70">
+        <span class="w-4 text-xs text-slate-400">${l.k === 'cap' || l.k === 'load' ? '' : '%'}</span>
+        ${canEdit ? `<button type="button" data-ce="delstat" data-i="${i}" class="px-1.5 text-slate-500 hover:text-red-300" title="entfernen">✕</button>` : ''}</div>`).join('')
+        : '<div class="text-xs text-slate-500">Noch keine Werte eingetragen.</div>'; };
+    const readStats = () => statNorm({ lines: statRows, note: $q('[data-ce="note"]').value });
+    root.addEventListener('input', (ev) => { const t = ev.target; if (t.dataset.sv != null) statRows[+t.dataset.sv].v = t.value.trim(); });
+    root.addEventListener('change', (ev) => { const t = ev.target; if (t.dataset.sk != null) { statRows[+t.dataset.sk].k = t.value; drawStats(); } });
+    drawStats();
     // eingetippte Werte → costs-Objekt; ungültige Felder rot
     const read = () => { const c = {}; let bad = 0;
       inputs.forEach(i => { const n = ceParse(i.value); i.classList.toggle('!border-red-500', Number.isNaN(n)); if (Number.isNaN(n)) { bad++; return; }
@@ -968,8 +1064,10 @@ window.RokMods.crafting = (R) => {
       const b = ev.target.closest('[data-ce]'); if (!b || b.tagName === 'SELECT') return;
       const act = b.dataset.ce;
       if (act === 'close') return close();
+      if (act === 'addstat') { statRows.push({ k: 'all_atk', v: '' }); drawStats(); root.querySelector(`[data-sk="${statRows.length - 1}"]`)?.focus(); return; }
+      if (act === 'delstat') { statRows.splice(+b.dataset.i, 1); drawStats(); return; }
       if (act === 'json') {
-        const txt = JSON.stringify({ id: e.id, costs: upd().costs });
+        const st = readStats(), txt = JSON.stringify({ id: e.id, costs: upd().costs, ...(st ? { stats: st } : {}) });
         try { await navigator.clipboard.writeText(txt); $q('[data-ce="msg"]').innerHTML = '<span class="text-emerald-300">✓ Kopiert</span>'; }
         catch { $q('[data-ce="msg"]').innerHTML = `<code class="break-all text-slate-300">${R.esc(txt)}</code>`; }
         return;
@@ -978,9 +1076,11 @@ window.RokMods.crafting = (R) => {
         const { costs, bad } = upd(); if (bad) return;
         b.disabled = true; b.textContent = 'Speichert …';
         try {
-          const { error } = await RokAuth.db().from('gear_costs').upsert({ item_id: e.id, costs, updated_at: new Date().toISOString() }, { onConflict: 'item_id' });
+          const stats = readStats(), row = { item_id: e.id, costs, updated_at: new Date().toISOString() };
+          if (EQ.statsCol !== false) row.stats = stats || {};
+          const { error } = await RokAuth.db().from('gear_costs').upsert(row, { onConflict: 'item_id' });
           if (error) throw error;
-          e.costs = costs; EQ.dbCosts.add(e.id); EQ.dbErr = '';
+          e.costs = costs; e.stats = stats; EQ.dbCosts.add(e.id); EQ.dbErr = '';
           rebuildGearCat(); renderGear(); close();
         } catch (err) {
           $q('[data-ce="msg"]').innerHTML = `<span class="text-red-300">⚠ ${R.esc(R.tableMissing(err) ? 'Die Tabelle gear_costs fehlt noch – bitte zuerst das SQL im Supabase SQL Editor ausführen.' : (RokAuth.germanError ? RokAuth.germanError(err) : err.message || err))}</span>`;
@@ -1266,23 +1366,32 @@ window.RokMods.crafting = (R) => {
       gAdd(need, x.cost);
       while (!lost && d < CAL_DAYS && !fits(fc.days[d], need, useChoice)) d++;
       if (d >= CAL_DAYS) lost = true;
-      out.push({ x, day: lost ? null : d }); if (!lost) last = d;
+      out.push({ x, day: lost ? null : d, cum: { ...need } }); if (!lost) last = d;
     }
     return { rows: out, end: lost ? null : last, need };
   }
+  // Bestand an Tag d, nachdem alle bis dahin machbaren Schritte bezahlt sind (Lücken aus den Wahlkisten)
+  function restAt(fc, d, cum, useChoice) {
+    const st = fc.days[d], out = {}; let gap = 0;
+    MATK().forEach(k => { const v = (st[k] || 0) - (cum?.[k] || 0); out[k] = Math.max(0, v); gap += Math.max(0, -v); });
+    out.choice = Math.max(0, (st.choice || 0) - (useChoice ? gap : 0)); return out;
+  }
+  const cumAt = (rows, d) => { let c = null; rows.forEach(r => { if (!r.x.ms && r.day != null && r.day <= d && r.cum) c = r.cum; }); return c; };
   const dayDate = (d) => { const t = new Date(); t.setHours(0, 0, 0, 0); t.setDate(t.getDate() + d); return t; };
   const dOffOf = (iso) => { if (!iso) return null; const t = new Date(iso + 'T00:00:00'); return Math.round((t - dayDate(0)) / 864e5); };
   const dTxt = (d, long) => d == null ? '–' : d === 0 ? 'heute' : dayDate(d).toLocaleDateString('de-DE', long ? { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' } : { weekday: 'short', day: '2-digit', month: '2-digit' });
   const isoOf = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   R.matForecast = matForecast;
 
-  const cal = { setId: '', month: 0, sel: null };
+  const cal = { setId: '', month: 0, sel: null, mode: 'prio' };
   function renderCal() {
     const head = R.$('calHead'); if (!head) return;
     const fc = matForecast();
     if (cal.setId && !gear.sets.some(s => s.id === cal.setId)) cal.setId = '';
     // gemeinsame Prio-Liste aller Sets im Gesamtziel; Anzeige optional nur für ein Set
-    const list = prioListAll(), proj = fc ? projectList(list, fc, calChoice()) : null, only = cal.setId ? gear.sets.find(s => s.id === cal.setId) : null;
+    const only = cal.setId ? gear.sets.find(s => s.id === cal.setId) : null, solo = !!only && cal.mode === 'solo';
+    // „nur dieses Set“ = als würdest du nur dieses Set bauen (eigene Reihenfolge, ganzer Rucksack); sonst gemeinsame Prio-Liste
+    const list = solo ? prioListAll().filter(x => !x.ms && x.set === only) : prioListAll(), proj = fc ? projectList(list, fc, calChoice()) : null;
     const showRow = (r) => r.x.ms ? !only : !only || r.x.set === only;
     const goalSets = (only ? [only] : planSets()).filter(s => s.goal.date), goalDays = new Map(goalSets.map(s => [dOffOf(s.goal.date), s]));
     const set = only || activeSet(), perWeek = fc ? MATK().reduce((a, k) => a + (fc.perDay[k] || 0), 0) * 7 + (fc.perDay.choice || 0) * 7 : 0;
@@ -1294,9 +1403,10 @@ window.RokMods.crafting = (R) => {
     const late = (d, ref) => d != null && ref != null ? (d <= ref ? `<span class="text-emerald-300">✓ ${ref - d} ${ref - d === 1 ? 'Tag' : 'Tage'} vorher</span>` : `<span class="text-red-300">✗ ${d - ref} ${d - ref === 1 ? 'Tag' : 'Tage'} zu spät</span>`) : '';
     head.innerHTML = `<div class="flex flex-wrap items-start justify-between gap-3">
         <div><h3 class="font-display text-xl gold-text">Mats-Kalender</h3>
-          <p class="text-xs text-slate-400 mt-1">Dein Rucksack + passiver Zuwachs aus dem Mats-Dashboard. Jeder Schritt deiner Prio-Liste steht an dem Tag, ab dem du ihn bezahlen kannst – in deiner Reihenfolge.</p></div>
+          <p class="text-xs text-slate-400 mt-1">Dein Rucksack + passiver Zuwachs aus dem Mats-Dashboard. Jeder Schritt deiner Prio-Liste steht an dem Tag, ab dem du ihn bezahlen kannst – in deiner Reihenfolge. Die Zahlen sind dein Bestand <b class="text-slate-300">nach</b> dem Craften (bezahlte Mats sind abgezogen).</p></div>
         <div class="flex flex-wrap items-center gap-2 text-xs">
           <select data-cal="set" translate="no" class="bg-ink-950 border border-ink-600 rounded-lg px-2.5 py-1.5 text-sm font-semibold focus:outline-none focus:border-gold-500"><option value="">🌍 Alle Sets im Gesamtziel (${planSets().length})</option>${planSets().map(s => `<option value="${R.esc(s.id)}"${only === s ? ' selected' : ''}>${R.esc(s.name)}</option>`).join('')}</select>
+          ${only ? `<div class="inline-flex gap-0.5 p-0.5 rounded-lg bg-ink-950 border border-ink-700">${[['prio', '📋 nach Prio-Liste'], ['solo', '🎯 nur dieses Set']].map(([v, l]) => `<button type="button" data-cal="mode" data-v="${v}" class="px-2.5 py-1 rounded-md font-semibold ${(cal.mode || 'prio') === v ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'}">${l}</button>`).join('')}</div>` : ''}
           <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-300"><input type="checkbox" data-cal="choice" ${calChoice() ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">📦 Wahlkisten einrechnen</label>
         </div></div>
       <div class="mt-3 grid sm:grid-cols-3 gap-2 text-xs">
@@ -1315,15 +1425,14 @@ window.RokMods.crafting = (R) => {
     for (let i = 0; i < lead; i++) cells.push('<div></div>');
     for (let dd = 1; dd <= lastDay; dd++) {
       const date = new Date(first.getFullYear(), first.getMonth(), dd), off = Math.round((date - base) / 864e5), past = off < 0, here = byDay.get(off) || [];
-      const stock = !past && off < CAL_DAYS && fc ? fc.days[off] : null, isEnd = endD === off && steps.length;
+      const stock = !past && off < CAL_DAYS && fc ? restAt(fc, off, cumAt(proj?.rows || [], off), calChoice()) : null, isEnd = endD === off && steps.length;
       const marks = [off === kvkD ? '<span title="KvK-Start">🏰</span>' : '', goalDays.has(off) ? `<span title="Zieldatum: ${R.esc(goalDays.get(off).name)}">📅</span>` : '', isEnd ? '<span title="Ziel erreicht">🎯</span>' : '',
         ...here.filter(r => r.x.ms).map(r => `<span title="Etappe: ${R.esc(r.x.ms.name)}">🏁</span>`)].join('');
-      const icons = here.filter(r => !r.x.ms), done = icons.filter(r => r.x.last), small = icons.filter(r => !r.x.last);
-      cells.push(`<button type="button" data-cal-day="${off}" ${past ? 'disabled' : ''} class="relative ${past ? 'min-h-[26px]' : 'min-h-[64px] sm:min-h-[104px]'} rounded-lg border text-left p-1 sm:p-1.5 transition ${past ? 'border-transparent opacity-30' : cal.sel === off ? 'border-gold-400 bg-gold-500/10' : off === 0 ? 'border-gold-500/50 bg-ink-950/60' : icons.length || marks ? 'border-ink-600 bg-ink-950/50 hover:border-gold-500/60' : 'border-ink-800 bg-ink-950/30 hover:border-ink-600'}">
+      const icons = here.filter(r => !r.x.ms), go = icons.length > 0;
+      cells.push(`<button type="button" data-cal-day="${off}" ${past ? 'disabled' : ''} class="relative flex flex-col ${past ? 'min-h-[26px]' : 'min-h-[64px] sm:min-h-[104px]'} rounded-lg border text-left p-1 sm:p-1.5 transition ${past ? 'border-transparent opacity-30' : go ? (cal.sel === off ? 'border-gold-400 bg-emerald-500/30' : 'border-emerald-400/70 bg-emerald-500/20 hover:bg-emerald-500/30') : cal.sel === off ? 'border-gold-400 bg-gold-500/10' : off === 0 ? 'border-gold-500/50 bg-ink-950/60' : marks ? 'border-ink-600 bg-ink-950/50 hover:border-gold-500/60' : 'border-ink-800 bg-ink-950/30 hover:border-ink-600'}">
         <div class="flex items-center justify-between gap-1"><span class="text-[11px] font-bold ${off === 0 ? 'text-gold-300' : 'text-slate-300'}">${dd}</span><span class="text-xs leading-none">${marks}</span></div>
-        ${stock ? `<div class="hidden sm:grid grid-cols-2 gap-x-1.5 gap-y-0.5 mt-1 text-[12px] font-semibold leading-tight tabular-nums text-slate-300">${R.MATS.map(m => `<span class="whitespace-nowrap"><span class="text-[14px]">${m.icon}</span>${Math.floor(stock[m.k])}</span>`).join('')}${calChoice() || stock.choice > 0 ? `<span class="whitespace-nowrap col-span-2 text-amber-300"><span class="text-[14px]">📦</span>${Math.floor(stock.choice || 0)}</span>` : ''}</div>` : ''}
-        ${done.length ? `<div class="mt-1 flex flex-wrap gap-1">${done.map(r => `<span class="relative" title="fertig: ${R.esc((gItem(r.x.r.z.item)?.name || '') + ' · ' + r.x.set.name)}">${stepIcon(r.x.r.z, 'w-9 h-9 sm:w-14 sm:h-14')}<span class="absolute -bottom-1 -right-1 w-5 h-5 grid place-items-center rounded-full bg-emerald-500 text-ink-950 text-[11px] font-extrabold">✓</span></span>`).join('')}</div>` : ''}
-        ${small.length ? `<div class="mt-1 flex flex-wrap gap-0.5">${small.slice(0, 6).map(r => `<span title="${R.esc(r.x.label + ' · ' + (gItem(r.x.r.z.item)?.name || '') + ' · ' + r.x.set.name)}">${stepIcon(r.x.r.z, 'w-5 h-5 sm:w-7 sm:h-7 !border')}</span>`).join('')}${small.length > 6 ? `<span class="text-[10px] text-slate-400">+${small.length - 6}</span>` : ''}</div>` : ''}
+        ${go ? `<div class="flex-1 flex flex-wrap items-center justify-center gap-1 mt-0.5">${icons.slice(0, icons.length > 2 ? 1 : 2).map(r => `<span class="relative" title="${R.esc((r.x.last ? 'fertig: ' : r.x.label + ' · ') + (gItem(r.x.r.z.item)?.name || '') + ' · ' + r.x.set.name)}">${stepIcon(r.x.r.z, icons.length > 1 ? 'w-8 h-8 sm:w-12 sm:h-12' : 'w-10 h-10 sm:w-16 sm:h-16')}${r.x.last ? '<span class="absolute -bottom-1 -right-1 w-5 h-5 grid place-items-center rounded-full bg-emerald-500 text-ink-950 text-[11px] font-extrabold">✓</span>' : ''}</span>`).join('')}${icons.length > 2 ? `<span class="text-[11px] font-bold text-emerald-200">+${icons.length - 1}</span>` : ''}</div>`
+          : stock ? `<div class="hidden sm:grid grid-cols-2 gap-x-1.5 gap-y-0.5 mt-1 text-[12px] font-semibold leading-tight tabular-nums text-slate-300">${R.MATS.map(m => `<span class="whitespace-nowrap"><span class="text-[14px]">${m.icon}</span>${Math.floor(stock[m.k])}</span>`).join('')}${calChoice() || stock.choice > 0 ? `<span class="whitespace-nowrap col-span-2 text-amber-300"><span class="text-[14px]">📦</span>${Math.floor(stock.choice || 0)}</span>` : ''}</div>` : ''}
       </button>`);
     }
     R.$('calMonth').innerHTML = `<div class="flex items-center justify-between gap-2 mb-3">
@@ -1332,28 +1441,36 @@ window.RokMods.crafting = (R) => {
         <button type="button" data-cal="next" ${cal.month >= 11 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 disabled:opacity-30">▶</button></div>
       <div class="grid grid-cols-7 gap-1 sm:gap-1.5 text-center text-[10px] uppercase tracking-widest text-slate-500 mb-1">${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(x => `<div>${x}</div>`).join('')}</div>
       <div class="grid grid-cols-7 gap-1 sm:gap-1.5">${cells.join('')}</div>
-      <div class="mt-2 text-[11px] text-slate-500">Kleines Symbol = Schritt ab diesem Tag machbar · großes Symbol mit ✓ = Teil fertig · 🏁 Etappe · 🎯 alles fertig · 📅 Zieldatum · 🏰 KvK-Start · Zahlen = dein Bestand an dem Tag (legendär, 📦 = Wahlkisten)</div>`;
+      <div class="mt-2 text-[11px] text-slate-500">Grünes Feld = an dem Tag kannst du craften (✓ = Teil danach fertig) · 🏁 Etappe · 🎯 alles fertig · 📅 Zieldatum · 🏰 KvK-Start · Zahlen = dein Bestand nach dem Craften (legendär, 📦 = Wahlkisten)</div>`;
 
     // Tag antippen → Details
     const dayBox = R.$('calDay');
     if (cal.sel != null && fc && cal.sel < CAL_DAYS) {
-      const off = cal.sel, stock = fc.days[off], here = (byDay.get(off) || []);
+      const off = cal.sel, stock = restAt(fc, off, cumAt(proj?.rows || [], off), calChoice()), here = (byDay.get(off) || []);
       const next = proj?.rows.find(r => !r.x.ms && showRow(r) && (r.day == null || r.day > off));
       dayBox.classList.remove('hidden');
       dayBox.innerHTML = `<div class="flex items-center justify-between gap-2"><h3 class="font-display text-lg gold-text">${dTxt(off, true)}</h3><button type="button" data-cal="closeday" class="text-slate-400 hover:text-white px-1">✕</button></div>
-        <div class="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-2">${[...R.MATS.map(m => [m.icon, m.label, stock[m.k]]), ['📦', 'Wahlkisten', stock.choice || 0]].map(([ic, l, v]) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 px-3 py-2"><div class="text-lg font-extrabold tabular-nums text-white">${ic} ${gq(v)}</div><div class="text-[11px] text-slate-400">${l}</div></div>`).join('')}</div>
+        <div class="mt-1 text-[11px] text-slate-400">Bestand nach dem Craften bis zu diesem Tag:</div><div class="mt-1 grid grid-cols-2 sm:grid-cols-5 gap-2">${[...R.MATS.map(m => [m.icon, m.label, stock[m.k]]), ['📦', 'Wahlkisten', stock.choice || 0]].map(([ic, l, v]) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 px-3 py-2"><div class="text-lg font-extrabold tabular-nums text-white">${ic} ${gq(v)}</div><div class="text-[11px] text-slate-400">${l}</div></div>`).join('')}</div>
         ${here.length ? `<div class="mt-3 space-y-1.5">${here.map(r => r.x.ms ? `<div class="text-sm text-gold-200">🏁 Etappe „${R.esc(r.x.ms.name)}“ geschafft</div>`
           : `<div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">${stepIcon(r.x.r.z, 'w-9 h-9')}<span class="font-semibold whitespace-nowrap">${R.esc(r.x.label)}${r.x.last ? ' ✓' : ''}</span>${setTag(r.x.set)}<span class="text-slate-400 truncate min-w-0 flex-1" translate="no">${R.esc(gItem(r.x.r.z.item)?.name || '')}</span><span class="w-full sm:w-auto pl-11 sm:pl-0 text-xs text-slate-400 tabular-nums">${r.x.cost ? gCostText(r.x.cost) : ''}</span></div>`).join('')}</div>` : '<div class="mt-3 text-sm text-slate-500">An diesem Tag wird kein neuer Schritt machbar.</div>'}
         ${next ? `<div class="mt-3 text-xs text-slate-400">Als Nächstes: <b class="text-slate-200">${R.esc(next.x.label)} · ${R.esc(gItem(next.x.r.z.item)?.name || '')}</b> ${next.day != null ? '→ ' + dTxt(next.day) : '(nicht innerhalb von 12 Monaten)'}</div>` : ''}`;
     } else dayBox.classList.add('hidden');
 
-    // Ablauf als Liste (gut fürs Handy)
-    R.$('calAgenda').innerHTML = `<h3 class="font-display text-lg gold-text mb-2">Ablauf</h3>${!proj || !proj.rows.filter(showRow).length ? '<div class="text-sm text-slate-500">Keine offenen Schritte – im Planer ein Ziel festlegen.</div>'
-      : `<div class="space-y-1.5">${proj.rows.filter(showRow).map(r => r.x.ms
+    // Ablauf als Liste: Kosten als Kästchen, danach Zwischenstand, rechts Datum + woher (Rucksack / passiv) + Tage
+    const rowsA = (proj?.rows || []).filter(showRow), fc0 = fc;
+    const when = (r) => r.unknown ? '<span class="text-amber-300">Kosten fehlen</span>' : r.day == null ? '<span class="text-red-300">nicht in 12 Monaten</span>'
+      : r.day === 0 ? '<span class="text-emerald-300 font-semibold">✓ jetzt</span><span class="block text-[11px] text-slate-400">aus dem Rucksack</span>'
+      : `<span class="text-slate-100 font-semibold">${dTxt(r.day, true)}</span><span class="block text-[11px] text-slate-400">📈 Passiv-Einkommen · in ${r.day} ${r.day === 1 ? 'Tag' : 'Tagen'}</span>`;
+    R.$('calAgenda').innerHTML = `<h3 class="font-display text-lg gold-text mb-2">Ablauf</h3>${!rowsA.length ? '<div class="text-sm text-slate-500">Keine offenen Schritte – im Planer ein Ziel festlegen.</div>'
+      : `<div class="space-y-1">${fc0 ? `<div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-2 text-[11px] text-slate-400 tabular-nums"><span class="font-semibold text-slate-300">🎒 Rucksack heute</span>${stockChips(fc0.days[0])}</div>` : ''}${rowsA.map(r => r.x.ms
         ? `<div class="flex items-center gap-2 rounded-lg border border-dashed border-gold-500/50 bg-gold-500/5 px-3 py-1.5"><span>🏁</span><b class="text-gold-200">${R.esc(r.x.ms.name)}</b><span class="ml-auto text-sm font-semibold ${r.day == null ? 'text-red-300' : 'text-emerald-300'}">${r.day == null ? 'nicht in 12 Monaten' : dTxt(r.day, true)}</span></div>`
-        : `<div class="flex items-center gap-2 rounded-lg border border-ink-700 bg-ink-950/40 px-2 py-1.5">${stepIcon(r.x.r.z, 'w-9 h-9')}
-            <div class="min-w-0 flex-1"><div class="text-sm font-semibold ${r.x.meta.k === 'craft' ? 'text-gold-300' : r.x.meta.k === 'tier' ? 'text-sky-300' : 'text-red-300'}">${R.esc(r.x.label)}${r.x.last ? ' <span class="text-xs text-emerald-300">✓ fertig</span>' : ''}</div><div class="text-[11px] text-slate-400 truncate" translate="no">${R.esc(gItem(r.x.r.z.item)?.name || '')} · ${r.x.r.sl.label} ${setTag(r.x.set)}</div></div>
-            <span class="text-sm tabular-nums whitespace-nowrap ${r.unknown ? 'text-amber-300' : r.day == null ? 'text-red-300' : r.day === 0 ? 'text-emerald-300 font-semibold' : 'text-slate-200'}">${r.unknown ? 'Kosten fehlen' : r.day == null ? 'nicht in 12 Monaten' : r.day === 0 ? '✓ jetzt' : dTxt(r.day)}</span></div>`).join('')}</div>`}`;
+        : `<div class="rounded-xl border border-ink-700 bg-ink-950/40 px-2 py-2">
+            <div class="flex items-center gap-2">${stepIcon(r.x.r.z, 'w-10 h-10')}
+              <div class="min-w-0 flex-1"><div class="text-sm font-semibold ${r.x.meta.k === 'craft' ? 'text-gold-300' : r.x.meta.k === 'tier' ? 'text-sky-300' : 'text-red-300'}">${R.esc(r.x.label)}${r.x.last ? ' <span class="text-xs text-emerald-300">✓ fertig</span>' : ''}</div><div class="text-[11px] text-slate-400 truncate" translate="no">${R.esc(gItem(r.x.r.z.item)?.name || '')} · ${r.x.r.sl.label} ${setTag(r.x.set)}</div></div>
+              <div class="text-right text-sm tabular-nums whitespace-nowrap">${when(r)}</div></div>
+            ${r.x.cost ? `<div class="mt-1.5 flex flex-wrap gap-1 pl-12">${costBoxes(r.x.cost)}</div>` : ''}
+          </div>
+          ${fc0 && r.day != null && r.cum ? `<div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 pl-14 pr-2 text-[11px] text-slate-500 tabular-nums"><span>↳ danach übrig</span>${stockChips(restAt(fc0, r.day, r.cum, calChoice()))}</div>` : ''}`).join('')}</div>`}`;
   }
   R.$('craftCalPane').addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-cal],[data-cal-day]'); if (!b || b.tagName === 'SELECT' || b.tagName === 'INPUT') return;
@@ -1361,6 +1478,7 @@ window.RokMods.crafting = (R) => {
     const a = b.dataset.cal;
     if (a === 'prev' || a === 'next') { cal.month = Math.max(0, Math.min(11, cal.month + (a === 'next' ? 1 : -1))); renderCal(); }
     else if (a === 'closeday') { cal.sel = null; renderCal(); }
+    else if (a === 'mode') { cal.mode = b.dataset.v; renderCal(); }
     else if (a === 'passive') { R.goScan?.('mats'); R.setAreaTab?.('stats'); }
     else if (a === 'kvkgoal') { const d = R.kvkStartDate?.() || ''; (cal.setId ? gear.sets.filter(s => s.id === cal.setId) : planSets()).forEach(s => { s.goal = gNormGoal({ ...s.goal, date: d }); }); R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderCal(); }
   });
@@ -1630,10 +1748,69 @@ window.RokMods.crafting = (R) => {
   };
 
   // ---- Seite 2: Gespeicherte Sets (Sicherungen mit Datum) ----
-  const snNorm = (x) => x && x.id && Array.isArray(x.sets) ? { id: String(x.id), ts: +x.ts || Date.now(), name: String(x.name || '').slice(0, 50), sets: x.sets.map(gNormSet) } : null;
+  const snNorm = (x) => x && x.id && Array.isArray(x.sets) ? { id: String(x.id), ts: +x.ts || Date.now(), name: String(x.name || '').slice(0, 50), sets: x.sets.map(gNormSet), auto: !!x.auto, one: !!x.one } : null;
   let snaps = [];
   try { const s = JSON.parse(R.LS.get(GEAR_SNAPS, '[]')); if (Array.isArray(s)) snaps = s.map(snNorm).filter(Boolean); } catch {}
   const saveSnaps = () => { snaps.sort((a, b) => b.ts - a.ts); if (snaps.length > SNAP_MAX) snaps.length = SNAP_MAX; R.LS.set(GEAR_SNAPS, JSON.stringify(snaps)); };
+  // ---- Monats-Update: ein gewähltes Set (Planer oder Showcase) wird jeden Monatsersten automatisch gesichert ----
+  // Läuft im Browser: beim ersten Öffnen der Seite ab dem 1. eines Monats (auf jedem Gerät, Einstellung liegt in der Cloud).
+  const GEAR_MONTHLY = 'rok_scanner_gear_monthly';
+  const monKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  const monCfg = () => { try { const o = JSON.parse(R.LS.get(GEAR_MONTHLY, '{}')) || {}; return { on: !!o.on, src: String(o.src || ''), last: String(o.last || '') }; } catch { return { on: false, src: '', last: '' }; } };
+  const monSave = (c) => { R.LS.set(GEAR_MONTHLY, JSON.stringify(c)); cloudSave(); };
+  // Quellen: Planer-Sets („plan:<id>“) und Showcase-Sets („sc:<showcase>:<set>“)
+  function monSources() {
+    const out = gear.sets.map(x => ({ v: 'plan:' + x.id, label: `⚒ Planer · ${x.name}` }));
+    try { (R.scGearSets?.() || []).forEach(x => out.push({ v: `sc:${x.scId}:${x.setId}`, label: `🎨 Showcase · ${x.scTitle ? x.scTitle + ' · ' : ''}${x.setName}` })); } catch {}
+    return out;
+  }
+  function monSet(src) {
+    if (src.startsWith('plan:')) { const x = gear.sets.find(y => y.id === src.slice(5)); return x ? gNormSet(JSON.parse(JSON.stringify(x))) : null; }
+    if (src.startsWith('sc:')) { const [, scId, setId] = src.split(':'), x = (R.scGearSets?.() || []).find(y => y.scId === scId && y.setId === setId); if (!x) return null;
+      return gNormSet({ id: 'sc_' + setId, name: x.setName, ist: x.gear, ziel: x.gear }); }
+    return null;
+  }
+  const monName = (d = new Date()) => 'Monats-Update ' + d.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+  function monTake(src, auto) {
+    const set = monSet(src); if (!set) return null;
+    try { const fresh = JSON.parse(R.LS.get(GEAR_SNAPS, '[]')); if (Array.isArray(fresh)) fresh.map(snNorm).filter(Boolean).forEach(x => { if (!snaps.some(y => y.id === x.id)) snaps.push(x); }); } catch {}
+    const sn = { id: R.newId(), ts: Date.now(), name: auto ? monName() : `${set.name} – ${new Date().toLocaleDateString('de-DE')}`, sets: [set], auto: !!auto, one: true };
+    snaps.unshift(sn); saveSnaps(); cloudSave(); return sn;
+  }
+  function monCheck() {
+    const c = monCfg(); if (!c.on || !c.src || c.last === monKey()) return;
+    const sn = monTake(c.src, true); if (!sn) return;
+    monSave({ ...c, last: monKey() }); if (craftPane === 'hist') renderSnaps();
+    try { R.toast?.(`🔄 ${sn.name}: „${sn.sets[0].name}“ automatisch gesichert`); } catch {}
+  }
+  setTimeout(monCheck, 8000);   // nach dem Laden der Cloud-Daten
+  function renderMonthly() {
+    const box = R.$('chMonthly'); if (!box) return;
+    const c = monCfg(), src = monSources(), next = new Date(); next.setDate(1); next.setMonth(next.getMonth() + 1);
+    const cur = src.some(x => x.v === c.src) ? c.src : '';
+    box.innerHTML = `<div class="flex flex-wrap items-start justify-between gap-3">
+        <div><h3 class="font-display text-xl gold-text">🔄 Monats-Update</h3>
+          <p class="text-xs text-slate-400 mt-0.5">So siehst du Monat für Monat, wie dein Set besser wird.</p></div>
+        <label class="inline-flex items-center gap-2 cursor-pointer text-sm font-semibold ${c.on && cur ? 'text-emerald-300' : 'text-slate-300'}"><input type="checkbox" data-mon="on" ${c.on && cur ? 'checked' : ''} ${cur ? '' : 'disabled'} class="w-5 h-5 accent-emerald-500">${c.on && cur ? 'eingeschaltet' : 'aus'}</label></div>
+      <ol class="mt-3 grid gap-2 sm:grid-cols-3 text-xs text-slate-300">
+        <li class="rounded-xl border border-ink-700 bg-ink-950/40 px-3 py-2"><b class="text-gold-300">1. Set wählen</b><br>aus dem Planer oder aus deinem Showcase – genau ein Set.</li>
+        <li class="rounded-xl border border-ink-700 bg-ink-950/40 px-3 py-2"><b class="text-gold-300">2. Einschalten</b><br>Haken oben rechts setzen. Mit „Jetzt sichern“ legst du sofort den Startpunkt an.</li>
+        <li class="rounded-xl border border-ink-700 bg-ink-950/40 px-3 py-2"><b class="text-gold-300">3. Automatisch am 1.</b><br>Jeden Monatsersten wird das Set gespeichert und erscheint unten als „Monats-Update“ – zum Vergleichen mit heute.</li>
+      </ol>
+      <div class="mt-3 flex flex-wrap items-center gap-2">
+        <select data-mon="src" translate="no" class="flex-1 min-w-[220px] bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold-500"><option value="">– Set wählen –</option>${src.map(x => `<option value="${R.esc(x.v)}"${x.v === cur ? ' selected' : ''}>${R.esc(x.label)}</option>`).join('')}</select>
+        <button type="button" data-mon="now" ${cur ? '' : 'disabled'} class="px-4 py-2 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400 text-sm font-semibold disabled:opacity-40">💾 Jetzt sichern</button></div>
+      <div class="mt-2 text-[11px] ${c.on && cur ? 'text-emerald-300' : 'text-slate-500'}">${c.on && cur ? `✓ Nächstes Update: ${next.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })}${c.last ? ` · letztes: ${c.last.split('-').reverse().join('/')}` : ''}` : 'Noch nicht eingeschaltet.'} <span class="text-slate-500">· gespeichert wird beim ersten Öffnen der Seite ab dem 1. (egal auf welchem Gerät)</span></div>`;
+  }
+  R.$('chPageSnaps')?.addEventListener('change', (ev) => {
+    const a = ev.target.dataset.mon; if (!a) return; const c = monCfg();
+    if (a === 'src') { monSave({ ...c, src: ev.target.value, on: ev.target.value ? c.on : false, last: c.src === ev.target.value ? c.last : '' }); renderMonthly(); }
+    if (a === 'on') { monSave({ ...c, on: ev.target.checked, last: ev.target.checked ? (c.last || monKey()) : c.last }); renderMonthly(); }
+  });
+  R.$('chPageSnaps')?.addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-mon="now"]'); if (!b) return; const c = monCfg(); if (!c.src) return;
+    const sn = monTake(c.src, false); if (!sn) return; snUi.open = sn.id; renderSnaps(); snMsg(`✓ „${sn.sets[0].name}“ gesichert`);
+  });
   const snTake = (name) => ({ id: R.newId(), ts: Date.now(), name, sets: gear.sets.map(s => gNormSet(JSON.parse(JSON.stringify(s)))) });
   const snUi = { open: '', set: {} };
   // Fortschritt eines Sets zwischen damals (a) und heute (b)
@@ -1653,16 +1830,19 @@ window.RokMods.crafting = (R) => {
   }
   const snSum = (p) => [p.tiers ? `+${p.tiers} Tier-${p.tiers === 1 ? 'Stufe' : 'Stufen'}` : '', p.items ? `${p.items} ${p.items === 1 ? 'neues Item' : 'neue Items'}` : '', p.refines ? `${p.refines} Refine` : ''].filter(Boolean).join(' · ');
   const snBoard = (slots, changed) => `<div class="relative mx-auto w-full max-w-[220px] aspect-[1/2] pointer-events-none">${gearBoard('snap', { snap: slots }, { rows: [] }, { sel: null, badge: (sl) => changed?.has(sl.k) ? ['⬆', '#7dd3fc'] : null })}</div>`;
+  // heutiger Stand eines gesicherten Sets: Planer-Set oder (bei „sc_…“) das Showcase-Set
+  const snNow = (id) => gear.sets.find(x => x.id === id) || (String(id).startsWith('sc_') ? (() => { const x = (R.scGearSets?.() || []).find(y => 'sc_' + y.setId === id); return x ? monSet(`sc:${x.scId}:${x.setId}`) : null; })() : null);
   function renderSnaps() {
+    renderMonthly();
     const box = R.$('chSnapList'); if (!box) return;
     if (!snaps.length) { box.innerHTML = `<div class="panel rounded-2xl p-8 text-center text-sm text-slate-500">Noch keine Sicherung.<br><span class="text-xs">„💾 Alle Sets sichern“ speichert alle deine Sets mit Datum – später kannst du sie wieder laden und deinen Fortschritt sehen.</span></div>`; return; }
     box.innerHTML = snaps.map(sn => {
       const total = { tiers: 0, items: 0, refines: 0 };
-      sn.sets.forEach(s => { const p = snProgress(s, gear.sets.find(x => x.id === s.id)); total.tiers += p.tiers; total.items += p.items; total.refines += p.refines; });
+      sn.sets.forEach(s => { const p = snProgress(s, snNow(s.id)); total.tiers += p.tiers; total.items += p.items; total.refines += p.refines; });
       const sum = snSum(total), open = snUi.open === sn.id;
       let detail = '';
       if (open) {
-        const selId = sn.sets.some(s => s.id === snUi.set[sn.id]) ? snUi.set[sn.id] : sn.sets[0]?.id, then = sn.sets.find(s => s.id === selId), now = gear.sets.find(s => s.id === selId);
+        const selId = sn.sets.some(s => s.id === snUi.set[sn.id]) ? snUi.set[sn.id] : sn.sets[0]?.id, then = sn.sets.find(s => s.id === selId), now = snNow(selId);
         const p = snProgress(then, now), changed = new Set(p.changes.map(c => c.slot));
         detail = `<div class="mt-4 border-t border-ink-700 pt-4">
           <div class="flex flex-wrap gap-1.5">${sn.sets.map(s => `<button type="button" data-snset="${R.esc(sn.id)}:${R.esc(s.id)}" class="${hChip(s.id === selId)}" translate="no">${R.esc(s.name)}</button>`).join('')}</div>
@@ -1679,11 +1859,11 @@ window.RokMods.crafting = (R) => {
       return `<section class="panel rounded-2xl p-4 ${open ? 'ring-1 ring-gold-500/30' : ''}">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <button type="button" data-snopen="${R.esc(sn.id)}" class="min-w-0 flex-1 text-left">
-            <div class="flex flex-wrap items-baseline gap-x-2"><span class="font-display text-lg gold-text">${R.esc(sn.name || 'Sicherung')}</span><span class="text-xs text-slate-400 tabular-nums">${hDay(sn.ts)} · ${hTime(sn.ts)}</span></div>
+            <div class="flex flex-wrap items-baseline gap-x-2"><span class="font-display text-lg gold-text">${sn.auto ? '🔄 ' : ''}${R.esc(sn.name || 'Sicherung')}</span><span class="text-xs text-slate-400 tabular-nums">${hDay(sn.ts)} · ${hTime(sn.ts)}</span></div>
             <div class="text-xs text-slate-400 mt-0.5">${sn.sets.length} ${sn.sets.length === 1 ? 'Set' : 'Sets'} · ${sum ? `<span class="text-emerald-300 font-semibold">seitdem ${sum}</span>` : 'seitdem kein Fortschritt'} <span class="text-gold-300 ml-1">${open ? '▲ zuklappen' : '▼ ansehen'}</span></div>
           </button>
           <div class="flex gap-2">
-            <button type="button" data-snrestore="${R.esc(sn.id)}" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300" title="Alle Sets aus dieser Sicherung wieder in den Planer laden">↺ Wiederherstellen</button>
+            ${sn.one ? '' : `<button type="button" data-snrestore="${R.esc(sn.id)}" class="text-xs px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300" title="Alle Sets aus dieser Sicherung wieder in den Planer laden">↺ Wiederherstellen</button>`}
             <button type="button" data-sndel="${R.esc(sn.id)}" class="text-xs px-2 py-2 rounded-lg border border-red-500/30 text-red-300 hover:bg-red-500/10" title="Sicherung löschen">🗑</button>
           </div>
         </div>${detail}</section>`;
