@@ -4,13 +4,14 @@
 // Mit „💾 Speichern“ wird die Empfehlung gespeichert (jederzeit änderbar). Der Fragende sieht die Auswertung; neue Antworten
 // erscheinen als rote Zahl am Reiter. Läuft innerhalb von RokApp (scanner.js); R = geteilter Kontext (window.Rok).
 // Supabase: help_requests (id, user_id, title, sets jsonb, status, created_at) · help_answers (request_id, user_id, picks jsonb, note, created_at)
-// picks: ["<set-index>:<slot>:<aktion>", …] – aktion = refine | tier (alte Antworten ohne Aktion = „craften“)
+// picks: ["<set-index>:<slot>:<aktion>", …] – aktion = refine | tier | tier:<Ziel-T> (alte Antworten ohne Aktion = „craften“)
+// Zusätzlich "o:<index>" = vom Helfer umsortierte Prio-Liste aus dem Planer (plan.order). Eine Antwort darf auch nur aus einem Kommentar bestehen.
 window.RokMods = window.RokMods || {};
 window.RokMods.helpme = (R) => {
   const $ = R.$, esc = R.esc, A = window.RokAuth, root = $('helpView');
   const db = () => A.db(), me = () => A.userId();
   const MAX = 5, MAX_SETS = 7, SEEN_KEY = 'rok_help_seen', DRAFT_KEY = 'rok_help_draft';
-  const st = { loaded: false, loading: false, err: '', noTable: false, reqs: [], ans: {}, users: {}, pick: {}, note: {}, open: null, choose: null, busy: false, saving: null, msg: ['', ''], compose: false, tab: (() => { try { return localStorage.getItem('rok_help_tab') === 'mine' ? 'mine' : 'all'; } catch { return 'all'; } })(), sel: null, toFeed: true, sharing: null, title: '' };
+  const st = { loaded: false, loading: false, err: '', noTable: false, reqs: [], ans: {}, users: {}, pick: {}, ord: {}, note: {}, open: null, choose: null, busy: false, saving: null, msg: ['', ''], compose: false, tab: (() => { try { return localStorage.getItem('rok_help_tab') === 'mine' ? 'mine' : 'all'; } catch { return 'all'; } })(), sel: null, toFeed: true, sharing: null, title: '' };
   // Englische Texte für Help Me (hängen sich an window.I18N an)
   (function helpI18n() {
     const I = window.I18N; if (!I || !I.translations || !I.translations.en) return;
@@ -50,7 +51,7 @@ window.RokMods.helpme = (R) => {
   const markSeen = (id) => { try { const s = seen(); s[id] = Date.now(); localStorage.setItem(SEEN_KEY, JSON.stringify(s)); } catch {} };
   // Entwurf (noch nicht gespeicherte Auswahl) lokal merken, damit nichts verloren geht
   const drafts = () => { try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}'); } catch { return {}; } };
-  const saveDraft = (rid) => { try { const d = drafts(); if (st.pick[rid]) d[rid] = { picks: st.pick[rid], note: st.note[rid] ?? '' }; else delete d[rid]; localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); } catch {} };
+  const saveDraft = (rid) => { try { const d = drafts(); if (st.pick[rid]) d[rid] = { picks: st.pick[rid], ord: st.ord[rid] || [], note: st.note[rid] ?? '' }; else delete d[rid]; localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); } catch {} };
   const RAR = { legendary: 'text-amber-300', epic: 'text-fuchsia-300', elite: 'text-sky-300', advanced: 'text-emerald-300', normal: 'text-slate-300' };
   const SLOTS = R.GEAR_SLOTS || [];
   const SLOT_LABEL = Object.fromEntries(SLOTS.map((s) => [s.k, s.label]));
@@ -69,7 +70,7 @@ window.RokMods.helpme = (R) => {
       const uids = [...st.reqs.map((r) => r.user_id), ...Object.values(st.ans).flat().map((a) => a.user_id)];
       st.users = await R.users(uids);
       st.noTable = false;
-      const d = drafts(); Object.keys(d).forEach((rid) => { if (!ids.includes(rid)) return; if (!st.pick[rid]) st.pick[rid] = d[rid].picks || []; if (st.note[rid] == null) st.note[rid] = d[rid].note || ''; });
+      const d = drafts(); Object.keys(d).forEach((rid) => { if (!ids.includes(rid)) return; if (!st.pick[rid]) { st.pick[rid] = (d[rid].picks || []).filter((k) => !String(k).startsWith('o:')); st.ord[rid] = d[rid].ord || []; } if (st.note[rid] == null) st.note[rid] = d[rid].note || ''; });
     } catch (e) { if (R.tableMissing(e)) st.noTable = true; else st.err = A.germanError ? A.germanError(e) : String(e.message || e); }
     st.loading = false; st.loaded = true;
     if (R.view === 'help') st.reqs.filter((r) => r.user_id === me()).forEach((r) => markSeen(r.id));   // Seite ist offen → Antworten gelten als gesehen
@@ -133,19 +134,34 @@ window.RokMods.helpme = (R) => {
 
   // ---------- Antworten ----------
   const itemKey = (si, slot) => `${si}:${slot}`;
-  const parseKey = (k) => { const [si, slot, act = ''] = String(k).split(':'); return { si: +si, slot, act, item: `${si}:${slot}` }; };
+  const parseKey = (k) => { const [si, slot, act = '', to] = String(k).split(':'); return { si: +si, slot, act, to: to ? +to : null, item: `${si}:${slot}` }; };
+  const isOrd = (k) => String(k).startsWith('o:');
+  const splitP = (arr) => ({ acts: (arr || []).filter((k) => !isOrd(k)), ord: (arr || []).filter(isOrd).map((k) => +String(k).slice(2)) });
   const findGear = (req, si, slot) => ((req.sets || [])[si]?.gear || []).find((g) => g.slot === slot) || null;
   const isLeg = (g) => ((R.gItem && R.gItem(g.item)?.rarity) || g.rarity || 'legendary') === 'legendary';
   const canRefine = (g) => (+g.refine || 0) < 100;
   const canTier = (g) => isLeg(g) && (+g.tier || 0) < 5;
-  const actText = (g, act) => act === 'tier' ? `T${+g.tier || 0} → T${(+g.tier || 0) + 1}` : act === 'refine' ? 'Refine' : 'craften';
+  const actText = (g, act, to) => act === 'tier' ? `T${+g.tier || 0} → T${to || (+g.tier || 0) + 1}` : act === 'refine' ? 'Refine' : 'craften';
   const mineOf = (rid) => (st.ans[rid] || []).find((a) => a.user_id === me());
-  const picksOf = (rid) => st.pick[rid] || (mineOf(rid)?.picks || []);
-  const ensurePick = (rid) => { if (!st.pick[rid]) { const m = mineOf(rid); st.pick[rid] = m ? [...(m.picks || [])] : []; } return st.pick[rid]; };
-  const dirty = (rid) => { if (!st.pick[rid] && st.note[rid] == null) return false; const m = mineOf(rid); return JSON.stringify(st.pick[rid] || m?.picks || []) !== JSON.stringify(m?.picks || []) || (st.note[rid] ?? m?.note ?? '') !== (m?.note || ''); };
+  const picksOf = (rid) => st.pick[rid] || splitP(mineOf(rid)?.picks).acts;
+  const ordOf = (rid) => st.ord[rid] || splitP(mineOf(rid)?.picks).ord;
+  const allOf = (rid) => [...picksOf(rid), ...ordOf(rid).map((i) => 'o:' + i)];
+  const ensurePick = (rid) => { if (!st.pick[rid]) { const m = splitP(mineOf(rid)?.picks); st.pick[rid] = [...m.acts]; st.ord[rid] = [...m.ord]; } return st.pick[rid]; };
+  const dirty = (rid) => { if (!st.pick[rid] && st.note[rid] == null) return false; const m = mineOf(rid); return JSON.stringify(allOf(rid)) !== JSON.stringify(m?.picks || []) || (st.note[rid] ?? m?.note ?? '') !== (m?.note || ''); };
+  // Prio-Liste aus dem Planer (falls mitgeschickt)
+  const planOf = (req) => (req.sets || []).map((x) => x.plan).find((p) => p && typeof p === 'object') || null;
+  const orderOf = (req) => { const o = planOf(req)?.order; return Array.isArray(o) ? o.slice(0, 40) : []; };
+  const fullOrd = (ord, n) => { const seen = new Set(), out = []; (ord || []).forEach((i) => { if (i >= 0 && i < n && !seen.has(i)) { seen.add(i); out.push(i); } }); for (let i = 0; i < n; i++) if (!seen.has(i)) out.push(i); return out; };
+  function moveOrd(rid, pos, d) {
+    const req = st.reqs.find((r) => r.id === rid); if (!req) return; ensurePick(rid);
+    const o = fullOrd(st.ord[rid], orderOf(req).length), j = pos + d; if (j < 0 || j >= o.length) return;
+    [o[pos], o[j]] = [o[j], o[pos]]; st.ord[rid] = o.every((v, i) => v === i) ? [] : o; saveDraft(rid); render();
+  }
+  function resetOrd(rid) { ensurePick(rid); st.ord[rid] = []; saveDraft(rid); render(); }
   function setAction(rid, item, act) {
     const p = ensurePick(rid), key = `${item}:${act}`, i = p.indexOf(key);
     if (i >= 0) p.splice(i, 1);
+    else if (act.startsWith('tier') && p.some((k) => k.startsWith(item + ':tier'))) p[p.findIndex((k) => k.startsWith(item + ':tier'))] = key;   // nur ein Tier-Ziel pro Item: ersetzen
     else if (p.length >= MAX) { msg(`Höchstens ${MAX} Schritte – erst einen wieder abwählen.`, 'warn'); return; }
     else p.push(key);
     st.choose = null; saveDraft(rid); render();
@@ -153,22 +169,23 @@ window.RokMods.helpme = (R) => {
   function movePick(rid, idx, d) { const p = ensurePick(rid), j = idx + d; if (j < 0 || j >= p.length) return; [p[idx], p[j]] = [p[j], p[idx]]; saveDraft(rid); render(); }
   function removePick(rid, idx) { ensurePick(rid).splice(idx, 1); saveDraft(rid); render(); }
   async function save(rid) {
-    const picks = picksOf(rid); if (!picks.length) { msg('Erst ein Item antippen und „Refine“ oder „T erhöhen“ wählen.', 'warn'); return; }
+    const picks = allOf(rid), note = (st.note[rid] ?? mineOf(rid)?.note ?? '').trim();
+    if (!picks.length && !note) { msg('Wähl Schritte, sortier die Prio-Liste um oder schreib einfach einen Kommentar.', 'warn'); return; }
     if (st.saving) return; st.saving = rid; render();
     try {
       const m = mineOf(rid);
-      const { error } = await db().from('help_answers').upsert({ request_id: rid, user_id: me(), picks, note: (st.note[rid] ?? m?.note ?? '').slice(0, 300), created_at: new Date().toISOString() }); if (error) throw error;
-      delete st.pick[rid]; delete st.note[rid]; saveDraft(rid);
+      const { error } = await db().from('help_answers').upsert({ request_id: rid, user_id: me(), picks, note: note.slice(0, 300), created_at: new Date().toISOString() }); if (error) throw error;
+      delete st.pick[rid]; delete st.ord[rid]; delete st.note[rid]; saveDraft(rid);
       msg(st.tab === 'mine' ? '✓ Gespeichert – du kannst die Empfehlung jederzeit ändern.' : '✓ Gespeichert – steht jetzt auch unter ⭐ Deine.', 'ok'); st.saving = null; await load(); return;
     } catch (e) { msg('Speichern fehlgeschlagen: ' + (A.germanError ? A.germanError(e) : e.message), 'err'); }
     st.saving = null; render();
   }
-  function discard(rid) { delete st.pick[rid]; delete st.note[rid]; st.choose = null; saveDraft(rid); render(); }
+  function discard(rid) { delete st.pick[rid]; delete st.ord[rid]; delete st.note[rid]; st.choose = null; saveDraft(rid); render(); }
   // Auswertung: Platz 1 = 5 Punkte … Platz 5 = 1 Punkt
   function tally(req) {
     const score = {}, votes = {};
-    (st.ans[req.id] || []).forEach((a) => (a.picks || []).forEach((k, i) => { score[k] = (score[k] || 0) + (MAX - i); votes[k] = (votes[k] || 0) + 1; }));
-    return Object.keys(score).map((k) => { const p = parseKey(k), g = findGear(req, p.si, p.slot); return { key: k, act: p.act, score: score[k], votes: votes[k], g, set: (req.sets || [])[p.si]?.name || '' }; })
+    (st.ans[req.id] || []).forEach((a) => splitP(a.picks).acts.forEach((k, i) => { score[k] = (score[k] || 0) + (MAX - i); votes[k] = (votes[k] || 0) + 1; }));
+    return Object.keys(score).map((k) => { const p = parseKey(k), g = findGear(req, p.si, p.slot); return { key: k, act: p.act, to: p.to, score: score[k], votes: votes[k], g, set: (req.sets || [])[p.si]?.name || '' }; })
       .filter((x) => x.g).sort((a, b) => b.score - a.score);
   }
 
@@ -211,7 +228,9 @@ window.RokMods.helpme = (R) => {
   function chooserHTML(req, picks) {
     const c = st.choose; if (!c || c.rid !== req.id) return '';
     const p = parseKey(c.item), g = findGear(req, p.si, p.slot); if (!g) return '';
-    const has = (act) => picks.includes(`${c.item}:${act}`);
+    const has = (act) => picks.includes(`${c.item}:${act}`), cur = +g.tier || 0;
+    const tiers = canTier(g) ? Array.from({ length: 5 - cur }, (_, i) => cur + i + 1) : [];
+    const tierPick = picks.find((k) => k.startsWith(c.item + ':tier')), tierTo = tierPick ? parseKey(tierPick).to || cur + 1 : null;
     const opt = (act, ok, why) => { const on = has(act), a = ACT[act];
       return `<button type="button" data-help-act="${esc(req.id)}|${esc(c.item)}|${act}" ${ok || on ? '' : 'disabled'} title="${ok ? '' : esc(why)}"
         class="flex-1 min-w-[9rem] flex flex-col items-center gap-0.5 rounded-xl border px-3 py-2 transition disabled:opacity-40 disabled:cursor-not-allowed ${on ? 'border-gold-400 bg-gold-500/20' : 'border-ink-600 bg-ink-950 hover:border-gold-500/60'}">
@@ -225,7 +244,13 @@ window.RokMods.helpme = (R) => {
         <button type="button" data-help-choose-x class="text-slate-400 hover:text-slate-200 text-sm px-2">✕</button>
       </div>
       <div class="text-xs text-slate-300">Was soll als Nächstes passieren?</div>
-      <div class="flex flex-wrap gap-2">${opt('refine', canRefine(g), 'schon refined')}${opt('tier', canTier(g), isLeg(g) ? 'schon T5' : 'nur bei legendären Items')}</div>
+      <div class="flex flex-wrap gap-2">${opt('refine', canRefine(g), 'schon refined')}</div>
+      <div class="rounded-xl border border-ink-600 bg-ink-950 px-3 py-2">
+        <div class="text-sm font-semibold text-sky-300">⬆ T erhöhen <span class="text-[11px] font-normal text-slate-400">– bis welche Stufe?${tierTo ? ' · nochmal tippen zum Abwählen' : ''}</span></div>
+        ${tiers.length ? `<div class="mt-1.5 flex flex-wrap gap-1.5">${tiers.map((t) => { const on = tierTo === t;
+          return `<button type="button" data-help-act="${esc(req.id)}|${esc(c.item)}|tier:${t}" class="min-w-[4.5rem] rounded-lg border px-2.5 py-1.5 text-sm font-semibold transition ${on ? 'border-sky-400 bg-sky-500/25 text-sky-100' : 'border-ink-600 hover:border-sky-400/60 text-slate-200'}">T${cur} → T${t}${on ? ' ✓' : ''}</button>`; }).join('')}</div>`
+          : `<div class="text-[11px] text-slate-500 mt-0.5">${isLeg(g) ? 'schon T5' : 'nur bei legendären Items'}</div>`}
+      </div>
     </div>`;
   }
   // Prioritäten-Liste des Helfers (mit Reihenfolge ändern)
@@ -236,7 +261,7 @@ window.RokMods.helpme = (R) => {
         <span class="w-5 text-center font-bold text-gold-300">${i + 1}.</span>
         ${g.icon ? `<img src="${esc(g.icon)}" alt="" class="w-6 h-6 object-contain">` : ''}
         <span class="min-w-0 flex-1 truncate ${RAR[g.rarity] || ''}">${esc(g.name)}</span>
-        <span class="text-xs whitespace-nowrap ${a.cls}">${a.icon} ${actText(g, p.act)}</span>
+        <span class="text-xs whitespace-nowrap ${a.cls}">${a.icon} ${actText(g, p.act, p.to)}</span>
         <button type="button" data-help-mv="${esc(req.id)}|${i}|-1" ${i ? '' : 'disabled'} class="px-1 text-slate-400 hover:text-gold-300 disabled:opacity-30" title="höher">▲</button>
         <button type="button" data-help-mv="${esc(req.id)}|${i}|1" ${i < picks.length - 1 ? '' : 'disabled'} class="px-1 text-slate-400 hover:text-gold-300 disabled:opacity-30" title="tiefer">▼</button>
         <button type="button" data-help-rm="${esc(req.id)}|${i}" class="px-1 text-slate-500 hover:text-red-300" title="entfernen">✕</button></li>`; }).join('')}</ol>`;
@@ -246,13 +271,48 @@ window.RokMods.helpme = (R) => {
   // Plan aus dem Crafting-Planer (falls die Anfrage von dort kommt)
   function planHTML(req) {
     const p = (req.sets || []).map((x) => x.plan).find(Boolean); if (!p || typeof p !== 'object') return '';
-    const steps = Array.isArray(p.steps) ? p.steps.slice(0, 8).map(String) : [];
+    const steps = Array.isArray(p.order) && p.order.length ? [] : Array.isArray(p.steps) ? p.steps.slice(0, 8).map(String) : [];
     return `<div class="rounded-xl border border-sky-500/30 bg-sky-500/5 p-3 text-xs text-slate-200">
       <div class="text-[11px] uppercase tracking-widest text-sky-300 mb-1">📋 Plan aus dem Crafting-Planer</div>
       ${p.goal ? `<div>🎯 Ziel: <b>${esc(String(p.goal))}</b>${p.date ? ` · bis ${esc(String(p.date))}` : ''}</div>` : ''}
       ${steps.length ? `<div class="mt-1 text-slate-400">Seine Reihenfolge bisher:</div><ol class="list-decimal list-inside space-y-0.5">${steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol>` : ''}
       ${p.missing ? `<div class="mt-1 text-red-300">Fehlt noch: ${esc(String(p.missing))}</div>` : ''}
       ${p.eta ? `<div class="mt-1 text-slate-400">📅 Mit seinem passiven Zuwachs fertig: ${esc(String(p.eta))}</div>` : ''}
+    </div>`;
+  }
+  // Prio-Liste aus dem Planer: Helfer sortiert um (▲▼), Fragender sieht jede umsortierte Liste getrennt
+  function orderRows(req, ord, rid) {
+    const list = orderOf(req), o = fullOrd(ord, list.length);
+    return `<ol class="flex flex-col gap-1">${o.map((idx, pos) => { const x = list[idx] || {}, mv = idx - pos;
+      return `<li class="flex items-center gap-2 rounded-lg bg-ink-950/60 border ${mv ? 'border-gold-500/40' : 'border-ink-700'} px-2 py-1 text-sm">
+        <span class="w-6 text-center font-bold text-gold-300 tabular-nums">${pos + 1}.</span>
+        ${x.icon ? `<img src="${esc(String(x.icon))}" alt="" class="w-7 h-7 rounded object-contain bg-ink-900">` : '<span class="w-7"></span>'}
+        <span class="min-w-0 flex-1"><span class="block truncate font-semibold ${x.k === 'craft' ? 'text-gold-300' : x.k === 'tier' ? 'text-sky-300' : x.k === 'refine' ? 'text-red-300' : 'text-slate-200'}">${esc(String(x.label || ''))}</span>
+          <span class="block text-[11px] text-slate-400 truncate" translate="no">${esc(String(x.name || ''))}${x.set ? ' · ' + esc(String(x.set)) : ''}</span></span>
+        ${mv ? `<span class="text-[11px] font-bold tabular-nums ${mv > 0 ? 'text-emerald-300' : 'text-red-300'}" title="Position beim Fragenden: ${idx + 1}">${mv > 0 ? '▲' : '▼'}${Math.abs(mv)}</span>` : ''}
+        ${rid ? `<button type="button" data-help-om="${esc(rid)}|${pos}|-1" ${pos ? '' : 'disabled'} class="px-1 text-slate-400 hover:text-gold-300 disabled:opacity-30" title="höher">▲</button>
+        <button type="button" data-help-om="${esc(rid)}|${pos}|1" ${pos < o.length - 1 ? '' : 'disabled'} class="px-1 text-slate-400 hover:text-gold-300 disabled:opacity-30" title="tiefer">▼</button>` : ''}</li>`; }).join('')}</ol>`;
+  }
+  function orderEditHTML(req) {
+    if (!orderOf(req).length) return '';
+    const ord = ordOf(req.id), changed = ord.length > 0;
+    return `<details class="rounded-xl border border-sky-500/30 bg-sky-500/5 p-3" ${changed || st.oOpen === req.id ? 'open' : ''}>
+      <summary class="cursor-pointer text-sm font-semibold text-sky-200">📋 Seine Prio-Liste umsortieren <span class="text-[11px] font-normal text-slate-400">(${orderOf(req).length} Schritte${changed ? ' · von dir geändert' : ''})</span></summary>
+      <div class="mt-2 text-[11px] text-slate-400">Mit ▲▼ in die Reihenfolge bringen, die du für besser hältst. Er sieht deine Liste getrennt.</div>
+      <div class="mt-2 max-h-[26rem] overflow-y-auto pr-1">${orderRows(req, ord, req.id)}</div>
+      ${changed ? `<div class="mt-2 text-right"><button type="button" data-help-oreset="${esc(req.id)}" class="text-[11px] text-slate-400 hover:text-red-300 underline">↺ Originalreihenfolge</button></div>` : ''}
+    </details>`;
+  }
+  function orderAnswersHTML(req) {
+    const list = orderOf(req); if (!list.length) return '';
+    const rows = (st.ans[req.id] || []).map((a) => ({ a, ord: splitP(a.picks).ord })).filter((x) => x.ord.length);
+    if (!rows.length) return '';
+    return `<div class="rounded-xl border border-sky-500/30 bg-sky-500/5 p-3 flex flex-col gap-2">
+      <div class="text-[11px] uppercase tracking-widest text-sky-300">🔀 Umsortierte Prio-Listen · ${rows.length}</div>
+      ${rows.map(({ a, ord }) => `<details class="rounded-lg border border-ink-700 bg-ink-950/40 px-2.5 py-1.5">
+        <summary class="cursor-pointer text-sm"><b class="text-slate-100" translate="no">${esc(u(a.user_id).username || '?')}</b> <span class="text-[11px] text-slate-500">· ${R.timeAgo(a.created_at)} · ${fullOrd(ord, list.length).filter((v, i) => v !== i).length} Schritte verschoben</span></summary>
+        ${a.note ? `<div class="mt-1 text-xs text-slate-300">💬 ${esc(a.note)}</div>` : ''}
+        <div class="mt-1.5">${orderRows(req, ord, null)}</div></details>`).join('')}
     </div>`;
   }
   const inp = 'w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500';
@@ -263,15 +323,17 @@ window.RokMods.helpme = (R) => {
     const open = o.force || st.open === req.id, closed = req.status === 'closed', result = tally(req);
     const mode = own ? 'own' : closed ? 'view' : 'pick';
     const boards = `<div class="flex flex-wrap justify-center gap-4 rounded-xl bg-ink-950/40 border border-ink-700/60 p-3">${(req.sets || []).map((s, si) => setBoard(req, si, s, mode, own ? [] : picks, result, o.big)).join('')}</div>`;
-    const resultHTML = result.length ? `<div class="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3"><div class="text-[11px] uppercase tracking-widest text-emerald-300 mb-2">📊 Empfehlung der Community · ${ans.length} Antwort${ans.length === 1 ? '' : 'en'}</div>
-        <div class="flex flex-col gap-1">${result.slice(0, 8).map((x, i) => { const a = ACT[x.act] || ACT['']; return `<div class="flex items-center gap-2 text-sm"><span class="w-6 text-center font-bold ${i === 0 ? 'text-gold-300' : 'text-slate-400'}">${i + 1}.</span>${x.g.icon ? `<img src="${esc(x.g.icon)}" alt="" class="w-7 h-7 rounded object-contain bg-ink-900">` : ''}<span class="min-w-0 flex-1 truncate ${RAR[x.g.rarity] || ''}">${esc(x.g.name)} <span class="text-[11px] text-slate-500">${esc(x.set)} · ${esc(SLOT_LABEL[x.g.slot] || x.g.slot)}</span></span><span class="text-xs whitespace-nowrap ${a.cls}">${a.icon} ${actText(x.g, x.act)}</span><span class="text-xs text-slate-400 tabular-nums whitespace-nowrap">${x.votes}× · ${x.score} P.</span></div>`; }).join('')}</div>
-        ${ans.filter((a) => a.note).length ? `<div class="mt-2 pt-2 border-t border-ink-700/60 flex flex-col gap-1">${ans.filter((a) => a.note).map((a) => `<div class="text-xs text-slate-300"><b class="text-slate-200">${esc(u(a.user_id).username || '?')}:</b> ${esc(a.note)}</div>`).join('')}</div>` : ''}</div>` : (own ? '<p class="text-xs text-slate-500">Noch keine Antworten.</p>' : '');
+    const notes = ans.filter((a) => a.note), noteHTML = notes.length ? `<div class="mt-2 pt-2 border-t border-ink-700/60 flex flex-col gap-1">${notes.map((a) => `<div class="text-xs text-slate-300"><b class="text-slate-200">${esc(u(a.user_id).username || '?')}:</b> ${esc(a.note)}</div>`).join('')}</div>` : '';
+    const resultHTML = (result.length || notes.length ? `<div class="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3"><div class="text-[11px] uppercase tracking-widest text-emerald-300 mb-2">📊 Empfehlung der Community · ${ans.length} Antwort${ans.length === 1 ? '' : 'en'}</div>
+        ${result.length ? '' : '<div class="text-xs text-slate-400">Bisher nur Kommentare.</div>'}<div class="flex flex-col gap-1">${result.slice(0, 8).map((x, i) => { const a = ACT[x.act] || ACT['']; return `<div class="flex items-center gap-2 text-sm"><span class="w-6 text-center font-bold ${i === 0 ? 'text-gold-300' : 'text-slate-400'}">${i + 1}.</span>${x.g.icon ? `<img src="${esc(x.g.icon)}" alt="" class="w-7 h-7 rounded object-contain bg-ink-900">` : ''}<span class="min-w-0 flex-1 truncate ${RAR[x.g.rarity] || ''}">${esc(x.g.name)} <span class="text-[11px] text-slate-500">${esc(x.set)} · ${esc(SLOT_LABEL[x.g.slot] || x.g.slot)}</span></span><span class="text-xs whitespace-nowrap ${a.cls}">${a.icon} ${actText(x.g, x.act, x.to)}</span><span class="text-xs text-slate-400 tabular-nums whitespace-nowrap">${x.votes}× · ${x.score} P.</span></div>`; }).join('')}</div>
+        ${noteHTML}</div>` : (own ? '<p class="text-xs text-slate-500">Noch keine Antworten.</p>' : '')) + (own ? orderAnswersHTML(req) : '');
     const isDirty = dirty(req.id), saving = st.saving === req.id;
     const helper = !own && !closed ? `<div class="flex flex-col gap-2 rounded-xl border border-gold-500/30 bg-gold-500/5 p-3">
-        <div class="text-xs text-slate-300">${picks.length ? `${picks.length}/${MAX} Schritte – Reihenfolge = Priorität (1 = zuerst)` : `Tippe ein Item an und wähle <b class="text-red-300">⚔ Refine</b> oder <b class="text-sky-300">⬆ T erhöhen</b> (bis zu ${MAX} Schritte)`}</div>
+        <div class="text-xs text-slate-300">${picks.length ? `${picks.length}/${MAX} Schritte – Reihenfolge = Priorität (1 = zuerst)` : `Tippe ein Item an und wähle <b class="text-red-300">⚔ Refine</b> oder <b class="text-sky-300">⬆ T erhöhen</b> (bis zu ${MAX} Schritte) – oder einfach nur einen Kommentar schreiben`}</div>
         ${chooserHTML(req, picks)}
         ${pickListHTML(req, picks)}
-        <input type="text" maxlength="300" data-help-note="${esc(req.id)}" value="${esc(st.note[req.id] ?? (mine ? mine.note || '' : ''))}" placeholder="Kurze Begründung (optional)" class="${inp} !py-1.5">
+        ${orderEditHTML(req)}
+        <input type="text" maxlength="300" data-help-note="${esc(req.id)}" value="${esc(st.note[req.id] ?? (mine ? mine.note || '' : ''))}" placeholder="Kommentar – geht auch ohne Auswahl" class="${inp} !py-1.5">
         <div class="flex flex-wrap items-center justify-end gap-2">
           <span class="mr-auto text-[11px] ${isDirty ? 'text-amber-300' : mine ? 'text-emerald-400' : 'text-slate-500'}">${isDirty ? '● Nicht gespeicherte Änderungen' : mine ? `✓ Gespeichert ${R.timeAgo(mine.created_at)}` : ''}</span>
           ${isDirty ? btn(`data-help-discard="${esc(req.id)}"`, '↺ Verwerfen', 'red') : ''}
@@ -361,6 +423,8 @@ window.RokMods.helpme = (R) => {
     else if ((b = c('data-help-act'))) { if (b.disabled) return; const [rid, item, act] = b.dataset.helpAct.split('|'); setAction(rid, item, act); }
     else if (c('data-help-choose-x')) { st.choose = null; render(); }
     else if ((b = c('data-help-mv'))) { const [rid, i, d] = b.dataset.helpMv.split('|'); movePick(rid, +i, +d); }
+    else if ((b = c('data-help-om'))) { const [rid, i, d] = b.dataset.helpOm.split('|'); st.oOpen = rid; moveOrd(rid, +i, +d); }
+    else if ((b = c('data-help-oreset'))) resetOrd(b.dataset.helpOreset);
     else if ((b = c('data-help-rm'))) { const [rid, i] = b.dataset.helpRm.split('|'); removePick(rid, +i); }
     else if ((b = c('data-help-save'))) save(b.dataset.helpSave);
     else if ((b = c('data-help-discard'))) discard(b.dataset.helpDiscard);
