@@ -52,18 +52,6 @@ window.RokMods.crafting = (R) => {
   const CHAR_POS = { helm: { x: 13, y: 13, px: 52, py: 9 }, weapon: { x: 13, y: 38, px: 36, py: 72 }, gloves: { x: 13, y: 62, px: 32, py: 22 }, acc1: { x: 13, y: 87, px: 53, py: 52 },
     chest: { x: 87, y: 13, px: 60, py: 35 }, legs: { x: 87, y: 38, px: 58, py: 66 }, boots: { x: 87, y: 62, px: 57, py: 85 }, acc2: { x: 87, y: 87, px: 77, py: 62 } };
   const CHAR_T = 23;   // Kachelgröße in %
-  // kleiner runder Steinboden unter dem Charakter (hinter dem Bild)
-  const CHAR_FLOOR = `<svg class="absolute pointer-events-none" style="left:22%;top:84%;width:56%;height:15%" viewBox="0 0 200 54" preserveAspectRatio="none">
-    <defs><radialGradient id="chFlTop" cx="50%" cy="42%" r="60%"><stop offset="0" stop-color="#d8cfbd"/><stop offset=".55" stop-color="#b3a68f"/><stop offset="1" stop-color="#7d715f"/></radialGradient>
-      <linearGradient id="chFlSide" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6d6252"/><stop offset="1" stop-color="#3b342b"/></linearGradient>
-      <radialGradient id="chFlSh" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="rgba(0,0,0,.55)"/><stop offset="1" stop-color="rgba(0,0,0,0)"/></radialGradient></defs>
-    <ellipse cx="100" cy="40" rx="100" ry="14" fill="url(#chFlSh)"/>
-    <path d="M6 24 v8 a94 18 0 0 0 188 0 v-8 z" fill="url(#chFlSide)"/>
-    <ellipse cx="100" cy="24" rx="94" ry="18" fill="url(#chFlTop)"/>
-    <ellipse cx="100" cy="24" rx="70" ry="13" fill="none" stroke="#8c7f6a" stroke-width="1.6" opacity=".8"/>
-    <ellipse cx="100" cy="24" rx="40" ry="7.5" fill="none" stroke="#8c7f6a" stroke-width="1.3" opacity=".7"/>
-    <path d="M30 24 L58 22 M142 26 L170 24 M100 6 L100 11 M100 37 L100 42 M60 13 L72 17 M128 31 L140 35 M140 13 L128 17 M72 31 L60 35" stroke="#7a6e5b" stroke-width="1.2" opacity=".75"/>
-    <ellipse cx="100" cy="21" rx="88" ry="14" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1"/></svg>`;
   const CHAR_BG = { '': 'background:radial-gradient(55% 50% at 50% 45%,rgba(59,130,246,.22),transparent 70%)',
     blue: 'background:radial-gradient(60% 55% at 50% 45%,rgba(59,130,246,.55),rgba(15,23,42,.9) 75%)', red: 'background:radial-gradient(60% 55% at 50% 45%,rgba(239,68,68,.5),rgba(28,10,10,.92) 75%)',
     gold: 'background:radial-gradient(60% 55% at 50% 45%,rgba(245,197,66,.5),rgba(30,20,5,.92) 75%)', green: 'background:radial-gradient(60% 55% at 50% 45%,rgba(34,197,94,.45),rgba(6,24,14,.92) 75%)',
@@ -84,7 +72,6 @@ window.RokMods.crafting = (R) => {
   R.charBack = (map, o) => { const c = charOf(map, o); if (!c) return ''; const cand = charCands(c.file);
     const bgc = o?.bg?.url ? `background:linear-gradient(rgba(7,9,15,.25),rgba(7,9,15,.45)),url('${String(o.bg.url).replace(/'/g, '%27')}') center/cover` : CHAR_BG[o?.bg?.k] || CHAR_BG[''];
     return `<div class="absolute inset-0 rounded-2xl pointer-events-none" style="${bgc}"></div>
-    ${CHAR_FLOOR}
     <img src="${cand[0]}" data-alt="${cand.slice(1).join('|')}" onerror="var a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.dataset.alt=a.slice(1).join('|');this.src=a[0]}else{this.onerror=null;this.style.display='none'}" alt="" draggable="false" class="absolute pointer-events-none select-none" style="left:50%;top:3%;height:94%;transform:translateX(-50%);filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))">
     <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">${Object.entries(CHAR_POS).map(([k, q]) => { const pt = c.pts?.[k], p = pt ? { ...q, px: pt[0], py: pt[1] } : q; return '' +
       `<line x1="${p.x}" y1="${p.y}" x2="${p.px}" y2="${p.py}" stroke="rgba(246,215,122,.55)" stroke-width=".35" stroke-dasharray="1 .8"/><circle cx="${p.px}" cy="${p.py}" r=".8" fill="#f6d77a"/>`; }).join('')}</svg>`; };
@@ -1634,6 +1621,17 @@ window.RokMods.crafting = (R) => {
   const calChoice = () => gearOpt.calChoice !== false;          // Wahlkisten auf Lücken verteilen
   const fits = (stock, need, useChoice) => { let gap = 0; MATK().forEach(k => { gap += Math.max(0, (need[k] || 0) - (stock[k] || 0)); }); return gap <= (useChoice ? stock.choice || 0 : 0) + 1e-6; };
   // Prio-Liste (mit Etappen) → Tag je Schritt (null = nicht innerhalb eines Jahres, unknown = Kosten fehlen)
+  // Kalender: Refine in einzelne Versuche aufteilen (25 → 50 → 75 → Voll). Gerechnet wird der schlechteste Fall (+25 % je Versuch) –
+  // mit Glück (+50/+75 %) bist du früher fertig und die letzten Versuche fallen weg.
+  function splitRefine(list) {
+    return list.flatMap(x => {
+      if (x.ms || x.meta?.k !== 'refine' || !(x.meta.n > 1) || !x.meta.unit) return [x];
+      const from = x.meta.from || 0;
+      return Array.from({ length: x.meta.n }, (_, i) => { const a = from + i * 25, b = Math.min(100, a + 25);
+        return { ...x, key: x.key + '#' + i, cost: x.meta.unit, label: `Refine ${a ? gRefTxt(a) : '0 %'} → ${gRefTxt(b)}`, last: x.last && i === x.meta.n - 1,
+          meta: { ...x.meta, n: 1, from: a, p: b, part: i + 1, parts: x.meta.n } }; });
+    });
+  }
   function projectList(list, fc, useChoice) {
     const need = gZero(), out = []; let d = 0, lost = false, last = 0;
     // Blaupausen in Fragmenten: erst eigener Bestand des Items (wird über die Stufen runtergerechnet), dann passende Events (Item → Slot → frei)
@@ -1679,7 +1677,7 @@ window.RokMods.crafting = (R) => {
     // gemeinsame Prio-Liste aller Sets im Gesamtziel; Anzeige optional nur für ein Set
     const only = cal.setId ? gear.sets.find(s => s.id === cal.setId) : null, solo = !!only && cal.mode === 'solo';
     // „nur dieses Set“ = als würdest du nur dieses Set bauen (eigene Reihenfolge, ganzer Rucksack); sonst gemeinsame Prio-Liste
-    const list = solo ? prioListAll().filter(x => !x.ms && x.set === only) : prioListAll(), proj = fc ? projectList(list, fc, calChoice()) : null;
+    const list = splitRefine(solo ? prioListAll().filter(x => !x.ms && x.set === only) : prioListAll()), proj = fc ? projectList(list, fc, calChoice()) : null;
     const showRow = (r) => r.x.ms ? !only : !only || r.x.set === only;
     const goalSets = (only ? [only] : planSets()).filter(s => s.goal.date), goalDays = new Map(goalSets.map(s => [dOffOf(s.goal.date), s]));
     const set = only || activeSet(), perWeek = fc ? MATK().reduce((a, k) => a + (fc.perDay[k] || 0), 0) * 7 + (fc.perDay.choice || 0) * 7 : 0;
@@ -1756,7 +1754,7 @@ window.RokMods.crafting = (R) => {
         ? `<div class="flex items-center gap-2 rounded-lg border border-dashed border-gold-500/50 bg-gold-500/5 px-3 py-1.5"><span>🏁</span><b class="text-gold-200">${R.esc(r.x.ms.name)}</b><span class="ml-auto text-sm font-semibold ${r.day == null ? 'text-red-300' : 'text-emerald-300'}">${r.day == null ? 'nicht in 12 Monaten' : dTxt(r.day, true)}</span></div>`
         : `<div class="rounded-xl border border-ink-700 bg-ink-950/40 px-2 py-2">
             <div class="flex items-center gap-2">${stepIcon(r.x.r.z, 'w-10 h-10')}
-              <div class="min-w-0 flex-1"><div class="text-sm font-semibold ${r.x.meta.k === 'craft' ? 'text-gold-300' : r.x.meta.k === 'tier' ? 'text-sky-300' : 'text-red-300'}">${R.esc(r.x.label)}${r.x.last ? ' <span class="text-xs text-emerald-300">✓ fertig</span>' : ''}</div><div class="text-[11px] text-slate-400 truncate" translate="no">${R.esc(gItem(r.x.r.z.item)?.name || '')} · ${r.x.r.sl.label} ${setTag(r.x.set)}</div></div>
+              <div class="min-w-0 flex-1"><div class="text-sm font-semibold ${r.x.meta.k === 'craft' ? 'text-gold-300' : r.x.meta.k === 'tier' ? 'text-sky-300' : 'text-red-300'}">${R.esc(r.x.label)}${r.x.meta.parts ? ` <span class="text-[11px] font-normal text-slate-400">Versuch ${r.x.meta.part}/${r.x.meta.parts}${r.x.meta.part > 1 ? ' – fällt weg, wenn vorher +50/+75 % kommt' : ''}</span>` : ''}${r.x.last ? ' <span class="text-xs text-emerald-300">✓ fertig</span>' : ''}</div><div class="text-[11px] text-slate-400 truncate" translate="no">${R.esc(gItem(r.x.r.z.item)?.name || '')} · ${r.x.r.sl.label} ${setTag(r.x.set)}</div></div>
               <div class="text-right text-sm tabular-nums whitespace-nowrap">${when(r)}</div></div>
             ${r.x.cost ? `<div class="mt-1.5 flex flex-wrap gap-1 pl-12">${costBoxes(r.x.cost)}</div>` : ''}
             ${r.bp ? `<div class="mt-1 pl-12 text-[11px] ${r.bp.short > 0 ? 'text-red-300' : r.bp.used.length ? 'text-amber-200' : 'text-slate-400'}">📜 ${bpTxt(r.bp.need)}: ${r.bp.own > 0 ? `${bpTxt(r.bp.own)} aus deinem Bestand` : ''}${r.bp.used.length ? `${r.bp.own > 0 ? ' + ' : ''}${r.bp.used.map(u => `${evIcon(u.e)} ${evName(u.e)} ${bpDate(u.e.off)} (${Math.round(u.fr)} Fragm.)`).join(' + ')}` : ''}${r.bp.short > 0 ? ` · ⚠ fehlen ${Math.ceil(r.bp.short)} Fragmente – kein passendes Event${(() => { const n = bpNext(r.x.r.z.item); return n ? '' : ' eingetragen'; })()}` : ''}</div>` : ''}
