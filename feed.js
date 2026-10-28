@@ -1154,7 +1154,24 @@ window.RokMods.feed = (R) => {
       <div class="flex items-center justify-between gap-2"><span class="text-[10px] uppercase tracking-widest text-orange-300">🛡️ ${d.crafted ? 'Neues Armament' : 'Mein Armament'}</span><span class="font-display text-base text-slate-100 truncate">${esc(d.name || '')}</span></div>
       <div class="flex justify-center py-1 overflow-x-auto">${h || '<span class="text-xs text-slate-500 py-4">Armament kann nicht angezeigt werden.</span>'}</div>
       ${d.note ? `<div class="text-sm text-slate-200">📝 ${esc(d.note)}</div>` : ''}</div>`; };
+  // Einzelnes Set mit Charakter (aus Craft → Sets gepostet)
+  const charSetTile = (d) => { const gear = d.gear || {}, n = Object.values(gear).filter((g) => g && (g.item || g.icon)).length;
+    let board = ''; try { board = R.charBoardHTML ? R.charBoardHTML(gear, { pick: d.char || '', name: d.name || '' }) : ''; } catch { board = ''; }
+    return `<div class="fx-forge rounded-xl border border-orange-400/40 bg-gradient-to-br from-orange-950/40 via-ink-950/80 to-ink-950 p-3 flex flex-col items-center gap-2">
+      <div class="w-full flex items-center justify-between gap-2"><span class="text-[10px] uppercase tracking-widest text-orange-300">🧍 Mein Set${d.main ? ' · ⭐ Hauptset' : ''}</span><span class="font-display text-lg text-slate-100 truncate">${esc(d.name || 'Set')}</span></div>
+      ${board ? `<div class="relative w-full max-w-[380px] aspect-square">${board}</div>` : ''}
+      <div class="text-xs text-slate-400">${n} Teil${n === 1 ? '' : 'e'}${Object.values(gear).some((g) => g && g.refine >= 100) ? ` · ${Object.values(gear).filter((g) => g && g.refine >= 100).length}× voll refined` : ''}</div>
+      ${d.note ? `<div class="w-full text-sm text-slate-200">📝 ${esc(d.note)}</div>` : ''}</div>`; };
+  // Craft → Sets: ein Set mit Charakter im Feed posten
+  R.feedShareSet = async ({ name, gear, char, main, note }) => {
+    const data = { mode: 'set', char: String(char || ''), name: String(name || 'Set').slice(0, 40), main: !!main, note: String(note || '').slice(0, 300), gear: gear || {} };
+    const { error } = await db().from('feed_posts').insert({ user_id: me(), kind: 'craft', body: '', image: null, data });
+    if (error) throw error;
+    if (st.loaded) load();
+    return true;
+  };
   const craftSetTile = (d) => {
+    if (d.char != null && R.charBoardHTML) return charSetTile(d);
     const n = Object.keys(d.gear || {}).length, cmds = (d.cmd || []).map((c) => R.cmdImg ? `<img src="${esc(R.cmdImg(c.id, c.exp))}" alt="" loading="lazy" class="w-9 h-9 rounded-full object-cover border border-gold-400/60 bg-ink-900">` : '').join('');
     let board = ''; try { board = R.gearBoardHTML ? R.gearBoardHTML(d.gear || {}, d.gfx) : ''; } catch { board = ''; }
     return `<div class="fx-forge rounded-xl border border-orange-400/40 bg-gradient-to-br from-orange-950/40 via-ink-950/80 to-ink-950 p-3 flex flex-col sm:flex-row items-center gap-4">

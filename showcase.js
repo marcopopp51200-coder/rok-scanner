@@ -959,10 +959,10 @@ window.RokMods.showcase = (R) => {
   const gHasFrame = (v, it, rr, fx) => { const f = gfFor(it, v, rr, fx); return !!f && typeof f === 'object'; };
   // Gear-Brett im Detail: Rauten oder rund um den Charakter (Umschalter gilt überall)
   function scDrawGearBoard(x) {
-    const on = !!R.charOn?.(x.gear), el = R.$('scGearBoard');
+    const co = { name: x.name || '' }, on = !!R.charOn?.(x.gear, co), el = R.$('scGearBoard');
     R.charFrame?.(el, on); const w = R.$('scGearWrap'); if (w) w.style.maxWidth = on ? '320px' : '';
-    el.innerHTML = scGearBoard(x.gear, false, false, x.gfx, on);
-    const bar = R.$('scViewBar'); if (bar) bar.innerHTML = R.boardStyleBar ? R.boardStyleBar(x.gear) : '';
+    el.innerHTML = scGearBoard(x.gear, false, false, x.gfx, on ? co : false);
+    const bar = R.$('scViewBar'); if (bar) bar.innerHTML = R.boardStyleBar ? R.boardStyleBar(x.gear, co) : '';
   }
   function scGearBoard(g, mini = false, hideEmpty = false, fxIn = null, ch = false) {
     const fx = fxIn || SC_GFX_DEF, box = (sl) => ch ? R.charBox(sl.k) : `left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%`;
@@ -976,7 +976,7 @@ window.RokMods.showcase = (R) => {
         ${it?.icon && !gHasFrame(v, it, rr, fx) ? `<img src="${it.icon}" alt="" draggable="false" class="absolute object-contain" style="left:23%;top:23%;width:54%;height:54%">` : ''}
       </div>`;
     }).join('') + deco;
-    return (ch ? R.charBack(g) : '') + rows.map(({ sl, v, it, rr }) => {
+    return (ch ? R.charBack(g, ch === true ? {} : ch) : '') + rows.map(({ sl, v, it, rr }) => {
       const active = sc.own && sc.gsel === sl.k;
       return `<button type="button" data-sctile="${sl.k}" ${sc.own ? '' : 'tabindex="-1"'} title="${R.esc(sl.label + (it ? ': ' + it.name : ''))}"
           class="gdia absolute focus:outline-none ${sc.own ? '' : 'cursor-default'}" style="${box(sl)}">

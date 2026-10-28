@@ -970,11 +970,14 @@ tailwind.config = {
 
     <!-- Fenster: Planer | Craft-Verlauf -->
     <div class="inline-flex flex-wrap gap-1 p-1 rounded-xl bg-ink-950/70 border border-ink-700">
+      <button type="button" data-cpane="sets">🗂 Sets</button>
       <button type="button" data-cpane="plan">⚒ Planer</button>
       <button type="button" data-cpane="goal">🎯 Ziele</button>
       <button type="button" data-cpane="cal">📅 Mats-Kalender</button>
       <button type="button" data-cpane="hist">📜 Craft-Verlauf</button>
     </div>
+
+    <div id="craftSetsPane" class="hidden space-y-4"></div>
 
     <div id="craftPlanPane" class="space-y-6">
 

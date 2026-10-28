@@ -19,44 +19,74 @@ window.RokMods.crafting = (R) => {
     { k: 'boots',  label: 'Stiefel',      icon: '🥾', cat: 'boots',     x: 0,  y: 6 }
   ]; R.GEAR_SLOTS = GEAR_SLOTS;
 
-  // ---- Charakter-Ansicht: Ausrüstung rund um ein Charakterbild statt Rauten-Brett (Planer, Showcase, Help Me) ----
-  // Bild je Truppentyp (freigestellt, PNG/WebP). Fehlt eins, wird automatisch das Rauten-Brett gezeigt.
-  // Dateinamen der Charakterbilder (ohne Endung); gesucht wird in icons/chars/ und icons/schars/, als .webp oder .png
-  const CHAR_FILE = { infantry: 'charles', cavalry: 'caocao', archer: 'qsh' };
+  // ---- Charakter-Ansicht: Ausrüstung rund um ein Charakterbild statt Rauten-Brett (Planer, Sets, Showcase, Help Me, Feed) ----
+  // Eingebaute Charaktere; weitere über icons/chars/chars.json (siehe unten). Bilder liegen in icons/chars/ (oder icons/schars/), .webp oder .png.
+  // pts = Punkt am Körper je Slot [x, y] in % der quadratischen Fläche (wohin die Linie zeigt)
+  const CHARS0 = [
+    { id: 'charles', name: 'Charles Martel', troop: 'infantry', file: 'charles' },
+    { id: 'caocao', name: 'Cao Cao', troop: 'cavalry', file: 'caocao',
+      pts: { helm: [48, 12], weapon: [17, 61], gloves: [54, 31], acc1: [34, 62], chest: [50, 39], legs: [50, 76], boots: [46, 92], acc2: [38, 55] } },
+    { id: 'qsh', name: 'Qin Shi Huang', troop: 'archer', file: 'qsh',
+      pts: { helm: [50, 13], weapon: [54, 39], gloves: [25, 53], acc1: [63, 81], chest: [42, 41], legs: [44, 76], boots: [30, 90], acc2: [59, 59] } } ];
+  let CHARS = CHARS0.slice();
   const CHAR_DIRS = ['icons/chars/', 'icons/schars/'], CHAR_EXT = ['.webp', '.png'];
-  const charCands = (f) => CHAR_DIRS.flatMap(d => CHAR_EXT.map(e => d + f + e));
-  const CHAR_IMG = Object.fromEntries(Object.entries(CHAR_FILE).map(([t, f]) => [t, charCands(f)[0]]));
+  const charCands = (f) => /\.(webp|png|jpe?g)$/i.test(f) ? CHAR_DIRS.map(d => d + f) : CHAR_DIRS.flatMap(d => CHAR_EXT.map(e => d + f + e));
+  // icons/chars/chars.json (optional): [{ "id": "suntzu", "name": "Sun Tzu", "troop": "infantry", "file": "suntzu" }, …]
+  fetch('icons/chars/chars.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(list => {
+    if (!Array.isArray(list)) return;
+    list.forEach(c => { if (!c || !c.id || !c.file) return; const o = { id: String(c.id), name: String(c.name || c.id), troop: gRefType(c.troop), file: String(c.file), pts: c.pts || null };
+      const k = CHARS.findIndex(x => x.id === o.id); if (k >= 0) CHARS[k] = { ...CHARS[k], ...o, pts: o.pts || CHARS[k].pts }; else CHARS.push(o); });
+    (R.boardStyleHooks || []).forEach(f => { try { f(); } catch {} });
+  }).catch(() => {});
+  R.charList = () => CHARS.slice();
   const CHAR_TROOP = { infantry: '🛡 Infanterie', cavalry: '🐎 Kavallerie', archer: '🏹 Bogen', engineering: '⚙ Belagerung', integration: '🔀 Gemischt', leadership: '🚩 Führung' };
-  // Kachel-Mitte (x/y in % der quadratischen Fläche) + Punkt am Körper, an dem die Linie endet
+  // Kachel-Mitte (x/y in %) + Standard-Körperpunkt (für Charles)
   const CHAR_POS = { helm: { x: 13, y: 13, px: 52, py: 9 }, weapon: { x: 13, y: 38, px: 36, py: 72 }, gloves: { x: 13, y: 62, px: 32, py: 22 }, acc1: { x: 13, y: 87, px: 53, py: 52 },
     chest: { x: 87, y: 13, px: 60, py: 35 }, legs: { x: 87, y: 38, px: 58, py: 66 }, boots: { x: 87, y: 62, px: 57, py: 85 }, acc2: { x: 87, y: 87, px: 77, py: 62 } };
-  // Körperpunkte je Charakter [px, py] (Kacheln bleiben gleich, nur die Linien enden woanders)
-  const CHAR_PTS = {
-    cavalry: { helm: [48, 12], weapon: [17, 61], gloves: [54, 31], acc1: [34, 62], chest: [50, 39], legs: [50, 76], boots: [46, 92], acc2: [38, 55] },
-    archer:  { helm: [50, 13], weapon: [54, 39], gloves: [25, 53], acc1: [63, 81], chest: [42, 41], legs: [44, 76], boots: [30, 90], acc2: [59, 59] } };
   const CHAR_T = 23;   // Kachelgröße in %
   const BSTYLE = 'rok_scanner_board_style';
   R.boardStyle = () => (R.LS?.get(BSTYLE, 'char') === 'rauten' ? 'rauten' : 'char');   // Standard: Charakter-Ansicht
-  // Truppentyp eines Sets = häufigster Refine-Typ der eingetragenen Teile
-  R.charTroop = (map) => { const n = {}; Object.values(map || {}).forEach(v => { if (v && (v.item || v.name)) { const t = gRefType(v.refType); n[t] = (n[t] || 0) + 1; } });
-    return Object.entries(n).sort((a, b) => b[1] - a[1])[0]?.[0] || 'infantry'; };
-  R.charImg = (map) => CHAR_IMG[R.charTroop(map)] || '';
-  R.charOn = (map) => R.boardStyle() === 'char' && !!R.charImg(map);
+  // Truppentyp: Refine-Typ der refinten Teile (häufigster), sonst aus dem Set-Namen (Kav/Cav, Bogen/Arch, Inf), sonst Infanterie
+  R.charTroop = (map, name = '') => { const n = {}; Object.values(map || {}).forEach(v => { if (v && (v.item || v.name) && +v.refine > 0) { const t = gRefType(v.refType); n[t] = (n[t] || 0) + 1; } });
+    const top = Object.entries(n).sort((a, b) => b[1] - a[1])[0]?.[0]; if (top) return top;
+    const t = String(name).toLowerCase();
+    return /kav|cav|reiter|horse/.test(t) ? 'cavalry' : /bog|arch|bow|schütz|schuetz/.test(t) ? 'archer' : /siege|belager|engin/.test(t) ? 'engineering' : 'infantry'; };
+  // o = { pick: Charakter-ID oder '' (automatisch), name: Set-Name }
+  const charOf = (map, o = {}) => CHARS.find(c => c.id === o.pick) || CHARS.find(c => c.troop === R.charTroop(map, o.name)) || null;
+  R.charOf = charOf;
+  R.charImg = (map, o) => { const c = charOf(map, o); return c ? charCands(c.file)[0] : ''; };
+  R.charOn = (map, o) => R.boardStyle() === 'char' && !!charOf(map, o);
   R.charBox = (k) => { const p = CHAR_POS[k] || { x: 50, y: 50 }; return `left:${p.x - CHAR_T / 2}%;top:${p.y - CHAR_T / 2}%;width:${CHAR_T}%;height:${CHAR_T}%`; };
-  R.charBack = (map) => `<div class="absolute inset-0 rounded-2xl pointer-events-none" style="background:radial-gradient(55% 50% at 50% 45%,rgba(59,130,246,.22),transparent 70%)"></div>
-    <img src="${R.charImg(map)}" data-alt="${charCands(CHAR_FILE[R.charTroop(map)] || '').slice(1).join('|')}" onerror="var a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.dataset.alt=a.slice(1).join('|');this.src=a[0]}else{this.onerror=null;this.style.display='none'}" alt="" draggable="false" class="absolute pointer-events-none select-none" style="left:50%;top:3%;height:94%;transform:translateX(-50%);filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))">
-    <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">${Object.entries(CHAR_POS).map(([k, q]) => { const o = CHAR_PTS[R.charTroop(map)]?.[k], p = o ? { ...q, px: o[0], py: o[1] } : q; return '' +
-      `<line x1="${p.x}" y1="${p.y}" x2="${p.px}" y2="${p.py}" stroke="rgba(246,215,122,.55)" stroke-width=".35" stroke-dasharray="1 .8"/><circle cx="${p.px}" cy="${p.py}" r=".8" fill="#f6d77a"/>`; }).join('')}</svg>`;
+  R.charBack = (map, o) => { const c = charOf(map, o); if (!c) return ''; const cand = charCands(c.file);
+    return `<div class="absolute inset-0 rounded-2xl pointer-events-none" style="background:radial-gradient(55% 50% at 50% 45%,rgba(59,130,246,.22),transparent 70%)"></div>
+    <img src="${cand[0]}" data-alt="${cand.slice(1).join('|')}" onerror="var a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.dataset.alt=a.slice(1).join('|');this.src=a[0]}else{this.onerror=null;this.style.display='none'}" alt="" draggable="false" class="absolute pointer-events-none select-none" style="left:50%;top:3%;height:94%;transform:translateX(-50%);filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))">
+    <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">${Object.entries(CHAR_POS).map(([k, q]) => { const pt = c.pts?.[k], p = pt ? { ...q, px: pt[0], py: pt[1] } : q; return '' +
+      `<line x1="${p.x}" y1="${p.y}" x2="${p.px}" y2="${p.py}" stroke="rgba(246,215,122,.55)" stroke-width=".35" stroke-dasharray="1 .8"/><circle cx="${p.px}" cy="${p.py}" r=".8" fill="#f6d77a"/>`; }).join('')}</svg>`; };
   // Container umstellen: 1:2 (Rauten) ↔ 1:1 (Charakter)
   R.charFrame = (el, on, rautenW) => { if (!el) return; el.classList.toggle('aspect-[1/2]', !on); el.classList.toggle('aspect-square', on);
     el.style.maxWidth = on ? '460px' : rautenW || ''; };
-  // Umschalter (überall gleich, gilt für alle Bretter)
-  R.boardStyleBar = (map) => { const cur = R.boardStyle(), t = R.charTroop(map), miss = cur === 'char' && !R.charImg(map);
+  // Umschalter (gilt für alle Bretter) + bei o.pickable Charakter-Auswahl fürs Set
+  R.boardStyleBar = (map, o = {}) => { const cur = R.boardStyle(), auto = charOf(map, { name: o.name });
     const b = (v, l) => `<button type="button" data-bstyle="${v}" class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${cur === v ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'}">${l}</button>`;
-    return `<div class="flex flex-wrap items-center justify-center gap-2"><div class="inline-flex gap-0.5 p-0.5 rounded-lg bg-ink-950 border border-ink-700">${b('rauten', '◇ Rauten')}${b('char', '🧍 Charakter')}</div>
-      ${miss ? `<span class="text-[10px] text-amber-300">Für ${CHAR_TROOP[t] || t} noch kein Bild – Rauten-Ansicht</span>` : ''}</div>`; };
+    const pick = o.pickable && cur === 'char' ? `<select data-charpick="${R.esc(o.setId || '')}" translate="no" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-[11px] font-semibold focus:outline-none focus:border-gold-500" title="Charakter für dieses Set">
+        <option value="">🔄 Automatisch${auto ? ' (' + R.esc(auto.name) + ')' : ''}</option>${CHARS.map(c => `<option value="${R.esc(c.id)}"${o.pick === c.id ? ' selected' : ''}>${CHAR_TROOP[c.troop]?.split(' ')[0] || '🧍'} ${R.esc(c.name)}</option>`).join('')}</select>` : '';
+    return `<div class="flex flex-wrap items-center justify-center gap-2"><div class="inline-flex gap-0.5 p-0.5 rounded-lg bg-ink-950 border border-ink-700">${b('rauten', '◇ Rauten')}${b('char', '🧍 Charakter')}</div>${pick}</div>`; };
+  // Statisches Brett rund um den Charakter (Feed, Sets-Übersicht): map = { slot: { item, icon, rarity, tier, refine } }
+  R.charBoardHTML = (map, o = {}) => {
+    const tiles = GEAR_SLOTS.map(sl => { const v = map?.[sl.k]; const it = v ? gItem(v.item) : null, icon = v?.icon || it?.icon || '', has = v && (v.item || icon);
+      const rr = (it?.rarity || v?.rarity || 'legendary'), f = GFILL[rr] || GFILL.legendary, full = has && +v.refine >= 100;
+      return `<div class="gdia absolute" style="${R.charBox(sl.k)}">
+        <span class="gdia absolute inset-0" style="background:${has ? (full && R.GOLD_RIM ? R.GOLD_RIM : f[0]) : '#2e3a55'}"></span>
+        <span class="gdia absolute ${full ? 'inset-[6px]' : 'inset-[2px]'}" style="background:${has ? (R.gFace ? R.gFace(rr) : f[1]) : '#111725'}"></span>
+        <span class="relative z-10 h-full w-full flex items-center justify-center">${icon ? `<img src="${R.esc(icon)}" alt="" loading="lazy" class="w-[56%] aspect-square object-contain">` : `<span class="text-base opacity-40">${sl.icon}</span>`}</span>
+        ${has && +v.tier > 0 ? `<span class="absolute z-10 bottom-[2%] left-1/2 -translate-x-1/2 px-1 rounded bg-ink-950/85 border border-gold-400/70 text-[9px] font-extrabold text-gold-300 leading-[14px]">${ROMAN[v.tier - 1]}</span>` : ''}</div>`; }).join('');
+    return R.charBack(map, o) + tiles;
+  };
   document.addEventListener('click', (ev) => { const b = ev.target.closest('[data-bstyle]'); if (!b) return;
     R.LS.set(BSTYLE, b.dataset.bstyle); (R.boardStyleHooks || []).forEach(f => { try { f(); } catch (e) { console.error(e); } }); });
+  document.addEventListener('change', (ev) => { const t = ev.target.closest?.('[data-charpick]'); if (!t) return;
+    const set = gear.sets.find(x => x.id === t.dataset.charpick); if (!set) return;
+    set.char = t.value; R.LS.set(GEAR_SETS, JSON.stringify(gear)); (R.boardStyleHooks || []).forEach(f => { try { f(); } catch {} }); });
   R.boardStyleHooks = R.boardStyleHooks || [];
   const GEAR_CATS = { helm: 'Helm', chest: 'Brust', weapon: 'Waffe', gloves: 'Handschuhe', legs: 'Beine', boots: 'Stiefel', accessory: 'Accessoire' };
   // Episch = gleiche Anzahl lila Materialien → ¼ legendär (4:1)
@@ -233,7 +263,7 @@ window.RokMods.crafting = (R) => {
     order: Array.isArray(pr?.order) ? pr.order.map(String).slice(0, 400) : [],
     ms: Array.isArray(pr?.ms) ? pr.ms.filter(m => m && m.id).map(m => ({ id: String(m.id), name: String(m.name || 'Etappe').slice(0, 30) })).slice(0, 12) : [],
     upto: String(pr?.upto || ''), view: ['set', 'all'].includes(pr?.view) || /^[\w-]{4,}$/.test(pr?.view || '') ? pr.view : 'set',
-    goalUpto: String(pr?.goalUpto || ''), filter: pr?.filter === 'active' ? 'active' : '' });
+    goalUpto: String(pr?.goalUpto || ''), filter: String(pr?.filter || '') });   // '' = alle Sets, sonst Set-ID ('active' = altes „nur aktives Set“)
   const newGearSet = (name) => ({ id: R.newId(), name, ist: gEmptySlots(), ziel: gEmptySlots(), dismantle: false, useChests: false, goal: gNormGoal(), prio: gNormPrio(), updated: Date.now() });
   function gNormSet(s) {
     const o = newGearSet(String(s?.name || 'Set').slice(0, 40));
@@ -244,6 +274,7 @@ window.RokMods.crafting = (R) => {
     o.dismantle = !!s?.dismantle; o.useChests = !!s?.useChests; o.goal = gNormGoal(s?.goal); o.updated = +s?.updated || Date.now();
     o.sc = s?.sc?.scId && s?.sc?.setId ? { scId: String(s.sc.scId), setId: String(s.sc.setId) } : null;   // verbundenes Showcase-Set
     o.prio = gNormPrio(s?.prio);
+    o.char = String(s?.char || '').slice(0, 40); o.main = !!s?.main;   // Charakter (leer = automatisch) · Hauptset
     return o;
   }
   let gear = { sets: [], active: null };
@@ -369,7 +400,7 @@ window.RokMods.crafting = (R) => {
   // Rauten-Brett (8 Slots wie im Spiel)
   function gearBoard(side, set, calc, opt = {}) {
     const ch = !!opt.char, box = (sl) => ch ? R.charBox(sl.k) : `left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%`;
-    return (ch ? R.charBack(set[side]) : '') + GEAR_SLOTS.map(sl => {
+    return (ch ? R.charBack(set.ziel || set[side], opt.char) : '') + GEAR_SLOTS.map(sl => {
       const v = set[side][sl.k], it = gItem(v.item), rr = it?.rarity || v.rarity, f = it ? GFILL[rr] || GFILL.legendary : null, r = calc.rows.find(x => x.sl.k === sl.k);
       const active = (opt.sel !== undefined ? opt.sel : gearSel[side]) === sl.k;
       const badge = opt.badge ? opt.badge(sl) : side === 'ziel' ? { same: ['✓', '#34d399'], swap: ['⇄', '#34d399'], tierup: ['⬆', '#7dd3fc'], refine: ['✦', '#fca5a5'], craft: ['⚒', '#fde68a'] }[r.status]
@@ -449,9 +480,9 @@ window.RokMods.crafting = (R) => {
         <span class="text-slate-400 w-14">Refine</span>
         ${[0, 25, 50, 75, 100].map(p => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refine" data-v="${p}" ${it ? '' : 'disabled'} class="${rb((v.refine || 0) === p)} font-semibold tabular-nums">${p === 0 ? 'Kein' : p >= 100 ? 'Voll' : p + '%'}</button>`).join('')}
       </div>
-      ${hasRef ? `<div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs"><span class="text-slate-400 w-14">Typ</span>
-        ${Object.entries(REFTYPES).map(([k, t]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refset" data-v="${k}" title="${t.label}" class="${rb(v.refType === k)}">
-          <img src="${t.img}" alt="" class="w-5 h-5 ${v.refType === k ? '' : 'grayscale opacity-70'}"><span class="hidden sm:inline">${t.label}</span></button>`).join('')}</div>` : ''}
+      ${hasRef ? `<div class="mt-1.5 flex items-start gap-1.5 text-xs"><span class="text-slate-400 w-14 shrink-0 pt-1.5">Typ</span>
+        <div class="flex-1 grid grid-cols-3 gap-1.5">${Object.entries(REFTYPES).map(([k, t]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refset" data-v="${k}" title="${t.label}" class="${rb(v.refType === k)} !flex items-center justify-start gap-1.5 min-w-0">
+          <img src="${t.img}" alt="" class="w-5 h-5 shrink-0 ${v.refType === k ? '' : 'grayscale opacity-70'}"><span class="truncate">${t.label}</span></button>`).join('')}</div></div>` : ''}
       ${it?.eq && (side === 'ziel' || side === 'ist') ? `<div class="mt-2 text-[11px] ${Object.keys(it.eq.costs || {}).length < 7 && maxTier(it) ? 'text-amber-300' : 'text-slate-500'}">
         ${(() => { const n = CE_ROWS.filter(([st]) => it.eq.costs?.[st]).length, need = it.rarity === 'legendary' || n > 2 ? 7 : 2; return n >= need ? '✓ Kosten eingetragen' : `⚠ Kosten: ${n} von ${need} Stufen eingetragen`; })()}
         <button type="button" data-cedit-slot="${R.esc(it.eq.id)}" class="ml-1 underline hover:text-gold-300">${gAdmin ? 'eintragen/ändern' : 'ansehen'}</button></div>` : ''}
@@ -467,14 +498,16 @@ window.RokMods.crafting = (R) => {
     renderScLink(set);
     renderHistBar(set);
     const calc = gearCalc(set), st = gearStock(), list = prioListAll(), P = gear.prio;
-    ['ist', 'ziel'].forEach(side => { const el = R.$(side === 'ist' ? 'gearIstBoard' : 'gearZielBoard'), on = R.charOn(set[side]);
-      R.charFrame(el, on, '280px'); el.innerHTML = gearBoard(side, set, calc, { char: on }); });
-    R.$('gearViewBar').innerHTML = R.boardStyleBar(set.ziel);
+    const co = { pick: set.char || '', name: set.name };
+    ['ist', 'ziel'].forEach(side => { const el = R.$(side === 'ist' ? 'gearIstBoard' : 'gearZielBoard'), on = R.charOn(set.ziel, co);
+      R.charFrame(el, on, '280px'); el.innerHTML = gearBoard(side, set, calc, { char: on ? co : null }); });
+    R.$('gearViewBar').innerHTML = R.boardStyleBar(set.ziel, { ...co, pickable: true, setId: set.id });
     R.$('gearIstEdit').innerHTML = gearEditor('ist', set, calc);
     R.$('gearZielEdit').innerHTML = gearEditor('ziel', set, calc);
     renderNeed(set, calc, list, st);
     R.$('gearResult').innerHTML = '';
     renderPrio(list, st);
+    if (craftPane === 'sets') renderSets();
   }
 
   // ---- Bedarf über den Sets: Dieses Set (Ist → Ziel) · Alle Sets (Gesamtziel) · bis Etappe X ----
@@ -578,6 +611,30 @@ window.RokMods.crafting = (R) => {
   const stepIcon = (v, cls = 'w-12 h-12') => { const it = gItem(v?.item), f = GFILL[it?.rarity || v?.rarity] || GFILL.legendary;
     return `<span class="relative shrink-0 ${cls} rounded-xl grid place-items-center border-2" style="border-color:${f[1]};background:radial-gradient(circle at 50% 40%, ${f[1]}66, ${f[2]}55)">
       ${it?.icon ? `<img src="${it.icon}" alt="" loading="lazy" class="w-[86%] h-[86%] object-contain [filter:drop-shadow(0_2px_2px_rgba(0,0,0,.5))]">` : `<span class="text-[9px] font-bold text-white text-center leading-tight px-0.5">${R.esc(it?.name || '?')}</span>`}</span>`; };
+  // ---- Refine-Glück: ein Refine gibt +25 (59 %), +50 (30 %) oder +75 (11 %) ----
+  const REF_ODDS = [[25, 0.59], [50, 0.30], [75, 0.11]];
+  // Verteilung der Anzahl Refines von „from“ bis mindestens „to“ → { dist: Map(n → p), exp, min, max }
+  function refOdds(from, to) {
+    let cur = new Map([[from, 1]]); const dist = new Map(); let n = 0;
+    while (cur.size && n < 10) { n++; const nx = new Map();
+      cur.forEach((p, lv) => REF_ODDS.forEach(([a, q]) => { const v = Math.min(100, lv + a), pq = p * q; if (v >= to) dist.set(n, (dist.get(n) || 0) + pq); else nx.set(v, (nx.get(v) || 0) + pq); }));
+      cur = nx; }
+    let exp = 0; dist.forEach((p, k) => exp += p * k);
+    return { dist, exp, min: Math.ceil((to - from) / 75), max: Math.ceil((to - from) / 25) };
+  }
+  R.refOdds = refOdds;
+  const pct = (p) => (p * 100).toLocaleString('de-DE', { maximumFractionDigits: p < 0.1 ? 1 : 0 }) + ' %';
+  function refOddsHtml(from, to, unit) {
+    const o = refOdds(from, to); if (o.min === o.max) return '';
+    const sumTxt = (n) => gCostText(gScale(unit, n));
+    return `<details class="w-full text-[11px] text-slate-400" onclick="event.stopPropagation()">
+      <summary class="cursor-pointer select-none hover:text-gold-300">🎲 Refine-Glück: Ø ${o.exp.toLocaleString('de-DE', { maximumFractionDigits: 1 })}× · best ${o.min}× (${pct(o.dist.get(o.min) || 0)}) · worst ${o.max}× (${pct(o.dist.get(o.max) || 0)})</summary>
+      <div class="mt-1 grid gap-0.5 text-left mx-auto max-w-md">
+        ${[...o.dist.entries()].sort((a, b) => a[0] - b[0]).map(([k, p]) => `<div class="flex items-center gap-2"><span class="w-8 font-bold text-slate-200 tabular-nums">${k}×</span><span class="w-12 tabular-nums">${pct(p)}</span><span class="h-1.5 rounded-full bg-red-400/70" style="width:${Math.max(2, p * 120)}px"></span><span class="truncate">${sumTxt(k)}</span></div>`).join('')}
+        <div class="mt-0.5 text-slate-500">Pro Refine: +25 % (59 %) · +50 % (30 %) · +75 % (11 %). Der Plan rechnet sicherheitshalber mit dem schlechtesten Fall (${o.max}×).</div>
+      </div></details>`;
+  }
+  R.refOddsHtml = refOddsHtml;
   // Kosten als Kästchen (wie die Mats-Kacheln)
   const costBoxes = (c, cls = '') => !c ? '' : [...R.MATS.filter(m => (c[m.k] || 0) > 1e-4).map(m => [m.icon, gq(c[m.k])]), ...GX.filter(x => (c[x.k] || 0) > 1e-4).map(x => [x.icon, x.f(c[x.k])])]
     .map(([ic, v]) => `<span class="inline-flex items-center gap-1 rounded-lg border border-ink-600 bg-ink-900/80 px-2 py-0.5 text-[13px] font-bold tabular-nums text-slate-100 whitespace-nowrap ${cls}"><span class="text-[15px] leading-none">${ic}</span>${v}</span>`).join('');
@@ -593,14 +650,16 @@ window.RokMods.crafting = (R) => {
   let prioCache = { list: [] };
   function renderPrio(list, st) {
     const box = R.$('gearPlan'), P = gear.prio, act = activeSet(); prioCache.list = list;
-    const shown = P.filter === 'active' ? list.filter(x => x.ms || x.set === act) : list;
+    if (P.filter === 'active') P.filter = act.id;
+    const fset = gear.sets.find(x => x.id === P.filter) || null; if (!fset) P.filter = '';
+    const shown = fset ? list.filter(x => x.ms || x.set === fset) : list;
     const steps = shown.filter(x => !x.ms), sets = planSets();
     const head = `<div class="flex flex-wrap items-start justify-between gap-3 mb-3">
         <div><h3 class="font-display text-xl gold-text">Prio-Liste</h3>
           <p class="text-xs text-slate-400">${steps.length} ${steps.length === 1 ? 'Schritt' : 'Schritte'} offen · ${sets.length} ${sets.length === 1 ? 'Set' : 'Sets'} im Gesamtziel · ziehen oder ▲▼ zum Umsortieren · grün = mit deinem Rucksack machbar (der Reihe nach)</p>
           ${!act.goal.on ? `<p class="mt-1 text-xs text-amber-300">⚠ „${R.esc(act.name)}“ ist nicht im Gesamtziel und fehlt in der Liste. <button type="button" data-pset-on class="underline hover:text-gold-300">aufnehmen</button></p>` : ''}</div>
         <div class="flex flex-wrap items-center gap-1.5 text-xs">
-          <button type="button" data-pfilter class="${hChip(P.filter !== 'active')}">🌍 Alle Sets</button><button type="button" data-pfilter="active" class="${hChip(P.filter === 'active')}" translate="no">Nur ${R.esc(act.name)}</button>
+          <select data-pfilter-sel translate="no" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs font-semibold focus:outline-none focus:border-gold-500" title="Welches Set in der Liste zeigen (unabhängig vom Set oben)"><option value="">🌍 Alle Sets</option>${gear.sets.filter(x => x.goal.on).map(x => `<option value="${R.esc(x.id)}"${fset === x ? ' selected' : ''}>${R.esc(x.name)}</option>`).join('')}</select>
           <span class="w-px h-5 bg-ink-700 mx-1"></span>
           <span class="text-slate-400">Sortieren:</span>${Object.entries(PRIO_MODES).map(([k, l]) => `<button type="button" data-pmode="${k}" class="${hChip(P.mode === k && !P.order.some(o => !o.startsWith('ms:')))}">${l}</button>`).join('')}
           <button type="button" data-pms-add class="px-2.5 py-1 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400 font-semibold">🏁 + Etappe</button>
@@ -636,25 +695,31 @@ window.RokMods.crafting = (R) => {
       const to = x.meta.k === 'craft' ? [stepIconT(z, 0, 0, IC), 'Craften'] : x.meta.k === 'tier' ? [stepIconT(z, x.meta.t, 0, IC), 'Tier ' + ROMAN[(x.meta.t || 1) - 1]]
         : [stepIconT(z, prevTier, x.meta.p, IC), 'Refine ' + gRefTxt(x.meta.p)];
       // links: Icon + Stand daneben · rechts: Ergebnis + Icon (am Handy Text unter dem Icon)
-      const side = (q, cls, right) => `<div class="shrink-0 flex ${right ? 'flex-col-reverse sm:flex-row' : 'flex-col sm:flex-row'} items-center gap-1 sm:gap-3">${right ? `<span class="text-[11px] sm:text-xl font-extrabold text-center sm:text-right leading-tight whitespace-nowrap ${cls}">${q[1]}</span>${q[0]}` : `${q[0]}<span class="text-[11px] sm:text-xl font-extrabold text-center sm:text-left leading-tight whitespace-nowrap ${cls}">${q[1]}</span>`}</div>`;
-      return `<div draggable="true" data-pkey="${R.esc(x.key)}" class="prio-row flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-3 rounded-xl border ${o.ok ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-700 bg-ink-950/40'} p-2" style="box-shadow:inset 3px 0 0 ${setCol(x.set)}">
+      const lab = (t, cls, al) => `<span class="text-[11px] sm:text-xl font-extrabold text-center ${al} leading-tight whitespace-nowrap ${cls}">${t}</span>`;
+      const refBtns = x.meta.k === 'refine' && x.meta.n > 1 ? `<div class="flex gap-0.5" title="Ein Refine gemacht – wie viel kam raus?">${[25, 50, 75].filter(a => a < (x.meta.p - (x.meta.from || 0))).map(a => `<button type="button" data-pdone="${R.esc(x.key)}|r${a}" class="px-1.5 py-0.5 rounded-md border border-ink-600 hover:border-emerald-400 hover:text-emerald-300 text-[10px] sm:text-[11px] font-semibold tabular-nums">+${a}%</button>`).join('')}</div>` : '';
+      const fromHtml = `<div class="shrink-0 flex flex-col sm:flex-row items-center gap-1 sm:gap-3">${from[0]}${lab(from[1], 'text-slate-300', 'sm:text-left')}</div>`;
+      const toHtml = `<div class="shrink-0 flex flex-col-reverse sm:flex-row items-center gap-1 sm:gap-3"><div class="flex flex-col items-center sm:items-end gap-1">${lab(to[1], kind[1], 'sm:text-right')}${refBtns}</div>${to[0]}</div>`;
+      const line = `<span class="flex-1 min-w-[10px] h-[3px] rounded-full bg-current opacity-60"></span>`;
+      const odds = x.meta.k === 'refine' && x.meta.unit ? refOddsHtml(x.meta.from || 0, x.meta.p, x.meta.unit) : '';
+      const col = setCol(x.set);
+      return `<div draggable="true" data-pkey="${R.esc(x.key)}" class="prio-row flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-3 rounded-xl border-2 ${o.ok ? 'bg-emerald-500/5' : 'bg-ink-950/40'} p-2" style="border-color:${col}aa;box-shadow:0 0 12px ${col}22">
         <div class="w-full sm:hidden pl-6 text-xs text-slate-300 truncate" translate="no">${R.esc(it?.name || '')} <span class="text-slate-500">· ${x.r.sl.label}</span> ${setTag(x.set)}</div>
         <span class="cursor-grab text-slate-600 select-none hidden sm:inline" title="ziehen">⋮⋮</span>
         <span class="w-4 sm:w-5 text-center text-sm font-bold text-slate-500 tabular-nums">${n}</span>
-        ${side(from, 'text-slate-300')}
+        ${fromHtml}
         <div class="min-w-0 flex-1 flex flex-col items-center text-center gap-1">
           <div class="hidden sm:block text-xs text-slate-300 truncate max-w-full" translate="no">${R.esc(it?.name || '')} <span class="text-slate-500">· ${x.r.sl.label}</span> ${setTag(x.set)}</div>
-          <div class="flex items-center w-full gap-1 ${kind[1]}"><span class="flex-1 h-[3px] rounded-full bg-current opacity-60"></span><span class="text-sm font-bold whitespace-nowrap">${kind[0]}${x.meta.k === 'refine' && x.meta.n > 1 ? ` ${x.meta.n}×` : ''}</span><span class="flex-1 h-[3px] rounded-full bg-current opacity-60"></span><span class="-ml-2 text-lg leading-none">➤</span></div>
-          ${x.cost ? `<div class="flex flex-wrap justify-center gap-1">${costBoxes(x.cost, '!px-1 !gap-0.5 !text-[11px] sm:!px-2 sm:!gap-1 sm:!text-[13px]')}</div>` : '<div class="text-xs text-amber-300">⚠ Kosten fehlen</div>'}
+          <div class="flex items-center w-full gap-1.5 ${kind[1]}">${line}
+            ${x.cost ? `<div class="flex flex-wrap justify-center gap-1 text-slate-100">${costBoxes(x.cost, '!px-1 !gap-0.5 !text-[11px] sm:!px-2 sm:!gap-1 sm:!text-[13px]')}</div>` : '<span class="text-xs text-amber-300">⚠ Kosten fehlen</span>'}
+            ${line}<span class="-ml-2 text-lg leading-none">➤</span></div>
+          ${odds}
         </div>
-        ${side(to, kind[1], true)}
+        ${toHtml}
         <div class="shrink-0 flex flex-col items-end gap-1">
-          ${o.ok ? '<span class="text-[11px] font-semibold text-emerald-300">✓ machbar</span>' : st.mats && o.lack?.length ? `<span class="text-[11px] text-red-300">fehlt ${o.lack.map(m => m.icon).join('')}</span>` : ''}
+          ${o.ok ? '<span class="text-[11px] font-semibold text-emerald-300">✓ machbar</span>' : ''}
           ${x.last ? '<span class="text-[10px] text-emerald-300" title="danach ist das Teil fertig">✓ Teil fertig</span>' : ''}
-          <div class="flex flex-col sm:flex-row gap-1">
-            ${x.meta.k === 'refine' && x.meta.n > 1 ? `<button type="button" data-pdone="${R.esc(x.key)}|1" class="px-2 py-1.5 rounded-lg border border-ink-600 hover:border-emerald-400 hover:text-emerald-300 text-xs font-semibold" title="einen Refine (+25 %) erledigt">+25%</button>` : ''}
-            <button type="button" data-pdone="${R.esc(x.key)}" class="px-2 sm:px-2.5 py-1.5 rounded-lg border border-ink-600 hover:border-emerald-400 hover:text-emerald-300 text-xs font-semibold" title="Schritt erledigt – Ist-Ausrüstung des Sets wird angepasst">✓<span class="hidden sm:inline"> Erledigt</span></button>
-          </div></div>${move}</div>`;
+          <button type="button" data-pdone="${R.esc(x.key)}" class="px-2 sm:px-2.5 py-1.5 rounded-lg border border-ink-600 hover:border-emerald-400 hover:text-emerald-300 text-xs font-semibold" title="Schritt erledigt – Ist-Ausrüstung des Sets wird angepasst">✓<span class="hidden sm:inline"> Erledigt</span></button>
+        </div>${move}</div>`;
     }).join('');
     box.innerHTML = head + `<div id="prioRows" class="space-y-2">${rows}</div>`;
     box._shown = shown;
@@ -667,7 +732,7 @@ window.RokMods.crafting = (R) => {
   R.$('gearPlan').addEventListener('click', async (ev) => {
     const t = ev.target, b = (a) => t.closest(`[data-${a}]`), P = gear.prio;
     if (b('pset-on')) { activeSet().goal.on = true; saveGear(); renderGearMain(); return; }
-    if (b('pfilter')) { P.filter = b('pfilter').dataset.pfilter === 'active' ? 'active' : ''; R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderGearMain(); return; }
+
     if (b('phelp')) { openHelpAsk(activeSet()); return; }
     if (b('pmode')) {
       const m = b('pmode').dataset.pmode;
@@ -686,7 +751,7 @@ window.RokMods.crafting = (R) => {
       if (P.view === id) P.view = 'all'; if (P.goalUpto === id) P.goalUpto = ''; R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderGearMain(); return; }
     if (b('pmove')) { const [i, d] = b('pmove').dataset.pmove.split(':').map(Number), sh = R.$('gearPlan')._shown || []; if (!sh[i] || !sh[i + d]) return; prioSwap(sh[i].key, sh[i + d].key); return; }
     if (b('pdone')) {
-      const raw = b('pdone').dataset.pdone, one = raw.endsWith('|1') && !prioCache.list.some(x => x.key === raw), key = one ? raw.slice(0, -2) : raw;
+      const raw = b('pdone').dataset.pdone, m = raw.match(/\|r(\d+)$/), add = m && !prioCache.list.some(x => x.key === raw) ? +m[1] : 0, key = add ? raw.slice(0, -m[0].length) : raw;
       const x = prioCache.list.find(y => y.key === key); if (!x || x.ms) return;
       const set = x.set, k = x.r.sl.k, z = x.r.z;
       if (x.r.from && x.r.from !== set.ist[k]) {                // Accessoire kommt aus dem anderen Slot → Plätze tauschen
@@ -696,11 +761,12 @@ window.RokMods.crafting = (R) => {
       const v = set.ist[k];
       if (x.meta.k === 'craft') set.ist[k] = { item: z.item, rarity: z.rarity, tier: 0, refine: 0, refType: z.refType };
       else if (x.meta.k === 'tier') v.tier = x.meta.t;
-      else if (x.meta.k === 'refine') { const base = v.refType === z.refType ? v.refine || 0 : 0; v.refType = z.refType; v.refine = one ? Math.min(100, base + 25) : x.meta.p; }
+      else if (x.meta.k === 'refine') { const base = v.refType === z.refType ? v.refine || 0 : 0; v.refType = z.refType; v.refine = add ? Math.min(100, base + add) : x.meta.p; }
       if (set === activeSet()) delete gearFlags[k];
       set.updated = Date.now(); R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderGearMain();
     }
   });
+  R.$('gearPlan').addEventListener('change', (ev) => { if (!ev.target.matches('[data-pfilter-sel]')) return; gear.prio.filter = ev.target.value; R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderGearMain(); });
   // Ziehen & Ablegen (am PC)
   let prioDrag = null;
   R.$('gearPlan').addEventListener('dragstart', (ev) => { const r = ev.target.closest('.prio-row'); if (!r) return; prioDrag = r.dataset.pkey; ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', prioDrag); } catch {} r.classList.add('opacity-40'); });
@@ -1334,7 +1400,7 @@ window.RokMods.crafting = (R) => {
       const slots = Object.fromEntries(GEAR_SLOTS.map(sl => { const v = set.ist[sl.k], it = gItem(v.item);
         return [sl.k, it ? { item: v.item, name: it.name, icon: it.icon || '', rarity: it.rarity, tier: v.tier, refine: v.refine, refType: v.refType } : null]; }));
       try {
-        const r = await R.helpAsk({ title: root.querySelector('[data-ha="title"]').value, set: { id: set.id, name: set.name, gear: slots },
+        const r = await R.helpAsk({ title: root.querySelector('[data-ha="title"]').value, set: { id: set.id, name: set.name, gear: slots, char: set.char || R.charOf(set.ziel, { name: set.name })?.id || '' },
           plan: root.querySelector('[data-ha="plan"]').checked ? plan : null, toFeed: root.querySelector('[data-ha="feed"]').checked });
         close(); UI.alert(r?.fed ? '✓ In Help Me und im Feed gepostet.' : '✓ In Help Me gepostet.');
       } catch (e) {
@@ -1577,10 +1643,85 @@ window.RokMods.crafting = (R) => {
   const hTime = (ts) => new Date(ts).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
   const hChip = (on) => `px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${on ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-700 text-slate-400 hover:text-gold-300'}`;
 
+  // ================= Sets: alle Sets verwalten (Hauptset, Charakter, Showcase, Feed) =================
+  const setMap = (slots) => Object.fromEntries(GEAR_SLOTS.map(sl => { const v = slots[sl.k], it = gItem(v?.item);
+    return [sl.k, it ? { item: v.item, name: it.name, icon: it.icon || '', rarity: it.rarity, tier: v.tier || 0, refine: v.refine || 0, refType: v.refType } : null]; }));
+  const setsSorted = () => [...gear.sets].sort((a, b) => (b.main ? 1 : 0) - (a.main ? 1 : 0));
+  function renderSets() {
+    const box = R.$('craftSetsPane'); if (!box) return;
+    const sc = scSets(), btn = 'px-2.5 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-xs font-semibold';
+    const card = (s) => { const co = { pick: s.char || '', name: s.name }, c = R.charOf(s.ist, co), on = R.boardStyle() === 'char' && !!c, filled = GEAR_SLOTS.filter(sl => gItem(s.ist[sl.k].item)).length;
+      const linked = s.sc && sc.find(x => x.scId === s.sc.scId && x.setId === s.sc.setId);
+      return `<section class="panel rounded-2xl p-4 flex flex-col gap-3 ${s.main ? 'ring-2 ring-gold-400/70' : ''} ${s.id === gear.active ? 'outline outline-1 outline-gold-500/40' : ''}">
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0"><div class="font-display text-xl gold-text truncate" translate="no">${s.main ? '⭐ ' : ''}${R.esc(s.name)}</div>
+            <div class="text-[11px] text-slate-400">${filled}/8 Teile · ${s.goal.on ? '🎯 im Gesamtziel' : 'nicht im Gesamtziel'}${linked ? ` · 🔗 ${R.esc(linked.scTitle)} › ${R.esc(linked.setName)}` : ''}</div></div>
+          <button type="button" data-sx="main" data-id="${R.esc(s.id)}" class="${btn} ${s.main ? '!border-gold-400 !text-gold-200 bg-gold-500/15' : ''}" title="Als Hauptset markieren">⭐ ${s.main ? 'Hauptset' : 'Als Hauptset'}</button></div>
+        <div class="relative mx-auto w-full ${on ? 'max-w-[340px] aspect-square' : 'max-w-[170px] aspect-[1/2]'} pointer-events-none">${on ? R.charBoardHTML(setMap(s.ist), co) : gearBoard('ist', s, { rows: [] }, { sel: null, badge: () => null })}</div>
+        <div class="flex flex-wrap items-center justify-center gap-1.5">
+          <select data-charpick="${R.esc(s.id)}" translate="no" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-xs font-semibold focus:outline-none focus:border-gold-500"><option value="">🔄 Charakter automatisch${R.charOf(s.ist, { name: s.name }) ? ' (' + R.esc(R.charOf(s.ist, { name: s.name }).name) + ')' : ''}</option>${R.charList().map(x => `<option value="${R.esc(x.id)}"${s.char === x.id ? ' selected' : ''}>🧍 ${R.esc(x.name)}</option>`).join('')}</select></div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+          <button type="button" data-sx="open" data-id="${R.esc(s.id)}" class="${btn} !border-gold-500/60 !text-gold-200">⚒ Im Planer</button>
+          <button type="button" data-sx="ren" data-id="${R.esc(s.id)}" class="${btn}">✎ Umbenennen</button>
+          <button type="button" data-sx="copy" data-id="${R.esc(s.id)}" class="${btn}">⧉ Kopieren</button>
+          <button type="button" data-sx="scload" data-id="${R.esc(s.id)}" class="${btn}">⇩ Aus Showcase</button>
+          <button type="button" data-sx="scsend" data-id="${R.esc(s.id)}" class="${btn}">⇧ Ins Showcase</button>
+          <button type="button" data-sx="feed" data-id="${R.esc(s.id)}" class="${btn} !border-orange-400/50 !text-orange-200">📰 Im Feed posten</button>
+          <button type="button" data-sx="goal" data-id="${R.esc(s.id)}" class="${btn}">${s.goal.on ? '🎯 aus Gesamtziel' : '🎯 ins Gesamtziel'}</button>
+          <button type="button" data-sx="del" data-id="${R.esc(s.id)}" class="${btn} hover:!border-red-500/60 hover:!text-red-300">🗑 Löschen</button>
+        </div></section>`; };
+    box.innerHTML = `<section class="panel rounded-2xl p-5">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div><h3 class="font-display text-xl gold-text">Deine Sets</h3>
+            <p class="text-xs text-slate-400 mt-1">Hier liegen alle deine Sets. ⭐ markiert dein Hauptset · „Im Planer“ öffnet es zum Rechnen · „Aus Showcase“ lädt die Ausrüstung aus deinem Showcase · „Im Feed posten“ zeigt genau dieses eine Set mit Charakter.</p></div>
+          <div class="flex flex-wrap items-center gap-2">${R.boardStyleBar({}, {})}
+            <button type="button" data-sx="new" class="px-3 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold">+ Neues Set</button>
+            ${sc.length ? `<select data-sx-newsc class="bg-ink-950 border border-ink-600 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:border-gold-500"><option value="">⇩ Neues Set aus Showcase …</option>${sc.map(x => `<option value="${R.esc(x.scId + '|' + x.setId)}">${R.esc(x.scTitle + ' › ' + x.setName)}</option>`).join('')}</select>` : ''}</div></div>
+        <div id="setsMsg" class="hidden mt-2 text-xs"></div></section>
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 items-start">${setsSorted().map(card).join('')}</div>`;
+  }
+  const setsMsg = (t, ok = true) => R.flash(R.$('setsMsg'), R.esc(t), ok);
+  const uniqName = (base) => { let name = base.slice(0, 40), n = 2; while (gear.sets.some(x => x.name.toLowerCase() === name.toLowerCase())) name = `${base.slice(0, 34)} (${n++})`; return name; };
+  R.$('craftSetsPane')?.addEventListener('change', async (ev) => {
+    const t = ev.target; if (!t.matches('[data-sx-newsc]') || !t.value) return;
+    const [scId, setId] = t.value.split('|'), src = scSets().find(x => x.scId === scId && x.setId === setId); if (!src) return;
+    const slots = scSlots(src.gear); if (!slotsFilled(slots)) { await UI.alert(`„${src.setName}“ hat noch keine Ausrüstung.`); renderSets(); return; }
+    const s = newGearSet(uniqName(src.setName)); s.ist = slots; s.ziel = JSON.parse(JSON.stringify(slots)); s.histBase = JSON.parse(JSON.stringify(slots)); s.sc = { scId, setId };
+    gear.sets.push(s); saveGear(); cloudSave(); renderSets(); setsMsg(`✓ Set „${s.name}“ aus dem Showcase angelegt`);
+  });
+  R.$('craftSetsPane')?.addEventListener('click', async (ev) => {
+    const b = ev.target.closest('[data-sx]'); if (!b) return;
+    const a = b.dataset.sx, s = gear.sets.find(x => x.id === b.dataset.id);
+    const save = () => { R.LS.set(GEAR_SETS, JSON.stringify(gear)); cloudSave(); renderSets(); };
+    if (a === 'new') { const name = (await UI.prompt('Name des neuen Sets', '', { title: 'Neues Set' }))?.trim().replace(/\s+/g, ' ').slice(0, 40); if (!name) return;
+      const n = newGearSet(uniqName(name)); gear.sets.push(n); save(); setsMsg(`✓ Set „${n.name}“ erstellt`); return; }
+    if (!s) return;
+    if (a === 'open') { gear.active = s.id; gearFlags = {}; R.LS.set(GEAR_SETS, JSON.stringify(gear)); craftPane = 'plan'; renderCraftPanes(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    if (a === 'main') { const on = !s.main; gear.sets.forEach(x => { x.main = false; }); s.main = on; save(); setsMsg(on ? `⭐ „${s.name}“ ist jetzt dein Hauptset` : 'Hauptset entfernt'); return; }
+    if (a === 'ren') { const name = (await UI.prompt('Neuer Name', s.name, { title: 'Set umbenennen' }))?.trim().replace(/\s+/g, ' ').slice(0, 40); if (!name || name === s.name) return;
+      if (gear.sets.some(x => x !== s && x.name.toLowerCase() === name.toLowerCase())) { setsMsg('Ein Set mit diesem Namen gibt es schon.', false); return; }
+      s.name = name; save(); return; }
+    if (a === 'copy') { const c = gNormSet({ ...JSON.parse(JSON.stringify(s)), id: R.newId(), name: uniqName(s.name + ' Kopie'), main: false }); gear.sets.push(c); save(); setsMsg(`✓ Kopie „${c.name}“ angelegt`); return; }
+    if (a === 'goal') { s.goal.on = !s.goal.on; save(); return; }
+    if (a === 'del') { if (!(await UI.confirm(`Set „${s.name}“ wirklich löschen?`))) return;
+      gear.sets = gear.sets.filter(x => x !== s); if (!gear.sets.length) gear.sets.push(newGearSet('Neues Set')); if (gear.active === s.id) gear.active = gear.sets[0].id; save(); setsMsg(`🗑 „${s.name}“ gelöscht`); return; }
+    if (a === 'scload' || a === 'scsend') { gear.active = s.id; R.LS.set(GEAR_SETS, JSON.stringify(gear)); openScPicker(a === 'scload' ? 'load' : 'send'); return; }
+    if (a === 'feed') {
+      if (!GEAR_SLOTS.some(sl => gItem(s.ist[sl.k].item))) { await UI.alert('Das Set ist noch leer – erst Ausrüstung eintragen.'); return; }
+      if (!R.feedShareSet) { await UI.alert('Der Feed ist noch nicht geladen – bitte Seite neu laden.'); return; }
+      const note = await UI.prompt(`„${s.name}“ im Feed posten – nur dieses eine Set, mit Charakter.\n\nText dazu (optional):`, '', { title: '📰 Im Feed posten', ok: 'Posten' });
+      if (note === null) return;
+      try { await R.feedShareSet({ name: s.name, gear: setMap(s.ist), char: s.char || R.charOf(s.ist, { name: s.name })?.id || '', main: s.main, note: note.trim() }); setsMsg('✓ Im Feed gepostet'); }
+      catch (e) { setsMsg('Posten fehlgeschlagen: ' + (RokAuth.germanError ? RokAuth.germanError(e) : e.message || e), false); }
+    }
+  });
+  R.boardStyleHooks.push(() => { if (craftPane === 'sets') renderSets(); });
+
   // ---- Fenster umschalten: Planer | Craft-Verlauf, und darin Seite History | Gespeicherte Sets ----
   let chPage = 'hist';
   function renderCraftPanes() {
     R.$('craftPlanPane').classList.toggle('hidden', craftPane !== 'plan');
+    R.$('craftSetsPane')?.classList.toggle('hidden', craftPane !== 'sets');
     R.$('craftHistPane').classList.toggle('hidden', craftPane !== 'hist');
     R.$('craftGoalPane').classList.toggle('hidden', craftPane !== 'goal');
     R.$('craftCalPane').classList.toggle('hidden', craftPane !== 'cal');
@@ -1594,6 +1735,7 @@ window.RokMods.crafting = (R) => {
     if (R.view === 'craft' && craftPane === 'goal') renderGoals();
     if (R.view === 'craft' && craftPane === 'cal') renderCal();
     if (R.view === 'craft' && craftPane === 'plan') renderGearMain();
+    if (craftPane === 'sets') renderSets();
   }
   document.querySelectorAll('[data-cpane]').forEach(b => b.onclick = () => { craftPane = b.dataset.cpane; renderCraftPanes(); });
   document.querySelectorAll('[data-chpage]').forEach(b => b.onclick = () => { chPage = b.dataset.chpage; renderCraftPanes(); });

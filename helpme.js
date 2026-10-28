@@ -121,7 +121,7 @@ window.RokMods.helpme = (R) => {
   // Anfrage direkt aus dem Crafting-Planer: Ist-Ausrüstung eines Planer-Sets + sein Plan (Ziel, nächste Schritte, was fehlt) als Info für die Helfer
   R.helpAsk = async ({ title, set, plan, toFeed }) => {
     const gear = gearOf(set); if (!gear.length) throw new Error('Die Ist-Ausrüstung ist leer – erst Items eintragen.');
-    const row = { user_id: me(), title: String(title || '').trim().slice(0, 100) || 'Was soll ich als Nächstes verbessern?', sets: [{ id: String(set.id), name: String(set.name || 'Set').slice(0, 40), gear, gfx: null, plan: plan || null }], status: 'open' };
+    const row = { user_id: me(), title: String(title || '').trim().slice(0, 100) || 'Was soll ich als Nächstes verbessern?', sets: [{ id: String(set.id), name: String(set.name || 'Set').slice(0, 40), gear, gfx: null, plan: plan || null, char: String(set.char || '') }], status: 'open' };
     const { data: ins, error } = await db().from('help_requests').insert(row).select().single(); if (error) throw error;
     const fed = toFeed && ins ? await share(ins, true) : false;
     await load(); st.open = ins?.id || null; R.goView('help'); render();
@@ -204,8 +204,8 @@ window.RokMods.helpme = (R) => {
   }
   // Brett eines Sets + klickbare Ebene darüber (Nummern = Priorität, ⚔/⬆ = gewählte Aktion)
   function setBoard(req, si, set, mode, picks, result, big) {
-    const map = gearMap(set); CH = !!R.charOn?.(map);
-    let board = ''; if (CH) board = R.charBack(map) + fallbackBoard(map); else { try { board = R.gearBoardHTML ? R.gearBoardHTML(map, set.gfx) : fallbackBoard(map); } catch { board = fallbackBoard(map); } }
+    const map = gearMap(set), co = { pick: set.char || '', name: set.name || '' }; CH = !!R.charOn?.(map, co);
+    let board = ''; if (CH) board = R.charBack(map, co) + fallbackBoard(map); else { try { board = R.gearBoardHTML ? R.gearBoardHTML(map, set.gfx) : fallbackBoard(map); } catch { board = fallbackBoard(map); } }
     const layer = SLOTS.map((sl) => {
       const g = map[sl.k]; if (!g) return '';
       const item = itemKey(si, sl.k), mine = picks.map((k, i) => ({ ...parseKey(k), n: i + 1 })).filter((p) => p.item === item);
