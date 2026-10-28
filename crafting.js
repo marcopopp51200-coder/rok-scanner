@@ -52,6 +52,18 @@ window.RokMods.crafting = (R) => {
   const CHAR_POS = { helm: { x: 13, y: 13, px: 52, py: 9 }, weapon: { x: 13, y: 38, px: 36, py: 72 }, gloves: { x: 13, y: 62, px: 32, py: 22 }, acc1: { x: 13, y: 87, px: 53, py: 52 },
     chest: { x: 87, y: 13, px: 60, py: 35 }, legs: { x: 87, y: 38, px: 58, py: 66 }, boots: { x: 87, y: 62, px: 57, py: 85 }, acc2: { x: 87, y: 87, px: 77, py: 62 } };
   const CHAR_T = 23;   // Kachelgröße in %
+  // kleiner runder Steinboden unter dem Charakter (hinter dem Bild)
+  const CHAR_FLOOR = `<svg class="absolute pointer-events-none" style="left:22%;top:84%;width:56%;height:15%" viewBox="0 0 200 54" preserveAspectRatio="none">
+    <defs><radialGradient id="chFlTop" cx="50%" cy="42%" r="60%"><stop offset="0" stop-color="#d8cfbd"/><stop offset=".55" stop-color="#b3a68f"/><stop offset="1" stop-color="#7d715f"/></radialGradient>
+      <linearGradient id="chFlSide" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6d6252"/><stop offset="1" stop-color="#3b342b"/></linearGradient>
+      <radialGradient id="chFlSh" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="rgba(0,0,0,.55)"/><stop offset="1" stop-color="rgba(0,0,0,0)"/></radialGradient></defs>
+    <ellipse cx="100" cy="40" rx="100" ry="14" fill="url(#chFlSh)"/>
+    <path d="M6 24 v8 a94 18 0 0 0 188 0 v-8 z" fill="url(#chFlSide)"/>
+    <ellipse cx="100" cy="24" rx="94" ry="18" fill="url(#chFlTop)"/>
+    <ellipse cx="100" cy="24" rx="70" ry="13" fill="none" stroke="#8c7f6a" stroke-width="1.6" opacity=".8"/>
+    <ellipse cx="100" cy="24" rx="40" ry="7.5" fill="none" stroke="#8c7f6a" stroke-width="1.3" opacity=".7"/>
+    <path d="M30 24 L58 22 M142 26 L170 24 M100 6 L100 11 M100 37 L100 42 M60 13 L72 17 M128 31 L140 35 M140 13 L128 17 M72 31 L60 35" stroke="#7a6e5b" stroke-width="1.2" opacity=".75"/>
+    <ellipse cx="100" cy="21" rx="88" ry="14" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1"/></svg>`;
   const CHAR_BG = { '': 'background:radial-gradient(55% 50% at 50% 45%,rgba(59,130,246,.22),transparent 70%)',
     blue: 'background:radial-gradient(60% 55% at 50% 45%,rgba(59,130,246,.55),rgba(15,23,42,.9) 75%)', red: 'background:radial-gradient(60% 55% at 50% 45%,rgba(239,68,68,.5),rgba(28,10,10,.92) 75%)',
     gold: 'background:radial-gradient(60% 55% at 50% 45%,rgba(245,197,66,.5),rgba(30,20,5,.92) 75%)', green: 'background:radial-gradient(60% 55% at 50% 45%,rgba(34,197,94,.45),rgba(6,24,14,.92) 75%)',
@@ -72,6 +84,7 @@ window.RokMods.crafting = (R) => {
   R.charBack = (map, o) => { const c = charOf(map, o); if (!c) return ''; const cand = charCands(c.file);
     const bgc = o?.bg?.url ? `background:linear-gradient(rgba(7,9,15,.25),rgba(7,9,15,.45)),url('${String(o.bg.url).replace(/'/g, '%27')}') center/cover` : CHAR_BG[o?.bg?.k] || CHAR_BG[''];
     return `<div class="absolute inset-0 rounded-2xl pointer-events-none" style="${bgc}"></div>
+    ${CHAR_FLOOR}
     <img src="${cand[0]}" data-alt="${cand.slice(1).join('|')}" onerror="var a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.dataset.alt=a.slice(1).join('|');this.src=a[0]}else{this.onerror=null;this.style.display='none'}" alt="" draggable="false" class="absolute pointer-events-none select-none" style="left:50%;top:3%;height:94%;transform:translateX(-50%);filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))">
     <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">${Object.entries(CHAR_POS).map(([k, q]) => { const pt = c.pts?.[k], p = pt ? { ...q, px: pt[0], py: pt[1] } : q; return '' +
       `<line x1="${p.x}" y1="${p.y}" x2="${p.px}" y2="${p.py}" stroke="rgba(246,215,122,.55)" stroke-width=".35" stroke-dasharray="1 .8"/><circle cx="${p.px}" cy="${p.py}" r=".8" fill="#f6d77a"/>`; }).join('')}</svg>`; };
@@ -502,6 +515,7 @@ window.RokMods.crafting = (R) => {
         <div class="flex-1 grid grid-cols-3 gap-1.5">${Object.entries(REFTYPES).map(([k, t]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refset" data-v="${k}" title="${t.label}" class="${rb(v.refType === k)} !flex items-center justify-start gap-1.5 min-w-0">
           <img src="${t.img}" alt="" class="w-5 h-5 shrink-0 ${v.refType === k ? '' : 'grayscale opacity-70'}"><span class="truncate">${t.label}</span></button>`).join('')}</div></div>` : ''}
       ${it ? bpInvHtml(v.item) : ''}
+      ${it?.eq?.stats ? `<details class="mt-2"><summary class="cursor-pointer text-xs text-gold-300 hover:text-gold-200">📊 Werte von ${R.esc(it.name)}</summary><div class="mt-1.5">${R.gearStatCard(it.eq.stats, it)}</div></details>` : ''}
       ${it?.eq && (side === 'ziel' || side === 'ist') ? `<div class="mt-2 text-[11px] ${Object.keys(it.eq.costs || {}).length < 7 && maxTier(it) ? 'text-amber-300' : 'text-slate-500'}">
         ${(() => { const n = CE_ROWS.filter(([st]) => it.eq.costs?.[st]).length, need = it.rarity === 'legendary' || n > 2 ? 7 : 2; return n >= need ? '✓ Kosten eingetragen' : `⚠ Kosten: ${n} von ${need} Stufen eingetragen`; })()}
         <button type="button" data-cedit-slot="${R.esc(it.eq.id)}" class="ml-1 underline hover:text-gold-300">${gAdmin ? 'eintragen/ändern' : 'ansehen'}</button></div>` : ''}
@@ -560,7 +574,17 @@ window.RokMods.crafting = (R) => {
         <div class="mt-0.5 text-xl font-extrabold tabular-nums text-white">${f(n)}</div>
         ${have != null ? `${bar(have, n)}<div class="mt-1 flex justify-between gap-1 text-[11px] tabular-nums"><span class="text-slate-500">hast ${f(have)}</span><span class="font-semibold ${miss > 0.005 ? 'text-red-300' : 'text-emerald-300'}">${miss > 0.005 ? '−' + f(miss) : '✓'}</span></div>` : ''}</div>`;
     const tiles = [...lines.filter(l => l.gross > 0.005).map(l => { const known = !!st.mats; return tile(l.m.icon, l.m.label, l.gross, gq, known ? l.stock + l.chest : null, known ? l.deficit : null); }),
-      ...GX.filter(x => (need[x.k] || 0) > 0.005).map(x => tile(x.icon, x.label, need[x.k], x.f, null, null))];
+      ...GX.filter(x => (need[x.k] || 0) > 0.005).map(x => x.k !== 'bp' ? tile(x.icon, x.label, need[x.k], x.f, null, null) : bpTile())];
+    // Blaupausen: Bedarf je Item gegen deinen Bestand (in Fragmenten, 30 = 1 BP)
+    function bpTile() {
+      const steps = part ? part.steps : list.filter(x => !x.ms && x.set === set), per = {};
+      steps.forEach(x => { if (x.cost?.bp) per[x.r.z.item] = (per[x.r.z.item] || 0) + x.cost.bp * BP_FRAG; });
+      const needFr = Object.values(per).reduce((a, v) => a + v, 0), haveFr = Object.entries(per).reduce((a, [it, v]) => a + Math.min(v, bpInvFr(it)), 0), miss = needFr - haveFr;
+      return `<div class="rounded-xl border ${miss > 0.5 ? 'border-red-500/40' : 'border-emerald-500/40'} bg-ink-950/50 px-3 py-2">
+        <div class="flex items-center gap-2"><span class="text-xl leading-none">📜</span><span class="text-[11px] text-slate-400 flex-1 truncate">Blaupausen</span></div>
+        <div class="mt-0.5 text-xl font-extrabold tabular-nums text-white">${gq(needFr / BP_FRAG)}</div>
+        ${bar(haveFr, needFr)}<div class="mt-1 flex justify-between gap-1 text-[11px] tabular-nums"><span class="text-slate-500">hast ${gq(haveFr / BP_FRAG)}</span><span class="font-semibold ${miss > 0.5 ? 'text-red-300' : 'text-emerald-300'}">${miss > 0.5 ? '−' + Math.ceil(miss) + ' Fr.' : '✓'}</span></div></div>`;
+    }
     const chip = (id, l) => `<button type="button" data-view="${R.esc(id)}" class="${hChip(view === id)}" translate="no">${R.esc(l)}</button>`;
     R.$('gearMid').innerHTML = `
       <div class="flex flex-wrap items-center gap-1.5 text-xs">
@@ -671,6 +695,7 @@ window.RokMods.crafting = (R) => {
   const setCol = (set) => SET_COL[Math.max(0, gear.sets.indexOf(set)) % SET_COL.length];
   const setTag = (set) => `<span class="inline-block max-w-[9rem] truncate align-middle px-1.5 rounded border text-[10px] font-semibold" style="border-color:${setCol(set)}88;color:${setCol(set)}" translate="no">${R.esc(set.name)}</span>`;
   let prioCache = { list: [] };
+  const bpLeft = new Map();   // Fragmente eines Items vor diesem Schritt (frühere Stufen schon abgezogen)
   function renderPrio(list, st) {
     const box = R.$('gearPlan'), P = gear.prio, act = activeSet(); prioCache.list = list;
     if (P.filter === 'active') P.filter = act.id;
@@ -691,9 +716,9 @@ window.RokMods.crafting = (R) => {
     if (!steps.length && !P.ms.length) { box.innerHTML = head + '<div class="py-6 text-center text-sm text-emerald-300">✓ Nichts mehr zu tun – Ist und Ziel sind gleich.</div>'; return; }
     // „machbar“ immer über die ganze Liste rechnen (alle Sets teilen sich den Rucksack)
     const okMap = new Map(), run = gZero(); let ok = !!st.mats;
-    const bpRun = {};
+    const bpRun = {}; bpLeft.clear();
     list.forEach(x => { if (x.ms) { okMap.set(x.key, { ok }); return; } if (x.cost) gAdd(run, x.cost); const lack = st.mats && x.cost ? R.MATS.filter(m => run[m.k] > st.mats[m.k] + 1e-6) : [];
-      const it = x.r.z.item; if (x.cost?.bp) bpRun[it] = (bpRun[it] || 0) + x.cost.bp; const bpLack = bpActive() && x.cost?.bp > 0 && bpRun[it] > bpInv(it) + 1e-6;
+      const it = x.r.z.item; bpLeft.set(x.key, bpInvFr(it) - (bpRun[it] || 0)); if (x.cost?.bp) bpRun[it] = (bpRun[it] || 0) + x.cost.bp * BP_FRAG; const bpLack = bpActive() && x.cost?.bp > 0 && bpRun[it] > bpInvFr(it) + 1e-6;
       if (!x.cost || lack.length || bpLack) ok = false; okMap.set(x.key, { ok, lack }); });
     let n = 0, seg = gZero(), segN = 0, cum = gZero();
     const btn = 'w-7 h-7 grid place-items-center rounded-md border border-ink-600 text-slate-400 hover:border-gold-500/60 hover:text-gold-300 text-xs';
@@ -739,7 +764,7 @@ window.RokMods.crafting = (R) => {
             ${x.cost ? `<div class="flex flex-wrap justify-center gap-1 text-slate-100">${costBoxes(x.cost, '!px-1 !gap-0.5 !text-[11px] sm:!px-2 sm:!gap-1 sm:!text-[13px]')}</div>` : '<span class="text-xs text-amber-300">⚠ Kosten fehlen</span>'}
             ${line}<span class="-ml-2 text-lg leading-none">➤</span></div>
           ${odds}
-          ${x.cost?.bp > 0 && bpActive() ? (() => { const have = bpInv(x.r.z.item), nx = bpNext(x.r.z.item); return `<div class="text-[11px] ${have >= x.cost.bp ? 'text-slate-400' : 'text-amber-300'}">📜 ${gq(have)} BP da${have < x.cost.bp ? ` · braucht ${gq(x.cost.bp)}` : ''}${nx ? ` · nächste: ${nx.e.type === 'hammer' ? '🔨' : '🥚'} ${bpDate(nx.o)}` : ''}</div>`; })() : ''}
+          ${x.cost?.bp > 0 && bpActive() ? (() => { const left = (bpLeft.get(x.key) ?? bpInvFr(x.r.z.item)), needFr = x.cost.bp * BP_FRAG, nx = bpNext(x.r.z.item); return `<div class="text-[11px] ${left >= needFr - 1e-6 ? 'text-slate-400' : 'text-amber-300'}">📜 braucht ${bpTxt(needFr)} · ${left >= needFr - 1e-6 ? `✓ aus Bestand (danach ${bpTxt(left - needFr)})` : `hast noch ${bpTxt(Math.max(0, left))}`}${left < needFr - 1e-6 && nx ? ` · nächstes: ${evIcon(nx)} ${evName(nx)} ${bpDate(nx.off)} (≈ ${Math.round(nx.frag)} Fragm.)` : ''}</div>`; })() : ''}
         </div>
         ${toHtml}
         <div class="shrink-0 flex flex-col items-end gap-1">
@@ -1050,17 +1075,47 @@ window.RokMods.crafting = (R) => {
   let catMissing = false;
   R.$('gearCatMissing').onclick = () => { catMissing = !catMissing; renderGearCat(); };
 
-  // ---- Item-Werte (Statistiken) – Spalte gear_costs.stats: { lines: [{ k, v }], note } ----
+  // ---- Item-Werte wie im Spiel – Spalte gear_costs.stats ----
+  // { lvl, lines: [{k, v, b, t}], ic: [4× {k, v, b, t}], ic5: {name, text}, talent: {troop, text}, set: {name, n, fx: [{p, t}]}, note }
+  // k = Wert-Typ (oder 'txt' mit eigenem Text t) · v = Wert · b = grüner Zusatz (wie im Spiel)
   const STAT_TROOPS = [['all', 'Alle Truppen'], ['inf', 'Infanterie'], ['cav', 'Kavallerie'], ['arch', 'Bogenschützen'], ['siege', 'Belagerung']];
   const STAT_ATTR = [['atk', 'Angriff'], ['def', 'Verteidigung'], ['hp', 'Lebenspunkte']];
   const STAT_TYPES = [...STAT_TROOPS.flatMap(([t, tl]) => STAT_ATTR.map(([a, al]) => [`${t}_${a}`, `${tl}-${al}`])),
+    ...STAT_TROOPS.slice(1).flatMap(([t, tl]) => [[`${t}_batk`, `${tl}-Grundangriff`], [`${t}_bdef`, `${tl}-Grundverteidigung`], [`${t}_bhp`, `${tl}-Grundlebenspunkte`]]),
     ['march', 'Marschgeschwindigkeit'], ['dmg', 'Schaden'], ['dmg_red', 'Schadensreduktion'], ['skill_dmg', 'Fertigkeitsschaden'], ['skill_red', 'Fertigkeitsschaden-Reduktion'],
-    ['na_dmg', 'Normalangriff-Schaden'], ['na_red', 'Normalangriff-Schaden-Reduktion'], ['counter', 'Gegenangriff-Schaden'], ['heal', 'Heilung'], ['rage', 'Wut-Regeneration'], ['cap', 'Truppenkapazität'], ['load', 'Traglast'], ['gather', 'Sammelgeschwindigkeit']];
+    ['na_dmg', 'Normalangriff-Schaden'], ['na_red', 'Normalangriff-Schaden-Reduktion'], ['counter', 'Gegenangriff-Schaden'], ['ign_atk', 'Gegnerischer Angriff ignoriert'], ['ign_def', 'Gegnerische Verteidigung ignoriert'],
+    ['heal', 'Heilung'], ['rage', 'Wut-Regeneration'], ['cap', 'Truppenkapazität'], ['cap_pct', 'Truppenkapazität (%)'], ['load', 'Traglast'], ['gather', 'Sammelgeschwindigkeit']];
   const STAT_LABEL = Object.fromEntries(STAT_TYPES);
-  const statNorm = (x) => { const lines = (Array.isArray(x?.lines) ? x.lines : []).map(l => ({ k: String(l?.k || ''), v: +String(l?.v ?? '').replace(',', '.') })).filter(l => STAT_LABEL[l.k] && Number.isFinite(l.v) && l.v !== 0).slice(0, 20);
-    const note = String(x?.note || '').slice(0, 500); return lines.length || note ? { lines, note } : null; };
-  const statTxt = (l) => `${STAT_LABEL[l.k]} +${l.v.toLocaleString('de-DE', { maximumFractionDigits: 2 })}${l.k === 'cap' || l.k === 'load' ? '' : ' %'}`;
-  const statChips = (st) => !st ? '' : `<div class="flex flex-wrap gap-1">${st.lines.map(l => `<span class="px-1.5 rounded bg-ink-800 border border-ink-700 whitespace-nowrap">${R.esc(statTxt(l))}</span>`).join('')}${st.note ? '<span class="px-1.5 rounded bg-gold-500/10 border border-gold-500/30 text-gold-200" title="' + R.esc(st.note) + '">✨ Spezial</span>' : ''}</div>`;
+  const STAT_FLAT = (k) => /_b(atk|def|hp)$/.test(k) || k === 'cap' || k === 'load';
+  const TALENT_TROOPS = [['', '–'], ['infantry', 'Infanterie'], ['cavalry', 'Kavallerie'], ['archer', 'Bogenschützen'], ['engineering', 'Belagerung'], ['leadership', 'Führung'], ['integration', 'Integration']];
+  const sNum = (v) => { const n = +String(v ?? '').replace(',', '.'); return Number.isFinite(n) ? n : 0; };
+  const sLine = (l) => { const k = String(l?.k || ''), t = String(l?.t || '').slice(0, 80); if (k !== 'txt' && !STAT_LABEL[k]) return null; if (k === 'txt' && !t) return null;
+    const v = sNum(l?.v), b = sNum(l?.b); return v || b || k === 'txt' ? { k, v, b, t: k === 'txt' ? t : '' } : null; };
+  const statNorm = (x) => {
+    if (!x || typeof x !== 'object') return null;
+    const lines = (Array.isArray(x.lines) ? x.lines : []).map(sLine).filter(Boolean).slice(0, 12);
+    const ic = Array.from({ length: 4 }, (_, i) => sLine(x.ic?.[i]) || null);
+    const ic5 = x.ic5 && (x.ic5.name || x.ic5.text) ? { name: String(x.ic5.name || '').slice(0, 60), text: String(x.ic5.text || '').slice(0, 400) } : null;
+    const talent = x.talent && (x.talent.troop || x.talent.text) ? { troop: String(x.talent.troop || ''), text: String(x.talent.text || '').slice(0, 300) } : null;
+    const fx = (Array.isArray(x.set?.fx) ? x.set.fx : []).map(f => ({ p: Math.max(0, Math.round(sNum(f?.p))), t: String(f?.t || '').slice(0, 120) })).filter(f => f.p && f.t).slice(0, 4);
+    const set = x.set && (x.set.name || fx.length) ? { name: String(x.set.name || '').slice(0, 60), n: Math.max(0, Math.round(sNum(x.set.n))) || 6, fx } : null;
+    const lvl = Math.max(0, Math.round(sNum(x.lvl))), note = String(x.note || '').slice(0, 500);
+    return lines.length || ic.some(Boolean) || ic5 || talent || set || lvl || note ? { lvl, lines, ic, ic5, talent, set, note } : null; };
+  const fmtN = (n) => n.toLocaleString('de-DE', { maximumFractionDigits: 2 });
+  const statTxt = (l) => !l ? '' : `${l.k === 'txt' ? l.t : STAT_LABEL[l.k]} ${l.v ? '+' + fmtN(l.v) + (STAT_FLAT(l.k) ? '' : ' %') : ''}${l.b ? ` (+${fmtN(l.b)}${STAT_FLAT(l.k) ? '' : ' %'})` : ''}`.trim();
+  const statChips = (st) => !st ? '' : `<div class="flex flex-wrap gap-1">${st.lines.map(l => `<span class="px-1.5 rounded bg-ink-800 border border-ink-700 whitespace-nowrap">${R.esc(statTxt(l))}</span>`).join('')}
+    ${st.ic.some(Boolean) || st.ic5 ? `<span class="px-1.5 rounded bg-sky-500/10 border border-sky-500/30 text-sky-200" title="${R.esc(st.ic.map((l, i) => l ? ROMAN[i] + ' ' + statTxt(l) : '').filter(Boolean).join(' · ') + (st.ic5 ? ' · V ' + st.ic5.name : ''))}">🏅 Iconic</span>` : ''}
+    ${st.talent ? '<span class="px-1.5 rounded bg-red-500/10 border border-red-500/30 text-red-200" title="' + R.esc(st.talent.text) + '">✦ Talent</span>' : ''}
+    ${st.set ? `<span class="px-1.5 rounded bg-gold-500/10 border border-gold-500/30 text-gold-200" title="${R.esc(st.set.fx.map(f => f.p + ' Teile: ' + f.t).join(' · '))}">🧩 ${R.esc(st.set.name || 'Set')}</span>` : ''}</div>`;
+  // Item-Karte wie im Spiel (nur lesen)
+  R.gearStatCard = (st, it) => { if (!st) return ''; const row = (l, pre = '') => l ? `<div class="flex gap-2"><span class="w-5 text-center font-bold text-slate-400">${pre}</span><span>${R.esc(l.k === 'txt' ? l.t : STAT_LABEL[l.k])} <b class="text-white">${l.v ? '+' + fmtN(l.v) + (STAT_FLAT(l.k) ? '' : '%') : ''}</b>${l.b ? ` <b class="text-emerald-400">+${fmtN(l.b)}${STAT_FLAT(l.k) ? '' : '%'}</b>` : ''}</span></div>` : '';
+    return `<div class="rounded-xl border border-gold-500/30 bg-ink-950/60 p-3 text-sm text-slate-200 space-y-2">
+      ${st.lvl ? `<div class="text-xs text-slate-400">Ausrüstungsstufe <b class="text-white">${st.lvl}</b></div>` : ''}
+      ${st.lines.length ? `<div><div class="text-[11px] uppercase tracking-widest text-slate-500">Attribute</div>${st.lines.map(l => row(l)).join('')}</div>` : ''}
+      ${st.ic.some(Boolean) || st.ic5 ? `<div><div class="text-[11px] uppercase tracking-widest text-slate-500">Iconic</div>${st.ic.map((l, i) => row(l, ROMAN[i])).join('')}${st.ic5 ? `<div class="flex gap-2"><span class="w-5 text-center font-bold text-slate-400">V</span><span><u>${R.esc(st.ic5.name)}</u>${st.ic5.text ? `<span class="block text-xs text-slate-400">${R.esc(st.ic5.text)}</span>` : ''}</span></div>` : ''}</div>` : ''}
+      ${st.talent ? `<div><div class="text-[11px] uppercase tracking-widest text-slate-500">Spezial-Talent${st.talent.troop ? ' (' + R.esc(TALENT_TROOPS.find(t => t[0] === st.talent.troop)?.[1] || '') + ')' : ''}</div><div class="text-xs">${R.esc(st.talent.text)}</div></div>` : ''}
+      ${st.set ? `<div><div class="text-[11px] uppercase tracking-widest text-slate-500">Set-Effekte</div><div class="rounded-md bg-gold-500/90 text-ink-950 font-semibold px-2 py-0.5 text-xs inline-block">${R.esc(st.set.name || 'Set')} (${st.set.n} Teile)</div>${st.set.fx.map(f => `<div class="text-xs">${f.p} Teile: ${R.esc(f.t)}</div>`).join('')}</div>` : ''}
+      ${st.note ? `<div class="text-xs text-slate-400">📝 ${R.esc(st.note)}</div>` : ''}</div>`; };
   R.gearStats = (itemId) => { const it = gItem(itemId); return it?.eq?.stats || null; };
 
   // ---- Kosten-Eingabe: Tabelle Stufen × Materialien je Item (speichern nur für Admins, Tabelle gear_costs) ----
@@ -1109,11 +1164,8 @@ window.RokMods.crafting = (R) => {
       </div>
       <div data-ce="sum" class="mt-3 text-xs text-slate-400"></div>
       <div class="mt-5 border-t border-ink-700 pt-4">
-        <div class="flex flex-wrap items-baseline justify-between gap-2"><h4 class="font-display text-lg gold-text">📊 Werte</h4><span class="text-[11px] text-slate-500">Werte bei voller Stufe, genau wie im Spiel (z. B. Infanterie-Angriff 5 %)</span></div>
-        <div data-ce="stats" class="mt-2 space-y-1.5"></div>
-        ${canEdit ? '<button type="button" data-ce="addstat" class="mt-2 text-xs px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">＋ Wert hinzufügen</button>' : ''}
-        <label class="block mt-3 text-xs text-slate-400">✨ Spezialeffekt / Iconic (optional)
-          <textarea data-ce="note" rows="2" maxlength="500" ${canEdit ? '' : 'disabled'} placeholder="z. B. Iconic V: 10 % Chance, beim Normalangriff …" class="mt-1 w-full bg-ink-950 border border-ink-600 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-gold-500 disabled:opacity-70">${R.esc(e.stats?.note || '')}</textarea></label>
+        <div class="flex flex-wrap items-baseline justify-between gap-2"><h4 class="font-display text-lg gold-text">📊 Werte wie im Spiel</h4><span class="text-[11px] text-slate-500">weiße Zahl = Wert · grüne Zahl = Zusatz (wie im Spiel)</span></div>
+        <div data-ce="stats" class="mt-2"></div>
         ${canEdit && EQ.statsCol === false ? '<div class="mt-2 text-[11px] text-amber-300">⚠ Spalte „stats“ fehlt noch in gear_costs – erst das SQL aus dem Chat ausführen, sonst werden die Werte nicht gespeichert.</div>' : ''}
       </div>
       <div data-ce="msg" class="mt-2 text-xs"></div>
@@ -1125,19 +1177,44 @@ window.RokMods.crafting = (R) => {
       ${canEdit ? '' : '<div class="mt-2 text-[11px] text-slate-500 text-right">Nur Admins können Kosten ändern.</div>'}
     </div>`;
     const $q = (s) => root.querySelector(s), inputs = [...root.querySelectorAll('input[data-st]')];
-    // Werte-Zeilen: Auswahl + Zahl
-    let statRows = (e.stats?.lines || []).map(l => ({ ...l }));
-    if (canEdit && !statRows.length) statRows = [{ k: 'all_atk', v: '' }];
-    const statSel = (k, i) => `<select data-sk="${i}" ${canEdit ? '' : 'disabled'} class="flex-1 min-w-0 bg-ink-950 border border-ink-600 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500 disabled:opacity-70">${STAT_TYPES.map(([v, l]) => `<option value="${v}"${v === k ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
+    // Werte wie im Spiel: Stufe · Attribute · Iconic I–V · Spezial-Talent · Set-Effekte
+    const S0 = e.stats || {}, SS = {
+      lvl: S0.lvl || '', lines: (S0.lines || []).map(l => ({ ...l })), ic: Array.from({ length: 4 }, (_, i) => S0.ic?.[i] ? { ...S0.ic[i] } : { k: '', v: '', b: '', t: '' }),
+      ic5: { name: S0.ic5?.name || '', text: S0.ic5?.text || '' }, talent: { troop: S0.talent?.troop || '', text: S0.talent?.text || '' },
+      set: { name: S0.set?.name || it?.set || '', n: S0.set?.n || 6, fx: [2, 4, 6].map((p, i) => ({ p: S0.set?.fx?.[i]?.p || p, t: S0.set?.fx?.[i]?.t || '' })) }, note: S0.note || '' };
+    if (canEdit && !SS.lines.length) SS.lines = [{ k: '', v: '', b: '', t: '' }, { k: '', v: '', b: '', t: '' }];
+    // Set-Effekte von einem anderen Teil desselben Sets übernehmen
+    const setNames = [...new Set(EQ.list.map(x => x.stats?.set?.name).filter(Boolean))];
+    const dis = canEdit ? '' : 'disabled', fi = 'bg-ink-950 border border-ink-600 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500 disabled:opacity-70';
+    const sel = (path, k) => `<select data-sp="${path}.k" ${dis} class="${fi} flex-1 min-w-0"><option value="">– Wert wählen –</option><option value="txt"${k === 'txt' ? ' selected' : ''}>✎ eigener Text</option>${STAT_TYPES.map(([v, l]) => `<option value="${v}"${v === k ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
+    const lineRow = (l, path, pre, del) => `<div class="flex flex-wrap sm:flex-nowrap items-center gap-1.5">
+        ${pre ? `<span class="w-6 text-center font-extrabold text-slate-400">${pre}</span>` : ''}${sel(path, l.k)}
+        ${l.k === 'txt' ? `<input data-sp="${path}.t" ${dis} value="${R.esc(l.t || '')}" placeholder="z. B. Bogenschützen-Grundangriff" class="${fi} flex-1 min-w-[120px]">` : ''}
+        <input data-sp="${path}.v" ${dis} inputmode="decimal" value="${R.esc(String(l.v ?? '').replace('.', ','))}" placeholder="Wert" class="${fi} w-20 text-right tabular-nums font-semibold">
+        <input data-sp="${path}.b" ${dis} inputmode="decimal" value="${R.esc(String(l.b || '').replace('.', ','))}" placeholder="+grün" class="${fi} w-20 text-right tabular-nums !text-emerald-400">
+        <span class="w-4 text-xs text-slate-400">${l.k && !STAT_FLAT(l.k) && l.k !== 'txt' ? '%' : ''}</span>
+        ${del && canEdit ? `<button type="button" data-ce="delstat" data-i="${del - 1}" class="px-1.5 text-slate-500 hover:text-red-300" title="entfernen">✕</button>` : ''}</div>`;
+    const sec = (t, body) => `<div class="rounded-xl border border-ink-700 bg-ink-950/40 p-3"><div class="text-[11px] uppercase tracking-widest text-slate-400 mb-2">${t}</div>${body}</div>`;
     const drawStats = () => { const box = $q('[data-ce="stats"]');
-      box.innerHTML = statRows.length ? statRows.map((l, i) => `<div class="flex items-center gap-1.5">${statSel(l.k, i)}
-        <input data-sv="${i}" inputmode="decimal" ${canEdit ? '' : 'disabled'} value="${R.esc(String(l.v ?? '').replace('.', ','))}" placeholder="0" class="w-20 bg-ink-950 border border-ink-600 rounded-md px-2 py-1.5 text-sm text-right tabular-nums focus:outline-none focus:border-gold-500 disabled:opacity-70">
-        <span class="w-4 text-xs text-slate-400">${l.k === 'cap' || l.k === 'load' ? '' : '%'}</span>
-        ${canEdit ? `<button type="button" data-ce="delstat" data-i="${i}" class="px-1.5 text-slate-500 hover:text-red-300" title="entfernen">✕</button>` : ''}</div>`).join('')
-        : '<div class="text-xs text-slate-500">Noch keine Werte eingetragen.</div>'; };
-    const readStats = () => statNorm({ lines: statRows, note: $q('[data-ce="note"]').value });
-    root.addEventListener('input', (ev) => { const t = ev.target; if (t.dataset.sv != null) statRows[+t.dataset.sv].v = t.value.trim(); });
-    root.addEventListener('change', (ev) => { const t = ev.target; if (t.dataset.sk != null) { statRows[+t.dataset.sk].k = t.value; drawStats(); } });
+      box.innerHTML = `<div class="grid gap-3">
+        ${sec('Ausrüstung', `<label class="inline-flex items-center gap-2 text-sm">Ausrüstungsstufe<input data-sp="lvl" ${dis} inputmode="numeric" value="${SS.lvl || ''}" placeholder="45" class="${fi} w-20 text-right"></label>`)}
+        ${sec('Ausrüstungs-Attribute', `<div class="space-y-1.5">${SS.lines.map((l, i) => lineRow(l, 'lines.' + i, '', i + 1)).join('')}</div>${canEdit ? '<button type="button" data-ce="addstat" class="mt-2 text-xs px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400">＋ Attribut</button>' : ''}`)}
+        ${sec('Iconic-Attribute', `<div class="space-y-1.5">${SS.ic.map((l, i) => lineRow(l, 'ic.' + i, ROMAN[i])).join('')}
+          <div class="flex flex-wrap sm:flex-nowrap items-center gap-1.5"><span class="w-6 text-center font-extrabold text-slate-400">V</span><input data-sp="ic5.name" ${dis} value="${R.esc(SS.ic5.name)}" placeholder="Name, z. B. Befuddling Blow" class="${fi} flex-1 min-w-[140px]"></div>
+          <textarea data-sp="ic5.text" ${dis} rows="2" placeholder="Was Iconic V macht (optional)" class="${fi} w-full">${R.esc(SS.ic5.text)}</textarea></div>`)}
+        ${sec('Spezial-Talent', `<div class="flex flex-wrap items-center gap-1.5"><select data-sp="talent.troop" ${dis} class="${fi}">${TALENT_TROOPS.map(([k, l]) => `<option value="${k}"${SS.talent.troop === k ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
+          <textarea data-sp="talent.text" ${dis} rows="2" placeholder="z. B. Wenn ein Kommandant mit Bogenschützen-Talent es trägt, steigen die Attribute um 30 %." class="${fi} mt-1.5 w-full">${R.esc(SS.talent.text)}</textarea>`)}
+        ${sec('Set-Effekte', `<div class="flex flex-wrap items-center gap-1.5"><input data-sp="set.name" ${dis} list="ceSetNames" value="${R.esc(SS.set.name)}" placeholder="Set-Name, z. B. Dragon's Breath" class="${fi} flex-1 min-w-[160px]">
+            <label class="inline-flex items-center gap-1 text-sm">Teile<input data-sp="set.n" ${dis} inputmode="numeric" value="${SS.set.n}" class="${fi} w-14 text-right"></label>
+            ${canEdit ? '<button type="button" data-ce="setcopy" class="text-xs px-2.5 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300" title="Set-Effekte von einem anderen Teil mit gleichem Set-Namen übernehmen">⇩ von anderem Teil</button>' : ''}</div>
+          <datalist id="ceSetNames">${setNames.map(n => `<option value="${R.esc(n)}">`).join('')}</datalist>
+          <div class="mt-1.5 space-y-1.5">${SS.set.fx.map((f, i) => `<div class="flex items-center gap-1.5"><input data-sp="set.fx.${i}.p" ${dis} inputmode="numeric" value="${f.p}" class="${fi} w-12 text-right"><span class="text-sm text-slate-400">Teile:</span><input data-sp="set.fx.${i}.t" ${dis} value="${R.esc(f.t)}" placeholder="z. B. Truppen-Angriff +3 %" class="${fi} flex-1 min-w-0"></div>`).join('')}</div>`)}
+        <label class="block text-xs text-slate-400">📝 Notiz (optional)<textarea data-sp="note" ${dis} rows="2" class="${fi} mt-1 w-full">${R.esc(SS.note)}</textarea></label>
+        </div>`; };
+    const spSet = (path, val) => { const ks = path.split('.'); let o = SS; ks.slice(0, -1).forEach(k => { o = o[isNaN(k) ? k : +k]; }); o[ks[ks.length - 1]] = val; };
+    const readStats = () => statNorm(SS);
+    root.addEventListener('input', (ev) => { const t = ev.target; if (t.dataset.sp) spSet(t.dataset.sp, t.value); });
+    root.addEventListener('change', (ev) => { const t = ev.target; if (t.dataset.sp && t.tagName === 'SELECT') { spSet(t.dataset.sp, t.value); drawStats(); } });
     drawStats();
     // eingetippte Werte → costs-Objekt; ungültige Felder rot
     const read = () => { const c = {}; let bad = 0;
@@ -1164,8 +1241,12 @@ window.RokMods.crafting = (R) => {
       const b = ev.target.closest('[data-ce]'); if (!b || b.tagName === 'SELECT') return;
       const act = b.dataset.ce;
       if (act === 'close') return close();
-      if (act === 'addstat') { statRows.push({ k: 'all_atk', v: '' }); drawStats(); root.querySelector(`[data-sk="${statRows.length - 1}"]`)?.focus(); return; }
-      if (act === 'delstat') { statRows.splice(+b.dataset.i, 1); drawStats(); return; }
+      if (act === 'addstat') { SS.lines.push({ k: '', v: '', b: '', t: '' }); drawStats(); return; }
+      if (act === 'delstat') { SS.lines.splice(+b.dataset.i, 1); drawStats(); return; }
+      if (act === 'setcopy') { const src = EQ.list.find(x => x !== e && x.stats?.set?.name && x.stats.set.name.toLowerCase() === String(SS.set.name).trim().toLowerCase() && x.stats.set.fx.length);
+        if (!src) { $q('[data-ce="msg"]').innerHTML = '<span class="text-amber-300">Kein anderes Teil mit diesem Set-Namen und eingetragenen Effekten gefunden.</span>'; return; }
+        SS.set = { name: src.stats.set.name, n: src.stats.set.n, fx: [0, 1, 2].map(i => ({ p: src.stats.set.fx[i]?.p || [2, 4, 6][i], t: src.stats.set.fx[i]?.t || '' })) }; drawStats();
+        $q('[data-ce="msg"]').innerHTML = `<span class="text-emerald-300">✓ Set-Effekte von „${R.esc(src.name)}“ übernommen</span>`; return; }
       if (act === 'json') {
         const st = readStats(), txt = JSON.stringify({ id: e.id, costs: upd().costs, ...(st ? { stats: st } : {}) });
         try { await navigator.clipboard.writeText(txt); $q('[data-ce="msg"]').innerHTML = '<span class="text-emerald-300">✓ Kopiert</span>'; }
@@ -1441,77 +1522,97 @@ window.RokMods.crafting = (R) => {
   }
 
   // ================= Blaupausen: Bestand je Item + Events (Egg / Hammer) =================
-  // 1 Blaupause (BP) = 30 Fragmente. Bestand je Item: BP, BP-Kisten, Fragmente, Fragment-Kisten.
-  // Egg-Event: Spins geben im Schnitt 0,22 Fragmente (1× 4,838 % · 5× 1,935 % · 10× 0,752 %) + Kisten-Stufen (Fragment-Kisten).
-  // Hammer-Event: bis Stufe 5 buddeln = 8 Fragmente. Events gelten für einen Slot (oder ein bestimmtes Item).
+  // Gerechnet wird in Fragmenten: 1 Blaupause (BP) = 30 Fragmente. Kosten-Daten (bp) sind ganze BP.
+  // Egg-Event: Spins geben im Schnitt 0,22 Fragmente (1× 4,838 % · 5× 1,935 % · 10× 0,752 %) + Fragment-Kisten der Stufen.
+  // Hammer-Event: Stufen 1–30, jede 5. Stufe gibt 8 Fragmente (max. 48).
+  // Termine kommen aus dem Gems-Kalender (Egg mit Slot-Rotation + geplanten Spins, Hammer); dazu eigene Termine.
   var GEAR_BP = 'rok_scanner_gear_bp', BP_FRAG = 30;
   var EGG_SPIN = [[1, 0.04838], [5, 0.01935], [10, 0.00752]], EGG_EV = EGG_SPIN.reduce((a, [n, p]) => a + n * p, 0);
+  var CAT_DE = { brust: 'chest', handschuhe: 'gloves', stiefel: 'boots', helm: 'helm', hose: 'legs', beine: 'legs', waffe: 'weapon', accessoire: 'accessory' };
+  var bpOpen = false;   // Event-Liste im Kalender aufgeklappt lassen
   function bpState() { if (bpState.c) return bpState.c; let o = {}; try { o = JSON.parse(R.LS.get(GEAR_BP, '{}')) || {}; } catch {}
     const num = (v) => Math.max(0, +v || 0);
     const st = { inv: {}, fpc: num(o.fpc) || 1, egg: Array.isArray(o.egg) && o.egg.length ? o.egg.map(r => [num(r[0]), num(r[1])]) : [[15, 5], [45, 6], [100, 9]],
-      events: (Array.isArray(o.events) ? o.events : []).map(e => ({ id: String(e.id || R.newId()), type: e.type === 'hammer' ? 'hammer' : 'egg', date: String(e.date || ''), slot: String(e.slot || 'boots'), item: String(e.item || ''), spins: num(e.spins), lvl: num(e.lvl ?? 5) })) };
+      events: (Array.isArray(o.events) ? o.events : []).map(e => ({ id: String(e.id || R.newId()), type: e.type === 'hammer' ? 'hammer' : 'egg', date: String(e.date || ''), slot: String(e.slot ?? ''), item: String(e.item || ''), spins: num(e.spins), lvl: Math.min(30, num(e.lvl)) })),
+      sync: o.sync && typeof o.sync === 'object' ? o.sync : {} };
     Object.entries(o.inv || {}).forEach(([k, v]) => { st.inv[k] = { bp: num(v.bp), bpc: num(v.bpc), fr: num(v.fr), frc: num(v.frc) }; });
     return (bpState.c = st); }
-  // BP erst einrechnen, wenn du irgendwas zu Blaupausen eingetragen hast (sonst wäre alles „nicht machbar“)
-  function bpActive() { const st = bpState(); return gearOpt.calBp !== false && ( Object.values(st.inv).some(v => v.bp || v.bpc || v.fr || v.frc) || st.events.length > 0); }
   function bpSave() { R.LS.set(GEAR_BP, JSON.stringify(bpState())); }
-  function bpInv(item) { const st = bpState(), v = st.inv[item]; return v ? v.bp + v.bpc + (v.fr + v.frc * st.fpc) / BP_FRAG : 0; }
-  function bpEventFrag(e) { const st = bpState();
-    if (e.type === 'hammer') return e.lvl >= 5 ? 8 : 0;
-    return e.spins * EGG_EV + st.egg.filter(([at]) => at > 0 && e.spins >= at).reduce((a, [, ch]) => a + ch * st.fpc, 0); }
+  // Bestand eines Items in Fragmenten (BP und BP-Kisten ×30 + Fragmente + Fragment-Kisten)
+  function bpInvFr(item) { const st = bpState(), v = st.inv[item]; return v ? (v.bp + v.bpc) * BP_FRAG + v.fr + v.frc * st.fpc : 0; }
+  const bpInv = (item) => bpInvFr(item) / BP_FRAG;
+  const bpTxt = (fr) => { const b = Math.floor(fr / BP_FRAG + 1e-9), r = Math.round(fr - b * BP_FRAG); return `${b} BP${r > 0 ? ` + ${r} Fragm.` : ''}`; };
+  const hammerFr = (lvl) => Math.floor(Math.min(30, lvl) / 5) * 8;
+  function eggFr(spins) { const st = bpState(); return spins * EGG_EV + st.egg.filter(([at]) => at > 0 && spins >= at).reduce((a, [, ch]) => a + ch * st.fpc, 0); }
   function bpOff(iso) { if (!iso) return null; const t = new Date(iso + 'T00:00:00'), n = new Date(); n.setHours(0, 0, 0, 0); return Math.round((t - n) / 864e5); }
   function bpDate(off) { const t = new Date(); t.setHours(0, 0, 0, 0); t.setDate(t.getDate() + off); return t.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }); }
-  // BP aus Events bis Tag d: für ein bestimmtes Item (e.item) oder für den Slot (Pool)
-  function bpFromEvents(match, d) { return bpState().events.filter(e => { const o = bpOff(e.date); return o != null && o >= 0 && o <= d && match(e); }).reduce((a, e) => a + bpEventFrag(e) / BP_FRAG, 0); }
+  const rotCats = (rot) => String(rot || '').toLowerCase().split(/[,/]+/).map(x => CAT_DE[x.trim()]).filter(Boolean);
+  // Alle Termine: aus dem Gems-Kalender (mit deinen Angaben pro Termin) + eigene
+  function bpEvents() {
+    const st = bpState(), out = [];
+    ['egg', 'hammer'].forEach(k => (R.gemCalEvents?.(k, CAL_DAYS) || []).forEach(o => { const key = k + '|' + o.date, ov = st.sync[key] || {};
+      const cats = ov.slot != null && ov.slot !== '' ? [ov.slot] : k === 'egg' ? rotCats(o.rot) : [];
+      const spins = ov.spins != null ? +ov.spins : o.planned || 0, lvl = ov.lvl != null ? +ov.lvl : 0;
+      out.push({ id: key, sync: true, type: k, date: o.date, rot: o.rot, cats, item: ov.item || '', spins, lvl, planned: o.planned, frag: k === 'egg' ? eggFr(spins) : hammerFr(lvl) }); }));
+    st.events.forEach(e => out.push({ ...e, cats: e.slot ? [e.slot] : [], frag: e.type === 'egg' ? eggFr(e.spins) : hammerFr(e.lvl) }));
+    return out.map(e => ({ ...e, off: bpOff(e.date) })).filter(e => e.off != null).sort((a, b) => a.off - b.off);
+  }
   const bpCat = (item) => gItem(item)?.cat || '';
-  function bpNext(item) { const cat = bpCat(item); return bpState().events.map(e => ({ e, o: bpOff(e.date) })).filter(x => x.o != null && x.o >= 0 && (x.e.item ? x.e.item === item : x.e.slot === cat)).sort((a, b) => a.o - b.o)[0] || null; }
+  const evFits = (e, item, cat) => e.item ? e.item === item : !e.cats.length || e.cats.includes(cat);
+  function bpNext(item) { const cat = bpCat(item); return bpEvents().find(e => e.off >= 0 && e.frag > 0 && evFits(e, item, cat)) || null; }
+  const evIcon = (e) => e.type === 'hammer' ? '🔨' : '🥚', evName = (e) => e.type === 'hammer' ? 'Hammer' : 'Egg';
+  // BP erst einrechnen, wenn du irgendwas zu Blaupausen eingetragen hast (sonst wäre alles „nicht machbar“)
+  function bpActive() { const st = bpState(); return gearOpt.calBp !== false && (Object.values(st.inv).some(v => v.bp || v.bpc || v.fr || v.frc) || st.events.length > 0 || Object.keys(st.sync).length > 0); }
   // Bestand-Eingabe im Item-Editor
   function bpInvHtml(item) {
-    if (!item) return ''; const st = bpState(), v = st.inv[item] || { bp: 0, bpc: 0, fr: 0, frc: 0 }, nx = bpNext(item), tot = bpInv(item);
+    if (!item) return ''; const st = bpState(), v = st.inv[item] || { bp: 0, bpc: 0, fr: 0, frc: 0 }, nx = bpNext(item), fr = bpInvFr(item);
     const f = (k, l) => `<label class="flex flex-col gap-0.5 text-[10px] text-slate-400">${l}<input data-bpinv="${R.esc(item)}" data-k="${k}" inputmode="numeric" value="${v[k] || ''}" placeholder="0" class="w-full bg-ink-950 border border-ink-600 rounded-md px-2 py-1.5 text-sm text-slate-100 text-right tabular-nums focus:outline-none focus:border-gold-500"></label>`;
     return `<div class="mt-2 rounded-lg border border-ink-700 bg-ink-950/40 p-2.5">
-      <div class="flex flex-wrap items-baseline justify-between gap-2 text-xs"><span class="font-semibold text-amber-200">📜 Blaupausen für dieses Item</span><span class="tabular-nums text-slate-300">= <b class="text-gold-300">${gq(tot)}</b> BP</span></div>
+      <div class="flex flex-wrap items-baseline justify-between gap-2 text-xs"><span class="font-semibold text-amber-200">📜 Blaupausen für dieses Item</span><span class="tabular-nums text-slate-300">= <b class="text-gold-300">${bpTxt(fr)}</b> <span class="text-slate-500">(${Math.round(fr)} Fragm.)</span></span></div>
       <div class="mt-1.5 grid grid-cols-4 gap-1.5">${f('bp', 'BP')}${f('bpc', 'BP-Kisten')}${f('fr', 'Fragmente')}${f('frc', 'Fragm.-Kisten')}</div>
-      <div class="mt-1.5 text-[11px] text-slate-400">${nx ? `Nächste BP: <b class="text-slate-200">${nx.e.type === 'hammer' ? '🔨 Hammer' : '🥚 Egg'}-Event ${bpDate(nx.o)}</b> · ≈ ${gq(bpEventFrag(nx.e) / BP_FRAG)} BP` : 'Kein BP-Event eingetragen – im 📅 Mats-Kalender eintragen.'} · 30 Fragmente = 1 BP</div></div>`;
+      <div class="mt-1.5 text-[11px] text-slate-400">${nx ? `Nächste: <b class="text-slate-200">${evIcon(nx)} ${evName(nx)}-Event ${bpDate(nx.off)}</b> · ≈ ${Math.round(nx.frag)} Fragm.` : 'Kein passendes Event mit Spins/Stufe – im 📅 Mats-Kalender eintragen.'} · 30 Fragmente = 1 BP</div></div>`;
   }
   document.addEventListener('change', (ev) => { const t = ev.target; if (!t.matches?.('[data-bpinv]')) return;
     const st = bpState(), it = t.dataset.bpinv, v = st.inv[it] = st.inv[it] || { bp: 0, bpc: 0, fr: 0, frc: 0 };
-    v[t.dataset.k] = Math.max(0, Math.round(+String(t.value).replace(',', '.') || 0)); bpSave(); renderGearMain(); if (craftPane === 'cal') renderCal(); });
+    v[t.dataset.k] = Math.max(0, Math.round(+String(t.value).replace(',', '.') || 0)); bpSave(); renderGearMain(); if (charEd) drawCharEditor(); if (craftPane === 'cal') renderCal(); });
   // Eventliste im Kalender
   function bpEventsHtml() {
-    const st = bpState(), slots = Object.entries(GEAR_CATS);
-    const row = (e) => { const fr = bpEventFrag(e), o = bpOff(e.date), items = R.gearCat.filter(i => i.cat === e.slot && i.eq && i.rarity === 'legendary');
-      return `<div class="flex flex-wrap items-center gap-1.5 rounded-lg border border-ink-700 bg-ink-950/40 px-2 py-1.5 text-xs" data-bpev="${R.esc(e.id)}">
-        <span class="text-base">${e.type === 'hammer' ? '🔨' : '🥚'}</span><b class="w-14">${e.type === 'hammer' ? 'Hammer' : 'Egg'}</b>
-        <input type="date" data-bpf="date" value="${R.esc(e.date)}" class="bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1">
-        <select data-bpf="slot" class="bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1">${slots.map(([k, l]) => `<option value="${k}"${e.slot === k ? ' selected' : ''}>${l}</option>`).join('')}</select>
-        <select data-bpf="item" class="bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1 max-w-[180px]"><option value="">jedes Item im Slot</option>${items.map(i => `<option value="${R.esc(i.id)}"${e.item === i.id ? ' selected' : ''}>${R.esc(i.name)}</option>`).join('')}</select>
-        ${e.type === 'egg' ? `<label class="inline-flex items-center gap-1">Spins<input data-bpf="spins" inputmode="numeric" value="${e.spins || ''}" placeholder="0" class="w-16 bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1 text-right"></label>`
-          : `<label class="inline-flex items-center gap-1 cursor-pointer"><input type="checkbox" data-bpf="lvl" ${e.lvl >= 5 ? 'checked' : ''} class="accent-yellow-500">bis Stufe 5</label>`}
-        <span class="ml-auto tabular-nums ${fr ? 'text-emerald-300' : 'text-slate-500'}">≈ ${gq(fr)} Fragm. = <b>${gq(fr / BP_FRAG)} BP</b>${o != null && o < 0 ? ' · vorbei' : ''}</span>
-        <button type="button" data-bpx="del" class="px-1.5 text-slate-500 hover:text-red-300">✕</button></div>`; };
-    return `<details class="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3" ${st.events.length ? '' : 'open'}>
-      <summary class="cursor-pointer text-sm font-semibold text-amber-200">📜 Blaupausen-Events (${st.events.length}) <span class="text-[11px] font-normal text-slate-400">– der Kalender wartet bei Schritten mit Blaupause, bis du genug BP hast</span></summary>
-      <div class="mt-2 space-y-1.5">${st.events.length ? [...st.events].sort((a, b) => (a.date || '9').localeCompare(b.date || '9')).map(row).join('') : '<div class="text-xs text-slate-500">Noch keine Events.</div>'}</div>
+    const st = bpState(), slots = Object.entries(GEAR_CATS), evs = bpEvents().filter(e => e.off >= -2 && e.off <= 120);
+    const row = (e) => { const items = R.gearCat.filter(i => (!e.cats.length || e.cats.includes(i.cat)) && i.eq && i.rarity === 'legendary');
+      return `<div class="flex flex-wrap items-center gap-1.5 rounded-lg border ${e.frag > 0 ? 'border-amber-500/40' : 'border-ink-700'} bg-ink-950/40 px-2 py-1.5 text-xs" data-bpev="${R.esc(e.id)}">
+        <span class="text-base">${evIcon(e)}</span><b class="w-14">${evName(e)}</b>
+        ${e.sync ? `<span class="w-24 tabular-nums text-slate-200" title="aus dem Gems-Kalender">${bpDate(e.off)}</span>` : `<input type="date" data-bpf="date" value="${R.esc(e.date)}" class="bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1">`}
+        <select data-bpf="slot" class="bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1 max-w-[190px]"><option value="">${e.type === 'egg' && e.rot ? '🔄 ' + R.esc(e.rot) : 'jeder Slot'}</option>${slots.map(([k, l]) => `<option value="${k}"${e.cats.length === 1 && e.cats[0] === k && (st.sync[e.id]?.slot || !e.sync) ? ' selected' : ''}>${l}</option>`).join('')}</select>
+        <select data-bpf="item" class="bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1 max-w-[170px]"><option value="">jedes Item</option>${items.map(i => `<option value="${R.esc(i.id)}"${e.item === i.id ? ' selected' : ''}>${R.esc(i.name)}</option>`).join('')}</select>
+        ${e.type === 'egg' ? `<label class="inline-flex items-center gap-1">Spins<input data-bpf="spins" inputmode="numeric" value="${e.spins || ''}" placeholder="0" class="w-14 bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1 text-right"></label>${e.sync ? `<span class="text-[10px] ${e.planned ? 'text-emerald-300' : 'text-slate-500'}">${e.planned ? `Gems-Plan: ${e.planned}` : 'nicht im Gems-Plan'}</span>` : ''}`
+          : `<label class="inline-flex items-center gap-1">bis Stufe<input data-bpf="lvl" inputmode="numeric" value="${e.lvl || ''}" placeholder="0" class="w-12 bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1 text-right"><span class="text-slate-500">/30</span></label>`}
+        <span class="ml-auto tabular-nums ${e.frag ? 'text-emerald-300' : 'text-slate-500'}">≈ ${Math.round(e.frag)} Fragm. = <b>${(e.frag / BP_FRAG).toLocaleString('de-DE', { maximumFractionDigits: 1 })} BP</b>${e.off < 0 ? ' · vorbei' : ''}</span>
+        ${e.sync ? '' : '<button type="button" data-bpx="del" class="px-1.5 text-slate-500 hover:text-red-300">✕</button>'}</div>`; };
+    return `<details data-bpdet class="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3" ${bpOpen ? 'open' : ''}>
+      <summary class="cursor-pointer text-sm font-semibold text-amber-200">📜 Blaupausen-Events (${evs.length}) <span class="text-[11px] font-normal text-slate-400">– Termine aus dem Gems-Kalender · der Kalender wartet bei Schritten mit Blaupause, bis du genug hast</span></summary>
+      <div class="mt-2 space-y-1.5">${evs.length ? evs.map(row).join('') : '<div class="text-xs text-slate-500">Keine Termine – im Gems-Kalender Egg/Hammer einstellen oder unten eigene anlegen.</div>'}</div>
       <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
-        <button type="button" data-bpx="egg" class="px-2.5 py-1.5 rounded-lg border border-amber-400/50 text-amber-200 hover:border-amber-300">＋ 🥚 Egg-Event</button>
-        <button type="button" data-bpx="hammer" class="px-2.5 py-1.5 rounded-lg border border-amber-400/50 text-amber-200 hover:border-amber-300">＋ 🔨 Hammer-Event</button>
+        <button type="button" data-bpx="egg" class="px-2.5 py-1.5 rounded-lg border border-amber-400/50 text-amber-200 hover:border-amber-300">＋ eigenes 🥚 Egg</button>
+        <button type="button" data-bpx="hammer" class="px-2.5 py-1.5 rounded-lg border border-amber-400/50 text-amber-200 hover:border-amber-300">＋ eigenes 🔨 Hammer</button>
         <label class="ml-auto inline-flex items-center gap-1 text-slate-400">1 Fragment-Kiste =<input data-bpcfg="fpc" inputmode="numeric" value="${st.fpc}" class="w-12 bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1 text-right">Fragm.</label>
         <span class="inline-flex flex-wrap items-center gap-1 text-slate-400">Egg-Kisten:${st.egg.map(([at, ch], i) => `<span class="inline-flex items-center gap-0.5">ab<input data-bpcfg="egg" data-i="${i}" data-j="0" inputmode="numeric" value="${at}" class="w-11 bg-ink-950 border border-ink-600 rounded-md px-1 py-1 text-right">Spins→<input data-bpcfg="egg" data-i="${i}" data-j="1" inputmode="numeric" value="${ch}" class="w-9 bg-ink-950 border border-ink-600 rounded-md px-1 py-1 text-right">Ki.</span>`).join(' ')}</span>
       </div>
-      <div class="mt-1 text-[11px] text-slate-500">Egg: Ø ${EGG_EV.toLocaleString('de-DE', { maximumFractionDigits: 3 })} Fragmente pro Spin (1× 4,838 % · 5× 1,935 % · 10× 0,752 %) + Fragment-Kisten der Stufen · Hammer: bis Stufe 5 = 8 Fragmente · 30 Fragmente = 1 BP</div>
+      <div class="mt-1 text-[11px] text-slate-500">Egg: Ø ${EGG_EV.toLocaleString('de-DE', { maximumFractionDigits: 3 })} Fragmente pro Spin (1× 4,838 % · 5× 1,935 % · 10× 0,752 %) + Fragment-Kisten · Hammer: jede 5. Stufe 8 Fragmente (Stufe 30 = 48) · 30 Fragmente = 1 BP · Termine und Spins im Gems-Kalender ändern</div>
     </details>`;
   }
   function bpEventsBind(box) {
-    box.addEventListener('click', (ev) => { const b = ev.target.closest('[data-bpx]'); if (!b) return; const st = bpState();
+    box.addEventListener('toggle', (ev) => { if (ev.target.matches?.('[data-bpdet]')) bpOpen = ev.target.open; }, true);
+    box.addEventListener('click', (ev) => { const b = ev.target.closest('[data-bpx]'); if (!b) return; const st = bpState(); bpOpen = true;
       if (b.dataset.bpx === 'del') { const id = b.closest('[data-bpev]')?.dataset.bpev; st.events = st.events.filter(e => e.id !== id); }
-      else st.events.push({ id: R.newId(), type: b.dataset.bpx, date: '', slot: 'boots', item: '', spins: b.dataset.bpx === 'egg' ? 100 : 0, lvl: 5 });
+      else { const d = new Date(); d.setDate(d.getDate() + 7); st.events.push({ id: R.newId(), type: b.dataset.bpx, date: isoOf(d), slot: '', item: '', spins: b.dataset.bpx === 'egg' ? 100 : 0, lvl: b.dataset.bpx === 'hammer' ? 30 : 0 }); }
       bpSave(); cloudSave(); renderCal(); });
-    box.addEventListener('change', (ev) => { const t = ev.target, st = bpState();
+    box.addEventListener('change', (ev) => { const t = ev.target, st = bpState(); bpOpen = true;
       if (t.dataset.bpcfg === 'fpc') st.fpc = Math.max(1, +t.value || 1);
       else if (t.dataset.bpcfg === 'egg') st.egg[+t.dataset.i][+t.dataset.j] = Math.max(0, +t.value || 0);
-      else { const e = st.events.find(x => x.id === t.closest('[data-bpev]')?.dataset.bpev), f = t.dataset.bpf; if (!e || !f) return;
-        if (f === 'lvl') e.lvl = t.checked ? 5 : 0; else if (f === 'spins') e.spins = Math.max(0, +t.value || 0); else e[f] = t.value; if (f === 'slot') e.item = ''; }
+      else { const id = t.closest('[data-bpev]')?.dataset.bpev, f = t.dataset.bpf; if (!id || !f) return;
+        const val = f === 'spins' ? Math.max(0, +t.value || 0) : f === 'lvl' ? Math.min(30, Math.max(0, +t.value || 0)) : t.value;
+        if (id.includes('|')) { const o = st.sync[id] = st.sync[id] || {}; o[f] = val; if (f === 'slot') o.item = ''; }
+        else { const e = st.events.find(x => x.id === id); if (!e) return; e[f] = val; if (f === 'slot') e.item = ''; } }
       bpSave(); cloudSave(); renderCal(); renderGearMain(); });
   }
 
@@ -1534,24 +1635,26 @@ window.RokMods.crafting = (R) => {
   const fits = (stock, need, useChoice) => { let gap = 0; MATK().forEach(k => { gap += Math.max(0, (need[k] || 0) - (stock[k] || 0)); }); return gap <= (useChoice ? stock.choice || 0 : 0) + 1e-6; };
   // Prio-Liste (mit Etappen) → Tag je Schritt (null = nicht innerhalb eines Jahres, unknown = Kosten fehlen)
   function projectList(list, fc, useChoice) {
-    const need = gZero(), out = [], bpNeed = {}, poolUsed = {}; let d = 0, lost = false, last = 0;
-    // Blaupausen: erst eigener Bestand + Events fürs Item, Rest aus Slot-Events (Pool)
-    const bpOk = (item, cat, want, day) => { const own = bpInv(item) + bpFromEvents(e => e.item === item, day), extra = Math.max(0, want - own);
-      return { ok: extra <= bpFromEvents(e => !e.item && e.slot === cat, day) - (poolUsed[cat] || 0) + 1e-6, extra }; };
+    const need = gZero(), out = []; let d = 0, lost = false, last = 0;
+    // Blaupausen in Fragmenten: erst eigener Bestand des Items (wird über die Stufen runtergerechnet), dann passende Events (Item → Slot → frei)
+    const useBp = bpActive(), own = {}, evs = useBp ? bpEvents().filter(e => e.off >= 0 && e.frag > 0).map(e => ({ ...e, rem: e.frag })) : [];
+    const ownOf = (it) => own[it] ?? (own[it] = bpInvFr(it));
+    const avail = (it, cat, day) => evs.filter(e => e.off <= day && evFits(e, it, cat)).reduce((a, e) => a + e.rem, 0);
     for (const x of list) {
       if (x.ms) { out.push({ x, day: lost ? null : last }); continue; }
       if (!x.cost) { out.push({ x, day: lost ? null : d, unknown: true }); continue; }
       gAdd(need, x.cost);
-      const bp = bpActive() ? x.cost.bp || 0 : 0, item = x.r.z.item, cat = bpCat(item), want = (bpNeed[item] || 0) + bp;
+      const item = x.r.z.item, cat = bpCat(item), needFr = useBp ? (x.cost.bp || 0) * BP_FRAG : 0, fromOwn = Math.min(ownOf(item), needFr), rest = needFr - fromOwn;
       let bpWait = false;
       while (!lost && d < CAL_DAYS) {
         if (!fits(fc.days[d], need, useChoice)) { d++; continue; }
-        if (bp > 0 && !bpOk(item, cat, want, d).ok) { bpWait = true; d++; continue; }
+        if (rest > 1e-6 && avail(item, cat, d) < rest - 1e-6) { bpWait = true; d++; continue; }
         break; }
       if (d >= CAL_DAYS) lost = true;
-      if (bp > 0) { const D = lost ? CAL_DAYS - 1 : d, own = bpInv(item) + bpFromEvents(e => e.item === item, D), prev = bpNeed[item] || 0;
-        poolUsed[cat] = (poolUsed[cat] || 0) + Math.max(0, want - own) - Math.max(0, prev - own); bpNeed[item] = want; }
-      out.push({ x, day: lost ? null : d, cum: { ...need }, bpWait: bpWait && !lost }); if (!lost) last = d;
+      const used = [];
+      if (needFr > 0) { own[item] = ownOf(item) - fromOwn; let r = rest;
+        if (!lost) for (const e of evs) { if (r <= 1e-6) break; if (e.off > d || !evFits(e, item, cat) || e.rem <= 0) continue; const t = Math.min(e.rem, r); e.rem -= t; r -= t; used.push({ e, fr: t }); } }
+      out.push({ x, day: lost ? null : d, cum: { ...need }, bpWait: bpWait && !lost, bp: needFr ? { need: needFr, own: fromOwn, used, short: lost ? rest : 0 } : null }); if (!lost) last = d;
     }
     return { rows: out, end: lost ? null : last, need };
   }
@@ -1613,7 +1716,7 @@ window.RokMods.crafting = (R) => {
     for (let dd = 1; dd <= lastDay; dd++) {
       const date = new Date(first.getFullYear(), first.getMonth(), dd), off = Math.round((date - base) / 864e5), past = off < 0, here = byDay.get(off) || [];
       const stock = !past && off < CAL_DAYS && fc ? restAt(fc, off, cumAt(proj?.rows || [], off), calChoice()) : null, isEnd = endD === off && steps.length;
-      const marks = [...bpState().events.filter(e => bpOff(e.date) === off).map(e => `<span title="${e.type === 'hammer' ? 'Hammer' : 'Egg'}-Event: ${R.esc(GEAR_CATS[e.slot] || '')} · ≈ ${gq(bpEventFrag(e) / BP_FRAG)} BP">${e.type === 'hammer' ? '🔨' : '🥚'}</span>`), off === kvkD ? '<span title="KvK-Start">🏰</span>' : '', goalDays.has(off) ? `<span title="Zieldatum: ${R.esc(goalDays.get(off).name)}">📅</span>` : '', isEnd ? '<span title="Ziel erreicht">🎯</span>' : '',
+      const marks = [...bpEvents().filter(e => e.off === off).map(e => `<span title="${evName(e)}-Event${e.cats.length ? ': ' + R.esc(e.cats.map(c => GEAR_CATS[c]).join(', ')) : ''} · ≈ ${Math.round(e.frag)} Fragmente">${evIcon(e)}</span>`), off === kvkD ? '<span title="KvK-Start">🏰</span>' : '', goalDays.has(off) ? `<span title="Zieldatum: ${R.esc(goalDays.get(off).name)}">📅</span>` : '', isEnd ? '<span title="Ziel erreicht">🎯</span>' : '',
         ...here.filter(r => r.x.ms).map(r => `<span title="Etappe: ${R.esc(r.x.ms.name)}">🏁</span>`)].join('');
       const icons = here.filter(r => !r.x.ms), go = icons.length > 0;
       cells.push(`<button type="button" data-cal-day="${off}" ${past ? 'disabled' : ''} class="relative flex flex-col ${past ? 'min-h-[26px]' : 'min-h-[64px] sm:min-h-[104px]'} rounded-lg border text-left p-1 sm:p-1.5 transition ${past ? 'border-transparent opacity-30' : go ? (cal.sel === off ? 'border-gold-400 bg-emerald-500/30' : 'border-emerald-400/70 bg-emerald-500/20 hover:bg-emerald-500/30') : cal.sel === off ? 'border-gold-400 bg-gold-500/10' : off === 0 ? 'border-gold-500/50 bg-ink-950/60' : marks ? 'border-ink-600 bg-ink-950/50 hover:border-gold-500/60' : 'border-ink-800 bg-ink-950/30 hover:border-ink-600'}">
@@ -1656,6 +1759,7 @@ window.RokMods.crafting = (R) => {
               <div class="min-w-0 flex-1"><div class="text-sm font-semibold ${r.x.meta.k === 'craft' ? 'text-gold-300' : r.x.meta.k === 'tier' ? 'text-sky-300' : 'text-red-300'}">${R.esc(r.x.label)}${r.x.last ? ' <span class="text-xs text-emerald-300">✓ fertig</span>' : ''}</div><div class="text-[11px] text-slate-400 truncate" translate="no">${R.esc(gItem(r.x.r.z.item)?.name || '')} · ${r.x.r.sl.label} ${setTag(r.x.set)}</div></div>
               <div class="text-right text-sm tabular-nums whitespace-nowrap">${when(r)}</div></div>
             ${r.x.cost ? `<div class="mt-1.5 flex flex-wrap gap-1 pl-12">${costBoxes(r.x.cost)}</div>` : ''}
+            ${r.bp ? `<div class="mt-1 pl-12 text-[11px] ${r.bp.short > 0 ? 'text-red-300' : r.bp.used.length ? 'text-amber-200' : 'text-slate-400'}">📜 ${bpTxt(r.bp.need)}: ${r.bp.own > 0 ? `${bpTxt(r.bp.own)} aus deinem Bestand` : ''}${r.bp.used.length ? `${r.bp.own > 0 ? ' + ' : ''}${r.bp.used.map(u => `${evIcon(u.e)} ${evName(u.e)} ${bpDate(u.e.off)} (${Math.round(u.fr)} Fragm.)`).join(' + ')}` : ''}${r.bp.short > 0 ? ` · ⚠ fehlen ${Math.ceil(r.bp.short)} Fragmente – kein passendes Event${(() => { const n = bpNext(r.x.r.z.item); return n ? '' : ' eingetragen'; })()}` : ''}</div>` : ''}
           </div>
           ${fc0 && r.day != null && r.cum ? `<div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 pl-14 pr-2 text-[11px] text-slate-500 tabular-nums"><span>↳ danach übrig</span>${stockChips(restAt(fc0, r.day, r.cum, calChoice()))}</div>` : ''}`).join('')}</div>`}`;
   }

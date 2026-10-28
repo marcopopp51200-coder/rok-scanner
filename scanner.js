@@ -2611,6 +2611,10 @@ window.RokApp = () => {
   }
   const entryCost = (p) => entryParts(p).reduce((a, x) => a + x.cost, 0);
   const entryName = (p) => p.k === 'buy' ? (p.name || 'Eigener Kauf') : p.k === 'custom' ? (p.name || 'Eigenes Event') : evByK(p.k)?.name || p.k;
+  // Für den Mats-Kalender (Blaupausen): Egg-/Hammer-Termine aus dem Gems-Kalender inkl. geplanter Spins
+  R.gemCalEvents = (k, days = 366) => { try { const plan = allPlan();
+    return calOcc(k, dayPlus(0), dayPlus(days)).map(o => { const p = plan.find(x => x.k === k && x.date === o.date); return { date: o.date, rot: o.rot || '', planned: p ? (typeof p.val === 'number' ? p.val : +p.val || 0) : null }; });
+  } catch (e) { console.warn('Gems-Kalender nicht lesbar', e); return []; } };
   const defVal = (k) => { const ev = evByK(k), v = evSt()[k]; if (v && (typeof v !== 'object' || v.d1 || v.d2)) return JSON.parse(JSON.stringify(v));
     return ev.type === 'spin' ? ev.stages[0] : ev.type === 'days' ? { d1: 7000, d2: 7000 } : ev.type === 'fixed' ? ev.stages[0] : 1; };
   // Gems-Stand an Tag d (Beginn des Tages): Bestand + Passive − geplante Events davor
