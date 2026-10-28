@@ -190,7 +190,8 @@ window.RokMods.helpme = (R) => {
   }
 
   // ---------- Rauten-Brett (wie Showcases / Craft) ----------
-  const box = (sl) => `left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%`;
+  let CH = false;   // Charakter-Ansicht fürs gerade gezeichnete Brett
+  const box = (sl) => CH ? R.charBox(sl.k) : `left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%`;
   const gearMap = (set) => Object.fromEntries((set.gear || []).map((g) => [g.slot, { item: g.item, name: g.name, icon: g.icon, rarity: g.rarity || 'legendary', tier: g.tier || 0, refine: g.refine || 0, refType: g.refType || 'infantry' }]));
   function fallbackBoard(map) {   // falls showcase.js (noch) kein R.gearBoardHTML hat: Brett wie im Craft-Bereich
     return SLOTS.map((sl) => { const v = map[sl.k], f = v ? (R.GFILL || {})[v.rarity] || (R.GFILL || {}).legendary : null, full = v && v.refine >= 100;
@@ -203,8 +204,8 @@ window.RokMods.helpme = (R) => {
   }
   // Brett eines Sets + klickbare Ebene darüber (Nummern = Priorität, ⚔/⬆ = gewählte Aktion)
   function setBoard(req, si, set, mode, picks, result, big) {
-    const map = gearMap(set);
-    let board = ''; try { board = R.gearBoardHTML ? R.gearBoardHTML(map, set.gfx) : fallbackBoard(map); } catch { board = fallbackBoard(map); }
+    const map = gearMap(set); CH = !!R.charOn?.(map);
+    let board = ''; if (CH) board = R.charBack(map) + fallbackBoard(map); else { try { board = R.gearBoardHTML ? R.gearBoardHTML(map, set.gfx) : fallbackBoard(map); } catch { board = fallbackBoard(map); } }
     const layer = SLOTS.map((sl) => {
       const g = map[sl.k]; if (!g) return '';
       const item = itemKey(si, sl.k), mine = picks.map((k, i) => ({ ...parseKey(k), n: i + 1 })).filter((p) => p.item === item);
@@ -221,7 +222,7 @@ window.RokMods.helpme = (R) => {
     }).join('');
     return `<div class="flex flex-col items-center gap-1.5">
       <div class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold">${esc(set.name)}</div>
-      <div class="relative ${big ? 'w-[190px] sm:w-[250px]' : 'w-[170px] sm:w-[190px]'} aspect-[1/2] select-none">${board}${layer}</div>
+      <div class="relative ${CH ? (big ? 'w-[300px] sm:w-[400px]' : 'w-[280px] sm:w-[320px]') + ' max-w-full aspect-square' : (big ? 'w-[190px] sm:w-[250px]' : 'w-[170px] sm:w-[190px]') + ' aspect-[1/2]'} select-none">${board}${layer}</div>
     </div>`;
   }
   // Auswahl nach dem Antippen eines Items: Refine oder T erhöhen
@@ -390,7 +391,7 @@ window.RokMods.helpme = (R) => {
     const focus = document.activeElement && root.contains(document.activeElement) && document.activeElement.dataset.helpNote ? [document.activeElement.dataset.helpNote, document.activeElement.selectionStart] : null;
     root.innerHTML = `<div class="flex flex-wrap items-end justify-between gap-3">
         <div><h2 class="font-display text-2xl gold-text">🆘 Help Me</h2><p class="text-xs text-slate-500">Zeig dein Set – die Community sagt dir, was du zuerst refinen oder hochstufen solltest</p></div>
-        <div class="flex gap-2">${btn('data-help-reload', '↻')}${st.compose ? '' : btn('data-help-compose="1"', '➕ Anfrage stellen', 'gold')}</div></div>
+        <div class="flex flex-wrap items-center gap-2">${R.boardStyleBar ? R.boardStyleBar({}) : ''}${btn('data-help-reload', '↻')}${st.compose ? '' : btn('data-help-compose="1"', '➕ Anfrage stellen', 'gold')}</div></div>
       <div id="helpMsg" class="text-xs min-h-[1em]"></div>
       ${st.compose ? composeHTML() : ''}
       ${st.noTable ? '<div class="panel rounded-2xl p-5 text-sm text-amber-300">⚠ Die Help-Me-Tabellen fehlen noch in Supabase. Bitte das SQL aus dem Chat ausführen.</div>' : ''}
@@ -444,5 +445,6 @@ window.RokMods.helpme = (R) => {
     };
     setTimeout(go, 450);
   };
+  R.boardStyleHooks = R.boardStyleHooks || []; R.boardStyleHooks.push(() => { if (st.loaded) render(); });
   R.viewHooks.help = () => { if (!st.loaded && !st.loading) { load(); return; } st.reqs.filter((r) => r.user_id === me()).forEach((r) => markSeen(r.id)); updateBadge(); render(); };
 };

@@ -32,7 +32,7 @@ window.RokMods.crafting = (R) => {
     archer:  { helm: [50, 13], weapon: [54, 39], gloves: [25, 53], acc1: [63, 81], chest: [42, 41], legs: [44, 76], boots: [30, 90], acc2: [59, 59] } };
   const CHAR_T = 23;   // Kachelgröße in %
   const BSTYLE = 'rok_scanner_board_style';
-  R.boardStyle = () => (R.LS?.get(BSTYLE, 'rauten') === 'char' ? 'char' : 'rauten');
+  R.boardStyle = () => (R.LS?.get(BSTYLE, 'char') === 'rauten' ? 'rauten' : 'char');   // Standard: Charakter-Ansicht
   // Truppentyp eines Sets = häufigster Refine-Typ der eingetragenen Teile
   R.charTroop = (map) => { const n = {}; Object.values(map || {}).forEach(v => { if (v && (v.item || v.name)) { const t = gRefType(v.refType); n[t] = (n[t] || 0) + 1; } });
     return Object.entries(n).sort((a, b) => b[1] - a[1])[0]?.[0] || 'infantry'; };
@@ -631,18 +631,19 @@ window.RokMods.crafting = (R) => {
         : [stepIconT(z, prevTier, x.meta.from || 0, IC), x.meta.from ? gRefTxt(x.meta.from) : 'kein Refine'];
       const to = x.meta.k === 'craft' ? [stepIconT(z, 0, 0, IC), 'Craften'] : x.meta.k === 'tier' ? [stepIconT(z, x.meta.t, 0, IC), 'Tier ' + ROMAN[(x.meta.t || 1) - 1]]
         : [stepIconT(z, prevTier, x.meta.p, IC), 'Refine ' + gRefTxt(x.meta.p)];
-      const side = (q, cls) => `<div class="shrink-0 w-14 sm:w-20 flex flex-col items-center gap-1.5">${q[0]}<span class="text-[11px] sm:text-xs font-bold text-center leading-tight ${cls}">${q[1]}</span></div>`;
+      // links: Icon + Stand daneben · rechts: Ergebnis + Icon (am Handy Text unter dem Icon)
+      const side = (q, cls, right) => `<div class="shrink-0 flex ${right ? 'flex-col-reverse sm:flex-row' : 'flex-col sm:flex-row'} items-center gap-1 sm:gap-3">${right ? `<span class="text-[11px] sm:text-xl font-extrabold text-center sm:text-right leading-tight whitespace-nowrap ${cls}">${q[1]}</span>${q[0]}` : `${q[0]}<span class="text-[11px] sm:text-xl font-extrabold text-center sm:text-left leading-tight whitespace-nowrap ${cls}">${q[1]}</span>`}</div>`;
       return `<div draggable="true" data-pkey="${R.esc(x.key)}" class="prio-row flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-3 rounded-xl border ${o.ok ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-ink-700 bg-ink-950/40'} p-2" style="box-shadow:inset 3px 0 0 ${setCol(x.set)}">
         <div class="w-full sm:hidden pl-6 text-xs text-slate-300 truncate" translate="no">${R.esc(it?.name || '')} <span class="text-slate-500">· ${x.r.sl.label}</span> ${setTag(x.set)}</div>
         <span class="cursor-grab text-slate-600 select-none hidden sm:inline" title="ziehen">⋮⋮</span>
         <span class="w-4 sm:w-5 text-center text-sm font-bold text-slate-500 tabular-nums">${n}</span>
-        ${side(from, 'text-slate-400')}
+        ${side(from, 'text-slate-300')}
         <div class="min-w-0 flex-1 flex flex-col items-center text-center gap-1">
           <div class="hidden sm:block text-xs text-slate-300 truncate max-w-full" translate="no">${R.esc(it?.name || '')} <span class="text-slate-500">· ${x.r.sl.label}</span> ${setTag(x.set)}</div>
           <div class="flex items-center w-full gap-1 ${kind[1]}"><span class="flex-1 h-[3px] rounded-full bg-current opacity-60"></span><span class="text-sm font-bold whitespace-nowrap">${kind[0]}${x.meta.k === 'refine' && x.meta.n > 1 ? ` ${x.meta.n}×` : ''}</span><span class="flex-1 h-[3px] rounded-full bg-current opacity-60"></span><span class="-ml-2 text-lg leading-none">➤</span></div>
           ${x.cost ? `<div class="flex flex-wrap justify-center gap-1">${costBoxes(x.cost, '!px-1 !gap-0.5 !text-[11px] sm:!px-2 sm:!gap-1 sm:!text-[13px]')}</div>` : '<div class="text-xs text-amber-300">⚠ Kosten fehlen</div>'}
         </div>
-        ${side(to, kind[1])}
+        ${side(to, kind[1], true)}
         <div class="shrink-0 flex flex-col items-end gap-1">
           ${o.ok ? '<span class="text-[11px] font-semibold text-emerald-300">✓ machbar</span>' : st.mats && o.lack?.length ? `<span class="text-[11px] text-red-300">fehlt ${o.lack.map(m => m.icon).join('')}</span>` : ''}
           ${x.last ? '<span class="text-[10px] text-emerald-300" title="danach ist das Teil fertig">✓ Teil fertig</span>' : ''}

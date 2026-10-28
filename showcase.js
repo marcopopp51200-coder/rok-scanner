@@ -957,8 +957,15 @@ window.RokMods.showcase = (R) => {
       + (it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="absolute object-contain pointer-events-none" style="left:23%;top:23%;width:54%;height:54%;${big ? 'filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))' : ''}">` : '');   // Item über dem Rahmen
   }
   const gHasFrame = (v, it, rr, fx) => { const f = gfFor(it, v, rr, fx); return !!f && typeof f === 'object'; };
-  function scGearBoard(g, mini = false, hideEmpty = false, fxIn = null) {
-    const fx = fxIn || SC_GFX_DEF, box = (sl) => `left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%`;
+  // Gear-Brett im Detail: Rauten oder rund um den Charakter (Umschalter gilt überall)
+  function scDrawGearBoard(x) {
+    const on = !!R.charOn?.(x.gear), el = R.$('scGearBoard');
+    R.charFrame?.(el, on); const w = R.$('scGearWrap'); if (w) w.style.maxWidth = on ? '320px' : '';
+    el.innerHTML = scGearBoard(x.gear, false, false, x.gfx, on);
+    const bar = R.$('scViewBar'); if (bar) bar.innerHTML = R.boardStyleBar ? R.boardStyleBar(x.gear) : '';
+  }
+  function scGearBoard(g, mini = false, hideEmpty = false, fxIn = null, ch = false) {
+    const fx = fxIn || SC_GFX_DEF, box = (sl) => ch ? R.charBox(sl.k) : `left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%`;
     const rows = R.GEAR_SLOTS.map(sl => { const v = g[sl.k], it = scItem(v); return { sl, v, it, rr: R.gItem(v.item)?.rarity || v.rarity }; });
     const frames = rows.map(({ sl, v, it, rr }) => { const h = gFrameHtml(v, it, rr, fx, !mini && sc.own && sc.gsel === sl.k, !mini); return h ? `<div class="absolute pointer-events-none z-[15]" style="${box(sl)}">${h}</div>` : ''; }).join('');
     const deco = frames + rows.map(({ sl, v, it, rr }) => it && !(hideEmpty && !it) ? `<div class="absolute pointer-events-none z-20" style="${box(sl)}">${gDecoHtml(v, it, fx, !mini, rr)}</div>` : '').join('');
@@ -969,7 +976,7 @@ window.RokMods.showcase = (R) => {
         ${it?.icon && !gHasFrame(v, it, rr, fx) ? `<img src="${it.icon}" alt="" draggable="false" class="absolute object-contain" style="left:23%;top:23%;width:54%;height:54%">` : ''}
       </div>`;
     }).join('') + deco;
-    return rows.map(({ sl, v, it, rr }) => {
+    return (ch ? R.charBack(g) : '') + rows.map(({ sl, v, it, rr }) => {
       const active = sc.own && sc.gsel === sl.k;
       return `<button type="button" data-sctile="${sl.k}" ${sc.own ? '' : 'tabindex="-1"'} title="${R.esc(sl.label + (it ? ': ' + it.name : ''))}"
           class="gdia absolute focus:outline-none ${sc.own ? '' : 'cursor-default'}" style="${box(sl)}">
@@ -1701,7 +1708,7 @@ window.RokMods.showcase = (R) => {
           class="w-7 h-7 rounded-lg font-bold border ${i === cgStep ? 'border-gold-400 bg-gold-500/20 text-gold-200' : 'border-ink-600 hover:border-gold-500/60 hover:text-gold-300'}">${i + 1}</button>`).join('')}
         ${D().sets.length > 1 ? '<button type="button" id="scCgAll" class="ml-1 px-2.5 h-7 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">für alle Sets</button>' : ''}
       </div>` : '';
-      R.$('scGearBoard').innerHTML = scGearBoard(x.gear, false, false, x.gfx);
+      scDrawGearBoard(x);
       R.gearSel.sc = sc.gsel;
       R.$('scGearEdit').innerHTML = own && sc.gsel ? R.gearEditor('sc', { sc: x.gear }, { rows: R.GEAR_SLOTS.map(sl => ({ sl, status: 'none' })) }) : '';
       R.$('scGearFx').innerHTML = own ? scGearFxHtml(x) : '';
@@ -2719,7 +2726,8 @@ window.RokMods.showcase = (R) => {
     if (ev.target.id === 'scGearTools') { scGearOpen = ev.target.open; try { localStorage.setItem('rok_sc_gear_open', scGearOpen ? '1' : '0'); } catch {} }
     else if (ev.target.id === 'scGfxBox') scGfxOpen = ev.target.open;
   }, true);
-  const scGfxRedraw = () => { const x = scSet(); R.$('scGearBoard').innerHTML = scGearBoard(x.gear, false, false, x.gfx); drawStage(); };
+  const scGfxRedraw = () => { scDrawGearBoard(scSet()); drawStage(); };
+  R.boardStyleHooks = R.boardStyleHooks || []; R.boardStyleHooks.push(() => { try { if (scSet()?.mode === 'manual' && R.$('scGearBoard')) scDrawGearBoard(scSet()); } catch {} });
   const scGfxSpread = () => { const d = D(), x = scSet(); if (d.gfxAll) d.sets.forEach(y => { if (y !== x) y.gfx = { ...x.gfx }; }); };   // „Für alle Sets gleich“
   R.$('scGearFx').addEventListener('change', async (ev) => {
     if (!sc.own) return;
