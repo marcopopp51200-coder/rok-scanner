@@ -27,7 +27,15 @@ window.RokMods.crafting = (R) => {
     { id: 'caocao', name: 'Cao Cao', troop: 'cavalry', file: 'caocao',
       pts: { helm: [48, 12], weapon: [17, 61], gloves: [54, 31], acc1: [34, 62], chest: [50, 39], legs: [50, 76], boots: [46, 92], acc2: [38, 55] } },
     { id: 'qsh', name: 'Qin Shi Huang', troop: 'archer', file: 'qsh',
-      pts: { helm: [50, 13], weapon: [54, 39], gloves: [25, 53], acc1: [63, 81], chest: [42, 41], legs: [44, 76], boots: [30, 90], acc2: [59, 59] } } ];
+      pts: { helm: [50, 13], weapon: [54, 39], gloves: [25, 53], acc1: [63, 81], chest: [42, 41], legs: [44, 76], boots: [30, 90], acc2: [59, 59] } },
+    { id: 'ivan', name: 'Ivan IV', troop: 'infantry', file: 'ivan',
+      pts: { helm: [53, 11], weapon: [67, 17], gloves: [59, 37], acc1: [65, 52], chest: [53, 39], legs: [53, 61], boots: [59, 92], acc2: [35, 39] } },
+    { id: 'suntzu', name: 'Sun Tzu', troop: 'infantry', file: 'suntzu',
+      pts: { helm: [47, 20], weapon: [68, 36], gloves: [45, 28], acc1: [43, 65], chest: [50, 36], legs: [50, 69], boots: [32, 90], acc2: [53, 52] } },
+    { id: 'arthur', name: 'Arthur Pendragon', troop: 'infantry', file: 'arthur',
+      pts: { helm: [50, 14], weapon: [50, 61], gloves: [50, 41], acc1: [50, 53], chest: [50, 29], legs: [42, 74], boots: [37, 86], acc2: [66, 22] } },
+    { id: 'baiqi', name: 'Bai Qi', troop: 'infantry', file: 'baiqi',
+      pts: { helm: [47, 9], weapon: [59, 33], gloves: [22, 42], acc1: [50, 59], chest: [50, 31], legs: [46, 73], boots: [37, 90], acc2: [30, 78] } } ];
   let CHARS = CHARS0.slice();
   const CHAR_DIRS = ['icons/chars/', 'icons/schars/'], CHAR_EXT = ['.webp', '.png'];
   const charCands = (f) => /\.(webp|png|jpe?g)$/i.test(f) ? CHAR_DIRS.map(d => d + f) : CHAR_DIRS.flatMap(d => CHAR_EXT.map(e => d + f + e));
@@ -44,6 +52,10 @@ window.RokMods.crafting = (R) => {
   const CHAR_POS = { helm: { x: 13, y: 13, px: 52, py: 9 }, weapon: { x: 13, y: 38, px: 36, py: 72 }, gloves: { x: 13, y: 62, px: 32, py: 22 }, acc1: { x: 13, y: 87, px: 53, py: 52 },
     chest: { x: 87, y: 13, px: 60, py: 35 }, legs: { x: 87, y: 38, px: 58, py: 66 }, boots: { x: 87, y: 62, px: 57, py: 85 }, acc2: { x: 87, y: 87, px: 77, py: 62 } };
   const CHAR_T = 23;   // Kachelgröße in %
+  const CHAR_BG = { '': 'background:radial-gradient(55% 50% at 50% 45%,rgba(59,130,246,.22),transparent 70%)',
+    blue: 'background:radial-gradient(60% 55% at 50% 45%,rgba(59,130,246,.55),rgba(15,23,42,.9) 75%)', red: 'background:radial-gradient(60% 55% at 50% 45%,rgba(239,68,68,.5),rgba(28,10,10,.92) 75%)',
+    gold: 'background:radial-gradient(60% 55% at 50% 45%,rgba(245,197,66,.5),rgba(30,20,5,.92) 75%)', green: 'background:radial-gradient(60% 55% at 50% 45%,rgba(34,197,94,.45),rgba(6,24,14,.92) 75%)',
+    purple: 'background:radial-gradient(60% 55% at 50% 45%,rgba(168,85,247,.5),rgba(20,8,32,.92) 75%)', night: 'background:linear-gradient(180deg,#0b1026,#1b1f3a 55%,#2a1f3d)' };
   const BSTYLE = 'rok_scanner_board_style';
   R.boardStyle = () => (R.LS?.get(BSTYLE, 'char') === 'rauten' ? 'rauten' : 'char');   // Standard: Charakter-Ansicht
   // Truppentyp: Refine-Typ der refinten Teile (häufigster), sonst aus dem Set-Namen (Kav/Cav, Bogen/Arch, Inf), sonst Infanterie
@@ -58,7 +70,8 @@ window.RokMods.crafting = (R) => {
   R.charOn = (map, o) => R.boardStyle() === 'char' && !!charOf(map, o);
   R.charBox = (k) => { const p = CHAR_POS[k] || { x: 50, y: 50 }; return `left:${p.x - CHAR_T / 2}%;top:${p.y - CHAR_T / 2}%;width:${CHAR_T}%;height:${CHAR_T}%`; };
   R.charBack = (map, o) => { const c = charOf(map, o); if (!c) return ''; const cand = charCands(c.file);
-    return `<div class="absolute inset-0 rounded-2xl pointer-events-none" style="background:radial-gradient(55% 50% at 50% 45%,rgba(59,130,246,.22),transparent 70%)"></div>
+    const bgc = o?.bg?.url ? `background:linear-gradient(rgba(7,9,15,.25),rgba(7,9,15,.45)),url('${String(o.bg.url).replace(/'/g, '%27')}') center/cover` : CHAR_BG[o?.bg?.k] || CHAR_BG[''];
+    return `<div class="absolute inset-0 rounded-2xl pointer-events-none" style="${bgc}"></div>
     <img src="${cand[0]}" data-alt="${cand.slice(1).join('|')}" onerror="var a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.dataset.alt=a.slice(1).join('|');this.src=a[0]}else{this.onerror=null;this.style.display='none'}" alt="" draggable="false" class="absolute pointer-events-none select-none" style="left:50%;top:3%;height:94%;transform:translateX(-50%);filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))">
     <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">${Object.entries(CHAR_POS).map(([k, q]) => { const pt = c.pts?.[k], p = pt ? { ...q, px: pt[0], py: pt[1] } : q; return '' +
       `<line x1="${p.x}" y1="${p.y}" x2="${p.px}" y2="${p.py}" stroke="rgba(246,215,122,.55)" stroke-width=".35" stroke-dasharray="1 .8"/><circle cx="${p.px}" cy="${p.py}" r=".8" fill="#f6d77a"/>`; }).join('')}</svg>`; };
@@ -274,11 +287,14 @@ window.RokMods.crafting = (R) => {
     o.dismantle = !!s?.dismantle; o.useChests = !!s?.useChests; o.goal = gNormGoal(s?.goal); o.updated = +s?.updated || Date.now();
     o.sc = s?.sc?.scId && s?.sc?.setId ? { scId: String(s.sc.scId), setId: String(s.sc.setId) } : null;   // verbundenes Showcase-Set
     o.prio = gNormPrio(s?.prio);
-    o.char = String(s?.char || '').slice(0, 40); o.main = !!s?.main;   // Charakter (leer = automatisch) · Hauptset
+    o.char = String(s?.char || '').slice(0, 40); o.main = !!s?.main;
+    o.bg = s?.bg && (s.bg.url || s.bg.k) ? (s.bg.url ? { url: String(s.bg.url) } : { k: String(s.bg.k) }) : null;   // Hintergrund der Charakter-Ansicht   // Charakter (leer = automatisch) · Hauptset
     return o;
   }
   let gear = { sets: [], active: null };
-  try { const g = JSON.parse(R.LS.get(GEAR_SETS, 'null')); if (g && Array.isArray(g.sets)) gear = { sets: g.sets.map(gNormSet), active: g.active, prio: g.prio }; } catch {}
+  try { const g = JSON.parse(R.LS.get(GEAR_SETS, 'null')); if (g && Array.isArray(g.sets)) gear = { sets: g.sets.map(gNormSet), active: g.active, prio: g.prio, groups: g.groups }; } catch {}
+  // Sets = Gruppen aus Charakteren (Planer-Sets)
+  gear.groups = (Array.isArray(gear.groups) ? gear.groups : []).filter(x => x && x.id).map(x => ({ id: String(x.id), name: String(x.name || 'Set').slice(0, 40), members: (Array.isArray(x.members) ? x.members : []).map(String) }));
   if (!gear.sets.length) gear.sets.push(newGearSet('Infanterie Marsch 1'));
   if (!gear.sets.some(s => s.id === gear.active)) gear.active = gear.sets[0].id;
   // Eine gemeinsame Prio-Liste für alle Sets (Schlüssel beginnen mit der Set-ID) – frühere Reihenfolgen je Set werden übernommen
@@ -292,11 +308,13 @@ window.RokMods.crafting = (R) => {
   try { const o = JSON.parse(R.LS.get(GEAR_OPT, '{}'));
     if (o && o.rate != null) gearOpt.rate = Math.min(100, gNum(o.rate));
     if (o && o.calChoice === false) gearOpt.calChoice = false;
+    if (o && o.calBp === false) gearOpt.calBp = false;
   } catch {}
   const saveGearOpt = () => R.LS.set(GEAR_OPT, JSON.stringify(gearOpt));
   let gearFlags = {};                                 // Scan-Hinweise je Ist-Slot (nur in dieser Sitzung)
   const gearSel = { ist: 'helm', ziel: 'helm' }; R.gearSel = gearSel;      // angetippter Slot je Seite
-  let craftPane = 'plan';                              // Fenster im Craft-Tab: plan | goal | hist
+  let craftPane = 'sets';                              // Start im Gear-Reiter (Hauptbearbeitung)
+  let gearTab = 'chars', charEd = null;               // Gear-Reiter: Charaktere | Sets · offenes Bearbeiten-Fenster                              // Fenster im Craft-Tab: plan | goal | hist
 
   // ---- Berechnung ----
   // Materialien immer in legendären Einheiten (1 legendär = 4 episch = 16 Elite …); dazu Gold, Blaupausen (bp) und Iconic-Kristalle (crystal)
@@ -483,6 +501,7 @@ window.RokMods.crafting = (R) => {
       ${hasRef ? `<div class="mt-1.5 flex items-start gap-1.5 text-xs"><span class="text-slate-400 w-14 shrink-0 pt-1.5">Typ</span>
         <div class="flex-1 grid grid-cols-3 gap-1.5">${Object.entries(REFTYPES).map(([k, t]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="refset" data-v="${k}" title="${t.label}" class="${rb(v.refType === k)} !flex items-center justify-start gap-1.5 min-w-0">
           <img src="${t.img}" alt="" class="w-5 h-5 shrink-0 ${v.refType === k ? '' : 'grayscale opacity-70'}"><span class="truncate">${t.label}</span></button>`).join('')}</div></div>` : ''}
+      ${it ? bpInvHtml(v.item) : ''}
       ${it?.eq && (side === 'ziel' || side === 'ist') ? `<div class="mt-2 text-[11px] ${Object.keys(it.eq.costs || {}).length < 7 && maxTier(it) ? 'text-amber-300' : 'text-slate-500'}">
         ${(() => { const n = CE_ROWS.filter(([st]) => it.eq.costs?.[st]).length, need = it.rarity === 'legendary' || n > 2 ? 7 : 2; return n >= need ? '✓ Kosten eingetragen' : `⚠ Kosten: ${n} von ${need} Stufen eingetragen`; })()}
         <button type="button" data-cedit-slot="${R.esc(it.eq.id)}" class="ml-1 underline hover:text-gold-300">${gAdmin ? 'eintragen/ändern' : 'ansehen'}</button></div>` : ''}
@@ -498,16 +517,20 @@ window.RokMods.crafting = (R) => {
     renderScLink(set);
     renderHistBar(set);
     const calc = gearCalc(set), st = gearStock(), list = prioListAll(), P = gear.prio;
-    const co = { pick: set.char || '', name: set.name };
+    const co = { pick: set.char || '', name: set.name, bg: set.bg };
     ['ist', 'ziel'].forEach(side => { const el = R.$(side === 'ist' ? 'gearIstBoard' : 'gearZielBoard'), on = R.charOn(set.ziel, co);
       R.charFrame(el, on, '280px'); el.innerHTML = gearBoard(side, set, calc, { char: on ? co : null }); });
-    R.$('gearViewBar').innerHTML = R.boardStyleBar(set.ziel, { ...co, pickable: true, setId: set.id });
+    R.$('gearViewBar').innerHTML = `<div class="flex flex-wrap items-center gap-2">
+        <select data-plan-set translate="no" class="flex-1 min-w-[200px] max-w-md bg-ink-950 border border-gold-500/50 rounded-lg px-3 py-2 text-base font-semibold focus:outline-none focus:border-gold-400" title="Charakter / Set für den Planer">${gear.sets.map(s => `<option value="${R.esc(s.id)}"${s.id === set.id ? ' selected' : ''}>${s.main ? '⭐ ' : ''}${R.esc(s.name)}</option>`).join('')}</select>
+        <button type="button" data-plan-edit class="px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">✎ Bearbeiten</button>
+        <div class="ml-auto">${R.boardStyleBar(set.ziel, { ...co, pickable: true, setId: set.id })}</div></div>`;
     R.$('gearIstEdit').innerHTML = gearEditor('ist', set, calc);
     R.$('gearZielEdit').innerHTML = gearEditor('ziel', set, calc);
     renderNeed(set, calc, list, st);
     R.$('gearResult').innerHTML = '';
     renderPrio(list, st);
     if (craftPane === 'sets') renderSets();
+    if (charEd) drawCharEditor();
   }
 
   // ---- Bedarf über den Sets: Dieses Set (Ist → Ziel) · Alle Sets (Gesamtziel) · bis Etappe X ----
@@ -668,7 +691,10 @@ window.RokMods.crafting = (R) => {
     if (!steps.length && !P.ms.length) { box.innerHTML = head + '<div class="py-6 text-center text-sm text-emerald-300">✓ Nichts mehr zu tun – Ist und Ziel sind gleich.</div>'; return; }
     // „machbar“ immer über die ganze Liste rechnen (alle Sets teilen sich den Rucksack)
     const okMap = new Map(), run = gZero(); let ok = !!st.mats;
-    list.forEach(x => { if (x.ms) { okMap.set(x.key, { ok }); return; } if (x.cost) gAdd(run, x.cost); const lack = st.mats && x.cost ? R.MATS.filter(m => run[m.k] > st.mats[m.k] + 1e-6) : []; if (!x.cost || lack.length) ok = false; okMap.set(x.key, { ok, lack }); });
+    const bpRun = {};
+    list.forEach(x => { if (x.ms) { okMap.set(x.key, { ok }); return; } if (x.cost) gAdd(run, x.cost); const lack = st.mats && x.cost ? R.MATS.filter(m => run[m.k] > st.mats[m.k] + 1e-6) : [];
+      const it = x.r.z.item; if (x.cost?.bp) bpRun[it] = (bpRun[it] || 0) + x.cost.bp; const bpLack = bpActive() && x.cost?.bp > 0 && bpRun[it] > bpInv(it) + 1e-6;
+      if (!x.cost || lack.length || bpLack) ok = false; okMap.set(x.key, { ok, lack }); });
     let n = 0, seg = gZero(), segN = 0, cum = gZero();
     const btn = 'w-7 h-7 grid place-items-center rounded-md border border-ink-600 text-slate-400 hover:border-gold-500/60 hover:text-gold-300 text-xs';
     const rows = shown.map((x, i) => {
@@ -713,6 +739,7 @@ window.RokMods.crafting = (R) => {
             ${x.cost ? `<div class="flex flex-wrap justify-center gap-1 text-slate-100">${costBoxes(x.cost, '!px-1 !gap-0.5 !text-[11px] sm:!px-2 sm:!gap-1 sm:!text-[13px]')}</div>` : '<span class="text-xs text-amber-300">⚠ Kosten fehlen</span>'}
             ${line}<span class="-ml-2 text-lg leading-none">➤</span></div>
           ${odds}
+          ${x.cost?.bp > 0 && bpActive() ? (() => { const have = bpInv(x.r.z.item), nx = bpNext(x.r.z.item); return `<div class="text-[11px] ${have >= x.cost.bp ? 'text-slate-400' : 'text-amber-300'}">📜 ${gq(have)} BP da${have < x.cost.bp ? ` · braucht ${gq(x.cost.bp)}` : ''}${nx ? ` · nächste: ${nx.e.type === 'hammer' ? '🔨' : '🥚'} ${bpDate(nx.o)}` : ''}</div>`; })() : ''}
         </div>
         ${toHtml}
         <div class="shrink-0 flex flex-col items-end gap-1">
@@ -818,6 +845,8 @@ window.RokMods.crafting = (R) => {
   }
 
   R.boardStyleHooks.push(() => { if (R.$('gearIstBoard')) renderGearMain(); });
+  R.$('gearViewBar').addEventListener('change', (ev) => { if (!ev.target.matches('[data-plan-set]')) return; gear.active = ev.target.value; gearFlags = {}; R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderGearMain(); });
+  R.$('gearViewBar').addEventListener('click', (ev) => { if (ev.target.closest('[data-plan-edit]')) openCharEditor(activeSet().id); });
   // ---- Ereignisse: Brett + Slot-Editor ----
   ['gearIstBoard', 'gearZielBoard'].forEach(id => R.$(id).addEventListener('click', (ev) => {
     const t = ev.target.closest('[data-tile]'); if (!t) return;
@@ -1411,6 +1440,81 @@ window.RokMods.crafting = (R) => {
     document.body.appendChild(root); document.body.style.overflow = 'hidden';
   }
 
+  // ================= Blaupausen: Bestand je Item + Events (Egg / Hammer) =================
+  // 1 Blaupause (BP) = 30 Fragmente. Bestand je Item: BP, BP-Kisten, Fragmente, Fragment-Kisten.
+  // Egg-Event: Spins geben im Schnitt 0,22 Fragmente (1× 4,838 % · 5× 1,935 % · 10× 0,752 %) + Kisten-Stufen (Fragment-Kisten).
+  // Hammer-Event: bis Stufe 5 buddeln = 8 Fragmente. Events gelten für einen Slot (oder ein bestimmtes Item).
+  var GEAR_BP = 'rok_scanner_gear_bp', BP_FRAG = 30;
+  var EGG_SPIN = [[1, 0.04838], [5, 0.01935], [10, 0.00752]], EGG_EV = EGG_SPIN.reduce((a, [n, p]) => a + n * p, 0);
+  function bpState() { if (bpState.c) return bpState.c; let o = {}; try { o = JSON.parse(R.LS.get(GEAR_BP, '{}')) || {}; } catch {}
+    const num = (v) => Math.max(0, +v || 0);
+    const st = { inv: {}, fpc: num(o.fpc) || 1, egg: Array.isArray(o.egg) && o.egg.length ? o.egg.map(r => [num(r[0]), num(r[1])]) : [[15, 5], [45, 6], [100, 9]],
+      events: (Array.isArray(o.events) ? o.events : []).map(e => ({ id: String(e.id || R.newId()), type: e.type === 'hammer' ? 'hammer' : 'egg', date: String(e.date || ''), slot: String(e.slot || 'boots'), item: String(e.item || ''), spins: num(e.spins), lvl: num(e.lvl ?? 5) })) };
+    Object.entries(o.inv || {}).forEach(([k, v]) => { st.inv[k] = { bp: num(v.bp), bpc: num(v.bpc), fr: num(v.fr), frc: num(v.frc) }; });
+    return (bpState.c = st); }
+  // BP erst einrechnen, wenn du irgendwas zu Blaupausen eingetragen hast (sonst wäre alles „nicht machbar“)
+  function bpActive() { const st = bpState(); return gearOpt.calBp !== false && ( Object.values(st.inv).some(v => v.bp || v.bpc || v.fr || v.frc) || st.events.length > 0); }
+  function bpSave() { R.LS.set(GEAR_BP, JSON.stringify(bpState())); }
+  function bpInv(item) { const st = bpState(), v = st.inv[item]; return v ? v.bp + v.bpc + (v.fr + v.frc * st.fpc) / BP_FRAG : 0; }
+  function bpEventFrag(e) { const st = bpState();
+    if (e.type === 'hammer') return e.lvl >= 5 ? 8 : 0;
+    return e.spins * EGG_EV + st.egg.filter(([at]) => at > 0 && e.spins >= at).reduce((a, [, ch]) => a + ch * st.fpc, 0); }
+  function bpOff(iso) { if (!iso) return null; const t = new Date(iso + 'T00:00:00'), n = new Date(); n.setHours(0, 0, 0, 0); return Math.round((t - n) / 864e5); }
+  function bpDate(off) { const t = new Date(); t.setHours(0, 0, 0, 0); t.setDate(t.getDate() + off); return t.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }); }
+  // BP aus Events bis Tag d: für ein bestimmtes Item (e.item) oder für den Slot (Pool)
+  function bpFromEvents(match, d) { return bpState().events.filter(e => { const o = bpOff(e.date); return o != null && o >= 0 && o <= d && match(e); }).reduce((a, e) => a + bpEventFrag(e) / BP_FRAG, 0); }
+  const bpCat = (item) => gItem(item)?.cat || '';
+  function bpNext(item) { const cat = bpCat(item); return bpState().events.map(e => ({ e, o: bpOff(e.date) })).filter(x => x.o != null && x.o >= 0 && (x.e.item ? x.e.item === item : x.e.slot === cat)).sort((a, b) => a.o - b.o)[0] || null; }
+  // Bestand-Eingabe im Item-Editor
+  function bpInvHtml(item) {
+    if (!item) return ''; const st = bpState(), v = st.inv[item] || { bp: 0, bpc: 0, fr: 0, frc: 0 }, nx = bpNext(item), tot = bpInv(item);
+    const f = (k, l) => `<label class="flex flex-col gap-0.5 text-[10px] text-slate-400">${l}<input data-bpinv="${R.esc(item)}" data-k="${k}" inputmode="numeric" value="${v[k] || ''}" placeholder="0" class="w-full bg-ink-950 border border-ink-600 rounded-md px-2 py-1.5 text-sm text-slate-100 text-right tabular-nums focus:outline-none focus:border-gold-500"></label>`;
+    return `<div class="mt-2 rounded-lg border border-ink-700 bg-ink-950/40 p-2.5">
+      <div class="flex flex-wrap items-baseline justify-between gap-2 text-xs"><span class="font-semibold text-amber-200">📜 Blaupausen für dieses Item</span><span class="tabular-nums text-slate-300">= <b class="text-gold-300">${gq(tot)}</b> BP</span></div>
+      <div class="mt-1.5 grid grid-cols-4 gap-1.5">${f('bp', 'BP')}${f('bpc', 'BP-Kisten')}${f('fr', 'Fragmente')}${f('frc', 'Fragm.-Kisten')}</div>
+      <div class="mt-1.5 text-[11px] text-slate-400">${nx ? `Nächste BP: <b class="text-slate-200">${nx.e.type === 'hammer' ? '🔨 Hammer' : '🥚 Egg'}-Event ${bpDate(nx.o)}</b> · ≈ ${gq(bpEventFrag(nx.e) / BP_FRAG)} BP` : 'Kein BP-Event eingetragen – im 📅 Mats-Kalender eintragen.'} · 30 Fragmente = 1 BP</div></div>`;
+  }
+  document.addEventListener('change', (ev) => { const t = ev.target; if (!t.matches?.('[data-bpinv]')) return;
+    const st = bpState(), it = t.dataset.bpinv, v = st.inv[it] = st.inv[it] || { bp: 0, bpc: 0, fr: 0, frc: 0 };
+    v[t.dataset.k] = Math.max(0, Math.round(+String(t.value).replace(',', '.') || 0)); bpSave(); renderGearMain(); if (craftPane === 'cal') renderCal(); });
+  // Eventliste im Kalender
+  function bpEventsHtml() {
+    const st = bpState(), slots = Object.entries(GEAR_CATS);
+    const row = (e) => { const fr = bpEventFrag(e), o = bpOff(e.date), items = R.gearCat.filter(i => i.cat === e.slot && i.eq && i.rarity === 'legendary');
+      return `<div class="flex flex-wrap items-center gap-1.5 rounded-lg border border-ink-700 bg-ink-950/40 px-2 py-1.5 text-xs" data-bpev="${R.esc(e.id)}">
+        <span class="text-base">${e.type === 'hammer' ? '🔨' : '🥚'}</span><b class="w-14">${e.type === 'hammer' ? 'Hammer' : 'Egg'}</b>
+        <input type="date" data-bpf="date" value="${R.esc(e.date)}" class="bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1">
+        <select data-bpf="slot" class="bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1">${slots.map(([k, l]) => `<option value="${k}"${e.slot === k ? ' selected' : ''}>${l}</option>`).join('')}</select>
+        <select data-bpf="item" class="bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1 max-w-[180px]"><option value="">jedes Item im Slot</option>${items.map(i => `<option value="${R.esc(i.id)}"${e.item === i.id ? ' selected' : ''}>${R.esc(i.name)}</option>`).join('')}</select>
+        ${e.type === 'egg' ? `<label class="inline-flex items-center gap-1">Spins<input data-bpf="spins" inputmode="numeric" value="${e.spins || ''}" placeholder="0" class="w-16 bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1 text-right"></label>`
+          : `<label class="inline-flex items-center gap-1 cursor-pointer"><input type="checkbox" data-bpf="lvl" ${e.lvl >= 5 ? 'checked' : ''} class="accent-yellow-500">bis Stufe 5</label>`}
+        <span class="ml-auto tabular-nums ${fr ? 'text-emerald-300' : 'text-slate-500'}">≈ ${gq(fr)} Fragm. = <b>${gq(fr / BP_FRAG)} BP</b>${o != null && o < 0 ? ' · vorbei' : ''}</span>
+        <button type="button" data-bpx="del" class="px-1.5 text-slate-500 hover:text-red-300">✕</button></div>`; };
+    return `<details class="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3" ${st.events.length ? '' : 'open'}>
+      <summary class="cursor-pointer text-sm font-semibold text-amber-200">📜 Blaupausen-Events (${st.events.length}) <span class="text-[11px] font-normal text-slate-400">– der Kalender wartet bei Schritten mit Blaupause, bis du genug BP hast</span></summary>
+      <div class="mt-2 space-y-1.5">${st.events.length ? [...st.events].sort((a, b) => (a.date || '9').localeCompare(b.date || '9')).map(row).join('') : '<div class="text-xs text-slate-500">Noch keine Events.</div>'}</div>
+      <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
+        <button type="button" data-bpx="egg" class="px-2.5 py-1.5 rounded-lg border border-amber-400/50 text-amber-200 hover:border-amber-300">＋ 🥚 Egg-Event</button>
+        <button type="button" data-bpx="hammer" class="px-2.5 py-1.5 rounded-lg border border-amber-400/50 text-amber-200 hover:border-amber-300">＋ 🔨 Hammer-Event</button>
+        <label class="ml-auto inline-flex items-center gap-1 text-slate-400">1 Fragment-Kiste =<input data-bpcfg="fpc" inputmode="numeric" value="${st.fpc}" class="w-12 bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1 text-right">Fragm.</label>
+        <span class="inline-flex flex-wrap items-center gap-1 text-slate-400">Egg-Kisten:${st.egg.map(([at, ch], i) => `<span class="inline-flex items-center gap-0.5">ab<input data-bpcfg="egg" data-i="${i}" data-j="0" inputmode="numeric" value="${at}" class="w-11 bg-ink-950 border border-ink-600 rounded-md px-1 py-1 text-right">Spins→<input data-bpcfg="egg" data-i="${i}" data-j="1" inputmode="numeric" value="${ch}" class="w-9 bg-ink-950 border border-ink-600 rounded-md px-1 py-1 text-right">Ki.</span>`).join(' ')}</span>
+      </div>
+      <div class="mt-1 text-[11px] text-slate-500">Egg: Ø ${EGG_EV.toLocaleString('de-DE', { maximumFractionDigits: 3 })} Fragmente pro Spin (1× 4,838 % · 5× 1,935 % · 10× 0,752 %) + Fragment-Kisten der Stufen · Hammer: bis Stufe 5 = 8 Fragmente · 30 Fragmente = 1 BP</div>
+    </details>`;
+  }
+  function bpEventsBind(box) {
+    box.addEventListener('click', (ev) => { const b = ev.target.closest('[data-bpx]'); if (!b) return; const st = bpState();
+      if (b.dataset.bpx === 'del') { const id = b.closest('[data-bpev]')?.dataset.bpev; st.events = st.events.filter(e => e.id !== id); }
+      else st.events.push({ id: R.newId(), type: b.dataset.bpx, date: '', slot: 'boots', item: '', spins: b.dataset.bpx === 'egg' ? 100 : 0, lvl: 5 });
+      bpSave(); cloudSave(); renderCal(); });
+    box.addEventListener('change', (ev) => { const t = ev.target, st = bpState();
+      if (t.dataset.bpcfg === 'fpc') st.fpc = Math.max(1, +t.value || 1);
+      else if (t.dataset.bpcfg === 'egg') st.egg[+t.dataset.i][+t.dataset.j] = Math.max(0, +t.value || 0);
+      else { const e = st.events.find(x => x.id === t.closest('[data-bpev]')?.dataset.bpev), f = t.dataset.bpf; if (!e || !f) return;
+        if (f === 'lvl') e.lvl = t.checked ? 5 : 0; else if (f === 'spins') e.spins = Math.max(0, +t.value || 0); else e[f] = t.value; if (f === 'slot') e.item = ''; }
+      bpSave(); cloudSave(); renderCal(); renderGearMain(); });
+  }
+
   // ================= Mats-Kalender =================
   // Rucksack heute + passiver Zuwachs aus dem Mats-Dashboard (R.matPassive, legendäre Einheiten, 'choice' = Wahlkisten).
   // Die Schritte der Prio-Liste werden der Reihe nach „bezahlt“: jeder Schritt steht am ersten Tag, an dem der Bestand reicht.
@@ -1430,14 +1534,24 @@ window.RokMods.crafting = (R) => {
   const fits = (stock, need, useChoice) => { let gap = 0; MATK().forEach(k => { gap += Math.max(0, (need[k] || 0) - (stock[k] || 0)); }); return gap <= (useChoice ? stock.choice || 0 : 0) + 1e-6; };
   // Prio-Liste (mit Etappen) → Tag je Schritt (null = nicht innerhalb eines Jahres, unknown = Kosten fehlen)
   function projectList(list, fc, useChoice) {
-    const need = gZero(), out = []; let d = 0, lost = false, last = 0;
+    const need = gZero(), out = [], bpNeed = {}, poolUsed = {}; let d = 0, lost = false, last = 0;
+    // Blaupausen: erst eigener Bestand + Events fürs Item, Rest aus Slot-Events (Pool)
+    const bpOk = (item, cat, want, day) => { const own = bpInv(item) + bpFromEvents(e => e.item === item, day), extra = Math.max(0, want - own);
+      return { ok: extra <= bpFromEvents(e => !e.item && e.slot === cat, day) - (poolUsed[cat] || 0) + 1e-6, extra }; };
     for (const x of list) {
       if (x.ms) { out.push({ x, day: lost ? null : last }); continue; }
       if (!x.cost) { out.push({ x, day: lost ? null : d, unknown: true }); continue; }
       gAdd(need, x.cost);
-      while (!lost && d < CAL_DAYS && !fits(fc.days[d], need, useChoice)) d++;
+      const bp = bpActive() ? x.cost.bp || 0 : 0, item = x.r.z.item, cat = bpCat(item), want = (bpNeed[item] || 0) + bp;
+      let bpWait = false;
+      while (!lost && d < CAL_DAYS) {
+        if (!fits(fc.days[d], need, useChoice)) { d++; continue; }
+        if (bp > 0 && !bpOk(item, cat, want, d).ok) { bpWait = true; d++; continue; }
+        break; }
       if (d >= CAL_DAYS) lost = true;
-      out.push({ x, day: lost ? null : d, cum: { ...need } }); if (!lost) last = d;
+      if (bp > 0) { const D = lost ? CAL_DAYS - 1 : d, own = bpInv(item) + bpFromEvents(e => e.item === item, D), prev = bpNeed[item] || 0;
+        poolUsed[cat] = (poolUsed[cat] || 0) + Math.max(0, want - own) - Math.max(0, prev - own); bpNeed[item] = want; }
+      out.push({ x, day: lost ? null : d, cum: { ...need }, bpWait: bpWait && !lost }); if (!lost) last = d;
     }
     return { rows: out, end: lost ? null : last, need };
   }
@@ -1478,6 +1592,7 @@ window.RokMods.crafting = (R) => {
         <div class="flex flex-wrap items-center gap-2 text-xs">
           <select data-cal="set" translate="no" class="bg-ink-950 border border-ink-600 rounded-lg px-2.5 py-1.5 text-sm font-semibold focus:outline-none focus:border-gold-500"><option value="">🌍 Alle Sets im Gesamtziel (${planSets().length})</option>${planSets().map(s => `<option value="${R.esc(s.id)}"${only === s ? ' selected' : ''}>${R.esc(s.name)}</option>`).join('')}</select>
           ${only ? `<div class="inline-flex gap-0.5 p-0.5 rounded-lg bg-ink-950 border border-ink-700">${[['prio', '📋 nach Prio-Liste'], ['solo', '🎯 nur dieses Set']].map(([v, l]) => `<button type="button" data-cal="mode" data-v="${v}" class="px-2.5 py-1 rounded-md font-semibold ${(cal.mode || 'prio') === v ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'}">${l}</button>`).join('')}</div>` : ''}
+          <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-300"><input type="checkbox" data-cal="bp" ${gearOpt.calBp !== false ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">📜 Blaupausen einrechnen</label>
           <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-300"><input type="checkbox" data-cal="choice" ${calChoice() ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">📦 Wahlkisten einrechnen</label>
         </div></div>
       <div class="mt-3 grid sm:grid-cols-3 gap-2 text-xs">
@@ -1487,7 +1602,8 @@ window.RokMods.crafting = (R) => {
         <div class="rounded-xl border border-ink-700 bg-ink-950/40 px-3 py-2">${kvkD != null && kvkD >= 0 ? `🏰 KvK-Start ${dTxt(kvkD)} ${late(endD, kvkD)}` : '🏰 Kein KvK-Start im Profil'}
           ${kvk && (only ? only.goal.date !== kvk : planSets().some(s => s.goal.date !== kvk)) ? `<button type="button" data-cal="kvkgoal" class="block mt-1 underline text-gold-300 hover:text-gold-400">als Zieldatum übernehmen${only ? '' : ' (alle Sets)'}</button>` : ''}</div>
       </div>
-      ${fc && !fc.hasScan ? '<div class="mt-2 text-xs text-amber-300">⚠ Noch kein Material-Scan – der Kalender rechnet nur mit dem passiven Zuwachs ab 0.</div>' : ''}`;
+      ${fc && !fc.hasScan ? '<div class="mt-2 text-xs text-amber-300">⚠ Noch kein Material-Scan – der Kalender rechnet nur mit dem passiven Zuwachs ab 0.</div>' : ''}
+      ${bpEventsHtml()}`;
 
     // Monatsansicht
     const base = dayDate(0), first = new Date(base.getFullYear(), base.getMonth() + cal.month, 1), lastDay = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
@@ -1497,7 +1613,7 @@ window.RokMods.crafting = (R) => {
     for (let dd = 1; dd <= lastDay; dd++) {
       const date = new Date(first.getFullYear(), first.getMonth(), dd), off = Math.round((date - base) / 864e5), past = off < 0, here = byDay.get(off) || [];
       const stock = !past && off < CAL_DAYS && fc ? restAt(fc, off, cumAt(proj?.rows || [], off), calChoice()) : null, isEnd = endD === off && steps.length;
-      const marks = [off === kvkD ? '<span title="KvK-Start">🏰</span>' : '', goalDays.has(off) ? `<span title="Zieldatum: ${R.esc(goalDays.get(off).name)}">📅</span>` : '', isEnd ? '<span title="Ziel erreicht">🎯</span>' : '',
+      const marks = [...bpState().events.filter(e => bpOff(e.date) === off).map(e => `<span title="${e.type === 'hammer' ? 'Hammer' : 'Egg'}-Event: ${R.esc(GEAR_CATS[e.slot] || '')} · ≈ ${gq(bpEventFrag(e) / BP_FRAG)} BP">${e.type === 'hammer' ? '🔨' : '🥚'}</span>`), off === kvkD ? '<span title="KvK-Start">🏰</span>' : '', goalDays.has(off) ? `<span title="Zieldatum: ${R.esc(goalDays.get(off).name)}">📅</span>` : '', isEnd ? '<span title="Ziel erreicht">🎯</span>' : '',
         ...here.filter(r => r.x.ms).map(r => `<span title="Etappe: ${R.esc(r.x.ms.name)}">🏁</span>`)].join('');
       const icons = here.filter(r => !r.x.ms), go = icons.length > 0;
       cells.push(`<button type="button" data-cal-day="${off}" ${past ? 'disabled' : ''} class="relative flex flex-col ${past ? 'min-h-[26px]' : 'min-h-[64px] sm:min-h-[104px]'} rounded-lg border text-left p-1 sm:p-1.5 transition ${past ? 'border-transparent opacity-30' : go ? (cal.sel === off ? 'border-gold-400 bg-emerald-500/30' : 'border-emerald-400/70 bg-emerald-500/20 hover:bg-emerald-500/30') : cal.sel === off ? 'border-gold-400 bg-gold-500/10' : off === 0 ? 'border-gold-500/50 bg-ink-950/60' : marks ? 'border-ink-600 bg-ink-950/50 hover:border-gold-500/60' : 'border-ink-800 bg-ink-950/30 hover:border-ink-600'}">
@@ -1512,7 +1628,7 @@ window.RokMods.crafting = (R) => {
         <button type="button" data-cal="next" ${cal.month >= 11 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 disabled:opacity-30">▶</button></div>
       <div class="grid grid-cols-7 gap-1 sm:gap-1.5 text-center text-[10px] uppercase tracking-widest text-slate-500 mb-1">${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(x => `<div>${x}</div>`).join('')}</div>
       <div class="grid grid-cols-7 gap-1 sm:gap-1.5">${cells.join('')}</div>
-      <div class="mt-2 text-[11px] text-slate-500">Grünes Feld = an dem Tag kannst du craften (✓ = Teil danach fertig) · 🏁 Etappe · 🎯 alles fertig · 📅 Zieldatum · 🏰 KvK-Start · Zahlen = dein Bestand nach dem Craften (legendär, 📦 = Wahlkisten)</div>`;
+      <div class="mt-2 text-[11px] text-slate-500">Grünes Feld = an dem Tag kannst du craften (✓ = Teil danach fertig) · 🏁 Etappe · 🎯 alles fertig · 📅 Zieldatum · 🏰 KvK-Start · 🥚/🔨 BP-Event · Zahlen = dein Bestand nach dem Craften (legendär, 📦 = Wahlkisten)</div>`;
 
     // Tag antippen → Details
     const dayBox = R.$('calDay');
@@ -1531,7 +1647,7 @@ window.RokMods.crafting = (R) => {
     const rowsA = (proj?.rows || []).filter(showRow), fc0 = fc;
     const when = (r) => r.unknown ? '<span class="text-amber-300">Kosten fehlen</span>' : r.day == null ? '<span class="text-red-300">nicht in 12 Monaten</span>'
       : r.day === 0 ? '<span class="text-emerald-300 font-semibold">✓ jetzt</span><span class="block text-[11px] text-slate-400">aus dem Rucksack</span>'
-      : `<span class="text-slate-100 font-semibold">${dTxt(r.day, true)}</span><span class="block text-[11px] text-slate-400">📈 Passiv-Einkommen · in ${r.day} ${r.day === 1 ? 'Tag' : 'Tagen'}</span>`;
+      : `<span class="text-slate-100 font-semibold">${dTxt(r.day, true)}</span><span class="block text-[11px] text-slate-400">${r.bpWait ? '📜 wartet auf Blaupause' : '📈 Passiv-Einkommen'} · in ${r.day} ${r.day === 1 ? 'Tag' : 'Tagen'}</span>`;
     R.$('calAgenda').innerHTML = `<h3 class="font-display text-lg gold-text mb-2">Ablauf</h3>${!rowsA.length ? '<div class="text-sm text-slate-500">Keine offenen Schritte – im Planer ein Ziel festlegen.</div>'
       : `<div class="space-y-1">${fc0 ? `<div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-2 text-[11px] text-slate-400 tabular-nums"><span class="font-semibold text-slate-300">🎒 Rucksack heute</span>${stockChips(fc0.days[0])}</div>` : ''}${rowsA.map(r => r.x.ms
         ? `<div class="flex items-center gap-2 rounded-lg border border-dashed border-gold-500/50 bg-gold-500/5 px-3 py-1.5"><span>🏁</span><b class="text-gold-200">${R.esc(r.x.ms.name)}</b><span class="ml-auto text-sm font-semibold ${r.day == null ? 'text-red-300' : 'text-emerald-300'}">${r.day == null ? 'nicht in 12 Monaten' : dTxt(r.day, true)}</span></div>`
@@ -1543,6 +1659,7 @@ window.RokMods.crafting = (R) => {
           </div>
           ${fc0 && r.day != null && r.cum ? `<div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 pl-14 pr-2 text-[11px] text-slate-500 tabular-nums"><span>↳ danach übrig</span>${stockChips(restAt(fc0, r.day, r.cum, calChoice()))}</div>` : ''}`).join('')}</div>`}`;
   }
+  bpEventsBind(R.$('calHead'));
   R.$('craftCalPane').addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-cal],[data-cal-day]'); if (!b || b.tagName === 'SELECT' || b.tagName === 'INPUT') return;
     if (b.dataset.calDay != null) { const d = +b.dataset.calDay; cal.sel = cal.sel === d ? null : d; renderCal(); return; }
@@ -1557,6 +1674,7 @@ window.RokMods.crafting = (R) => {
     const a = ev.target.dataset.cal;
     if (a === 'set') { cal.setId = ev.target.value; cal.sel = null; renderCal(); }
     else if (a === 'choice') { gearOpt.calChoice = ev.target.checked; saveGearOpt(); fcCache = null; renderCal(); }
+    else if (a === 'bp') { gearOpt.calBp = ev.target.checked; saveGearOpt(); renderCal(); renderGearMain(); }
   });
 
   // ================= Craft-Verlauf (eigenes Fenster im Craft-Tab) =================
@@ -1643,79 +1761,216 @@ window.RokMods.crafting = (R) => {
   const hTime = (ts) => new Date(ts).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
   const hChip = (on) => `px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${on ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-700 text-slate-400 hover:text-gold-300'}`;
 
-  // ================= Sets: alle Sets verwalten (Hauptset, Charakter, Showcase, Feed) =================
+  // ================= Gear: Hauptbearbeitung – links Charaktere (je 1 Marsch), rechts Sets (Gruppen aus Charakteren) =================
   const setMap = (slots) => Object.fromEntries(GEAR_SLOTS.map(sl => { const v = slots[sl.k], it = gItem(v?.item);
     return [sl.k, it ? { item: v.item, name: it.name, icon: it.icon || '', rarity: it.rarity, tier: v.tier || 0, refine: v.refine || 0, refType: v.refType } : null]; }));
   const setsSorted = () => [...gear.sets].sort((a, b) => (b.main ? 1 : 0) - (a.main ? 1 : 0));
+  const coOf = (s) => ({ pick: s.char || '', name: s.name, bg: s.bg });
+  const GBTN = 'px-2.5 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-xs font-semibold';
+  const miniBoard = (s, cls) => { const co = coOf(s), on = R.boardStyle() === 'char' && !!R.charOf(s.ist, co);
+    return `<div class="relative mx-auto w-full ${on ? 'aspect-square ' + cls : 'max-w-[170px] aspect-[1/2]'} pointer-events-none">${on ? R.charBoardHTML(setMap(s.ist), co) : gearBoard('ist', s, { rows: [] }, { sel: null, badge: () => null })}</div>`; };
   function renderSets() {
     const box = R.$('craftSetsPane'); if (!box) return;
-    const sc = scSets(), btn = 'px-2.5 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-xs font-semibold';
-    const card = (s) => { const co = { pick: s.char || '', name: s.name }, c = R.charOf(s.ist, co), on = R.boardStyle() === 'char' && !!c, filled = GEAR_SLOTS.filter(sl => gItem(s.ist[sl.k].item)).length;
-      const linked = s.sc && sc.find(x => x.scId === s.sc.scId && x.setId === s.sc.setId);
-      return `<section class="panel rounded-2xl p-4 flex flex-col gap-3 ${s.main ? 'ring-2 ring-gold-400/70' : ''} ${s.id === gear.active ? 'outline outline-1 outline-gold-500/40' : ''}">
-        <div class="flex items-start justify-between gap-2">
-          <div class="min-w-0"><div class="font-display text-xl gold-text truncate" translate="no">${s.main ? '⭐ ' : ''}${R.esc(s.name)}</div>
-            <div class="text-[11px] text-slate-400">${filled}/8 Teile · ${s.goal.on ? '🎯 im Gesamtziel' : 'nicht im Gesamtziel'}${linked ? ` · 🔗 ${R.esc(linked.scTitle)} › ${R.esc(linked.setName)}` : ''}</div></div>
-          <button type="button" data-sx="main" data-id="${R.esc(s.id)}" class="${btn} ${s.main ? '!border-gold-400 !text-gold-200 bg-gold-500/15' : ''}" title="Als Hauptset markieren">⭐ ${s.main ? 'Hauptset' : 'Als Hauptset'}</button></div>
-        <div class="relative mx-auto w-full ${on ? 'max-w-[340px] aspect-square' : 'max-w-[170px] aspect-[1/2]'} pointer-events-none">${on ? R.charBoardHTML(setMap(s.ist), co) : gearBoard('ist', s, { rows: [] }, { sel: null, badge: () => null })}</div>
-        <div class="flex flex-wrap items-center justify-center gap-1.5">
-          <select data-charpick="${R.esc(s.id)}" translate="no" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-xs font-semibold focus:outline-none focus:border-gold-500"><option value="">🔄 Charakter automatisch${R.charOf(s.ist, { name: s.name }) ? ' (' + R.esc(R.charOf(s.ist, { name: s.name }).name) + ')' : ''}</option>${R.charList().map(x => `<option value="${R.esc(x.id)}"${s.char === x.id ? ' selected' : ''}>🧍 ${R.esc(x.name)}</option>`).join('')}</select></div>
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-          <button type="button" data-sx="open" data-id="${R.esc(s.id)}" class="${btn} !border-gold-500/60 !text-gold-200">⚒ Im Planer</button>
-          <button type="button" data-sx="ren" data-id="${R.esc(s.id)}" class="${btn}">✎ Umbenennen</button>
-          <button type="button" data-sx="copy" data-id="${R.esc(s.id)}" class="${btn}">⧉ Kopieren</button>
-          <button type="button" data-sx="scload" data-id="${R.esc(s.id)}" class="${btn}">⇩ Aus Showcase</button>
-          <button type="button" data-sx="scsend" data-id="${R.esc(s.id)}" class="${btn}">⇧ Ins Showcase</button>
-          <button type="button" data-sx="feed" data-id="${R.esc(s.id)}" class="${btn} !border-orange-400/50 !text-orange-200">📰 Im Feed posten</button>
-          <button type="button" data-sx="goal" data-id="${R.esc(s.id)}" class="${btn}">${s.goal.on ? '🎯 aus Gesamtziel' : '🎯 ins Gesamtziel'}</button>
-          <button type="button" data-sx="del" data-id="${R.esc(s.id)}" class="${btn} hover:!border-red-500/60 hover:!text-red-300">🗑 Löschen</button>
-        </div></section>`; };
-    box.innerHTML = `<section class="panel rounded-2xl p-5">
-        <div class="flex flex-wrap items-start justify-between gap-3">
-          <div><h3 class="font-display text-xl gold-text">Deine Sets</h3>
-            <p class="text-xs text-slate-400 mt-1">Hier liegen alle deine Sets. ⭐ markiert dein Hauptset · „Im Planer“ öffnet es zum Rechnen · „Aus Showcase“ lädt die Ausrüstung aus deinem Showcase · „Im Feed posten“ zeigt genau dieses eine Set mit Charakter.</p></div>
+    const tab = (k, l, n) => `<button type="button" data-gtab="${k}" class="px-4 py-2 rounded-lg text-sm font-semibold transition ${gearTab === k ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'}">${l} <span class="opacity-70 tabular-nums">${n}</span></button>`;
+    const sc = scSets();
+    const head = `<section class="panel rounded-2xl p-4 sm:p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="inline-flex gap-1 p-1 rounded-xl bg-ink-950/70 border border-ink-700">${tab('chars', '🧍 Charaktere', gear.sets.length)}${tab('groups', '🗂 Sets', gear.groups.length)}</div>
           <div class="flex flex-wrap items-center gap-2">${R.boardStyleBar({}, {})}
-            <button type="button" data-sx="new" class="px-3 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold">+ Neues Set</button>
-            ${sc.length ? `<select data-sx-newsc class="bg-ink-950 border border-ink-600 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:border-gold-500"><option value="">⇩ Neues Set aus Showcase …</option>${sc.map(x => `<option value="${R.esc(x.scId + '|' + x.setId)}">${R.esc(x.scTitle + ' › ' + x.setName)}</option>`).join('')}</select>` : ''}</div></div>
-        <div id="setsMsg" class="hidden mt-2 text-xs"></div></section>
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 items-start">${setsSorted().map(card).join('')}</div>`;
+            ${gearTab === 'chars' ? `<button type="button" data-sx="new" class="px-3 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold">+ Neuer Charakter</button>
+              ${sc.length ? `<select data-sx-newsc class="bg-ink-950 border border-ink-600 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:border-gold-500"><option value="">⇩ Neu aus Showcase …</option>${sc.map(x => `<option value="${R.esc(x.scId + '|' + x.setId)}">${R.esc(x.scTitle + ' › ' + x.setName)}</option>`).join('')}</select>` : ''}`
+              : `<button type="button" data-gx="new" class="px-3 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold">+ Neues Set</button>`}</div></div>
+        <p class="mt-2 text-xs text-slate-400">${gearTab === 'chars' ? 'Hier bearbeitest du deine Ausrüstung: ✎ Bearbeiten → scannen, Items upgraden, auf alles übertragen. Planer, Ziele, Kalender und Showcase nehmen sich die Daten von hier.' : 'Ein Set fasst mehrere Charaktere zusammen (z. B. „KvK“ = Inf 1 + Inf 2 + Cav) – speichern und in die History legen.'}</p>
+        <div id="setsMsg" class="hidden mt-2 text-xs"></div></section>`;
+    const card = (s) => `<section class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3 h-full ${s.main ? 'ring-2 ring-gold-400/70' : ''}">
+        <div class="flex items-center justify-between gap-2 min-h-[2.75rem]">
+          <div class="font-display text-2xl gold-text truncate" translate="no">${s.main ? '⭐ ' : ''}${R.esc(s.name)}</div>
+          <button type="button" data-sx="edit" data-id="${R.esc(s.id)}" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold shrink-0">✎ Bearbeiten</button></div>
+        ${miniBoard(s, 'max-w-[440px]')}
+        <div class="mt-auto flex flex-col gap-2">
+          <select data-charpick="${R.esc(s.id)}" translate="no" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm font-semibold focus:outline-none focus:border-gold-500"><option value="">🔄 Charakter automatisch${R.charOf(s.ist, { name: s.name }) ? ' (' + R.esc(R.charOf(s.ist, { name: s.name }).name) + ')' : ''}</option>${R.charList().map(x => `<option value="${R.esc(x.id)}"${s.char === x.id ? ' selected' : ''}>🧍 ${R.esc(x.name)}</option>`).join('')}</select>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button type="button" data-sx="open" data-id="${R.esc(s.id)}" class="${GBTN}">⚒ Planer</button>
+            <button type="button" data-sx="main" data-id="${R.esc(s.id)}" class="${GBTN} ${s.main ? '!border-gold-400 !text-gold-200' : ''}">⭐ ${s.main ? 'Hauptset' : 'Haupt'}</button>
+            <button type="button" data-sx="feed" data-id="${R.esc(s.id)}" class="${GBTN} !border-orange-400/50 !text-orange-200">📰 Feed</button>
+            <button type="button" data-sx="scload" data-id="${R.esc(s.id)}" class="${GBTN}">⇩ Showcase</button>
+            <button type="button" data-sx="scsend" data-id="${R.esc(s.id)}" class="${GBTN}">⇧ Showcase</button>
+            <button type="button" data-sx="more" data-id="${R.esc(s.id)}" class="${GBTN}">⋯ Mehr</button>
+          </div></div></section>`;
+    const memberOf = (id) => gear.sets.find(x => x.id === id);
+    const group = (g) => { const mem = g.members.map(memberOf).filter(Boolean), free = gear.sets.filter(x => !g.members.includes(x.id));
+      return `<section class="panel rounded-2xl p-4 sm:p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="font-display text-2xl gold-text" translate="no">${R.esc(g.name)}</div>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" data-gx="hist" data-id="${R.esc(g.id)}" class="${GBTN} !border-gold-500/60 !text-gold-200">📜 In History</button>
+            <button type="button" data-gx="ren" data-id="${R.esc(g.id)}" class="${GBTN}">✎ Umbenennen</button>
+            <button type="button" data-gx="del" data-id="${R.esc(g.id)}" class="${GBTN} hover:!border-red-500/60 hover:!text-red-300">🗑</button></div></div>
+        <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">${mem.map(s => `<div class="relative rounded-xl border border-ink-700 bg-ink-950/40 p-2">
+            <div class="flex items-center justify-between gap-1 px-1"><span class="font-semibold text-gold-200 truncate" translate="no">${R.esc(s.name)}</span>
+              <span class="flex gap-0.5"><button type="button" data-gx="edit" data-id="${R.esc(s.id)}" class="px-1.5 text-slate-400 hover:text-gold-300" title="bearbeiten">✎</button><button type="button" data-gx="rm" data-id="${R.esc(g.id)}" data-m="${R.esc(s.id)}" class="px-1.5 text-slate-500 hover:text-red-300" title="aus dem Set nehmen">✕</button></span></div>
+            ${miniBoard(s, 'max-w-[320px]')}</div>`).join('')}
+          ${free.length ? `<label class="rounded-xl border-2 border-dashed border-ink-600 grid place-items-center p-4 min-h-[160px] text-sm text-slate-400">
+            <span class="mb-2">＋ Charakter hinzufügen</span>
+            <select data-gx-add="${R.esc(g.id)}" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm"><option value="">– wählen –</option>${free.map(x => `<option value="${R.esc(x.id)}">${R.esc(x.name)}</option>`).join('')}</select></label>` : ''}
+        </div></section>`; };
+    box.innerHTML = head + (gearTab === 'chars'
+      ? `<div class="grid gap-5 md:grid-cols-2 items-stretch">${setsSorted().map(card).join('')}</div>`
+      : gear.groups.length ? `<div class="space-y-4">${gear.groups.map(group).join('')}</div>` : `<div class="panel rounded-2xl p-8 text-center text-sm text-slate-500">Noch kein Set – „+ Neues Set“ und dann Charaktere hinzufügen.</div>`);
   }
   const setsMsg = (t, ok = true) => R.flash(R.$('setsMsg'), R.esc(t), ok);
   const uniqName = (base) => { let name = base.slice(0, 40), n = 2; while (gear.sets.some(x => x.name.toLowerCase() === name.toLowerCase())) name = `${base.slice(0, 34)} (${n++})`; return name; };
+  const gearSaveAll = () => { R.LS.set(GEAR_SETS, JSON.stringify(gear)); cloudSave(); };
   R.$('craftSetsPane')?.addEventListener('change', async (ev) => {
-    const t = ev.target; if (!t.matches('[data-sx-newsc]') || !t.value) return;
+    const t = ev.target;
+    if (t.matches('[data-gx-add]') && t.value) { const g = gear.groups.find(x => x.id === t.dataset.gxAdd); if (g && !g.members.includes(t.value)) g.members.push(t.value); gearSaveAll(); renderSets(); return; }
+    if (!t.matches('[data-sx-newsc]') || !t.value) return;
     const [scId, setId] = t.value.split('|'), src = scSets().find(x => x.scId === scId && x.setId === setId); if (!src) return;
     const slots = scSlots(src.gear); if (!slotsFilled(slots)) { await UI.alert(`„${src.setName}“ hat noch keine Ausrüstung.`); renderSets(); return; }
     const s = newGearSet(uniqName(src.setName)); s.ist = slots; s.ziel = JSON.parse(JSON.stringify(slots)); s.histBase = JSON.parse(JSON.stringify(slots)); s.sc = { scId, setId };
-    gear.sets.push(s); saveGear(); cloudSave(); renderSets(); setsMsg(`✓ Set „${s.name}“ aus dem Showcase angelegt`);
+    gear.sets.push(s); saveGear(); cloudSave(); renderSets(); setsMsg(`✓ „${s.name}“ aus dem Showcase angelegt`);
   });
+  async function postSetToFeed(s) {
+    if (!GEAR_SLOTS.some(sl => gItem(s.ist[sl.k].item))) { await UI.alert('Noch leer – erst Ausrüstung eintragen.'); return; }
+    if (!R.feedShareSet) { await UI.alert('Der Feed ist noch nicht geladen – bitte Seite neu laden.'); return; }
+    const note = await UI.prompt(`„${s.name}“ im Feed posten – nur dieser eine Charakter mit seiner Ausrüstung.\n\nText dazu (optional):`, '', { title: '📰 Im Feed posten', ok: 'Posten' });
+    if (note === null) return;
+    try { await R.feedShareSet({ name: s.name, gear: setMap(s.ist), char: s.char || R.charOf(s.ist, { name: s.name })?.id || '', bg: s.bg, main: s.main, note: note.trim() }); setsMsg('✓ Im Feed gepostet'); }
+    catch (e) { setsMsg('Posten fehlgeschlagen: ' + (RokAuth.germanError ? RokAuth.germanError(e) : e.message || e), false); }
+  }
   R.$('craftSetsPane')?.addEventListener('click', async (ev) => {
+    const tb = ev.target.closest('[data-gtab]'); if (tb) { gearTab = tb.dataset.gtab; renderSets(); return; }
+    const gb = ev.target.closest('[data-gx]');
+    if (gb) { const a = gb.dataset.gx, g = gear.groups.find(x => x.id === gb.dataset.id);
+      if (a === 'new') { const name = (await UI.prompt('Name des Sets (z. B. KvK, Hauptmärsche)', '', { title: 'Neues Set' }))?.trim().slice(0, 40); if (!name) return;
+        gear.groups.push({ id: R.newId(), name, members: [] }); gearSaveAll(); renderSets(); return; }
+      if (a === 'edit') { openCharEditor(gb.dataset.id); return; }
+      if (!g) return;
+      if (a === 'rm') { g.members = g.members.filter(x => x !== gb.dataset.m); gearSaveAll(); renderSets(); return; }
+      if (a === 'ren') { const name = (await UI.prompt('Neuer Name', g.name, { title: 'Set umbenennen' }))?.trim().slice(0, 40); if (!name) return; g.name = name; gearSaveAll(); renderSets(); return; }
+      if (a === 'del') { if (!(await UI.confirm(`Set „${g.name}“ löschen? Die Charaktere bleiben erhalten.`))) return; gear.groups = gear.groups.filter(x => x !== g); gearSaveAll(); renderSets(); return; }
+      if (a === 'hist') { const mem = g.members.map(id => gear.sets.find(x => x.id === id)).filter(Boolean); if (!mem.length) { setsMsg('Das Set hat noch keine Charaktere.', false); return; }
+        snaps.unshift({ id: R.newId(), ts: Date.now(), name: g.name, sets: mem.map(x => gNormSet(JSON.parse(JSON.stringify(x)))), auto: false, one: false }); saveSnaps(); cloudSave();
+        setsMsg(`✓ „${g.name}“ mit ${mem.length} ${mem.length === 1 ? 'Charakter' : 'Charakteren'} in der History gespeichert (Craft-Verlauf → Gespeicherte Sets)`); return; }
+      return; }
     const b = ev.target.closest('[data-sx]'); if (!b) return;
     const a = b.dataset.sx, s = gear.sets.find(x => x.id === b.dataset.id);
-    const save = () => { R.LS.set(GEAR_SETS, JSON.stringify(gear)); cloudSave(); renderSets(); };
-    if (a === 'new') { const name = (await UI.prompt('Name des neuen Sets', '', { title: 'Neues Set' }))?.trim().replace(/\s+/g, ' ').slice(0, 40); if (!name) return;
-      const n = newGearSet(uniqName(name)); gear.sets.push(n); save(); setsMsg(`✓ Set „${n.name}“ erstellt`); return; }
+    const save = () => { gearSaveAll(); renderSets(); };
+    if (a === 'new') { const name = (await UI.prompt('Name (z. B. Inf 1, Cav)', '', { title: 'Neuer Charakter' }))?.trim().replace(/\s+/g, ' ').slice(0, 40); if (!name) return;
+      const n = newGearSet(uniqName(name)); gear.sets.push(n); save(); openCharEditor(n.id); return; }
     if (!s) return;
+    if (a === 'edit') { openCharEditor(s.id); return; }
     if (a === 'open') { gear.active = s.id; gearFlags = {}; R.LS.set(GEAR_SETS, JSON.stringify(gear)); craftPane = 'plan'; renderCraftPanes(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     if (a === 'main') { const on = !s.main; gear.sets.forEach(x => { x.main = false; }); s.main = on; save(); setsMsg(on ? `⭐ „${s.name}“ ist jetzt dein Hauptset` : 'Hauptset entfernt'); return; }
-    if (a === 'ren') { const name = (await UI.prompt('Neuer Name', s.name, { title: 'Set umbenennen' }))?.trim().replace(/\s+/g, ' ').slice(0, 40); if (!name || name === s.name) return;
-      if (gear.sets.some(x => x !== s && x.name.toLowerCase() === name.toLowerCase())) { setsMsg('Ein Set mit diesem Namen gibt es schon.', false); return; }
-      s.name = name; save(); return; }
-    if (a === 'copy') { const c = gNormSet({ ...JSON.parse(JSON.stringify(s)), id: R.newId(), name: uniqName(s.name + ' Kopie'), main: false }); gear.sets.push(c); save(); setsMsg(`✓ Kopie „${c.name}“ angelegt`); return; }
-    if (a === 'goal') { s.goal.on = !s.goal.on; save(); return; }
-    if (a === 'del') { if (!(await UI.confirm(`Set „${s.name}“ wirklich löschen?`))) return;
-      gear.sets = gear.sets.filter(x => x !== s); if (!gear.sets.length) gear.sets.push(newGearSet('Neues Set')); if (gear.active === s.id) gear.active = gear.sets[0].id; save(); setsMsg(`🗑 „${s.name}“ gelöscht`); return; }
     if (a === 'scload' || a === 'scsend') { gear.active = s.id; R.LS.set(GEAR_SETS, JSON.stringify(gear)); openScPicker(a === 'scload' ? 'load' : 'send'); return; }
-    if (a === 'feed') {
-      if (!GEAR_SLOTS.some(sl => gItem(s.ist[sl.k].item))) { await UI.alert('Das Set ist noch leer – erst Ausrüstung eintragen.'); return; }
-      if (!R.feedShareSet) { await UI.alert('Der Feed ist noch nicht geladen – bitte Seite neu laden.'); return; }
-      const note = await UI.prompt(`„${s.name}“ im Feed posten – nur dieses eine Set, mit Charakter.\n\nText dazu (optional):`, '', { title: '📰 Im Feed posten', ok: 'Posten' });
-      if (note === null) return;
-      try { await R.feedShareSet({ name: s.name, gear: setMap(s.ist), char: s.char || R.charOf(s.ist, { name: s.name })?.id || '', main: s.main, note: note.trim() }); setsMsg('✓ Im Feed gepostet'); }
-      catch (e) { setsMsg('Posten fehlgeschlagen: ' + (RokAuth.germanError ? RokAuth.germanError(e) : e.message || e), false); }
+    if (a === 'feed') { postSetToFeed(s); return; }
+    if (a === 'more') {
+      const pick = await UI.prompt(`„${s.name}“:\n1 = Umbenennen\n2 = Kopieren\n3 = ${s.goal.on ? 'Aus dem Gesamtziel nehmen' : 'Ins Gesamtziel aufnehmen'}\n4 = Löschen`, '', { title: 'Mehr', ok: 'OK' });
+      if (pick === '1') { const name = (await UI.prompt('Neuer Name', s.name, { title: 'Umbenennen' }))?.trim().replace(/\s+/g, ' ').slice(0, 40); if (!name || name === s.name) return;
+        if (gear.sets.some(x => x !== s && x.name.toLowerCase() === name.toLowerCase())) { setsMsg('Diesen Namen gibt es schon.', false); return; } s.name = name; save(); }
+      else if (pick === '2') { const c = gNormSet({ ...JSON.parse(JSON.stringify(s)), id: R.newId(), name: uniqName(s.name + ' Kopie'), main: false }); gear.sets.push(c); save(); setsMsg(`✓ Kopie „${c.name}“ angelegt`); }
+      else if (pick === '3') { s.goal.on = !s.goal.on; save(); }
+      else if (pick === '4') { if (!(await UI.confirm(`„${s.name}“ wirklich löschen?`))) return;
+        gear.sets = gear.sets.filter(x => x !== s); gear.groups.forEach(g => { g.members = g.members.filter(id => id !== s.id); });
+        if (!gear.sets.length) gear.sets.push(newGearSet('Neues Set')); if (gear.active === s.id) gear.active = gear.sets[0].id; save(); setsMsg(`🗑 „${s.name}“ gelöscht`); }
     }
   });
-  R.boardStyleHooks.push(() => { if (craftPane === 'sets') renderSets(); });
+  R.boardStyleHooks.push(() => { if (craftPane === 'sets') renderSets(); if (charEd) drawCharEditor(); });
+
+  // ---- Charakter bearbeiten: scannen, Items upgraden, Hintergrund, auf alles übertragen, History ----
+  const CHAR_BG_LIST = [['', 'Standard'], ['blue', 'Blau'], ['red', 'Rot'], ['gold', 'Gold'], ['green', 'Grün'], ['purple', 'Lila'], ['night', 'Nacht']];
+  function openCharEditor(id) {
+    const s = gear.sets.find(x => x.id === id); if (!s) return;
+    gear.active = s.id; gearFlags = {}; R.LS.set(GEAR_SETS, JSON.stringify(gear));
+    const root = document.createElement('div');
+    root.className = 'fixed inset-0 z-[80] overflow-y-auto bg-ink-950/85 backdrop-blur-sm p-2 sm:p-6 ui-fade';
+    charEd = { id, root, prev: document.body.style.overflow };
+    document.body.appendChild(root); document.body.style.overflow = 'hidden';
+    root.addEventListener('click', onCharEdClick); root.addEventListener('change', onCharEdChange);
+    root.addEventListener('click', gearEdit); root.addEventListener('change', gearEdit);
+    drawCharEditor();
+  }
+  function closeCharEditor() { if (!charEd) return; charEd.root.remove(); document.body.style.overflow = charEd.prev; charEd = null; renderGearMain(); if (craftPane === 'sets') renderSets(); }
+  function drawCharEditor() {
+    if (!charEd) return; const s = gear.sets.find(x => x.id === charEd.id); if (!s) { closeCharEditor(); return; }
+    if (gear.active !== s.id) gear.active = s.id;
+    const calc = gearCalc(s), co = coOf(s), on = R.charOn(s.ist, co), pend = histPending(s), sel = gearSel.ist, v = s.ist[sel], it = gItem(v?.item);
+    const linked = s.sc && scSets().find(x => x.scId === s.sc.scId && x.setId === s.sc.setId);
+    const qb = 'px-3 py-2 rounded-lg border text-sm font-semibold transition disabled:opacity-30';
+    charEd.root.innerHTML = `<div class="panel !bg-ink-900 max-w-6xl mx-auto rounded-2xl p-4 sm:p-6 shadow-2xl ui-pop">
+      <div class="flex flex-wrap items-center gap-2">
+        <h3 class="font-display text-2xl gold-text mr-auto" translate="no">✎ ${R.esc(s.name)}</h3>
+        <select data-charpick="${R.esc(s.id)}" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm font-semibold"><option value="">🔄 Charakter automatisch</option>${R.charList().map(x => `<option value="${R.esc(x.id)}"${s.char === x.id ? ' selected' : ''}>🧍 ${R.esc(x.name)}</option>`).join('')}</select>
+        <select data-ced="bg" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm">${CHAR_BG_LIST.map(([k, l]) => `<option value="${k}"${(s.bg?.k || '') === k && !s.bg?.url ? ' selected' : ''}>🎨 ${l}</option>`).join('')}${s.bg?.url ? '<option value="url" selected>🖼 Eigenes Bild</option>' : ''}</select>
+        <label class="cursor-pointer px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">🖼 Hintergrund-Bild<input type="file" accept="image/*" data-ced="bgfile" class="hidden"></label>
+        <button type="button" data-ced="close" class="px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">✕ Fertig</button></div>
+      <div class="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-start">
+        <div>
+          <div class="relative mx-auto w-full ${on ? 'max-w-[520px] aspect-square' : 'max-w-[280px] aspect-[1/2]'}" data-ced-board>${gearBoard('ist', s, calc, { char: on ? co : null })}</div>
+          <div class="mt-3 flex flex-wrap justify-center gap-2">
+            <button type="button" data-ced="scan" class="px-4 py-2 rounded-lg border border-gold-500/60 text-gold-200 hover:border-gold-400 text-sm font-semibold">📷 Screenshot scannen</button>
+            <span data-ced-scanmsg class="w-full text-center text-xs">${R.$('gearScanMsg')?.classList.contains('hidden') ? '' : R.$('gearScanMsg')?.innerHTML || ''}</span></div>
+        </div>
+        <div class="space-y-3">
+          ${it ? `<div class="rounded-xl border border-gold-500/40 bg-gold-500/5 p-3">
+            <div class="text-xs text-slate-400 mb-2">Schnell upgraden: <b class="text-slate-200" translate="no">${R.esc(it.name)}</b></div>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" data-ced="tier-" ${v.tier > 0 ? '' : 'disabled'} class="${qb} border-ink-600 hover:border-sky-400">⬇ Tier</button>
+              <button type="button" data-ced="tier+" ${v.tier < maxTier(it) ? '' : 'disabled'} class="${qb} border-sky-400/60 text-sky-200 hover:bg-sky-500/10">⬆ Tier ${v.tier < maxTier(it) ? ROMAN[v.tier] : ''}</button>
+              ${[25, 50, 75].map(a => `<button type="button" data-ced="ref" data-v="${a}" ${(v.refine || 0) < 100 ? '' : 'disabled'} class="${qb} border-red-400/50 text-red-200 hover:bg-red-500/10">✦ +${a}%</button>`).join('')}
+            </div></div>` : '<div class="text-sm text-slate-400">Tipp links ein Teil an – oder scanne einen Screenshot.</div>'}
+          ${gearEditor('ist', s, calc)}
+        </div></div>
+      <div class="mt-5 border-t border-ink-700 pt-4 flex flex-wrap items-center gap-2">
+        <span class="mr-auto text-sm ${pend.length ? 'text-gold-200' : 'text-slate-500'}">${pend.length ? `✎ ${pend.length} ${pend.length === 1 ? 'Änderung' : 'Änderungen'} seit dem letzten Speichern` : '✓ Alles gespeichert'}</span>
+        <button type="button" data-ced="hist" ${pend.length ? '' : 'disabled'} class="px-4 py-2 rounded-lg border border-gold-500/60 text-gold-200 hover:border-gold-400 text-sm font-semibold disabled:opacity-40">📜 In History</button>
+        <button type="button" data-ced="all" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold" title="History + ${linked ? 'Showcase „' + R.esc(linked.setName) + '“' : 'Showcase (falls verbunden)'} + Cloud">⇄ Auf alles übertragen</button>
+      </div>
+      <div class="mt-1 text-[11px] text-slate-500 text-right">Planer, Ziele und Kalender rechnen sofort mit dem neuen Stand · „Auf alles übertragen“ = History + ${linked ? `Showcase „${R.esc(linked.scTitle)} › ${R.esc(linked.setName)}“` : 'Showcase (über ⇧ Showcase verbinden)'} + Cloud</div>
+      <div data-ced-msg class="mt-2 text-xs text-right"></div></div>`;
+  }
+  const cedMsg = (t, ok = true) => { const el = charEd?.root.querySelector('[data-ced-msg]'); if (el) { el.className = 'mt-2 text-xs text-right ' + (ok ? 'text-emerald-300' : 'text-amber-300'); el.textContent = t; } };
+  function cedHist(s) { const ch = histPending(s); if (!ch.length) return 0;
+    chist.unshift({ id: R.newId(), ts: Date.now(), kind: 'auto', src: 'edit', setId: s.id, setName: s.name, slot: '', changes: ch, note: '', imgs: [] });
+    s.histBase = JSON.parse(JSON.stringify(s.ist)); saveHist(); return ch.length; }
+  async function onCharEdClick(ev) {
+    const s = gear.sets.find(x => x.id === charEd?.id); if (!s) return;
+    if (ev.target === charEd.root) { closeCharEditor(); return; }
+    const tile = ev.target.closest('[data-ced-board] [data-tile]'); if (tile) { gearSel.ist = tile.dataset.tile; drawCharEditor(); return; }
+    const b = ev.target.closest('[data-ced]'); if (!b || b.tagName === 'SELECT' || b.tagName === 'INPUT') return;
+    const a = b.dataset.ced, v = s.ist[gearSel.ist], it = gItem(v?.item);
+    if (a === 'close') { closeCharEditor(); return; }
+    if (a === 'scan') { R.$('gearFile').click(); return; }
+    if (a === 'tier+' && it) { v.tier = Math.min(maxTier(it), (v.tier || 0) + 1); }
+    else if (a === 'tier-' && it) { v.tier = Math.max(0, (v.tier || 0) - 1); }
+    else if (a === 'ref' && it) { v.refine = Math.min(100, (v.refine || 0) + +b.dataset.v); }
+    else if (a === 'hist') { const n = cedHist(s); saveGear(); cloudSave(); drawCharEditor(); cedMsg(`✓ ${n} ${n === 1 ? 'Änderung' : 'Änderungen'} in der History`); return; }
+    else if (a === 'all') {
+      const n = cedHist(s), done = [n ? `History (${n})` : 'History aktuell'];
+      const linked = s.sc && scSets().find(x => x.scId === s.sc.scId && x.setId === s.sc.setId);
+      if (linked && slotsFilled(s.ist)) { const ok = await R.scPutGear?.(linked.scId, linked.setId, s.ist, s.name); done.push(ok ? `Showcase „${linked.setName}“` : 'Showcase nicht gefunden'); }
+      saveGear(); cloudSave(); drawCharEditor(); cedMsg('✓ Übertragen: ' + done.join(' · ') + ' · Cloud'); return; }
+    else return;
+    if (s.id === gear.active) delete gearFlags[gearSel.ist];
+    saveGear(); renderGearMain(); drawCharEditor();
+  }
+  async function onCharEdChange(ev) {
+    const s = gear.sets.find(x => x.id === charEd?.id); if (!s) return;
+    const t = ev.target;
+    if (t.dataset.ced === 'bg') { s.bg = t.value === 'url' ? s.bg : t.value ? { k: t.value } : null; saveGear(); drawCharEditor(); return; }
+    if (t.dataset.ced === 'bgfile' && t.files?.[0]) {
+      cedMsg('⏳ Bild wird hochgeladen …');
+      try {
+        const bmp = await createImageBitmap(t.files[0]), k = Math.min(1, 1000 / Math.max(bmp.width, bmp.height)), c = document.createElement('canvas');
+        c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k); c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+        const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.85));
+        let url = ''; try { url = await RokAuth.uploadImage(blob, 'charbg_' + s.id); } catch { url = c.toDataURL('image/jpeg', 0.7); }
+        s.bg = { url }; saveGear(); cloudSave(); drawCharEditor(); cedMsg('✓ Hintergrund gesetzt');
+      } catch (e) { cedMsg('Bild konnte nicht geladen werden: ' + (e.message || e), false); }
+    }
+  }
+  R.openCharEditor = openCharEditor;
+
 
   // ---- Fenster umschalten: Planer | Craft-Verlauf, und darin Seite History | Gespeicherte Sets ----
   let chPage = 'hist';
