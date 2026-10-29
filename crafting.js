@@ -83,9 +83,13 @@ window.RokMods.crafting = (R) => {
     const ins = new Set((arm.insc || []).map(i => String(i.t).toLowerCase())), pool = arm.formation && D.FORMATIONS[arm.formation] ? D.FORMATIONS[arm.formation] : Object.values(D.FORMATIONS).flat();
     return ['flag', 'emblem', 'scroll', 'instrument'].map(k => { let x = D.BY_ID[arm.arms?.[k]];
       if (!x) x = pool.filter(y => y.type === k).find(y => ins.has(y.gold.toLowerCase()) || ins.has(y.blue.toLowerCase()));
-      if (!x) return null;
+      if (!x) { const g = (D.POOL[k] || []).find(t => ins.has(t.toLowerCase()));   // nur graue Inschrift für diesen Typ → graue Säule
+        return g ? { k, x: null, label: g, c: 'gray' } : null; }
       const t = ins.has(x.gold.toLowerCase()) ? x.gold : ins.has(x.blue.toLowerCase()) ? x.blue : '';
-      return { k, x, label: t || x.name, c: ins.has(x.gold.toLowerCase()) ? 'gold' : t ? 'blue' : 'gray' }; }).filter(Boolean); }
+      return { k, x, label: t || x.name, c: ins.has(x.gold.toLowerCase()) ? 'gold' : t ? 'blue' : 'gray' }; }).filter(Boolean)
+      .sort((a, b) => armOrd(arm, a.k) - armOrd(arm, b.k)); }
+  // eigene Reihenfolge der Säulen (links → rechts), sonst Flagge · Emblem · Schriftrolle · Instrument
+  const armOrd = (arm, k) => { const o = Array.isArray(arm?.order) ? arm.order : [], i = o.indexOf(k); return i < 0 ? 10 + ARMK.indexOf(k) : i; };
   R.armParts = armParts;
   const charCompact = (o) => !!(o?.arm && o.arm.scene !== false && armParts(o.arm).length);
   const posOf = (k, cmp) => { const p = CHAR_POS[k] || { x: 50, y: 50 }; return cmp ? { ...p, x: p.x < 50 ? 11 : 89, y: CMP_Y[p.y] ?? p.y } : p; };
@@ -99,20 +103,25 @@ window.RokMods.crafting = (R) => {
   function sceneRow(arm) { const D = R.armData, ins = arm.insc || [], colOf = (t) => ins.find(i => i.t.toLowerCase() === String(t).toLowerCase())?.c;
     const parts = armParts(arm), n = parts.length;
     const xs = n === 1 ? [50] : n === 2 ? [38, 62] : n === 3 ? [27, 50, 73] : [15, 38.5, 61.5, 85], drop = [12, 12, 12, 12];
-    return `<div class="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none z-[25]">${parts.map((p, i) => `<div class="absolute" style="left:${xs[i]}%;bottom:-${drop[i % 4]}%;width:18%;transform:translateX(-50%) rotate(${arm.flip?.[p.k] || 0}deg);transform-origin:50% 100%" title="${R.esc(p.x.name + (p.label !== p.x.name ? ' · ' + p.label : ''))}">${R.runePillar(p.label, p.c, 34, p.k)}</div>`).join('')}
+    return `<div class="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none z-[25]">${parts.map((p, i) => `<div class="absolute" style="left:${xs[i]}%;bottom:-${drop[i % 4]}%;width:18%;transform:translateX(-50%) rotate(${arm.flip?.[p.k] || 0}deg);transform-origin:50% 100%" title="${R.esc(p.x ? p.x.name + (p.label !== p.x.name ? ' · ' + p.label : '') : R.armData.TYPES[p.k].label + ' · ' + p.label)}">${R.runePillar(p.label, p.c, 34, p.k)}</div>`).join('')}
       <div class="absolute inset-x-0 bottom-0 h-[8%]" style="background:linear-gradient(transparent,rgba(7,9,15,.55))"></div></div>`; }
   // Runensäule (dunkler Stein) mit leuchtendem Namen senkrecht · c = gold (Spezial) / blue (Selten) / gray
   const PILLAR_C = { gold: ['#ffd27a', '#f59e0b', '#f97316'], blue: ['#cfe4ff', '#60a5fa', '#2563eb'], gray: ['#ece6da', '#a8a29e', '#57534e'] };
   // Runen-Zeichen je Armament-Typ (SVG-Linien im 0–100-Raster)
   const RUNE_GLYPH = { flag: 'M50 8 L50 92 M50 8 L24 34 M50 8 L76 34', emblem: 'M50 8 L50 92 M50 46 L22 14 M50 46 L78 14',
     scroll: 'M30 8 L30 92 M30 8 L66 30 L30 52 L72 92', instrument: 'M32 8 L32 92 M32 34 L72 12 M32 62 L72 40' };
+  // lange Wörter (z. B. Advantageous) in der Mitte zwischen zwei Konsonanten trennen → Advan- / tageous
+  const runeHyph = (w) => { if (w.length <= 9) return [w]; const V = /[aeiouy]/i, m = w.length / 2; let best = -1;
+    for (let i = 3; i <= w.length - 3; i++) if (!V.test(w[i - 1]) && !V.test(w[i]) && (best < 0 || Math.abs(i - m) < Math.abs(best - m))) best = i;
+    if (best < 0 || Math.abs(best - m) > w.length / 4) best = Math.ceil(m);
+    return [w.slice(0, best) + '-', w.slice(best)]; };
   R.runePillar = (name, c, hide = 0, type = '') => {   // hide = unten abgeschnittener Anteil in % · type = Rune (flag/emblem/scroll/instrument)
-    const [fg, g1, g2] = PILLAR_C[c] || PILLAR_C.gray, words = String(name).split(/\s+/), longest = Math.max(...words.map(w => w.length));
+    const [fg, g1, g2] = PILLAR_C[c] || PILLAR_C.gray, words = String(name).split(/\s+/).flatMap(runeHyph), longest = Math.max(...words.map(w => w.length));
     const glow = `color:${fg};text-shadow:0 0 3px ${g1},0 0 8px ${g1},0 0 16px ${g2};font-family:Cinzel,serif;font-weight:700;text-transform:uppercase`;
     const vis = 100 - hide, runeTop = 9, runeH = vis * 0.36, txtTop = runeTop + runeH + 2;
     const rune = RUNE_GLYPH[type] ? `<svg class="absolute left-1/2 -translate-x-1/2" style="top:${runeTop}%;height:${runeH}%;width:58%;overflow:visible;filter:drop-shadow(0 0 3px ${g1}) drop-shadow(0 0 9px ${g2})" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
         <path d="${RUNE_GLYPH[type]}" fill="none" stroke="${fg}" stroke-width="11" stroke-linecap="square" stroke-linejoin="miter"/></svg>` : '';
-    const label = `<span class="absolute inset-x-[10%] flex items-center justify-center text-center" style="top:${RUNE_GLYPH[type] ? txtTop : 9}%;bottom:${hide + 7}%;line-height:1.05;font-size:${Math.min(20, 74 / (longest * 0.78)).toFixed(1)}cqw;${glow}">${R.esc(name)}</span>`;
+    const label = `<span class="absolute inset-x-[10%] flex items-center justify-center text-center" style="top:${RUNE_GLYPH[type] ? txtTop : 9}%;bottom:${hide + 7}%;line-height:1.05;font-size:${Math.min(20, 74 / (longest * 0.78)).toFixed(1)}cqw;${glow}">${words.map(w => R.esc(w)).join(' ').replace(/- /g, '-<br>')}</span>`;
     return `<div class="relative w-full aspect-[241/480]" style="container-type:inline-size">
       <img src="icons/arm/pillar.webp" alt="" draggable="false" class="absolute inset-0 w-full h-full object-contain" style="filter:drop-shadow(0 0 ${c === 'gray' ? 0 : 10}px ${g2}aa)">
       <div class="absolute inset-0" style="background:${g1};-webkit-mask:url(icons/arm/pillar_cracks.png) center/contain no-repeat;mask:url(icons/arm/pillar_cracks.png) center/contain no-repeat;opacity:${c === 'gray' ? 0.55 : 0.95};filter:drop-shadow(0 0 2px ${g1}) drop-shadow(0 0 5px ${g2})"></div>${rune}${label}</div>`; };
@@ -129,7 +138,7 @@ window.RokMods.crafting = (R) => {
       const pt = c.pts?.[k] || [q0.px, q0.py], t = own ? own : tp(pt[0], pt[1]); return { k, x: q.x, y: q.y, px: +(+t[0]).toFixed(1), py: +(+t[1]).toFixed(1) }; });
     return `<div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none" style="background:#0b0f1a"><div class="absolute inset-x-0" style="top:${-12 - up}%;height:124%;${bgc}"></div></div>
     <img src="${cand[0]}" data-alt="${cand.slice(1).join('|')}" onerror="var a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.dataset.alt=a.slice(1).join('|');this.src=a[0]}else{this.onerror=null;this.style.display='none'}" alt="" draggable="false" class="absolute pointer-events-none select-none" style="left:50%;top:${ct}%;height:${ch}%;transform:translateX(-50%);filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))">
-    <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">${pts.map(p => `<line data-ln="${p.k}" x1="${p.x}" y1="${p.y}" x2="${p.px}" y2="${p.py}" stroke="rgba(246,215,122,.55)" stroke-width=".35" stroke-dasharray="1 .8"/><circle data-cc="${p.k}" cx="${p.px}" cy="${p.py}" r=".8" fill="#f6d77a"/>`).join('')}</svg>
+    <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none"${o?.lines === false && !o?.edit ? ' style="display:none"' : ''}>${pts.map(p => `<line data-ln="${p.k}" x1="${p.x}" y1="${p.y}" x2="${p.px}" y2="${p.py}" stroke="rgba(246,215,122,.55)" stroke-width=".35" stroke-dasharray="1 .8"/><circle data-cc="${p.k}" cx="${p.px}" cy="${p.py}" r=".8" fill="#f6d77a"/>`).join('')}</svg>
     ${cmp ? sceneRow(o.arm) : ''}
     ${o?.edit ? pts.map(p => `<span data-ptk="${p.k}" title="ziehen" class="absolute z-[60] w-5 h-5 -ml-2.5 -mt-2.5 rounded-full border-2 border-white bg-gold-500/80 shadow-[0_0_8px_rgba(0,0,0,.8)] cursor-move touch-none" style="left:${p.px}%;top:${p.py}%"></span>`).join('') : ''}`; };
   // Ein Runenstein (Bild je Farbe) mit Namen dort, wo im Bild „ARMAMENT“ stand; flip = gespiegelt (Schrift bleibt lesbar)
@@ -1914,7 +1923,8 @@ window.RokMods.crafting = (R) => {
     setId: String(e.setId || ''), setName: String(e.setName || '').slice(0, 40), slot: GEAR_SLOTS.some(s => s.k === e.slot) ? e.slot : '',
     changes: (Array.isArray(e.changes) ? e.changes : e.slot && (e.from || e.to) ? [{ slot: e.slot, from: e.from, to: e.to }] : []).map(hNormCh).filter(Boolean),
     note: String(e.note || '').slice(0, 500),
-    imgs: Array.isArray(e.imgs) ? e.imgs.filter(u => typeof u === 'string' && /^(https:\/\/|data:image\/jpeg;base64,)/.test(u)).slice(0, 6) : [] } : null;
+    imgs: Array.isArray(e.imgs) ? e.imgs.filter(u => typeof u === 'string' && /^(https:\/\/|data:image\/jpeg;base64,)/.test(u)).slice(0, 6) : [],
+    vis: ['friends', 'public'].includes(e.vis) ? e.vis : 'private', pid: typeof e.pid === 'string' ? e.pid.slice(0, 40) : '' } : null;   // vis = wer den Eintrag sieht · pid = Zeile in public.craft_posts
   let chist = [];
   try { const h = JSON.parse(R.LS.get(GEAR_HIST, '[]')); if (Array.isArray(h)) chist = h.map(hNorm).filter(Boolean); } catch {}
   const saveHist = () => { chist.sort((a, b) => b.ts - a.ts); if (chist.length > HIST_MAX) chist.length = HIST_MAX; R.LS.set(GEAR_HIST, JSON.stringify(chist)); };
@@ -2323,7 +2333,7 @@ window.RokMods.crafting = (R) => {
     R.$('chPageSnaps').classList.toggle('hidden', chPage !== 'snaps');
     document.querySelectorAll('[data-chpage]').forEach(b => { const on = b.dataset.chpage === chPage;
       b.className = `px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${on ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-transparent text-slate-400 hover:text-gold-300'}`; });
-    if (craftPane === 'hist') { renderCraftHist(); renderHistEditor(); renderSnaps(); }
+    if (craftPane === 'hist') { renderCraftHist(); renderHistEditor(); renderSnaps(); renderFriends(); if (!fr.busy) frLoad(); }
     if (R.view === 'craft' && craftPane === 'goal') renderGoals();
     if (R.view === 'craft' && craftPane === 'cal') renderCal();
     if (R.view === 'craft' && craftPane === 'plan') renderGearMain();
@@ -2356,8 +2366,9 @@ window.RokMods.crafting = (R) => {
             ${e.setName ? `<span class="px-1.5 rounded border border-ink-600 text-slate-300" translate="no">${R.esc(e.setName)}</span>` : ''}
             ${e.kind === 'manual' && sl ? `<span>${sl.icon} ${sl.label}</span>` : ''}
             <span class="${e.kind === 'hist' ? 'text-gold-300' : e.kind === 'manual' ? 'text-sky-300' : 'text-slate-500'}">${e.kind === 'auto' && e.src === 'scan' ? '🤖 per Scan' : k[0]}</span></div>
-          <div class="flex gap-1 shrink-0">
-            <button type="button" data-hnote="${R.esc(e.id)}" class="text-slate-500 hover:text-gold-300 px-1 text-xs" title="Notiz bearbeiten">✎</button>
+          <div class="flex items-center gap-1 shrink-0">
+            ${e.kind === 'auto' && !e.changes.length ? '' : hVisPick(e.vis, `data-hvis="${R.esc(e.id)}"`)}
+            <button type="button" data-hnote=""${R.esc(e.id)}" class="text-slate-500 hover:text-gold-300 px-1 text-xs" title="Notiz bearbeiten">✎</button>
             <button type="button" data-hdel="${R.esc(e.id)}" class="text-slate-500 hover:text-red-400 px-1 text-xs" title="Eintrag löschen">✕</button></div></div>
         ${e.changes.length ? `<div class="mt-1 divide-y divide-ink-800">${e.changes.map(hChangeRow).join('')}</div>` : ''}
         ${e.note ? `<div class="mt-2 text-sm text-slate-200 whitespace-pre-line break-words">${R.esc(e.note)}</div>` : ''}
@@ -2374,23 +2385,125 @@ window.RokMods.crafting = (R) => {
   R.$('craftHistList').addEventListener('click', async (ev) => {
     const t = ev.target;
     if (t.closest('[data-hmore]')) { hf.limit += 25; renderCraftHist(); return; }
+    const vb = t.closest('[data-hvis]');
+    if (vb) { const e = chist.find(x => x.id === vb.dataset.hvis); if (!e || e.vis === vb.dataset.v) return; const old = e.vis; e.vis = vb.dataset.v; renderCraftHist();
+      try { await hPublish(e); hMsg(e.vis === 'private' ? '🔒 Eintrag ist jetzt privat' : e.vis === 'friends' ? '👥 Für deine Freunde sichtbar' : '🌍 Für alle sichtbar'); }
+      catch (err) { e.vis = old; renderCraftHist(); hMsg(hPubErr(err), false); } return; }
     const im = t.closest('[data-himg]');
     if (im) { const [eid, i] = im.dataset.himg.split(':'), e = chist.find(x => x.id === eid); if (e) hLightbox(e.imgs[+i]); return; }
     const nb = t.closest('[data-hnote]');
     if (nb) { const e = chist.find(x => x.id === nb.dataset.hnote); if (!e) return;
       const v = await UI.prompt('Notiz zu diesem Eintrag:', e.note); if (v == null) return;
-      e.note = v.trim().slice(0, 500); saveHist(); renderCraftHist(); return; }
+      e.note = v.trim().slice(0, 500); saveHist(); renderCraftHist(); if (e.vis !== 'private') hPublish(e).catch(() => {}); return; }
     const db = t.closest('[data-hdel]');
     if (db) { const e = chist.find(x => x.id === db.dataset.hdel); if (!e) return;
       if (!(await UI.confirm('Diesen Eintrag aus der History löschen?'))) return;
       chist = chist.filter(x => x !== e); saveHist(); renderCraftHist();
+      if (e.pid) { e.vis = 'private'; hPublish(e).catch(() => {}); }
       const base = RokAuth.imgBase?.(), paths = e.imgs.filter(u => base && u.startsWith(base)).map(u => u.slice(base.length).split('?')[0]);
       if (paths.length) try { await RokAuth.db().storage.from('showcase').remove(paths); } catch {}
     }
   });
 
+  // ---- Teilen: privat / Freunde / öffentlich (public.craft_posts) + Freunde (public.friendships) ----
+  const HVIS = { private: ['🔒', 'Privat', 'nur du'], friends: ['👥', 'Freunde', 'deine Freunde'], public: ['🌍', 'Öffentlich', 'alle'] };
+  const hVisPick = (cur, attr, big) => `<span class="inline-flex rounded-md border border-ink-600 overflow-hidden">${Object.entries(HVIS).map(([k, [ic, lb, who]]) =>
+    `<button type="button" ${attr} data-v="${k}" aria-pressed="${cur === k}" title="${lb} – sichtbar für ${who}" class="${big ? 'px-2.5 py-1 text-xs' : 'px-1.5 py-0.5 text-[11px]'} ${cur === k ? (k === 'private' ? 'bg-ink-700 text-slate-100' : 'bg-gold-500/20 text-gold-200') : 'text-slate-500 hover:text-gold-300'}">${ic}${big ? ' ' + lb : ''}</button>`).join('')}</span>`;
+  const hUuid = () => crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); });
+  const hPubErr = (e) => R.tableMissing?.(e) || /craft_posts|friendships/i.test(String(e?.message || e)) ? 'Teilen geht erst, wenn das SQL für craft_posts/friendships in Supabase ausgeführt ist.' : 'Teilen fehlgeschlagen: ' + (e?.message || e);
+  async function hPublish(e) {   // Eintrag in craft_posts anlegen/ändern – oder bei „privat“ entfernen
+    const db = RokAuth.db?.(), me = RokAuth.myId?.(); if (!db || !me) throw new Error('Bitte zuerst einloggen.');
+    if (e.vis === 'private') { if (e.pid) { const r = await db.from('craft_posts').delete().eq('id', e.pid); if (r.error) throw r.error; } e.pid = ''; saveHist(); return; }
+    const row = { id: e.pid || hUuid(), user_id: me, visibility: e.vis, set_name: e.setName || '', changes: e.changes, note: e.note || '', imgs: e.imgs.filter(u => /^https:\/\//.test(u)), ts: new Date(e.ts).toISOString() };
+    const r = await db.from('craft_posts').upsert(row); if (r.error) throw r.error;
+    e.pid = row.id; saveHist(); cloudSave();
+  }
+  const fr = { rel: [], users: {}, posts: [], tab: 'friends', q: '', found: [], err: '', msg: '', loaded: false, busy: false,
+    seen: +R.LS.get('rok_craft_fr_seen', '0') || Date.now() - 7 * 864e5 };   // beim ersten Mal: nur die letzte Woche als „neu“
+  const frMe = () => RokAuth.myId?.() || null;
+  const frIds = () => fr.rel.filter(x => x.status === 'accepted').map(x => x.a === frMe() ? x.b : x.a);
+  const frNew = () => fr.posts.filter(p => p.user_id !== frMe() && frIds().includes(p.user_id) && Date.parse(p.posted_at) > fr.seen).length;
+  async function frUsers(ids) { const need = [...new Set(ids)].filter(id => id && !fr.users[id]); if (!need.length) return;
+    const { data } = await RokAuth.db().from('leaderboard').select('user_id,username,avatar,alliance_tag').in('user_id', need); (data || []).forEach(u => { fr.users[u.user_id] = u; }); }
+  async function frLoad() {
+    const db = RokAuth.db?.(), me = frMe(); if (!db || !me || fr.busy) return; fr.busy = true;
+    try {
+      const rel = await db.from('friendships').select('*').or(`a.eq.${me},b.eq.${me}`); if (rel.error) throw rel.error; fr.rel = rel.data || [];
+      const ids = frIds();
+      const q = fr.tab === 'public' ? db.from('craft_posts').select('*').eq('visibility', 'public').order('posted_at', { ascending: false }).limit(40)
+        : ids.length ? db.from('craft_posts').select('*').in('user_id', ids).order('posted_at', { ascending: false }).limit(40) : null;
+      const r = q ? await q : { data: [] }; if (r.error) throw r.error; fr.posts = r.data || [];
+      await frUsers([...fr.rel.flatMap(x => [x.a, x.b]), ...fr.posts.map(p => p.user_id)]);
+      fr.err = ''; fr.loaded = true;
+    } catch (e) { fr.err = hPubErr(e); }
+    fr.busy = false; frBadge(); if (R.view === 'craft' && craftPane === 'hist') renderFriends();
+  }
+  function frBadge() { const n = fr.tab === 'friends' ? frNew() : 0, b = document.querySelector('[data-cpane="hist"]'); if (!b) return;
+    let sp = b.querySelector('[data-frbadge]'); if (!sp) { sp = document.createElement('span'); sp.dataset.frbadge = ''; sp.className = 'ml-1.5 inline-grid place-items-center min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold align-middle'; b.appendChild(sp); }
+    sp.textContent = n > 9 ? '9+' : n; sp.classList.toggle('hidden', !n); }
+  const frName = (id) => fr.users[id]?.username || 'Spieler';
+  const frAva = (id, c = 'w-7 h-7') => { const u = fr.users[id]; return u?.avatar ? `<img src="${R.esc(u.avatar)}" alt="" class="${c} rounded-full object-cover border border-ink-600">` : `<span class="${c} rounded-full bg-ink-800 border border-ink-600 grid place-items-center text-[11px] text-slate-400">${R.esc(frName(id).slice(0, 1).toUpperCase())}</span>`; };
+  function renderFriends() {
+    const box = R.$('chFriends'); if (!box) return; const me = frMe();
+    if (!me) { box.innerHTML = '<h3 class="font-display text-lg gold-text">👥 Freunde</h3><p class="mt-2 text-sm text-slate-500">Zum Teilen und für Freunde bitte einloggen.</p>'; return; }
+    const inc = fr.rel.filter(x => x.status === 'pending' && x.b === me), out = fr.rel.filter(x => x.status === 'pending' && x.a === me), acc = fr.rel.filter(x => x.status === 'accepted');
+    const nNew = frNew(), seen = fr.seen;
+    const tab = (k, l) => `<button type="button" data-frtab="${k}" class="px-3 py-1.5 rounded-lg text-xs font-semibold border ${fr.tab === k ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 text-slate-400 hover:text-gold-300'}">${l}</button>`;
+    const post = (p) => { const ch = (Array.isArray(p.changes) ? p.changes : []).map(hNormCh).filter(Boolean), isNew = p.user_id !== me && Date.parse(p.posted_at) > seen, ts = Date.parse(p.ts || p.posted_at);
+      return `<div class="rounded-xl border ${isNew ? 'border-gold-400/60 bg-gold-500/10' : 'border-ink-700 bg-ink-950/40'} p-3">
+        <div class="flex items-center gap-2 text-[11px] text-slate-400">${frAva(p.user_id)}
+          <span class="font-semibold text-slate-100 truncate" translate="no">${R.esc(frName(p.user_id))}</span>
+          ${p.set_name ? `<span class="px-1.5 rounded border border-ink-600 text-slate-300 truncate" translate="no">${R.esc(p.set_name)}</span>` : ''}
+          <span class="ml-auto shrink-0 tabular-nums" title="${R.esc(hDay(ts) + ' ' + hTime(ts))}">${HVIS[p.visibility]?.[0] || ''} ${hDay(ts).replace(/^\w+\.,?\s*/, '')} ${hTime(ts)}</span>
+          ${isNew ? '<span class="shrink-0 px-1.5 rounded bg-red-500 text-white text-[10px] font-bold">NEU</span>' : ''}</div>
+        ${ch.length ? `<div class="mt-1 divide-y divide-ink-800">${ch.map(hChangeRow).join('')}</div>` : ''}
+        ${p.note ? `<div class="mt-2 text-sm text-slate-200 whitespace-pre-line break-words">${R.esc(p.note)}</div>` : ''}
+        ${(p.imgs || []).length ? `<div class="mt-2 flex flex-wrap gap-2">${p.imgs.slice(0, 6).map(u => `<button type="button" data-frimg="${R.esc(u)}" class="w-16 h-16 rounded-lg overflow-hidden border border-ink-700 hover:border-gold-500/60"><img src="${R.esc(u)}" alt="" loading="lazy" class="w-full h-full object-cover"></button>`).join('')}</div>` : ''}</div>`; };
+    const person = (x, btns) => { const id = x.a === me ? x.b : x.a; return `<div class="flex items-center gap-2 py-1">${frAva(id, 'w-6 h-6')}<span class="text-sm truncate" translate="no">${R.esc(frName(id))}</span><span class="ml-auto flex gap-1">${btns}</span></div>`; };
+    const sb = 'text-[11px] px-2 py-0.5 rounded-md border';
+    box.innerHTML = `<div class="flex flex-wrap items-center gap-2">
+        <h3 class="font-display text-lg gold-text mr-auto">👥 Freunde ${nNew ? `<span class="ml-1 align-middle text-[11px] px-1.5 py-0.5 rounded-full bg-red-500 text-white font-sans font-bold">${nNew} neu</span>` : ''}</h3>
+        ${tab('friends', '👥 Freunde')}${tab('public', '🌍 Öffentlich')}
+        <button type="button" data-frreload title="Aktualisieren" class="px-2 py-1.5 rounded-lg border border-ink-600 text-xs text-slate-400 hover:text-gold-300 ${fr.busy ? 'animate-pulse' : ''}">⟳</button></div>
+      <p class="mt-1 text-[11px] text-slate-500">Bei deinen Einträgen links mit 🔒 👥 🌍 wählen, wer sie sieht. Neue Crafts deiner Freunde sind hier markiert.</p>
+      ${fr.err ? `<div class="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-200">${R.esc(fr.err)}</div>` : ''}
+      <details class="mt-3 rounded-xl border border-ink-700 bg-ink-950/40 p-3" ${inc.length || !acc.length ? 'open' : ''}>
+        <summary class="cursor-pointer select-none text-xs font-semibold text-slate-200">Freunde verwalten · ${acc.length}${inc.length ? ` <span class="text-red-300">· ${inc.length} Anfrage${inc.length > 1 ? 'n' : ''}</span>` : ''}</summary>
+        <form data-frsearch class="mt-2 flex gap-2"><input name="q" value="${R.esc(fr.q)}" maxlength="40" placeholder="Spielername suchen …" class="flex-1 min-w-0 bg-ink-950 border border-ink-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-gold-500"><button class="px-3 py-1.5 rounded-lg border border-gold-500/60 text-gold-200 text-xs font-semibold">🔍 Suchen</button></form>
+        ${fr.found.length ? `<div class="mt-1 divide-y divide-ink-800">${fr.found.map(u => { const r = fr.rel.find(x => x.a === u.user_id || x.b === u.user_id);
+          return `<div class="flex items-center gap-2 py-1">${frAva(u.user_id, 'w-6 h-6')}<span class="text-sm truncate" translate="no">${R.esc(u.username)}</span>${u.alliance_tag ? `<span class="text-[11px] text-slate-500">[${R.esc(u.alliance_tag)}]</span>` : ''}
+            <span class="ml-auto">${r ? `<span class="text-[11px] text-slate-500">${r.status === 'accepted' ? '✓ Freund' : 'angefragt'}</span>` : `<button type="button" data-fradd="${R.esc(u.user_id)}" class="${sb} border-gold-500/60 text-gold-200">+ Anfragen</button>`}</span></div>`; }).join('')}</div>` : fr.q && !fr.busy ? '<p class="mt-1 text-[11px] text-slate-500">Niemand gefunden.</p>' : ''}
+        ${fr.msg ? `<p class="mt-1 text-[11px] text-emerald-400">${R.esc(fr.msg)}</p>` : ''}
+        ${inc.length ? `<div class="mt-3 text-[10px] uppercase tracking-widest text-red-300">Anfragen an dich</div>${inc.map(x => person(x, `<button type="button" data-fracc="${x.id}" class="${sb} border-emerald-500/60 text-emerald-300">✓ Annehmen</button><button type="button" data-frdel="${x.id}" class="${sb} border-ink-600 text-slate-400">✕</button>`)).join('')}` : ''}
+        ${out.length ? `<div class="mt-3 text-[10px] uppercase tracking-widest text-slate-500">Gesendet</div>${out.map(x => person(x, `<span class="text-[11px] text-slate-500">wartet …</span><button type="button" data-frdel="${x.id}" class="${sb} border-ink-600 text-slate-400" title="zurückziehen">✕</button>`)).join('')}` : ''}
+        ${acc.length ? `<div class="mt-3 text-[10px] uppercase tracking-widest text-slate-500">Freunde</div>${acc.map(x => person(x, `<button type="button" data-frdel="${x.id}" data-frask="1" class="${sb} border-ink-600 text-slate-500 hover:text-red-300" title="Freund entfernen">✕</button>`)).join('')}` : ''}
+      </details>
+      <div class="mt-3 space-y-2">${!fr.loaded && !fr.err ? '<p class="py-6 text-center text-sm text-slate-500">Lädt …</p>'
+        : fr.posts.length ? fr.posts.map(post).join('')
+        : `<p class="py-6 text-center text-sm text-slate-500">${fr.tab === 'friends' ? (acc.length ? 'Deine Freunde haben noch nichts geteilt.' : 'Noch keine Freunde – oben nach Namen suchen und anfragen.') : 'Noch keine öffentlichen Crafts.'}</p>`}</div>`;
+    // angesehen → ab jetzt nicht mehr „neu“ (Markierung bleibt bis zum nächsten Öffnen sichtbar)
+    if (fr.tab === 'friends' && fr.loaded && fr.posts.length) { const top = Math.max(...fr.posts.map(p => Date.parse(p.posted_at) || 0)); if (top > fr.seen) { R.LS.set('rok_craft_fr_seen', String(top)); setTimeout(() => { fr.seen = top; frBadge(); }, 0); } }
+  }
+  R.$('chFriends').addEventListener('submit', async (ev) => { const f = ev.target.closest('[data-frsearch]'); if (!f) return; ev.preventDefault();
+    fr.q = f.q.value.trim(); fr.found = []; fr.msg = ''; if (fr.q.length < 2) { renderFriends(); return; }
+    const { data, error } = await RokAuth.db().from('leaderboard').select('user_id,username,avatar,alliance_tag').ilike('username', `%${fr.q.replace(/[%_,()]/g, '')}%`).neq('user_id', frMe()).limit(8);
+    fr.found = error ? [] : data || []; fr.found.forEach(u => { fr.users[u.user_id] = u; }); renderFriends(); });
+  R.$('chFriends').addEventListener('click', async (ev) => { const t = ev.target, db = RokAuth.db?.(), me = frMe(); if (!db || !me) return;
+    const tb = t.closest('[data-frtab]'); if (tb) { fr.tab = tb.dataset.frtab; fr.loaded = false; renderFriends(); frLoad(); return; }
+    if (t.closest('[data-frreload]')) { frLoad(); return; }
+    const im = t.closest('[data-frimg]'); if (im) { hLightbox(im.dataset.frimg); return; }
+    const run = async (p, ok) => { const r = await p; if (r.error) { fr.err = hPubErr(r.error); renderFriends(); return; } fr.msg = ok; await frLoad(); };
+    const ad = t.closest('[data-fradd]'); if (ad) { const id = ad.dataset.fradd, back = fr.rel.find(x => x.a === id && x.b === me);
+      if (back) return run(db.from('friendships').update({ status: 'accepted' }).eq('id', back.id), '✓ Ihr seid jetzt Freunde');
+      return run(db.from('friendships').insert({ a: me, b: id, status: 'pending' }), `✓ Anfrage an ${frName(id)} gesendet`); }
+    const ac = t.closest('[data-fracc]'); if (ac) return run(db.from('friendships').update({ status: 'accepted' }).eq('id', ac.dataset.fracc), '✓ Anfrage angenommen');
+    const dl = t.closest('[data-frdel]'); if (dl) { if (dl.dataset.frask && !(await UI.confirm('Diesen Freund entfernen?'))) return; return run(db.from('friendships').delete().eq('id', dl.dataset.frdel), ''); }
+  });
+  setInterval(() => { if (R.view === 'craft' && !document.hidden) frLoad(); }, 120e3);
+  setTimeout(() => frLoad(), 2500);
+
   // ---- Seite 1: Neue History (Set wählen → Item antippen → Tier/Refine → hinzufügen) ----
-  const hd = { open: false, setId: '', slots: null };
+  const hd = { open: false, setId: '', slots: null, vis: ['friends', 'public'].includes(R.LS.get('rok_craft_vis', '')) ? R.LS.get('rok_craft_vis', '') : 'private' };
   const hdSet = () => gear.sets.find(s => s.id === hd.setId) || null;
   const hdLoad = (id) => { const s = gear.sets.find(x => x.id === id) || activeSet(); hd.setId = s.id; hd.slots = JSON.parse(JSON.stringify(s.ist)); gearSel.hist = gearSel.hist || 'helm'; };
   const hdChanges = () => { const s = hdSet(); return s && hd.slots ? GEAR_SLOTS.map(sl => ({ slot: sl.k, from: gSnap(s.ist[sl.k]), to: gSnap(hd.slots[sl.k]) })).filter(c => !gSame(c.from, c.to)) : []; };
@@ -2407,7 +2520,9 @@ window.RokMods.crafting = (R) => {
     R.$('chDiff').innerHTML = ch.length ? `<div class="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Wird eingetragen (${ch.length})</div><div class="divide-y divide-ink-800">${ch.map(hChangeRow).join('')}</div>`
       : '<div class="text-xs text-slate-500">Noch keine Änderung – tippe ein Item an und stell Tier oder Refine ein.</div>';
     R.$('chAdd').disabled = !ch.length;
+    R.$('chVis').innerHTML = hVisPick(hd.vis, 'data-chvis', true);
   }
+  R.$('chVis').addEventListener('click', (ev) => { const b = ev.target.closest('[data-chvis]'); if (!b) return; hd.vis = b.dataset.v; R.LS.set('rok_craft_vis', hd.vis); renderHistEditor(); });
   R.$('chNewBtn').onclick = () => { hd.open = true; hdLoad(gear.active); renderHistEditor(); };
   R.$('chCancel').onclick = () => { hd.open = false; renderHistEditor(); };
   R.$('chReset').onclick = () => { hdLoad(hd.setId); renderHistEditor(); };
@@ -2432,8 +2547,9 @@ window.RokMods.crafting = (R) => {
   R.$('chEdit').addEventListener('change', hdEdit); R.$('chEdit').addEventListener('click', hdEdit);
   R.$('chAdd').onclick = () => {
     const s = hdSet(), ch = hdChanges(); if (!s || !ch.length) return;
-    chist.unshift({ id: R.newId(), ts: Date.now(), kind: 'hist', src: 'edit', setId: s.id, setName: s.name, slot: '', changes: ch, note: R.$('chNote').value.trim().slice(0, 500), imgs: [] });
-    saveHist();
+    const ne = { id: R.newId(), ts: Date.now(), kind: 'hist', src: 'edit', setId: s.id, setName: s.name, slot: '', changes: ch, note: R.$('chNote').value.trim().slice(0, 500), imgs: [], vis: hd.vis, pid: '' };
+    chist.unshift(ne); saveHist();
+    if (ne.vis !== 'private') hPublish(ne).then(() => renderCraftHist()).catch((err) => { ne.vis = 'private'; saveHist(); renderCraftHist(); hMsg(hPubErr(err), false); });
     if (R.$('chApply').checked) { GEAR_SLOTS.forEach(sl => { s.ist[sl.k] = { ...hd.slots[sl.k] }; }); s.histBase = JSON.parse(JSON.stringify(s.ist)); s.updated = Date.now(); R.LS.set(GEAR_SETS, JSON.stringify(gear)); }
     cloudSave();
     R.$('chNote').value = ''; hd.open = false; hf.kind = hf.kind === 'auto' || hf.kind === 'manual' ? 'all' : hf.kind;
