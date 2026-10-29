@@ -384,6 +384,7 @@ window.RokMods.showcase = (R) => {
     insc: (Array.isArray(a?.insc) ? a.insc : []).slice(0, 12).map(i => ({ t: String(i?.t || '').slice(0, 24), c: SC_INSC[i?.c] ? i.c : 'gold' })),
     arms: Object.fromEntries(Object.keys(ARM_TYPES).map(k => [k, ARM_BY_ID[a?.arms?.[k]]?.type === k ? a.arms[k] : ''])),
     troop: SC_TROOPS[a?.troop] ? a.troop : 'infantry', ...Object.fromEntries(SC_ARM_STATS.map(([k]) => [k, scNum1(a?.[k])])) });
+  R.armData = { TYPES: ARM_TYPES, POOL: ARM_POOL, FORMATIONS: ARM_FORMATIONS, BY_ID: ARM_BY_ID, INSC: SC_INSC, STATS: SC_ARM_STATS, TROOPS: SC_TROOPS, known: (t) => scInscKnown(t) };   // für Craft → Charakter bearbeiten
   const scArmHas = (a) => a.insc.some(i => i.t) || !!a.formation || SC_ARM_STATS.some(([k]) => a[k]);
   const scArmVis = (a) => a.insc.some(i => i.t) || !!a.formation;                  // Rüstungs-Element (Inschriften + Formation)
   const scStHas = (a) => SC_ARM_STATS.some(([k]) => a[k]);                          // Werte-Element (Angriff, Verteidigung …)
@@ -404,12 +405,22 @@ window.RokMods.showcase = (R) => {
     .filter(([k, v]) => SY_KEYS.some(([q]) => q === k) && isFinite(+v?.dx) && isFinite(+v?.dy)).map(([k, v]) => [k, { dx: +v.dx, dy: +v.dy }]));
   const scBound = (x, k) => x.syncMode === 'full' || (x.syncMode === 'partial' && !!x.sy?.[k]);   // je Modul eigene Abfrage
   const scPartsNorm = (p) => Object.fromEntries(['c', 'n', 'g'].map(k => [k, { x: scPos(p?.[k]?.x, 100), y: scPos(p?.[k]?.y, 200), s: scScale(p?.[k]?.s), r: scRot(p?.[k]?.r) }]));
+  // Charakter-Profil (Bild mit Charakter, Hintergrund und Runensäulen) je Set
+  const scProfNum = (v, lo, hi, d) => { const n = +v; return Number.isFinite(n) ? Math.min(hi, Math.max(lo, Math.round(n * 10) / 10)) : d; };
+  const scProfNorm = (p) => ({ char: String(p?.char || '').slice(0, 40), bg: typeof p?.bg === 'string' ? p.bg.slice(0, 40) : 'img:lava', stones: p?.stones !== false,
+    bgY: scProfNum(p?.bgY, -12, 12, 0), chY: scProfNum(p?.chY, -20, 20, 0), chS: scProfNum(p?.chS, 0.7, 1.25, 1),
+    pts: Object.fromEntries(Object.entries(p?.pts || {}).filter(([k, v]) => R.GEAR_SLOTS?.some(sl => sl.k === k) && Array.isArray(v)).map(([k, v]) => [k, [scProfNum(v[0], 0, 100, 50), scProfNum(v[1], 0, 100, 50)]])),
+    flip: Object.fromEntries(['flag', 'emblem', 'scroll', 'instrument'].map(k => [k, [-8, 0, 8].includes(+p?.flip?.[k]) ? +p.flip[k] : 0])),
+    lines: p?.lines !== false,   // Linien vom Feld zum Körper
+    order: [...new Set((Array.isArray(p?.order) ? p.order : []).filter(k => ['flag', 'emblem', 'scroll', 'instrument'].includes(k)))],   // Säulen links → rechts
+    gfx: p?.gfx && typeof p.gfx === 'object' ? { ...(typeof p.gfx.fr === 'string' ? { fr: p.gfx.fr.slice(0, 60) } : {}), ...(typeof p.gfx.fp === 'string' ? { fp: p.gfx.fp.slice(0, 60) } : {}), ...(typeof p.gfx.pt === 'boolean' ? { pt: p.gfx.pt } : {}) } : {} });   // eigene Rahmen/Partikel nur für dieses Bild
   const scSetNorm = (x) => scStMigrate(x, { id: String(x?.id || R.newId()), name: String(x?.name || '').trim().slice(0, 30), mode: 'manual',
     shot: scImgOk(x?.shot) ? x.shot : '', cmd: [0, 1].map(i => scCmdNorm(x?.cmd?.[i])), gear: scGearNorm(x?.gear),
     x: scPos(x?.x, 100), y: scPos(x?.y, 200), s: scScale(x?.s), r: scRot(x?.r), arm: scArmNorm(x?.arm), priv: false, cg: scInt(x?.cg, 0, 70, 32),
     st: scStNorm(x?.st, x?.arm), gfx: scGfxNorm(x?.gfx), free: !!x?.free,
     heads: !!x?.heads, hideEmpty: !!x?.hideEmpty, gearOn: !!x?.gearOn,
     cm: x?.cm !== false, cn: x?.cn !== false, nc: scColor(x?.nc), split: !!x?.split, parts: scPartsNorm(x?.parts), sy: scSyNorm(x?.sy), syncMode: scModeOf(x), lock: scModeOf(x) !== 'free', dock: scDockNorm(x?.dock),
+    prof: scProfNorm(x?.prof),
     link: (Array.isArray(x?.link) ? x.link : []).map(String).slice(0, 20), kind: ['garrison', 'rally'].includes(x?.kind) ? x.kind : '' });   // kind: Garnison / Rally (nur 2 Kommandanten)   // heads = nur Kommandanten (Garnison) · hideEmpty = leere Slots ausblenden   // cg = Überlappung der Kommandanten in %
 
   function scStMigrate(raw, o) {                            // alte Sets: Werte steckten in der Rüstung → Rüstung wird kürzer, obere Kante bleibt
@@ -957,19 +968,26 @@ window.RokMods.showcase = (R) => {
       + (it?.icon ? `<img src="${it.icon}" alt="" draggable="false" class="absolute object-contain pointer-events-none" style="left:23%;top:23%;width:54%;height:54%;${big ? 'filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))' : ''}">` : '');   // Item über dem Rahmen
   }
   const gHasFrame = (v, it, rr, fx) => { const f = gfFor(it, v, rr, fx); return !!f && typeof f === 'object'; };
-  function scGearBoard(g, mini = false, hideEmpty = false, fxIn = null) {
-    const fx = fxIn || SC_GFX_DEF, box = (sl) => `left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%`;
+  // Gear-Brett im Detail: Rauten oder rund um den Charakter (Umschalter gilt überall)
+  function scDrawGearBoard(x) {
+    const co = { name: x.name || '' }, on = false, el = R.$('scGearBoard');   // Charakter-Ansicht nur im „🧍 Charakter-Profil“ unten
+    R.charFrame?.(el, on); const w = R.$('scGearWrap'); if (w) w.style.maxWidth = on ? '320px' : '';
+    el.innerHTML = scGearBoard(x.gear, false, false, x.gfx, on ? co : false);
+    const bar = R.$('scViewBar'); if (bar) bar.innerHTML = '';
+  }
+  function scGearBoard(g, mini = false, hideEmpty = false, fxIn = null, ch = false) {
+    const fx = fxIn || SC_GFX_DEF, box = (sl) => ch ? R.charBox(sl.k, ch === true ? {} : ch) : `left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%`;
     const rows = R.GEAR_SLOTS.map(sl => { const v = g[sl.k], it = scItem(v); return { sl, v, it, rr: R.gItem(v.item)?.rarity || v.rarity }; });
     const frames = rows.map(({ sl, v, it, rr }) => { const h = gFrameHtml(v, it, rr, fx, !mini && sc.own && sc.gsel === sl.k, !mini); return h ? `<div class="absolute pointer-events-none z-[15]" style="${box(sl)}">${h}</div>` : ''; }).join('');
     const deco = frames + rows.map(({ sl, v, it, rr }) => it && !(hideEmpty && !it) ? `<div class="absolute pointer-events-none z-20" style="${box(sl)}">${gDecoHtml(v, it, fx, !mini, rr)}</div>` : '').join('');
-    if (mini) return rows.map(({ sl, v, it, rr }) => {
+    if (mini) return (ch ? R.charBack(g, ch === true ? {} : ch) : '') + rows.map(({ sl, v, it, rr }) => {
       if (hideEmpty && !it) return '';
       return `<div class="absolute pointer-events-none" style="${box(sl)}">
         ${gTileBody(v, it, rr, fx, false, false)}
         ${it?.icon && !gHasFrame(v, it, rr, fx) ? `<img src="${it.icon}" alt="" draggable="false" class="absolute object-contain" style="left:23%;top:23%;width:54%;height:54%">` : ''}
       </div>`;
     }).join('') + deco;
-    return rows.map(({ sl, v, it, rr }) => {
+    return (ch ? R.charBack(g, ch === true ? {} : ch) : '') + rows.map(({ sl, v, it, rr }) => {
       const active = sc.own && sc.gsel === sl.k;
       return `<button type="button" data-sctile="${sl.k}" ${sc.own ? '' : 'tabindex="-1"'} title="${R.esc(sl.label + (it ? ': ' + it.name : ''))}"
           class="gdia absolute focus:outline-none ${sc.own ? '' : 'cursor-default'}" style="${box(sl)}">
@@ -1701,7 +1719,7 @@ window.RokMods.showcase = (R) => {
           class="w-7 h-7 rounded-lg font-bold border ${i === cgStep ? 'border-gold-400 bg-gold-500/20 text-gold-200' : 'border-ink-600 hover:border-gold-500/60 hover:text-gold-300'}">${i + 1}</button>`).join('')}
         ${D().sets.length > 1 ? '<button type="button" id="scCgAll" class="ml-1 px-2.5 h-7 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">für alle Sets</button>' : ''}
       </div>` : '';
-      R.$('scGearBoard').innerHTML = scGearBoard(x.gear, false, false, x.gfx);
+      scDrawGearBoard(x);
       R.gearSel.sc = sc.gsel;
       R.$('scGearEdit').innerHTML = own && sc.gsel ? R.gearEditor('sc', { sc: x.gear }, { rows: R.GEAR_SLOTS.map(sl => ({ sl, status: 'none' })) }) : '';
       R.$('scGearFx').innerHTML = own ? scGearFxHtml(x) : '';
@@ -1765,6 +1783,30 @@ window.RokMods.showcase = (R) => {
   }
   let scGfxOpen = true;
   // Rüstung rechts neben Ausrüstung bzw. Screenshot (für alle sichtbar, sobald etwas eingetragen ist)
+  // ---- 🧍 Charakter-Profil: Set als Bild mit Charakter, Hintergrund und Runensäulen (Armaments) ----
+  let scProfOpen = false;
+  const scProfCtx = (x) => ({ pick: x.prof.char, name: x.name, bg: { k: x.prof.bg }, arm: { ...x.arm, flip: x.prof.flip, scene: x.prof.stones } });
+  function drawProf() {
+    const box = R.$('scProf'); if (!box) return; const x = scSet();
+    box.innerHTML = x && R.charBoardHTML ? '<div class="mt-4 rounded-xl border border-gold-500/30 bg-ink-950/40 px-3 py-2 text-xs text-slate-300">🧍 Charakter-Bild mit Hintergrund und Runensäulen: oben im Reiter <b class="text-gold-200">„🧍 Charakter Showcase“</b>.</div>' : ''; return;
+    if (!x || (x.kind && !x.gearOn) || !R.charBoardHTML || !R.GEAR_SLOTS.some(sl => x.gear?.[sl.k]?.item)) { box.innerHTML = ''; return; }
+    const ctx = scProfCtx(x), own = sc.own, fi = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
+    const parts = ['flag', 'emblem', 'scroll', 'instrument'].filter(k => ARM_BY_ID[x.arm.arms?.[k]]);
+    box.innerHTML = `<details id="scProfBox" class="mt-4 rounded-xl border border-gold-500/40 bg-ink-950/50 p-3" ${scProfOpen ? 'open' : ''}>
+      <summary class="cursor-pointer select-none font-semibold text-gold-300">🧍 Charakter-Profil <span class="text-[11px] font-normal text-slate-400">· Bild mit Charakter, Hintergrund und Runensäulen</span></summary>
+      <div class="mt-3 grid gap-4 md:grid-cols-[minmax(0,1fr)_220px] items-start">
+        <div class="relative mx-auto w-full max-w-[460px] aspect-square">${R.charBoardHTML(x.gear, ctx)}</div>
+        ${own ? `<div class="space-y-2 text-xs">
+          <label class="block text-slate-400">Charakter<select data-prof="char" class="${fi} mt-1 w-full"><option value="">🔄 automatisch</option>${(R.charList?.() || []).map(c => `<option value="${R.esc(c.id)}"${x.prof.char === c.id ? ' selected' : ''}>🧍 ${R.esc(c.name)}</option>`).join('')}</select></label>
+          <label class="block text-slate-400">Hintergrund<select data-prof="bg" class="${fi} mt-1 w-full">${(R.charBgList?.() || []).map(([k, l]) => `<option value="${k}"${x.prof.bg === k ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
+          <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" data-prof="stones" ${x.prof.stones ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">🪨 Runensäulen (Armaments) zeigen</label>
+          ${parts.length ? `<div class="text-slate-400">Säulen neigen:</div><div class="grid grid-cols-2 gap-1">${parts.map(k => `<button type="button" data-prof-flip="${k}" class="px-2 py-1 rounded-md border ${x.prof.flip[k] ? 'border-gold-400 text-gold-200' : 'border-ink-600 text-slate-300'}">${ARM_TYPES[k].icon} ${x.prof.flip[k] < 0 ? '↖' : x.prof.flip[k] > 0 ? '↗' : '⬆'}</button>`).join('')}</div>`
+            : '<div class="text-slate-500">Für Runensäulen oben unter „Rüstung“ Armaments wählen.</div>'}
+          <button type="button" data-prof-feed class="w-full mt-1 px-3 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">📰 Im Feed posten</button>
+          <div data-prof-msg class="text-[11px]"></div></div>` : ''}
+      </div></details>`;
+  }
+  R.boardStyleHooks = R.boardStyleHooks || []; R.boardStyleHooks.push(() => { try { drawProf(); } catch {} });
   function drawArmSide() {
     const a = scSet()?.arm, has = !!a && scArmHas(a);
     R.$('scArmSide').classList.toggle('hidden', !has);
@@ -1803,7 +1845,7 @@ window.RokMods.showcase = (R) => {
   }
   function drawArm() {
     const a = scSet().arm;
-    drawArmSide();
+    drawArmSide(); drawProf();
     if (scSet().kind && !scSet().gearOn) { R.$('scArmSide').classList.add('hidden'); R.$('scArm').innerHTML = ''; return; }
     if (!sc.own) { R.$('scArm').innerHTML = ''; return; }
     const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
@@ -2595,6 +2637,19 @@ window.RokMods.showcase = (R) => {
   });
   // ---- Rüstung ----
   R.$('scArm').addEventListener('toggle', (ev) => { if (ev.target.id === 'scArmBox') scArmOpen = ev.target.open; }, true);
+  R.$('scProf')?.addEventListener('toggle', (ev) => { if (ev.target.id === 'scProfBox') scProfOpen = ev.target.open; }, true);
+  R.$('scProf')?.addEventListener('change', (ev) => { const t = ev.target, x = scSet(); if (!sc.own || !x || !t.dataset.prof) return;
+    if (t.dataset.prof === 'stones') x.prof.stones = t.checked; else x.prof[t.dataset.prof] = t.value; scProfOpen = true; drawProf(); scSaveSoon(); });
+  R.$('scProf')?.addEventListener('click', async (ev) => { const x = scSet(); if (!sc.own || !x) return;
+    const f = ev.target.closest('[data-prof-flip]'); if (f) { const k = f.dataset.profFlip, v = x.prof.flip[k] || 0; x.prof.flip[k] = v === 0 ? -8 : v === -8 ? 8 : 0; scProfOpen = true; drawProf(); scSaveSoon(); return; }
+    if (!ev.target.closest('[data-prof-feed]')) return;
+    const msg = R.$('scProf').querySelector('[data-prof-msg]');
+    if (!R.feedShareSet) { msg.innerHTML = '<span class="text-amber-300">Feed ist noch nicht geladen.</span>'; return; }
+    const note = await UI.prompt(`Charakter-Profil „${x.name || 'Set'}“ im Feed posten.\n\nText dazu (optional):`, '', { title: '📰 Im Feed posten', ok: 'Posten' }); if (note === null) return;
+    const gear = Object.fromEntries(R.GEAR_SLOTS.map(sl => { const v = x.gear?.[sl.k], it = R.gItem(v?.item); return [sl.k, v?.item ? { item: v.item, name: it?.name || '', icon: it?.icon || '', rarity: it?.rarity || v.rarity, tier: v.tier || 0, refine: v.refine || 0, refType: v.refType } : null]; }));
+    const ctx = scProfCtx(x);
+    try { await R.feedShareSet({ name: x.name || 'Set', gear, char: x.prof.char || R.charOf?.(gear, { name: x.name })?.id || '', bg: ctx.bg, arm: ctx.arm, note: note.trim() }); msg.innerHTML = '<span class="text-emerald-300">✓ Im Feed gepostet</span>'; }
+    catch (e) { msg.innerHTML = `<span class="text-red-300">⚠ ${R.esc(e.message || String(e))}</span>`; } });
   R.$('scArm').addEventListener('input', (ev) => {
     const t = ev.target, a = scSet().arm;
     if (t.dataset.insc != null && t.dataset.f === 't') a.insc[+t.dataset.insc].t = t.value.slice(0, 24);
@@ -2652,7 +2707,7 @@ window.RokMods.showcase = (R) => {
       if (opts.active && sc.doc.list.some((x) => x.id === opts.active)) sc.doc.active = opts.active;
       sc.edit = false; scBar = false; sc.exporting = true; scOpen = true; scApplyOpen(); R.$('scStage').classList.remove('sc-zoom'); drawStage();
       await new Promise((r) => setTimeout(r, 160));
-      const h2i = await scLoadH2I(), node = R.$('scStage'), opt = { pixelRatio: opts.pixelRatio || 1.5, backgroundColor: '#07090f', cacheBust: true, quality: 0.86 };
+      const h2i = await scLoadH2I(), node = R.$('scStage'), opt = { pixelRatio: opts.pixelRatio || 1.5, backgroundColor: '#07090f', cacheBust: true, style: { margin: '0' }, quality: 0.86 };
       const f = opts.jpeg ? h2i.toJpeg : h2i.toPng;
       let url; try { url = await f(node, opt); } catch { url = await f(node, { ...opt, skipFonts: true }); }
       return { url, title: D().title, id: D().id };
@@ -2673,6 +2728,10 @@ window.RokMods.showcase = (R) => {
     s.onerror = () => { scH2I = null; reject(new Error('Download-Bibliothek konnte nicht geladen werden (Internet/Adblocker prüfen).')); };
     document.head.appendChild(s);
   }));
+  // Ein beliebiges Element als PNG herunterladen (Charakter Showcase)
+  R.downloadNode = async (node, name) => { const h2i = await scLoadH2I(), opt = { pixelRatio: 2, backgroundColor: '#07090f', cacheBust: true, style: { margin: '0' }, filter: (n) => !(n.dataset && n.dataset.ptk) };
+    let url; try { url = await h2i.toPng(node, opt); } catch { url = await h2i.toPng(node, { ...opt, skipFonts: true }); }
+    const a = document.createElement('a'); a.href = url; a.download = `${String(name || 'charakter').replace(/[^\wäöüÄÖÜß-]+/g, '_')}.png`; document.body.appendChild(a); a.click(); a.remove(); };
   R.$('scDl').onclick = async () => {
     if (!sc.own) return;
     const btn = R.$('scDl'), wasEdit = sc.edit;
@@ -2682,7 +2741,7 @@ window.RokMods.showcase = (R) => {
       const h2i = await scLoadH2I();
       sc.edit = false; sc.exporting = true; R.$('scStage').classList.remove('sc-zoom'); drawStage();
       await new Promise(r => setTimeout(r, 120));
-      const node = R.$('scStage'), opt = { pixelRatio: 2, backgroundColor: '#07090f', cacheBust: true };
+      const node = R.$('scStage'), opt = { pixelRatio: 2, backgroundColor: '#07090f', cacheBust: true, style: { margin: '0' } };
       let url;
       try { url = await h2i.toPng(node, opt); } catch { url = await h2i.toPng(node, { ...opt, skipFonts: true }); }
       const a = document.createElement('a');
@@ -2705,7 +2764,7 @@ window.RokMods.showcase = (R) => {
     if (R.gearPickEvent(t)) { drawShowcase(); return; }
     const v = scSet().gear[t.dataset.slot];
     if (t.dataset.f === 'clear') { v.item = ''; scSnap(v, null); v.tier = 0; v.refine = 0; }
-    else if (t.dataset.f === 'refset') { if (t.dataset.v) { v.refType = R.gRefType(t.dataset.v); v.refine = 100; } else v.refine = 0; }
+    else if (t.dataset.f === 'refset') { if (t.dataset.v) { v.refType = R.gRefType(t.dataset.v); if (!v.refine) v.refine = 100; } else v.refine = 0; }
     else if (t.dataset.f === 'item') { v.item = t.dataset.v ?? t.value; const it = R.gItem(t.value); v.rarity = it ? it.rarity : 'legendary'; scSnap(v, it); v.tier = 0; v.refine = 0; }
     else if (t.dataset.f === 'tier' && (R.gItem(v.item)?.rarity || v.rarity) !== 'legendary') v.tier = 0;   // Iconic nur bei legendären Items
     else if (t.dataset.f === 'refine') v.refine = R.gRefine(t.dataset.v);
@@ -2719,7 +2778,8 @@ window.RokMods.showcase = (R) => {
     if (ev.target.id === 'scGearTools') { scGearOpen = ev.target.open; try { localStorage.setItem('rok_sc_gear_open', scGearOpen ? '1' : '0'); } catch {} }
     else if (ev.target.id === 'scGfxBox') scGfxOpen = ev.target.open;
   }, true);
-  const scGfxRedraw = () => { const x = scSet(); R.$('scGearBoard').innerHTML = scGearBoard(x.gear, false, false, x.gfx); drawStage(); };
+  const scGfxRedraw = () => { scDrawGearBoard(scSet()); drawStage(); };
+  R.boardStyleHooks = R.boardStyleHooks || []; R.boardStyleHooks.push(() => { try { if (scSet()?.mode === 'manual' && R.$('scGearBoard')) scDrawGearBoard(scSet()); } catch {} });
   const scGfxSpread = () => { const d = D(), x = scSet(); if (d.gfxAll) d.sets.forEach(y => { if (y !== x) y.gfx = { ...x.gfx }; }); };   // „Für alle Sets gleich“
   R.$('scGearFx').addEventListener('change', async (ev) => {
     if (!sc.own) return;
@@ -2773,6 +2833,54 @@ window.RokMods.showcase = (R) => {
     sc.gsel = null; drawShowcase(); scSave(`✓ Übernommen aus „${srcName}“`);
   }
   R.$('scGearTools').addEventListener('change', (ev) => { if (ev.target.id === 'scCopyFrom' && ev.target.value) scCopyFrom(ev.target.value); });
+  // ---- Verbindung zum Crafting-Planer: Sets aller eigenen Showcases lesen und Ausrüstung hineinschreiben ----
+  const scOwnDoc = () => (sc.own && sc.doc) ? sc.doc : ownShowcase();
+  R.scGearSets = () => scOwnDoc().list.flatMap(s => s.sets.map((x, i) => ({ scId: s.id, scTitle: s.title, setId: x.id,
+    setName: x.kind ? SC_KIND[x.kind] : (x.name || 'Set ' + (i + 1)), gear: JSON.parse(JSON.stringify(x.gear)) })));
+  R.scGetArm = (scId, setId) => { const x = scOwnDoc().list.find(s => s.id === scId)?.sets.find(y => y.id === setId); return x?.arm ? JSON.parse(JSON.stringify(x.arm)) : null; };
+  // ---- für den Reiter „🧍 Charakter Showcase“ (showcases.js): alle eigenen Sets mit Profil-Einstellungen ----
+  R.scProfSets = () => scOwnDoc().list.flatMap(sh => sh.sets.filter(x => !x.kind || x.gearOn).map((x, i) => ({ scId: sh.id, scTitle: sh.title, setId: x.id,
+    name: x.kind ? SC_KIND[x.kind] : (x.name || 'Set ' + (i + 1)), gear: JSON.parse(JSON.stringify(x.gear)), arm: JSON.parse(JSON.stringify(x.arm)), prof: JSON.parse(JSON.stringify(x.prof)) })));
+  R.scProfCtxOf = (p, edit) => ({ pick: p.prof.char, name: p.name, bg: { k: p.prof.bg }, lines: p.prof.lines, arm: { ...p.arm, flip: p.prof.flip, scene: p.prof.stones, order: p.prof.order }, adj: { bgY: p.prof.bgY, chY: p.prof.chY, chS: p.prof.chS, pts: p.prof.pts }, edit: !!edit });
+  // Charakter-Bild mit den echten Showcase-Kacheln (Rahmen, Expertise, Refine-Symbol, Iconic wie im Showcase)
+  R.scBoardFor = (gear, gfx, ctx) => { try { const g = scGearNorm(gear || {}); return scGearBoard(g, true, false, gfx ? scGfxNorm(gfx) : null, ctx); } catch (e) { console.warn(e); return R.charBoardHTML(gear, ctx); } };
+  // Rahmen/Partikel fürs Charakter-Bild: Showcase-Einstellung des Sets + eigene Wahl aus dem Charakter Showcase
+  const scProfGfx = (x) => scGfxNorm({ ...(x.gfx || {}), ...(x.prof?.gfx || {}) });
+  R.scGfxOf = (scId, setId) => { const x = scOwnDoc().list.find(s => s.id === scId)?.sets.find(y => y.id === setId); return x ? JSON.parse(JSON.stringify(scProfGfx(x))) : null; };
+  // Auswahl der Expertise-Rahmen (Gold + Lila) und Partikel für den Charakter Showcase
+  R.scProfGfxHtml = (scId, setId) => { const x = scOwnDoc().list.find(s => s.id === scId)?.sets.find(y => y.id === setId); if (!x) return '';
+    const fx = scProfGfx(x), own = x.prof?.gfx || {};
+    const tile = (f, on, c, key) => { const face = c === 'purple' ? gFace('epic') : gFace('legendary', fx.fh);
+      const inner = f === 'css' ? `<span class="gdia absolute inset-0" style="background:${GOLD_RIM}"></span><span class="gdia absolute inset-[4px]" style="background:${face}"></span>`
+        : f === 'none' ? `<span class="gdia absolute inset-0" style="background:${c === 'purple' ? R.GFILL.epic[0] : R.GFILL.legendary[0]}"></span><span class="gdia absolute inset-[2px]" style="background:${face}"></span>`
+        : `<span class="gdia absolute" style="inset:10%;background:${face}"></span>${gfImg(f, 'absolute inset-0 w-full h-full max-w-none', '')}${fx.pt && c === 'gold' ? gfParticles('inset:0;width:100%;height:100%') : ''}`;
+      const lbl = f === 'css' ? 'Glitzer-Rand' : f === 'none' ? 'Kein Rahmen' : f.id.replace(/^frame-/, '').replace(/-/g, ' ');
+      return `<button type="button" data-scp-gfr="${R.esc(key)}" data-scp-gfc="${c}" aria-pressed="${on}" title="${R.esc(lbl)}" class="relative w-12 h-12 rounded-lg border-2 ${on ? 'border-gold-400 bg-gold-500/15' : 'border-ink-600 hover:border-gold-500/60'}"><span class="absolute inset-1">${inner}</span></button>`; };
+    const cur = (v, c) => v === 'css' || v === 'none' ? v : (gfById(v) || gfList(c)[0])?.id || 'css';
+    const row = (c, v) => [...gfList(c).map(f => tile(f, v === f.id, c, f.id)), tile('css', v === 'css', c, 'css'), tile('none', v === 'none', c, 'none')].join('');
+    return `<div class="text-[10px] uppercase tracking-widest text-orange-300">Gold · legendäre Items</div><div class="mt-1 flex flex-wrap gap-1.5">${row('gold', cur(fx.fr, 'gold'))}</div>
+      <label class="mt-2 inline-flex items-center gap-2 cursor-pointer"><input type="checkbox" data-scp-gpt ${fx.pt ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">✨ Glitzer-Partikel bei Gold-Rahmen</label>
+      <div class="mt-2 text-[10px] uppercase tracking-widest text-purple-300">Lila · epische Items</div><div class="mt-1 flex flex-wrap gap-1.5">${row('purple', cur(fx.fp, 'purple'))}</div>
+      <p class="mt-1 text-[10px] text-slate-500">Rahmen erscheinen bei Items mit Expertise (fertig refined). ${Object.keys(own).length ? 'Eigene Wahl für dieses Bild.' : 'Aktuell wie im ⚔️ Gear Showcase.'}</p>`; };
+  R.scCharBoard = (scId, setId, ctx) => { const x = scOwnDoc().list.find(s => s.id === scId)?.sets.find(y => y.id === setId); if (!x) return '';
+    try { return scGearBoard(x.gear, true, false, scProfGfx(x), ctx); } catch (e) { console.warn(e); return R.charBoardHTML(x.gear, ctx); } };
+  R.scProfPut = async (scId, setId, patch) => {
+    const live = !!(sc.own && sc.doc), doc = scOwnDoc(), x = doc.list.find(s => s.id === scId)?.sets.find(y => y.id === setId); if (!x) return false;
+    x.prof = scProfNorm({ ...x.prof, ...patch, flip: { ...x.prof.flip, ...(patch.flip || {}) }, gfx: patch.gfx === null ? {} : { ...(x.prof.gfx || {}), ...(patch.gfx || {}) }, pts: patch.pts === null ? {} : { ...x.prof.pts, ...(patch.pts || {}) } });
+    if (live) { scSaveSoon(); return true; }
+    doc.updated = Date.now(); R.LS.set(SC_KEY, JSON.stringify(doc)); try { await RokAuth.saveShowcase(scPublicDoc(doc)); } catch {} return true;
+  };
+  R.scPutGear = async (scId, setId, slots, label) => {
+    const live = !!(sc.own && sc.doc), doc = scOwnDoc();
+    const x = doc.list.find(s => s.id === scId)?.sets.find(y => y.id === setId); if (!x) return false;
+    R.GEAR_SLOTS.forEach(sl => { const v = { item: '', rarity: 'legendary', tier: 0, refine: 0, refType: 'infantry', ...(slots[sl.k] || {}) };
+      const it = R.gItem(v.item); scSnap(v, it); x.gear[sl.k] = scGearNorm({ [sl.k]: v })[sl.k]; });
+    const msg = `✓ Ausrüstung aus dem Planer übernommen${label ? ` („${label}“)` : ''}`;
+    if (live) { if (R.view === 'profile') drawShowcase(); await scSave(msg, true); return true; }
+    doc.updated = Date.now(); R.LS.set(SC_KEY, JSON.stringify(doc));           // Showcase gerade nicht offen → im Account speichern …
+    try { await RokAuth.saveShowcase(scPublicDoc(doc)); } catch {}              // … und die öffentliche Fassung aktualisieren
+    return true;
+  };
   async function scFromCraft() {
     const s = R.activeSet();
     if (R.GEAR_SLOTS.some(sl => scItem(scSet().gear[sl.k])) && !(await UI.confirm(`Showcase-Ausrüstung mit der Ist-Ausrüstung aus „${s.name}“ überschreiben?`))) return;
