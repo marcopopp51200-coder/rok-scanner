@@ -78,7 +78,14 @@ window.RokMods.crafting = (R) => {
   R.charOn = (map, o) => R.boardStyle() === 'char' && !!charOf(map, o);
   // kompakt = Armament-Steine unten im Bild: Gear-Felder rücken hoch und werden kleiner, Charakter kleiner
   const CMP_Y = { 13: 10, 38: 29, 62: 48, 87: 67 }, CMP_T = 18.5;
-  const charCompact = (o) => !!(o?.arm && o.arm.scene !== false && R.armData && ['flag', 'emblem', 'scroll', 'instrument'].some(k => R.armData.BY_ID[o.arm.arms?.[k]]));
+  // Armament-Teile eines Sets: gewählte Teile, sonst aus den Inschriften abgeleitet (Gold/Blau gehören zu genau einem Teil)
+  function armParts(arm) { const D = R.armData; if (!arm || !D) return [];
+    const ins = new Set((arm.insc || []).map(i => String(i.t).toLowerCase())), pool = arm.formation && D.FORMATIONS[arm.formation] ? D.FORMATIONS[arm.formation] : Object.values(D.FORMATIONS).flat();
+    return ['flag', 'emblem', 'scroll', 'instrument'].map(k => { let x = D.BY_ID[arm.arms?.[k]];
+      if (!x) x = pool.filter(y => y.type === k).find(y => ins.has(y.gold.toLowerCase()) || ins.has(y.blue.toLowerCase()));
+      return x ? { k, x } : null; }).filter(Boolean); }
+  R.armParts = armParts;
+  const charCompact = (o) => !!(o?.arm && o.arm.scene !== false && armParts(o.arm).length);
   const posOf = (k, cmp) => { const p = CHAR_POS[k] || { x: 50, y: 50 }; return cmp ? { ...p, x: p.x < 50 ? 11 : 89, y: CMP_Y[p.y] ?? p.y } : p; };
   R.charBox = (k, o) => { const cmp = charCompact(o), p = posOf(k, cmp), T = cmp ? CMP_T : CHAR_T; return `left:${p.x - T / 2}%;top:${p.y - T / 2}%;width:${T}%;height:${T}%`; };
   // Die 4 Armament-Teile als Runensteine unten im Bild (hinter dem Charakter, zwischen den Accessoire-Feldern)
@@ -88,7 +95,7 @@ window.RokMods.crafting = (R) => {
     const xs = parts.length === 1 ? [50] : parts.length === 2 ? [33, 67] : parts.length === 3 ? [30, 50, 70] : [29, 43, 57, 71], bottom = foot ? 100 - foot - 9 : 0;
     return parts.map((p, i) => `<div class="absolute pointer-events-none -translate-x-1/2" style="left:${xs[i]}%;bottom:${bottom}%;width:${parts.length > 3 ? 20 : 22}%;z-index:0">${R.runeStone(p.x.name, colOf(p.x.gold) ? 'gold' : colOf(p.x.blue) ? 'blue' : 'gray', arm.flip?.[p.k], 7.5)}</div>`).join(''); }
   function sceneRow(arm) { const D = R.armData, ins = arm.insc || [], colOf = (t) => ins.find(i => i.t.toLowerCase() === String(t).toLowerCase())?.c;
-    const parts = ['flag', 'emblem', 'scroll', 'instrument'].map(k => ({ k, x: D.BY_ID[arm.arms?.[k]] })).filter(p => p.x), n = parts.length;
+    const parts = armParts(arm), n = parts.length;
     const xs = n === 1 ? [50] : n === 2 ? [38, 62] : n === 3 ? [27, 50, 73] : [15, 38.5, 61.5, 85], drop = [12, 12, 12, 12];
     return `<div class="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none z-[25]">${parts.map((p, i) => `<div class="absolute" style="left:${xs[i]}%;bottom:-${drop[i % 4]}%;width:18%;transform:translateX(-50%) rotate(${arm.flip?.[p.k] || 0}deg);transform-origin:50% 100%" title="${R.esc(p.x.name)}">${R.runePillar(p.x.name, colOf(p.x.gold) ? 'gold' : colOf(p.x.blue) ? 'blue' : 'gray', 34)}</div>`).join('')}
       <div class="absolute inset-x-0 bottom-0 h-[8%]" style="background:linear-gradient(transparent,rgba(7,9,15,.55))"></div></div>`; }

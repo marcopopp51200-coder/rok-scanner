@@ -103,8 +103,8 @@ window.RokMods.showcases = (R) => {
     if (!list.length) return '<p class="panel rounded-2xl p-6 text-sm text-slate-500 text-center">Noch keine Sets mit Ausrüstung – zuerst im ⚔️ Gear Showcase Ausrüstung eintragen.</p>';
     const fi = 'w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
     const AT = { flag: '🚩', emblem: '🛡', scroll: '📜', instrument: '📯' };
-    return `<p class="text-xs text-slate-500">Jedes Set aus deinem Gear Showcase als Charakter-Bild. Armaments (Runensäulen) trägst du im ⚔️ Gear Showcase unter „Rüstung“ ein.</p>
-      <div class="grid gap-5 md:grid-cols-2">${list.map((p) => { const id = esc(p.scId + '|' + p.setId), parts = Object.keys(AT).filter((k) => p.arm?.arms?.[k]);
+    return `<p class="text-xs text-slate-500">Jedes Set aus deinem Gear Showcase als Charakter-Bild. Die Runensäulen kommen aus der „Rüstung“ im ⚔️ Gear Showcase: gewählte Armaments oder die goldenen/blauen Inschriften.</p>
+      <div class="grid gap-5 md:grid-cols-2">${list.map((p) => { const id = esc(p.scId + '|' + p.setId), parts = (R.armParts ? R.armParts(p.arm).map((q) => q.k) : Object.keys(AT).filter((k) => p.arm?.arms?.[k]));
         return `<section class="panel rounded-2xl p-4 flex flex-col gap-3" data-scp="${id}">
           <div class="flex items-baseline justify-between gap-2"><div class="font-display text-xl gold-text truncate" translate="no">${esc(p.name)}</div><span class="text-[11px] text-slate-500 truncate">${esc(p.scTitle || '')}</span></div>
           <div class="relative mx-auto w-full max-w-[460px] aspect-square">${R.charBoardHTML(p.gear, R.scProfCtxOf(p))}</div>
@@ -114,6 +114,7 @@ window.RokMods.showcases = (R) => {
           <div class="flex flex-wrap items-center gap-1.5 text-xs">
             <label class="inline-flex items-center gap-1.5 text-slate-300 cursor-pointer mr-auto"><input type="checkbox" data-scp-f="stones" ${p.prof.stones ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">🪨 Runensäulen</label>
             ${parts.map((k) => `<button type="button" data-scp-flip="${k}" title="Säule neigen" class="px-2 py-1 rounded-md border ${p.prof.flip[k] ? 'border-gold-400 text-gold-200' : 'border-ink-600 text-slate-300'}">${AT[k]} ${p.prof.flip[k] < 0 ? '↖' : p.prof.flip[k] > 0 ? '↗' : '⬆'}</button>`).join('')}
+            ${p.prof.stones && !parts.length ? '<span class="w-full text-[11px] text-amber-300">Keine Runensäulen: im ⚔️ Gear Showcase unter „Rüstung“ Armaments oder goldene/blaue Inschriften wählen.</span>' : ''}
             <button type="button" data-scp-feed class="px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">📰 Im Feed posten</button></div>
         </section>`; }).join('')}</div>`;
   }
