@@ -36,7 +36,7 @@ window.RokMods.crafting = (R) => {
     { id: 'arthur', name: 'Arthur Pendragon', troop: 'infantry', file: 'arthur',
       pts: { helm: [50, 14], weapon: [50, 61], gloves: [50, 41], acc1: [50, 53], chest: [50, 29], legs: [42, 74], boots: [37, 86], acc2: [66, 22] } },
     { id: 'baiqi', name: 'Bai Qi', troop: 'infantry', file: 'baiqi',
-      pts: { helm: [47, 9], weapon: [59, 33], gloves: [22, 42], acc1: [50, 59], chest: [50, 31], legs: [46, 73], boots: [37, 90], acc2: [30, 78] } } ];
+      pts: { helm: [47, 3], weapon: [59, 33], gloves: [22, 42], acc1: [50, 59], chest: [50, 31], legs: [46, 73], boots: [37, 90], acc2: [30, 78] } } ];
   let CHARS = CHARS0.slice();
   const CHAR_DIRS = ['icons/chars/', 'icons/schars/'], CHAR_EXT = ['.webp', '.png'];
   const charCands = (f) => /\.(webp|png|jpe?g)$/i.test(f) ? CHAR_DIRS.map(d => d + f) : CHAR_DIRS.flatMap(d => CHAR_EXT.map(e => d + f + e));
@@ -116,18 +116,22 @@ window.RokMods.crafting = (R) => {
     return `<div class="relative w-full aspect-[241/480]" style="container-type:inline-size">
       <img src="icons/arm/pillar.webp" alt="" draggable="false" class="absolute inset-0 w-full h-full object-contain" style="filter:drop-shadow(0 0 ${c === 'gray' ? 0 : 10}px ${g2}aa)">
       <div class="absolute inset-0" style="background:${g1};-webkit-mask:url(icons/arm/pillar_cracks.png) center/contain no-repeat;mask:url(icons/arm/pillar_cracks.png) center/contain no-repeat;opacity:${c === 'gray' ? 0.55 : 0.95};filter:drop-shadow(0 0 2px ${g1}) drop-shadow(0 0 5px ${g2})"></div>${rune}${label}</div>`; };
-  R.charBack = (map, o) => { const c = charOf(map, o); if (!c) return ''; const cand = charCands(c.file);
+  // o.adj = { bgY, chY, chS, pts:{slot:[x,y]} } – Feinjustierung aus dem Charakter Showcase · o.edit = Ziehpunkte zeigen
+  R.charBack = (map, o) => { const c = charOf(map, o); if (!c) return ''; const cand = charCands(c.file), adj = o?.adj || {};
     const bgc = o?.bg?.url ? `background:linear-gradient(rgba(7,9,15,.25),rgba(7,9,15,.45)),url('${String(o.bg.url).replace(/'/g, '%27')}') center/cover` : CHAR_BG[o?.bg?.k] || CHAR_BG[''];
     const cmp = charCompact(o), foot0 = o?.bg?.url ? 0 : CHAR_BG_FOOT[o?.bg?.k] || 0, shift = cmp ? 9 : 0;
-    const foot = cmp ? (foot0 ? foot0 - shift : 77) : foot0, ct = cmp ? 3 : foot ? 4 : 3, ch = foot ? foot - ct : 94, kk = ch / 94;
+    const foot = cmp ? (foot0 ? foot0 - shift : 77) : foot0, ct0 = cmp ? 3 : foot ? 4 : 3, ch0 = foot ? foot - ct0 : 94;
+    const chS = Math.min(1.25, Math.max(0.7, +adj.chS || 1)), ch = ch0 * chS, ct = ct0 + (ch0 - ch) + (+adj.chY || 0), kk = ch / 94;   // Füße bleiben beim Skalieren stehen
     const tp = (x, y) => [50 + (x - 50) * kk, ct + (y - 3) * kk];   // Körperpunkte mitskalieren
-    // im Kompakt-Modus Bild-Hintergrund nach oben schieben, damit der Charakter auf dem Plateau bleibt
-    const up = cmp && /url\(/.test(bgc) ? shift : 0;
-    return `<div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none" style="background:#0b0f1a"><div class="absolute inset-x-0" style="top:-${up}%;height:${100 + up}%;${bgc}"></div></div>
+    // Hintergrund: im Kompakt-Modus nach oben, dazu eigene Verschiebung (bgY) – 12 % Reserve oben und unten, damit nichts leer wird
+    const up = (cmp && /url\(/.test(bgc) ? shift : 0) - (+adj.bgY || 0);
+    const pts = Object.entries(CHAR_POS).map(([k, q0]) => { const q = posOf(k, cmp), own = adj.pts?.[k];
+      const pt = c.pts?.[k] || [q0.px, q0.py], t = own ? own : tp(pt[0], pt[1]); return { k, x: q.x, y: q.y, px: +(+t[0]).toFixed(1), py: +(+t[1]).toFixed(1) }; });
+    return `<div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none" style="background:#0b0f1a"><div class="absolute inset-x-0" style="top:${-12 - up}%;height:124%;${bgc}"></div></div>
     <img src="${cand[0]}" data-alt="${cand.slice(1).join('|')}" onerror="var a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.dataset.alt=a.slice(1).join('|');this.src=a[0]}else{this.onerror=null;this.style.display='none'}" alt="" draggable="false" class="absolute pointer-events-none select-none" style="left:50%;top:${ct}%;height:${ch}%;transform:translateX(-50%);filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))">
-    <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">${Object.entries(CHAR_POS).map(([k, q0]) => { const q = posOf(k, cmp), pt = c.pts?.[k] || [q0.px, q0.py], t = tp(pt[0], pt[1]), p = { ...q, px: +t[0].toFixed(1), py: +t[1].toFixed(1) }; return '' +
-      `<line x1="${p.x}" y1="${p.y}" x2="${p.px}" y2="${p.py}" stroke="rgba(246,215,122,.55)" stroke-width=".35" stroke-dasharray="1 .8"/><circle cx="${p.px}" cy="${p.py}" r=".8" fill="#f6d77a"/>`; }).join('')}</svg>
-    ${cmp ? sceneRow(o.arm) : ''}`; };
+    <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">${pts.map(p => `<line data-ln="${p.k}" x1="${p.x}" y1="${p.y}" x2="${p.px}" y2="${p.py}" stroke="rgba(246,215,122,.55)" stroke-width=".35" stroke-dasharray="1 .8"/><circle data-cc="${p.k}" cx="${p.px}" cy="${p.py}" r=".8" fill="#f6d77a"/>`).join('')}</svg>
+    ${cmp ? sceneRow(o.arm) : ''}
+    ${o?.edit ? pts.map(p => `<span data-ptk="${p.k}" title="ziehen" class="absolute z-[60] w-5 h-5 -ml-2.5 -mt-2.5 rounded-full border-2 border-white bg-gold-500/80 shadow-[0_0_8px_rgba(0,0,0,.8)] cursor-move touch-none" style="left:${p.px}%;top:${p.py}%"></span>`).join('') : ''}`; };
   // Ein Runenstein (Bild je Farbe) mit Namen dort, wo im Bild „ARMAMENT“ stand; flip = gespiegelt (Schrift bleibt lesbar)
   const STONE_TXT = { gold: ['#ffd9a8', '#f97316'], blue: ['#cfe3ff', '#3b82f6'], gray: ['#e8e4dc', '#000'] };
   R.runeStone = (name, c, flip, fs = 10) => { c = STONE_TXT[c] ? c : 'gray'; const [fg, gl] = STONE_TXT[c];

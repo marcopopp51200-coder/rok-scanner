@@ -107,7 +107,11 @@ window.RokMods.showcases = (R) => {
       <div class="grid gap-5 md:grid-cols-2">${list.map((p) => { const id = esc(p.scId + '|' + p.setId), parts = (R.armParts ? R.armParts(p.arm).map((q) => q.k) : Object.keys(AT).filter((k) => p.arm?.arms?.[k]));
         return `<section class="panel rounded-2xl p-4 flex flex-col gap-3" data-scp="${id}">
           <div class="flex items-baseline justify-between gap-2"><div class="font-display text-xl gold-text truncate" translate="no">${esc(p.name)}</div><span class="text-[11px] text-slate-500 truncate">${esc(p.scTitle || '')}</span></div>
-          <div class="relative mx-auto w-full max-w-[460px] aspect-square">${R.charBoardHTML(p.gear, R.scProfCtxOf(p))}</div>
+          <div data-scp-img class="relative mx-auto w-full max-w-[460px] aspect-square">${R.charBoardHTML(p.gear, R.scProfCtxOf(p, st.scpEdit === id))}</div>
+          ${st.scpEdit === id ? `<div class="rounded-xl border border-gold-500/40 bg-gold-500/5 p-3 grid gap-2 text-xs">
+            <div class="text-slate-300">✥ Gelbe Punkte im Bild ziehen = wohin die Linien zeigen</div>
+            ${[['bgY', '🖼 Hintergrund', -12, 12, 0.5, '↑ hoch · ↓ runter'], ['chY', '🧍 Charakter hoch/runter', -20, 20, 0.5, ''], ['chS', '🔍 Charakter-Größe', 0.7, 1.25, 0.01, '']].map(([k, l, lo, hi, step]) => `<label class="flex items-center gap-2"><span class="w-40 text-slate-400">${l}</span><input type="range" data-scp-adj="${k}" min="${lo}" max="${hi}" step="${step}" value="${p.prof[k]}" class="flex-1 accent-yellow-500"><span class="w-10 text-right tabular-nums text-gold-200">${k === 'chS' ? Math.round(p.prof[k] * 100) + '%' : p.prof[k]}</span></label>`).join('')}
+            <div class="flex flex-wrap gap-2 justify-end"><button type="button" data-scp-reset class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-red-500/60 hover:text-red-300">↺ Zurücksetzen</button><button type="button" data-scp-edit class="px-3 py-1.5 rounded-lg bg-gold-500 text-ink-950 font-semibold">✓ Fertig</button></div></div>` : ''}
           <div class="grid grid-cols-2 gap-2 text-xs">
             <label class="text-slate-400">Charakter<select data-scp-f="char" class="${fi} mt-1"><option value="">🔄 automatisch</option>${(R.charList?.() || []).map((c) => `<option value="${esc(c.id)}"${p.prof.char === c.id ? ' selected' : ''}>🧍 ${esc(c.name)}</option>`).join('')}</select></label>
             <label class="text-slate-400">Hintergrund<select data-scp-f="bg" class="${fi} mt-1">${(R.charBgList?.() || []).map(([k, l]) => `<option value="${k}"${p.prof.bg === k ? ' selected' : ''}>${l}</option>`).join('')}</select></label></div>
@@ -115,15 +119,37 @@ window.RokMods.showcases = (R) => {
             <label class="inline-flex items-center gap-1.5 text-slate-300 cursor-pointer mr-auto"><input type="checkbox" data-scp-f="stones" ${p.prof.stones ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">🪨 Runensäulen</label>
             ${parts.map((k) => `<button type="button" data-scp-flip="${k}" title="Säule neigen" class="px-2 py-1 rounded-md border ${p.prof.flip[k] ? 'border-gold-400 text-gold-200' : 'border-ink-600 text-slate-300'}">${AT[k]} ${p.prof.flip[k] < 0 ? '↖' : p.prof.flip[k] > 0 ? '↗' : '⬆'}</button>`).join('')}
             ${p.prof.stones && !parts.length ? '<span class="w-full text-[11px] text-amber-300">Keine Runensäulen: im ⚔️ Gear Showcase unter „Rüstung“ Armaments oder goldene/blaue Inschriften wählen.</span>' : ''}
+            <button type="button" data-scp-edit class="px-3 py-1.5 rounded-lg border ${st.scpEdit === id ? 'border-gold-400 text-gold-200' : 'border-ink-600 text-slate-200'} hover:border-gold-400 font-semibold">✥ Anpassen</button>
+            <button type="button" data-scp-dl class="px-3 py-1.5 rounded-lg border border-gold-500/60 text-gold-200 hover:border-gold-400 font-semibold">⬇ Download</button>
             <button type="button" data-scp-feed class="px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">📰 Im Feed posten</button></div>
         </section>`; }).join('')}</div>`;
   }
+  // Ziehen der Linien-Punkte (Maus + Finger)
+  let scpDrag = null;
+  root.addEventListener('pointerdown', (ev) => { const h = ev.target.closest('[data-ptk]'); if (!h) return; const img = h.closest('[data-scp-img]'); if (!img) return;
+    ev.preventDefault(); h.setPointerCapture(ev.pointerId); scpDrag = { h, img, k: h.dataset.ptk, x: 0, y: 0 }; });
+  root.addEventListener('pointermove', (ev) => { if (!scpDrag) return; const r = scpDrag.img.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, (ev.clientX - r.left) / r.width * 100)), y = Math.max(0, Math.min(100, (ev.clientY - r.top) / r.height * 100));
+    scpDrag.x = x; scpDrag.y = y; scpDrag.h.style.left = x + '%'; scpDrag.h.style.top = y + '%';
+    scpDrag.img.querySelector(`[data-ln="${scpDrag.k}"]`)?.setAttribute('x2', x); scpDrag.img.querySelector(`[data-ln="${scpDrag.k}"]`)?.setAttribute('y2', y);
+    scpDrag.img.querySelector(`[data-cc="${scpDrag.k}"]`)?.setAttribute('cx', x); scpDrag.img.querySelector(`[data-cc="${scpDrag.k}"]`)?.setAttribute('cy', y); });
+  const scpDrop = async () => { if (!scpDrag) return; const d = scpDrag; scpDrag = null; if (!d.x && !d.y) return; const p = scpOf(d.img); if (!p) return;
+    await R.scProfPut(p.scId, p.setId, { pts: { [d.k]: [d.x, d.y] } }); };
+  root.addEventListener('pointerup', scpDrop); root.addEventListener('pointercancel', scpDrop);
+  root.addEventListener('input', async (ev) => { const t = ev.target; if (!t.dataset?.scpAdj) return; const p = scpOf(t); if (!p) return;
+    const v = +t.value; t.nextElementSibling.textContent = t.dataset.scpAdj === 'chS' ? Math.round(v * 100) + '%' : v;
+    clearTimeout(st.scpT); st.scpT = setTimeout(async () => { await R.scProfPut(p.scId, p.setId, { [t.dataset.scpAdj]: v }); render(); }, 120); });
   const scpOf = (el) => { const box = el.closest('[data-scp]'); if (!box) return null; const [scId, setId] = box.dataset.scp.split('|'); return (R.scProfSets?.() || []).find((p) => p.scId === scId && p.setId === setId) || null; };
   root.addEventListener('change', async (ev) => { const t = ev.target, f = t.dataset?.scpF; if (!f) return; const p = scpOf(t); if (!p) return;
     await R.scProfPut(p.scId, p.setId, { [f]: f === 'stones' ? t.checked : t.value }); render(); });
   root.addEventListener('click', async (ev) => {
     const fb = ev.target.closest('[data-scp-flip]'); if (fb) { const p = scpOf(fb); if (!p) return; const k = fb.dataset.scpFlip, v = p.prof.flip[k] || 0;
       await R.scProfPut(p.scId, p.setId, { flip: { [k]: v === 0 ? -8 : v === -8 ? 8 : 0 } }); render(); return; }
+    const eb = ev.target.closest('[data-scp-edit]'); if (eb) { const box = eb.closest('[data-scp]'); st.scpEdit = st.scpEdit === box.dataset.scp ? null : box.dataset.scp; render(); return; }
+    const rb = ev.target.closest('[data-scp-reset]'); if (rb) { const p = scpOf(rb); if (!p) return; await R.scProfPut(p.scId, p.setId, { bgY: 0, chY: 0, chS: 1, pts: null }); render(); return; }
+    const db = ev.target.closest('[data-scp-dl]');
+    if (db) { const p = scpOf(db), node = db.closest('[data-scp]')?.querySelector('[data-scp-img]'); if (!p || !node || !R.downloadNode) return;
+      db.disabled = true; try { await R.downloadNode(node, 'charakter-' + p.name); } catch (e) { msg(e.message || 'Download fehlgeschlagen.', 'err'); } db.disabled = false; return; }
     const pb = ev.target.closest('[data-scp-feed]'); if (!pb) return; const p = scpOf(pb); if (!p) return;
     if (!R.feedShareSet) { msg('Der Feed ist noch nicht geladen – bitte Seite neu laden.', 'warn'); return; }
     const note = await window.UI.prompt(`„${p.name}“ als Charakter-Bild im Feed posten.\n\nText dazu (optional):`, '', { title: '📰 Im Feed posten', ok: 'Posten' }); if (note === null) return;

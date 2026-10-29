@@ -406,7 +406,10 @@ window.RokMods.showcase = (R) => {
   const scBound = (x, k) => x.syncMode === 'full' || (x.syncMode === 'partial' && !!x.sy?.[k]);   // je Modul eigene Abfrage
   const scPartsNorm = (p) => Object.fromEntries(['c', 'n', 'g'].map(k => [k, { x: scPos(p?.[k]?.x, 100), y: scPos(p?.[k]?.y, 200), s: scScale(p?.[k]?.s), r: scRot(p?.[k]?.r) }]));
   // Charakter-Profil (Bild mit Charakter, Hintergrund und Runensäulen) je Set
+  const scProfNum = (v, lo, hi, d) => { const n = +v; return Number.isFinite(n) ? Math.min(hi, Math.max(lo, Math.round(n * 10) / 10)) : d; };
   const scProfNorm = (p) => ({ char: String(p?.char || '').slice(0, 40), bg: typeof p?.bg === 'string' ? p.bg.slice(0, 40) : 'img:lava', stones: p?.stones !== false,
+    bgY: scProfNum(p?.bgY, -12, 12, 0), chY: scProfNum(p?.chY, -20, 20, 0), chS: scProfNum(p?.chS, 0.7, 1.25, 1),
+    pts: Object.fromEntries(Object.entries(p?.pts || {}).filter(([k, v]) => R.GEAR_SLOTS?.some(sl => sl.k === k) && Array.isArray(v)).map(([k, v]) => [k, [scProfNum(v[0], 0, 100, 50), scProfNum(v[1], 0, 100, 50)]])),
     flip: Object.fromEntries(['flag', 'emblem', 'scroll', 'instrument'].map(k => [k, [-8, 0, 8].includes(+p?.flip?.[k]) ? +p.flip[k] : 0])) });
   const scSetNorm = (x) => scStMigrate(x, { id: String(x?.id || R.newId()), name: String(x?.name || '').trim().slice(0, 30), mode: 'manual',
     shot: scImgOk(x?.shot) ? x.shot : '', cmd: [0, 1].map(i => scCmdNorm(x?.cmd?.[i])), gear: scGearNorm(x?.gear),
@@ -2722,6 +2725,10 @@ window.RokMods.showcase = (R) => {
     s.onerror = () => { scH2I = null; reject(new Error('Download-Bibliothek konnte nicht geladen werden (Internet/Adblocker prüfen).')); };
     document.head.appendChild(s);
   }));
+  // Ein beliebiges Element als PNG herunterladen (Charakter Showcase)
+  R.downloadNode = async (node, name) => { const h2i = await scLoadH2I(), opt = { pixelRatio: 2, backgroundColor: '#07090f', cacheBust: true, filter: (n) => !(n.dataset && n.dataset.ptk) };
+    let url; try { url = await h2i.toPng(node, opt); } catch { url = await h2i.toPng(node, { ...opt, skipFonts: true }); }
+    const a = document.createElement('a'); a.href = url; a.download = `${String(name || 'charakter').replace(/[^\wäöüÄÖÜß-]+/g, '_')}.png`; document.body.appendChild(a); a.click(); a.remove(); };
   R.$('scDl').onclick = async () => {
     if (!sc.own) return;
     const btn = R.$('scDl'), wasEdit = sc.edit;
@@ -2830,11 +2837,11 @@ window.RokMods.showcase = (R) => {
   R.scGetArm = (scId, setId) => { const x = scOwnDoc().list.find(s => s.id === scId)?.sets.find(y => y.id === setId); return x?.arm ? JSON.parse(JSON.stringify(x.arm)) : null; };
   // ---- für den Reiter „🧍 Charakter Showcase“ (showcases.js): alle eigenen Sets mit Profil-Einstellungen ----
   R.scProfSets = () => scOwnDoc().list.flatMap(sh => sh.sets.filter(x => !x.kind || x.gearOn).map((x, i) => ({ scId: sh.id, scTitle: sh.title, setId: x.id,
-    name: x.kind ? SC_KIND[x.kind] : (x.name || 'Set ' + (i + 1)), gear: JSON.parse(JSON.stringify(x.gear)), arm: JSON.parse(JSON.stringify(x.arm)), prof: { ...x.prof, flip: { ...x.prof.flip } } })));
-  R.scProfCtxOf = (p) => ({ pick: p.prof.char, name: p.name, bg: { k: p.prof.bg }, arm: { ...p.arm, flip: p.prof.flip, scene: p.prof.stones } });
+    name: x.kind ? SC_KIND[x.kind] : (x.name || 'Set ' + (i + 1)), gear: JSON.parse(JSON.stringify(x.gear)), arm: JSON.parse(JSON.stringify(x.arm)), prof: JSON.parse(JSON.stringify(x.prof)) })));
+  R.scProfCtxOf = (p, edit) => ({ pick: p.prof.char, name: p.name, bg: { k: p.prof.bg }, arm: { ...p.arm, flip: p.prof.flip, scene: p.prof.stones }, adj: { bgY: p.prof.bgY, chY: p.prof.chY, chS: p.prof.chS, pts: p.prof.pts }, edit: !!edit });
   R.scProfPut = async (scId, setId, patch) => {
     const live = !!(sc.own && sc.doc), doc = scOwnDoc(), x = doc.list.find(s => s.id === scId)?.sets.find(y => y.id === setId); if (!x) return false;
-    x.prof = scProfNorm({ ...x.prof, ...patch, flip: { ...x.prof.flip, ...(patch.flip || {}) } });
+    x.prof = scProfNorm({ ...x.prof, ...patch, flip: { ...x.prof.flip, ...(patch.flip || {}) }, pts: patch.pts === null ? {} : { ...x.prof.pts, ...(patch.pts || {}) } });
     if (live) { scSaveSoon(); return true; }
     doc.updated = Date.now(); R.LS.set(SC_KEY, JSON.stringify(doc)); try { await RokAuth.saveShowcase(scPublicDoc(doc)); } catch {} return true;
   };
