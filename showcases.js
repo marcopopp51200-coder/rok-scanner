@@ -104,7 +104,7 @@ window.RokMods.showcases = (R) => {
     const fi = 'w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
     const AT = { flag: '🚩', emblem: '🛡', scroll: '📜', instrument: '📯' };
     return `<p class="text-xs text-slate-500">Jedes Set aus deinem Gear Showcase als Charakter-Bild. Die Runensäulen kommen aus der „Rüstung“ im ⚔️ Gear Showcase: gewählte Armaments oder die goldenen/blauen Inschriften.</p>
-      <div class="grid gap-5 md:grid-cols-2">${list.map((p) => { const id = esc(p.scId + '|' + p.setId), parts = (R.armParts ? R.armParts(p.arm).map((q) => q.k) : Object.keys(AT).filter((k) => p.arm?.arms?.[k]));
+      <div class="grid gap-5 md:grid-cols-2">${list.map((p) => { const id = esc(p.scId + '|' + p.setId), parts = (R.armParts ? R.armParts({ ...p.arm, order: p.prof.order }).map((q) => q.k) : Object.keys(AT).filter((k) => p.arm?.arms?.[k]));
         return `<section class="panel rounded-2xl p-4 flex flex-col gap-3" data-scp="${id}">
           <div class="flex items-baseline justify-between gap-2"><div class="font-display text-xl gold-text truncate" translate="no">${esc(p.name)}</div><span class="text-[11px] text-slate-500 truncate">${esc(p.scTitle || '')}</span></div>
           <div data-scp-img class="relative mx-auto w-full max-w-[460px] aspect-square">${R.scCharBoard ? R.scCharBoard(p.scId, p.setId, R.scProfCtxOf(p, st.scpEdit === id)) : R.charBoardHTML(p.gear, R.scProfCtxOf(p, st.scpEdit === id))}</div>
@@ -116,12 +116,20 @@ window.RokMods.showcases = (R) => {
             <label class="text-slate-400">Charakter<select data-scp-f="char" class="${fi} mt-1"><option value="">🔄 automatisch</option>${(R.charList?.() || []).map((c) => `<option value="${esc(c.id)}"${p.prof.char === c.id ? ' selected' : ''}>🧍 ${esc(c.name)}</option>`).join('')}</select></label>
             <label class="text-slate-400">Hintergrund<select data-scp-f="bg" class="${fi} mt-1">${(R.charBgList?.() || []).map(([k, l]) => `<option value="${k}"${p.prof.bg === k ? ' selected' : ''}>${l}</option>`).join('')}</select></label></div>
           <div class="flex flex-wrap items-center gap-1.5 text-xs">
-            <label class="inline-flex items-center gap-1.5 text-slate-300 cursor-pointer mr-auto"><input type="checkbox" data-scp-f="stones" ${p.prof.stones ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">🪨 Runensäulen</label>
-            ${parts.map((k) => `<button type="button" data-scp-flip="${k}" title="Säule neigen" class="px-2 py-1 rounded-md border ${p.prof.flip[k] ? 'border-gold-400 text-gold-200' : 'border-ink-600 text-slate-300'}">${AT[k]} ${p.prof.flip[k] < 0 ? '↖' : p.prof.flip[k] > 0 ? '↗' : '⬆'}</button>`).join('')}
+            <label class="inline-flex items-center gap-1.5 text-slate-300 cursor-pointer"><input type="checkbox" data-scp-f="stones" ${p.prof.stones ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">🪨 Runensäulen</label>
+            <label class="inline-flex items-center gap-1.5 text-slate-300 cursor-pointer mr-auto"><input type="checkbox" data-scp-f="lines" ${p.prof.lines ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">〰 Linien</label>
+            ${p.prof.stones && parts.length ? `<div class="w-full flex flex-wrap items-center gap-1.5"><span class="text-[11px] text-slate-500">Säulen (links → rechts):</span>${parts.map((k, i) => `<span class="inline-flex items-center rounded-md border border-ink-600 overflow-hidden">
+              <button type="button" data-scp-mv="${k}" data-d="-1" ${i ? '' : 'disabled'} title="nach links" class="px-1.5 py-1 text-slate-300 hover:bg-gold-500/10 disabled:opacity-25">◀</button>
+              <button type="button" data-scp-flip="${k}" title="${esc(R.armData?.TYPES?.[k]?.label || k)} · Säule neigen" class="px-1.5 py-1 border-x border-ink-600 ${p.prof.flip[k] ? 'text-gold-200 bg-gold-500/10' : 'text-slate-200'}">${AT[k]} ${p.prof.flip[k] < 0 ? '↖' : p.prof.flip[k] > 0 ? '↗' : '⬆'}</button>
+              <button type="button" data-scp-mv="${k}" data-d="1" ${i < parts.length - 1 ? '' : 'disabled'} title="nach rechts" class="px-1.5 py-1 text-slate-300 hover:bg-gold-500/10 disabled:opacity-25">▶</button></span>`).join('')}</div>` : ''}
             ${p.prof.stones && !parts.length ? '<span class="w-full text-[11px] text-amber-300">Keine Runensäulen: im ⚔️ Gear Showcase unter „Rüstung“ Armaments oder goldene/blaue Inschriften wählen.</span>' : ''}
             <button type="button" data-scp-edit class="px-3 py-1.5 rounded-lg border ${st.scpEdit === id ? 'border-gold-400 text-gold-200' : 'border-ink-600 text-slate-200'} hover:border-gold-400 font-semibold">✥ Anpassen</button>
             <button type="button" data-scp-dl class="px-3 py-1.5 rounded-lg border border-gold-500/60 text-gold-200 hover:border-gold-400 font-semibold">⬇ Download</button>
             <button type="button" data-scp-feed class="px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">📰 Im Feed posten</button></div>
+          ${R.scProfGfxHtml ? `<details data-scp-gfxbox class="rounded-xl border border-ink-700 bg-ink-950/40 p-3 text-xs" ${st.scpGfx === id ? 'open' : ''}>
+            <summary class="cursor-pointer select-none font-semibold text-gold-300">✨ Expertise-Rahmen &amp; Partikel</summary>
+            <div class="mt-2">${R.scProfGfxHtml(p.scId, p.setId)}</div>
+            ${Object.keys(p.prof.gfx || {}).length ? '<button type="button" data-scp-gfxreset class="mt-2 px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">↺ Wie im Gear Showcase</button>' : ''}</details>` : ''}
         </section>`; }).join('')}</div>`;
   }
   // Ziehen der Linien-Punkte (Maus + Finger)
@@ -141,10 +149,21 @@ window.RokMods.showcases = (R) => {
     clearTimeout(st.scpT); st.scpT = setTimeout(async () => { await R.scProfPut(p.scId, p.setId, { [t.dataset.scpAdj]: v }); render(); }, 120); });
   const scpOf = (el) => { const box = el.closest('[data-scp]'); if (!box) return null; const [scId, setId] = box.dataset.scp.split('|'); return (R.scProfSets?.() || []).find((p) => p.scId === scId && p.setId === setId) || null; };
   root.addEventListener('change', async (ev) => { const t = ev.target, f = t.dataset?.scpF; if (!f) return; const p = scpOf(t); if (!p) return;
-    await R.scProfPut(p.scId, p.setId, { [f]: f === 'stones' ? t.checked : t.value }); render(); });
+    await R.scProfPut(p.scId, p.setId, { [f]: f === 'stones' || f === 'lines' ? t.checked : t.value }); render(); });
+  root.addEventListener('change', async (ev) => { const t = ev.target; if (!t.matches?.('[data-scp-gpt]')) return; const p = scpOf(t); if (!p) return;
+    await R.scProfPut(p.scId, p.setId, { gfx: { pt: t.checked } }); render(); });
+  root.addEventListener('toggle', (ev) => { const d = ev.target; if (!d.matches?.('[data-scp-gfxbox]')) return; const id = d.closest('[data-scp]')?.dataset.scp;
+    if (d.open) st.scpGfx = id; else if (st.scpGfx === id) st.scpGfx = null; }, true);
   root.addEventListener('click', async (ev) => {
     const fb = ev.target.closest('[data-scp-flip]'); if (fb) { const p = scpOf(fb); if (!p) return; const k = fb.dataset.scpFlip, v = p.prof.flip[k] || 0;
       await R.scProfPut(p.scId, p.setId, { flip: { [k]: v === 0 ? -8 : v === -8 ? 8 : 0 } }); render(); return; }
+    const gb = ev.target.closest('[data-scp-gfr]'); if (gb) { const p = scpOf(gb); if (!p) return;
+      await R.scProfPut(p.scId, p.setId, { gfx: { [gb.dataset.scpGfc === 'purple' ? 'fp' : 'fr']: gb.dataset.scpGfr } }); render(); return; }
+    const gr = ev.target.closest('[data-scp-gfxreset]'); if (gr) { const p = scpOf(gr); if (!p) return; await R.scProfPut(p.scId, p.setId, { gfx: null }); render(); return; }
+    const mv = ev.target.closest('[data-scp-mv]'); if (mv) { const p = scpOf(mv); if (!p) return;
+      const ord = R.armParts({ ...p.arm, order: p.prof.order }).map((q) => q.k), i = ord.indexOf(mv.dataset.scpMv), j = i + +mv.dataset.d;
+      if (i < 0 || j < 0 || j >= ord.length) return; [ord[i], ord[j]] = [ord[j], ord[i]];
+      await R.scProfPut(p.scId, p.setId, { order: ord }); render(); return; }
     const eb = ev.target.closest('[data-scp-edit]'); if (eb) { const box = eb.closest('[data-scp]'); st.scpEdit = st.scpEdit === box.dataset.scp ? null : box.dataset.scp; render(); return; }
     const rb = ev.target.closest('[data-scp-reset]'); if (rb) { const p = scpOf(rb); if (!p) return; await R.scProfPut(p.scId, p.setId, { bgY: 0, chY: 0, chS: 1, pts: null }); render(); return; }
     const db = ev.target.closest('[data-scp-dl]');
@@ -155,7 +174,7 @@ window.RokMods.showcases = (R) => {
     const note = await window.UI.prompt(`„${p.name}“ als Charakter-Bild im Feed posten.\n\nText dazu (optional):`, '', { title: '📰 Im Feed posten', ok: 'Posten' }); if (note === null) return;
     const gear = Object.fromEntries((R.GEAR_SLOTS || []).map((sl) => { const v = p.gear?.[sl.k], it = R.gItem?.(v?.item); return [sl.k, v?.item ? { item: v.item, name: it?.name || '', icon: it?.icon || '', rarity: it?.rarity || v.rarity, tier: v.tier || 0, refine: v.refine || 0, refType: v.refType } : null]; }));
     const ctx = R.scProfCtxOf(p);
-    try { await R.feedShareSet({ name: p.name, gear, char: p.prof.char || R.charOf?.(gear, { name: p.name })?.id || '', bg: ctx.bg, arm: ctx.arm, adj: ctx.adj, gfx: R.scGfxOf?.(p.scId, p.setId), note: note.trim() }); msg('✓ Im Feed gepostet', 'ok'); }
+    try { await R.feedShareSet({ name: p.name, gear, char: p.prof.char || R.charOf?.(gear, { name: p.name })?.id || '', bg: ctx.bg, arm: ctx.arm, adj: ctx.adj, lines: ctx.lines, gfx: R.scGfxOf?.(p.scId, p.setId), note: note.trim() }); msg('✓ Im Feed gepostet', 'ok'); }
     catch (e) { msg('Posten fehlgeschlagen: ' + (e.message || e), 'err'); }
   });
   function msg(t, tone) { st.msg = [t, tone]; const el = $('scsMsg'); if (!el) return; el.textContent = t; el.className = 'text-xs min-h-[1em] ' + ({ ok: 'text-emerald-400', warn: 'text-amber-300', err: 'text-red-300', busy: 'text-slate-300' }[tone] || 'text-slate-500'); }
