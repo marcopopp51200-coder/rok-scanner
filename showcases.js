@@ -107,7 +107,7 @@ window.RokMods.showcases = (R) => {
       <div class="grid gap-5 md:grid-cols-2">${list.map((p) => { const id = esc(p.scId + '|' + p.setId), parts = (R.armParts ? R.armParts(p.arm).map((q) => q.k) : Object.keys(AT).filter((k) => p.arm?.arms?.[k]));
         return `<section class="panel rounded-2xl p-4 flex flex-col gap-3" data-scp="${id}">
           <div class="flex items-baseline justify-between gap-2"><div class="font-display text-xl gold-text truncate" translate="no">${esc(p.name)}</div><span class="text-[11px] text-slate-500 truncate">${esc(p.scTitle || '')}</span></div>
-          <div data-scp-img class="relative mx-auto w-full max-w-[460px] aspect-square">${R.charBoardHTML(p.gear, R.scProfCtxOf(p, st.scpEdit === id))}</div>
+          <div data-scp-img class="relative mx-auto w-full max-w-[460px] aspect-square">${R.scCharBoard ? R.scCharBoard(p.scId, p.setId, R.scProfCtxOf(p, st.scpEdit === id)) : R.charBoardHTML(p.gear, R.scProfCtxOf(p, st.scpEdit === id))}</div>
           ${st.scpEdit === id ? `<div class="rounded-xl border border-gold-500/40 bg-gold-500/5 p-3 grid gap-2 text-xs">
             <div class="text-slate-300">✥ Gelbe Punkte im Bild ziehen = wohin die Linien zeigen</div>
             ${[['bgY', '🖼 Hintergrund', -12, 12, 0.5, '↑ hoch · ↓ runter'], ['chY', '🧍 Charakter hoch/runter', -20, 20, 0.5, ''], ['chS', '🔍 Charakter-Größe', 0.7, 1.25, 0.01, '']].map(([k, l, lo, hi, step]) => `<label class="flex items-center gap-2"><span class="w-40 text-slate-400">${l}</span><input type="range" data-scp-adj="${k}" min="${lo}" max="${hi}" step="${step}" value="${p.prof[k]}" class="flex-1 accent-yellow-500"><span class="w-10 text-right tabular-nums text-gold-200">${k === 'chS' ? Math.round(p.prof[k] * 100) + '%' : p.prof[k]}</span></label>`).join('')}
@@ -155,7 +155,7 @@ window.RokMods.showcases = (R) => {
     const note = await window.UI.prompt(`„${p.name}“ als Charakter-Bild im Feed posten.\n\nText dazu (optional):`, '', { title: '📰 Im Feed posten', ok: 'Posten' }); if (note === null) return;
     const gear = Object.fromEntries((R.GEAR_SLOTS || []).map((sl) => { const v = p.gear?.[sl.k], it = R.gItem?.(v?.item); return [sl.k, v?.item ? { item: v.item, name: it?.name || '', icon: it?.icon || '', rarity: it?.rarity || v.rarity, tier: v.tier || 0, refine: v.refine || 0, refType: v.refType } : null]; }));
     const ctx = R.scProfCtxOf(p);
-    try { await R.feedShareSet({ name: p.name, gear, char: p.prof.char || R.charOf?.(gear, { name: p.name })?.id || '', bg: ctx.bg, arm: ctx.arm, note: note.trim() }); msg('✓ Im Feed gepostet', 'ok'); }
+    try { await R.feedShareSet({ name: p.name, gear, char: p.prof.char || R.charOf?.(gear, { name: p.name })?.id || '', bg: ctx.bg, arm: ctx.arm, adj: ctx.adj, gfx: R.scGfxOf?.(p.scId, p.setId), note: note.trim() }); msg('✓ Im Feed gepostet', 'ok'); }
     catch (e) { msg('Posten fehlgeschlagen: ' + (e.message || e), 'err'); }
   });
   function msg(t, tone) { st.msg = [t, tone]; const el = $('scsMsg'); if (!el) return; el.textContent = t; el.className = 'text-xs min-h-[1em] ' + ({ ok: 'text-emerald-400', warn: 'text-amber-300', err: 'text-red-300', busy: 'text-slate-300' }[tone] || 'text-slate-500'); }

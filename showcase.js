@@ -977,7 +977,7 @@ window.RokMods.showcase = (R) => {
     const rows = R.GEAR_SLOTS.map(sl => { const v = g[sl.k], it = scItem(v); return { sl, v, it, rr: R.gItem(v.item)?.rarity || v.rarity }; });
     const frames = rows.map(({ sl, v, it, rr }) => { const h = gFrameHtml(v, it, rr, fx, !mini && sc.own && sc.gsel === sl.k, !mini); return h ? `<div class="absolute pointer-events-none z-[15]" style="${box(sl)}">${h}</div>` : ''; }).join('');
     const deco = frames + rows.map(({ sl, v, it, rr }) => it && !(hideEmpty && !it) ? `<div class="absolute pointer-events-none z-20" style="${box(sl)}">${gDecoHtml(v, it, fx, !mini, rr)}</div>` : '').join('');
-    if (mini) return rows.map(({ sl, v, it, rr }) => {
+    if (mini) return (ch ? R.charBack(g, ch === true ? {} : ch) : '') + rows.map(({ sl, v, it, rr }) => {
       if (hideEmpty && !it) return '';
       return `<div class="absolute pointer-events-none" style="${box(sl)}">
         ${gTileBody(v, it, rr, fx, false, false)}
@@ -2839,6 +2839,11 @@ window.RokMods.showcase = (R) => {
   R.scProfSets = () => scOwnDoc().list.flatMap(sh => sh.sets.filter(x => !x.kind || x.gearOn).map((x, i) => ({ scId: sh.id, scTitle: sh.title, setId: x.id,
     name: x.kind ? SC_KIND[x.kind] : (x.name || 'Set ' + (i + 1)), gear: JSON.parse(JSON.stringify(x.gear)), arm: JSON.parse(JSON.stringify(x.arm)), prof: JSON.parse(JSON.stringify(x.prof)) })));
   R.scProfCtxOf = (p, edit) => ({ pick: p.prof.char, name: p.name, bg: { k: p.prof.bg }, arm: { ...p.arm, flip: p.prof.flip, scene: p.prof.stones }, adj: { bgY: p.prof.bgY, chY: p.prof.chY, chS: p.prof.chS, pts: p.prof.pts }, edit: !!edit });
+  // Charakter-Bild mit den echten Showcase-Kacheln (Rahmen, Expertise, Refine-Symbol, Iconic wie im Showcase)
+  R.scBoardFor = (gear, gfx, ctx) => { try { const g = scGearNorm(gear || {}); return scGearBoard(g, true, false, gfx ? scGfxNorm(gfx) : null, ctx); } catch (e) { console.warn(e); return R.charBoardHTML(gear, ctx); } };
+  R.scGfxOf = (scId, setId) => JSON.parse(JSON.stringify(scOwnDoc().list.find(s => s.id === scId)?.sets.find(y => y.id === setId)?.gfx || null));
+  R.scCharBoard = (scId, setId, ctx) => { const x = scOwnDoc().list.find(s => s.id === scId)?.sets.find(y => y.id === setId); if (!x) return '';
+    try { return scGearBoard(x.gear, true, false, x.gfx, ctx); } catch (e) { console.warn(e); return R.charBoardHTML(x.gear, ctx); } };
   R.scProfPut = async (scId, setId, patch) => {
     const live = !!(sc.own && sc.doc), doc = scOwnDoc(), x = doc.list.find(s => s.id === scId)?.sets.find(y => y.id === setId); if (!x) return false;
     x.prof = scProfNorm({ ...x.prof, ...patch, flip: { ...x.prof.flip, ...(patch.flip || {}) }, pts: patch.pts === null ? {} : { ...x.prof.pts, ...(patch.pts || {}) } });
