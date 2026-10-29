@@ -410,7 +410,10 @@ window.RokMods.showcase = (R) => {
   const scProfNorm = (p) => ({ char: String(p?.char || '').slice(0, 40), bg: typeof p?.bg === 'string' ? p.bg.slice(0, 40) : 'img:lava', stones: p?.stones !== false,
     bgY: scProfNum(p?.bgY, -12, 12, 0), chY: scProfNum(p?.chY, -20, 20, 0), chS: scProfNum(p?.chS, 0.7, 1.25, 1),
     pts: Object.fromEntries(Object.entries(p?.pts || {}).filter(([k, v]) => R.GEAR_SLOTS?.some(sl => sl.k === k) && Array.isArray(v)).map(([k, v]) => [k, [scProfNum(v[0], 0, 100, 50), scProfNum(v[1], 0, 100, 50)]])),
-    flip: Object.fromEntries(['flag', 'emblem', 'scroll', 'instrument'].map(k => [k, [-8, 0, 8].includes(+p?.flip?.[k]) ? +p.flip[k] : 0])) });
+    flip: Object.fromEntries(['flag', 'emblem', 'scroll', 'instrument'].map(k => [k, [-8, 0, 8].includes(+p?.flip?.[k]) ? +p.flip[k] : 0])),
+    lines: p?.lines !== false,   // Linien vom Feld zum Körper
+    order: [...new Set((Array.isArray(p?.order) ? p.order : []).filter(k => ['flag', 'emblem', 'scroll', 'instrument'].includes(k)))],   // Säulen links → rechts
+    gfx: p?.gfx && typeof p.gfx === 'object' ? { ...(typeof p.gfx.fr === 'string' ? { fr: p.gfx.fr.slice(0, 60) } : {}), ...(typeof p.gfx.fp === 'string' ? { fp: p.gfx.fp.slice(0, 60) } : {}), ...(typeof p.gfx.pt === 'boolean' ? { pt: p.gfx.pt } : {}) } : {} });   // eigene Rahmen/Partikel nur für dieses Bild
   const scSetNorm = (x) => scStMigrate(x, { id: String(x?.id || R.newId()), name: String(x?.name || '').trim().slice(0, 30), mode: 'manual',
     shot: scImgOk(x?.shot) ? x.shot : '', cmd: [0, 1].map(i => scCmdNorm(x?.cmd?.[i])), gear: scGearNorm(x?.gear),
     x: scPos(x?.x, 100), y: scPos(x?.y, 200), s: scScale(x?.s), r: scRot(x?.r), arm: scArmNorm(x?.arm), priv: false, cg: scInt(x?.cg, 0, 70, 32),
@@ -2704,7 +2707,7 @@ window.RokMods.showcase = (R) => {
       if (opts.active && sc.doc.list.some((x) => x.id === opts.active)) sc.doc.active = opts.active;
       sc.edit = false; scBar = false; sc.exporting = true; scOpen = true; scApplyOpen(); R.$('scStage').classList.remove('sc-zoom'); drawStage();
       await new Promise((r) => setTimeout(r, 160));
-      const h2i = await scLoadH2I(), node = R.$('scStage'), opt = { pixelRatio: opts.pixelRatio || 1.5, backgroundColor: '#07090f', cacheBust: true, quality: 0.86 };
+      const h2i = await scLoadH2I(), node = R.$('scStage'), opt = { pixelRatio: opts.pixelRatio || 1.5, backgroundColor: '#07090f', cacheBust: true, style: { margin: '0' }, quality: 0.86 };
       const f = opts.jpeg ? h2i.toJpeg : h2i.toPng;
       let url; try { url = await f(node, opt); } catch { url = await f(node, { ...opt, skipFonts: true }); }
       return { url, title: D().title, id: D().id };
@@ -2726,7 +2729,7 @@ window.RokMods.showcase = (R) => {
     document.head.appendChild(s);
   }));
   // Ein beliebiges Element als PNG herunterladen (Charakter Showcase)
-  R.downloadNode = async (node, name) => { const h2i = await scLoadH2I(), opt = { pixelRatio: 2, backgroundColor: '#07090f', cacheBust: true, filter: (n) => !(n.dataset && n.dataset.ptk) };
+  R.downloadNode = async (node, name) => { const h2i = await scLoadH2I(), opt = { pixelRatio: 2, backgroundColor: '#07090f', cacheBust: true, style: { margin: '0' }, filter: (n) => !(n.dataset && n.dataset.ptk) };
     let url; try { url = await h2i.toPng(node, opt); } catch { url = await h2i.toPng(node, { ...opt, skipFonts: true }); }
     const a = document.createElement('a'); a.href = url; a.download = `${String(name || 'charakter').replace(/[^\wäöüÄÖÜß-]+/g, '_')}.png`; document.body.appendChild(a); a.click(); a.remove(); };
   R.$('scDl').onclick = async () => {
@@ -2738,7 +2741,7 @@ window.RokMods.showcase = (R) => {
       const h2i = await scLoadH2I();
       sc.edit = false; sc.exporting = true; R.$('scStage').classList.remove('sc-zoom'); drawStage();
       await new Promise(r => setTimeout(r, 120));
-      const node = R.$('scStage'), opt = { pixelRatio: 2, backgroundColor: '#07090f', cacheBust: true };
+      const node = R.$('scStage'), opt = { pixelRatio: 2, backgroundColor: '#07090f', cacheBust: true, style: { margin: '0' } };
       let url;
       try { url = await h2i.toPng(node, opt); } catch { url = await h2i.toPng(node, { ...opt, skipFonts: true }); }
       const a = document.createElement('a');
@@ -2838,15 +2841,32 @@ window.RokMods.showcase = (R) => {
   // ---- für den Reiter „🧍 Charakter Showcase“ (showcases.js): alle eigenen Sets mit Profil-Einstellungen ----
   R.scProfSets = () => scOwnDoc().list.flatMap(sh => sh.sets.filter(x => !x.kind || x.gearOn).map((x, i) => ({ scId: sh.id, scTitle: sh.title, setId: x.id,
     name: x.kind ? SC_KIND[x.kind] : (x.name || 'Set ' + (i + 1)), gear: JSON.parse(JSON.stringify(x.gear)), arm: JSON.parse(JSON.stringify(x.arm)), prof: JSON.parse(JSON.stringify(x.prof)) })));
-  R.scProfCtxOf = (p, edit) => ({ pick: p.prof.char, name: p.name, bg: { k: p.prof.bg }, arm: { ...p.arm, flip: p.prof.flip, scene: p.prof.stones }, adj: { bgY: p.prof.bgY, chY: p.prof.chY, chS: p.prof.chS, pts: p.prof.pts }, edit: !!edit });
+  R.scProfCtxOf = (p, edit) => ({ pick: p.prof.char, name: p.name, bg: { k: p.prof.bg }, lines: p.prof.lines, arm: { ...p.arm, flip: p.prof.flip, scene: p.prof.stones, order: p.prof.order }, adj: { bgY: p.prof.bgY, chY: p.prof.chY, chS: p.prof.chS, pts: p.prof.pts }, edit: !!edit });
   // Charakter-Bild mit den echten Showcase-Kacheln (Rahmen, Expertise, Refine-Symbol, Iconic wie im Showcase)
   R.scBoardFor = (gear, gfx, ctx) => { try { const g = scGearNorm(gear || {}); return scGearBoard(g, true, false, gfx ? scGfxNorm(gfx) : null, ctx); } catch (e) { console.warn(e); return R.charBoardHTML(gear, ctx); } };
-  R.scGfxOf = (scId, setId) => JSON.parse(JSON.stringify(scOwnDoc().list.find(s => s.id === scId)?.sets.find(y => y.id === setId)?.gfx || null));
+  // Rahmen/Partikel fürs Charakter-Bild: Showcase-Einstellung des Sets + eigene Wahl aus dem Charakter Showcase
+  const scProfGfx = (x) => scGfxNorm({ ...(x.gfx || {}), ...(x.prof?.gfx || {}) });
+  R.scGfxOf = (scId, setId) => { const x = scOwnDoc().list.find(s => s.id === scId)?.sets.find(y => y.id === setId); return x ? JSON.parse(JSON.stringify(scProfGfx(x))) : null; };
+  // Auswahl der Expertise-Rahmen (Gold + Lila) und Partikel für den Charakter Showcase
+  R.scProfGfxHtml = (scId, setId) => { const x = scOwnDoc().list.find(s => s.id === scId)?.sets.find(y => y.id === setId); if (!x) return '';
+    const fx = scProfGfx(x), own = x.prof?.gfx || {};
+    const tile = (f, on, c, key) => { const face = c === 'purple' ? gFace('epic') : gFace('legendary', fx.fh);
+      const inner = f === 'css' ? `<span class="gdia absolute inset-0" style="background:${GOLD_RIM}"></span><span class="gdia absolute inset-[4px]" style="background:${face}"></span>`
+        : f === 'none' ? `<span class="gdia absolute inset-0" style="background:${c === 'purple' ? R.GFILL.epic[0] : R.GFILL.legendary[0]}"></span><span class="gdia absolute inset-[2px]" style="background:${face}"></span>`
+        : `<span class="gdia absolute" style="inset:10%;background:${face}"></span>${gfImg(f, 'absolute inset-0 w-full h-full max-w-none', '')}${fx.pt && c === 'gold' ? gfParticles('inset:0;width:100%;height:100%') : ''}`;
+      const lbl = f === 'css' ? 'Glitzer-Rand' : f === 'none' ? 'Kein Rahmen' : f.id.replace(/^frame-/, '').replace(/-/g, ' ');
+      return `<button type="button" data-scp-gfr="${R.esc(key)}" data-scp-gfc="${c}" aria-pressed="${on}" title="${R.esc(lbl)}" class="relative w-12 h-12 rounded-lg border-2 ${on ? 'border-gold-400 bg-gold-500/15' : 'border-ink-600 hover:border-gold-500/60'}"><span class="absolute inset-1">${inner}</span></button>`; };
+    const cur = (v, c) => v === 'css' || v === 'none' ? v : (gfById(v) || gfList(c)[0])?.id || 'css';
+    const row = (c, v) => [...gfList(c).map(f => tile(f, v === f.id, c, f.id)), tile('css', v === 'css', c, 'css'), tile('none', v === 'none', c, 'none')].join('');
+    return `<div class="text-[10px] uppercase tracking-widest text-orange-300">Gold · legendäre Items</div><div class="mt-1 flex flex-wrap gap-1.5">${row('gold', cur(fx.fr, 'gold'))}</div>
+      <label class="mt-2 inline-flex items-center gap-2 cursor-pointer"><input type="checkbox" data-scp-gpt ${fx.pt ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">✨ Glitzer-Partikel bei Gold-Rahmen</label>
+      <div class="mt-2 text-[10px] uppercase tracking-widest text-purple-300">Lila · epische Items</div><div class="mt-1 flex flex-wrap gap-1.5">${row('purple', cur(fx.fp, 'purple'))}</div>
+      <p class="mt-1 text-[10px] text-slate-500">Rahmen erscheinen bei Items mit Expertise (fertig refined). ${Object.keys(own).length ? 'Eigene Wahl für dieses Bild.' : 'Aktuell wie im ⚔️ Gear Showcase.'}</p>`; };
   R.scCharBoard = (scId, setId, ctx) => { const x = scOwnDoc().list.find(s => s.id === scId)?.sets.find(y => y.id === setId); if (!x) return '';
-    try { return scGearBoard(x.gear, true, false, x.gfx, ctx); } catch (e) { console.warn(e); return R.charBoardHTML(x.gear, ctx); } };
+    try { return scGearBoard(x.gear, true, false, scProfGfx(x), ctx); } catch (e) { console.warn(e); return R.charBoardHTML(x.gear, ctx); } };
   R.scProfPut = async (scId, setId, patch) => {
     const live = !!(sc.own && sc.doc), doc = scOwnDoc(), x = doc.list.find(s => s.id === scId)?.sets.find(y => y.id === setId); if (!x) return false;
-    x.prof = scProfNorm({ ...x.prof, ...patch, flip: { ...x.prof.flip, ...(patch.flip || {}) }, pts: patch.pts === null ? {} : { ...x.prof.pts, ...(patch.pts || {}) } });
+    x.prof = scProfNorm({ ...x.prof, ...patch, flip: { ...x.prof.flip, ...(patch.flip || {}) }, gfx: patch.gfx === null ? {} : { ...(x.prof.gfx || {}), ...(patch.gfx || {}) }, pts: patch.pts === null ? {} : { ...x.prof.pts, ...(patch.pts || {}) } });
     if (live) { scSaveSoon(); return true; }
     doc.updated = Date.now(); R.LS.set(SC_KEY, JSON.stringify(doc)); try { await RokAuth.saveShowcase(scPublicDoc(doc)); } catch {} return true;
   };

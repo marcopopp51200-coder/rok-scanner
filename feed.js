@@ -1156,7 +1156,7 @@ window.RokMods.feed = (R) => {
       ${d.note ? `<div class="text-sm text-slate-200">📝 ${esc(d.note)}</div>` : ''}</div>`; };
   // Einzelnes Set mit Charakter (aus Craft → Sets gepostet)
   const charSetTile = (d) => { const gear = d.gear || {}, n = Object.values(gear).filter((g) => g && (g.item || g.icon)).length;
-    let board = ''; try { const ctx = { pick: d.char || '', name: d.name || '', bg: d.bg || null, arm: d.arm || null, adj: d.adj || null };
+    let board = ''; try { const ctx = { pick: d.char || '', name: d.name || '', bg: d.bg || null, arm: d.arm || null, adj: d.adj || null, lines: d.lines !== false };
     board = R.scBoardFor ? R.scBoardFor(gear, d.gfx, ctx) : R.charBoardHTML ? R.charBoardHTML(gear, ctx) : ''; } catch { board = ''; }
     return `<div class="fx-forge rounded-xl border border-orange-400/40 bg-gradient-to-br from-orange-950/40 via-ink-950/80 to-ink-950 p-3 flex flex-col items-center gap-2">
       <div class="w-full flex items-center justify-between gap-2"><span class="text-[10px] uppercase tracking-widest text-orange-300">🧍 Mein Set${d.main ? ' · ⭐ Hauptset' : ''}</span><span class="font-display text-lg text-slate-100 truncate">${esc(d.name || 'Set')}</span></div>
@@ -1165,8 +1165,8 @@ window.RokMods.feed = (R) => {
       <div class="text-xs text-slate-400">${n} Teil${n === 1 ? '' : 'e'}${Object.values(gear).some((g) => g && g.refine >= 100) ? ` · ${Object.values(gear).filter((g) => g && g.refine >= 100).length}× voll refined` : ''}</div>
       ${d.note ? `<div class="w-full text-sm text-slate-200">📝 ${esc(d.note)}</div>` : ''}</div>`; };
   // Craft → Sets: ein Set mit Charakter im Feed posten
-  R.feedShareSet = async ({ name, gear, char, main, note, bg, arm, adj, gfx }) => {
-    const data = { mode: 'set', char: String(char || ''), bg: bg || null, arm: arm || null, adj: adj || null, gfx: gfx || null, name: String(name || 'Set').slice(0, 40), main: !!main, note: String(note || '').slice(0, 300), gear: gear || {} };
+  R.feedShareSet = async ({ name, gear, char, main, note, bg, arm, adj, gfx, lines }) => {
+    const data = { mode: 'set', char: String(char || ''), bg: bg || null, arm: arm || null, adj: adj || null, gfx: gfx || null, lines: lines !== false, name: String(name || 'Set').slice(0, 40), main: !!main, note: String(note || '').slice(0, 300), gear: gear || {} };
     const { error } = await db().from('feed_posts').insert({ user_id: me(), kind: 'craft', body: '', image: null, data });
     if (error) throw error;
     if (st.loaded) load();
