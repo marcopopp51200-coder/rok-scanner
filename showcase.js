@@ -964,10 +964,10 @@ window.RokMods.showcase = (R) => {
   const gHasFrame = (v, it, rr, fx) => { const f = gfFor(it, v, rr, fx); return !!f && typeof f === 'object'; };
   // Gear-Brett im Detail: Rauten oder rund um den Charakter (Umschalter gilt überall)
   function scDrawGearBoard(x) {
-    const co = { name: x.name || '' }, on = !!R.charOn?.(x.gear, co), el = R.$('scGearBoard');
+    const co = { name: x.name || '' }, on = false, el = R.$('scGearBoard');   // Charakter-Ansicht nur im „🧍 Charakter-Profil“ unten
     R.charFrame?.(el, on); const w = R.$('scGearWrap'); if (w) w.style.maxWidth = on ? '320px' : '';
     el.innerHTML = scGearBoard(x.gear, false, false, x.gfx, on ? co : false);
-    const bar = R.$('scViewBar'); if (bar) bar.innerHTML = R.boardStyleBar ? R.boardStyleBar(x.gear, co) : '';
+    const bar = R.$('scViewBar'); if (bar) bar.innerHTML = '';
   }
   function scGearBoard(g, mini = false, hideEmpty = false, fxIn = null, ch = false) {
     const fx = fxIn || SC_GFX_DEF, box = (sl) => ch ? R.charBox(sl.k, ch === true ? {} : ch) : `left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%`;
