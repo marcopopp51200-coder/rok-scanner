@@ -974,10 +974,12 @@ tailwind.config = {
       <button type="button" data-cpane="plan">⚒ Planer</button>
       <button type="button" data-cpane="goal">🎯 Ziele</button>
       <button type="button" data-cpane="cal">📅 Mats-Kalender</button>
+      <button type="button" data-cpane="best">📊 Bestwerte</button>
       <button type="button" data-cpane="hist">📜 Craft-Verlauf</button>
     </div>
 
     <div id="craftSetsPane" class="space-y-4"></div>
+    <div id="craftBestPane" class="hidden space-y-4"></div>
 
     <div id="craftPlanPane" class="hidden space-y-6">
 
@@ -1026,6 +1028,7 @@ tailwind.config = {
         <div id="gearHistBar" class="mt-2"></div>
         <div id="gearScanMsg" class="hidden mt-2 text-xs"></div>
         <div id="gearIstBoard" class="relative mx-auto mt-5 w-full max-w-[280px] aspect-[1/2]"></div>
+        <div id="gearIstStats"></div>
         <div id="gearIstEdit" class="mt-4"></div>
         <p class="mt-2 text-[11px] text-slate-500 text-center">Screenshot auch per Drag &amp; Drop auf dieses Feld · max. 2 Bilder · werden nach dem Auslesen verworfen</p>
       </section>
@@ -1041,6 +1044,7 @@ tailwind.config = {
           </div>
         </div>
         <div id="gearZielBoard" class="relative mx-auto mt-5 w-full max-w-[280px] aspect-[1/2]"></div>
+        <div id="gearZielStats"></div>
         <div id="gearZielEdit" class="mt-4"></div>
       </section>
     </div>

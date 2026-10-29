@@ -384,6 +384,7 @@ window.RokMods.showcase = (R) => {
     insc: (Array.isArray(a?.insc) ? a.insc : []).slice(0, 12).map(i => ({ t: String(i?.t || '').slice(0, 24), c: SC_INSC[i?.c] ? i.c : 'gold' })),
     arms: Object.fromEntries(Object.keys(ARM_TYPES).map(k => [k, ARM_BY_ID[a?.arms?.[k]]?.type === k ? a.arms[k] : ''])),
     troop: SC_TROOPS[a?.troop] ? a.troop : 'infantry', ...Object.fromEntries(SC_ARM_STATS.map(([k]) => [k, scNum1(a?.[k])])) });
+  R.armData = { TYPES: ARM_TYPES, POOL: ARM_POOL, FORMATIONS: ARM_FORMATIONS, BY_ID: ARM_BY_ID, INSC: SC_INSC, STATS: SC_ARM_STATS, TROOPS: SC_TROOPS, known: (t) => scInscKnown(t) };   // für Craft → Charakter bearbeiten
   const scArmHas = (a) => a.insc.some(i => i.t) || !!a.formation || SC_ARM_STATS.some(([k]) => a[k]);
   const scArmVis = (a) => a.insc.some(i => i.t) || !!a.formation;                  // Rüstungs-Element (Inschriften + Formation)
   const scStHas = (a) => SC_ARM_STATS.some(([k]) => a[k]);                          // Werte-Element (Angriff, Verteidigung …)
@@ -2785,6 +2786,7 @@ window.RokMods.showcase = (R) => {
   const scOwnDoc = () => (sc.own && sc.doc) ? sc.doc : ownShowcase();
   R.scGearSets = () => scOwnDoc().list.flatMap(s => s.sets.map((x, i) => ({ scId: s.id, scTitle: s.title, setId: x.id,
     setName: x.kind ? SC_KIND[x.kind] : (x.name || 'Set ' + (i + 1)), gear: JSON.parse(JSON.stringify(x.gear)) })));
+  R.scGetArm = (scId, setId) => { const x = scOwnDoc().list.find(s => s.id === scId)?.sets.find(y => y.id === setId); return x?.arm ? JSON.parse(JSON.stringify(x.arm)) : null; };
   R.scPutGear = async (scId, setId, slots, label) => {
     const live = !!(sc.own && sc.doc), doc = scOwnDoc();
     const x = doc.list.find(s => s.id === scId)?.sets.find(y => y.id === setId); if (!x) return false;

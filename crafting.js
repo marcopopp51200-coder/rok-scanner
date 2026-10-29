@@ -56,6 +56,9 @@ window.RokMods.crafting = (R) => {
     blue: 'background:radial-gradient(60% 55% at 50% 45%,rgba(59,130,246,.55),rgba(15,23,42,.9) 75%)', red: 'background:radial-gradient(60% 55% at 50% 45%,rgba(239,68,68,.5),rgba(28,10,10,.92) 75%)',
     gold: 'background:radial-gradient(60% 55% at 50% 45%,rgba(245,197,66,.5),rgba(30,20,5,.92) 75%)', green: 'background:radial-gradient(60% 55% at 50% 45%,rgba(34,197,94,.45),rgba(6,24,14,.92) 75%)',
     purple: 'background:radial-gradient(60% 55% at 50% 45%,rgba(168,85,247,.5),rgba(20,8,32,.92) 75%)', night: 'background:linear-gradient(180deg,#0b1026,#1b1f3a 55%,#2a1f3d)' };
+  // gemalte Hintergrund-Bilder (icons/charbg/)
+  const CHAR_BG_IMG = [['burghof', '🏰 Burghof'], ['pagode', '⛩ Pagode'], ['thronsaal', '👑 Thronsaal'], ['schlachtfeld', '⚔ Schlachtfeld'], ['winter', '❄ Winter'], ['nacht', '🌙 Nacht'], ['wueste', '🏜 Wüste'], ['wald', '🌲 Wald']];
+  CHAR_BG_IMG.forEach(([k]) => { CHAR_BG['img:' + k] = `background:linear-gradient(rgba(7,9,15,.05),rgba(7,9,15,.35)),url('icons/charbg/${k}.webp') center/cover`; });
   const BSTYLE = 'rok_scanner_board_style';
   R.boardStyle = () => (R.LS?.get(BSTYLE, 'char') === 'rauten' ? 'rauten' : 'char');   // Standard: Charakter-Ansicht
   // Truppentyp: Refine-Typ der refinten Teile (häufigster), sonst aus dem Set-Namen (Kav/Cav, Bogen/Arch, Inf), sonst Infanterie
@@ -278,6 +281,12 @@ window.RokMods.crafting = (R) => {
     upto: String(pr?.upto || ''), view: ['set', 'all'].includes(pr?.view) || /^[\w-]{4,}$/.test(pr?.view || '') ? pr.view : 'set',
     goalUpto: String(pr?.goalUpto || ''), filter: String(pr?.filter || '') });   // '' = alle Sets, sonst Set-ID ('active' = altes „nur aktives Set“)
   const newGearSet = (name) => ({ id: R.newId(), name, ist: gEmptySlots(), ziel: gEmptySlots(), dismantle: false, useChests: false, goal: gNormGoal(), prio: gNormPrio(), updated: Date.now() });
+  // Armaments: Formation, 4 Teile (Flagge/Emblem/Schriftrolle/Instrument), Inschriften, Werte
+  const ARMK = ['flag', 'emblem', 'scroll', 'instrument'], ARM_ST = ['atk', 'def', 'hp', 'spd', 'dmg'];
+  const armNum = (v) => { const n = Math.round(parseFloat(String(v ?? '').replace(',', '.')) * 10) / 10; return Number.isFinite(n) ? n : null; };
+  const armNorm = (a) => ({ formation: String(a?.formation || '').slice(0, 30), arms: Object.fromEntries(ARMK.map(k => [k, String(a?.arms?.[k] || '')])),
+    insc: (Array.isArray(a?.insc) ? a.insc : []).slice(0, 12).map(i => ({ t: String(i?.t || '').slice(0, 24), c: ['gold', 'blue', 'gray'].includes(i?.c) ? i.c : 'gold' })).filter(i => i.t),
+    troop: ['infantry', 'cavalry', 'archer', 'siege', 'all'].includes(a?.troop) ? a.troop : 'infantry', ...Object.fromEntries(ARM_ST.map(k => [k, armNum(a?.[k])])) });
   function gNormSet(s) {
     const o = newGearSet(String(s?.name || 'Set').slice(0, 40));
     if (s?.id) o.id = String(s.id);
@@ -288,6 +297,7 @@ window.RokMods.crafting = (R) => {
     o.sc = s?.sc?.scId && s?.sc?.setId ? { scId: String(s.sc.scId), setId: String(s.sc.setId) } : null;   // verbundenes Showcase-Set
     o.prio = gNormPrio(s?.prio);
     o.char = String(s?.char || '').slice(0, 40); o.main = !!s?.main;
+    o.arm = armNorm(s?.arm);   // Armaments des Charakters
     o.bg = s?.bg && (s.bg.url || s.bg.k) ? (s.bg.url ? { url: String(s.bg.url) } : { k: String(s.bg.k) }) : null;   // Hintergrund der Charakter-Ansicht   // Charakter (leer = automatisch) · Hauptset
     return o;
   }
@@ -521,6 +531,8 @@ window.RokMods.crafting = (R) => {
     const co = { pick: set.char || '', name: set.name, bg: set.bg };
     ['ist', 'ziel'].forEach(side => { const el = R.$(side === 'ist' ? 'gearIstBoard' : 'gearZielBoard'), on = R.charOn(set.ziel, co);
       R.charFrame(el, on, '280px'); el.innerHTML = gearBoard(side, set, calc, { char: on ? co : null }); });
+    R.$('gearIstStats').innerHTML = statPanelHtml(set.ist, set.arm);
+    R.$('gearZielStats').innerHTML = statPanelHtml(set.ziel, set.arm, { slots: set.ist, arm: set.arm });
     R.$('gearViewBar').innerHTML = `<div class="flex flex-wrap items-center gap-2">
         <select data-plan-set translate="no" class="flex-1 min-w-[200px] max-w-md bg-ink-950 border border-gold-500/50 rounded-lg px-3 py-2 text-base font-semibold focus:outline-none focus:border-gold-400" title="Charakter / Set für den Planer">${gear.sets.map(s => `<option value="${R.esc(s.id)}"${s.id === set.id ? ' selected' : ''}>${s.main ? '⭐ ' : ''}${R.esc(s.name)}</option>`).join('')}</select>
         <button type="button" data-plan-edit class="px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-sm">✎ Bearbeiten</button>
@@ -1104,6 +1116,31 @@ window.RokMods.crafting = (R) => {
       ${st.set ? `<div><div class="text-[11px] uppercase tracking-widest text-slate-500">Set-Effekte</div><div class="rounded-md bg-gold-500/90 text-ink-950 font-semibold px-2 py-0.5 text-xs inline-block">${R.esc(st.set.name || 'Set')} (${st.set.n} Teile)</div>${st.set.fx.map(f => `<div class="text-xs">${f.p} Teile: ${R.esc(f.t)}</div>`).join('')}</div>` : ''}
       ${st.note ? `<div class="text-xs text-slate-400">📝 ${R.esc(st.note)}</div>` : ''}</div>`; };
   R.gearStats = (itemId) => { const it = gItem(itemId); return it?.eq?.stats || null; };
+  // Gesamtwerte einer Ausrüstung: Attribute (grün nur bei voll refined), Iconic I–IV ab der jeweiligen Tier-Stufe, V als Name, Set-Effekte, Armaments
+  const ARM_TROOP_K = { infantry: 'inf', cavalry: 'cav', archer: 'arch', siege: 'siege', all: 'all' };
+  function statTotals(slots, arm) {
+    const tot = new Map(), extra = [], sets = new Map(), add = (l, src) => { if (!l) return; const key = l.k === 'txt' ? 'txt:' + l.t.toLowerCase() : l.k; const o = tot.get(key) || { k: l.k, t: l.t, v: 0 }; o.v += l.v; tot.set(key, o); };
+    GEAR_SLOTS.forEach(sl => { const v = slots?.[sl.k], it = gItem(v?.item), st = it?.eq?.stats; if (!st) return; const full = (v.refine || 0) >= 100;
+      st.lines.forEach(l => add({ ...l, v: l.v + (full ? l.b : 0) }));
+      st.ic.forEach((l, i) => { if (l && (v.tier || 0) >= i + 1) add({ ...l, v: l.v + (full ? l.b : 0) }); });
+      if (st.ic5 && (v.tier || 0) >= 5) extra.push('🏅 ' + st.ic5.name);
+      if (st.set?.name) { const k = st.set.name.toLowerCase(), o = sets.get(k) || { name: st.set.name, n: 0, fx: st.set.fx }; o.n++; if (!o.fx.length) o.fx = st.set.fx; sets.set(k, o); } });
+    sets.forEach(o => o.fx.filter(f => o.n >= f.p).forEach(f => extra.push(`🧩 ${o.name} (${f.p}): ${f.t}`)));
+    if (arm) { const tk = ARM_TROOP_K[arm.troop] || 'all';
+      [['atk', tk + '_atk'], ['def', tk + '_def'], ['hp', tk + '_hp'], ['spd', 'march'], ['dmg', 'dmg']].forEach(([a, k]) => { if (arm[a]) add({ k, v: arm[a], t: '' }); });
+      if (arm.insc.length) extra.push('⚔ ' + arm.insc.map(i => i.t).join(', ')); }
+    return { tot, extra };
+  }
+  function statPanelHtml(slots, arm, cmp) {
+    const a = statTotals(slots, arm), b = cmp ? statTotals(cmp.slots, cmp.arm) : null;
+    const keys = [...new Set([...a.tot.keys(), ...(b ? b.tot.keys() : [])])];
+    if (!keys.length && !a.extra.length) return `<div class="mt-3 text-[11px] text-slate-500 text-center">📊 Werte erscheinen hier, sobald du sie im Item-Katalog einträgst.</div>`;
+    const lab = (o) => o.k === 'txt' ? o.t : STAT_LABEL[o.k] || o.k, unit = (k) => STAT_FLAT(k) || k === 'txt' ? '' : '%';
+    const rows = keys.map(k => { const x = a.tot.get(k), y = b?.tot.get(k), o = x || y, v = x?.v || 0, d = b ? v - (y?.v || 0) : 0;
+      return `<div class="flex items-baseline gap-2 text-xs"><span class="flex-1 truncate text-slate-300">${R.esc(lab(o))}</span><b class="tabular-nums text-white">${v ? '+' + fmtN(v) + unit(o.k) : '–'}</b>${b && Math.abs(d) > 1e-6 ? `<span class="w-16 text-right tabular-nums font-semibold ${d > 0 ? 'text-emerald-400' : 'text-red-300'}">${d > 0 ? '+' : ''}${fmtN(d)}${unit(o.k)}</span>` : b ? '<span class="w-16"></span>' : ''}</div>`; }).join('');
+    return `<details class="mt-3 rounded-xl border border-ink-700 bg-ink-950/50 p-3" open><summary class="cursor-pointer text-xs font-semibold text-gold-200">📊 Werte${b ? ' <span class="font-normal text-slate-400">· grün/rot = Veränderung zum Ist</span>' : ''}</summary>
+      <div class="mt-2 space-y-0.5">${rows}</div>${a.extra.length ? `<div class="mt-2 pt-2 border-t border-ink-700/60 space-y-0.5 text-[11px] text-slate-300">${a.extra.map(e => `<div>${R.esc(e)}</div>`).join('')}</div>` : ''}</details>`;
+  }
 
   // ---- Kosten-Eingabe: Tabelle Stufen × Materialien je Item (speichern nur für Admins, Tabelle gear_costs) ----
   const CE_ROWS = [['craft', '⚒ Craften'], ['refine', '✦ Refine'], ['awaken_1', 'Tier I'], ['awaken_2', 'Tier II'], ['awaken_3', 'Tier III'], ['awaken_4', 'Tier IV'], ['awaken_5', 'Tier V']];
@@ -1980,7 +2017,7 @@ window.RokMods.crafting = (R) => {
   R.boardStyleHooks.push(() => { if (craftPane === 'sets') renderSets(); if (charEd) drawCharEditor(); });
 
   // ---- Charakter bearbeiten: scannen, Items upgraden, Hintergrund, auf alles übertragen, History ----
-  const CHAR_BG_LIST = [['', 'Standard'], ['blue', 'Blau'], ['red', 'Rot'], ['gold', 'Gold'], ['green', 'Grün'], ['purple', 'Lila'], ['night', 'Nacht']];
+  const CHAR_BG_LIST = [['', '🎨 Standard'], ['blue', '🎨 Blau'], ['red', '🎨 Rot'], ['gold', '🎨 Gold'], ['green', '🎨 Grün'], ['purple', '🎨 Lila'], ['night', '🎨 Dunkel'], ...CHAR_BG_IMG.map(([k, l]) => ['img:' + k, l])];
   function openCharEditor(id) {
     const s = gear.sets.find(x => x.id === id); if (!s) return;
     gear.active = s.id; gearFlags = {}; R.LS.set(GEAR_SETS, JSON.stringify(gear));
@@ -1989,6 +2026,8 @@ window.RokMods.crafting = (R) => {
     charEd = { id, root, prev: document.body.style.overflow };
     document.body.appendChild(root); document.body.style.overflow = 'hidden';
     root.addEventListener('click', onCharEdClick); root.addEventListener('change', onCharEdChange);
+    root.addEventListener('toggle', (ev) => { if (ev.target.matches?.('[data-armdet]')) armOpen = ev.target.open; }, true);
+    root.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' && ev.target.matches('[data-arm-new]')) { ev.preventDefault(); root.querySelector('[data-armx="add"]')?.click(); } });
     root.addEventListener('click', gearEdit); root.addEventListener('change', gearEdit);
     drawCharEditor();
   }
@@ -2003,7 +2042,7 @@ window.RokMods.crafting = (R) => {
       <div class="flex flex-wrap items-center gap-2">
         <h3 class="font-display text-2xl gold-text mr-auto" translate="no">✎ ${R.esc(s.name)}</h3>
         <select data-charpick="${R.esc(s.id)}" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm font-semibold"><option value="">🔄 Charakter automatisch</option>${R.charList().map(x => `<option value="${R.esc(x.id)}"${s.char === x.id ? ' selected' : ''}>🧍 ${R.esc(x.name)}</option>`).join('')}</select>
-        <select data-ced="bg" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm">${CHAR_BG_LIST.map(([k, l]) => `<option value="${k}"${(s.bg?.k || '') === k && !s.bg?.url ? ' selected' : ''}>🎨 ${l}</option>`).join('')}${s.bg?.url ? '<option value="url" selected>🖼 Eigenes Bild</option>' : ''}</select>
+        <select data-ced="bg" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm">${CHAR_BG_LIST.map(([k, l]) => `<option value="${k}"${(s.bg?.k || '') === k && !s.bg?.url ? ' selected' : ''}>${l}</option>`).join('')}${s.bg?.url ? '<option value="url" selected>🖼 Eigenes Bild</option>' : ''}</select>
         <label class="cursor-pointer px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">🖼 Hintergrund-Bild<input type="file" accept="image/*" data-ced="bgfile" class="hidden"></label>
         <button type="button" data-ced="close" class="px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">✕ Fertig</button></div>
       <div class="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-start">
@@ -2022,7 +2061,9 @@ window.RokMods.crafting = (R) => {
               ${[25, 50, 75].map(a => `<button type="button" data-ced="ref" data-v="${a}" ${(v.refine || 0) < 100 ? '' : 'disabled'} class="${qb} border-red-400/50 text-red-200 hover:bg-red-500/10">✦ +${a}%</button>`).join('')}
             </div></div>` : '<div class="text-sm text-slate-400">Tipp links ein Teil an – oder scanne einen Screenshot.</div>'}
           ${gearEditor('ist', s, calc)}
+          ${armEditorHtml(s)}
         </div></div>
+      <div class="mt-4">${statPanelHtml(s.ist, s.arm)}</div>
       <div class="mt-5 border-t border-ink-700 pt-4 flex flex-wrap items-center gap-2">
         <span class="mr-auto text-sm ${pend.length ? 'text-gold-200' : 'text-slate-500'}">${pend.length ? `✎ ${pend.length} ${pend.length === 1 ? 'Änderung' : 'Änderungen'} seit dem letzten Speichern` : '✓ Alles gespeichert'}</span>
         <button type="button" data-ced="hist" ${pend.length ? '' : 'disabled'} class="px-4 py-2 rounded-lg border border-gold-500/60 text-gold-200 hover:border-gold-400 text-sm font-semibold disabled:opacity-40">📜 In History</button>
@@ -2030,6 +2071,40 @@ window.RokMods.crafting = (R) => {
       </div>
       <div class="mt-1 text-[11px] text-slate-500 text-right">Planer, Ziele und Kalender rechnen sofort mit dem neuen Stand · „Auf alles übertragen“ = History + ${linked ? `Showcase „${R.esc(linked.scTitle)} › ${R.esc(linked.setName)}“` : 'Showcase (über ⇧ Showcase verbinden)'} + Cloud</div>
       <div data-ced-msg class="mt-2 text-xs text-right"></div></div>`;
+  }
+  // Armaments im Bearbeiten-Fenster (aufklappbar)
+  let armOpen = false;
+  function armEditorHtml(s) {
+    const D = R.armData; if (!D) return '';
+    const a = s.arm, fi = 'bg-ink-950 border border-ink-600 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
+    const forms = Object.keys(D.FORMATIONS), list = (k) => Object.entries(D.FORMATIONS).flatMap(([f, l]) => l.filter(x => x.type === k).map(x => ({ ...x, f }))).filter(x => !a.formation || x.f === a.formation);
+    const known = [...new Set([...Object.values(D.POOL).flat(), ...Object.values(D.FORMATIONS).flat().flatMap(x => [x.gold, x.blue])])].sort();
+    const linked = s.sc && scSets().find(x => x.scId === s.sc.scId && x.setId === s.sc.setId);
+    const has = a.formation || ARMK.some(k => a.arms[k]) || a.insc.length || ARM_ST.some(k => a[k]);
+    return `<details data-armdet class="rounded-xl border border-ink-700 bg-ink-950/40 p-3" ${armOpen ? 'open' : ''}>
+      <summary class="cursor-pointer text-sm font-semibold text-gold-200">⚔ Armaments ${has ? `<span class="text-[11px] font-normal text-slate-400">· ${R.esc(a.formation || 'ohne Formation')} · ${a.insc.length} Inschriften</span>` : '<span class="text-[11px] font-normal text-slate-500">· noch leer</span>'}</summary>
+      <div class="mt-3 space-y-3">
+        <div class="flex flex-wrap items-center gap-2"><label class="text-xs text-slate-400">Formation</label>
+          <select data-arm="formation" class="${fi}"><option value="">–</option>${forms.map(f => `<option value="${f}"${a.formation === f ? ' selected' : ''}>${f}</option>`).join('')}</select>
+          ${linked && R.scGetArm ? '<button type="button" data-armx="fromsc" class="ml-auto text-xs px-2.5 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⇩ aus Showcase übernehmen</button>' : ''}</div>
+        <div class="grid sm:grid-cols-2 gap-2">${ARMK.map(k => `<label class="flex flex-col gap-0.5 text-[11px] text-slate-400">${D.TYPES[k].icon} ${D.TYPES[k].label}
+          <select data-arm="arms.${k}" class="${fi}"><option value="">–</option>${list(k).map(x => `<option value="${x.id}"${a.arms[k] === x.id ? ' selected' : ''}>${R.esc(x.name)}${a.formation ? '' : ' (' + x.f + ')'}</option>`).join('')}</select></label>`).join('')}</div>
+        <div><div class="text-[11px] text-slate-400 mb-1">Inschriften (bis 12) – Farbe wird erkannt</div>
+          <div class="flex flex-wrap gap-1.5">${a.insc.map((i, n) => { const st = D.INSC[i.c] || D.INSC.gold; return `<span class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold" style="background:${st.bg};color:${st.fg}">${R.esc(i.t)}<button type="button" data-armx="rm" data-i="${n}" class="opacity-60 hover:opacity-100">✕</button></span>`; }).join('') || '<span class="text-xs text-slate-500">keine</span>'}</div>
+          ${a.insc.length < 12 ? `<div class="mt-1.5 flex gap-1.5"><input data-arm-new list="armInscList" placeholder="Inschrift, z. B. Toppler" class="${fi} flex-1 min-w-0"><button type="button" data-armx="add" class="px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400 text-sm">＋</button></div>
+            <datalist id="armInscList">${known.map(t => `<option value="${R.esc(t)}">`).join('')}</datalist>` : ''}</div>
+        <div><div class="text-[11px] text-slate-400 mb-1">Werte der Armaments</div>
+          <div class="flex flex-wrap items-center gap-1.5"><select data-arm="troop" class="${fi}">${Object.entries(D.TROOPS).map(([k, l]) => `<option value="${k}"${a.troop === k ? ' selected' : ''}>${l}</option>`).join('')}</select>
+            ${D.STATS.map(([k, l]) => `<label class="inline-flex items-center gap-1 text-xs text-slate-300">${l}<input data-arm="${k}" inputmode="decimal" value="${a[k] != null ? String(a[k]).replace('.', ',') : ''}" placeholder="0" class="${fi} w-16 text-right">%</label>`).join('')}</div></div>
+      </div></details>`;
+  }
+  function armChange(s, t) {
+    const a = s.arm, f = t.dataset.arm; if (!f) return false;
+    if (f === 'formation') { a.formation = t.value; ARMK.forEach(k => { const x = R.armData.BY_ID[a.arms[k]]; if (x && t.value && !R.armData.FORMATIONS[t.value]?.some(y => y.id === x.id)) a.arms[k] = ''; }); }
+    else if (f.startsWith('arms.')) a.arms[f.slice(5)] = t.value;
+    else if (f === 'troop') a.troop = t.value;
+    else a[f] = armNum(t.value);
+    s.arm = armNorm(a); return true;
   }
   const cedMsg = (t, ok = true) => { const el = charEd?.root.querySelector('[data-ced-msg]'); if (el) { el.className = 'mt-2 text-xs text-right ' + (ok ? 'text-emerald-300' : 'text-amber-300'); el.textContent = t; } };
   function cedHist(s) { const ch = histPending(s); if (!ch.length) return 0;
@@ -2039,6 +2114,12 @@ window.RokMods.crafting = (R) => {
     const s = gear.sets.find(x => x.id === charEd?.id); if (!s) return;
     if (ev.target === charEd.root) { closeCharEditor(); return; }
     const tile = ev.target.closest('[data-ced-board] [data-tile]'); if (tile) { gearSel.ist = tile.dataset.tile; drawCharEditor(); return; }
+    const ax = ev.target.closest('[data-armx]');
+    if (ax) { armOpen = true; const A = ax.dataset.armx;
+      if (A === 'rm') s.arm.insc.splice(+ax.dataset.i, 1);
+      else if (A === 'add') { const inp = charEd.root.querySelector('[data-arm-new]'), t = inp?.value.trim(); if (!t) return; const k = R.armData.known(t); s.arm.insc.push({ t: k?.t || t, c: k?.c || 'gold' }); }
+      else if (A === 'fromsc') { const src = R.scGetArm?.(s.sc.scId, s.sc.setId); if (!src) { cedMsg('Im Showcase-Set sind keine Armaments eingetragen.', false); return; } s.arm = armNorm(src); cedMsg('✓ Armaments aus dem Showcase übernommen'); }
+      s.arm = armNorm(s.arm); saveGear(); renderGearMain(); drawCharEditor(); return; }
     const b = ev.target.closest('[data-ced]'); if (!b || b.tagName === 'SELECT' || b.tagName === 'INPUT') return;
     const a = b.dataset.ced, v = s.ist[gearSel.ist], it = gItem(v?.item);
     if (a === 'close') { closeCharEditor(); return; }
@@ -2059,6 +2140,7 @@ window.RokMods.crafting = (R) => {
   async function onCharEdChange(ev) {
     const s = gear.sets.find(x => x.id === charEd?.id); if (!s) return;
     const t = ev.target;
+    if (t.dataset.arm) { armOpen = true; if (armChange(s, t)) { saveGear(); renderGearMain(); drawCharEditor(); } return; }
     if (t.dataset.ced === 'bg') { s.bg = t.value === 'url' ? s.bg : t.value ? { k: t.value } : null; saveGear(); drawCharEditor(); return; }
     if (t.dataset.ced === 'bgfile' && t.files?.[0]) {
       cedMsg('⏳ Bild wird hochgeladen …');
@@ -2074,11 +2156,76 @@ window.RokMods.crafting = (R) => {
   R.openCharEditor = openCharEditor;
 
 
+  // ================= Bestwerte: welches Item bringt die meisten Werte für die wenigsten Mats =================
+  const bestOpt = { troop: 'arch', atk: true, def: true, hp: true, other: true, slot: '', basis: 'max' };
+  try { Object.assign(bestOpt, JSON.parse(R.LS.get('rok_scanner_gear_best', '{}')) || {}); } catch {}
+  const BEST_TROOPS = [['inf', '🛡 Infanterie'], ['cav', '🐎 Kavallerie'], ['arch', '🏹 Bogen'], ['siege', '⚙ Belagerung'], ['all', '🌍 Alle']];
+  const BEST_OTHER = ['dmg', 'skill_dmg', 'na_dmg', 'counter', 'dmg_red', 'skill_red', 'na_red', 'ign_atk', 'ign_def', 'heal', 'march', 'cap_pct', 'rage'];
+  const bestRel = (k) => { const m = /^(all|inf|cav|arch|siege)_(atk|def|hp)$/.exec(k); if (m) return (m[1] === 'all' || m[1] === bestOpt.troop || bestOpt.troop === 'all') && bestOpt[m[2]];
+    return bestOpt.other && BEST_OTHER.includes(k); };
+  // Punkte = Summe der passenden %-Werte (Attribute + Iconic bis zur Stufe, grün bei voll refined)
+  function bestScore(st, tier = 5, full = true) { if (!st) return 0; let p = 0;
+    st.lines.forEach(l => { if (bestRel(l.k)) p += l.v + (full ? l.b : 0); });
+    st.ic.forEach((l, i) => { if (l && tier >= i + 1 && bestRel(l.k)) p += l.v + (full ? l.b : 0); });
+    return p; }
+  const itemCost = (it, basis) => { const t = gZero(); (basis === 'craft' ? ['craft'] : EQ_STAGES).forEach(st => gAdd(t, stageCost(it, st))); return t; };
+  function renderBest() {
+    const box = R.$('craftBestPane'); if (!box) return;
+    const items = R.gearCat.filter(i => i.eq && (!bestOpt.slot || i.cat === bestOpt.slot)), withStats = items.filter(i => i.eq.stats);
+    const rows = withStats.map(it => { const sc = bestScore(it.eq.stats), c = itemCost(it, bestOpt.basis), m = gMatSum(c); return { it, sc, c, m, r: m > 0 ? sc / m * 100 : 0 }; })
+      .filter(x => x.sc > 0).sort((a, b) => b.r - a.r);
+    const maxR = Math.max(1e-6, ...rows.map(x => x.r));
+    // beste Upgrades für das aktive Set (ab deinem Stand)
+    const set = activeSet(), ups = [];
+    GEAR_SLOTS.forEach(sl => { const cur = set.ist[sl.k], ci = gItem(cur.item), curSc = ci?.eq?.stats ? bestScore(ci.eq.stats, cur.tier || 0, (cur.refine || 0) >= 100) : 0;
+      withStats.filter(it => it.cat === sl.cat).forEach(it => { if (sl.cat === 'accessory' && it.id !== cur.item && GEAR_SLOTS.some(o => o.k !== sl.k && set.ist[o.k].item === it.id)) return;
+        const gain = bestScore(it.eq.stats) - curSc; if (gain <= 0.001) return;
+        const z = JSON.parse(JSON.stringify(set.ist)); z[sl.k] = gMaxSlot({ item: it.id, rarity: it.rarity, tier: 0, refine: 0, refType: cur.refType }, cur);
+        const need = gearCalc(set, z).need, m = gMatSum(need); if (m <= 0) return;
+        ups.push({ sl, it, gain, need, m, r: gain / m * 100, same: it.id === cur.item }); }); });
+    ups.sort((a, b) => b.r - a.r);
+    const chip = (on, attr, l) => `<button type="button" ${attr} class="${hChip(on)}">${l}</button>`;
+    const icon = (it) => stepIcon({ item: it.id, rarity: it.rarity }, 'w-10 h-10');
+    box.innerHTML = `<section class="panel rounded-2xl p-5">
+        <h3 class="font-display text-xl gold-text">📊 Bestwerte</h3>
+        <p class="text-xs text-slate-400 mt-1">Welches Item bringt die meisten Werte für die wenigsten Mats? Punkte = Summe der passenden %-Werte (Attribute + Iconic bei voller Stufe). Kosten in legendären Mats.</p>
+        <div class="mt-3 flex flex-wrap items-center gap-1.5 text-xs">${BEST_TROOPS.map(([k, l]) => chip(bestOpt.troop === k, `data-bo="troop" data-v="${k}"`, l)).join('')}
+          <span class="w-px h-5 bg-ink-700 mx-1"></span>${[['atk', 'Angriff'], ['def', 'Verteidigung'], ['hp', 'Leben'], ['other', 'Sonstiges']].map(([k, l]) => chip(bestOpt[k], `data-bo="${k}"`, (bestOpt[k] ? '✓ ' : '') + l)).join('')}
+          <span class="w-px h-5 bg-ink-700 mx-1"></span><select data-bo-sel="slot" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1"><option value="">Alle Slots</option>${Object.entries(GEAR_CATS).map(([k, l]) => `<option value="${k}"${bestOpt.slot === k ? ' selected' : ''}>${l}</option>`).join('')}</select>
+          <select data-bo-sel="basis" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1"><option value="max"${bestOpt.basis === 'max' ? ' selected' : ''}>Kosten bis Max</option><option value="craft"${bestOpt.basis === 'craft' ? ' selected' : ''}>nur Craften</option></select></div></section>
+      <section class="panel rounded-2xl p-5">
+        <h3 class="font-display text-lg gold-text">⬆ Beste Upgrades für „${R.esc(set.name)}“ <span class="text-xs font-sans text-slate-400">ab deinem Ist-Stand</span></h3>
+        ${ups.length ? `<div class="mt-3 grid gap-2 md:grid-cols-2">${ups.slice(0, 8).map((u, i) => `<div class="flex items-center gap-3 rounded-xl border ${i === 0 ? 'border-gold-400/70 bg-gold-500/10' : 'border-ink-700 bg-ink-950/40'} p-2.5">
+            <span class="w-6 text-center font-bold ${i === 0 ? 'text-gold-300' : 'text-slate-500'}">${i + 1}</span>${icon(u.it)}
+            <div class="min-w-0 flex-1"><div class="font-semibold truncate" translate="no">${R.esc(u.it.name)}</div><div class="text-[11px] text-slate-400">${u.sl.label} · ${u.same ? 'dein Item auf Max' : 'statt ' + R.esc(gItem(set.ist[u.sl.k].item)?.name || 'leer')}</div>
+              <div class="mt-1 flex flex-wrap gap-1">${costBoxes(u.need, '!px-1.5 !text-[11px]')}</div></div>
+            <div class="text-right"><div class="text-lg font-extrabold text-emerald-300 tabular-nums">+${fmtN(u.gain)}</div><div class="text-[10px] text-slate-400 tabular-nums">${fmtN(u.r)} / 100 Mats</div></div></div>`).join('')}</div>`
+          : '<div class="mt-2 text-sm text-slate-500">Noch keine Vorschläge – dafür brauchen die Items Werte im Item-Katalog.</div>'}
+      </section>
+      <section class="panel rounded-2xl p-5">
+        <h3 class="font-display text-lg gold-text">🏆 Rangliste: Werte pro Mats</h3>
+        ${rows.length ? `<div class="mt-3 space-y-1.5">${rows.map((x, i) => `<div class="flex items-center gap-3 rounded-lg border border-ink-700 bg-ink-950/40 px-2.5 py-1.5">
+            <span class="w-6 text-center text-sm font-bold ${i < 3 ? 'text-gold-300' : 'text-slate-500'}">${i + 1}</span>${icon(x.it)}
+            <div class="min-w-0 w-48 sm:w-60"><div class="text-sm font-semibold truncate" translate="no">${R.esc(x.it.name)}</div><div class="text-[11px] text-slate-400">${GEAR_CATS[x.it.cat]}</div></div>
+            <div class="hidden sm:block text-sm tabular-nums w-20 text-right"><b class="text-white">${fmtN(x.sc)}</b> <span class="text-[10px] text-slate-500">Pkt</span></div>
+            <div class="hidden md:block text-xs tabular-nums w-40 text-slate-300">${gq(x.m)} Mats${x.c.gold ? ' · 🪙 ' + gGold(x.c.gold) : ''}</div>
+            <div class="flex-1 min-w-[80px]"><div class="h-2 rounded-full bg-ink-800 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-gold-600 to-gold-300" style="width:${Math.round(x.r / maxR * 100)}%"></div></div></div>
+            <div class="w-24 text-right text-sm font-bold tabular-nums text-gold-200">${fmtN(x.r)}<span class="block text-[10px] font-normal text-slate-500">pro 100 Mats</span></div></div>`).join('')}</div>`
+          : '<div class="mt-2 text-sm text-slate-500">Noch keine Items mit passenden Werten.</div>'}
+        <div class="mt-3 text-[11px] text-slate-500">${items.length - withStats.length} von ${items.length} Items haben noch keine Werte – im Item-Katalog unter „✎ Kosten & Werte“ eintragen. Feste Werte (z. B. Truppenkapazität +300) und Set-Effekte zählen nicht in die Punkte.</div>
+      </section>`;
+  }
+  R.$('craftBestPane')?.addEventListener('click', (ev) => { const b = ev.target.closest('[data-bo]'); if (!b) return; const k = b.dataset.bo;
+    if (k === 'troop') bestOpt.troop = b.dataset.v; else bestOpt[k] = !bestOpt[k];
+    R.LS.set('rok_scanner_gear_best', JSON.stringify(bestOpt)); renderBest(); });
+  R.$('craftBestPane')?.addEventListener('change', (ev) => { const t = ev.target.closest('[data-bo-sel]'); if (!t) return; bestOpt[t.dataset.boSel] = t.value; R.LS.set('rok_scanner_gear_best', JSON.stringify(bestOpt)); renderBest(); });
+
   // ---- Fenster umschalten: Planer | Craft-Verlauf, und darin Seite History | Gespeicherte Sets ----
   let chPage = 'hist';
   function renderCraftPanes() {
     R.$('craftPlanPane').classList.toggle('hidden', craftPane !== 'plan');
     R.$('craftSetsPane')?.classList.toggle('hidden', craftPane !== 'sets');
+    R.$('craftBestPane')?.classList.toggle('hidden', craftPane !== 'best');
     R.$('craftHistPane').classList.toggle('hidden', craftPane !== 'hist');
     R.$('craftGoalPane').classList.toggle('hidden', craftPane !== 'goal');
     R.$('craftCalPane').classList.toggle('hidden', craftPane !== 'cal');
@@ -2093,6 +2240,7 @@ window.RokMods.crafting = (R) => {
     if (R.view === 'craft' && craftPane === 'cal') renderCal();
     if (R.view === 'craft' && craftPane === 'plan') renderGearMain();
     if (craftPane === 'sets') renderSets();
+    if (craftPane === 'best') renderBest();
   }
   document.querySelectorAll('[data-cpane]').forEach(b => b.onclick = () => { craftPane = b.dataset.cpane; renderCraftPanes(); });
   document.querySelectorAll('[data-chpage]').forEach(b => b.onclick = () => { chPage = b.dataset.chpage; renderCraftPanes(); });
