@@ -23,7 +23,8 @@ window.RokMods.crafting = (R) => {
   // Eingebaute Charaktere; weitere über icons/chars/chars.json (siehe unten). Bilder liegen in icons/chars/ (oder icons/schars/), .webp oder .png.
   // pts = Punkt am Körper je Slot [x, y] in % der quadratischen Fläche (wohin die Linie zeigt)
   const CHARS0 = [
-    { id: 'charles', name: 'Charles Martel', troop: 'infantry', file: 'charles' },
+    { id: 'charles', name: 'Charles Martel', troop: 'infantry', file: 'charles',
+      pts: { helm: [44, 9], weapon: [27, 76], gloves: [23, 23], acc1: [45, 55], chest: [53, 37], legs: [50, 69], boots: [49, 89], acc2: [70, 65] } },
     { id: 'caocao', name: 'Cao Cao', troop: 'cavalry', file: 'caocao',
       pts: { helm: [48, 12], weapon: [17, 61], gloves: [54, 31], acc1: [34, 62], chest: [50, 39], legs: [50, 76], boots: [46, 92], acc2: [38, 55] } },
     { id: 'qsh', name: 'Qin Shi Huang', troop: 'archer', file: 'qsh',
@@ -56,11 +57,13 @@ window.RokMods.crafting = (R) => {
     blue: 'background:radial-gradient(60% 55% at 50% 45%,rgba(59,130,246,.55),rgba(15,23,42,.9) 75%)', red: 'background:radial-gradient(60% 55% at 50% 45%,rgba(239,68,68,.5),rgba(28,10,10,.92) 75%)',
     gold: 'background:radial-gradient(60% 55% at 50% 45%,rgba(245,197,66,.5),rgba(30,20,5,.92) 75%)', green: 'background:radial-gradient(60% 55% at 50% 45%,rgba(34,197,94,.45),rgba(6,24,14,.92) 75%)',
     purple: 'background:radial-gradient(60% 55% at 50% 45%,rgba(168,85,247,.5),rgba(20,8,32,.92) 75%)', night: 'background:linear-gradient(180deg,#0b1026,#1b1f3a 55%,#2a1f3d)' };
+  CHAR_BG.black = 'background:radial-gradient(60% 55% at 50% 45%,#141a28,#05070c 75%)';   // Craft: schlicht schwarz
   // gemalte Hintergrund-Bilder (icons/charbg/)
   // Hintergründe mit Plateau: Charakter steht darauf (foot = Fußhöhe in %, Charakter wird kleiner)
-  const CHAR_BG_FOOT = { 'img:lava': 80, 'img:wasserfall': 80, 'img:wolken': 80 };
+  const CHAR_BG_FOOT = { 'img:lava': 75, 'img:wasserfall': 80, 'img:wolken': 80 };   // Höhe der Plateau-Oberfläche (Mitte) in %
   const CHAR_BG_IMG = [['lava', '🔥 Lava-Plateau'], ['wasserfall', '💧 Wasserfall-Plateau'], ['wolken', '☁ Wolken-Plateau'], ['burghof', '🏰 Burghof'], ['pagode', '⛩ Pagode'], ['thronsaal', '👑 Thronsaal'], ['schlachtfeld', '⚔ Schlachtfeld'], ['winter', '❄ Winter'], ['nacht', '🌙 Nacht'], ['wueste', '🏜 Wüste'], ['wald', '🌲 Wald']];
   CHAR_BG_IMG.forEach(([k]) => { CHAR_BG['img:' + k] = `background:linear-gradient(rgba(7,9,15,.05),rgba(7,9,15,.35)),url('icons/charbg/${k}.webp') center/cover`; });
+  const CHAR_BG_LIST_ALL = [['', '🎨 Standard'], ['black', '⬛ Schwarz'], ['blue', '🎨 Blau'], ['red', '🎨 Rot'], ['gold', '🎨 Gold'], ['green', '🎨 Grün'], ['purple', '🎨 Lila'], ['night', '🎨 Dunkel'], ...CHAR_BG_IMG.map(([k, l]) => ['img:' + k, l])];
   const BSTYLE = 'rok_scanner_board_style';
   R.boardStyle = () => (R.LS?.get(BSTYLE, 'char') === 'rauten' ? 'rauten' : 'char');   // Standard: Charakter-Ansicht
   // Truppentyp: Refine-Typ der refinten Teile (häufigster), sonst aus dem Set-Namen (Kav/Cav, Bogen/Arch, Inf), sonst Infanterie
@@ -73,35 +76,69 @@ window.RokMods.crafting = (R) => {
   R.charOf = charOf;
   R.charImg = (map, o) => { const c = charOf(map, o); return c ? charCands(c.file)[0] : ''; };
   R.charOn = (map, o) => R.boardStyle() === 'char' && !!charOf(map, o);
-  R.charBox = (k) => { const p = CHAR_POS[k] || { x: 50, y: 50 }; return `left:${p.x - CHAR_T / 2}%;top:${p.y - CHAR_T / 2}%;width:${CHAR_T}%;height:${CHAR_T}%`; };
+  // kompakt = Armament-Steine unten im Bild: Gear-Felder rücken hoch und werden kleiner, Charakter kleiner
+  const CMP_Y = { 13: 10, 38: 29, 62: 48, 87: 67 }, CMP_T = 18.5;
+  const charCompact = (o) => !!(o?.arm && o.arm.scene !== false && R.armData && ['flag', 'emblem', 'scroll', 'instrument'].some(k => R.armData.BY_ID[o.arm.arms?.[k]]));
+  const posOf = (k, cmp) => { const p = CHAR_POS[k] || { x: 50, y: 50 }; return cmp ? { ...p, x: p.x < 50 ? 11 : 89, y: CMP_Y[p.y] ?? p.y } : p; };
+  R.charBox = (k, o) => { const cmp = charCompact(o), p = posOf(k, cmp), T = cmp ? CMP_T : CHAR_T; return `left:${p.x - T / 2}%;top:${p.y - T / 2}%;width:${T}%;height:${T}%`; };
+  // Die 4 Armament-Teile als Runensteine unten im Bild (hinter dem Charakter, zwischen den Accessoire-Feldern)
+  function sceneStones(arm, foot) { return ''; const D = R.armData; if (!arm || arm.scene === false || !D) return '';
+    const ins = (arm.insc || []), colOf = (t) => ins.find(i => i.t.toLowerCase() === String(t).toLowerCase())?.c;
+    const parts = ['flag', 'emblem', 'scroll', 'instrument'].map(k => ({ k, x: D.BY_ID[arm.arms?.[k]] })).filter(p => p.x); if (!parts.length) return '';
+    const xs = parts.length === 1 ? [50] : parts.length === 2 ? [33, 67] : parts.length === 3 ? [30, 50, 70] : [29, 43, 57, 71], bottom = foot ? 100 - foot - 9 : 0;
+    return parts.map((p, i) => `<div class="absolute pointer-events-none -translate-x-1/2" style="left:${xs[i]}%;bottom:${bottom}%;width:${parts.length > 3 ? 20 : 22}%;z-index:0">${R.runeStone(p.x.name, colOf(p.x.gold) ? 'gold' : colOf(p.x.blue) ? 'blue' : 'gray', arm.flip?.[p.k], 7.5)}</div>`).join(''); }
+  function sceneRow(arm) { const D = R.armData, ins = arm.insc || [], colOf = (t) => ins.find(i => i.t.toLowerCase() === String(t).toLowerCase())?.c;
+    const parts = ['flag', 'emblem', 'scroll', 'instrument'].map(k => ({ k, x: D.BY_ID[arm.arms?.[k]] })).filter(p => p.x), n = parts.length;
+    const xs = n === 1 ? [50] : n === 2 ? [38, 62] : n === 3 ? [27, 50, 73] : [15, 38.5, 61.5, 85], drop = [12, 12, 12, 12];
+    return `<div class="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none z-[25]">${parts.map((p, i) => `<div class="absolute" style="left:${xs[i]}%;bottom:-${drop[i % 4]}%;width:18%;transform:translateX(-50%) rotate(${arm.flip?.[p.k] || 0}deg);transform-origin:50% 100%" title="${R.esc(p.x.name)}">${R.runePillar(p.x.name, colOf(p.x.gold) ? 'gold' : colOf(p.x.blue) ? 'blue' : 'gray', 34)}</div>`).join('')}
+      <div class="absolute inset-x-0 bottom-0 h-[8%]" style="background:linear-gradient(transparent,rgba(7,9,15,.55))"></div></div>`; }
+  // Runensäule (dunkler Stein) mit leuchtendem Namen senkrecht · c = gold (Spezial) / blue (Selten) / gray
+  const PILLAR_C = { gold: ['#ffd27a', '#f59e0b', '#f97316'], blue: ['#cfe4ff', '#60a5fa', '#2563eb'], gray: ['#ece6da', '#a8a29e', '#57534e'] };
+  R.runePillar = (name, c, hide = 0) => {   // hide = unten abgeschnittener Anteil in % (Text bleibt sichtbar)
+    const [fg, g1, g2] = PILLAR_C[c] || PILLAR_C.gray, len = String(name).length;
+    const glow = `color:${fg};text-shadow:0 0 3px ${g1},0 0 8px ${g1},0 0 16px ${g2};font-family:Cinzel,serif;font-weight:700;text-transform:uppercase`;
+    // kurze Namen senkrecht, lange Namen waagerecht in mehreren Zeilen (oberer, sichtbarer Teil der Säule)
+    const label = len <= 10
+      ? `<span class="absolute left-1/2 flex items-center justify-center" style="top:7%;bottom:${hide + 8}%;writing-mode:vertical-rl;transform:translateX(-50%) rotate(180deg);white-space:nowrap;font-size:${Math.min(34, (150 - hide * 1.6) / (Math.max(4, len) * 0.68)).toFixed(1)}cqw;letter-spacing:.04em;${glow}">${R.esc(name)}</span>`
+      : `<span class="absolute inset-x-[12%] flex items-center justify-center text-center" style="top:9%;bottom:${hide + 10}%;line-height:1.08;font-size:${Math.min(17, 72 / (Math.max(...String(name).split(/\s+/).map(w => w.length)) * 0.82)).toFixed(1)}cqw;${glow}">${R.esc(name)}</span>`;
+    return `<div class="relative w-full aspect-[241/480]" style="container-type:inline-size">
+      <img src="icons/arm/pillar.webp" alt="" draggable="false" class="absolute inset-0 w-full h-full object-contain" style="filter:drop-shadow(0 0 ${c === 'gray' ? 0 : 10}px ${g2}aa)">${label}</div>`; };
   R.charBack = (map, o) => { const c = charOf(map, o); if (!c) return ''; const cand = charCands(c.file);
     const bgc = o?.bg?.url ? `background:linear-gradient(rgba(7,9,15,.25),rgba(7,9,15,.45)),url('${String(o.bg.url).replace(/'/g, '%27')}') center/cover` : CHAR_BG[o?.bg?.k] || CHAR_BG[''];
-    const foot = o?.bg?.url ? 0 : CHAR_BG_FOOT[o?.bg?.k] || 0, ct = foot ? 4 : 3, ch = foot ? foot - ct : 94, kk = ch / 94;
+    const cmp = charCompact(o), foot0 = o?.bg?.url ? 0 : CHAR_BG_FOOT[o?.bg?.k] || 0, shift = cmp ? 9 : 0;
+    const foot = cmp ? (foot0 ? foot0 - shift : 77) : foot0, ct = cmp ? 3 : foot ? 4 : 3, ch = foot ? foot - ct : 94, kk = ch / 94;
     const tp = (x, y) => [50 + (x - 50) * kk, ct + (y - 3) * kk];   // Körperpunkte mitskalieren
-    return `<div class="absolute inset-0 rounded-2xl pointer-events-none" style="${bgc}"></div>
+    // im Kompakt-Modus Bild-Hintergrund nach oben schieben, damit der Charakter auf dem Plateau bleibt
+    const up = cmp && /url\(/.test(bgc) ? shift : 0;
+    return `<div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none" style="background:#0b0f1a"><div class="absolute inset-x-0" style="top:-${up}%;height:100%;${bgc}"></div></div>
     <img src="${cand[0]}" data-alt="${cand.slice(1).join('|')}" onerror="var a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.dataset.alt=a.slice(1).join('|');this.src=a[0]}else{this.onerror=null;this.style.display='none'}" alt="" draggable="false" class="absolute pointer-events-none select-none" style="left:50%;top:${ct}%;height:${ch}%;transform:translateX(-50%);filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))">
-    <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">${Object.entries(CHAR_POS).map(([k, q]) => { const pt = c.pts?.[k] || [q.px, q.py], t = tp(pt[0], pt[1]), p = { ...q, px: +t[0].toFixed(1), py: +t[1].toFixed(1) }; return '' +
-      `<line x1="${p.x}" y1="${p.y}" x2="${p.px}" y2="${p.py}" stroke="rgba(246,215,122,.55)" stroke-width=".35" stroke-dasharray="1 .8"/><circle cx="${p.px}" cy="${p.py}" r=".8" fill="#f6d77a"/>`; }).join('')}</svg>`; };
+    <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">${Object.entries(CHAR_POS).map(([k, q0]) => { const q = posOf(k, cmp), pt = c.pts?.[k] || [q0.px, q0.py], t = tp(pt[0], pt[1]), p = { ...q, px: +t[0].toFixed(1), py: +t[1].toFixed(1) }; return '' +
+      `<line x1="${p.x}" y1="${p.y}" x2="${p.px}" y2="${p.py}" stroke="rgba(246,215,122,.55)" stroke-width=".35" stroke-dasharray="1 .8"/><circle cx="${p.px}" cy="${p.py}" r=".8" fill="#f6d77a"/>`; }).join('')}</svg>
+    ${cmp ? sceneRow(o.arm) : ''}`; };
+  // Ein Runenstein (Bild je Farbe) mit Namen dort, wo im Bild „ARMAMENT“ stand; flip = gespiegelt (Schrift bleibt lesbar)
+  const STONE_TXT = { gold: ['#ffd9a8', '#f97316'], blue: ['#cfe3ff', '#3b82f6'], gray: ['#e8e4dc', '#000'] };
+  R.runeStone = (name, c, flip, fs = 10) => { c = STONE_TXT[c] ? c : 'gray'; const [fg, gl] = STONE_TXT[c];
+    return `<div class="relative w-full aspect-[398/420]" style="container-type:inline-size"><img src="icons/arm/stone_${c}.webp" alt="" draggable="false" class="absolute inset-0 w-full h-full object-contain" style="${flip ? 'transform:scaleX(-1)' : ''}">
+      <span class="absolute -translate-x-1/2 -translate-y-1/2 text-center font-display font-bold uppercase leading-[1.05] tracking-wide" style="left:${flip ? 39.9 : 60.1}%;top:59.5%;width:32%;font-size:${(fs * Math.min(1, 11 / Math.max(6, String(name).length)) ** 0.5).toFixed(1)}cqw;letter-spacing:0;color:${fg};text-shadow:0 0 4px ${gl},0 0 9px ${gl},0 1px 1px #000">${R.esc(name)}</span></div>`; };
   // Armaments als Runensteine: je Inschrift ein Stein, leuchtet orange (Spezial/Gold) oder blau (Selten); dazu die 4 Teile
   R.armStonesHtml = (arm) => { const D = R.armData; if (!arm || !D) return '';
     const parts = ['flag', 'emblem', 'scroll', 'instrument'].map(k => D.BY_ID[arm.arms?.[k]]).filter(Boolean), ins = (arm.insc || []).filter(i => i.t);
-    if (!parts.length && !ins.length && !arm.formation) return '';
-    const glow = { gold: '0 0 14px 4px rgba(251,146,60,.85), 0 0 34px 10px rgba(249,115,22,.45)', blue: '0 0 14px 4px rgba(96,165,250,.85), 0 0 34px 10px rgba(59,130,246,.45)', gray: '' };
-    const txt = { gold: '#fed7aa', blue: '#bfdbfe', gray: '#e2e8f0' };
-    const stone = (t, c, sub) => `<div class="relative flex flex-col items-center w-[78px] sm:w-[92px] shrink-0" title="${R.esc(t)}${sub ? ' · ' + R.esc(sub) : ''}">
-        <div class="relative w-full aspect-[339/360]">
-          ${glow[c] ? `<span class="absolute left-[22%] right-[22%] top-[14%] bottom-[30%] rounded-[40%] pointer-events-none" style="box-shadow:${glow[c]};opacity:.9"></span>` : ''}
-          <img src="icons/arm/stone.webp" alt="" class="relative w-full h-full object-contain" style="${c === 'gold' ? 'filter:sepia(.35) saturate(1.3)' : c === 'blue' ? 'filter:hue-rotate(170deg) saturate(.8)' : ''}">
-          ${sub ? `<span class="absolute left-1/2 top-[38%] -translate-x-1/2 text-2xl sm:text-3xl" style="filter:drop-shadow(0 0 6px ${c === 'gold' ? '#f97316' : c === 'blue' ? '#3b82f6' : '#000'})">${sub.split(' ')[0]}</span>`
-            : `<span class="absolute left-1/2 top-[40%] -translate-x-1/2 max-w-[92%] px-1.5 py-0.5 rounded-md bg-ink-950/75 text-center text-[10px] sm:text-[11px] font-extrabold leading-tight whitespace-nowrap overflow-hidden text-ellipsis" style="color:${txt[c]};text-shadow:0 0 6px ${c === 'gold' ? '#f97316' : c === 'blue' ? '#3b82f6' : '#000'}">${R.esc(t)}</span>`}</div>
-        ${sub ? `<span class="-mt-0.5 text-[10px] font-semibold text-center leading-tight" style="color:${txt[c]}">${R.esc(t)}</span>` : ''}</div>`;
+    if (!ins.length && (arm.scene !== false || !parts.length)) return '';
+    const stone = (t, c, sub) => `<div class="relative flex flex-col items-center w-[46px] sm:w-[54px] shrink-0" title="${R.esc(t)}${sub ? ' · ' + R.esc(sub) : ''}">${R.runePillar(t, c)}${sub ? `<span class="mt-0.5 text-[10px] text-slate-400">${R.esc(sub)}</span>` : ''}</div>`;
     const colOf = (t) => ins.find(i => i.t.toLowerCase() === String(t).toLowerCase())?.c;
     return `<div class="mt-3 rounded-xl border border-ink-700 bg-ink-950/40 p-2.5">
-      <div class="text-[11px] text-slate-400 mb-1">⚔ Armaments${arm.formation ? ' · <b class="text-slate-200">' + R.esc(arm.formation) + '</b>' : ''}</div>
-      ${parts.length ? `<div class="flex flex-wrap justify-center gap-1">${parts.map(x => stone(x.name, colOf(x.gold) ? 'gold' : colOf(x.blue) ? 'blue' : 'gray', D.TYPES[x.type].icon + ' ' + D.TYPES[x.type].label)).join('')}</div>` : ''}
-      ${ins.length ? `<div class="mt-1 flex flex-wrap justify-center gap-0.5">${[...ins].sort((a, b) => ({ gold: 0, blue: 1, gray: 2 }[a.c] - { gold: 0, blue: 1, gray: 2 }[b.c])).map(i => stone(i.t, i.c, '')).join('')}</div>` : ''}
+      <div class="text-[11px] text-slate-400 mb-1">⚔ Inschriften${arm.formation ? ' · <b class="text-slate-200">' + R.esc(arm.formation) + '</b>' : ''}</div>
+      ${parts.length && arm.scene === false ? `<div class="flex flex-wrap justify-center gap-1">${parts.map(x => stone(x.name, colOf(x.gold) ? 'gold' : colOf(x.blue) ? 'blue' : 'gray', D.TYPES[x.type].icon + ' ' + D.TYPES[x.type].label, x.type)).join('')}</div>` : ''}
+      ${ins.length ? `<div class="mt-1 flex flex-wrap justify-center gap-2">${[...ins].sort((a, b) => ({ gold: 0, blue: 1, gray: 2 }[a.c] - { gold: 0, blue: 1, gray: 2 }[b.c])).map(i => stone(i.t, i.c, '', '')).join('')}</div>` : ''}
       <div class="mt-1 text-[10px] text-slate-500 text-center">🟠 Spezial · 🔵 Selten · ⚪ Normal</div></div>`; };
+  // Armament-Reihe direkt unter dem Plateau/Gear: 4 große Runensteine über die ganze Breite, äußere leicht schräg, ragen etwas ins Bild
+  R.armRowHtml = (arm, maxW = '460px') => { return ''; const D = R.armData; if (!arm || arm.scene === false || !D) return '';
+    const ins = (arm.insc || []), colOf = (t) => ins.find(i => i.t.toLowerCase() === String(t).toLowerCase())?.c;
+    const parts = ['flag', 'emblem', 'scroll', 'instrument'].map(k => ({ k, x: D.BY_ID[arm.arms?.[k]] })).filter(p => p.x); if (!parts.length) return '';
+    const n = parts.length, rot = (i) => n < 3 ? 0 : i === 0 ? -9 : i === n - 1 ? 9 : 0, lift = (i) => n < 3 || i === 0 || i === n - 1 ? 0 : -5;
+    return `<div class="relative z-20 mx-auto w-full flex justify-center items-end -mt-[3%] pointer-events-none" style="max-width:${maxW}">${parts.map((p, i) => `<div class="w-1/4 -mx-[0.5%]" style="transform:translateY(${lift(i)}%) rotate(${rot(i)}deg)" title="${R.esc(D.TYPES[p.x.type].label + ': ' + p.x.name)}">${R.runeStone(p.x.name, colOf(p.x.gold) ? 'gold' : colOf(p.x.blue) ? 'blue' : 'gray', arm.flip?.[p.k], 7.5)}</div>`).join('')}</div>`; };
   // Container umstellen: 1:2 (Rauten) ↔ 1:1 (Charakter)
+  R.charBgList = () => CHAR_BG_LIST_ALL;
   R.charFrame = (el, on, rautenW) => { if (!el) return; el.classList.toggle('aspect-[1/2]', !on); el.classList.toggle('aspect-square', on);
     el.style.maxWidth = on ? '460px' : rautenW || ''; };
   // Umschalter (gilt für alle Bretter) + bei o.pickable Charakter-Auswahl fürs Set
@@ -114,7 +151,7 @@ window.RokMods.crafting = (R) => {
   R.charBoardHTML = (map, o = {}) => {
     const tiles = GEAR_SLOTS.map(sl => { const v = map?.[sl.k]; const it = v ? gItem(v.item) : null, icon = v?.icon || it?.icon || '', has = v && (v.item || icon);
       const rr = (it?.rarity || v?.rarity || 'legendary'), f = GFILL[rr] || GFILL.legendary, full = has && +v.refine >= 100;
-      return `<div class="gdia absolute" style="${R.charBox(sl.k)}">
+      return `<div class="gdia absolute" style="${R.charBox(sl.k, o)}">
         <span class="gdia absolute inset-0" style="background:${has ? (full && R.GOLD_RIM ? R.GOLD_RIM : f[0]) : '#2e3a55'}"></span>
         <span class="gdia absolute ${full ? 'inset-[6px]' : 'inset-[2px]'}" style="background:${has ? (R.gFace ? R.gFace(rr) : f[1]) : '#111725'}"></span>
         <span class="relative z-10 h-full w-full flex items-center justify-center">${icon ? `<img src="${R.esc(icon)}" alt="" loading="lazy" class="w-[56%] aspect-square object-contain">` : `<span class="text-base opacity-40">${sl.icon}</span>`}</span>
@@ -309,7 +346,8 @@ window.RokMods.crafting = (R) => {
   const armNum = (v) => { const n = Math.round(parseFloat(String(v ?? '').replace(',', '.')) * 10) / 10; return Number.isFinite(n) ? n : null; };
   const armNorm = (a) => ({ formation: String(a?.formation || '').slice(0, 30), arms: Object.fromEntries(ARMK.map(k => [k, String(a?.arms?.[k] || '')])),
     insc: (Array.isArray(a?.insc) ? a.insc : []).slice(0, 12).map(i => ({ t: String(i?.t || '').slice(0, 24), c: ['gold', 'blue', 'gray'].includes(i?.c) ? i.c : 'gold' })).filter(i => i.t),
-    troop: ['infantry', 'cavalry', 'archer', 'siege', 'all'].includes(a?.troop) ? a.troop : 'infantry', ...Object.fromEntries(ARM_ST.map(k => [k, armNum(a?.[k])])) });
+    troop: ['infantry', 'cavalry', 'archer', 'siege', 'all'].includes(a?.troop) ? a.troop : 'infantry', ...Object.fromEntries(ARM_ST.map(k => [k, armNum(a?.[k])])),
+    flip: Object.fromEntries(ARMK.map(k => [k, [-8, 0, 8].includes(+a?.flip?.[k]) ? +a.flip[k] : a?.flip?.[k] === true ? 8 : 0])), scene: a?.scene !== false });   // flip = Neigung der Säule in Grad ·   // flip = Stein gespiegelt · scene = Steine im Bild zeigen
   function gNormSet(s) {
     const o = newGearSet(String(s?.name || 'Set').slice(0, 40));
     if (s?.id) o.id = String(s.id);
@@ -450,7 +488,7 @@ window.RokMods.crafting = (R) => {
 
   // Rauten-Brett (8 Slots wie im Spiel)
   function gearBoard(side, set, calc, opt = {}) {
-    const ch = !!opt.char, box = (sl) => ch ? R.charBox(sl.k) : `left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%`;
+    const ch = !!opt.char, box = (sl) => ch ? R.charBox(sl.k, opt.char) : `left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%`;
     return (ch ? R.charBack(set.ziel || set[side], opt.char) : '') + GEAR_SLOTS.map(sl => {
       const v = set[side][sl.k], it = gItem(v.item), rr = it?.rarity || v.rarity, f = it ? GFILL[rr] || GFILL.legendary : null, r = calc.rows.find(x => x.sl.k === sl.k);
       const active = (opt.sel !== undefined ? opt.sel : gearSel[side]) === sl.k;
@@ -551,10 +589,11 @@ window.RokMods.crafting = (R) => {
     renderScLink(set);
     renderHistBar(set);
     const calc = gearCalc(set), st = gearStock(), list = prioListAll(), P = gear.prio;
-    const co = { pick: set.char || '', name: set.name, bg: set.bg };
+    const co = { pick: set.char || '', name: set.name, bg: { k: 'black' } };
     ['ist', 'ziel'].forEach(side => { const el = R.$(side === 'ist' ? 'gearIstBoard' : 'gearZielBoard'), on = R.charOn(set.ziel, co);
       R.charFrame(el, on, '280px'); el.innerHTML = gearBoard(side, set, calc, { char: on ? co : null }); });
-    R.$('gearIstStats').innerHTML = statPanelHtml(set.ist, set.arm) + R.armStonesHtml(set.arm);
+    const row = R.charOn(set.ziel, co) ? R.armRowHtml(set.arm) : '';
+    R.$('gearIstStats').innerHTML = statPanelHtml(set.ist, set.arm);
     R.$('gearZielStats').innerHTML = statPanelHtml(set.ziel, set.arm, { slots: set.ist, arm: set.arm });
     R.$('gearViewBar').innerHTML = `<div class="flex flex-wrap items-center gap-2">
         <select data-plan-set translate="no" class="flex-1 min-w-[200px] max-w-md bg-ink-950 border border-gold-500/50 rounded-lg px-3 py-2 text-base font-semibold focus:outline-none focus:border-gold-400" title="Charakter / Set für den Planer">${gear.sets.map(s => `<option value="${R.esc(s.id)}"${s.id === set.id ? ' selected' : ''}>${s.main ? '⭐ ' : ''}${R.esc(s.name)}</option>`).join('')}</select>
@@ -1927,7 +1966,7 @@ window.RokMods.crafting = (R) => {
   const setMap = (slots) => Object.fromEntries(GEAR_SLOTS.map(sl => { const v = slots[sl.k], it = gItem(v?.item);
     return [sl.k, it ? { item: v.item, name: it.name, icon: it.icon || '', rarity: it.rarity, tier: v.tier || 0, refine: v.refine || 0, refType: v.refType } : null]; }));
   const setsSorted = () => [...gear.sets].sort((a, b) => (b.main ? 1 : 0) - (a.main ? 1 : 0));
-  const coOf = (s) => ({ pick: s.char || '', name: s.name, bg: s.bg });
+  const coOf = (s) => ({ pick: s.char || '', name: s.name, bg: { k: 'black' } });   // Craft: schwarz, ohne Bild-Deko (die gibt es im Showcase)
   const GBTN = 'px-2.5 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300 text-xs font-semibold';
   const miniBoard = (s, cls) => { const co = coOf(s), on = R.boardStyle() === 'char' && !!R.charOf(s.ist, co);
     return `<div class="relative mx-auto w-full ${on ? 'aspect-square ' + cls : 'max-w-[170px] aspect-[1/2]'} pointer-events-none">${on ? R.charBoardHTML(setMap(s.ist), co) : gearBoard('ist', s, { rows: [] }, { sel: null, badge: () => null })}</div>`; };
@@ -1949,7 +1988,6 @@ window.RokMods.crafting = (R) => {
           <div class="font-display text-2xl gold-text truncate" translate="no">${s.main ? '⭐ ' : ''}${R.esc(s.name)}</div>
           <button type="button" data-sx="edit" data-id="${R.esc(s.id)}" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold shrink-0">✎ Bearbeiten</button></div>
         ${miniBoard(s, 'max-w-[440px]')}
-        ${R.armStonesHtml(s.arm)}
         <div class="mt-auto flex flex-col gap-2">
           <select data-charpick="${R.esc(s.id)}" translate="no" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm font-semibold focus:outline-none focus:border-gold-500"><option value="">🔄 Charakter automatisch${R.charOf(s.ist, { name: s.name }) ? ' (' + R.esc(R.charOf(s.ist, { name: s.name }).name) + ')' : ''}</option>${R.charList().map(x => `<option value="${R.esc(x.id)}"${s.char === x.id ? ' selected' : ''}>🧍 ${R.esc(x.name)}</option>`).join('')}</select>
           <div class="grid grid-cols-3 gap-1.5">
@@ -1998,7 +2036,7 @@ window.RokMods.crafting = (R) => {
     if (!R.feedShareSet) { await UI.alert('Der Feed ist noch nicht geladen – bitte Seite neu laden.'); return; }
     const note = await UI.prompt(`„${s.name}“ im Feed posten – nur dieser eine Charakter mit seiner Ausrüstung.\n\nText dazu (optional):`, '', { title: '📰 Im Feed posten', ok: 'Posten' });
     if (note === null) return;
-    try { await R.feedShareSet({ name: s.name, gear: setMap(s.ist), char: s.char || R.charOf(s.ist, { name: s.name })?.id || '', bg: s.bg, main: s.main, note: note.trim() }); setsMsg('✓ Im Feed gepostet'); }
+    try { await R.feedShareSet({ name: s.name, gear: setMap(s.ist), char: s.char || R.charOf(s.ist, { name: s.name })?.id || '', bg: { k: 'black' }, main: s.main, note: note.trim() }); setsMsg('✓ Im Feed gepostet'); }
     catch (e) { setsMsg('Posten fehlgeschlagen: ' + (RokAuth.germanError ? RokAuth.germanError(e) : e.message || e), false); }
   }
   R.$('craftSetsPane')?.addEventListener('click', async (ev) => {
@@ -2066,8 +2104,6 @@ window.RokMods.crafting = (R) => {
       <div class="flex flex-wrap items-center gap-2">
         <h3 class="font-display text-2xl gold-text mr-auto" translate="no">✎ ${R.esc(s.name)}</h3>
         <select data-charpick="${R.esc(s.id)}" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm font-semibold"><option value="">🔄 Charakter automatisch</option>${R.charList().map(x => `<option value="${R.esc(x.id)}"${s.char === x.id ? ' selected' : ''}>🧍 ${R.esc(x.name)}</option>`).join('')}</select>
-        <select data-ced="bg" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm">${CHAR_BG_LIST.map(([k, l]) => `<option value="${k}"${(s.bg?.k || '') === k && !s.bg?.url ? ' selected' : ''}>${l}</option>`).join('')}${s.bg?.url ? '<option value="url" selected>🖼 Eigenes Bild</option>' : ''}</select>
-        <label class="cursor-pointer px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">🖼 Hintergrund-Bild<input type="file" accept="image/*" data-ced="bgfile" class="hidden"></label>
         <button type="button" data-ced="close" class="px-3 py-2 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">✕ Fertig</button></div>
       <div class="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-start">
         <div>
@@ -2087,7 +2123,7 @@ window.RokMods.crafting = (R) => {
           ${gearEditor('ist', s, calc)}
           ${armEditorHtml(s)}
         </div></div>
-      <div class="mt-4">${R.armStonesHtml(s.arm)}${statPanelHtml(s.ist, s.arm)}</div>
+      <div class="mt-4">${statPanelHtml(s.ist, s.arm)}</div>
       <div class="mt-5 border-t border-ink-700 pt-4 flex flex-wrap items-center gap-2">
         <span class="mr-auto text-sm ${pend.length ? 'text-gold-200' : 'text-slate-500'}">${pend.length ? `✎ ${pend.length} ${pend.length === 1 ? 'Änderung' : 'Änderungen'} seit dem letzten Speichern` : '✓ Alles gespeichert'}</span>
         <button type="button" data-ced="hist" ${pend.length ? '' : 'disabled'} class="px-4 py-2 rounded-lg border border-gold-500/60 text-gold-200 hover:border-gold-400 text-sm font-semibold disabled:opacity-40">📜 In History</button>
@@ -2111,8 +2147,10 @@ window.RokMods.crafting = (R) => {
         <div class="flex flex-wrap items-center gap-2"><label class="text-xs text-slate-400">Formation</label>
           <select data-arm="formation" class="${fi}"><option value="">–</option>${forms.map(f => `<option value="${f}"${a.formation === f ? ' selected' : ''}>${f}</option>`).join('')}</select>
           ${linked && R.scGetArm ? '<button type="button" data-armx="fromsc" class="ml-auto text-xs px-2.5 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">⇩ aus Showcase übernehmen</button>' : ''}</div>
-        <div class="grid sm:grid-cols-2 gap-2">${ARMK.map(k => `<label class="flex flex-col gap-0.5 text-[11px] text-slate-400">${D.TYPES[k].icon} ${D.TYPES[k].label}
-          <select data-arm="arms.${k}" class="${fi}"><option value="">–</option>${list(k).map(x => `<option value="${x.id}"${a.arms[k] === x.id ? ' selected' : ''}>${R.esc(x.name)}${a.formation ? '' : ' (' + x.f + ')'}</option>`).join('')}</select></label>`).join('')}</div>
+        <div class="grid sm:grid-cols-2 gap-2">${ARMK.map(k => `<div class="flex flex-col gap-0.5 text-[11px] text-slate-400">${D.TYPES[k].icon} ${D.TYPES[k].label}
+          <div class="flex gap-1"><select data-arm="arms.${k}" class="${fi} flex-1 min-w-0"><option value="">–</option>${list(k).map(x => `<option value="${x.id}"${a.arms[k] === x.id ? ' selected' : ''}>${R.esc(x.name)}${a.formation ? '' : ' (' + x.f + ')'}</option>`).join('')}</select>
+</div></div>`).join('')}</div>
+        <div class="text-[11px] text-slate-500">🖼 Hintergründe und Runensäulen fürs Charakter-Bild gibt es im Showcase (Set öffnen → „🧍 Charakter-Profil“).</div>
         <div><div class="text-[11px] text-slate-400 mb-1">Inschriften (bis 12) – Farbe wird erkannt</div>
           <div class="flex flex-wrap gap-1.5">${a.insc.map((i, n) => { const st = D.INSC[i.c] || D.INSC.gold; return `<span class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold" style="background:${st.bg};color:${st.fg}">${R.esc(i.t)}<button type="button" data-armx="rm" data-i="${n}" class="opacity-60 hover:opacity-100">✕</button></span>`; }).join('') || '<span class="text-xs text-slate-500">keine</span>'}</div>
           ${a.insc.length < 12 ? `<div class="mt-1.5 flex gap-1.5"><input data-arm-new list="armInscList" placeholder="Inschrift, z. B. Toppler" class="${fi} flex-1 min-w-0"><button type="button" data-armx="add" class="px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400 text-sm">＋</button></div>
@@ -2127,6 +2165,7 @@ window.RokMods.crafting = (R) => {
     if (f === 'formation') { a.formation = t.value; ARMK.forEach(k => { const x = R.armData.BY_ID[a.arms[k]]; if (x && t.value && !R.armData.FORMATIONS[t.value]?.some(y => y.id === x.id)) a.arms[k] = ''; }); }
     else if (f.startsWith('arms.')) a.arms[f.slice(5)] = t.value;
     else if (f === 'troop') a.troop = t.value;
+    else if (f === 'scene') a.scene = t.checked;
     else a[f] = armNum(t.value);
     s.arm = armNorm(a); return true;
   }
@@ -2140,7 +2179,8 @@ window.RokMods.crafting = (R) => {
     const tile = ev.target.closest('[data-ced-board] [data-tile]'); if (tile) { gearSel.ist = tile.dataset.tile; drawCharEditor(); return; }
     const ax = ev.target.closest('[data-armx]');
     if (ax) { armOpen = true; const A = ax.dataset.armx;
-      if (A === 'rm') s.arm.insc.splice(+ax.dataset.i, 1);
+      if (A === 'flip') { const v = s.arm.flip[ax.dataset.k] || 0; s.arm.flip[ax.dataset.k] = v === 0 ? -8 : v === -8 ? 8 : 0; }
+      else if (A === 'rm') s.arm.insc.splice(+ax.dataset.i, 1);
       else if (A === 'add') { const inp = charEd.root.querySelector('[data-arm-new]'), t = inp?.value.trim(); if (!t) return; const k = R.armData.known(t); s.arm.insc.push({ t: k?.t || t, c: k?.c || 'gold' }); }
       else if (A === 'fromsc') { const src = R.scGetArm?.(s.sc.scId, s.sc.setId); if (!src) { cedMsg('Im Showcase-Set sind keine Armaments eingetragen.', false); return; } s.arm = armNorm(src); cedMsg('✓ Armaments aus dem Showcase übernommen'); }
       s.arm = armNorm(s.arm); saveGear(); renderGearMain(); drawCharEditor(); return; }

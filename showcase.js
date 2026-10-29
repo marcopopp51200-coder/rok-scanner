@@ -405,12 +405,16 @@ window.RokMods.showcase = (R) => {
     .filter(([k, v]) => SY_KEYS.some(([q]) => q === k) && isFinite(+v?.dx) && isFinite(+v?.dy)).map(([k, v]) => [k, { dx: +v.dx, dy: +v.dy }]));
   const scBound = (x, k) => x.syncMode === 'full' || (x.syncMode === 'partial' && !!x.sy?.[k]);   // je Modul eigene Abfrage
   const scPartsNorm = (p) => Object.fromEntries(['c', 'n', 'g'].map(k => [k, { x: scPos(p?.[k]?.x, 100), y: scPos(p?.[k]?.y, 200), s: scScale(p?.[k]?.s), r: scRot(p?.[k]?.r) }]));
+  // Charakter-Profil (Bild mit Charakter, Hintergrund und Runensäulen) je Set
+  const scProfNorm = (p) => ({ char: String(p?.char || '').slice(0, 40), bg: typeof p?.bg === 'string' ? p.bg.slice(0, 40) : 'img:lava', stones: p?.stones !== false,
+    flip: Object.fromEntries(['flag', 'emblem', 'scroll', 'instrument'].map(k => [k, [-8, 0, 8].includes(+p?.flip?.[k]) ? +p.flip[k] : 0])) });
   const scSetNorm = (x) => scStMigrate(x, { id: String(x?.id || R.newId()), name: String(x?.name || '').trim().slice(0, 30), mode: 'manual',
     shot: scImgOk(x?.shot) ? x.shot : '', cmd: [0, 1].map(i => scCmdNorm(x?.cmd?.[i])), gear: scGearNorm(x?.gear),
     x: scPos(x?.x, 100), y: scPos(x?.y, 200), s: scScale(x?.s), r: scRot(x?.r), arm: scArmNorm(x?.arm), priv: false, cg: scInt(x?.cg, 0, 70, 32),
     st: scStNorm(x?.st, x?.arm), gfx: scGfxNorm(x?.gfx), free: !!x?.free,
     heads: !!x?.heads, hideEmpty: !!x?.hideEmpty, gearOn: !!x?.gearOn,
     cm: x?.cm !== false, cn: x?.cn !== false, nc: scColor(x?.nc), split: !!x?.split, parts: scPartsNorm(x?.parts), sy: scSyNorm(x?.sy), syncMode: scModeOf(x), lock: scModeOf(x) !== 'free', dock: scDockNorm(x?.dock),
+    prof: scProfNorm(x?.prof),
     link: (Array.isArray(x?.link) ? x.link : []).map(String).slice(0, 20), kind: ['garrison', 'rally'].includes(x?.kind) ? x.kind : '' });   // kind: Garnison / Rally (nur 2 Kommandanten)   // heads = nur Kommandanten (Garnison) · hideEmpty = leere Slots ausblenden   // cg = Überlappung der Kommandanten in %
 
   function scStMigrate(raw, o) {                            // alte Sets: Werte steckten in der Rüstung → Rüstung wird kürzer, obere Kante bleibt
@@ -966,7 +970,7 @@ window.RokMods.showcase = (R) => {
     const bar = R.$('scViewBar'); if (bar) bar.innerHTML = R.boardStyleBar ? R.boardStyleBar(x.gear, co) : '';
   }
   function scGearBoard(g, mini = false, hideEmpty = false, fxIn = null, ch = false) {
-    const fx = fxIn || SC_GFX_DEF, box = (sl) => ch ? R.charBox(sl.k) : `left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%`;
+    const fx = fxIn || SC_GFX_DEF, box = (sl) => ch ? R.charBox(sl.k, ch === true ? {} : ch) : `left:${(sl.x + 1) * 25}%;top:${sl.y * 12.5}%;width:50%;height:25%`;
     const rows = R.GEAR_SLOTS.map(sl => { const v = g[sl.k], it = scItem(v); return { sl, v, it, rr: R.gItem(v.item)?.rarity || v.rarity }; });
     const frames = rows.map(({ sl, v, it, rr }) => { const h = gFrameHtml(v, it, rr, fx, !mini && sc.own && sc.gsel === sl.k, !mini); return h ? `<div class="absolute pointer-events-none z-[15]" style="${box(sl)}">${h}</div>` : ''; }).join('');
     const deco = frames + rows.map(({ sl, v, it, rr }) => it && !(hideEmpty && !it) ? `<div class="absolute pointer-events-none z-20" style="${box(sl)}">${gDecoHtml(v, it, fx, !mini, rr)}</div>` : '').join('');
@@ -1773,6 +1777,29 @@ window.RokMods.showcase = (R) => {
   }
   let scGfxOpen = true;
   // Rüstung rechts neben Ausrüstung bzw. Screenshot (für alle sichtbar, sobald etwas eingetragen ist)
+  // ---- 🧍 Charakter-Profil: Set als Bild mit Charakter, Hintergrund und Runensäulen (Armaments) ----
+  let scProfOpen = false;
+  const scProfCtx = (x) => ({ pick: x.prof.char, name: x.name, bg: { k: x.prof.bg }, arm: { ...x.arm, flip: x.prof.flip, scene: x.prof.stones } });
+  function drawProf() {
+    const box = R.$('scProf'); if (!box) return; const x = scSet();
+    if (!x || (x.kind && !x.gearOn) || !R.charBoardHTML || !R.GEAR_SLOTS.some(sl => x.gear?.[sl.k]?.item)) { box.innerHTML = ''; return; }
+    const ctx = scProfCtx(x), own = sc.own, fi = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
+    const parts = ['flag', 'emblem', 'scroll', 'instrument'].filter(k => ARM_BY_ID[x.arm.arms?.[k]]);
+    box.innerHTML = `<details id="scProfBox" class="mt-4 rounded-xl border border-gold-500/40 bg-ink-950/50 p-3" ${scProfOpen ? 'open' : ''}>
+      <summary class="cursor-pointer select-none font-semibold text-gold-300">🧍 Charakter-Profil <span class="text-[11px] font-normal text-slate-400">· Bild mit Charakter, Hintergrund und Runensäulen</span></summary>
+      <div class="mt-3 grid gap-4 md:grid-cols-[minmax(0,1fr)_220px] items-start">
+        <div class="relative mx-auto w-full max-w-[460px] aspect-square">${R.charBoardHTML(x.gear, ctx)}</div>
+        ${own ? `<div class="space-y-2 text-xs">
+          <label class="block text-slate-400">Charakter<select data-prof="char" class="${fi} mt-1 w-full"><option value="">🔄 automatisch</option>${(R.charList?.() || []).map(c => `<option value="${R.esc(c.id)}"${x.prof.char === c.id ? ' selected' : ''}>🧍 ${R.esc(c.name)}</option>`).join('')}</select></label>
+          <label class="block text-slate-400">Hintergrund<select data-prof="bg" class="${fi} mt-1 w-full">${(R.charBgList?.() || []).map(([k, l]) => `<option value="${k}"${x.prof.bg === k ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
+          <label class="flex items-center gap-2 text-slate-300 cursor-pointer"><input type="checkbox" data-prof="stones" ${x.prof.stones ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">🪨 Runensäulen (Armaments) zeigen</label>
+          ${parts.length ? `<div class="text-slate-400">Säulen neigen:</div><div class="grid grid-cols-2 gap-1">${parts.map(k => `<button type="button" data-prof-flip="${k}" class="px-2 py-1 rounded-md border ${x.prof.flip[k] ? 'border-gold-400 text-gold-200' : 'border-ink-600 text-slate-300'}">${ARM_TYPES[k].icon} ${x.prof.flip[k] < 0 ? '↖' : x.prof.flip[k] > 0 ? '↗' : '⬆'}</button>`).join('')}</div>`
+            : '<div class="text-slate-500">Für Runensäulen oben unter „Rüstung“ Armaments wählen.</div>'}
+          <button type="button" data-prof-feed class="w-full mt-1 px-3 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">📰 Im Feed posten</button>
+          <div data-prof-msg class="text-[11px]"></div></div>` : ''}
+      </div></details>`;
+  }
+  R.boardStyleHooks = R.boardStyleHooks || []; R.boardStyleHooks.push(() => { try { drawProf(); } catch {} });
   function drawArmSide() {
     const a = scSet()?.arm, has = !!a && scArmHas(a);
     R.$('scArmSide').classList.toggle('hidden', !has);
@@ -1811,7 +1838,7 @@ window.RokMods.showcase = (R) => {
   }
   function drawArm() {
     const a = scSet().arm;
-    drawArmSide();
+    drawArmSide(); drawProf();
     if (scSet().kind && !scSet().gearOn) { R.$('scArmSide').classList.add('hidden'); R.$('scArm').innerHTML = ''; return; }
     if (!sc.own) { R.$('scArm').innerHTML = ''; return; }
     const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
@@ -2603,6 +2630,19 @@ window.RokMods.showcase = (R) => {
   });
   // ---- Rüstung ----
   R.$('scArm').addEventListener('toggle', (ev) => { if (ev.target.id === 'scArmBox') scArmOpen = ev.target.open; }, true);
+  R.$('scProf')?.addEventListener('toggle', (ev) => { if (ev.target.id === 'scProfBox') scProfOpen = ev.target.open; }, true);
+  R.$('scProf')?.addEventListener('change', (ev) => { const t = ev.target, x = scSet(); if (!sc.own || !x || !t.dataset.prof) return;
+    if (t.dataset.prof === 'stones') x.prof.stones = t.checked; else x.prof[t.dataset.prof] = t.value; scProfOpen = true; drawProf(); scSaveSoon(); });
+  R.$('scProf')?.addEventListener('click', async (ev) => { const x = scSet(); if (!sc.own || !x) return;
+    const f = ev.target.closest('[data-prof-flip]'); if (f) { const k = f.dataset.profFlip, v = x.prof.flip[k] || 0; x.prof.flip[k] = v === 0 ? -8 : v === -8 ? 8 : 0; scProfOpen = true; drawProf(); scSaveSoon(); return; }
+    if (!ev.target.closest('[data-prof-feed]')) return;
+    const msg = R.$('scProf').querySelector('[data-prof-msg]');
+    if (!R.feedShareSet) { msg.innerHTML = '<span class="text-amber-300">Feed ist noch nicht geladen.</span>'; return; }
+    const note = await UI.prompt(`Charakter-Profil „${x.name || 'Set'}“ im Feed posten.\n\nText dazu (optional):`, '', { title: '📰 Im Feed posten', ok: 'Posten' }); if (note === null) return;
+    const gear = Object.fromEntries(R.GEAR_SLOTS.map(sl => { const v = x.gear?.[sl.k], it = R.gItem(v?.item); return [sl.k, v?.item ? { item: v.item, name: it?.name || '', icon: it?.icon || '', rarity: it?.rarity || v.rarity, tier: v.tier || 0, refine: v.refine || 0, refType: v.refType } : null]; }));
+    const ctx = scProfCtx(x);
+    try { await R.feedShareSet({ name: x.name || 'Set', gear, char: x.prof.char || R.charOf?.(gear, { name: x.name })?.id || '', bg: ctx.bg, arm: ctx.arm, note: note.trim() }); msg.innerHTML = '<span class="text-emerald-300">✓ Im Feed gepostet</span>'; }
+    catch (e) { msg.innerHTML = `<span class="text-red-300">⚠ ${R.esc(e.message || String(e))}</span>`; } });
   R.$('scArm').addEventListener('input', (ev) => {
     const t = ev.target, a = scSet().arm;
     if (t.dataset.insc != null && t.dataset.f === 't') a.insc[+t.dataset.insc].t = t.value.slice(0, 24);
