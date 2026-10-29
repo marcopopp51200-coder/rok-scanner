@@ -83,7 +83,9 @@ window.RokMods.crafting = (R) => {
     const ins = new Set((arm.insc || []).map(i => String(i.t).toLowerCase())), pool = arm.formation && D.FORMATIONS[arm.formation] ? D.FORMATIONS[arm.formation] : Object.values(D.FORMATIONS).flat();
     return ['flag', 'emblem', 'scroll', 'instrument'].map(k => { let x = D.BY_ID[arm.arms?.[k]];
       if (!x) x = pool.filter(y => y.type === k).find(y => ins.has(y.gold.toLowerCase()) || ins.has(y.blue.toLowerCase()));
-      return x ? { k, x } : null; }).filter(Boolean); }
+      if (!x) return null;
+      const t = ins.has(x.gold.toLowerCase()) ? x.gold : ins.has(x.blue.toLowerCase()) ? x.blue : '';
+      return { k, x, label: t || x.name, c: ins.has(x.gold.toLowerCase()) ? 'gold' : t ? 'blue' : 'gray' }; }).filter(Boolean); }
   R.armParts = armParts;
   const charCompact = (o) => !!(o?.arm && o.arm.scene !== false && armParts(o.arm).length);
   const posOf = (k, cmp) => { const p = CHAR_POS[k] || { x: 50, y: 50 }; return cmp ? { ...p, x: p.x < 50 ? 11 : 89, y: CMP_Y[p.y] ?? p.y } : p; };
@@ -97,19 +99,23 @@ window.RokMods.crafting = (R) => {
   function sceneRow(arm) { const D = R.armData, ins = arm.insc || [], colOf = (t) => ins.find(i => i.t.toLowerCase() === String(t).toLowerCase())?.c;
     const parts = armParts(arm), n = parts.length;
     const xs = n === 1 ? [50] : n === 2 ? [38, 62] : n === 3 ? [27, 50, 73] : [15, 38.5, 61.5, 85], drop = [12, 12, 12, 12];
-    return `<div class="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none z-[25]">${parts.map((p, i) => `<div class="absolute" style="left:${xs[i]}%;bottom:-${drop[i % 4]}%;width:18%;transform:translateX(-50%) rotate(${arm.flip?.[p.k] || 0}deg);transform-origin:50% 100%" title="${R.esc(p.x.name)}">${R.runePillar(p.x.name, colOf(p.x.gold) ? 'gold' : colOf(p.x.blue) ? 'blue' : 'gray', 34)}</div>`).join('')}
+    return `<div class="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none z-[25]">${parts.map((p, i) => `<div class="absolute" style="left:${xs[i]}%;bottom:-${drop[i % 4]}%;width:18%;transform:translateX(-50%) rotate(${arm.flip?.[p.k] || 0}deg);transform-origin:50% 100%" title="${R.esc(p.x.name + (p.label !== p.x.name ? ' · ' + p.label : ''))}">${R.runePillar(p.label, p.c, 34, p.k)}</div>`).join('')}
       <div class="absolute inset-x-0 bottom-0 h-[8%]" style="background:linear-gradient(transparent,rgba(7,9,15,.55))"></div></div>`; }
   // Runensäule (dunkler Stein) mit leuchtendem Namen senkrecht · c = gold (Spezial) / blue (Selten) / gray
   const PILLAR_C = { gold: ['#ffd27a', '#f59e0b', '#f97316'], blue: ['#cfe4ff', '#60a5fa', '#2563eb'], gray: ['#ece6da', '#a8a29e', '#57534e'] };
-  R.runePillar = (name, c, hide = 0) => {   // hide = unten abgeschnittener Anteil in % (Text bleibt sichtbar)
-    const [fg, g1, g2] = PILLAR_C[c] || PILLAR_C.gray, len = String(name).length;
+  // Runen-Zeichen je Armament-Typ (SVG-Linien im 0–100-Raster)
+  const RUNE_GLYPH = { flag: 'M50 8 L50 92 M50 8 L24 34 M50 8 L76 34', emblem: 'M50 8 L50 92 M50 46 L22 14 M50 46 L78 14',
+    scroll: 'M30 8 L30 92 M30 8 L66 30 L30 52 L72 92', instrument: 'M32 8 L32 92 M32 34 L72 12 M32 62 L72 40' };
+  R.runePillar = (name, c, hide = 0, type = '') => {   // hide = unten abgeschnittener Anteil in % · type = Rune (flag/emblem/scroll/instrument)
+    const [fg, g1, g2] = PILLAR_C[c] || PILLAR_C.gray, words = String(name).split(/\s+/), longest = Math.max(...words.map(w => w.length));
     const glow = `color:${fg};text-shadow:0 0 3px ${g1},0 0 8px ${g1},0 0 16px ${g2};font-family:Cinzel,serif;font-weight:700;text-transform:uppercase`;
-    // kurze Namen senkrecht, lange Namen waagerecht in mehreren Zeilen (oberer, sichtbarer Teil der Säule)
-    const label = len <= 10
-      ? `<span class="absolute left-1/2 flex items-center justify-center" style="top:7%;bottom:${hide + 8}%;writing-mode:vertical-rl;transform:translateX(-50%) rotate(180deg);white-space:nowrap;font-size:${Math.min(34, (150 - hide * 1.6) / (Math.max(4, len) * 0.68)).toFixed(1)}cqw;letter-spacing:.04em;${glow}">${R.esc(name)}</span>`
-      : `<span class="absolute inset-x-[12%] flex items-center justify-center text-center" style="top:9%;bottom:${hide + 10}%;line-height:1.08;font-size:${Math.min(17, 72 / (Math.max(...String(name).split(/\s+/).map(w => w.length)) * 0.82)).toFixed(1)}cqw;${glow}">${R.esc(name)}</span>`;
+    const vis = 100 - hide, runeTop = 9, runeH = vis * 0.36, txtTop = runeTop + runeH + 2;
+    const rune = RUNE_GLYPH[type] ? `<svg class="absolute left-1/2 -translate-x-1/2" style="top:${runeTop}%;height:${runeH}%;width:58%;overflow:visible;filter:drop-shadow(0 0 3px ${g1}) drop-shadow(0 0 9px ${g2})" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+        <path d="${RUNE_GLYPH[type]}" fill="none" stroke="${fg}" stroke-width="11" stroke-linecap="square" stroke-linejoin="miter"/></svg>` : '';
+    const label = `<span class="absolute inset-x-[10%] flex items-center justify-center text-center" style="top:${RUNE_GLYPH[type] ? txtTop : 9}%;bottom:${hide + 7}%;line-height:1.05;font-size:${Math.min(20, 74 / (longest * 0.78)).toFixed(1)}cqw;${glow}">${R.esc(name)}</span>`;
     return `<div class="relative w-full aspect-[241/480]" style="container-type:inline-size">
-      <img src="icons/arm/pillar.webp" alt="" draggable="false" class="absolute inset-0 w-full h-full object-contain" style="filter:drop-shadow(0 0 ${c === 'gray' ? 0 : 10}px ${g2}aa)">${label}</div>`; };
+      <img src="icons/arm/pillar.webp" alt="" draggable="false" class="absolute inset-0 w-full h-full object-contain" style="filter:drop-shadow(0 0 ${c === 'gray' ? 0 : 10}px ${g2}aa)">
+      <div class="absolute inset-0" style="background:${g1};-webkit-mask:url(icons/arm/pillar_cracks.png) center/contain no-repeat;mask:url(icons/arm/pillar_cracks.png) center/contain no-repeat;opacity:${c === 'gray' ? 0.55 : 0.95};filter:drop-shadow(0 0 2px ${g1}) drop-shadow(0 0 5px ${g2})"></div>${rune}${label}</div>`; };
   R.charBack = (map, o) => { const c = charOf(map, o); if (!c) return ''; const cand = charCands(c.file);
     const bgc = o?.bg?.url ? `background:linear-gradient(rgba(7,9,15,.25),rgba(7,9,15,.45)),url('${String(o.bg.url).replace(/'/g, '%27')}') center/cover` : CHAR_BG[o?.bg?.k] || CHAR_BG[''];
     const cmp = charCompact(o), foot0 = o?.bg?.url ? 0 : CHAR_BG_FOOT[o?.bg?.k] || 0, shift = cmp ? 9 : 0;
@@ -117,7 +123,7 @@ window.RokMods.crafting = (R) => {
     const tp = (x, y) => [50 + (x - 50) * kk, ct + (y - 3) * kk];   // Körperpunkte mitskalieren
     // im Kompakt-Modus Bild-Hintergrund nach oben schieben, damit der Charakter auf dem Plateau bleibt
     const up = cmp && /url\(/.test(bgc) ? shift : 0;
-    return `<div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none" style="background:#0b0f1a"><div class="absolute inset-x-0" style="top:-${up}%;height:100%;${bgc}"></div></div>
+    return `<div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none" style="background:#0b0f1a"><div class="absolute inset-x-0" style="top:-${up}%;height:${100 + up}%;${bgc}"></div></div>
     <img src="${cand[0]}" data-alt="${cand.slice(1).join('|')}" onerror="var a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.dataset.alt=a.slice(1).join('|');this.src=a[0]}else{this.onerror=null;this.style.display='none'}" alt="" draggable="false" class="absolute pointer-events-none select-none" style="left:50%;top:${ct}%;height:${ch}%;transform:translateX(-50%);filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))">
     <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">${Object.entries(CHAR_POS).map(([k, q0]) => { const q = posOf(k, cmp), pt = c.pts?.[k] || [q0.px, q0.py], t = tp(pt[0], pt[1]), p = { ...q, px: +t[0].toFixed(1), py: +t[1].toFixed(1) }; return '' +
       `<line x1="${p.x}" y1="${p.y}" x2="${p.px}" y2="${p.py}" stroke="rgba(246,215,122,.55)" stroke-width=".35" stroke-dasharray="1 .8"/><circle cx="${p.px}" cy="${p.py}" r=".8" fill="#f6d77a"/>`; }).join('')}</svg>
@@ -239,7 +245,7 @@ window.RokMods.crafting = (R) => {
     } catch (e) { EQ.dbErr = e.message || String(e); }
   }
   let gAdmin = false;
-  try { RokAuth.isAdmin?.().then(ok => { gAdmin = !!ok; if (R.view === 'craft') renderGearCat(); }).catch(() => {}); } catch {}
+  try { RokAuth.isAdmin?.().then(ok => { gAdmin = !!ok; if (R.view === 'craft') { renderGearCat(); renderCraftPanes(); } }).catch(() => {}); } catch {}
   const eqFind = (it) => EQ.map.get(eqKey(R.gearIconStem(it.icon))) || EQ.map.get(eqKey(it.name)) || null;
   // Katalog-Item mit den eigenen Daten anreichern (Kosten, Seltenheit, Set)
   function eqApply(it, e) {
@@ -2301,12 +2307,14 @@ window.RokMods.crafting = (R) => {
   function renderCraftPanes() {
     R.$('craftPlanPane').classList.toggle('hidden', craftPane !== 'plan');
     R.$('craftSetsPane')?.classList.toggle('hidden', craftPane !== 'sets');
+    if (craftPane === 'best' && !gAdmin) craftPane = 'sets';
+    document.querySelector('[data-cpane="best"]')?.classList.toggle('hidden', !gAdmin);   // Bestwerte: vorerst nur für Admins
     R.$('craftBestPane')?.classList.toggle('hidden', craftPane !== 'best');
     R.$('craftHistPane').classList.toggle('hidden', craftPane !== 'hist');
     R.$('craftGoalPane').classList.toggle('hidden', craftPane !== 'goal');
     R.$('craftCalPane').classList.toggle('hidden', craftPane !== 'cal');
     document.querySelectorAll('[data-cpane]').forEach(b => { const on = b.dataset.cpane === craftPane;
-      b.className = `px-4 py-2 rounded-lg text-sm font-semibold transition ${on ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'}`; });
+      b.className = `px-4 py-2 rounded-lg text-sm font-semibold transition ${on ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'} ${b.dataset.cpane === 'best' && !gAdmin ? 'hidden' : ''}`; });
     R.$('chPageHist').classList.toggle('hidden', chPage !== 'hist');
     R.$('chPageSnaps').classList.toggle('hidden', chPage !== 'snaps');
     document.querySelectorAll('[data-chpage]').forEach(b => { const on = b.dataset.chpage === chPage;
