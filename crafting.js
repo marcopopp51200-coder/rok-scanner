@@ -746,6 +746,11 @@ window.RokMods.crafting = (R) => {
   // Kosten als Kästchen (wie die Mats-Kacheln)
   const costBoxes = (c, cls = '') => !c ? '' : [...R.MATS.filter(m => (c[m.k] || 0) > 1e-4).map(m => [m.icon, gq(c[m.k])]), ...GX.filter(x => (c[x.k] || 0) > 1e-4).map(x => [x.icon, x.f(c[x.k])])]
     .map(([ic, v]) => `<span class="inline-flex items-center gap-1 rounded-lg border border-ink-600 bg-ink-900/80 px-2 py-0.5 text-[13px] font-bold tabular-nums text-slate-100 whitespace-nowrap ${cls}"><span class="text-[15px] leading-none">${ic}</span>${v}</span>`).join('');
+  // woher kommen die Mats für diesen Schritt: aus dem Rucksack je Material + wie viele Wahlkisten geöffnet werden müssen
+  const useBoxes = (fc, r) => { const prev = { ...r.cum }; Object.keys(r.x.cost).forEach(k => { prev[k] = (prev[k] || 0) - (r.x.cost[k] || 0); });
+    const a = restAt(fc, r.day, prev, calChoice()), b = restAt(fc, r.day, r.cum, calChoice());
+    const box = (ic, v, l, chest) => `<span class="inline-flex flex-col items-center justify-center min-w-[54px] rounded-lg border ${chest ? (v > 0.005 ? 'border-amber-400/70 bg-amber-500/10' : 'border-ink-700') : v > 0.005 ? 'border-emerald-500/60 bg-emerald-500/10' : 'border-ink-700 opacity-50'} px-1.5 py-0.5" title="${l}"><span class="text-[15px] leading-none">${ic}</span><span class="text-[11px] font-bold tabular-nums ${chest ? 'text-amber-200' : 'text-emerald-200'}">${v > 0.005 ? '−' + gq(v) : '0'}</span></span>`;
+    return `<span class="mx-1 text-slate-500">➜</span>${R.MATS.map(m => box(m.icon, Math.max(0, a[m.k] - b[m.k]), m.label + ' aus dem Rucksack')).join('')}${box('📦', Math.max(0, (a.choice || 0) - (b.choice || 0)), 'Wahlkisten, die du dafür öffnen musst', true)}`; };
   const stockChips = (st) => [...R.MATS.map(m => [m.icon, Math.floor(st[m.k] || 0)]), ['📦', Math.floor(st.choice || 0)]]
     .map(([ic, v]) => `<span class="whitespace-nowrap"><span class="text-[13px]">${ic}</span>${v}</span>`).join('');
   // Icon mit Tier-Marke / Refine-Stand (für „vorher → nachher“ in der Prio-Liste)
@@ -1855,7 +1860,7 @@ window.RokMods.crafting = (R) => {
             <div class="flex items-center gap-2">${stepIcon(r.x.r.z, 'w-10 h-10')}
               <div class="min-w-0 flex-1"><div class="text-sm font-semibold ${r.x.meta.k === 'craft' ? 'text-gold-300' : r.x.meta.k === 'tier' ? 'text-sky-300' : 'text-red-300'}">${R.esc(r.x.label)}${r.x.meta.parts ? ` <span class="text-[11px] font-normal text-slate-400">Versuch ${r.x.meta.part}/${r.x.meta.parts}${r.x.meta.part > 1 ? ' – fällt weg, wenn vorher +50/+75 % kommt' : ''}</span>` : ''}${r.x.last ? ' <span class="text-xs text-emerald-300">✓ fertig</span>' : ''}</div><div class="text-[11px] text-slate-400 truncate" translate="no">${R.esc(gItem(r.x.r.z.item)?.name || '')} · ${r.x.r.sl.label} ${setTag(r.x.set)}</div></div>
               <div class="text-right text-sm tabular-nums whitespace-nowrap">${when(r)}</div></div>
-            ${r.x.cost ? `<div class="mt-1.5 flex flex-wrap gap-1 pl-12">${costBoxes(r.x.cost)}</div>` : ''}
+            ${r.x.cost ? `<div class="mt-1.5 flex flex-wrap items-center gap-1 pl-12">${costBoxes(r.x.cost)}${fc0 && r.day != null && r.cum ? useBoxes(fc0, r) : ''}</div>` : ''}
             ${r.bp ? `<div class="mt-1 pl-12 text-[11px] ${r.bp.short > 0 ? 'text-red-300' : r.bp.used.length ? 'text-amber-200' : 'text-slate-400'}">📜 ${bpTxt(r.bp.need)}: ${r.bp.own > 0 ? `${bpTxt(r.bp.own)} aus deinem Bestand` : ''}${r.bp.used.length ? `${r.bp.own > 0 ? ' + ' : ''}${r.bp.used.map(u => `${evIcon(u.e)} ${evName(u.e)} ${bpDate(u.e.off)} (${Math.round(u.fr)} Fragm.)`).join(' + ')}` : ''}${r.bp.short > 0 ? ` · ⚠ fehlen ${Math.ceil(r.bp.short)} Fragmente – kein passendes Event${(() => { const n = bpNext(r.x.r.z.item); return n ? '' : ' eingetragen'; })()}` : ''}</div>` : ''}
           </div>
           ${fc0 && r.day != null && r.cum ? `<div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 pl-14 pr-2 text-[11px] text-slate-500 tabular-nums"><span>↳ danach übrig</span>${stockChips(restAt(fc0, r.day, r.cum, calChoice()))}</div>` : ''}`).join('')}</div>`}`;

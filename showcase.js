@@ -1782,6 +1782,7 @@ window.RokMods.showcase = (R) => {
   const scProfCtx = (x) => ({ pick: x.prof.char, name: x.name, bg: { k: x.prof.bg }, arm: { ...x.arm, flip: x.prof.flip, scene: x.prof.stones } });
   function drawProf() {
     const box = R.$('scProf'); if (!box) return; const x = scSet();
+    box.innerHTML = x && R.charBoardHTML ? '<div class="mt-4 rounded-xl border border-gold-500/30 bg-ink-950/40 px-3 py-2 text-xs text-slate-300">🧍 Charakter-Bild mit Hintergrund und Runensäulen: oben im Reiter <b class="text-gold-200">„🧍 Charakter Showcase“</b>.</div>' : ''; return;
     if (!x || (x.kind && !x.gearOn) || !R.charBoardHTML || !R.GEAR_SLOTS.some(sl => x.gear?.[sl.k]?.item)) { box.innerHTML = ''; return; }
     const ctx = scProfCtx(x), own = sc.own, fi = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
     const parts = ['flag', 'emblem', 'scroll', 'instrument'].filter(k => ARM_BY_ID[x.arm.arms?.[k]]);
@@ -2827,6 +2828,16 @@ window.RokMods.showcase = (R) => {
   R.scGearSets = () => scOwnDoc().list.flatMap(s => s.sets.map((x, i) => ({ scId: s.id, scTitle: s.title, setId: x.id,
     setName: x.kind ? SC_KIND[x.kind] : (x.name || 'Set ' + (i + 1)), gear: JSON.parse(JSON.stringify(x.gear)) })));
   R.scGetArm = (scId, setId) => { const x = scOwnDoc().list.find(s => s.id === scId)?.sets.find(y => y.id === setId); return x?.arm ? JSON.parse(JSON.stringify(x.arm)) : null; };
+  // ---- für den Reiter „🧍 Charakter Showcase“ (showcases.js): alle eigenen Sets mit Profil-Einstellungen ----
+  R.scProfSets = () => scOwnDoc().list.flatMap(sh => sh.sets.filter(x => !x.kind || x.gearOn).map((x, i) => ({ scId: sh.id, scTitle: sh.title, setId: x.id,
+    name: x.kind ? SC_KIND[x.kind] : (x.name || 'Set ' + (i + 1)), gear: JSON.parse(JSON.stringify(x.gear)), arm: JSON.parse(JSON.stringify(x.arm)), prof: { ...x.prof, flip: { ...x.prof.flip } } })));
+  R.scProfCtxOf = (p) => ({ pick: p.prof.char, name: p.name, bg: { k: p.prof.bg }, arm: { ...p.arm, flip: p.prof.flip, scene: p.prof.stones } });
+  R.scProfPut = async (scId, setId, patch) => {
+    const live = !!(sc.own && sc.doc), doc = scOwnDoc(), x = doc.list.find(s => s.id === scId)?.sets.find(y => y.id === setId); if (!x) return false;
+    x.prof = scProfNorm({ ...x.prof, ...patch, flip: { ...x.prof.flip, ...(patch.flip || {}) } });
+    if (live) { scSaveSoon(); return true; }
+    doc.updated = Date.now(); R.LS.set(SC_KEY, JSON.stringify(doc)); try { await RokAuth.saveShowcase(scPublicDoc(doc)); } catch {} return true;
+  };
   R.scPutGear = async (scId, setId, slots, label) => {
     const live = !!(sc.own && sc.doc), doc = scOwnDoc();
     const x = doc.list.find(s => s.id === scId)?.sets.find(y => y.id === setId); if (!x) return false;
