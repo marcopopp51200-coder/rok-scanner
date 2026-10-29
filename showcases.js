@@ -96,6 +96,42 @@ window.RokMods.showcases = (R) => {
       <div id="scsAooPreview"><div class="text-[10px] uppercase tracking-widest text-slate-500 mb-2">👁 Vorschau</div>${R.aooCardHTML(c, true)}</div>
     </div>`;
   }
+  // ---------- 🧍 Charakter Showcase: jedes Set als Bild mit Charakter, Hintergrund und Runensäulen ----------
+  function charSection() {
+    const list = R.scProfSets ? R.scProfSets().filter((p) => (R.GEAR_SLOTS || []).some((sl) => p.gear?.[sl.k]?.item)) : [];
+    if (!R.charBoardHTML) return '<p class="panel rounded-2xl p-6 text-sm text-slate-500 text-center">Der Craft-Bereich ist noch nicht geladen.</p>';
+    if (!list.length) return '<p class="panel rounded-2xl p-6 text-sm text-slate-500 text-center">Noch keine Sets mit Ausrüstung – zuerst im ⚔️ Gear Showcase Ausrüstung eintragen.</p>';
+    const fi = 'w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
+    const AT = { flag: '🚩', emblem: '🛡', scroll: '📜', instrument: '📯' };
+    return `<p class="text-xs text-slate-500">Jedes Set aus deinem Gear Showcase als Charakter-Bild. Die Runensäulen kommen aus der „Rüstung“ im ⚔️ Gear Showcase: gewählte Armaments oder die goldenen/blauen Inschriften.</p>
+      <div class="grid gap-5 md:grid-cols-2">${list.map((p) => { const id = esc(p.scId + '|' + p.setId), parts = (R.armParts ? R.armParts(p.arm).map((q) => q.k) : Object.keys(AT).filter((k) => p.arm?.arms?.[k]));
+        return `<section class="panel rounded-2xl p-4 flex flex-col gap-3" data-scp="${id}">
+          <div class="flex items-baseline justify-between gap-2"><div class="font-display text-xl gold-text truncate" translate="no">${esc(p.name)}</div><span class="text-[11px] text-slate-500 truncate">${esc(p.scTitle || '')}</span></div>
+          <div class="relative mx-auto w-full max-w-[460px] aspect-square">${R.charBoardHTML(p.gear, R.scProfCtxOf(p))}</div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <label class="text-slate-400">Charakter<select data-scp-f="char" class="${fi} mt-1"><option value="">🔄 automatisch</option>${(R.charList?.() || []).map((c) => `<option value="${esc(c.id)}"${p.prof.char === c.id ? ' selected' : ''}>🧍 ${esc(c.name)}</option>`).join('')}</select></label>
+            <label class="text-slate-400">Hintergrund<select data-scp-f="bg" class="${fi} mt-1">${(R.charBgList?.() || []).map(([k, l]) => `<option value="${k}"${p.prof.bg === k ? ' selected' : ''}>${l}</option>`).join('')}</select></label></div>
+          <div class="flex flex-wrap items-center gap-1.5 text-xs">
+            <label class="inline-flex items-center gap-1.5 text-slate-300 cursor-pointer mr-auto"><input type="checkbox" data-scp-f="stones" ${p.prof.stones ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">🪨 Runensäulen</label>
+            ${parts.map((k) => `<button type="button" data-scp-flip="${k}" title="Säule neigen" class="px-2 py-1 rounded-md border ${p.prof.flip[k] ? 'border-gold-400 text-gold-200' : 'border-ink-600 text-slate-300'}">${AT[k]} ${p.prof.flip[k] < 0 ? '↖' : p.prof.flip[k] > 0 ? '↗' : '⬆'}</button>`).join('')}
+            ${p.prof.stones && !parts.length ? '<span class="w-full text-[11px] text-amber-300">Keine Runensäulen: im ⚔️ Gear Showcase unter „Rüstung“ Armaments oder goldene/blaue Inschriften wählen.</span>' : ''}
+            <button type="button" data-scp-feed class="px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">📰 Im Feed posten</button></div>
+        </section>`; }).join('')}</div>`;
+  }
+  const scpOf = (el) => { const box = el.closest('[data-scp]'); if (!box) return null; const [scId, setId] = box.dataset.scp.split('|'); return (R.scProfSets?.() || []).find((p) => p.scId === scId && p.setId === setId) || null; };
+  root.addEventListener('change', async (ev) => { const t = ev.target, f = t.dataset?.scpF; if (!f) return; const p = scpOf(t); if (!p) return;
+    await R.scProfPut(p.scId, p.setId, { [f]: f === 'stones' ? t.checked : t.value }); render(); });
+  root.addEventListener('click', async (ev) => {
+    const fb = ev.target.closest('[data-scp-flip]'); if (fb) { const p = scpOf(fb); if (!p) return; const k = fb.dataset.scpFlip, v = p.prof.flip[k] || 0;
+      await R.scProfPut(p.scId, p.setId, { flip: { [k]: v === 0 ? -8 : v === -8 ? 8 : 0 } }); render(); return; }
+    const pb = ev.target.closest('[data-scp-feed]'); if (!pb) return; const p = scpOf(pb); if (!p) return;
+    if (!R.feedShareSet) { msg('Der Feed ist noch nicht geladen – bitte Seite neu laden.', 'warn'); return; }
+    const note = await window.UI.prompt(`„${p.name}“ als Charakter-Bild im Feed posten.\n\nText dazu (optional):`, '', { title: '📰 Im Feed posten', ok: 'Posten' }); if (note === null) return;
+    const gear = Object.fromEntries((R.GEAR_SLOTS || []).map((sl) => { const v = p.gear?.[sl.k], it = R.gItem?.(v?.item); return [sl.k, v?.item ? { item: v.item, name: it?.name || '', icon: it?.icon || '', rarity: it?.rarity || v.rarity, tier: v.tier || 0, refine: v.refine || 0, refType: v.refType } : null]; }));
+    const ctx = R.scProfCtxOf(p);
+    try { await R.feedShareSet({ name: p.name, gear, char: p.prof.char || R.charOf?.(gear, { name: p.name })?.id || '', bg: ctx.bg, arm: ctx.arm, note: note.trim() }); msg('✓ Im Feed gepostet', 'ok'); }
+    catch (e) { msg('Posten fehlgeschlagen: ' + (e.message || e), 'err'); }
+  });
   function msg(t, tone) { st.msg = [t, tone]; const el = $('scsMsg'); if (!el) return; el.textContent = t; el.className = 'text-xs min-h-[1em] ' + ({ ok: 'text-emerald-400', warn: 'text-amber-300', err: 'text-red-300', busy: 'text-slate-300' }[tone] || 'text-slate-500'); }
   function render() {
     if (!root) return;
@@ -105,7 +141,8 @@ window.RokMods.showcases = (R) => {
         <div><h2 class="font-display text-2xl gold-text">🎨 Showcases</h2><p class="text-xs text-slate-500">Gear, KvK und Ark of Osiris – hier bearbeiten und ins Profil laden</p></div>
         <button type="button" id="scsBack" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">← Zurück</button>
       </div>
-      <div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist">${tabBtn('gear', '⚔️ Gear Showcase')}${tabBtn('kvk', '🏁 KvK Showcase')}${tabBtn('aoo', '🏛️ AoO Showcase')}</div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist">${tabBtn('gear', '⚔️ Gear Showcase')}${tabBtn('char', '🧍 Charakter Showcase')}${tabBtn('kvk', '🏁 KvK Showcase')}${tabBtn('aoo', '🏛️ AoO Showcase')}</div>
+      ${st.tab === 'char' ? charSection() : ''}
       ${st.tab === 'gear' ? `<div class="flex flex-col gap-3"><p class="text-xs text-slate-500">Dein Showcase-Editor – alles, was du hier änderst, steht so auch in deinem Profil. Mit ✎ oben rechts öffnest du die Werkzeuge.</p><div id="scsGearHost"></div></div>` : ''}
       ${st.tab === 'kvk' ? kvkSection() : ''}
       ${st.tab === 'aoo' ? aooSection() : ''}`;
