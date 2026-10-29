@@ -57,7 +57,9 @@ window.RokMods.crafting = (R) => {
     gold: 'background:radial-gradient(60% 55% at 50% 45%,rgba(245,197,66,.5),rgba(30,20,5,.92) 75%)', green: 'background:radial-gradient(60% 55% at 50% 45%,rgba(34,197,94,.45),rgba(6,24,14,.92) 75%)',
     purple: 'background:radial-gradient(60% 55% at 50% 45%,rgba(168,85,247,.5),rgba(20,8,32,.92) 75%)', night: 'background:linear-gradient(180deg,#0b1026,#1b1f3a 55%,#2a1f3d)' };
   // gemalte Hintergrund-Bilder (icons/charbg/)
-  const CHAR_BG_IMG = [['burghof', '🏰 Burghof'], ['pagode', '⛩ Pagode'], ['thronsaal', '👑 Thronsaal'], ['schlachtfeld', '⚔ Schlachtfeld'], ['winter', '❄ Winter'], ['nacht', '🌙 Nacht'], ['wueste', '🏜 Wüste'], ['wald', '🌲 Wald']];
+  // Hintergründe mit Plateau: Charakter steht darauf (foot = Fußhöhe in %, Charakter wird kleiner)
+  const CHAR_BG_FOOT = { 'img:lava': 80, 'img:wasserfall': 80, 'img:wolken': 80 };
+  const CHAR_BG_IMG = [['lava', '🔥 Lava-Plateau'], ['wasserfall', '💧 Wasserfall-Plateau'], ['wolken', '☁ Wolken-Plateau'], ['burghof', '🏰 Burghof'], ['pagode', '⛩ Pagode'], ['thronsaal', '👑 Thronsaal'], ['schlachtfeld', '⚔ Schlachtfeld'], ['winter', '❄ Winter'], ['nacht', '🌙 Nacht'], ['wueste', '🏜 Wüste'], ['wald', '🌲 Wald']];
   CHAR_BG_IMG.forEach(([k]) => { CHAR_BG['img:' + k] = `background:linear-gradient(rgba(7,9,15,.05),rgba(7,9,15,.35)),url('icons/charbg/${k}.webp') center/cover`; });
   const BSTYLE = 'rok_scanner_board_style';
   R.boardStyle = () => (R.LS?.get(BSTYLE, 'char') === 'rauten' ? 'rauten' : 'char');   // Standard: Charakter-Ansicht
@@ -74,10 +76,31 @@ window.RokMods.crafting = (R) => {
   R.charBox = (k) => { const p = CHAR_POS[k] || { x: 50, y: 50 }; return `left:${p.x - CHAR_T / 2}%;top:${p.y - CHAR_T / 2}%;width:${CHAR_T}%;height:${CHAR_T}%`; };
   R.charBack = (map, o) => { const c = charOf(map, o); if (!c) return ''; const cand = charCands(c.file);
     const bgc = o?.bg?.url ? `background:linear-gradient(rgba(7,9,15,.25),rgba(7,9,15,.45)),url('${String(o.bg.url).replace(/'/g, '%27')}') center/cover` : CHAR_BG[o?.bg?.k] || CHAR_BG[''];
+    const foot = o?.bg?.url ? 0 : CHAR_BG_FOOT[o?.bg?.k] || 0, ct = foot ? 4 : 3, ch = foot ? foot - ct : 94, kk = ch / 94;
+    const tp = (x, y) => [50 + (x - 50) * kk, ct + (y - 3) * kk];   // Körperpunkte mitskalieren
     return `<div class="absolute inset-0 rounded-2xl pointer-events-none" style="${bgc}"></div>
-    <img src="${cand[0]}" data-alt="${cand.slice(1).join('|')}" onerror="var a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.dataset.alt=a.slice(1).join('|');this.src=a[0]}else{this.onerror=null;this.style.display='none'}" alt="" draggable="false" class="absolute pointer-events-none select-none" style="left:50%;top:3%;height:94%;transform:translateX(-50%);filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))">
-    <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">${Object.entries(CHAR_POS).map(([k, q]) => { const pt = c.pts?.[k], p = pt ? { ...q, px: pt[0], py: pt[1] } : q; return '' +
+    <img src="${cand[0]}" data-alt="${cand.slice(1).join('|')}" onerror="var a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.dataset.alt=a.slice(1).join('|');this.src=a[0]}else{this.onerror=null;this.style.display='none'}" alt="" draggable="false" class="absolute pointer-events-none select-none" style="left:50%;top:${ct}%;height:${ch}%;transform:translateX(-50%);filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))">
+    <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">${Object.entries(CHAR_POS).map(([k, q]) => { const pt = c.pts?.[k] || [q.px, q.py], t = tp(pt[0], pt[1]), p = { ...q, px: +t[0].toFixed(1), py: +t[1].toFixed(1) }; return '' +
       `<line x1="${p.x}" y1="${p.y}" x2="${p.px}" y2="${p.py}" stroke="rgba(246,215,122,.55)" stroke-width=".35" stroke-dasharray="1 .8"/><circle cx="${p.px}" cy="${p.py}" r=".8" fill="#f6d77a"/>`; }).join('')}</svg>`; };
+  // Armaments als Runensteine: je Inschrift ein Stein, leuchtet orange (Spezial/Gold) oder blau (Selten); dazu die 4 Teile
+  R.armStonesHtml = (arm) => { const D = R.armData; if (!arm || !D) return '';
+    const parts = ['flag', 'emblem', 'scroll', 'instrument'].map(k => D.BY_ID[arm.arms?.[k]]).filter(Boolean), ins = (arm.insc || []).filter(i => i.t);
+    if (!parts.length && !ins.length && !arm.formation) return '';
+    const glow = { gold: '0 0 14px 4px rgba(251,146,60,.85), 0 0 34px 10px rgba(249,115,22,.45)', blue: '0 0 14px 4px rgba(96,165,250,.85), 0 0 34px 10px rgba(59,130,246,.45)', gray: '' };
+    const txt = { gold: '#fed7aa', blue: '#bfdbfe', gray: '#e2e8f0' };
+    const stone = (t, c, sub) => `<div class="relative flex flex-col items-center w-[78px] sm:w-[92px] shrink-0" title="${R.esc(t)}${sub ? ' · ' + R.esc(sub) : ''}">
+        <div class="relative w-full aspect-[339/360]">
+          ${glow[c] ? `<span class="absolute left-[22%] right-[22%] top-[14%] bottom-[30%] rounded-[40%] pointer-events-none" style="box-shadow:${glow[c]};opacity:.9"></span>` : ''}
+          <img src="icons/arm/stone.webp" alt="" class="relative w-full h-full object-contain" style="${c === 'gold' ? 'filter:sepia(.35) saturate(1.3)' : c === 'blue' ? 'filter:hue-rotate(170deg) saturate(.8)' : ''}">
+          ${sub ? `<span class="absolute left-1/2 top-[38%] -translate-x-1/2 text-2xl sm:text-3xl" style="filter:drop-shadow(0 0 6px ${c === 'gold' ? '#f97316' : c === 'blue' ? '#3b82f6' : '#000'})">${sub.split(' ')[0]}</span>`
+            : `<span class="absolute left-1/2 top-[40%] -translate-x-1/2 max-w-[92%] px-1.5 py-0.5 rounded-md bg-ink-950/75 text-center text-[10px] sm:text-[11px] font-extrabold leading-tight whitespace-nowrap overflow-hidden text-ellipsis" style="color:${txt[c]};text-shadow:0 0 6px ${c === 'gold' ? '#f97316' : c === 'blue' ? '#3b82f6' : '#000'}">${R.esc(t)}</span>`}</div>
+        ${sub ? `<span class="-mt-0.5 text-[10px] font-semibold text-center leading-tight" style="color:${txt[c]}">${R.esc(t)}</span>` : ''}</div>`;
+    const colOf = (t) => ins.find(i => i.t.toLowerCase() === String(t).toLowerCase())?.c;
+    return `<div class="mt-3 rounded-xl border border-ink-700 bg-ink-950/40 p-2.5">
+      <div class="text-[11px] text-slate-400 mb-1">⚔ Armaments${arm.formation ? ' · <b class="text-slate-200">' + R.esc(arm.formation) + '</b>' : ''}</div>
+      ${parts.length ? `<div class="flex flex-wrap justify-center gap-1">${parts.map(x => stone(x.name, colOf(x.gold) ? 'gold' : colOf(x.blue) ? 'blue' : 'gray', D.TYPES[x.type].icon + ' ' + D.TYPES[x.type].label)).join('')}</div>` : ''}
+      ${ins.length ? `<div class="mt-1 flex flex-wrap justify-center gap-0.5">${[...ins].sort((a, b) => ({ gold: 0, blue: 1, gray: 2 }[a.c] - { gold: 0, blue: 1, gray: 2 }[b.c])).map(i => stone(i.t, i.c, '')).join('')}</div>` : ''}
+      <div class="mt-1 text-[10px] text-slate-500 text-center">🟠 Spezial · 🔵 Selten · ⚪ Normal</div></div>`; };
   // Container umstellen: 1:2 (Rauten) ↔ 1:1 (Charakter)
   R.charFrame = (el, on, rautenW) => { if (!el) return; el.classList.toggle('aspect-[1/2]', !on); el.classList.toggle('aspect-square', on);
     el.style.maxWidth = on ? '460px' : rautenW || ''; };
@@ -531,7 +554,7 @@ window.RokMods.crafting = (R) => {
     const co = { pick: set.char || '', name: set.name, bg: set.bg };
     ['ist', 'ziel'].forEach(side => { const el = R.$(side === 'ist' ? 'gearIstBoard' : 'gearZielBoard'), on = R.charOn(set.ziel, co);
       R.charFrame(el, on, '280px'); el.innerHTML = gearBoard(side, set, calc, { char: on ? co : null }); });
-    R.$('gearIstStats').innerHTML = statPanelHtml(set.ist, set.arm);
+    R.$('gearIstStats').innerHTML = statPanelHtml(set.ist, set.arm) + R.armStonesHtml(set.arm);
     R.$('gearZielStats').innerHTML = statPanelHtml(set.ziel, set.arm, { slots: set.ist, arm: set.arm });
     R.$('gearViewBar').innerHTML = `<div class="flex flex-wrap items-center gap-2">
         <select data-plan-set translate="no" class="flex-1 min-w-[200px] max-w-md bg-ink-950 border border-gold-500/50 rounded-lg px-3 py-2 text-base font-semibold focus:outline-none focus:border-gold-400" title="Charakter / Set für den Planer">${gear.sets.map(s => `<option value="${R.esc(s.id)}"${s.id === set.id ? ' selected' : ''}>${s.main ? '⭐ ' : ''}${R.esc(s.name)}</option>`).join('')}</select>
@@ -1926,6 +1949,7 @@ window.RokMods.crafting = (R) => {
           <div class="font-display text-2xl gold-text truncate" translate="no">${s.main ? '⭐ ' : ''}${R.esc(s.name)}</div>
           <button type="button" data-sx="edit" data-id="${R.esc(s.id)}" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold shrink-0">✎ Bearbeiten</button></div>
         ${miniBoard(s, 'max-w-[440px]')}
+        ${R.armStonesHtml(s.arm)}
         <div class="mt-auto flex flex-col gap-2">
           <select data-charpick="${R.esc(s.id)}" translate="no" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm font-semibold focus:outline-none focus:border-gold-500"><option value="">🔄 Charakter automatisch${R.charOf(s.ist, { name: s.name }) ? ' (' + R.esc(R.charOf(s.ist, { name: s.name }).name) + ')' : ''}</option>${R.charList().map(x => `<option value="${R.esc(x.id)}"${s.char === x.id ? ' selected' : ''}>🧍 ${R.esc(x.name)}</option>`).join('')}</select>
           <div class="grid grid-cols-3 gap-1.5">
@@ -2063,7 +2087,7 @@ window.RokMods.crafting = (R) => {
           ${gearEditor('ist', s, calc)}
           ${armEditorHtml(s)}
         </div></div>
-      <div class="mt-4">${statPanelHtml(s.ist, s.arm)}</div>
+      <div class="mt-4">${R.armStonesHtml(s.arm)}${statPanelHtml(s.ist, s.arm)}</div>
       <div class="mt-5 border-t border-ink-700 pt-4 flex flex-wrap items-center gap-2">
         <span class="mr-auto text-sm ${pend.length ? 'text-gold-200' : 'text-slate-500'}">${pend.length ? `✎ ${pend.length} ${pend.length === 1 ? 'Änderung' : 'Änderungen'} seit dem letzten Speichern` : '✓ Alles gespeichert'}</span>
         <button type="button" data-ced="hist" ${pend.length ? '' : 'disabled'} class="px-4 py-2 rounded-lg border border-gold-500/60 text-gold-200 hover:border-gold-400 text-sm font-semibold disabled:opacity-40">📜 In History</button>
