@@ -372,7 +372,7 @@ window.RokMods.crafting = (R) => {
   // Armaments: Formation, 4 Teile (Flagge/Emblem/Schriftrolle/Instrument), Inschriften, Werte
   const ARMK = ['flag', 'emblem', 'scroll', 'instrument'], ARM_ST = ['atk', 'def', 'hp', 'spd', 'dmg'];
   const armNum = (v) => { const n = Math.round(parseFloat(String(v ?? '').replace(',', '.')) * 10) / 10; return Number.isFinite(n) ? n : null; };
-  const armNorm = (a) => ({ formation: String(a?.formation || '').slice(0, 30), arms: Object.fromEntries(ARMK.map(k => [k, String(a?.arms?.[k] || '')])),
+  const armNorm = (a) => ({ formation: String(a?.formation || '').replace(/^Delta II$/, 'Delta').slice(0, 30), arms: Object.fromEntries(ARMK.map(k => [k, String(a?.arms?.[k] || '')])),
     insc: (Array.isArray(a?.insc) ? a.insc : []).slice(0, 12).map(i => ({ t: String(i?.t || '').slice(0, 24), c: ['gold', 'blue', 'gray'].includes(i?.c) ? i.c : 'gold' })).filter(i => i.t),
     troop: ['infantry', 'cavalry', 'archer', 'siege', 'all'].includes(a?.troop) ? a.troop : 'infantry', ...Object.fromEntries(ARM_ST.map(k => [k, armNum(a?.[k])])),
     flip: Object.fromEntries(ARMK.map(k => [k, [-8, 0, 8].includes(+a?.flip?.[k]) ? +a.flip[k] : a?.flip?.[k] === true ? 8 : 0])), scene: a?.scene !== false });   // flip = Neigung der Säule in Grad ·   // flip = Stein gespiegelt · scene = Steine im Bild zeigen
@@ -2181,7 +2181,10 @@ window.RokMods.crafting = (R) => {
     const D = R.armData; if (!D) return '';
     const a = s.arm, fi = 'bg-ink-950 border border-ink-600 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
     const forms = Object.keys(D.FORMATIONS), list = (k) => Object.entries(D.FORMATIONS).flatMap(([f, l]) => l.filter(x => x.type === k).map(x => ({ ...x, f }))).filter(x => !a.formation || x.f === a.formation);
-    const known = [...new Set([...Object.values(D.POOL).flat(), ...Object.values(D.FORMATIONS).flat().flatMap(x => [x.gold, x.blue])])].sort();
+    const okF = D.allowed?.(a.formation);   // mit Formation nur die dazu passenden Inschriften
+    const known = [...new Set([...Object.values(D.POOL).flat(), ...Object.values(D.FORMATIONS).flat().flatMap(x => [x.gold, x.blue])])].filter(t => !okF || okF.has(t.toLowerCase())).sort();
+    const fChips = a.formation && D.FORMATIONS[a.formation] ? ARMK.map(k => { const l = D.FORMATIONS[a.formation].filter(x => x.type === k); return `<div class="flex flex-wrap items-center gap-1"><span class="w-24 shrink-0 text-[11px] text-slate-400">${D.TYPES[k].icon} ${D.TYPES[k].label}</span>${l.flatMap(x => [[x.gold, 'gold'], [x.blue, 'blue']]).map(([t, c]) => { const st = D.INSC[c], on = a.insc.some(i => i.t.toLowerCase() === t.toLowerCase());
+        return `<button type="button" data-armx="chip" data-t="${R.esc(t)}" data-c="${c}" class="px-2 py-0.5 rounded-md text-[11px] font-extrabold border ${on ? 'ring-2 ring-gold-400' : 'opacity-55 hover:opacity-100'}" style="background:${st.bg};color:${st.fg};border-color:${st.bd}">${on ? '✓ ' : ''}${R.esc(t)}</button>`; }).join('')}</div>`; }).join('') : '';
     const linked = s.sc && scSets().find(x => x.scId === s.sc.scId && x.setId === s.sc.setId);
     const has = a.formation || ARMK.some(k => a.arms[k]) || a.insc.length || ARM_ST.some(k => a[k]);
     return `<details data-armdet class="rounded-xl border border-ink-700 bg-ink-950/40 p-3" ${armOpen ? 'open' : ''}>
@@ -2194,7 +2197,8 @@ window.RokMods.crafting = (R) => {
           <div class="flex gap-1"><select data-arm="arms.${k}" class="${fi} flex-1 min-w-0"><option value="">–</option>${list(k).map(x => `<option value="${x.id}"${a.arms[k] === x.id ? ' selected' : ''}>${R.esc(x.name)}${a.formation ? '' : ' (' + x.f + ')'}</option>`).join('')}</select>
 </div></div>`).join('')}</div>
         <div class="text-[11px] text-slate-500">🖼 Hintergründe und Runensäulen fürs Charakter-Bild gibt es im Showcase (Set öffnen → „🧍 Charakter-Profil“).</div>
-        <div><div class="text-[11px] text-slate-400 mb-1">Inschriften (bis 12) – Farbe wird erkannt</div>
+        ${fChips ? `<div class="rounded-lg border border-ink-700 p-2 space-y-1"><div class="text-[11px] text-slate-400">Gold/Blau für ${R.esc(a.formation)} – antippen</div>${fChips}</div>` : ''}
+        <div><div class="text-[11px] text-slate-400 mb-1">Inschriften (bis 12) – Farbe wird erkannt${okF ? ' · nur passende zu ' + R.esc(a.formation) : ''}</div>
           <div class="flex flex-wrap gap-1.5">${a.insc.map((i, n) => { const st = D.INSC[i.c] || D.INSC.gold; return `<span class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold" style="background:${st.bg};color:${st.fg}">${R.esc(i.t)}<button type="button" data-armx="rm" data-i="${n}" class="opacity-60 hover:opacity-100">✕</button></span>`; }).join('') || '<span class="text-xs text-slate-500">keine</span>'}</div>
           ${a.insc.length < 12 ? `<div class="mt-1.5 flex gap-1.5"><input data-arm-new list="armInscList" placeholder="Inschrift, z. B. Toppler" class="${fi} flex-1 min-w-0"><button type="button" data-armx="add" class="px-3 py-1.5 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400 text-sm">＋</button></div>
             <datalist id="armInscList">${known.map(t => `<option value="${R.esc(t)}">`).join('')}</datalist>` : ''}</div>
@@ -2205,7 +2209,7 @@ window.RokMods.crafting = (R) => {
   }
   function armChange(s, t) {
     const a = s.arm, f = t.dataset.arm; if (!f) return false;
-    if (f === 'formation') { a.formation = t.value; ARMK.forEach(k => { const x = R.armData.BY_ID[a.arms[k]]; if (x && t.value && !R.armData.FORMATIONS[t.value]?.some(y => y.id === x.id)) a.arms[k] = ''; }); }
+    if (f === 'formation') { a.formation = t.value; const n = R.armData.fit?.(a) || 0; if (n) setTimeout(() => cedMsg(`${n} Inschrift${n > 1 ? 'en' : ''} passte${n > 1 ? 'n' : ''} nicht zu ${t.value} – entfernt.`, false), 50); ARMK.forEach(k => { const x = R.armData.BY_ID[a.arms[k]]; if (x && t.value && !R.armData.FORMATIONS[t.value]?.some(y => y.id === x.id)) a.arms[k] = ''; }); }
     else if (f.startsWith('arms.')) a.arms[f.slice(5)] = t.value;
     else if (f === 'troop') a.troop = t.value;
     else if (f === 'scene') a.scene = t.checked;
@@ -2224,7 +2228,13 @@ window.RokMods.crafting = (R) => {
     if (ax) { armOpen = true; const A = ax.dataset.armx;
       if (A === 'flip') { const v = s.arm.flip[ax.dataset.k] || 0; s.arm.flip[ax.dataset.k] = v === 0 ? -8 : v === -8 ? 8 : 0; }
       else if (A === 'rm') s.arm.insc.splice(+ax.dataset.i, 1);
-      else if (A === 'add') { const inp = charEd.root.querySelector('[data-arm-new]'), t = inp?.value.trim(); if (!t) return; const k = R.armData.known(t); s.arm.insc.push({ t: k?.t || t, c: k?.c || 'gold' }); }
+      else if (A === 'add') { const inp = charEd.root.querySelector('[data-arm-new]'), t = inp?.value.trim(); if (!t) return; const k = R.armData.known(t), ok = R.armData.allowed?.(s.arm.formation);
+        if (ok && k && !ok.has(k.t.toLowerCase())) { cedMsg(`„${k.t}“ gehört nicht zur Formation ${s.arm.formation}.`, false); return; }
+        if (s.arm.insc.length >= 12) { cedMsg('Maximal 12 Inschriften.', false); return; }
+        s.arm.insc.push({ t: k?.t || t, c: k?.c || 'gold' }); }
+      else if (A === 'chip') { const t = ax.dataset.t, c = ax.dataset.c, i = s.arm.insc.findIndex(x => x.t.toLowerCase() === t.toLowerCase());
+        if (i >= 0 && s.arm.insc[i].c !== c) s.arm.insc[i].c = c; else if (i >= 0) s.arm.insc.splice(i, 1);
+        else if (s.arm.insc.length >= 12) { cedMsg('Maximal 12 Inschriften.', false); return; } else s.arm.insc.push({ t, c }); }
       else if (A === 'fromsc') { const src = R.scGetArm?.(s.sc.scId, s.sc.setId); if (!src) { cedMsg('Im Showcase-Set sind keine Armaments eingetragen.', false); return; } s.arm = armNorm(src); cedMsg('✓ Armaments aus dem Showcase übernommen'); }
       s.arm = armNorm(s.arm); saveGear(); renderGearMain(); drawCharEditor(); return; }
     const b = ev.target.closest('[data-ced]'); if (!b || b.tagName === 'SELECT' || b.tagName === 'INPUT') return;
