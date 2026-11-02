@@ -86,7 +86,8 @@ window.RokMods.crafting = (R) => {
       if (!x) { const g = (D.POOL[k] || []).find(t => ins.has(t.toLowerCase()));   // nur graue Inschrift für diesen Typ → graue Säule
         return g ? { k, x: null, label: g, c: 'gray' } : null; }
       const t = ins.has(x.gold.toLowerCase()) ? x.gold : ins.has(x.blue.toLowerCase()) ? x.blue : '';
-      return { k, x, label: t || x.name, c: ins.has(x.gold.toLowerCase()) ? 'gold' : t ? 'blue' : 'gray' }; }).filter(Boolean)
+      const own = t && (arm.insc || []).find(i => String(i.t).toLowerCase() === t.toLowerCase())?.c;   // gleiche Namen bei Gold/Blau (Delta II) → Farbe der Inschrift nehmen
+      return { k, x, label: t || x.name, c: x.gold === x.blue && own ? own : ins.has(x.gold.toLowerCase()) ? 'gold' : t ? 'blue' : 'gray' }; }).filter(Boolean)
       .sort((a, b) => armOrd(arm, a.k) - armOrd(arm, b.k)); }
   // eigene Reihenfolge der Säulen (links → rechts), sonst Flagge · Emblem · Schriftrolle · Instrument
   const armOrd = (arm, k) => { const o = Array.isArray(arm?.order) ? arm.order : [], i = o.indexOf(k); return i < 0 ? 10 + ARMK.indexOf(k) : i; };
@@ -366,6 +367,7 @@ window.RokMods.crafting = (R) => {
     ms: Array.isArray(pr?.ms) ? pr.ms.filter(m => m && m.id).map(m => ({ id: String(m.id), name: String(m.name || 'Etappe').slice(0, 30) })).slice(0, 12) : [],
     upto: String(pr?.upto || ''), view: ['set', 'all'].includes(pr?.view) || /^[\w-]{4,}$/.test(pr?.view || '') ? pr.view : 'set',
     goalUpto: String(pr?.goalUpto || ''), filter: String(pr?.filter || '') });   // '' = alle Sets, sonst Set-ID ('active' = altes „nur aktives Set“)
+  const freshSet = (name) => gNormSet(newGearSet(name));   // vollständig (histBase, Armaments, …) – sonst bricht der Editor bei neuen Charakteren
   const newGearSet = (name) => ({ id: R.newId(), name, ist: gEmptySlots(), ziel: gEmptySlots(), dismantle: false, useChests: false, goal: gNormGoal(), prio: gNormPrio(), updated: Date.now() });
   // Armaments: Formation, 4 Teile (Flagge/Emblem/Schriftrolle/Instrument), Inschriften, Werte
   const ARMK = ['flag', 'emblem', 'scroll', 'instrument'], ARM_ST = ['atk', 'def', 'hp', 'spd', 'dmg'];
@@ -392,7 +394,7 @@ window.RokMods.crafting = (R) => {
   try { const g = JSON.parse(R.LS.get(GEAR_SETS, 'null')); if (g && Array.isArray(g.sets)) gear = { sets: g.sets.map(gNormSet), active: g.active, prio: g.prio, groups: g.groups }; } catch {}
   // Sets = Gruppen aus Charakteren (Planer-Sets)
   gear.groups = (Array.isArray(gear.groups) ? gear.groups : []).filter(x => x && x.id).map(x => ({ id: String(x.id), name: String(x.name || 'Set').slice(0, 40), members: (Array.isArray(x.members) ? x.members : []).map(String) }));
-  if (!gear.sets.length) gear.sets.push(newGearSet('Infanterie Marsch 1'));
+  if (!gear.sets.length) gear.sets.push(freshSet('Infanterie Marsch 1'));
   if (!gear.sets.some(s => s.id === gear.active)) gear.active = gear.sets[0].id;
   // Eine gemeinsame Prio-Liste für alle Sets (Schlüssel beginnen mit der Set-ID) – frühere Reihenfolgen je Set werden übernommen
   gear.prio = gear.prio ? gNormPrio(gear.prio) : gNormPrio({
@@ -1118,7 +1120,7 @@ window.RokMods.crafting = (R) => {
     const name = R.$('gearNameInput').value.trim().replace(/\s+/g, ' ').slice(0, 40);
     if (!name) return;
     if (gear.sets.some(s => s.name.toLowerCase() === name.toLowerCase() && (gearFormMode === 'new' || s.id !== gear.active))) { gearMsg('Ein Set mit diesem Namen gibt es schon.', false); return; }
-    if (gearFormMode === 'new') { const s = newGearSet(name); gear.sets.push(s); gear.active = s.id; gearFlags = {}; gearMsg(`✓ Set „${name}“ erstellt`); }
+    if (gearFormMode === 'new') { const s = freshSet(name); gear.sets.push(s); gear.active = s.id; gearFlags = {}; gearMsg(`✓ Set „${name}“ erstellt`); }
     else { activeSet().name = name; gearMsg(`✓ Set umbenannt in „${name}“`); }
     closeGearForm(); saveGear(); renderGearMain();
   };
@@ -1127,7 +1129,7 @@ window.RokMods.crafting = (R) => {
     const s = activeSet();
     if (!(await UI.confirm(`Set „${s.name}“ wirklich löschen? Das kann nicht rückgängig gemacht werden.`))) return;
     gear.sets = gear.sets.filter(x => x.id !== s.id);
-    if (!gear.sets.length) gear.sets.push(newGearSet('Neues Set'));
+    if (!gear.sets.length) gear.sets.push(freshSet('Neues Set'));
     gear.active = gear.sets[0].id; gearFlags = {}; closeGearForm();
     saveGear(); renderGearMain(); gearMsg(`🗑 Set „${s.name}“ gelöscht`);
   };
@@ -2018,7 +2020,8 @@ window.RokMods.crafting = (R) => {
     const card = (s) => `<section class="panel rounded-2xl p-4 sm:p-5 flex flex-col gap-3 h-full ${s.main ? 'ring-2 ring-gold-400/70' : ''}">
         <div class="flex items-center justify-between gap-2 min-h-[2.75rem]">
           <div class="font-display text-2xl gold-text truncate" translate="no">${s.main ? '⭐ ' : ''}${R.esc(s.name)}</div>
-          <button type="button" data-sx="edit" data-id="${R.esc(s.id)}" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold shrink-0">✎ Bearbeiten</button></div>
+          <div class="flex gap-1.5 shrink-0"><button type="button" data-sx="edit" data-id="${R.esc(s.id)}" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold">✎ Bearbeiten</button>
+            <button type="button" data-sx="del" data-id="${R.esc(s.id)}" title="Charakter löschen" class="px-2.5 py-2 rounded-lg border border-ink-600 text-slate-400 hover:border-red-500/60 hover:text-red-300 text-sm">🗑</button></div></div>
         ${miniBoard(s, 'max-w-[440px]')}
         <div class="mt-auto flex flex-col gap-2">
           <select data-charpick="${R.esc(s.id)}" translate="no" class="w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-2 text-sm font-semibold focus:outline-none focus:border-gold-500"><option value="">🔄 Charakter automatisch${R.charOf(s.ist, { name: s.name }) ? ' (' + R.esc(R.charOf(s.ist, { name: s.name }).name) + ')' : ''}</option>${R.charList().map(x => `<option value="${R.esc(x.id)}"${s.char === x.id ? ' selected' : ''}>🧍 ${R.esc(x.name)}</option>`).join('')}</select>
@@ -2060,7 +2063,7 @@ window.RokMods.crafting = (R) => {
     if (!t.matches('[data-sx-newsc]') || !t.value) return;
     const [scId, setId] = t.value.split('|'), src = scSets().find(x => x.scId === scId && x.setId === setId); if (!src) return;
     const slots = scSlots(src.gear); if (!slotsFilled(slots)) { await UI.alert(`„${src.setName}“ hat noch keine Ausrüstung.`); renderSets(); return; }
-    const s = newGearSet(uniqName(src.setName)); s.ist = slots; s.ziel = JSON.parse(JSON.stringify(slots)); s.histBase = JSON.parse(JSON.stringify(slots)); s.sc = { scId, setId };
+    const s = freshSet(uniqName(src.setName)); s.ist = slots; s.ziel = JSON.parse(JSON.stringify(slots)); s.histBase = JSON.parse(JSON.stringify(slots)); s.sc = { scId, setId };
     gear.sets.push(s); saveGear(); cloudSave(); renderSets(); setsMsg(`✓ „${s.name}“ aus dem Showcase angelegt`);
   });
   async function postSetToFeed(s) {
@@ -2090,24 +2093,28 @@ window.RokMods.crafting = (R) => {
     const a = b.dataset.sx, s = gear.sets.find(x => x.id === b.dataset.id);
     const save = () => { gearSaveAll(); renderSets(); };
     if (a === 'new') { const name = (await UI.prompt('Name (z. B. Inf 1, Cav)', '', { title: 'Neuer Charakter' }))?.trim().replace(/\s+/g, ' ').slice(0, 40); if (!name) return;
-      const n = newGearSet(uniqName(name)); gear.sets.push(n); save(); openCharEditor(n.id); return; }
+      const n = freshSet(uniqName(name)); gear.sets.push(n); save(); openCharEditor(n.id); return; }
     if (!s) return;
     if (a === 'edit') { openCharEditor(s.id); return; }
     if (a === 'open') { gear.active = s.id; gearFlags = {}; R.LS.set(GEAR_SETS, JSON.stringify(gear)); craftPane = 'plan'; renderCraftPanes(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     if (a === 'main') { const on = !s.main; gear.sets.forEach(x => { x.main = false; }); s.main = on; save(); setsMsg(on ? `⭐ „${s.name}“ ist jetzt dein Hauptset` : 'Hauptset entfernt'); return; }
     if (a === 'scload' || a === 'scsend') { gear.active = s.id; R.LS.set(GEAR_SETS, JSON.stringify(gear)); openScPicker(a === 'scload' ? 'load' : 'send'); return; }
     if (a === 'feed') { postSetToFeed(s); return; }
+    if (a === 'del') { await delSet(s); return; }
     if (a === 'more') {
       const pick = await UI.prompt(`„${s.name}“:\n1 = Umbenennen\n2 = Kopieren\n3 = ${s.goal.on ? 'Aus dem Gesamtziel nehmen' : 'Ins Gesamtziel aufnehmen'}\n4 = Löschen`, '', { title: 'Mehr', ok: 'OK' });
       if (pick === '1') { const name = (await UI.prompt('Neuer Name', s.name, { title: 'Umbenennen' }))?.trim().replace(/\s+/g, ' ').slice(0, 40); if (!name || name === s.name) return;
         if (gear.sets.some(x => x !== s && x.name.toLowerCase() === name.toLowerCase())) { setsMsg('Diesen Namen gibt es schon.', false); return; } s.name = name; save(); }
       else if (pick === '2') { const c = gNormSet({ ...JSON.parse(JSON.stringify(s)), id: R.newId(), name: uniqName(s.name + ' Kopie'), main: false }); gear.sets.push(c); save(); setsMsg(`✓ Kopie „${c.name}“ angelegt`); }
       else if (pick === '3') { s.goal.on = !s.goal.on; save(); }
-      else if (pick === '4') { if (!(await UI.confirm(`„${s.name}“ wirklich löschen?`))) return;
-        gear.sets = gear.sets.filter(x => x !== s); gear.groups.forEach(g => { g.members = g.members.filter(id => id !== s.id); });
-        if (!gear.sets.length) gear.sets.push(newGearSet('Neues Set')); if (gear.active === s.id) gear.active = gear.sets[0].id; save(); setsMsg(`🗑 „${s.name}“ gelöscht`); }
+      else if (pick === '4') await delSet(s);
     }
   });
+  async function delSet(s) {
+    if (!(await UI.confirm(`Charakter „${s.name}“ wirklich löschen?\n\nAusrüstung und Armaments dieses Charakters sind dann weg (History und gespeicherte Sets bleiben).`))) return false;
+    gear.sets = gear.sets.filter(x => x !== s); gear.groups.forEach(g => { g.members = g.members.filter(id => id !== s.id); });
+    if (!gear.sets.length) gear.sets.push(freshSet('Neues Set')); if (gear.active === s.id) gear.active = gear.sets[0].id;
+    gearSaveAll(); if (charEd?.id === s.id) closeCharEditor(); else renderSets(); setsMsg(`🗑 „${s.name}“ gelöscht`); return true; }
   R.boardStyleHooks.push(() => { if (craftPane === 'sets') renderSets(); if (charEd) drawCharEditor(); });
 
   // ---- Charakter bearbeiten: scannen, Items upgraden, Hintergrund, auf alles übertragen, History ----
@@ -2123,9 +2130,12 @@ window.RokMods.crafting = (R) => {
     root.addEventListener('toggle', (ev) => { if (ev.target.matches?.('[data-armdet]')) armOpen = ev.target.open; }, true);
     root.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' && ev.target.matches('[data-arm-new]')) { ev.preventDefault(); root.querySelector('[data-armx="add"]')?.click(); } });
     root.addEventListener('click', gearEdit); root.addEventListener('change', gearEdit);
-    drawCharEditor();
+    try { drawCharEditor(); } catch (e) { console.error(e); closeCharEditor(); UI.alert('Der Editor konnte nicht geöffnet werden: ' + (e.message || e)); }   // nie einen leeren grauen Bildschirm stehen lassen
   }
-  function closeCharEditor() { if (!charEd) return; charEd.root.remove(); document.body.style.overflow = charEd.prev; charEd = null; renderGearMain(); if (craftPane === 'sets') renderSets(); }
+  function closeCharEditor() { if (!charEd) return;
+    const s = gear.sets.find(x => x.id === charEd.id);   // Charakter festhalten, damit das Bild beim nächsten Öffnen gleich bleibt
+    if (s && !s.char) { const a = R.charOf(s.ist, { name: s.name }); if (a && GEAR_SLOTS.some(sl => s.ist[sl.k]?.item)) { s.char = a.id; gearSaveAll(); } }
+    charEd.root.remove(); document.body.style.overflow = charEd.prev; charEd = null; renderGearMain(); if (craftPane === 'sets') renderSets(); }
   function drawCharEditor() {
     if (!charEd) return; const s = gear.sets.find(x => x.id === charEd.id); if (!s) { closeCharEditor(); return; }
     if (gear.active !== s.id) gear.active = s.id;
@@ -2158,6 +2168,7 @@ window.RokMods.crafting = (R) => {
       <div class="mt-4">${statPanelHtml(s.ist, s.arm)}</div>
       <div class="mt-5 border-t border-ink-700 pt-4 flex flex-wrap items-center gap-2">
         <span class="mr-auto text-sm ${pend.length ? 'text-gold-200' : 'text-slate-500'}">${pend.length ? `✎ ${pend.length} ${pend.length === 1 ? 'Änderung' : 'Änderungen'} seit dem letzten Speichern` : '✓ Alles gespeichert'}</span>
+        <button type="button" data-ced="del" class="px-3 py-2 rounded-lg border border-ink-600 text-slate-400 hover:border-red-500/60 hover:text-red-300 text-sm" title="Charakter löschen">🗑 Löschen</button>
         <button type="button" data-ced="hist" ${pend.length ? '' : 'disabled'} class="px-4 py-2 rounded-lg border border-gold-500/60 text-gold-200 hover:border-gold-400 text-sm font-semibold disabled:opacity-40">📜 In History</button>
         <button type="button" data-ced="all" class="px-4 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold" title="History + ${linked ? 'Showcase „' + R.esc(linked.setName) + '“' : 'Showcase (falls verbunden)'} + Cloud">⇄ Auf alles übertragen</button>
       </div>
@@ -2223,6 +2234,7 @@ window.RokMods.crafting = (R) => {
     if (a === 'tier+' && it) { v.tier = Math.min(maxTier(it), (v.tier || 0) + 1); }
     else if (a === 'tier-' && it) { v.tier = Math.max(0, (v.tier || 0) - 1); }
     else if (a === 'ref' && it) { v.refine = Math.min(100, (v.refine || 0) + +b.dataset.v); }
+    else if (a === 'del') { await delSet(s); return; }
     else if (a === 'hist') { const n = cedHist(s); saveGear(); cloudSave(); drawCharEditor(); cedMsg(`✓ ${n} ${n === 1 ? 'Änderung' : 'Änderungen'} in der History`); return; }
     else if (a === 'all') {
       const n = cedHist(s), done = [n ? `History (${n})` : 'History aktuell'];
@@ -2749,7 +2761,7 @@ window.RokMods.crafting = (R) => {
       const sn = snaps.find(x => x.id === b('snrestore').dataset.snrestore); if (!sn) return;
       if (!(await UI.confirm(`Alle Sets aus der Sicherung vom ${hDay(sn.ts)} wiederherstellen?\n\nDeine jetzigen Sets werden vorher automatisch gesichert.`))) return;
       snaps.unshift(snTake('Automatisch vor Wiederherstellen'));
-      gear.sets = sn.sets.map(s => gNormSet(JSON.parse(JSON.stringify(s)))); gear.active = gear.sets[0]?.id; if (!gear.sets.length) { gear.sets.push(newGearSet('Neues Set')); gear.active = gear.sets[0].id; }
+      gear.sets = sn.sets.map(s => gNormSet(JSON.parse(JSON.stringify(s)))); gear.active = gear.sets[0]?.id; if (!gear.sets.length) { gear.sets.push(freshSet('Neues Set')); gear.active = gear.sets[0].id; }
       gearFlags = {}; R.LS.set(GEAR_SETS, JSON.stringify(gear)); saveSnaps(); cloudSave(); renderGearMain(); renderSnaps();
       snMsg(`✓ Sets vom ${hDay(sn.ts)} wiederhergestellt`); return;
     }

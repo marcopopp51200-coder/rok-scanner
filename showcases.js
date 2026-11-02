@@ -98,9 +98,11 @@ window.RokMods.showcases = (R) => {
   }
   // ---------- 🧍 Charakter Showcase: jedes Set als Bild mit Charakter, Hintergrund und Runensäulen ----------
   function charSection() {
-    const list = R.scProfSets ? R.scProfSets().filter((p) => (R.GEAR_SLOTS || []).some((sl) => p.gear?.[sl.k]?.item)) : [];
+    const all = R.scProfSets ? R.scProfSets().filter((p) => (R.GEAR_SLOTS || []).some((sl) => p.gear?.[sl.k]?.item)) : [];
+    const list = all.filter((p) => !p.prof.hidden), hid = all.filter((p) => p.prof.hidden);
     if (!R.charBoardHTML) return '<p class="panel rounded-2xl p-6 text-sm text-slate-500 text-center">Der Craft-Bereich ist noch nicht geladen.</p>';
-    if (!list.length) return '<p class="panel rounded-2xl p-6 text-sm text-slate-500 text-center">Noch keine Sets mit Ausrüstung – zuerst im ⚔️ Gear Showcase Ausrüstung eintragen.</p>';
+    const hidBar = hid.length ? `<div class="panel rounded-2xl p-3 flex flex-wrap items-center gap-2 text-xs text-slate-400"><span class="mr-1">🗑 Entfernt:</span>${hid.map((p) => `<button type="button" data-scp-unhide="${esc(p.scId + '|' + p.setId)}" class="px-2.5 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300" title="wieder anzeigen">↺ ${esc(p.name)}</button>`).join('')}</div>` : '';
+    if (!list.length) return (all.length ? '<p class="panel rounded-2xl p-6 text-sm text-slate-500 text-center">Alle Charakter-Bilder sind entfernt – unten wieder anzeigen.</p>' : '<p class="panel rounded-2xl p-6 text-sm text-slate-500 text-center">Noch keine Sets mit Ausrüstung – zuerst im ⚔️ Gear Showcase Ausrüstung eintragen.</p>') + hidBar;
     const fi = 'w-full bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
     const AT = { flag: '🚩', emblem: '🛡', scroll: '📜', instrument: '📯' };
     return `<p class="text-xs text-slate-500">Jedes Set aus deinem Gear Showcase als Charakter-Bild. Die Runensäulen kommen aus der „Rüstung“ im ⚔️ Gear Showcase: gewählte Armaments oder die goldenen/blauen Inschriften.</p>
@@ -125,12 +127,13 @@ window.RokMods.showcases = (R) => {
             ${p.prof.stones && !parts.length ? '<span class="w-full text-[11px] text-amber-300">Keine Runensäulen: im ⚔️ Gear Showcase unter „Rüstung“ Armaments oder goldene/blaue Inschriften wählen.</span>' : ''}
             <button type="button" data-scp-edit class="px-3 py-1.5 rounded-lg border ${st.scpEdit === id ? 'border-gold-400 text-gold-200' : 'border-ink-600 text-slate-200'} hover:border-gold-400 font-semibold">✥ Anpassen</button>
             <button type="button" data-scp-dl class="px-3 py-1.5 rounded-lg border border-gold-500/60 text-gold-200 hover:border-gold-400 font-semibold">⬇ Download</button>
-            <button type="button" data-scp-feed class="px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">📰 Im Feed posten</button></div>
+            <button type="button" data-scp-feed class="px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold">📰 Im Feed posten</button>
+            <button type="button" data-scp-hide title="Charakter-Bild entfernen (das Set im Gear Showcase bleibt)" class="px-2.5 py-1.5 rounded-lg border border-ink-600 text-slate-400 hover:border-red-500/60 hover:text-red-300">🗑</button></div>
           ${R.scProfGfxHtml ? `<details data-scp-gfxbox class="rounded-xl border border-ink-700 bg-ink-950/40 p-3 text-xs" ${st.scpGfx === id ? 'open' : ''}>
             <summary class="cursor-pointer select-none font-semibold text-gold-300">✨ Expertise-Rahmen &amp; Partikel</summary>
             <div class="mt-2">${R.scProfGfxHtml(p.scId, p.setId)}</div>
             ${Object.keys(p.prof.gfx || {}).length ? '<button type="button" data-scp-gfxreset class="mt-2 px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 hover:text-gold-300">↺ Wie im Gear Showcase</button>' : ''}</details>` : ''}
-        </section>`; }).join('')}</div>`;
+        </section>`; }).join('')}</div>${hidBar}`;
   }
   // Ziehen der Linien-Punkte (Maus + Finger)
   let scpDrag = null;
@@ -157,6 +160,10 @@ window.RokMods.showcases = (R) => {
   root.addEventListener('click', async (ev) => {
     const fb = ev.target.closest('[data-scp-flip]'); if (fb) { const p = scpOf(fb); if (!p) return; const k = fb.dataset.scpFlip, v = p.prof.flip[k] || 0;
       await R.scProfPut(p.scId, p.setId, { flip: { [k]: v === 0 ? -8 : v === -8 ? 8 : 0 } }); render(); return; }
+    const hb = ev.target.closest('[data-scp-hide]'); if (hb) { const p = scpOf(hb); if (!p) return;
+      if (!(await window.UI.confirm(`Charakter-Bild „${p.name}“ entfernen?\n\nDas Set im ⚔️ Gear Showcase bleibt erhalten – du kannst das Bild unten jederzeit wieder anzeigen.`))) return;
+      await R.scProfPut(p.scId, p.setId, { hidden: true }); render(); return; }
+    const ub = ev.target.closest('[data-scp-unhide]'); if (ub) { const [scId, setId] = ub.dataset.scpUnhide.split('|'); await R.scProfPut(scId, setId, { hidden: false }); render(); return; }
     const gb = ev.target.closest('[data-scp-gfr]'); if (gb) { const p = scpOf(gb); if (!p) return;
       await R.scProfPut(p.scId, p.setId, { gfx: { [gb.dataset.scpGfc === 'purple' ? 'fp' : 'fr']: gb.dataset.scpGfr } }); render(); return; }
     const gr = ev.target.closest('[data-scp-gfxreset]'); if (gr) { const p = scpOf(gr); if (!p) return; await R.scProfPut(p.scId, p.setId, { gfx: null }); render(); return; }

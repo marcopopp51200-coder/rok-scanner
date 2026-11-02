@@ -359,6 +359,12 @@ window.RokMods.showcase = (R) => {
       { id: 'leonine_chronicle', type: 'scroll',   name: 'Leonine Chronicle', gold: 'Thrasher',         blue: 'Pummeler' },
       { id: 'leonine_pibroch', type: 'instrument', name: 'Leonine Pibroch',   gold: 'Butterfly Effect', blue: 'Causative' }
     ],
+    'Delta II': [   // neue Formation – Inschriften laut Spiel (Gold und Blau gleich benannt); Namen der Rüstungen bei Bedarf noch ersetzen
+      { id: 'delta2_flag', type: 'flag',             name: 'Delta II · Flagge',       gold: 'Steady', blue: 'Steady' },
+      { id: 'delta2_emblem', type: 'emblem',         name: 'Delta II · Emblem',       gold: 'Surge',  blue: 'Surge' },
+      { id: 'delta2_scroll', type: 'scroll',         name: 'Delta II · Schriftrolle', gold: 'Driven', blue: 'Driven' },
+      { id: 'delta2_instrument', type: 'instrument', name: 'Delta II · Instrument',   gold: 'Burst',  blue: 'Burst' }
+    ],
     Wedge: [
       { id: 'herald_ensign', type: 'flag',          name: "Herald's Ensign",        gold: 'Maneuver Warfare',  blue: 'Ballista' },
       { id: 'pantheon_banner', type: 'flag',        name: 'Banner of the Pantheon', gold: 'Balanced',          blue: 'Defiant' },
@@ -413,6 +419,7 @@ window.RokMods.showcase = (R) => {
     flip: Object.fromEntries(['flag', 'emblem', 'scroll', 'instrument'].map(k => [k, [-8, 0, 8].includes(+p?.flip?.[k]) ? +p.flip[k] : 0])),
     lines: p?.lines !== false,   // Linien vom Feld zum Körper
     order: [...new Set((Array.isArray(p?.order) ? p.order : []).filter(k => ['flag', 'emblem', 'scroll', 'instrument'].includes(k)))],   // Säulen links → rechts
+    hidden: !!p?.hidden,   // im Charakter Showcase entfernt (ausgeblendet)
     gfx: p?.gfx && typeof p.gfx === 'object' ? { ...(typeof p.gfx.fr === 'string' ? { fr: p.gfx.fr.slice(0, 60) } : {}), ...(typeof p.gfx.fp === 'string' ? { fp: p.gfx.fp.slice(0, 60) } : {}), ...(typeof p.gfx.pt === 'boolean' ? { pt: p.gfx.pt } : {}) } : {} });   // eigene Rahmen/Partikel nur für dieses Bild
   const scSetNorm = (x) => scStMigrate(x, { id: String(x?.id || R.newId()), name: String(x?.name || '').trim().slice(0, 30), mode: 'manual',
     shot: scImgOk(x?.shot) ? x.shot : '', cmd: [0, 1].map(i => scCmdNorm(x?.cmd?.[i])), gear: scGearNorm(x?.gear),
@@ -2866,9 +2873,11 @@ window.RokMods.showcase = (R) => {
     try { return scGearBoard(x.gear, true, false, scProfGfx(x), ctx); } catch (e) { console.warn(e); return R.charBoardHTML(x.gear, ctx); } };
   R.scProfPut = async (scId, setId, patch) => {
     const live = !!(sc.own && sc.doc), doc = scOwnDoc(), x = doc.list.find(s => s.id === scId)?.sets.find(y => y.id === setId); if (!x) return false;
+    // „automatisch“ beim ersten Bearbeiten auf den angezeigten Charakter festlegen – sonst wechselt das Bild später (Linien/Positionen passen dann nicht mehr)
+    if (!x.prof.char && !('char' in patch)) { const a = R.charOf?.(x.gear, { name: x.name }); if (a) patch = { ...patch, char: a.id }; }
     x.prof = scProfNorm({ ...x.prof, ...patch, flip: { ...x.prof.flip, ...(patch.flip || {}) }, gfx: patch.gfx === null ? {} : { ...(x.prof.gfx || {}), ...(patch.gfx || {}) }, pts: patch.pts === null ? {} : { ...x.prof.pts, ...(patch.pts || {}) } });
-    if (live) { scSaveSoon(); return true; }
-    doc.updated = Date.now(); R.LS.set(SC_KEY, JSON.stringify(doc)); try { await RokAuth.saveShowcase(scPublicDoc(doc)); } catch {} return true;
+    if (live) { await scSave(null, true); return true; }   // sofort sichern (nicht verzögert) – sonst kann ein Neuladen des Showcase die Änderung überschreiben
+    doc.updated = Date.now(); R.LS.set(SC_KEY, JSON.stringify(doc)); try { await RokAuth.saveShowcase(scPublicDoc(doc)); await RokAuth.flushNow?.(); } catch {} return true;
   };
   R.scPutGear = async (scId, setId, slots, label) => {
     const live = !!(sc.own && sc.doc), doc = scOwnDoc();
