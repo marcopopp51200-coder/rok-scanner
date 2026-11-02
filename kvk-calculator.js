@@ -4076,7 +4076,7 @@
     const node = root && root.querySelector('[data-out="endImg"] .kvk-endimg');
     if (!node) throw new Error('no image');
     const h2i = await loadH2I(), pr = Math.max(1, width / Math.max(1, node.offsetWidth));
-    const opt = { pixelRatio: pr, backgroundColor: '#07090f', cacheBust: true, quality: 0.86 };
+    const opt = { pixelRatio: pr, backgroundColor: '#07090f', cacheBust: true, style: { margin: '0' }, quality: 0.86 };
     const f = fmtJpeg ? h2i.toJpeg : h2i.toPng;
     try { return await f(node, opt); } catch (e) { return f(node, { ...opt, skipFonts: true }); }
   }

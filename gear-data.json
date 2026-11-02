@@ -1,0 +1,755 @@
+{
+  "hinweis": [
+    "Eigene Ausrüstungsdaten für den Craft-Planer. Namen dürfen geändert werden, die id muss zum Bildnamen in icons/gear passen (ohne _purple/_blue/_grey).",
+    "slot: weapon | helm | chest | gloves | legs | boots | accessory · quality: legendary | epic | elite | advanced | common",
+    "costs: Mengen in der Qualität des Items (legendäres Item = legendäre Materialien). Fehlende Stufen werden im Planer als ‚Kosten fehlen‘ markiert.",
+    "Stufen: craft, refine, awaken_1 … awaken_5 · Felder je Stufe: leather, iron, ebony, bone, gold, blueprint, iconic_crystal",
+    "Beispiel (Zahlen nur als Muster): \"costs\": { \"craft\": { \"leather\": 10, \"iron\": 20, \"ebony\": 30, \"gold\": 1000000, \"blueprint\": 1 }, \"refine\": { … }, \"awaken_1\": { \"iconic_crystal\": 1, \"gold\": 1000000 } }",
+    "Neue Items ohne Bild einfach unten anhängen. sets: [{ \"id\": \"mein_set\", \"name\": \"Mein Set\", \"pieces\": [\"item_id\", …] }]"
+  ],
+  "items": [
+    {
+      "id": "dragons_breath_bow",
+      "name": "Dragons Breath Bow",
+      "slot": "weapon",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "hammer_of_the_sun_and_moon",
+      "name": "Hammer Of The Sun And Moon",
+      "slot": "weapon",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "lance_of_the_hellish_wasteland",
+      "name": "Lance Of The Hellish Wasteland",
+      "slot": "weapon",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "sacred_dominion",
+      "name": "Sacred Dominion",
+      "slot": "weapon",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "scepter_of_the_glorious_goddess",
+      "name": "Scepter Of The Glorious Goddess",
+      "slot": "weapon",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "shield_of_the_eternal_empire",
+      "name": "Shield Of The Eternal Empire",
+      "slot": "weapon",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "the_hydras_blast",
+      "name": "The Hydras Blast",
+      "slot": "weapon",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "twilight_epiphany",
+      "name": "Twilight Epiphany",
+      "slot": "weapon",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "ancestral_mask_of_night",
+      "name": "Ancestral Mask Of Night",
+      "slot": "helm",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "diadem_of_the_glorious_goddess",
+      "name": "Diadem Of The Glorious Goddess",
+      "slot": "helm",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "dragons_breath_helm",
+      "name": "Dragons Breath Helm",
+      "slot": "helm",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "fierce_wolfs_helmet",
+      "name": "Fierce Wolfs Helmet",
+      "slot": "helm",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "gold_helm_of_the_eternal_empire",
+      "name": "Gold Helm Of The Eternal Empire",
+      "slot": "helm",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "helm_of_the_conqueror",
+      "name": "Helm Of The Conqueror",
+      "slot": "helm",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "pride_of_the_khan",
+      "name": "Pride Of The Khan",
+      "slot": "helm",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "war_helm_of_the_hellish_wasteland",
+      "name": "War Helm Of The Hellish Wasteland",
+      "slot": "helm",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "dragons_breath_plate",
+      "name": "Dragons Breath Plate",
+      "slot": "chest",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "heavy_armor_of_the_hellish_wasteland",
+      "name": "Heavy Armor Of The Hellish Wasteland",
+      "slot": "chest",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "hope_cloak",
+      "name": "Hope Cloak",
+      "slot": "chest",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "plate_of_the_eternal_empire",
+      "name": "Plate Of The Eternal Empire",
+      "slot": "chest",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "plate_of_the_glorious_goddess",
+      "name": "Plate Of The Glorious Goddess",
+      "slot": "chest",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "shadow_legions_retribution",
+      "name": "Shadow Legions Retribution",
+      "slot": "chest",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "the_milky_way",
+      "name": "The Milky Way",
+      "slot": "chest",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "vigilant_wolfs_leather_armor",
+      "name": "Vigilant Wolfs Leather Armor",
+      "slot": "chest",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "armband_of_the_hellish_wasteland",
+      "name": "Armband Of The Hellish Wasteland",
+      "slot": "gloves",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "dragons_breath_vambraces",
+      "name": "Dragons Breath Vambraces",
+      "slot": "gloves",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "gauntlets_of_the_glorious_goddess",
+      "name": "Gauntlets Of The Glorious Goddess",
+      "slot": "gloves",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "ians_choice",
+      "name": "Ians Choice",
+      "slot": "gloves",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "navars_control",
+      "name": "Navars Control",
+      "slot": "gloves",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "sacred_grips",
+      "name": "Sacred Grips",
+      "slot": "gloves",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "vambraces_of_the_eternal_empire",
+      "name": "Vambraces Of The Eternal Empire",
+      "slot": "gloves",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "wailing_wolfs_gauntlets",
+      "name": "Wailing Wolfs Gauntlets",
+      "slot": "gloves",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "ash_of_the_dawn",
+      "name": "Ash Of The Dawn",
+      "slot": "legs",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "chausses_of_the_glorious_goddess",
+      "name": "Chausses Of The Glorious Goddess",
+      "slot": "legs",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "dragons_breath_tassets",
+      "name": "Dragons Breath Tassets",
+      "slot": "legs",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "eternal_night",
+      "name": "Eternal Night",
+      "slot": "legs",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "greaves_of_the_eternal_empire",
+      "name": "Greaves Of The Eternal Empire",
+      "slot": "legs",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "lone_wolfs_leather_tassets",
+      "name": "Lone Wolfs Leather Tassets",
+      "slot": "legs",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "tassets_of_the_hellish_wasteland",
+      "name": "Tassets Of The Hellish Wasteland",
+      "slot": "legs",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "tassets_of_the_war_god",
+      "name": "Tassets Of The War God",
+      "slot": "legs",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "boots_of_the_hellish_wasteland",
+      "name": "Boots Of The Hellish Wasteland",
+      "slot": "boots",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "commanders_boots",
+      "name": "Commanders Boots",
+      "slot": "boots",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "dragons_breath_boots",
+      "name": "Dragons Breath Boots",
+      "slot": "boots",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "greaves_of_the_glorious_goddess",
+      "name": "Greaves Of The Glorious Goddess",
+      "slot": "boots",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "mountain_crushers",
+      "name": "Mountain Crushers",
+      "slot": "boots",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "roaring_wolfs_claws",
+      "name": "Roaring Wolfs Claws",
+      "slot": "boots",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "shios_return",
+      "name": "Shios Return",
+      "slot": "boots",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "sturdy_boots_of_the_eternal_empire",
+      "name": "Sturdy Boots Of The Eternal Empire",
+      "slot": "boots",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "concealed_dagger",
+      "name": "Concealed Dagger",
+      "slot": "accessory",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "greatest_glory",
+      "name": "Greatest Glory",
+      "slot": "accessory",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "heros_hilt",
+      "name": "Heros Hilt",
+      "slot": "accessory",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "horn_of_fury",
+      "name": "Horn Of Fury",
+      "slot": "accessory",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "immolating_plume",
+      "name": "Immolating Plume",
+      "slot": "accessory",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "karuaks_war_drums",
+      "name": "Karuaks War Drums",
+      "slot": "accessory",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "moras_web",
+      "name": "Moras Web",
+      "slot": "accessory",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "pendant_of_eternal_night",
+      "name": "Pendant Of Eternal Night",
+      "slot": "accessory",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "ring_of_doom",
+      "name": "Ring Of Doom",
+      "slot": "accessory",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "saddle_of_a_thousand_blessings",
+      "name": "Saddle Of A Thousand Blessings",
+      "slot": "accessory",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "scolas_lucky_coin",
+      "name": "Scolas Lucky Coin",
+      "slot": "accessory",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "seths_call",
+      "name": "Seths Call",
+      "slot": "accessory",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "timeless_amber",
+      "name": "Timeless Amber",
+      "slot": "accessory",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "vengeance",
+      "name": "Vengeance",
+      "slot": "accessory",
+      "quality": "legendary",
+      "costs": {}
+    },
+    {
+      "id": "golden_age",
+      "name": "Golden Age",
+      "slot": "weapon",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "heart_of_the_saint",
+      "name": "Heart Of The Saint",
+      "slot": "weapon",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "knights_oathsworn_bow",
+      "name": "Knights Oathsworn Bow",
+      "slot": "weapon",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "sakura_fubuki",
+      "name": "Sakura Fubuki",
+      "slot": "weapon",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "scepter_of_the_forest_guardian",
+      "name": "Scepter Of The Forest Guardian",
+      "slot": "weapon",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "abyssal_visage",
+      "name": "Abyssal Visage",
+      "slot": "helm",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "knights_steel_diadem",
+      "name": "Knights Steel Diadem",
+      "slot": "helm",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "mask_of_the_forest_guardian",
+      "name": "Mask Of The Forest Guardian",
+      "slot": "helm",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "revival_helm",
+      "name": "Revival Helm",
+      "slot": "helm",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "witchs_lineage",
+      "name": "Witchs Lineage",
+      "slot": "helm",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "dark_lords_blessing",
+      "name": "Dark Lords Blessing",
+      "slot": "chest",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "knights_valorous_cloak",
+      "name": "Knights Valorous Cloak",
+      "slot": "chest",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "quinns_soul",
+      "name": "Quinns Soul",
+      "slot": "chest",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "revival_plate",
+      "name": "Revival Plate",
+      "slot": "chest",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "robe_of_the_forest_guardian",
+      "name": "Robe Of The Forest Guardian",
+      "slot": "chest",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "claws_of_the_forest_guardian",
+      "name": "Claws Of The Forest Guardian",
+      "slot": "gloves",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "isets_sufferance",
+      "name": "Isets Sufferance",
+      "slot": "gloves",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "knights_battleworn_gauntlets",
+      "name": "Knights Battleworn Gauntlets",
+      "slot": "gloves",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "revival_gauntlets",
+      "name": "Revival Gauntlets",
+      "slot": "gloves",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "seths_brutality",
+      "name": "Seths Brutality",
+      "slot": "gloves",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "fanatics_tassets",
+      "name": "Fanatics Tassets",
+      "slot": "legs",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "gladiator",
+      "name": "Gladiator",
+      "slot": "legs",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "karuaks_humility",
+      "name": "Karuaks Humility",
+      "slot": "legs",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "knights_triumphant_tassets",
+      "name": "Knights Triumphant Tassets",
+      "slot": "legs",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "cloud_racers",
+      "name": "Cloud Racers",
+      "slot": "boots",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "flame_treads",
+      "name": "Flame Treads",
+      "slot": "boots",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "frost_treads",
+      "name": "Frost Treads",
+      "slot": "boots",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "knights_winter_sabatons",
+      "name": "Knights Winter Sabatons",
+      "slot": "boots",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "ancient_stratagems",
+      "name": "Ancient Stratagems",
+      "slot": "accessory",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "crimson_ring",
+      "name": "Crimson Ring",
+      "slot": "accessory",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "delanes_amulet",
+      "name": "Delanes Amulet",
+      "slot": "accessory",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "peters_sickle",
+      "name": "Peters Sickle",
+      "slot": "accessory",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "silent_trial",
+      "name": "Silent Trial",
+      "slot": "accessory",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "the_bards_pendant",
+      "name": "The Bards Pendant",
+      "slot": "accessory",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "wind_scars",
+      "name": "Wind Scars",
+      "slot": "accessory",
+      "quality": "epic",
+      "costs": {}
+    },
+    {
+      "id": "harvesters_headscarf",
+      "name": "Harvesters Headscarf",
+      "slot": "helm",
+      "quality": "elite",
+      "costs": {}
+    },
+    {
+      "id": "harvester_robes",
+      "name": "Harvester Robes",
+      "slot": "chest",
+      "quality": "elite",
+      "costs": {}
+    },
+    {
+      "id": "harvester_breeches",
+      "name": "Harvester Breeches",
+      "slot": "legs",
+      "quality": "elite",
+      "costs": {}
+    },
+    {
+      "id": "harvester_boots",
+      "name": "Harvester Boots",
+      "slot": "boots",
+      "quality": "elite",
+      "costs": {}
+    },
+    {
+      "id": "call_of_the_loyal",
+      "name": "Call Of The Loyal",
+      "slot": "accessory",
+      "quality": "elite",
+      "costs": {}
+    },
+    {
+      "id": "lohars_bone_necklace",
+      "name": "Lohars Bone Necklace",
+      "slot": "accessory",
+      "quality": "elite",
+      "costs": {}
+    },
+    {
+      "id": "savage_totem",
+      "name": "Savage Totem",
+      "slot": "accessory",
+      "quality": "elite",
+      "costs": {}
+    },
+    {
+      "id": "sharp_longsword",
+      "name": "Sharp Longsword",
+      "slot": "weapon",
+      "quality": "common",
+      "costs": {}
+    },
+    {
+      "id": "cloth_gloves",
+      "name": "Cloth Gloves",
+      "slot": "gloves",
+      "quality": "common",
+      "costs": {}
+    }
+  ],
+  "sets": []
+}
