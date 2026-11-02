@@ -1989,9 +1989,9 @@ window.RokMods.crafting = (R) => {
   }
   const hChangeRow = (c) => { const sl = hSlot(c.slot);
     return `<div class="flex items-center gap-2 py-1">
-      <span class="w-20 shrink-0 text-[11px] text-slate-400 leading-tight">${sl.icon} ${sl.label}</span>
+      <span class="w-14 sm:w-20 shrink-0 text-[11px] text-slate-400 leading-tight">${sl.icon} ${sl.label}</span>
       ${hIcon(c.from)}<span class="text-slate-500">→</span>${hIcon(c.to)}
-      <div class="min-w-0 space-y-0.5">${hChanges(c.from, c.to).map(([t, cl]) => `<div class="text-sm font-semibold ${cl} truncate">${t}</div>`).join('')}</div></div>`; };
+      <div class="min-w-0 space-y-0.5">${hChanges(c.from, c.to).map(([t, cl]) => `<div class="text-xs sm:text-sm font-semibold leading-tight break-words ${cl}">${t}</div>`).join('')}</div></div>`; };   // auf dem Handy umbrechen statt abschneiden
   const hDay = (ts) => new Date(ts).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
   const hTime = (ts) => new Date(ts).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
   const hChip = (on) => `px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${on ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-700 text-slate-400 hover:text-gold-300'}`;

@@ -357,13 +357,12 @@ window.RokMods.showcase = (R) => {
       { id: 'leonine_rampant', type: 'flag',       name: 'Leonine Rampant',   gold: 'Steelskin',        blue: 'Determined' },
       { id: 'leonine_crest', type: 'emblem',       name: 'Leonine Crest',     gold: 'Flurry',           blue: 'Relentless' },
       { id: 'leonine_chronicle', type: 'scroll',   name: 'Leonine Chronicle', gold: 'Thrasher',         blue: 'Pummeler' },
-      { id: 'leonine_pibroch', type: 'instrument', name: 'Leonine Pibroch',   gold: 'Butterfly Effect', blue: 'Causative' }
-    ],
-    'Delta II': [   // neue Formation – Inschriften laut Spiel (Gold und Blau gleich benannt); Namen der Rüstungen bei Bedarf noch ersetzen
-      { id: 'delta2_flag', type: 'flag',             name: 'Delta II · Flagge',       gold: 'Steady', blue: 'Steady' },
-      { id: 'delta2_emblem', type: 'emblem',         name: 'Delta II · Emblem',       gold: 'Surge',  blue: 'Surge' },
-      { id: 'delta2_scroll', type: 'scroll',         name: 'Delta II · Schriftrolle', gold: 'Driven', blue: 'Driven' },
-      { id: 'delta2_instrument', type: 'instrument', name: 'Delta II · Instrument',   gold: 'Burst',  blue: 'Burst' }
+      { id: 'leonine_pibroch', type: 'instrument', name: 'Leonine Pibroch',   gold: 'Butterfly Effect', blue: 'Causative' },
+      // neue Delta-Rüstungen (Namen der Rüstungen bei Bedarf noch ersetzen)
+      { id: 'delta2_flag', type: 'flag',             name: 'Flagge (Impervious)',       gold: 'Impervious',     blue: 'Steady' },
+      { id: 'delta2_emblem', type: 'emblem',         name: 'Emblem (Raging Tide)',      gold: 'Raging Tide',    blue: 'Surge' },
+      { id: 'delta2_scroll', type: 'scroll',         name: 'Schriftrolle (Rapid Advance)', gold: 'Rapid Advance', blue: 'Driven' },
+      { id: 'delta2_instrument', type: 'instrument', name: 'Instrument (Bold Ambitions)', gold: 'Bold Ambitions', blue: 'Burst' }
     ],
     Wedge: [
       { id: 'herald_ensign', type: 'flag',          name: "Herald's Ensign",        gold: 'Maneuver Warfare',  blue: 'Ballista' },
@@ -386,11 +385,16 @@ window.RokMods.showcase = (R) => {
   const scInscKnown = (t) => { const k = scInscKey(t); if (!k) return null;      // auch abgeschnittene Namen ("Retaliato…")
     return ARM_KNOWN[k] || (k.length >= 4 ? Object.entries(ARM_KNOWN).find(([n]) => n.startsWith(k))?.[1] : null) || null; };
   const scInscSort = (l) => l.sort((x, y) => (ARM_ORDER[x.c] ?? 3) - (ARM_ORDER[y.c] ?? 3));
-  const scArmNorm = (a) => ({ free: !!a?.free, cols: a?.cols === 2 ? 2 : 1, on: !!a?.on, fsep: !!a?.fsep, fpos: ['above', 'hidden'].includes(a?.fpos) ? a.fpos : 'below', fm: { x: scPos(a?.fm?.x, 100), y: scPos(a?.fm?.y, 200), s: scScale(a?.fm?.s), r: scRot(a?.fm?.r) }, x: scPos(a?.x, 100), y: scPos(a?.y, 200), s: scScale(a?.s), r: scRot(a?.r), formation: String(a?.formation || '').slice(0, 30),
+  const scArmNorm = (a) => ({ free: !!a?.free, cols: a?.cols === 2 ? 2 : 1, on: !!a?.on, fsep: !!a?.fsep, fpos: ['above', 'hidden'].includes(a?.fpos) ? a.fpos : 'below', fm: { x: scPos(a?.fm?.x, 100), y: scPos(a?.fm?.y, 200), s: scScale(a?.fm?.s), r: scRot(a?.fm?.r) }, x: scPos(a?.x, 100), y: scPos(a?.y, 200), s: scScale(a?.s), r: scRot(a?.r), formation: String(a?.formation || '').replace(/^Delta II$/, 'Delta').slice(0, 30),
     insc: (Array.isArray(a?.insc) ? a.insc : []).slice(0, 12).map(i => ({ t: String(i?.t || '').slice(0, 24), c: SC_INSC[i?.c] ? i.c : 'gold' })),
     arms: Object.fromEntries(Object.keys(ARM_TYPES).map(k => [k, ARM_BY_ID[a?.arms?.[k]]?.type === k ? a.arms[k] : ''])),
     troop: SC_TROOPS[a?.troop] ? a.troop : 'infantry', ...Object.fromEntries(SC_ARM_STATS.map(([k]) => [k, scNum1(a?.[k])])) });
-  R.armData = { TYPES: ARM_TYPES, POOL: ARM_POOL, FORMATIONS: ARM_FORMATIONS, BY_ID: ARM_BY_ID, INSC: SC_INSC, STATS: SC_ARM_STATS, TROOPS: SC_TROOPS, known: (t) => scInscKnown(t) };   // für Craft → Charakter bearbeiten
+  // Welche Inschriften zu einer Formation passen: Gold/Blau ihrer Rüstungen + alle weißen (null = keine Formation → alles erlaubt)
+  const armAllowed = (f) => { const l = ARM_FORMATIONS[f]; if (!l) return null;
+    return new Set([...l.flatMap(x => [x.gold, x.blue]), ...Object.values(ARM_POOL).flat()].map(t => t.toLowerCase())); };
+  // beim Formationswechsel goldene/blaue Inschriften anderer Formationen entfernen – gibt die Anzahl zurück
+  const armFitInsc = (a) => { const ok = armAllowed(a.formation); if (!ok) return 0; const n = a.insc.length; a.insc = a.insc.filter(i => !i.t || ok.has(i.t.toLowerCase()) || !scInscKnown(i.t)); return n - a.insc.length; };
+  R.armData = { TYPES: ARM_TYPES, POOL: ARM_POOL, FORMATIONS: ARM_FORMATIONS, BY_ID: ARM_BY_ID, INSC: SC_INSC, STATS: SC_ARM_STATS, TROOPS: SC_TROOPS, known: (t) => scInscKnown(t), allowed: armAllowed, fit: armFitInsc };   // für Craft → Charakter bearbeiten
   const scArmHas = (a) => a.insc.some(i => i.t) || !!a.formation || SC_ARM_STATS.some(([k]) => a[k]);
   const scArmVis = (a) => a.insc.some(i => i.t) || !!a.formation;                  // Rüstungs-Element (Inschriften + Formation)
   const scStHas = (a) => SC_ARM_STATS.some(([k]) => a[k]);                          // Werte-Element (Angriff, Verteidigung …)
@@ -2674,7 +2678,7 @@ window.RokMods.showcase = (R) => {
     else if (t.dataset.fsep != null) scFmSep(scSet(), d.sets.indexOf(scSet()), t.checked);
     else if (t.dataset.arm === 'troop') a.troop = SC_TROOPS[t.value] ? t.value : 'infantry';
     else if (t.dataset.insc != null && t.dataset.f === 'c') a.insc[+t.dataset.insc].c = SC_INSC[t.value] ? t.value : 'gold';
-    else if (t.dataset.arm === 'formsel') { a.formation = t.value; if (t.value && !a.on) scArmShow(scSet()); }
+    else if (t.dataset.arm === 'formsel') { a.formation = t.value; const n = armFitInsc(a); if (n) scMsg(`${n} Inschrift${n > 1 ? 'en' : ''} gehör${n > 1 ? 'en' : 't'} nicht zu ${t.value} – entfernt.`, 'warn'); if (t.value && !a.on) scArmShow(scSet()); }
     else if (t.dataset.armpick) {                             // andere Rüstung gewählt → deren gold/blaue Inschrift aus der Liste nehmen
       const old = ARM_BY_ID[a.arms[t.dataset.armpick]];
       if (old) a.insc = a.insc.filter(i => i.t !== old.gold && i.t !== old.blue);
@@ -2691,7 +2695,8 @@ window.RokMods.showcase = (R) => {
     const a = scSet().arm, del = ev.target.closest('[data-inscdel]'), chip = ev.target.closest('[data-ins]');
     if (chip) {                                               // Inschrift an/aus – sortiert gold, blau, grau
       const t = chip.dataset.ins, i = a.insc.findIndex(x => x.t.toLowerCase() === t.toLowerCase());
-      if (i >= 0) a.insc.splice(i, 1);
+      if (i >= 0 && a.insc[i].c !== chip.dataset.c) { a.insc[i].c = chip.dataset.c; scInscSort(a.insc); }   // gleicher Name, andere Farbe → Farbe wechseln
+      else if (i >= 0) a.insc.splice(i, 1);
       else if (a.insc.length >= 12) { scMsg('Maximal 12 Inschriften.', 'warn'); return; }
       else { a.insc.push({ t, c: chip.dataset.c }); scInscSort(a.insc); }
       if (!a.on) scArmShow(scSet());
