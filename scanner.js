@@ -3780,7 +3780,7 @@ window.RokApp = () => {
   R.viewHooks = {};
   // Verlauf der Seiten für die Zurück-Buttons (Startseite = Rangliste)
   let shownView = null; R.navStack = []; R.navBack = false;
-  let craftAllowed = false;   // Spoilerschutz: Craft nur für freigeschaltete Accounts
+  let craftAllowed = true;    // Craft für alle sichtbar
   function applyView() {
     if (R.view === 'craft' && !craftAllowed) R.view = 'rank';
     if (R.view !== shownView) { if (shownView && !R.navBack) R.navStack.push(shownView); shownView = R.view; }
@@ -3990,11 +3990,10 @@ window.RokApp = () => {
   // Init
   R.renderHeaderAvatar();
   $('mainNav').classList.replace('hidden', 'grid');
-  RokAuth.hasFeature('craft').then(ok => {
-    craftAllowed = ok;
-    $('craftTab').classList.toggle('hidden', !ok);
-    $('mainNav').classList.toggle('grid-cols-4', ok); $('mainNav').classList.toggle('grid-cols-3', !ok);
-  });
+  // Craft ist für alle freigeschaltet (früher nur mit feature_access 'craft')
+  craftAllowed = true;
+  $('craftTab').classList.remove('hidden');
+  $('mainNav').classList.add('grid-cols-4'); $('mainNav').classList.remove('grid-cols-3');
   syncTabs();
   renderHistory();
   $('vipInputs').classList.toggle('hidden', R.mode === 'resources');
