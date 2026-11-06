@@ -2096,7 +2096,9 @@ window.RokApp = () => {
         <button type="button" data-nodereset class="px-3 py-1 rounded-lg border border-ink-600 text-xs">Standardwerte</button><span data-nodemsg class="text-xs"></span></div>
       <div class="mt-1 text-[10px] text-slate-500">Leer = dieses Level gibt es für die Ressource nicht.</div></details>` : '';
     return `<div class="space-y-2">
-      ${farms.length > 1 ? `<div class="flex flex-wrap items-end gap-2 rounded-lg border border-gold-500/30 bg-gold-500/5 p-2 text-[11px] text-slate-300"><label class="min-w-[9rem]">🔗 Sendungen / Tag für alle Farmen${sendSel('data-fgsyncsel', '')}</label>
+      ${farms.length > 1 ? `<div class="flex flex-wrap items-end gap-2 rounded-lg border border-gold-500/30 bg-gold-500/5 p-2 text-[11px] text-slate-300">
+        <label class="min-w-[9rem]">🔗 Sendungen / Tag für alle${sendSel('data-fgsyncsel', '')}</label>
+        <label class="min-w-[9rem]">🔗 Märsche mit +6 % für alle<select data-fgsyncboost class="mt-0.5 w-full ${c}"><option value="">–</option>${[0, 1, 2, 3, 4, 5].map(n => `<option value="${n}">${n} von 5</option>`).join('')}</select></label>
         <button type="button" data-fgsync class="px-3 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs">Auf alle übernehmen</button></div>` : ''}
       ${rows || '<div class="text-xs text-slate-500">Noch keine Farmen angelegt.</div>'}
       <button type="button" data-fgadd class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs">+ Farm</button>${adminBox}</div>`;
@@ -2109,7 +2111,8 @@ window.RokApp = () => {
       full();
     }));
     box.querySelectorAll('[data-fglv]').forEach(i => i.addEventListener('change', () => { const g = fgOf(i.dataset.fglv); g.lv[+i.dataset.i] = +i.value || 0; full(); }));
-    box.querySelector('[data-fgsync]')?.addEventListener('click', () => { const v = box.querySelector('[data-fgsyncsel]').value; if (v === '') return; farms.forEach(f => fgOf(f.id).sends = +v); full(); });
+    box.querySelector('[data-fgsync]')?.addEventListener('click', () => { const v = box.querySelector('[data-fgsyncsel]').value, bo = box.querySelector('[data-fgsyncboost]').value;
+      if (v === '' && bo === '') return; farms.forEach(f => { const g = fgOf(f.id); if (v !== '') g.sends = +v; if (bo !== '') g.boost = +bo; }); full(); });
     box.querySelectorAll('[data-fgname]').forEach(i => i.addEventListener('change', () => { const f = farms.find(x => x.id === i.dataset.fgname); if (!f) return; f.name = i.value.trim() || 'Farm'; saveFarms(); renderFarms(); full(); }));
     box.querySelector('[data-fgadd]').onclick = () => { farms.push({ id: newId(), name: `Farm ${farms.length + 1}`, food: 0, wood: 0, stone: 0, gold: 0 }); saveFarms(); renderFarms(); full(); };
     const msg = (t, ok) => { const m = box.querySelector('[data-nodemsg]'); if (m) { m.className = 'text-xs ' + (ok ? 'text-emerald-400' : 'text-red-400'); m.textContent = t; } };
@@ -3700,6 +3703,71 @@ window.RokApp = () => {
     if (rows.length === 1) return `+${pFmt(m, rows[0].f, rows[0].d * 7)} / Woche`;
     return `${rows.length} Werte · pro Woche`;
   }
+  // ---------- Ressourcen Statistics: Farm-Ertrag + KvK-Verlauf (RSS → Kill Points) ----------
+  var resStatDays = null;
+  const kvkRssSt = () => (passive.kvkRss = passive.kvkRss || []);
+  const rssSum = (o) => RES.reduce((a, r) => a + (+o[r.k] || 0), 0);
+  function renderResStats() {
+    const top = $('statsTop'), H = horizons(), farmsOn = pmOn('resources').some(x => x.k === 'farms');
+    const inp = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:border-gold-500';
+    const days = resStatDays || 30, resL = (k) => RES.find(r => r.k === k)?.label || k;
+    const rows = farms.map(f => { const g = fgOf(f.id), load = fgLoad(g), d = load * (+g.sends || 0); return { f, g, load, d }; });
+    const tot = {}; rows.forEach(x => { if (x.d) tot[x.g.res] = (tot[x.g.res] || 0) + x.d; });
+    const card = (l, v, c, sub, icon) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 p-3"><div class="text-[10px] uppercase tracking-widest text-slate-400">${icon || ''} ${l}</div><div class="text-xl font-bold tabular-nums ${c}">${v}</div>${sub ? `<div class="text-[11px] text-slate-500">${sub}</div>` : ''}</div>`;
+    // KvK-Verlauf
+    const K = kvkRssSt(), kSum = K.reduce((a, e) => a + rssSum(e), 0), kKp = K.reduce((a, e) => a + (+e.kp || 0), 0), kpPerM = kSum ? kKp / kSum * 1e6 : 0;
+    const now = PMOD.resources.now(), stockMain = rssSum(now), stockFarm = RES.reduce((a, r) => a + farmSum(r.k), 0), stock = stockMain + stockFarm;
+    const kOff = kvkOffDays(), atKvk = kOff != null && kOff > 0 ? stock + pmSum(pmIncome('resources', kOff)) : null;
+    top.innerHTML = `<section id="resFarmBox" class="panel rounded-2xl p-5">
+      <h2 class="font-display text-lg text-gold-300">Farmen – Ertrag</h2>
+      ${!farmsOn ? '<div class="text-[11px] text-amber-300 mb-2">Tipp: Unter Passive „Farmen sammeln“ einschalten, damit der Ertrag auch in Bestand und Diagramm zählt.</div>' : ''}
+      <div class="flex flex-wrap items-end gap-2 mb-3 text-xs text-slate-400">Zeitraum:
+        ${[7, 14, 30, 60, 90].map(d => `<button type="button" data-resdays="${d}" aria-pressed="${days === d}" class="seg-btn rounded-lg px-3 py-1 border border-ink-700 font-semibold">${d} Tage</button>`).join('')}
+        ${kOff > 0 ? `<button type="button" data-resdays="${kOff}" aria-pressed="${days === kOff}" class="seg-btn rounded-lg px-3 py-1 border border-ink-700 font-semibold">bis KvK (${kOff})</button>` : ''}
+        <label class="inline-flex items-center gap-1">eigene <input id="resDaysIn" type="number" min="1" step="1" value="${[7, 14, 30, 60, 90, kOff].includes(days) ? '' : days}" placeholder="Tage" class="w-20 text-right ${inp} !py-1"></label></div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">${RES.map(r => card(r.label, tot[r.k] ? short(tot[r.k] * days) : '–', 'text-emerald-300', tot[r.k] ? `+${short(tot[r.k])} / Tag · +${short(tot[r.k] * 7)} / Woche` : 'keine Farm', ico(r, 'w-4 h-4'))).join('')}</div>
+      <div class="overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs">
+        <thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-2 px-2 text-left font-medium">Farm</th><th class="py-2 px-2 text-left font-medium">Sammelt</th><th class="py-2 px-2 text-left font-medium">Märsche (Lv)</th><th class="py-2 px-2 text-right font-medium">+6 %</th><th class="py-2 px-2 text-right font-medium">pro Sendung</th><th class="py-2 px-2 text-right font-medium">Sendungen</th><th class="py-2 px-2 text-right font-medium">pro Tag</th><th class="py-2 px-2 text-right font-medium">${fmt(days)} Tage</th></tr></thead>
+        <tbody>${rows.length ? rows.map(x => `<tr class="border-b border-ink-800 last:border-b-0"><td class="py-1.5 px-2 text-slate-200">${esc(x.f.name)}</td><td class="py-1.5 px-2">${ico(RES.find(r => r.k === x.g.res) || {}, 'w-3.5 h-3.5')} ${resL(x.g.res)}</td>
+          <td class="py-1.5 px-2 tabular-nums text-slate-400">${x.g.lv.some(l => l > 0) ? x.g.lv.map(l => l || '–').join(' · ') : (x.g.load ? 'alte Eingabe' : '–')}</td><td class="py-1.5 px-2 text-right tabular-nums">${+x.g.boost || 0}/5</td>
+          <td class="py-1.5 px-2 text-right tabular-nums">${x.load ? short(x.load) : '–'}</td><td class="py-1.5 px-2 text-right tabular-nums">${x.g.sends != null ? x.g.sends + '×' : '–'}</td>
+          <td class="py-1.5 px-2 text-right tabular-nums text-emerald-300">${x.d ? '+' + short(x.d) : '–'}</td><td class="py-1.5 px-2 text-right tabular-nums font-semibold text-emerald-300">${x.d ? '+' + short(x.d * days) : '–'}</td></tr>`).join('')
+          : '<tr><td colspan="8" class="py-6 text-center text-slate-500">Noch keine Farmen – unter Passive → Farmen sammeln anlegen.</td></tr>'}</tbody>
+        ${rows.length > 1 ? `<tfoot><tr class="border-t border-ink-600 font-semibold"><td colspan="6" class="py-1.5 px-2 text-slate-200">Gesamt</td><td class="py-1.5 px-2 text-right tabular-nums text-emerald-300">+${short(rssSum(tot))}</td><td class="py-1.5 px-2 text-right tabular-nums text-emerald-300">+${short(rssSum(tot) * days)}</td></tr></tfoot>` : ''}</table></div>
+    </section>
+    <section id="kvkRssBox" class="panel rounded-2xl p-5">
+      <h2 class="font-display text-lg text-gold-300">KvK-Verlauf: RSS → Kill Points</h2>
+      <p class="text-xs text-slate-400 mb-3">Trag alte KvKs ein: wie viele Ressourcen du verbraucht hast und wie viele Kill Points dabei rauskamen. Daraus rechnet er deinen Schnitt und was du mit deinem jetzigen Stand schaffst.</p>
+      <div class="grid grid-cols-2 sm:grid-cols-7 gap-2 items-end text-[11px] text-slate-400">
+        <label class="col-span-2 sm:col-span-1">Name<input id="krName" type="text" maxlength="30" placeholder="z. B. KvK 3" class="mt-1 w-full ${inp}"></label>
+        ${RES.map(r => `<label>${ico(r, 'w-3.5 h-3.5')} ${r.label}<input data-kr="${r.k}" type="text" inputmode="decimal" placeholder="z. B. 2,5 Mrd" class="mt-1 w-full text-right ${inp}"></label>`).join('')}
+        <label>⚔ Kill Points<input data-kr="kp" type="text" inputmode="decimal" placeholder="z. B. 1,2 Mrd" class="mt-1 w-full text-right ${inp}"></label>
+        <button type="button" id="krAdd" class="px-3 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-xs">+ Speichern</button>
+      </div>
+      <div class="mt-1 text-[10px] text-slate-500">Zahlen auch als „2,5 Mrd“, „800 Mio“ oder „1.200.000.000“.</div>
+      ${K.length ? `<div class="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+        ${card('Ø KP pro 1 Mio. RSS', dec(kpPerM, 0), 'text-gold-300', `aus ${fmt(K.length)} KvKs`)}
+        ${card('RSS pro 1 Mio. KP', kKp ? short(kSum / kKp * 1e6) : '–', 'text-orange-200', 'im Schnitt verbraucht')}
+        ${card('Mit deinem Stand jetzt', stock ? '≈ ' + short(stock / 1e6 * kpPerM) + ' KP' : '–', 'text-emerald-300', stock ? `${short(stock)} RSS (Main ${short(stockMain)} + Farmen ${short(stockFarm)})` : 'Ressourcen scannen')}
+        ${card('Bis KvK-Start', atKvk ? '≈ ' + short(atKvk / 1e6 * kpPerM) + ' KP' : '–', 'text-emerald-300', atKvk ? `${short(atKvk)} RSS inkl. Passive (${kOff} Tage)` : (kOff == null ? 'KvK-Start im Profil fehlt' : ''))}
+      </div>` : ''}
+      <div class="mt-4 space-y-2">${K.slice().reverse().map(e => { const t = rssSum(e), r = t ? (+e.kp || 0) / t * 1e6 : 0, cmp = kpPerM ? (r / kpPerM - 1) * 100 : 0;
+        return `<div class="rounded-xl border border-ink-700 bg-ink-950/40 p-3">
+          <div class="flex flex-wrap items-center justify-between gap-2"><b class="text-white">${esc(e.name || 'KvK')}</b>
+            <span class="text-xs text-slate-400">${short(t)} RSS → <b class="text-gold-300">${short(+e.kp || 0)} KP</b> · <b class="tabular-nums">${dec(r, 0)}</b> KP pro 1 Mio. ${K.length > 1 ? `<span class="${cmp >= 0 ? 'text-emerald-400' : 'text-red-400'}">(${cmp >= 0 ? '+' : ''}${dec(cmp, 0)} % zum Ø)</span>` : ''}
+              <button type="button" data-krdel="${e.id}" class="ml-2 text-slate-500 hover:text-red-400" title="Löschen">✕</button></span></div>
+          <div class="mt-1 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-slate-400">${RES.map(rr => `<span>${ico(rr, 'w-3 h-3')} ${rr.label} <b class="text-slate-200 tabular-nums">${short(+e[rr.k] || 0)}</b></span>`).join('')}</div></div>`; }).join('')
+        || '<div class="text-xs text-slate-500">Noch keine KvKs eingetragen.</div>'}</div>
+    </section>`;
+    makeFold($('resFarmBox'), 'resfarm'); makeFold($('kvkRssBox'), 'kvkrss');
+    top.querySelectorAll('[data-resdays]').forEach(b => b.onclick = () => { resStatDays = +b.dataset.resdays; renderResStats(); });
+    $('resDaysIn').onchange = (e) => { const v = Math.round(+e.target.value || 0); if (v > 0) { resStatDays = v; renderResStats(); } };
+    $('krAdd').onclick = () => { const e = { id: 'k' + Date.now().toString(36), name: $('krName').value.trim().slice(0, 30) }; let bad = false;
+      top.querySelectorAll('[data-kr]').forEach(i => { const v = i.value.trim() === '' ? 0 : parseAmount(i.value); if (isNaN(v)) { bad = true; i.classList.add('border-red-500'); } else e[i.dataset.kr] = Math.max(0, v); });
+      if (bad) return; if (!e.kp || !rssSum(e)) return UI.alert('Bitte RSS und Kill Points eintragen.');
+      kvkRssSt().push(e); savePassive(); renderResStats(); };
+    top.querySelectorAll('[data-krdel]').forEach(b => b.onclick = async () => { if (!(await UI.confirm('Diesen KvK löschen?'))) return; passive.kvkRss = kvkRssSt().filter(x => x.id !== b.dataset.krdel); savePassive(); renderResStats(); });
+  }
   function renderStats(m) {
     const top = $('statsTop'), sec = $('passiveInputs');
     if (m === 'ap') { sec.classList.add('hidden'); if (!top.querySelector('#apCanDo')) renderApStats(); else renderApStatsOut(); renderCredits(); return; }
@@ -3711,6 +3779,7 @@ window.RokApp = () => {
     else if (m === 'goldheads') renderGhStats();
     else if (m === 'armaments') renderArmStats();
     else if (m === 'mats') renderMatStats();
+    else if (m === 'resources') renderResStats();
     else if (false) top.innerHTML = `<section class="panel rounded-2xl p-5"><h2 class="font-display text-lg text-gold-300 mb-2">Power → benötigte Passseiten</h2>
         <div class="overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs"><thead class="text-[10px] uppercase tracking-wider text-slate-400"><tr class="border-b border-ink-700"><th class="py-2 px-3 text-left font-medium">Power</th><th class="py-2 px-3 text-right font-medium">Passseiten</th></tr></thead>
         <tbody><tr><td colspan="2" class="py-6 text-center text-slate-500">Tabelle folgt – sobald die Daten da sind, steht hier, wie viele Passseiten du für deine Power brauchst.</td></tr></tbody></table></div></section>`;
