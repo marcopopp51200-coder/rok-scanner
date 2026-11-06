@@ -2044,32 +2044,82 @@ window.RokApp = () => {
   const GEM_PER_FORT = 150 * 10 / 1676;   // 150× 10 Gems bei 1.676 Burgen → Ø 0,895 Gems pro Fort (8,95 % Drop)
   const one = (k) => (v) => ({ [k]: v });
   // ---------- Ressourcen: Farmen sammeln lassen (passiv) ----------
-  const fgSt = () => (passive.farmGather = passive.farmGather || {});
-  const fgOf = (id) => { const a = fgSt(); return (a[id] = a[id] || { res: 'food', load: null, sends: null }); };
-  function farmGatherDay() {
-    const o = {}; farms.forEach(f => { const g = fgOf(f.id), v = (+g.load || 0) * (+g.sends || 0); if (v > 0) o[g.res] = (o[g.res] || 0) + v; }); return o;
+  // Menge je Ressourcen-Feld (Lv 1–9); null = gibt es nicht. Admins können die Werte global ändern (Supabase app_settings, key 'rss_nodes').
+  const RSS_NODES_DEF = {
+    food:  [157500, 315000, 472500, 630000, 945000, 1260000, 1417500, 1575000, 1890000],
+    wood:  [157500, 315000, 472500, 630000, 945000, 1260000, 1417500, 1575000, 1890000],
+    stone: [null, 236250, 354375, 472500, 708750, 945000, 1063125, 1181250, 1417500],
+    gold:  [null, null, null, 210000, 315000, 420000, 472500, 525000, 630000]
+  };
+  const RSS_NODES_CACHE = 'rok_rss_nodes_cache';
+  var rssNodes = (() => { try { const c = JSON.parse(localStorage.getItem(RSS_NODES_CACHE) || 'null'); if (c && c.food) return c; } catch {} return RSS_NODES_DEF; })();
+  var rssNodesLoaded = false, rssAdmin = false;
+  async function loadRssNodes() {
+    if (rssNodesLoaded) return; rssNodesLoaded = true;
+    try { const db = RokAuth.db?.(); if (!db) return;
+      const { data } = await db.from('app_settings').select('value').eq('key', 'rss_nodes').maybeSingle();
+      if (data?.value?.food) { rssNodes = data.value; try { localStorage.setItem(RSS_NODES_CACHE, JSON.stringify(rssNodes)); } catch {} if (R.mode === 'resources' && R.areaTab === 'passive') renderPM('resources'); }
+    } catch (e) { console.warn('rss_nodes nicht geladen', e); }
+    try { rssAdmin = !!(await RokAuth.isAdmin?.()); if (rssAdmin && R.mode === 'resources' && R.areaTab === 'passive') renderPM('resources'); } catch {}
   }
+  const FG_BOOST = 0.06;   // Skilltree: +6 % Sammelmenge für einzelne Märsche
+  const fgSt = () => (passive.farmGather = passive.farmGather || {});
+  const fgOf = (id) => { const a = fgSt(); const g = (a[id] = a[id] || { res: 'food', sends: null }); if (!Array.isArray(g.lv)) g.lv = [0, 0, 0, 0, 0]; return g; };
+  const nodeVal = (res, lv) => lv > 0 ? +(rssNodes[res] || [])[lv - 1] || 0 : 0;
+  // Menge pro Sendung (alle 5 Märsche): Feld-Menge je Marsch, die ersten „boost“ Märsche +6 %
+  const fgLoad = (g) => { const lv = g.lv || []; if (!lv.some(x => x > 0)) return +g.load || 0;   // alte Eingabe (Menge pro Marsch) als Rückfall
+    return lv.reduce((a, l, i) => a + nodeVal(g.res, +l) * (i < (+g.boost || 0) ? 1 + FG_BOOST : 1), 0); };
+  function farmGatherDay() {
+    const o = {}; farms.forEach(f => { const g = fgOf(f.id), v = fgLoad(g) * (+g.sends || 0); if (v > 0) o[g.res] = (o[g.res] || 0) + v; }); return o;
+  }
+  const FG_SENDS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 18, 20, 24];
   function farmGatherHtml() {
-    const c = 'bg-ink-950 border border-ink-600 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-gold-500';
-    return `<div class="space-y-2">${farms.length ? farms.map(f => { const g = fgOf(f.id), d = (+g.load || 0) * (+g.sends || 0);
-      return `<div class="rounded-lg border border-ink-700 bg-ink-950/40 p-2 grid grid-cols-2 sm:grid-cols-[1fr_8rem_8rem_6rem] gap-2 items-end text-xs text-slate-400">
-        <label>Farm<input data-fgname="${f.id}" type="text" value="${esc(f.name)}" class="mt-1 w-full ${c}"></label>
-        <label>Sammelt<select data-fg="${f.id}" data-key="res" class="mt-1 w-full ${c}">${RES.map(r => `<option value="${r.k}" ${g.res === r.k ? 'selected' : ''}>${r.label}</option>`).join('')}</select></label>
-        <label>Menge pro Marsch<input data-fg="${f.id}" data-key="load" type="text" inputmode="decimal" value="${g.load ? fmt(g.load) : ''}" placeholder="z. B. 4.000.000" class="mt-1 w-full text-right ${c}"></label>
-        <label>Sendungen / Tag<input data-fg="${f.id}" data-key="sends" type="number" min="0" step="any" value="${g.sends ?? ''}" placeholder="z. B. 5" class="mt-1 w-full text-right ${c}"></label>
-        <div class="col-span-2 sm:col-span-4 text-right text-emerald-400 tabular-nums">${d > 0 ? `+${short(d)} ${RES.find(r => r.k === g.res)?.label || ''} / Tag` : '–'}</div></div>`; }).join('')
-      : '<div class="text-xs text-slate-500">Noch keine Farmen angelegt.</div>'}
-      <button type="button" data-fgadd class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs">+ Farm</button></div>`;
+    loadRssNodes();
+    const c = 'bg-ink-950 border border-ink-600 rounded-lg px-1.5 py-1 text-xs focus:outline-none focus:border-gold-500';
+    const sendSel = (attr, cur) => `<select ${attr} class="mt-0.5 w-full ${c}"><option value="">–</option>${FG_SENDS.map(n => `<option value="${n}" ${cur !== '' && cur != null && +cur === n ? 'selected' : ''}>${n}× / Tag</option>`).join('')}</select>`;
+    const rows = farms.map(f => { const g = fgOf(f.id), load = fgLoad(g), d = load * (+g.sends || 0), resL = RES.find(r => r.k === g.res)?.label || '';
+      const lvSel = (i) => `<select data-fglv="${f.id}" data-i="${i}" class="mt-0.5 w-full ${c}"><option value="0">–</option>${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(l => { const v = nodeVal(g.res, l);
+        return v ? `<option value="${l}" ${+g.lv[i] === l ? 'selected' : ''}>Lv ${l} · ${short(v)}</option>` : ''; }).join('')}</select>`;
+      return `<div class="rounded-lg border border-ink-700 bg-ink-950/40 p-2 text-[11px] text-slate-400">
+        <div class="grid grid-cols-2 sm:grid-cols-[minmax(0,7rem)_1fr_1fr_1fr] gap-2 items-end">
+          <label>Farm<input data-fgname="${f.id}" type="text" value="${esc(f.name)}" class="mt-0.5 w-full ${c}"></label>
+          <label>Sammelt<select data-fg="${f.id}" data-key="res" class="mt-0.5 w-full ${c}">${RES.map(r => `<option value="${r.k}" ${g.res === r.k ? 'selected' : ''}>${r.label}</option>`).join('')}</select></label>
+          <label>Sendungen / Tag${sendSel(`data-fg="${f.id}" data-key="sends"`, g.sends)}</label>
+          <label title="Skilltree: +6 % Sammelmenge">Märsche mit +6 %<select data-fg="${f.id}" data-key="boost" class="mt-0.5 w-full ${c}">${[0, 1, 2, 3, 4, 5].map(n => `<option value="${n}" ${(+g.boost || 0) === n ? 'selected' : ''}>${n} von 5</option>`).join('')}</select></label>
+        </div>
+        <div class="mt-2 grid grid-cols-5 gap-1.5">${[0, 1, 2, 3, 4].map(i => `<label class="min-w-0">Marsch ${i + 1}${i < (+g.boost || 0) ? ' <span class="text-emerald-400">+6 %</span>' : ''}${lvSel(i)}</label>`).join('')}</div>
+        <div class="mt-1.5 flex flex-wrap justify-between gap-2 tabular-nums"><span>pro Sendung ${load ? short(load) : '–'}${!g.lv.some(x => x > 0) && g.load ? ' (alte Eingabe)' : ''}</span><span class="text-emerald-400 font-semibold">${d > 0 ? `+${short(d)} ${resL} / Tag` : '–'}</span></div></div>`; }).join('');
+    const adminBox = rssAdmin ? `<details class="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-2"><summary class="text-xs text-amber-200 cursor-pointer">⚙ Admin: Feld-Mengen (Lv 1–9) bearbeiten</summary>
+      <div class="mt-2 overflow-x-auto"><table class="text-[11px]"><thead><tr><th class="px-1 text-left text-slate-400">Lv</th>${RES.map(r => `<th class="px-1 text-slate-400">${r.label}</th>`).join('')}</tr></thead>
+        <tbody>${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(l => `<tr><td class="px-1 text-slate-400">${l}</td>${RES.map(r => `<td class="px-1 py-0.5"><input data-nodeedit="${r.k}" data-lv="${l}" type="text" inputmode="numeric" value="${(rssNodes[r.k] || [])[l - 1] ? fmt(rssNodes[r.k][l - 1]) : ''}" placeholder="–" class="w-24 text-right ${c}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+      <div class="mt-2 flex flex-wrap gap-2"><button type="button" data-nodesave class="px-3 py-1 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-xs font-semibold">Für alle speichern</button>
+        <button type="button" data-nodereset class="px-3 py-1 rounded-lg border border-ink-600 text-xs">Standardwerte</button><span data-nodemsg class="text-xs"></span></div>
+      <div class="mt-1 text-[10px] text-slate-500">Leer = dieses Level gibt es für die Ressource nicht.</div></details>` : '';
+    return `<div class="space-y-2">
+      ${farms.length > 1 ? `<div class="flex flex-wrap items-end gap-2 rounded-lg border border-gold-500/30 bg-gold-500/5 p-2 text-[11px] text-slate-300"><label class="min-w-[9rem]">🔗 Sendungen / Tag für alle Farmen${sendSel('data-fgsyncsel', '')}</label>
+        <button type="button" data-fgsync class="px-3 py-1 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs">Auf alle übernehmen</button></div>` : ''}
+      ${rows || '<div class="text-xs text-slate-500">Noch keine Farmen angelegt.</div>'}
+      <button type="button" data-fgadd class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-xs">+ Farm</button>${adminBox}</div>`;
   }
   function bindFarmGather(box, upd, full) {
-    box.querySelectorAll('[data-fg]').forEach(i => i.addEventListener(i.tagName === 'SELECT' ? 'change' : 'change', () => {
-      const g = fgOf(i.dataset.fg);
-      if (i.dataset.key === 'res') g.res = i.value;
-      else { const v = i.value.trim() === '' ? null : i.type === 'text' ? parseAmount(i.value) : +i.value; g[i.dataset.key] = v == null || isNaN(v) ? null : Math.max(0, v); }
+    box.querySelectorAll('[data-fg]').forEach(i => i.addEventListener('change', () => {
+      const g = fgOf(i.dataset.fg), k = i.dataset.key;
+      if (k === 'res') { g.res = i.value; g.lv = g.lv.map(l => nodeVal(g.res, +l) ? l : 0); }
+      else g[k] = i.value === '' ? null : Math.max(0, +i.value);
       full();
     }));
+    box.querySelectorAll('[data-fglv]').forEach(i => i.addEventListener('change', () => { const g = fgOf(i.dataset.fglv); g.lv[+i.dataset.i] = +i.value || 0; full(); }));
+    box.querySelector('[data-fgsync]')?.addEventListener('click', () => { const v = box.querySelector('[data-fgsyncsel]').value; if (v === '') return; farms.forEach(f => fgOf(f.id).sends = +v); full(); });
     box.querySelectorAll('[data-fgname]').forEach(i => i.addEventListener('change', () => { const f = farms.find(x => x.id === i.dataset.fgname); if (!f) return; f.name = i.value.trim() || 'Farm'; saveFarms(); renderFarms(); full(); }));
     box.querySelector('[data-fgadd]').onclick = () => { farms.push({ id: newId(), name: `Farm ${farms.length + 1}`, food: 0, wood: 0, stone: 0, gold: 0 }); saveFarms(); renderFarms(); full(); };
+    const msg = (t, ok) => { const m = box.querySelector('[data-nodemsg]'); if (m) { m.className = 'text-xs ' + (ok ? 'text-emerald-400' : 'text-red-400'); m.textContent = t; } };
+    box.querySelector('[data-nodesave]')?.addEventListener('click', async () => {
+      const v = {}; RES.forEach(r => v[r.k] = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(l => { const x = parseAmount(box.querySelector(`[data-nodeedit="${r.k}"][data-lv="${l}"]`).value || ''); return isNaN(x) || x <= 0 ? null : x; }));
+      try { const { error } = await RokAuth.db().from('app_settings').upsert({ key: 'rss_nodes', value: v, updated_at: new Date().toISOString() }); if (error) throw error;
+        rssNodes = v; try { localStorage.setItem(RSS_NODES_CACHE, JSON.stringify(v)); } catch {} msg('✓ Für alle gespeichert', true); setTimeout(full, 600);
+      } catch (e) { msg(/app_settings|relation|schema cache/i.test(e.message || '') ? 'Tabelle app_settings fehlt – SQL aus dem Chat ausführen.' : 'Fehler: ' + (e.message || e), false); }
+    });
+    box.querySelector('[data-nodereset]')?.addEventListener('click', () => { RES.forEach(r => [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach(l => { const x = RSS_NODES_DEF[r.k][l - 1]; box.querySelector(`[data-nodeedit="${r.k}"][data-lv="${l}"]`).value = x ? fmt(x) : ''; })); msg('Standardwerte eingetragen – zum Übernehmen „Für alle speichern“.', true); });
   }
   // ---------- Wiederkehrende Events (Mats + Speedups): nächster Termin + Rhythmus ----------
   const MEV = [
@@ -2151,7 +2201,7 @@ window.RokApp = () => {
         { k: 'city', label: 'City-Ressourcen (alle Lv. 25)', desc: 'Proviant/Holz 54.080 · Stein 40.560 · Gold 27.040 pro Stunde', perDay: () => ({ food: 54080 * 24, wood: 54080 * 24, stone: 40560 * 24, gold: 27040 * 24 }) },
         { k: 'alliance', label: 'Allianz-Ressourcen', desc: 'Selbst eintragen – pro Stunde', inputs: RES.map(r => ({ key: r.k, label: `${r.label} pro Stunde`, ph: '0', text: true })), perDay: (s) => Object.fromEntries(RES.map(r => [r.k, nv(s[r.k], 0) * 24])) },
         { k: 'daily', label: 'Daily', desc: 'Proviant/Holz 270.000 · Stein 202.000 · Gold 27.000 pro Tag', perDay: () => ({ food: 270000, wood: 270000, stone: 202000, gold: 27000 }) },
-        { k: 'farms', label: 'Farmen sammeln', desc: 'Je Farm: was sie sammelt, wie viel pro Marsch und wie oft am Tag du sendest', perDay: () => farmGatherDay(),
+        { k: 'farms', label: 'Farmen sammeln', desc: 'Je Farm: was sie sammelt, Feld-Level der 5 Märsche, wie viele davon +6 % haben und wie oft am Tag du sendest', perDay: () => farmGatherDay(),
           custom: { html: () => farmGatherHtml(), bind: (box, upd, full) => bindFarmGather(box, upd, full) } }
       ] },
     passports: { title: 'Passive Credits', weekCol: true,
@@ -3082,19 +3132,22 @@ window.RokApp = () => {
   }
   // Vergleichs-Quellen: Eingabe · Mein Verlauf · Öffentlich (Summe aller Läufe)
   const CMP_SRC = { input: 'Eingabe', own: 'Mein Verlauf', pub: 'Öffentlich (alle)' };
-  const MAR_MODE = { both: 'Kills + Truhen', kills: 'nur Kills', chests: 'nur Truhen' };
+  const MAR_MODE = { chests: 'Truhen + Kills wie Barbaren', both: 'eigene Kills + Truhen', kills: 'nur Kills', chestsOnly: 'nur Truhen' };
   function cmpSide(side) {
-    const C = (passive.marCmp = passive.marCmp || { m: {}, b: {} }), src = C['src' + side] || 'input', mm = C.mmode || 'both';
-    const items = side === 'm' ? (mm === 'kills' ? KILL_ITEMS : mm === 'chests' ? MAR_ITEMS : ALL_LOOT) : BARB_ITEMS;
+    const C = (passive.marCmp = passive.marCmp || { m: {}, b: {} }), src = C['src' + side] || 'input', mm = C.mmode || 'chests';
+    const items = side === 'm' ? (mm === 'kills' ? KILL_ITEMS : mm === 'chests' || mm === 'chestsOnly' ? MAR_ITEMS : ALL_LOOT) : BARB_ITEMS;
     let runs = null;
     if (src === 'own') runs = side === 'm' ? marHist() : barbHist();
     else if (src === 'pub') runs = (pubRuns || []).filter(r => r.kind === (side === 'm' ? 'marauder' : 'barb'));
     const c = runs ? Object.fromEntries(items.map(it => [it.k, runs.reduce((a, e) => a + (+e[it.k] || 0), 0)])) : Object.fromEntries(items.map(it => [it.k, +C[side][it.k] || 0]));
     const kills = runs ? runs.reduce((a, e) => a + (+e.n || 0), 0) : +C[side].n || 0;
     const kind = side === 'm' ? 'marauder' : 'barb';
+    // 1 Marodeur-Kill = 1 Barbaren-Kill: Kill-Belohnung pro Kill von den Barbaren übernehmen, Truhen oben drauf
+    let borrowed = false;
+    if (side === 'm' && mm === 'chests') { const B = cmpSide('b'); if (B.kills > 0) { BARB_ITEMS.forEach(it => c[it.k] = (c[it.k] || 0) + B.c[it.k] / B.kills * kills); borrowed = true; } }
     const ap = runs ? runs.reduce((a, e) => a + runAp(e, kind), 0) : side === 'b' ? (+C.b.ap > 0 ? +C.b.ap : kills * KILL_AP) : kills * KILL_AP;
     const chain = side === 'b' && ap > 0 ? kills * KILL_AP / ap : 1;
-    return { src, c, kills, runs: runs ? runs.length : null, ap, chain };
+    return { src, c, kills, runs: runs ? runs.length : null, ap, chain, borrowed };
   }
   // Zeilen im Vergleich – nur was es bei beiden gibt (Kristalle, Schlüssel, Credits nur bei Marodeuren → weggelassen)
   const n0 = (c, k) => +c[k] || 0;
@@ -3133,7 +3186,7 @@ window.RokApp = () => {
     }).join('').replace(/<tr class="border-b border-ink-800 ">(<td class="py-1.5 px-2 text-slate-300 pl-4">Tome[^]*?)<\/tr>/, (m0) => m0);
     // Bücher zählen beim Ergebnis mit
     const tomeM = M.ap ? n0(M.c, 'k_tome3') / M.ap : 0, tomeB = B.ap ? n0(B.c, 'k_tome3') / B.ap : 0; if (M.ap && B.ap && (tomeM || tomeB)) { if (tomeM > tomeB) winM++; else if (tomeB > tomeM) winB++; }
-    const lab = (S, side) => `${fmt(S.kills)} Kills · ${fmt(S.ap)} AP${side === 'b' && S.kills ? ` · Ø Chain ×${dec(S.chain, 2)}` : ''}${S.runs != null ? ` · ${fmt(S.runs)} Läufe` : ''}`;
+    const lab = (S, side) => `${fmt(S.kills)} Kills · ${fmt(S.ap)} AP${S.borrowed ? ' · Kill-Belohnung wie Barbaren' : ''}${side === 'b' && S.kills ? ` · Ø Chain ×${dec(S.chain, 2)}` : ''}${S.runs != null ? ` · ${fmt(S.runs)} Läufe` : ''}`;
     return `<div class="mt-4 overflow-x-auto rounded-lg border border-ink-700"><table class="w-full text-xs min-w-[44rem]">
       <thead class="text-[10px] uppercase tracking-wider text-slate-400">
         <tr class="border-b border-ink-700"><th></th><th colspan="2" class="py-1.5 px-2 text-center font-medium border-r border-ink-700">Gesamt</th><th colspan="2" class="py-1.5 px-2 text-center font-medium border-r border-ink-700">pro 1.000 AP</th><th colspan="2" class="py-1.5 px-2 text-center font-medium border-r border-ink-700">pro 1 AP</th><th></th></tr>
@@ -3252,7 +3305,7 @@ window.RokApp = () => {
         <button type="button" id="pubReload" class="text-xs px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60">↻ Aktualisieren</button>
         ${runList(P.map(e => runCard(e, e.kind, { user: true, del: e.uid === me ? 'data-pubdel' : '', delId: e.pid })).join(''))}`;
     } else {
-      const C = (passive.marCmp = passive.marCmp || { m: {}, b: {} }), M = C.m, Bb = C.b, srcM = C.srcm || 'input', srcB = C.srcb || 'input', mmode = C.mmode || 'both';
+      const C = (passive.marCmp = passive.marCmp || { m: {}, b: {} }), M = C.m, Bb = C.b, srcM = C.srcm || 'input', srcB = C.srcb || 'input', mmode = C.mmode || 'chests';
       const srcSel = (side, cur) => `<select data-cmpsrc="${side}" class="${inp} !py-1 text-xs">${Object.entries(CMP_SRC).map(([k, l]) => `<option value="${k}" ${cur === k ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
       const cf = (side, groups) => `<div class="grid sm:grid-cols-2 gap-2">${groups.map(g => `<div class="rounded-lg border border-ink-700 bg-ink-950/60 p-2">
             <div class="text-[10px] uppercase tracking-widest text-slate-400 mb-1">${ico(g, 'w-3.5 h-3.5')} ${g.title}</div>
@@ -3264,7 +3317,8 @@ window.RokApp = () => {
             <div class="flex flex-wrap items-center justify-between gap-2 mb-2"><div class="font-display text-base text-gold-300">🐎 Marodeure</div><div class="flex gap-1">${`<select data-cmpmode class="${inp} !py-1 text-xs">${Object.entries(MAR_MODE).map(([k, l]) => `<option value="${k}" ${mmode === k ? 'selected' : ''}>${l}</option>`).join('')}</select>`}${srcSel('m', srcM)}</div></div>
             ${srcM === 'input' ? `<label class="text-[11px] text-slate-400 flex items-center justify-between gap-2 mb-2 h-9">Kills<input data-cmp="m" data-k="n" type="text" inputmode="numeric" value="${+M.n ? fmt(M.n) : ''}" placeholder="z. B. 2.807" class="w-28 text-right ${inp}"></label>
             <label class="text-[11px] text-slate-400 flex items-center justify-between gap-2 mb-2 h-9 ${mmode === 'kills' ? 'opacity-40' : ''}">Marodeur-Truhen erhalten<input data-cmp="m" data-k="chests" type="text" inputmode="numeric" value="${+M.chests ? fmt(M.chests) : ''}" placeholder="0" class="w-28 text-right ${inp}" ${mmode === 'kills' ? 'disabled' : ''}></label>
-            ${mmode !== 'chests' ? `<details open><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">⚔ Kill-Belohnungen</summary><div class="mt-2">${cf('m', KILL_GROUPS.map(g => ({ ...g, items: g.items.filter(it => !it.marOnly) })))}</div></details>` : ''}
+            ${mmode === 'chests' ? `<div class="text-[11px] text-sky-200 rounded-lg bg-sky-500/10 border border-sky-500/30 px-2 py-1.5 mb-2">⚔ Kill-Belohnungen: 1 Marodeur-Kill = 1 Barbaren-Kill – er nimmt die Barbaren-Werte pro Kill × deine Marodeur-Kills. Du trägst nur die Truhen ein.</div>` : ''}
+            ${mmode === 'both' || mmode === 'kills' ? `<details open><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">⚔ Kill-Belohnungen</summary><div class="mt-2">${cf('m', KILL_GROUPS.map(g => ({ ...g, items: g.items.filter(it => !it.marOnly) })))}</div></details>` : ''}
             ${mmode !== 'kills' ? `<details class="mt-2" open><summary class="text-xs font-semibold text-slate-200 cursor-pointer hover:text-gold-300">📦 Marodeur-Truhen</summary><div class="mt-2">${cf('m', MAR_GROUPS.filter(g => g.k !== 'other'))}</div></details>` : ''}` : info('m', srcM)}
           </div>
           <div class="rounded-xl border border-orange-500/30 bg-orange-500/5 p-3">
