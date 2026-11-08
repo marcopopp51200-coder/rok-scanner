@@ -207,7 +207,8 @@ window.RokMods.helpme = (R) => {
   // Brett eines Sets + klickbare Ebene darüber (Nummern = Priorität, ⚔/⬆ = gewählte Aktion)
   function setBoard(req, si, set, mode, picks, result, big) {
     const map = gearMap(set), co = { pick: set.char || '', name: set.name || '' }; CH = !!R.charOn?.(map, co);
-    let board = ''; if (CH) board = R.charBack(map, co) + fallbackBoard(map); else { try { board = R.gearBoardHTML ? R.gearBoardHTML(map, set.gfx) : fallbackBoard(map); } catch { board = fallbackBoard(map); } }
+    let board = ''; if (CH) board = R.scBoardFor ? R.scBoardFor(map, set.gfx, co) : R.charBack(map, co) + fallbackBoard(map);   // wie im Showcase: Refine-Stufen (Crits), Rahmen, Partikel
+    else { try { board = R.gearBoardHTML ? R.gearBoardHTML(map, set.gfx) : fallbackBoard(map); } catch { board = fallbackBoard(map); } }
     const layer = SLOTS.map((sl) => {
       const g = map[sl.k]; if (!g) return '';
       const item = itemKey(si, sl.k), mine = picks.map((k, i) => ({ ...parseKey(k), n: i + 1 })).filter((p) => p.item === item);
