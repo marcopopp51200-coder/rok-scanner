@@ -1352,7 +1352,7 @@ window.RokMods.feed = (R) => {
   };
   const helpTile = (d) => `<div class="rounded-xl border border-rose-400/30 bg-gradient-to-br from-rose-950/40 to-ink-950 p-3 flex flex-col gap-2.5">
       <div class="text-[10px] uppercase tracking-widest text-rose-300">🆘 Help Me – was soll ich verbessern?</div>
-      <div class="font-semibold text-slate-100">${esc(d.title || '')}</div>
+      <div class="font-semibold text-slate-100 whitespace-pre-line break-words">${esc(d.title || '')}</div>
       ${(d.icons || []).length ? `<div class="flex flex-wrap gap-1">${d.icons.map((g) => g.icon ? `<img src="${esc(g.icon)}" alt="" class="w-9 h-9 rounded bg-ink-900 object-contain">` : '<span class="w-9 h-9 rounded bg-ink-900 grid place-items-center text-sm">⚒️</span>').join('')}</div>` : ''}
       <div class="flex flex-wrap items-end justify-between gap-2"><span class="text-xs text-slate-400">${+d.sets || 0} Set${+d.sets === 1 ? '' : 's'} · ${+d.items || 0} Teile</span>
         <div class="flex flex-col items-center">${helperSvg}
