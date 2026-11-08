@@ -110,7 +110,7 @@ window.RokMods.helpme = (R) => {
     if (!sets.length) { msg(ownSets().length ? 'Wähl mindestens ein Set aus.' : 'Keine Ausrüstung gefunden – zuerst unter 🎨 Showcases Sets mit Gear anlegen.', 'warn'); return; }
     if (st.busy) return; st.busy = true; render();
     try {
-      const row = { user_id: me(), title: (st.title || '').trim().slice(0, 100) || 'Was soll ich als Nächstes verbessern?', sets: sets.map((s) => ({ id: s.id, name: s.name, gear: s.gear, gfx: s.gfx })), status: 'open' };
+      const row = { user_id: me(), title: (st.title || '').trim().slice(0, 2000) || 'Was soll ich als Nächstes verbessern?', sets: sets.map((s) => ({ id: s.id, name: s.name, gear: s.gear, gfx: s.gfx })), status: 'open' };
       const { data: ins, error } = await db().from('help_requests').insert(row).select().single(); if (error) throw error;
       st.compose = false; st.title = ''; st.sel = null;
       const fed = st.toFeed && ins ? await share(ins, true) : false;
@@ -121,7 +121,7 @@ window.RokMods.helpme = (R) => {
   // Anfrage direkt aus dem Crafting-Planer: Ist-Ausrüstung eines Planer-Sets + sein Plan (Ziel, nächste Schritte, was fehlt) als Info für die Helfer
   R.helpAsk = async ({ title, set, plan, toFeed }) => {
     const gear = gearOf(set); if (!gear.length) throw new Error('Die Ist-Ausrüstung ist leer – erst Items eintragen.');
-    const row = { user_id: me(), title: String(title || '').trim().slice(0, 100) || 'Was soll ich als Nächstes verbessern?', sets: [{ id: String(set.id), name: String(set.name || 'Set').slice(0, 40), gear, gfx: null, plan: plan || null, char: String(set.char || '') }], status: 'open' };
+    const row = { user_id: me(), title: String(title || '').trim().slice(0, 2000) || 'Was soll ich als Nächstes verbessern?', sets: [{ id: String(set.id), name: String(set.name || 'Set').slice(0, 40), gear, gfx: null, plan: plan || null, char: String(set.char || '') }], status: 'open' };
     const { data: ins, error } = await db().from('help_requests').insert(row).select().single(); if (error) throw error;
     const fed = toFeed && ins ? await share(ins, true) : false;
     await load(); st.open = ins?.id || null; R.goView('help'); render();
@@ -346,7 +346,7 @@ window.RokMods.helpme = (R) => {
         <span class="ml-auto text-[11px] text-slate-500 text-right">${closed ? '✓ geschlossen · ' : ''}${R.timeAgo(req.created_at)}<span class="block">${ans.length} Antwort${ans.length === 1 ? '' : 'en'}</span></span>
         ${own ? `${closed ? '' : btn(`data-help-share="${esc(req.id)}"${st.sharing === req.id ? ' disabled' : ''}`, st.sharing === req.id ? '⏳' : '📰 Im Feed posten')}${closed ? '' : btn(`data-help-close="${esc(req.id)}"`, 'Schließen')}${btn(`data-help-del="${esc(req.id)}"`, '✕', 'red')}` : ''}
       </div>
-      <div class="font-semibold text-slate-100">🆘 ${esc(req.title)}</div>
+      <div class="font-semibold text-slate-100 whitespace-pre-line break-words">🆘 ${esc(req.title)}</div>
       ${planHTML(req)}
       ${open || own ? (o.big ? `<div class="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] items-start">${boards}<div class="flex flex-col gap-3 min-w-0">${helper}${resultHTML || (own ? '' : '')}</div></div>` : `${boards}${helper}${resultHTML}`)
         : `<button type="button" data-help-open="${esc(req.id)}" class="text-left text-xs text-gold-300 hover:underline">${(req.sets || []).length} Set${(req.sets || []).length === 1 ? '' : 's'} · ${(req.sets || []).reduce((a, s) => a + (s.gear || []).length, 0)} Teile – ${mine ? 'deine Empfehlung ansehen / ändern' : 'ansehen und empfehlen'} ›</button>`}
@@ -365,7 +365,7 @@ window.RokMods.helpme = (R) => {
             <span class="min-w-0"><span class="block text-sm font-semibold truncate text-slate-100">${esc(s.name)}</span><span class="block text-[10px] text-slate-500 truncate">${s.gear.length} Teile · ${esc(s.from)}</span></span></button>`; }).join('')}</div>
         ${sets.length > 1 ? `<div class="flex gap-3 text-[11px]"><button type="button" data-help-setall="1" class="text-gold-300 hover:underline">Erste ${Math.min(MAX_SETS, sets.length)} wählen</button><button type="button" data-help-setall="0" class="text-slate-400 hover:underline">Keine</button></div>` : ''}
       </div>
-      <label class="text-xs text-slate-400">Frage (optional)<input type="text" maxlength="100" data-help-title value="${esc(st.title)}" placeholder="Was soll ich als Nächstes verbessern?" class="mt-1 ${inp}"></label>
+      <label class="text-xs text-slate-400">Frage (optional)<textarea rows="3" maxlength="2000" data-help-title placeholder="Was soll ich als Nächstes verbessern?" class="mt-1 resize-y ${inp}">${esc(st.title)}</textarea></label>
       <div class="flex flex-wrap items-center justify-end gap-3">
         <label class="mr-auto flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input type="checkbox" data-help-tofeed ${st.toFeed ? 'checked' : ''} class="w-4 h-4 accent-amber-400"> 📰 Auch im Feed posten</label>
         ${btn('data-help-post' + (st.busy || !selIds().length ? ' disabled' : ''), '📨 Posten', 'gold')}</div>` : '<p class="text-sm text-amber-300">Noch keine Sets mit Ausrüstung – zuerst unter 🎨 Showcases eintragen.</p>'}</div>`;
