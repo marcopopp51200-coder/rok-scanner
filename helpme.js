@@ -7,6 +7,8 @@
 // picks: ["<set-index>:<slot>:<aktion>", …] – aktion = refine | tier | tier:<Ziel-T> (alte Antworten ohne Aktion = „craften“)
 // Zusätzlich "o:<index>" = vom Helfer umsortierte Prio-Liste aus dem Planer (plan.order). Eine Antwort darf auch nur aus einem Kommentar bestehen.
 window.RokMods = window.RokMods || {};
+// Direktlink ?help=<id> schon beim Laden der Seite merken (der Login dazwischen kann die Adresse verlieren)
+(() => { try { const id = new URLSearchParams(location.search).get('help'); if (id && /^[0-9a-f-]{36}$/i.test(id)) sessionStorage.setItem('rok_help_link', id); } catch {} })();
 window.RokMods.helpme = (R) => {
   const $ = R.$, esc = R.esc, A = window.RokAuth, root = $('helpView');
   const db = () => A.db(), me = () => A.userId();
@@ -344,6 +346,7 @@ window.RokMods.helpme = (R) => {
       <div class="flex items-center gap-3">
         <button type="button" data-help-prof="${esc(req.user_id)}" class="flex items-center gap-2.5 min-w-0 text-left rounded-lg hover:bg-ink-800/60 pr-2">${R.userLine(u(req.user_id), 'w-10 h-10 text-base')}</button>
         <span class="ml-auto text-[11px] text-slate-500 text-right">${closed ? '✓ geschlossen · ' : ''}${R.timeAgo(req.created_at)}<span class="block">${ans.length} Antwort${ans.length === 1 ? '' : 'en'}</span></span>
+        ${btn(`data-help-link="${esc(req.id)}" title="Direktlink zu dieser Anfrage kopieren"`, '🔗 Link')}
         ${own ? `${closed ? '' : btn(`data-help-share="${esc(req.id)}"${st.sharing === req.id ? ' disabled' : ''}`, st.sharing === req.id ? '⏳' : '📰 Im Feed posten')}${closed ? '' : btn(`data-help-close="${esc(req.id)}"`, 'Schließen')}${btn(`data-help-del="${esc(req.id)}"`, '✕', 'red')}` : ''}
       </div>
       <div class="font-semibold text-slate-100 whitespace-pre-line break-words">🆘 ${esc(req.title)}</div>
@@ -432,7 +435,20 @@ window.RokMods.helpme = (R) => {
     else if ((b = c('data-help-close'))) closeReq(b.dataset.helpClose, false);
     else if ((b = c('data-help-del'))) closeReq(b.dataset.helpDel, true);
     else if ((b = c('data-help-prof'))) R.openProfile(b.dataset.helpProf);
+    else if ((b = c('data-help-link'))) copyLink(b.dataset.helpLink);
   });
+  // Direktlink zur Anfrage: https://…/?help=<id> – öffnet die Seite gleich bei Help Me mit aufgeklappter Anfrage
+  const linkOf = (id) => `${location.origin}${location.pathname}?help=${encodeURIComponent(id)}`;
+  async function copyLink(id) { const url = linkOf(id);
+    try { await navigator.clipboard.writeText(url); msg('🔗 Link kopiert – einfach in Discord/WhatsApp einfügen.', 'ok'); }
+    catch { window.prompt('Link kopieren:', url); } }
+  // Anfrage, die nicht unter den letzten 40 ist, einzeln nachladen
+  async function fetchOne(id) {
+    try { const r = await db().from('help_requests').select('*').eq('id', id).maybeSingle(); if (r.error || !r.data) return false;
+      if (!st.reqs.some((x) => x.id === id)) st.reqs.push(r.data);
+      const a = await db().from('help_answers').select('*').eq('request_id', id); st.ans[id] = a.error ? [] : a.data || [];
+      Object.assign(st.users, await R.users([r.data.user_id, ...st.ans[id].map((x) => x.user_id)]));
+      render(); return true; } catch { return false; } }
   // Sprung aus dem Feed: Help Me öffnen, Anfrage aufklappen und hinscrollen
   R.helpOpen = (id) => {
     st.open = id; R.goView('help');
@@ -441,10 +457,15 @@ window.RokMods.helpme = (R) => {
       const el = root.querySelector(`[data-help-req="${CSS.escape(id)}"]`);
       if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('ring-2', 'ring-gold-400'); setTimeout(() => el.classList.remove('ring-2', 'ring-gold-400'), 2500); return; }
       if ((!st.loaded || st.loading) && tries++ < 40) { setTimeout(go, 250); return; }
+      if (!go.fetched) { go.fetched = true; fetchOne(id).then((ok) => ok ? setTimeout(go, 150) : msg('Diese Anfrage gibt es nicht mehr.', 'warn')); return; }
       msg('Diese Anfrage gibt es nicht mehr.', 'warn');
     };
     setTimeout(go, 450);
   };
   R.boardStyleHooks = R.boardStyleHooks || []; R.boardStyleHooks.push(() => { if (st.loaded) render(); });
+  // per Link geöffnet → direkt zur Anfrage springen und die Adresse wieder aufräumen
+  (() => { let id = null; try { id = sessionStorage.getItem('rok_help_link'); sessionStorage.removeItem('rok_help_link'); } catch {}
+    if (!id) return; try { const u = new URL(location.href); u.searchParams.delete('help'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch {}
+    setTimeout(() => R.helpOpen(id), 300); })();
   R.viewHooks.help = () => { if (!st.loaded && !st.loading) { load(); return; } st.reqs.filter((r) => r.user_id === me()).forEach((r) => markSeen(r.id)); updateBadge(); render(); };
 };
