@@ -2088,6 +2088,44 @@ window.RokMods.crafting = (R) => {
       <p class="mt-2 text-[10px] text-slate-500">${view === 'ziel' ? 'Ziel = was du im Planer als Ziel eingetragen hast.' : 'Full Max = gleiche Items auf höchster Iconic-Stufe und 100 % refined.'} Refine bei 0 %: +25 (29 %) · +50 (30 %) · +75 (30 %) · +100 (11 %) · bei 25 %: +25 (59 %) · +50 (30 %) · +75 (11 %) · bei 50 %: +25 (89 %) · +50 (11 %) · bei 75 %: immer +25.${c.missing ? ' <span class="text-amber-300">Für manche Stufen fehlen Kosten im Katalog – die sind nicht mitgezählt.</span>' : ''}</p></details>`;
   }
   let st_costEdit = null; const st_costOpen = new Set();
+  // ---- Excel-Download der Kosten (SheetJS wird erst beim Klick geladen) ----
+  let xlsxLib = null;
+  const loadXlsx = () => xlsxLib || (xlsxLib = new Promise((resolve, reject) => { if (window.XLSX) return resolve(window.XLSX);
+    const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    sc.onload = () => window.XLSX ? resolve(window.XLSX) : reject(new Error('Excel-Bibliothek nicht geladen')); sc.onerror = () => { xlsxLib = null; reject(new Error('Excel-Bibliothek konnte nicht geladen werden')); };
+    document.head.appendChild(sc); }));
+  const XK = [['leather', 'Leder'], ['iron', 'Erz'], ['ebony', 'Ebenholz'], ['bone', 'Knochen'], ['gold', 'Gold'], ['crystal', 'Iconic-Kristalle'], ['bp', 'Blaupausen']];
+  const xr = (v) => Math.round((v || 0) * 100) / 100;
+  const xCost = (c) => XK.map(([k]) => xr(c?.[k]));
+  async function exportCostsXlsx(sets) {
+    const X = await loadXlsx(), wb = X.utils.book_new(), d = new Date(), stamp = d.toLocaleDateString('de-DE');
+    const grp = (l) => XK.map(([, n]) => `${l}: ${n}`);
+    // 1) Übersicht je Charakter (+ Sets)
+    const ov = [['Kosten-Übersicht · Wiz fan Club · Stand ' + stamp], ['Mats in legendärer Menge · Refine mit Ø-Glück · Best/Worst = mit Glück/Pech beim Refine'], [],
+      ['Charakter', 'Rechnen bis', 'Fortschritt %', 'Teile offen', 'Refines noch Ø', 'Refines best', 'Refines worst', ...grp('Bisher'), ...grp('Noch'), ...grp('Gesamt'), ...grp('Noch best'), ...grp('Noch worst'), 'Bisher selbst eingetragen']];
+    const line = (name, list, view) => { const c = setCostSum(list); let exp = 0, lo = 0, hi = 0;
+      if (c.rd) { const ks = [...c.rd.keys()]; lo = Math.min(...ks); hi = Math.max(...ks); c.rd.forEach((q, k) => exp += q * k); }
+      return [name, view, c.open ? Math.min(99, Math.round(c.done * 100)) : 100, c.open, xr(exp), lo, hi, ...xCost(c.spent), ...xCost(c.rest), ...xCost(c.total), ...xCost(c.best), ...xCost(c.worst), c.own ? 'ja' : '']; };
+    sets.forEach(s => ov.push(line(s.name, [s], s.costView === 'ziel' && hasZiel(s) ? 'Ziel' : 'Full Max')));
+    const groups = (gear.groups || []).map(g => ({ g, mem: g.members.map(id => gear.sets.find(x => x.id === id)).filter(Boolean) })).filter(x => x.mem.length);
+    if (groups.length) { ov.push([], ['Sets (Summe der Charaktere)']); groups.forEach(({ g, mem }) => ov.push(line('🗂 ' + g.name, mem, 'je Charakter'))); }
+    const ws1 = X.utils.aoa_to_sheet(ov); ws1['!cols'] = [{ wch: 22 }, { wch: 11 }, { wch: 12 }, { wch: 11 }, { wch: 13 }, { wch: 12 }, { wch: 12 }, ...Array(XK.length * 5).fill({ wch: 14 }), { wch: 12 }];
+    ws1['!freeze'] = { xSplit: 1, ySplit: 4 }; X.utils.book_append_sheet(wb, ws1, 'Übersicht');
+    // 2) jedes Teil einzeln
+    const tp = [['Charakter', 'Slot', 'Item', 'Iconic jetzt', 'Iconic Ziel', 'Refine jetzt %', 'Refine Ziel %', 'Refine-Art', 'Refines Ø', 'Refines min', 'Refines max', ...grp('Bisher'), ...grp('Noch')]];
+    sets.forEach(s => { const goal = costGoal(s);
+      GEAR_SLOTS.forEach(sl => { const v = s.ist[sl.k], g = goal[sl.k]; if (!v?.item && !g?.item) return;
+        const a = gEst({}, { [sl.k]: v }), b = gEst({ [sl.k]: v }, { [sl.k]: g }), rf = b.refs[0];
+        tp.push([s.name, sl.label, gItem(v?.item)?.name || gItem(g?.item)?.name || '', v?.item ? v.tier || 0 : '', g?.item ? g.tier || 0 : '', v?.item ? v.refine || 0 : '', g?.item ? g.refine || 0 : '',
+          REFTYPES[(g?.item ? g : v)?.refType]?.label || '', rf ? xr(rf.odds.exp) : 0, rf ? rf.odds.min : 0, rf ? rf.odds.max : 0, ...xCost(a.cost), ...xCost(b.cost)]); }); });
+    const ws2 = X.utils.aoa_to_sheet(tp); ws2['!cols'] = [{ wch: 22 }, { wch: 12 }, { wch: 30 }, ...Array(8).fill({ wch: 12 }), ...Array(XK.length * 2).fill({ wch: 14 })];
+    X.utils.book_append_sheet(wb, ws2, 'Teile');
+    // 3) Refine-Chancen zum Nachlesen
+    const rc = [['Refine-Chancen pro Versuch'], ['Stand', '+25', '+50', '+75', '+100'], ...[0, 25, 50, 75].map(lv => { const o = Object.fromEntries(refOddsAt(lv)); return [lv + ' %', ...[25, 50, 75, 100].map(a => o[a] ? Math.round(o[a] * 1000) / 10 + ' %' : '')]; }),
+      [], ['Bis Voll (100 %)'], ['Start', '1×', '2×', '3×', '4×', 'Ø Refines'], ...[0, 25, 50, 75].map(lv => { const o = refOdds(lv, 100); return [lv + ' %', ...[1, 2, 3, 4].map(k => o.dist.get(k) ? Math.round(o.dist.get(k) * 1000) / 10 + ' %' : ''), xr(o.exp)]; })];
+    X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet(rc), 'Refine-Chancen');
+    X.writeFile(wb, `Gear-Kosten_${d.toISOString().slice(0, 10)}.xlsx`);
+  }
   const pctS = (q) => q < 0.001 ? '< 0,1 %' : pct(q);
   R.setCostHtml = setCostHtml;
   function renderSets() {
@@ -2098,6 +2136,7 @@ window.RokMods.crafting = (R) => {
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="inline-flex gap-1 p-1 rounded-xl bg-ink-950/70 border border-ink-700">${tab('chars', '🧍 Charaktere', gear.sets.length)}${tab('groups', '🗂 Sets', gear.groups.length)}</div>
           <div class="flex flex-wrap items-center gap-2">${R.boardStyleBar({}, {})}
+            ${gear.sets.some(s => GEAR_SLOTS.some(sl => s.ist[sl.k]?.item)) ? '<button type="button" data-sx-xlsx title="Kosten aller Charaktere und Sets als Excel-Tabelle herunterladen" class="px-3 py-2 rounded-lg border border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10 text-sm font-semibold">📊 Excel</button>' : ''}
             ${gearTab === 'chars' ? `<button type="button" data-sx="new" class="px-3 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold">+ Neuer Charakter</button>
               ${sc.length ? `<select data-sx-newsc class="bg-ink-950 border border-ink-600 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:border-gold-500"><option value="">⇩ Neu aus Showcase …</option>${sc.map(x => `<option value="${R.esc(x.scId + '|' + x.setId)}">${R.esc(x.scTitle + ' › ' + x.setName)}</option>`).join('')}</select>` : ''}`
               : `<button type="button" data-gx="new" class="px-3 py-2 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 text-sm font-semibold">+ Neues Set</button>`}</div></div>
@@ -2167,6 +2206,9 @@ window.RokMods.crafting = (R) => {
     if (d.matches?.('[data-scost-det]')) st_costEdit = d.open ? d.dataset.scostDet : (st_costEdit === d.dataset.scostDet ? null : st_costEdit); }, true);
   R.$('craftSetsPane')?.addEventListener('click', async (ev) => {
     const tb = ev.target.closest('[data-gtab]'); if (tb) { gearTab = tb.dataset.gtab; renderSets(); return; }
+    const xb = ev.target.closest('[data-sx-xlsx]'); if (xb) { xb.disabled = true; const t0 = xb.textContent; xb.textContent = '⏳ Excel …';
+      try { await exportCostsXlsx(gear.sets.filter(s => GEAR_SLOTS.some(sl => s.ist[sl.k]?.item))); setsMsg('📊 Excel-Tabelle heruntergeladen'); } catch (e) { setsMsg('Excel ging nicht: ' + (e.message || e), false); }
+      xb.disabled = false; xb.textContent = t0; return; }
     const cv = ev.target.closest('[data-scost]'); if (cv) { ev.preventDefault(); const s = gear.sets.find(x => x.id === cv.dataset.scost); if (!s) return; s.costView = cv.dataset.v; st_costOpen.add(s.id); gearSaveAll(); renderSets(); return; }
     const os = ev.target.closest('[data-scown-save]'); if (os) { const s = gear.sets.find(x => x.id === os.dataset.scownSave); if (!s) return; const o = gZero();
       os.closest('details').querySelectorAll('[data-scown]').forEach(i => { o[i.dataset.scown] = Math.max(0, +String(i.value).replace(',', '.') || 0); });
@@ -2439,14 +2481,15 @@ window.RokMods.crafting = (R) => {
   function renderCraftPanes() {
     R.$('craftPlanPane').classList.toggle('hidden', craftPane !== 'plan');
     R.$('craftSetsPane')?.classList.toggle('hidden', craftPane !== 'sets');
-    if (craftPane === 'best' && !gAdmin) craftPane = 'sets';
+    const BEST_ON = false;   // 📊 Bestwerte vorerst ausgeblendet – auf true setzen, um ihn (für Admins) wieder zu zeigen
+    if (craftPane === 'best' && (!gAdmin || !BEST_ON)) craftPane = 'sets';
     document.querySelector('[data-cpane="best"]')?.classList.toggle('hidden', !gAdmin);   // Bestwerte: vorerst nur für Admins
     R.$('craftBestPane')?.classList.toggle('hidden', craftPane !== 'best');
     R.$('craftHistPane').classList.toggle('hidden', craftPane !== 'hist');
     R.$('craftGoalPane').classList.toggle('hidden', craftPane !== 'goal');
     R.$('craftCalPane').classList.toggle('hidden', craftPane !== 'cal');
     document.querySelectorAll('[data-cpane]').forEach(b => { const on = b.dataset.cpane === craftPane;
-      b.className = `px-4 py-2 rounded-lg text-sm font-semibold transition ${on ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'} ${b.dataset.cpane === 'best' && !gAdmin ? 'hidden' : ''}`; });
+      b.className = `px-4 py-2 rounded-lg text-sm font-semibold transition ${on ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'} ${b.dataset.cpane === 'best' && (!gAdmin || !BEST_ON) ? 'hidden' : ''}`; });
     R.$('chPageHist').classList.toggle('hidden', chPage !== 'hist');
     R.$('chPageSnaps').classList.toggle('hidden', chPage !== 'snaps');
     document.querySelectorAll('[data-chpage]').forEach(b => { const on = b.dataset.chpage === chPage;
