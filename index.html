@@ -1110,6 +1110,8 @@ tailwind.config = {
 
       <!-- Seite 1: History -->
       <div id="chPageHist" class="space-y-5">
+        <!-- Ausgaben pro Jahr -->
+        <section id="chYear" class="panel rounded-2xl p-5 min-w-0"></section>
         <section class="panel rounded-2xl p-5">
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -1166,9 +1168,9 @@ tailwind.config = {
           </form>
           <div id="craftHistMsg" class="hidden mt-2 text-xs"></div>
         </section>
-        <div class="grid gap-5 lg:grid-cols-2 items-start">
         <section class="panel rounded-2xl p-5 min-w-0">
-          <h3 class="font-display text-lg gold-text mb-2">📜 Meine History</h3>
+          <div id="chTabs" class="flex flex-wrap items-center gap-1 mb-3"></div>
+          <div id="chMine">
           <div class="flex flex-wrap items-center gap-2">
             <select id="craftHistSet" translate="no" class="bg-ink-950 border border-ink-600 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-gold-500"></select>
             <div id="craftHistKind" class="flex flex-wrap gap-1">
@@ -1177,10 +1179,10 @@ tailwind.config = {
             <span id="craftHistCount" class="ml-auto text-[11px] text-slate-500"></span>
           </div>
           <div id="craftHistList" class="mt-1 space-y-2"></div>
+          </div>
+          <!-- Freunde & öffentliche Crafts -->
+          <div id="chFriends" class="hidden min-w-0"></div>
         </section>
-        <!-- Freunde & öffentliche Crafts -->
-        <section id="chFriends" class="panel rounded-2xl p-5 min-w-0"></section>
-        </div>
       </div>
 
       <!-- Seite 2: Gespeicherte Sets -->

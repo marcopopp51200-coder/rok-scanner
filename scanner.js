@@ -2665,6 +2665,9 @@ window.RokApp = () => {
   const entryCost = (p) => entryParts(p).reduce((a, x) => a + x.cost, 0);
   const entryName = (p) => p.k === 'buy' ? (p.name || 'Eigener Kauf') : p.k === 'custom' ? (p.name || 'Eigenes Event') : evByK(p.k)?.name || p.k;
   // Für den Mats-Kalender (Blaupausen): Egg-/Hammer-Termine aus dem Gems-Kalender inkl. geplanter Spins
+  // Gems → wie viele Spins (Gratis-Spins mitgezählt, günstigste Kombination); Spins → Gems
+  R.eggSpinsForGems = (gems, k = 'egg') => { const ev = evByK(k); if (!ev || ev.type !== 'spin') return 0; let n = 0; while (n < 1000 && spinCost(n + 1, ev) <= gems) n++; return n; };
+  R.eggGemsForSpins = (n, k = 'egg') => { const ev = evByK(k); return ev && ev.type === 'spin' ? spinCost(n, ev) : 0; };
   R.gemCalEvents = (k, days = 366) => { try { const plan = allPlan();
     return calOcc(k, dayPlus(0), dayPlus(days)).map(o => { const p = plan.find(x => x.k === k && x.date === o.date); return { date: o.date, rot: o.rot || '', planned: p ? (typeof p.val === 'number' ? p.val : +p.val || 0) : null }; });
   } catch (e) { console.warn('Gems-Kalender nicht lesbar', e); return []; } };

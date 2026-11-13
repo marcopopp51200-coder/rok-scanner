@@ -510,7 +510,7 @@ window.RokMods.crafting = (R) => {
   R.gGold = gGold;
   // Bilder wie im Dashboard (Mats aus icons/mats, Gold aus icons/ressourcen) – Kristalle/Blaupausen haben noch kein Bild
   const mi = (x, cls = 'w-4 h-4') => R.ico ? R.ico(x, cls) : x.icon;
-  const GX = [{ k: 'gold', icon: '🪙', img: 'ressourcen/gold.png', label: 'Gold', f: gGold }, { k: 'crystal', icon: '💎', img: 'ressourcen/iconic_crystal.webp', label: 'Iconic-Kristalle', f: (v) => gq(v) }, { k: 'bp', icon: '📜', img: 'ressourcen/blueprint.webp', label: 'Blaupausen', f: (v) => gq(v) }];
+  const GX = [{ k: 'gold', icon: '🪙', img: 'ressourcen/gold.png', label: 'Gold', f: gGold }, { k: 'crystal', icon: '💎', img: 'geararnaments/iconCrystal.png', label: 'Iconic-Kristalle', f: (v) => gq(v) }, { k: 'bp', icon: '📜', img: 'ressourcen/blueprint.webp', label: 'Blaupausen', f: (v) => gq(v) }];
   const gCostText = (c, mats = true, html = false) => { const ic = (x) => html ? mi(x, 'w-4 h-4') : x.icon;
     return !c ? '–' : [...(mats ? R.MATS.filter(m => c[m.k] > 1e-4).map(m => `${ic(m)} ${gq(c[m.k])}`) : []),
     ...GX.filter(x => (c[x.k] || 0) > 1e-4).map(x => `${ic(x)} ${x.f(c[x.k])}`)].join(' · ') || '0'; };
@@ -662,7 +662,7 @@ window.RokMods.crafting = (R) => {
       : !gAny(need) ? ['✓ Nichts zu tun – Ist und Ziel sind gleich.', 'text-emerald-300']
       : !st.mats ? ['⚠ Bestand unbekannt – bitte zuerst deine Materialien scannen.', 'text-amber-300']
       : missing ? [`🔴 ${missing} von 4 Materialien reichen noch nicht`, 'text-red-300'] : ['🟢 Alles vorhanden', 'text-emerald-300'];
-    const bar = (have, n) => `<div class="mt-1.5 h-1.5 rounded-full bg-ink-800 overflow-hidden"><div class="h-full rounded-full ${have >= n - 0.005 ? 'bg-emerald-400' : 'bg-gradient-to-r from-gold-600 to-gold-400'}" style="width:${n > 0 ? Math.round(Math.min(1, have / n) * 100) : 100}%"></div></div>`;
+    const bar = (have, n) => `<div class="mt-1.5 h-1.5 rounded-full bg-ink-800 overflow-hidden"><div class="bar-in h-full rounded-full ${have >= n - 0.005 ? 'bg-emerald-400' : 'bg-gradient-to-r from-gold-600 to-gold-400'}" style="width:${n > 0 ? Math.round(Math.min(1, have / n) * 100) : 100}%"></div></div>`;
     const tile = (icon, label, n, f, have, miss) => `<div class="rounded-xl border ${miss == null ? 'border-ink-700' : miss > 0.005 ? 'border-red-500/40' : 'border-emerald-500/40'} bg-ink-950/50 px-3 py-2">
         <div class="flex items-center gap-2"><span class="text-xl leading-none">${typeof icon === 'object' ? mi(icon, 'w-6 h-6') : icon}</span><span class="text-[11px] text-slate-400 flex-1 truncate">${label}</span></div>
         <div class="mt-0.5 text-xl font-extrabold tabular-nums text-white">${f(n)}</div>
@@ -907,16 +907,26 @@ window.RokMods.crafting = (R) => {
       const raw = b('pdone').dataset.pdone, m = raw.match(/\|r(\d+)$/), add = m && !prioCache.list.some(x => x.key === raw) ? +m[1] : 0, key = add ? raw.slice(0, -m[0].length) : raw;
       const x = prioCache.list.find(y => y.key === key); if (!x || x.ms) return;
       const set = x.set, k = x.r.sl.k, z = x.r.z;
-      if (x.r.from && x.r.from !== set.ist[k]) {                // Accessoire kommt aus dem anderen Slot → Plätze tauschen
-        const src = GEAR_SLOTS.find(sl => set.ist[sl.k] === x.r.from);
-        if (src) { const tmp = set.ist[k]; set.ist[k] = set.ist[src.k]; set.ist[src.k] = tmp; }
+      // Schritt auf eine Kopie anwenden → zeigen, was sich ändert; dann fragen: History? Gear?
+      const applyTo = (ist) => {
+        if (x.r.from) { const src = GEAR_SLOTS.find(sl => set.ist[sl.k] === x.r.from); if (src && src.k !== k) { const tmp = ist[k]; ist[k] = ist[src.k]; ist[src.k] = tmp; } }   // Accessoire aus dem anderen Slot → tauschen
+        const v = ist[k];
+        if (x.meta.k === 'craft') ist[k] = { item: z.item, rarity: z.rarity, tier: 0, refine: 0, refType: z.refType };
+        else if (x.meta.k === 'tier') v.tier = x.meta.t;
+        else if (x.meta.k === 'refine') { const base = v.refType === z.refType ? v.refine || 0 : 0; v.refType = z.refType; v.refine = add ? Math.min(100, base + add) : x.meta.p; }
+      };
+      const copy = JSON.parse(JSON.stringify(set.ist)); applyTo(copy);
+      const changes = GEAR_SLOTS.filter(sl => !gSame(gSnap(set.ist[sl.k]), gSnap(copy[sl.k]))).map(sl => ({ slot: sl.k, from: gSnap(set.ist[sl.k]), to: gSnap(copy[sl.k]) }));
+      const ans = await stepDialog(set, changes); if (!ans) return;
+      if (ans.hist && changes.length) { chist.unshift({ id: R.newId(), ts: Date.now(), kind: 'hist', src: 'plan', setId: set.id, setName: set.name, slot: changes.length === 1 ? changes[0].slot : '', changes, note: '', imgs: [], vis: hd.vis, pid: '' });
+        saveHist(); cloudSave(); const ne = chist[0]; if (ne.vis !== 'private') hPublish(ne).catch(() => {}); }
+      if (ans.gear) {
+        applyTo(set.ist);
+        if (ans.hist) changes.forEach(c => { if (set.histBase) set.histBase[c.slot] = JSON.parse(JSON.stringify(set.ist[c.slot])); });   // schon in der History → nicht nochmal als „ungespeichert“
+        if (set === activeSet()) delete gearFlags[k];
+        set.updated = Date.now(); R.LS.set(GEAR_SETS, JSON.stringify(gear));
       }
-      const v = set.ist[k];
-      if (x.meta.k === 'craft') set.ist[k] = { item: z.item, rarity: z.rarity, tier: 0, refine: 0, refType: z.refType };
-      else if (x.meta.k === 'tier') v.tier = x.meta.t;
-      else if (x.meta.k === 'refine') { const base = v.refType === z.refType ? v.refine || 0 : 0; v.refType = z.refType; v.refine = add ? Math.min(100, base + add) : x.meta.p; }
-      if (set === activeSet()) delete gearFlags[k];
-      set.updated = Date.now(); R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderGearMain();
+      renderGearMain(); if (R.$('gearMsg')) gearMsg(ans.gear ? (ans.hist ? '✓ Übernommen und in der History gespeichert' : '✓ Im Gear übernommen') : ans.hist ? '✓ In der History gespeichert (Gear unverändert)' : 'Nichts geändert');
     }
   });
   R.$('gearPlan').addEventListener('change', (ev) => { if (!ev.target.matches('[data-pfilter-sel]')) return; gear.prio.filter = ev.target.value; R.LS.set(GEAR_SETS, JSON.stringify(gear)); renderGearMain(); });
@@ -1010,15 +1020,33 @@ window.RokMods.crafting = (R) => {
     if (!slots.length) { await UI.alert('In der Ziel-Ausrüstung ist noch nichts eingetragen.'); return; }
     const same = (a, b) => a.item === b.item && (a.tier || 0) === (b.tier || 0) && (a.refine || 0) === (b.refine || 0) && (!a.refine || a.refType === b.refType);
     const changed = slots.filter(sl => !same(s.ist[sl.k], s.ziel[sl.k]));
-    if (!changed.length) { GEAR_SLOTS.forEach(sl => { s.ziel[sl.k] = { ...gEmpty() }; }); saveGear(); renderGearMain(); gearMsg('✓ Ziel war schon erreicht – Ziel geleert'); return; }
+    if (!changed.length) { gearMsg('✓ Ziel ist schon erreicht'); return; }
     if (!(await UI.confirm(`Ziel erreicht? ${changed.length} Teil${changed.length > 1 ? 'e werden' : ' wird'} in „${s.name}“ als aktuelle Ausrüstung übernommen (auch im 🗡 Gear-Reiter).`, { title: '💾 Ziel speichern', ok: 'Übernehmen', cancel: 'Abbrechen', danger: false }))) return;
     changed.forEach(sl => { s.ist[sl.k] = { ...s.ziel[sl.k] }; });
-    GEAR_SLOTS.forEach(sl => { if (s.ziel[sl.k]?.item && same(s.ist[sl.k], s.ziel[sl.k])) s.ziel[sl.k] = { ...gEmpty() }; });   // erreichte Ziel-Slots leeren
     s.updated = Date.now();
     const post = await UI.confirm('In der History posten?', { title: '📜 History', ok: 'Ja', cancel: 'Nein', danger: false });
     let n = 0; if (post) n = cedHist(s); else s.histBase = JSON.parse(JSON.stringify(s.ist));
-    saveGear(); renderGearMain(); gearMsg(post && n ? `✓ Übernommen und ${n} Änderung${n > 1 ? 'en' : ''} in der History gespeichert` : '✓ Ins Aktuelle übernommen – Ziel geleert');
+    saveGear(); renderGearMain(); gearMsg(post && n ? `✓ Übernommen und ${n} Änderung${n > 1 ? 'en' : ''} in der History gespeichert` : '✓ Ins Aktuelle übernommen');
   });
+  // Dialog beim Abhaken eines Schritts: „In History posten“ und „Im Gear übernehmen“ (beide vorausgewählt)
+  function stepDialog(set, changes) {
+    const opt = (() => { try { return JSON.parse(R.LS.get('rok_craft_step_opt', '{}')) || {}; } catch { return {}; } })();
+    return new Promise((resolve) => {
+      const root = document.createElement('div'); root.className = 'fixed inset-0 z-[90] grid place-items-center p-4 bg-ink-950/80 backdrop-blur-sm';
+      const box = (k, l, sub, on) => `<label class="flex items-start gap-3 rounded-xl border border-ink-700 bg-ink-950/50 px-3 py-2.5 cursor-pointer hover:border-gold-500/50"><input type="checkbox" data-sd="${k}" ${on ? 'checked' : ''} class="mt-0.5 w-5 h-5 accent-yellow-500"><span><span class="block text-sm font-semibold text-slate-100">${l}</span><span class="block text-[11px] text-slate-400">${sub}</span></span></label>`;
+      root.innerHTML = `<div class="panel !bg-ink-900 w-full max-w-md rounded-2xl p-5 shadow-2xl">
+        <h3 class="font-display text-xl gold-text">✓ Schritt erledigt</h3>
+        <div class="mt-1 text-xs text-slate-400" translate="no">${R.esc(set.name)}</div>
+        <div class="mt-3 rounded-xl border border-ink-700 divide-y divide-ink-800">${changes.map(c => hChangeRow(c)).join('') || '<div class="p-3 text-sm text-slate-400">Keine Änderung.</div>'}</div>
+        <div class="mt-3 grid gap-2">${box('hist', '📜 In History posten', 'Eintrag mit Datum und Kosten im Craft-Verlauf', opt.hist !== false)}${box('gear', '🗡 Im Gear übernehmen', 'Aktuelle Ausrüstung wird angepasst – Planer, Kosten und Kalender rechnen neu', opt.gear !== false)}</div>
+        <div class="mt-4 flex justify-end gap-2"><button type="button" data-sd-no class="px-4 py-2.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">Abbrechen</button><button type="button" data-sd-ok class="px-5 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">✓ Fertig</button></div></div>`;
+      const done = (v) => { root.remove(); document.removeEventListener('keydown', key, true); resolve(v); };
+      const key = (ev) => { if (ev.key === 'Escape') { ev.preventDefault(); done(null); } };
+      root.addEventListener('click', (ev) => { if (ev.target === root || ev.target.closest('[data-sd-no]')) return done(null);
+        if (ev.target.closest('[data-sd-ok]')) { const v = { hist: root.querySelector('[data-sd="hist"]').checked, gear: root.querySelector('[data-sd="gear"]').checked }; R.LS.set('rok_craft_step_opt', JSON.stringify(v)); done(v); } });
+      document.addEventListener('keydown', key, true); document.body.appendChild(root); root.querySelector('[data-sd-ok]').focus();
+    });
+  }
   // Alles auf Max: Ziel-Items (oder sonst die Ist-Items) auf höchste Tier-Stufe + voll refined
   async function gearSetMax() {
     const s = activeSet();
@@ -1514,7 +1542,7 @@ window.RokMods.crafting = (R) => {
       days: gDays(set.goal.date), unknown };
   }
   const gBar = (pct) => pct == null ? '<div class="h-2 rounded-full bg-ink-800"></div>'
-    : `<div class="h-2 rounded-full bg-ink-800 overflow-hidden"><div class="h-full rounded-full ${pct >= 0.999 ? 'bg-emerald-400' : 'bg-gradient-to-r from-gold-600 to-gold-400'}" style="width:${Math.round(Math.min(1, pct) * 100)}%"></div></div>`;
+    : `<div class="h-2 rounded-full bg-ink-800 overflow-hidden"><div class="bar-in h-full rounded-full ${pct >= 0.999 ? 'bg-emerald-400' : 'bg-gradient-to-r from-gold-600 to-gold-400'}" style="width:${Math.round(Math.min(1, pct) * 100)}%"></div></div>`;
   const gPct = (pct) => pct == null ? '?' : Math.floor(Math.min(1, pct) * 100) + ' %';
   // Tabelle Bedarf / Bestand / fehlt / pro Tag
   function goalTable(lines, need, days, hasStock, unknown) {
@@ -1665,27 +1693,32 @@ window.RokMods.crafting = (R) => {
 
   // ================= Blaupausen: Bestand je Item + Events (Egg / Hammer) =================
   // Gerechnet wird in Fragmenten: 1 Blaupause (BP) = 30 Fragmente. Kosten-Daten (bp) sind ganze BP.
-  // Egg-Event: Spins geben im Schnitt 0,22 Fragmente (1× 4,838 % · 5× 1,935 % · 10× 0,752 %) + Fragment-Kisten der Stufen.
+  // Egg-Event: Spins geben im Schnitt 0,22 Fragmente + 0,22 Fragment-Wahlkisten + 0,47 Material-Wahlkisten (1× 4,838 % · 5× 1,935 % · 10× 0,752 %) + Fragment-Kisten der Stufen.
   // Hammer-Event: Stufen 1–30, jede 5. Stufe gibt 8 Fragmente (max. 48).
   // Termine kommen aus dem Gems-Kalender (Egg mit Slot-Rotation + geplanten Spins, Hammer); dazu eigene Termine.
   var GEAR_BP = 'rok_scanner_gear_bp', BP_FRAG = 30;
   var EGG_SPIN = [[1, 0.04838], [5, 0.01935], [10, 0.00752]], EGG_EV = EGG_SPIN.reduce((a, [n, p]) => a + n * p, 0);
+  // weitere Egg-Gewinne pro Spin: Ausrüstungsmaterial-Wahlkiste (1× 9,677 % · 3× 7,526 % · 2× 7,526 %) und
+  // Blaupausen-Fragment-Wahlkiste ×2 (5,376 %, steht zweimal in der Liste)
+  var EGG_MAT = [[1, 0.09677], [3, 0.07526], [2, 0.07526]], EGG_MAT_EV = EGG_MAT.reduce((a, [n, p]) => a + n * p, 0);
+  var EGG_BPC = [[2, 0.05376], [2, 0.05376]], EGG_BPC_EV = EGG_BPC.reduce((a, [n, p]) => a + n * p, 0);
+  var bpVer = 0;   // ändert sich bei jeder Event-Änderung → Mats-Prognose neu rechnen
   var CAT_DE = { brust: 'chest', handschuhe: 'gloves', stiefel: 'boots', helm: 'helm', hose: 'legs', beine: 'legs', waffe: 'weapon', accessoire: 'accessory' };
   var bpOpen = false;   // Event-Liste im Kalender aufgeklappt lassen
   function bpState() { if (bpState.c) return bpState.c; let o = {}; try { o = JSON.parse(R.LS.get(GEAR_BP, '{}')) || {}; } catch {}
     const num = (v) => Math.max(0, +v || 0);
     const st = { inv: {}, fpc: num(o.fpc) || 1, egg: Array.isArray(o.egg) && o.egg.length ? o.egg.map(r => [num(r[0]), num(r[1])]) : [[15, 5], [45, 6], [100, 9]],
-      events: (Array.isArray(o.events) ? o.events : []).map(e => ({ id: String(e.id || R.newId()), type: e.type === 'hammer' ? 'hammer' : 'egg', date: String(e.date || ''), slot: String(e.slot ?? ''), item: String(e.item || ''), spins: num(e.spins), lvl: Math.min(30, num(e.lvl)) })),
+      events: (Array.isArray(o.events) ? o.events : []).map(e => ({ id: String(e.id || R.newId()), type: e.type === 'hammer' ? 'hammer' : 'egg', date: String(e.date || ''), slot: String(e.slot ?? ''), item: String(e.item || ''), spins: num(e.spins), lvl: Math.min(30, num(e.lvl)), ...(e.gems != null ? { gems: num(e.gems) } : {}) })),
       sync: o.sync && typeof o.sync === 'object' ? o.sync : {} };
     Object.entries(o.inv || {}).forEach(([k, v]) => { st.inv[k] = { bp: num(v.bp), bpc: num(v.bpc), fr: num(v.fr), frc: num(v.frc) }; });
     return (bpState.c = st); }
-  function bpSave() { R.LS.set(GEAR_BP, JSON.stringify(bpState())); }
+  function bpSave() { bpVer++; R.LS.set(GEAR_BP, JSON.stringify(bpState())); }
   // Bestand eines Items in Fragmenten (BP und BP-Kisten ×30 + Fragmente + Fragment-Kisten)
   function bpInvFr(item) { const st = bpState(), v = st.inv[item]; return v ? (v.bp + v.bpc) * BP_FRAG + v.fr + v.frc * st.fpc : 0; }
   const bpInv = (item) => bpInvFr(item) / BP_FRAG;
   const bpTxt = (fr) => { const b = Math.floor(fr / BP_FRAG + 1e-9), r = Math.round(fr - b * BP_FRAG); return `${b} BP${r > 0 ? ` + ${r} Fragm.` : ''}`; };
   const hammerFr = (lvl) => Math.floor(Math.min(30, lvl) / 5) * 8;
-  function eggFr(spins) { const st = bpState(); return spins * EGG_EV + st.egg.filter(([at]) => at > 0 && spins >= at).reduce((a, [, ch]) => a + ch * st.fpc, 0); }
+  function eggFr(spins) { const st = bpState(); return spins * (EGG_EV + EGG_BPC_EV * st.fpc) + st.egg.filter(([at]) => at > 0 && spins >= at).reduce((a, [, ch]) => a + ch * st.fpc, 0); }
   function bpOff(iso) { if (!iso) return null; const t = new Date(iso + 'T00:00:00'), n = new Date(); n.setHours(0, 0, 0, 0); return Math.round((t - n) / 864e5); }
   function bpDate(off) { const t = new Date(); t.setHours(0, 0, 0, 0); t.setDate(t.getDate() + off); return t.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }); }
   const rotCats = (rot) => String(rot || '').toLowerCase().split(/[,/]+/).map(x => CAT_DE[x.trim()]).filter(Boolean);
@@ -1739,7 +1772,7 @@ window.RokMods.crafting = (R) => {
         <label class="ml-auto inline-flex items-center gap-1 text-slate-400">1 Fragment-Kiste =<input data-bpcfg="fpc" inputmode="numeric" value="${st.fpc}" class="w-12 bg-ink-950 border border-ink-600 rounded-md px-1.5 py-1 text-right">Fragm.</label>
         <span class="inline-flex flex-wrap items-center gap-1 text-slate-400">Egg-Kisten:${st.egg.map(([at, ch], i) => `<span class="inline-flex items-center gap-0.5">ab<input data-bpcfg="egg" data-i="${i}" data-j="0" inputmode="numeric" value="${at}" class="w-11 bg-ink-950 border border-ink-600 rounded-md px-1 py-1 text-right">Spins→<input data-bpcfg="egg" data-i="${i}" data-j="1" inputmode="numeric" value="${ch}" class="w-9 bg-ink-950 border border-ink-600 rounded-md px-1 py-1 text-right">Ki.</span>`).join(' ')}</span>
       </div>
-      <div class="mt-1 text-[11px] text-slate-500">Egg: Ø ${EGG_EV.toLocaleString('de-DE', { maximumFractionDigits: 3 })} Fragmente pro Spin (1× 4,838 % · 5× 1,935 % · 10× 0,752 %) + Fragment-Kisten · Hammer: jede 5. Stufe 8 Fragmente (Stufe 30 = 48) · 30 Fragmente = 1 BP · Termine und Spins im Gems-Kalender ändern</div>
+      <div class="mt-1 text-[11px] text-slate-500">Egg pro Spin: Ø ${EGG_EV.toLocaleString('de-DE', { maximumFractionDigits: 3 })} Fragmente (1× 4,838 % · 5× 1,935 % · 10× 0,752 %) + Ø ${EGG_BPC_EV.toLocaleString('de-DE', { maximumFractionDigits: 3 })} Fragment-Wahlkisten (2× 5,376 %, zweimal) + Ø ${EGG_MAT_EV.toLocaleString('de-DE', { maximumFractionDigits: 3 })} Material-Wahlkisten (1× 9,677 % · 3× 7,526 % · 2× 7,526 %) · dazu Fragment-Kisten der Stufen · Hammer: jede 5. Stufe 8 Fragmente (Stufe 30 = 48) · 30 Fragmente = 1 BP · Termine und Spins im Gems-Kalender ändern</div>
     </details>`;
   }
   function bpEventsBind(box) {
@@ -1753,8 +1786,8 @@ window.RokMods.crafting = (R) => {
       else if (t.dataset.bpcfg === 'egg') st.egg[+t.dataset.i][+t.dataset.j] = Math.max(0, +t.value || 0);
       else { const id = t.closest('[data-bpev]')?.dataset.bpev, f = t.dataset.bpf; if (!id || !f) return;
         const val = f === 'spins' ? Math.max(0, +t.value || 0) : f === 'lvl' ? Math.min(30, Math.max(0, +t.value || 0)) : t.value;
-        if (id.includes('|')) { const o = st.sync[id] = st.sync[id] || {}; o[f] = val; if (f === 'slot') o.item = ''; }
-        else { const e = st.events.find(x => x.id === id); if (!e) return; e[f] = val; if (f === 'slot') e.item = ''; } }
+        if (id.includes('|')) { const o = st.sync[id] = st.sync[id] || {}; o[f] = val; if (f === 'slot') o.item = ''; if (f === 'spins') delete o.gems; }
+        else { const e = st.events.find(x => x.id === id); if (!e) return; e[f] = val; if (f === 'slot') e.item = ''; if (f === 'spins') delete e.gems; } }
       bpSave(); cloudSave(); renderCal(); renderGearMain(); });
   }
 
@@ -1764,14 +1797,17 @@ window.RokMods.crafting = (R) => {
   const CAL_DAYS = 366, MATK = () => R.MATS.map(m => m.k);
   let fcCache = null;
   function matForecast() {
-    if (fcCache && Date.now() - fcCache.t < 20000) return fcCache;
+    if (fcCache && fcCache.v === bpVer && Date.now() - fcCache.t < 20000) return fcCache;
     const P = R.matPassive; if (!P) return null;
     let now = {}, perDay = {}, sources = 0;
     try { now = P.now() || {}; perDay = P.perDay() || {}; sources = P.sources() || 0; } catch (e) { console.warn('Mats-Dashboard nicht lesbar', e); }
     const keys = [...MATK(), 'choice'], days = [];
     for (let d = 0; d < CAL_DAYS; d++) { let inc = {}; if (d) { try { inc = P.income(d) || {}; } catch {} }
       days.push(Object.fromEntries(keys.map(k => [k, (+now[k] || 0) + (+inc[k] || 0)]))); }
-    return (fcCache = { t: Date.now(), days, perDay, sources, hasScan: MATK().some(k => now[k] != null) });
+    // Egg-Events mit Spins: erwartete Material-Wahlkisten ab dem Event-Tag dazu
+    let eggCh = 0; bpEvents().forEach(e => { if (e.type !== 'egg' || !(e.spins > 0) || e.off < 0 || e.off >= CAL_DAYS) return; const add = e.spins * EGG_MAT_EV; eggCh += add;
+      for (let d = e.off; d < CAL_DAYS; d++) days[d].choice += add; });
+    return (fcCache = { t: Date.now(), v: bpVer, days, perDay, sources, eggCh, hasScan: MATK().some(k => now[k] != null) });
   }
   const calChoice = () => gearOpt.calChoice !== false;          // Wahlkisten auf Lücken verteilen
   const fits = (stock, need, useChoice) => { let gap = 0; MATK().forEach(k => { gap += Math.max(0, (need[k] || 0) - (stock[k] || 0)); }); return gap <= (useChoice ? stock.choice || 0 : 0) + 1e-6; };
@@ -1824,7 +1860,7 @@ window.RokMods.crafting = (R) => {
   const isoOf = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   R.matForecast = matForecast;
 
-  const cal = { setId: '', month: 0, sel: null, mode: 'prio' };
+  const cal = { setId: '', month: 0, sel: null, mode: 'prio', n: [1, 3, 5].includes(+R.LS.get('rok_cal_n', '1')) ? +R.LS.get('rok_cal_n', '1') : 1 };
   function renderCal() {
     const head = R.$('calHead'); if (!head) return;
     const fc = matForecast();
@@ -1861,15 +1897,17 @@ window.RokMods.crafting = (R) => {
       ${fc && !fc.hasScan ? '<div class="mt-2 text-xs text-amber-300">⚠ Noch kein Material-Scan – der Kalender rechnet nur mit dem passiven Zuwachs ab 0.</div>' : ''}
       ${bpEventsHtml()}`;
 
-    // Monatsansicht
-    const base = dayDate(0), first = new Date(base.getFullYear(), base.getMonth() + cal.month, 1), lastDay = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+    // Monatsansicht (1, 3 oder 5 Monate untereinander)
+    const base = dayDate(0), evAll = bpEvents();
     const byDay = new Map(); (proj?.rows || []).filter(showRow).forEach(r => { if (r.day == null) return; if (!byDay.has(r.day)) byDay.set(r.day, []); byDay.get(r.day).push(r); });
+    const nM = Math.min(cal.n, 12 - cal.month);
+    const monthHtml = (mo) => { const first = new Date(base.getFullYear(), base.getMonth() + mo, 1), lastDay = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
     const lead = (first.getDay() + 6) % 7, cells = [];
     for (let i = 0; i < lead; i++) cells.push('<div></div>');
     for (let dd = 1; dd <= lastDay; dd++) {
       const date = new Date(first.getFullYear(), first.getMonth(), dd), off = Math.round((date - base) / 864e5), past = off < 0, here = byDay.get(off) || [];
       const stock = !past && off < CAL_DAYS && fc ? restAt(fc, off, cumAt(proj?.rows || [], off), calChoice()) : null, isEnd = endD === off && steps.length;
-      const marks = [...bpEvents().filter(e => e.off === off).map(e => `<span title="${evName(e)}-Event${e.cats.length ? ': ' + R.esc(e.cats.map(c => GEAR_CATS[c]).join(', ')) : ''} · ≈ ${Math.round(e.frag)} Fragmente">${evIcon(e)}</span>`), off === kvkD ? '<span title="KvK-Start">🏰</span>' : '', goalDays.has(off) ? `<span title="Zieldatum: ${R.esc(goalDays.get(off).name)}">📅</span>` : '', isEnd ? '<span title="Ziel erreicht">🎯</span>' : '',
+      const marks = [...evAll.filter(e => e.off === off).map(e => `<span title="${evName(e)}-Event${e.cats.length ? ': ' + R.esc(e.cats.map(c => GEAR_CATS[c]).join(', ')) : ''} · ≈ ${Math.round(e.frag)} Fragmente">${evIcon(e)}</span>`), off === kvkD ? '<span title="KvK-Start">🏰</span>' : '', goalDays.has(off) ? `<span title="Zieldatum: ${R.esc(goalDays.get(off).name)}">📅</span>` : '', isEnd ? '<span title="Ziel erreicht">🎯</span>' : '',
         ...here.filter(r => r.x.ms).map(r => `<span title="Etappe: ${R.esc(r.x.ms.name)}">🏁</span>`)].join('');
       const icons = here.filter(r => !r.x.ms), go = icons.length > 0;
       cells.push(`<button type="button" data-cal-day="${off}" ${past ? 'disabled' : ''} class="relative flex flex-col ${past ? 'min-h-[26px]' : 'min-h-[64px] sm:min-h-[104px]'} rounded-lg border text-left p-1 sm:p-1.5 transition ${past ? 'border-transparent opacity-30' : go ? (cal.sel === off ? 'border-gold-400 bg-emerald-500/30' : 'border-emerald-400/70 bg-emerald-500/20 hover:bg-emerald-500/30') : cal.sel === off ? 'border-gold-400 bg-gold-500/10' : off === 0 ? 'border-gold-500/50 bg-ink-950/60' : marks ? 'border-ink-600 bg-ink-950/50 hover:border-gold-500/60' : 'border-ink-800 bg-ink-950/30 hover:border-ink-600'}">
@@ -1878,12 +1916,16 @@ window.RokMods.crafting = (R) => {
           : stock ? `<div class="hidden sm:grid grid-cols-2 gap-x-1.5 gap-y-0.5 mt-1 text-[12px] font-semibold leading-tight tabular-nums text-slate-300">${R.MATS.map(m => `<span class="whitespace-nowrap"><span class="text-[14px]">${mi(m, 'w-3.5 h-3.5')}</span>${Math.floor(stock[m.k])}</span>`).join('')}${calChoice() || stock.choice > 0 ? `<span class="whitespace-nowrap col-span-2 text-amber-300"><span class="text-[14px]">📦</span>${Math.floor(stock.choice || 0)}</span>` : ''}</div>` : ''}
       </button>`);
     }
-    R.$('calMonth').innerHTML = `<div class="flex items-center justify-between gap-2 mb-3">
-        <button type="button" data-cal="prev" ${cal.month <= 0 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 disabled:opacity-30">◀</button>
-        <div class="font-display text-lg gold-text">${first.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}</div>
-        <button type="button" data-cal="next" ${cal.month >= 11 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 disabled:opacity-30">▶</button></div>
+    return `<div class="${mo > cal.month ? 'mt-5 pt-4 border-t border-ink-700' : ''}">${nM > 1 ? `<div class="mb-2 font-display text-base gold-text">${first.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}</div>` : ''}
       <div class="grid grid-cols-7 gap-1 sm:gap-1.5 text-center text-[10px] uppercase tracking-widest text-slate-500 mb-1">${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(x => `<div>${x}</div>`).join('')}</div>
-      <div class="grid grid-cols-7 gap-1 sm:gap-1.5">${cells.join('')}</div>
+      <div class="grid grid-cols-7 gap-1 sm:gap-1.5">${cells.join('')}</div></div>`; };
+    const mName = (mo) => new Date(base.getFullYear(), base.getMonth() + mo, 1).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+    R.$('calMonth').innerHTML = `<div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <button type="button" data-cal="prev" ${cal.month <= 0 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 disabled:opacity-30">◀</button>
+        <div class="font-display text-lg gold-text text-center">${nM > 1 ? `${mName(cal.month)} – ${mName(cal.month + nM - 1)}` : mName(cal.month)}</div>
+        <div class="flex items-center gap-2"><div class="inline-flex gap-0.5 p-0.5 rounded-lg bg-ink-950 border border-ink-700 text-xs" title="Wie viele Monate anzeigen">${[1, 3, 5].map(n => `<button type="button" data-cal="n" data-v="${n}" class="px-2.5 py-1 rounded-md font-semibold ${cal.n === n ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'}">${n} ${n === 1 ? 'Monat' : 'Monate'}</button>`).join('')}</div>
+        <button type="button" data-cal="next" ${cal.month + nM >= 12 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 disabled:opacity-30">▶</button></div></div>
+      ${Array.from({ length: nM }, (_, i) => monthHtml(cal.month + i)).join('')}
       <div class="mt-2 text-[11px] text-slate-500">Grünes Feld = an dem Tag kannst du craften (✓ = Teil danach fertig) · 🏁 Etappe · 🎯 alles fertig · 📅 Zieldatum · 🏰 KvK-Start · 🥚/🔨 BP-Event · Zahlen = dein Bestand nach dem Craften (legendär, 📦 = Wahlkisten)</div>`;
 
     // Tag antippen → Details
@@ -1896,7 +1938,8 @@ window.RokMods.crafting = (R) => {
         <div class="mt-1 text-[11px] text-slate-400">Bestand nach dem Craften bis zu diesem Tag:</div><div class="mt-1 grid grid-cols-2 sm:grid-cols-5 gap-2">${[...R.MATS.map(m => [mi(m, 'w-5 h-5'), m.label, stock[m.k]]), [mi({ img: 'mats/choicematchest.png', icon: '📦' }, 'w-5 h-5'), 'Wahlkisten', stock.choice || 0]].map(([ic, l, v]) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 px-3 py-2"><div class="text-lg font-extrabold tabular-nums text-white">${ic} ${gq(v)}</div><div class="text-[11px] text-slate-400">${l}</div></div>`).join('')}</div>
         ${here.length ? `<div class="mt-3 space-y-1.5">${here.map(r => r.x.ms ? `<div class="text-sm text-gold-200">🏁 Etappe „${R.esc(r.x.ms.name)}“ geschafft</div>`
           : `<div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">${stepIcon(r.x.r.z, 'w-9 h-9')}<span class="font-semibold whitespace-nowrap">${R.esc(r.x.label)}${r.x.last ? ' ✓' : ''}</span>${setTag(r.x.set)}<span class="text-slate-400 truncate min-w-0 flex-1" translate="no">${R.esc(gItem(r.x.r.z.item)?.name || '')}</span><span class="w-full sm:w-auto pl-11 sm:pl-0 text-xs text-slate-400 tabular-nums">${r.x.cost ? gCostText(r.x.cost) : ''}</span></div>`).join('')}</div>` : '<div class="mt-3 text-sm text-slate-500">An diesem Tag wird kein neuer Schritt machbar.</div>'}
-        ${next ? `<div class="mt-3 text-xs text-slate-400">Als Nächstes: <b class="text-slate-200">${R.esc(next.x.label)} · ${R.esc(gItem(next.x.r.z.item)?.name || '')}</b> ${next.day != null ? '→ ' + dTxt(next.day) : '(nicht innerhalb von 12 Monaten)'}</div>` : ''}`;
+        ${next ? `<div class="mt-3 text-xs text-slate-400">Als Nächstes: <b class="text-slate-200">${R.esc(next.x.label)} · ${R.esc(gItem(next.x.r.z.item)?.name || '')}</b> ${next.day != null ? '→ ' + dTxt(next.day) : '(nicht innerhalb von 12 Monaten)'}</div>` : ''}
+        ${eggDayHtml(off)}`;
     } else dayBox.classList.add('hidden');
 
     // Ablauf als Liste: Kosten als Kästchen, danach Zwischenstand, rechts Datum + woher (Rucksack / passiv) + Tage
@@ -1916,12 +1959,38 @@ window.RokMods.crafting = (R) => {
           </div>
           ${fc0 && r.day != null && r.cum ? `<div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 pl-14 pr-2 text-[11px] text-slate-500 tabular-nums"><span>↳ danach übrig</span>${stockChips(restAt(fc0, r.day, r.cum, calChoice()))}</div>` : ''}`).join('')}</div>`}`;
   }
+  // Egg-/Hammer-Tag angetippt: Gems oder Spins eingeben → erwarteter Zuwachs an Wahlkisten und Blaupausen
+  function eggDayHtml(off) {
+    const st = bpState(), evs = bpEvents().filter(e => e.off === off); if (!evs.length) return '';
+    const n1 = (v) => v.toLocaleString('de-DE', { maximumFractionDigits: 1 });
+    return evs.map(e => { if (e.type !== 'egg') return `<div class="mt-3 rounded-xl border border-ink-700 bg-ink-950/40 p-3 text-sm"><b>🔨 Hammer-Event</b> <span class="text-slate-400">· bis Stufe ${e.lvl || 0}/30 ≈ ${Math.round(e.frag)} Fragmente</span><div class="mt-1 text-[11px] text-slate-500">Hammer-Chancen kommen noch.</div></div>`;
+      const ov = e.sync ? st.sync[e.id] || {} : st.events.find(x => x.id === e.id) || {}, sp = e.spins || 0;
+      const gems = ov.gems != null ? +ov.gems : sp ? R.eggGemsForSpins?.(sp) || 0 : '';
+      const mat = sp * EGG_MAT_EV, frD = sp * EGG_EV, frC = sp * EGG_BPC_EV, frS = e.frag - (frD + frC * st.fpc);
+      const inp = (k, v, l) => `<label class="flex flex-col gap-0.5 text-[11px] text-slate-400">${l}<input data-egg="${k}" data-id="${R.esc(e.id)}" inputmode="numeric" value="${v || ''}" placeholder="0" class="w-28 bg-ink-950 border border-ink-600 rounded-md px-2 py-1.5 text-sm text-slate-100 text-right tabular-nums focus:outline-none focus:border-gold-500"></label>`;
+      const box = (ic, v, l, sub) => `<div class="rounded-xl border border-ink-700 bg-ink-950/50 px-3 py-2"><div class="text-lg font-extrabold tabular-nums text-white">${ic} ≈ ${v}</div><div class="text-[11px] text-slate-400">${l}</div>${sub ? `<div class="text-[10px] text-slate-500">${sub}</div>` : ''}</div>`;
+      return `<div class="mt-3 rounded-xl border border-amber-500/40 bg-amber-500/5 p-3">
+        <div class="flex flex-wrap items-baseline gap-2"><b class="text-amber-200">🥚 Egg-Event</b>${e.rot ? `<span class="text-[11px] text-slate-400">🔄 ${R.esc(e.rot)}</span>` : ''}${e.sync ? `<span class="text-[11px] ${e.planned ? 'text-emerald-300' : 'text-slate-500'}">${e.planned ? `Gems-Plan: ${e.planned} Spins` : 'nicht im Gems-Plan'}</span>` : ''}</div>
+        ${!sp ? '<div class="mt-1 text-xs text-amber-200">Noch nichts festgelegt – wie viele Gems willst du ausgeben?</div>' : ''}
+        <div class="mt-2 flex flex-wrap items-end gap-3">${inp('gems', gems, '💎 Gems')}<span class="pb-2 text-slate-500">oder</span>${inp('spins', sp, '🎡 Spins')}<span class="pb-2 text-[11px] text-slate-500">Gratis-Spins zählen mit · günstigste Kombination</span></div>
+        ${sp ? `<div class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+          ${box(mi({ img: 'mats/choicematchest.png', icon: '📦' }, 'w-5 h-5'), n1(mat), 'Material-Wahlkisten', 'fließen in den Kalender ein')}
+          ${box(mi(GX[2], 'w-5 h-5'), n1(e.frag), 'Blaupausen-Fragmente', `${n1(frD)} direkt · ${n1(frC * st.fpc)} aus Wahlkisten${frS > 0.05 ? ` · ${n1(frS)} aus Stufen-Kisten` : ''}`)}
+          ${box('📜', n1(e.frag / BP_FRAG), 'Blaupausen', '30 Fragmente = 1 BP')}</div>
+        <div class="mt-1.5 text-[11px] text-slate-500">Durchschnitt aus den Egg-Chancen – kann im Spiel nach oben oder unten abweichen.</div>` : ''}</div>`; }).join('');
+  }
+  R.$('calDay').addEventListener('change', (ev) => { const t = ev.target; if (!t.matches?.('[data-egg]')) return;
+    const st = bpState(), id = t.dataset.id, v = Math.max(0, Math.round(+String(t.value).replace(/[.\s]/g, '').replace(',', '.') || 0));
+    const o = id.includes('|') ? (st.sync[id] = st.sync[id] || {}) : st.events.find(x => x.id === id); if (!o) return;
+    if (t.dataset.egg === 'gems') { o.spins = R.eggSpinsForGems ? R.eggSpinsForGems(v) : 0; o.gems = v; } else { o.spins = v; delete o.gems; }
+    bpSave(); cloudSave(); renderCal(); renderGearMain(); });
   bpEventsBind(R.$('calHead'));
   R.$('craftCalPane').addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-cal],[data-cal-day]'); if (!b || b.tagName === 'SELECT' || b.tagName === 'INPUT') return;
     if (b.dataset.calDay != null) { const d = +b.dataset.calDay; cal.sel = cal.sel === d ? null : d; renderCal(); return; }
     const a = b.dataset.cal;
     if (a === 'prev' || a === 'next') { cal.month = Math.max(0, Math.min(11, cal.month + (a === 'next' ? 1 : -1))); renderCal(); }
+    if (a === 'n') { cal.n = +b.dataset.v || 1; R.LS.set('rok_cal_n', String(cal.n)); renderCal(); }
     else if (a === 'closeday') { cal.sel = null; renderCal(); }
     else if (a === 'mode') { cal.mode = b.dataset.v; renderCal(); }
     else if (a === 'passive') { R.goScan?.('mats'); R.setAreaTab?.('stats'); }
@@ -2091,7 +2160,7 @@ window.RokMods.crafting = (R) => {
     const c = setCostSum(sets); if (!c.items) return '';
     const one = sets.length === 1 ? sets[0] : null, view = one ? (one.costView === 'ziel' && hasZiel(one) ? 'ziel' : 'max') : 'max', goalTxt = view === 'ziel' ? 'Ziel' : 'Full Max';
     const p = c.open ? Math.min(99, Math.round(c.done * 100)) : 100;
-    const bar = (v, cl) => `<span class="block h-1.5 rounded-full bg-ink-800 overflow-hidden"><span class="block h-full rounded-full ${cl}" style="width:${v}%"></span></span>`;
+    const bar = (v, cl) => `<span class="block h-1.5 rounded-full bg-ink-800 overflow-hidden"><span class="bar-in block h-full rounded-full ${cl}" style="width:${v}%"></span></span>`;
     const boxes = (x) => gAny(x) ? costBoxes(x, '!text-[12px] !px-1.5') : '<span class="text-xs text-slate-500">–</span>';
     const row = (l, x, cl, extra = '') => `<div><div class="flex items-center gap-2 text-[10px] uppercase tracking-widest ${cl}">${l}${extra}</div><div class="mt-1 flex flex-wrap gap-1">${boxes(x)}</div></div>`;
     const sw = one ? `<span class="inline-flex rounded-md border border-ink-600 overflow-hidden text-[11px]">${[['max', '🏆 Max'], ['ziel', '🎯 Ziel']].map(([k, l]) =>
@@ -2124,7 +2193,7 @@ window.RokMods.crafting = (R) => {
   }
   let st_costEdit = null; const st_costOpen = new Set();
   // ---- 💰 Kosten-Reiter: Investiert · bis Ziel · bis Max · Max – kurz oder detailliert ----
-  const cst = { sel: R.LS.get('rok_craft_cost_sel', 'all'), view: R.LS.get('rok_craft_cost_view', 'short') === 'detail' ? 'detail' : 'short' };
+  const cst = { sel: R.LS.get('rok_craft_cost_sel', 'all'), view: 'detail' };
   const cstSets = () => gear.sets.filter(s => GEAR_SLOTS.some(sl => s.ist[sl.k]?.item));
   const asView = (list, v) => list.map(s => ({ ...s, costView: v }));
   function cstPick() { const all = cstSets();
@@ -2135,9 +2204,13 @@ window.RokMods.crafting = (R) => {
   const costChip = (list, attr) => { const c = setCostSum(list); if (!c.items) return '';
     const p = c.open ? Math.min(99, Math.round(c.done * 100)) : 100;
     return `<button type="button" ${attr} class="w-full flex items-center gap-2 rounded-xl border border-ink-700 bg-ink-950/40 hover:border-gold-500/50 px-3 py-2 text-sm text-left">
-      <span class="font-semibold text-gold-300 shrink-0">💰 Kosten</span><span class="flex-1 h-1.5 rounded-full bg-ink-800 overflow-hidden"><span class="block h-full rounded-full bg-gradient-to-r from-gold-500 to-emerald-400" style="width:${p}%"></span></span>
+      <span class="font-semibold text-gold-300 shrink-0">💰 Kosten</span><span class="flex-1 h-1.5 rounded-full bg-ink-800 overflow-hidden"><span class="bar-in block h-full rounded-full bg-gradient-to-r from-gold-500 to-emerald-400" style="width:${p}%"></span></span>
       <span class="text-xs tabular-nums shrink-0 ${c.open ? 'text-slate-300' : 'text-emerald-300'}">${c.open ? p + ' %' : '✓ Max'}</span><span class="text-slate-500 shrink-0">›</span></button>`; };
   // Animation „Pro Mat“: Icons fallen ins Feld, verschwinden, dann kommen Text und Balken von links
+  // alle Fortschrittsbalken fahren von links nach rechts aus
+  if (!document.getElementById('barInFx')) { const st = document.createElement('style'); st.id = 'barInFx';
+    // gilt für jeden Balken der Seite: schmale, runde Spur mit einem gefüllten Teil (Breite per style)
+    st.textContent = '@keyframes barIn{from{width:0}}.bar-in,.overflow-hidden.rounded-full>.h-full[style*="width"]{animation:barIn 1s cubic-bezier(.2,.8,.2,1) both}@media (prefers-reduced-motion:reduce){.bar-in,.overflow-hidden.rounded-full>.h-full[style*="width"]{animation:none}}'; document.head.appendChild(st); }
   const cstCss = () => { if (document.getElementById('cstFx')) return; const st = document.createElement('style'); st.id = 'cstFx';
     st.textContent = `@keyframes cstFall{0%{transform:translateY(-140px) rotate(var(--r0));opacity:0}15%{opacity:1}70%{transform:translateY(var(--y)) rotate(var(--r1))}85%{transform:translateY(calc(var(--y) - 14px)) rotate(var(--r1))}100%{transform:translateY(var(--y)) rotate(var(--r1));opacity:1}}
 @keyframes cstOut{to{opacity:0;transform:translateY(var(--y)) rotate(var(--r1)) scale(.4)}}
@@ -2174,6 +2247,7 @@ window.RokMods.crafting = (R) => {
   const grid4 = (rows, heads) => `<div class="mt-2 overflow-x-auto"><table class="w-full text-left min-w-[760px]"><thead><tr class="text-[10px] uppercase tracking-widest">
       <th class="py-1.5 pr-2 font-semibold text-slate-500"></th>${heads.map(([h, cl]) => `<th class="py-1.5 px-2 font-semibold ${cl}">${h}</th>`).join('')}</tr></thead>
       <tbody>${rows.map(([lab, cells, strong], i) => `<tr class="${strong ? 'border-t-2 border-gold-500/60' : 'border-t border-slate-600/60'} ${!strong && i % 2 ? 'bg-white/[.025]' : ''} align-top"><td class="py-2.5 pl-1 pr-2 whitespace-nowrap text-sm ${strong ? 'font-semibold text-gold-200' : 'text-slate-200'}">${lab}</td>${cells.map(x => `<td class="py-2.5 px-2 border-l border-ink-700/70">${boxesOr(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  const catLbl = (img, l) => `<span class="inline-flex items-center gap-2"><img src="/icons/${img}" alt="" class="w-7 h-7 object-contain">${l}</span>`;
   const HEADS4 = [['Investiert', 'text-slate-400'], ['Bis Ziel', 'text-emerald-300'], ['Bis Max', 'text-sky-300'], ['Max', 'text-gold-300']];
   // pro Slot: was steckt drin, was fehlt bis Ziel, was fehlt bis Max
   function perSlot(list) {
@@ -2192,51 +2266,36 @@ window.RokMods.crafting = (R) => {
     const anim = cst.lastAnim !== cst.sel + '|' + cst.view; cst.lastAnim = cst.sel + '|' + cst.view;
     const chip = (v, l) => `<button type="button" data-cst-sel="${R.esc(v)}" class="px-3 py-1.5 rounded-lg text-xs font-semibold border whitespace-nowrap ${cst.sel === v || (v === 'all' && pk.label === 'Alle Charaktere') ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 text-slate-300 hover:border-gold-500/60'}">${R.esc(l)}</button>`;
     const grs = (gear.groups || []).filter(g => g.members.some(id => all.some(x => x.id === id)));
-    const tabs = [['short', '⚡ Kurz'], ['detail', '🔎 Detailliert']].map(([v, l]) => `<button type="button" data-cst-view="${v}" class="min-w-[9rem] sm:min-w-[11rem] px-5 py-2.5 text-sm sm:text-base font-bold transition ${cst.view === v ? 'bg-gold-500 text-ink-950 shadow-inner' : 'text-slate-300 hover:text-gold-300 hover:bg-gold-500/10'}">${l}</button>`).join('');
     // Leiste bleibt beim Scrollen oben stehen
     const bar = `<div class="sticky top-0 z-30 -mx-1 px-1 pt-1 pb-2 bg-ink-950/90 backdrop-blur supports-[backdrop-filter]:bg-ink-950/70">
       <div class="panel rounded-2xl px-3 py-2.5 sm:px-4 flex flex-wrap items-center gap-2 shadow-lg shadow-black/40">
         <span class="font-display text-lg gold-text mr-1">💰 Kosten</span>
         <div class="flex gap-1.5 overflow-x-auto max-w-full order-3 sm:order-none basis-full sm:basis-auto sm:flex-1 pb-0.5">${chip('all', 'Alle Charaktere')}${all.map(s => chip('s:' + s.id, s.name)).join('')}${grs.map(g => chip('g:' + g.id, '🗂 ' + g.name)).join('')}</div>
         <button type="button" data-cst-xlsx class="ml-auto px-3 py-1.5 rounded-lg border border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10 text-xs font-semibold">📊 Excel</button>
-        <div class="basis-full order-last flex justify-center pt-1"><span class="inline-flex rounded-xl border-2 border-gold-500/50 overflow-hidden">${tabs}</span></div></div>
+</div>
       <div id="cstMsg" class="hidden mt-1 text-xs px-2"></div></div>`;
     const head = `<section class="panel rounded-2xl p-4 sm:p-5">
         <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1"><span class="text-4xl font-display font-bold tabular-nums ${k.cM.open ? 'text-gold-300' : 'text-emerald-300'}">${k.pM} %</span>
           <span class="text-sm text-slate-400">${R.esc(pk.label === 'Alle Charaktere' ? 'Alle Charaktere' : pk.label)} – von Max geschafft${k.cM.open ? ` · noch ${k.cM.open} Teil${k.cM.open > 1 ? 'e' : ''} offen` : ' 🎉'}</span></div>
-        <div class="mt-2 h-3 rounded-full bg-ink-800 overflow-hidden relative"><span class="block h-full rounded-full bg-gradient-to-r from-gold-500 to-emerald-400" style="width:${k.pM}%"></span>
+        <div class="mt-2 h-3 rounded-full bg-ink-800 overflow-hidden relative"><span class="bar-in block h-full rounded-full bg-gradient-to-r from-gold-500 to-emerald-400" style="width:${k.pM}%"></span>
           ${k.zl && k.pT < 100 ? '' : ''}</div>
         <div class="mt-4">${fields4(k, mats)}</div>
         ${k.missing ? '<p class="mt-2 text-[11px] text-amber-300">Für manche Stufen fehlen Kosten im Katalog – die sind nicht mitgezählt.</p>' : ''}</section>`;
     let html = bar + head;
-    if (cst.view === 'detail') {
+    {
       // Aufschlüsselung Crafting / Iconic / Crit
       html += `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">🧾 Aufschlüsselung</h3>
-        <p class="mt-1 text-xs text-slate-400">⚒ Crafting = Items herstellen · ⬆ Iconic = Iconic-Stufen I–V · ⚡ Crit = Refine (Durchschnitt). „Bis Max“ hat kein Crafting, wenn alle Items schon da sind – das steckt dann in „Investiert“.</p>
-        ${grid4([['⚒ Crafting', [k.catInv.craft, k.catT.craft, k.catM.craft, k.catMax.craft]], ['⬆ Iconic', [k.catInv.tier, k.catT.tier, k.catM.tier, k.catMax.tier]], ['⚡ Crit', [k.catInv.refine, k.catT.refine, k.catM.refine, k.catMax.refine]], ['＝ Gesamt', [k.inv, k.toT, k.toM, k.max], true]], HEADS4)}</section>`;
+        <p class="mt-1 text-xs text-slate-400">Crafting = Items herstellen · Iconic = Iconic-Stufen I–V · Crit = Refine (Durchschnitt). „Bis Max“ hat kein Crafting, wenn alle Items schon da sind – das steckt dann in „Investiert“.</p>
+        ${grid4([[catLbl('ressourcen/craft.webp', 'Crafting'), [k.catInv.craft, k.catT.craft, k.catM.craft, k.catMax.craft]], [catLbl('geararnaments/iconCrystal.png', 'Iconic'), [k.catInv.tier, k.catT.tier, k.catM.tier, k.catMax.tier]], [catLbl('ressourcen/crit.webp', 'Crit'), [k.catInv.refine, k.catT.refine, k.catM.refine, k.catMax.refine]], ['＝ Gesamt', [k.inv, k.toT, k.toM, k.max], true]], HEADS4)}</section>`;
       // pro Slot
       const ps = perSlot(pk.list);
       if (ps.length) html += `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">🧩 Pro Teil <span class="text-sm font-sans text-slate-300" ${pk.one ? 'translate="no"' : ''}>· ${R.esc(pk.label)}</span></h3><p class="mt-1 text-xs text-slate-400">Was in jedem Teil steckt und was es noch kostet${pk.list.length > 1 ? ' – über alle gewählten Charaktere zusammen' : ''}.</p>
         ${grid4(ps.map(([l, c]) => [l, c]), HEADS4.slice(0, 3))}</section>`;
-      // pro Set
-      if (all.length > 1 || grs.length) {
-        const card = (name, list) => { const x = cstCalc(list);
-          const ln = (l, cl, v) => `<div class="flex items-start gap-2 py-1 border-t border-ink-800 first:border-t-0"><span class="w-20 shrink-0 text-[11px] ${cl}">${l}</span>${boxesOr(v)}</div>`;
-          return `<div class="rounded-xl border border-ink-700 bg-ink-950/40 p-3"><div class="flex items-center gap-2"><span class="font-semibold text-slate-100 text-sm truncate mr-auto" translate="no">${R.esc(name)}</span><span class="text-[11px] tabular-nums ${x.cM.open ? 'text-slate-400' : 'text-emerald-300'}">${x.cM.open ? x.pM + ' %' : '✓'}</span></div>
-            <div class="mt-1 h-1 rounded-full bg-ink-800 overflow-hidden"><span class="block h-full rounded-full bg-gradient-to-r from-gold-500 to-emerald-400" style="width:${x.pM}%"></span></div>
-            <div class="mt-1.5">${ln('Investiert', 'text-slate-400', x.inv)}${ln('Bis Ziel', 'text-emerald-300', x.toT)}${ln('Bis Max', 'text-sky-300', x.toM)}${ln('Max', 'text-gold-300', x.max)}</div></div>`; };
-        const ov = cst.sel === 'all' || pk.label === 'Alle Charaktere' ? '' : (() => { const p2 = perSlot(all); return p2.length ? `<div class="rounded-xl border-2 border-gold-400/50 bg-gold-500/5 p-3 sm:p-4"><div class="font-semibold text-gold-200">🌍 Overall – alle Charaktere zusammen</div>
-            <div class="text-[11px] text-slate-400">Helm, Brust, Waffe … von allen Charakteren zusammengerechnet.</div>${grid4(p2, HEADS4.slice(0, 3))}</div>` : ''; })();
-        html += `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">📋 Pro Charakter & Set</h3>
-          ${ov ? `<div class="mt-3">${ov}</div>` : ''}
-          <div class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">${all.map(s => card(s.name, [s])).join('')}</div>
-          ${grs.length ? `<div class="mt-4 text-[10px] uppercase tracking-widest text-slate-500">🗂 Sets</div><div class="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">${grs.map(g => card('🗂 ' + g.name, g.members.map(id => all.find(x => x.id === id)).filter(Boolean))).join('')}</div>` : ''}</section>`;
-      }
       // pro Mat (mit Animation)
       const matList = [...R.MATS, ...GX].filter(x => (k.max[x.k] || 0) > 1e-4);
       const matBars = matList.map((x, i) => { const t = k.max[x.k], d = Math.min(t, k.inv[x.k] || 0), q = t ? d / t : 0, f = x.f || gq;
         return `<div style="${anim ? `animation:cstRowIn .35s ease-out ${(1.45 + i * 0.06).toFixed(2)}s both` : ''}" class="grid grid-cols-[1.5rem_6.5rem_1fr] sm:grid-cols-[1.5rem_7rem_1fr_15rem] items-center gap-x-2 gap-y-0.5 text-xs">${mi(x, 'w-5 h-5')}<span class="text-slate-300 truncate">${R.esc(x.label)}</span>
-          <span class="h-2 rounded-full bg-ink-800 overflow-hidden"><span class="block h-full rounded-full ${q >= 1 ? 'bg-emerald-400' : 'bg-gradient-to-r from-gold-600 to-gold-400'}" style="--w:${Math.round(q * 100)}%;width:${Math.round(q * 100)}%;${anim ? `animation:cstBar .9s cubic-bezier(.2,.8,.2,1) ${(1.6 + i * 0.08).toFixed(2)}s both` : ''}"></span></span>
+          <span class="h-2 rounded-full bg-ink-800 overflow-hidden"><span class="bar-in block h-full rounded-full ${q >= 1 ? 'bg-emerald-400' : 'bg-gradient-to-r from-gold-600 to-gold-400'}" style="--w:${Math.round(q * 100)}%;width:${Math.round(q * 100)}%;${anim ? `animation:cstBar .9s cubic-bezier(.2,.8,.2,1) ${(1.6 + i * 0.08).toFixed(2)}s both` : ''}"></span></span>
           <span class="col-span-3 sm:col-span-1 pl-8 sm:pl-0 sm:text-right tabular-nums text-slate-400 whitespace-nowrap"><b class="text-slate-200">${f(d)}</b> / ${f(t)} · noch ${f(Math.max(0, t - d))}</span></div>`; }).join('');
       if (matBars) html += `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">📦 Pro Mat</h3><p class="mt-1 text-xs text-slate-400">Wie viel von jedem Mat schon drinsteckt (bis Max) – so siehst du, was dich am meisten bremst.</p>
         <div class="relative mt-3"><div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">${anim ? matRain(matList) : ''}</div><div class="grid gap-2">${matBars}</div></div></section>`;
@@ -2252,13 +2311,22 @@ window.RokMods.crafting = (R) => {
             return `<div class="flex-1 min-w-[10px] flex flex-col items-center gap-1" title="${kk} Refines: ${pct(q)}"><span class="w-full rounded-t ${kk <= p90 ? 'bg-red-400/70' : 'bg-red-400/30'}" style="height:${Math.max(3, q / mx * 88)}px"></span><span class="text-[9px] text-slate-500 tabular-nums">${kk}</span></div>`; }).join('')}</div>
           <div class="mt-3 grid gap-2 sm:grid-cols-3">${big('🍀 Mit Glück', c.best, 'text-emerald-300')}${big('Ø Durchschnitt', c.rest, 'text-slate-300')}${big('💀 Mit Pech', c.worst, 'text-red-300')}</div>
           <div class="mt-2 text-[10px] text-slate-500">${c.refs.map(r => `${hSlot(r.slot).icon} ${r.craft ? 'neu' : gRefTxt(r.from)} → ${gRefTxt(r.to)}: ${r.sure ? '⚡ sicherer Crit (5er-Garantie)' : (r.odds.min === r.odds.max ? r.odds.min + '×' : `${r.odds.min}–${r.odds.max}× (Ø ${fx1(r.odds.exp)})`) + (r.craft ? ` inkl. ${pct(r.odds.crit)} Craft-Crit` : '')}`).join(' · ')}</div></section>`; }
+      // pro Charakter – nur wenn ein ganzes Set (Gruppe) gewählt ist
+      if (cst.sel.startsWith('g:') && pk.list.length > 1) {
+        const card = (name, list) => { const x = cstCalc(list);
+          const ln = (l, cl, v) => `<div class="flex items-start gap-2 py-1 border-t border-ink-800 first:border-t-0"><span class="w-20 shrink-0 text-[11px] ${cl}">${l}</span>${boxesOr(v)}</div>`;
+          return `<div class="rounded-xl border border-ink-700 bg-ink-950/40 p-3"><div class="flex items-center gap-2"><span class="font-semibold text-slate-100 text-sm truncate mr-auto" translate="no">${R.esc(name)}</span><span class="text-[11px] tabular-nums ${x.cM.open ? 'text-slate-400' : 'text-emerald-300'}">${x.cM.open ? x.pM + ' %' : '✓'}</span></div>
+            <div class="mt-1 h-1 rounded-full bg-ink-800 overflow-hidden"><span class="bar-in block h-full rounded-full bg-gradient-to-r from-gold-500 to-emerald-400" style="width:${x.pM}%"></span></div>
+            <div class="mt-1.5">${ln('Investiert', 'text-slate-400', x.inv)}${ln('Bis Ziel', 'text-emerald-300', x.toT)}${ln('Bis Max', 'text-sky-300', x.toM)}${ln('Max', 'text-gold-300', x.max)}</div></div>`; };
+        html += `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">📋 Pro Charakter · <span translate="no">${R.esc(pk.label)}</span></h3>
+          <div class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">${pk.list.map(s => card(s.name, [s])).join('')}</div></section>`;
+      }
       html += `<p class="text-[11px] text-slate-500 px-1">Ziel = was du im Planer als Ziel eingetragen hast (ohne Ziel: Full Max). Full Max = gleiche Items auf höchster Iconic-Stufe und 100 % refined. Neu gecraftet: 11 % direkt voll refined (Crit), das 5. Exemplar desselben Items zählt als sicherer Crit. Refine pro Versuch – bei 0 %: +25 (29 %) · +50 (30 %) · +75 (30 %) · +100 (11 %) · bei 25 %: +25 (59 %) · +50 (30 %) · +75 (11 %) · bei 50 %: +25 (89 %) · +50 (11 %) · bei 75 %: immer +25.</p>`;
     }
     box.innerHTML = html;
   }
   R.$('craftCostPane')?.addEventListener('click', async (ev) => { const t = ev.target, msg = (m, ok = true) => R.flash(R.$('cstMsg'), R.esc(m), ok);
     const sb = t.closest('[data-cst-sel]'); if (sb) { cst.sel = sb.dataset.cstSel; R.LS.set('rok_craft_cost_sel', cst.sel); renderCosts(); return; }
-    const vb = t.closest('[data-cst-view]'); if (vb) { cst.view = vb.dataset.cstView; R.LS.set('rok_craft_cost_view', cst.view); renderCosts(); return; }
     const xb = t.closest('[data-cst-xlsx]'); if (xb) { xb.disabled = true; try { await exportCostsXlsx(cstSets()); msg('📊 Excel-Tabelle heruntergeladen'); } catch (e) { msg('Excel ging nicht: ' + (e.message || e), false); } xb.disabled = false; return; }
   });
   // ---- Excel-Download der Kosten (SheetJS wird erst beim Klick geladen) ----
@@ -2641,7 +2709,7 @@ window.RokMods.crafting = (R) => {
             <div class="min-w-0 w-48 sm:w-60"><div class="text-sm font-semibold truncate" translate="no">${R.esc(x.it.name)}</div><div class="text-[11px] text-slate-400">${GEAR_CATS[x.it.cat]}</div></div>
             <div class="hidden sm:block text-sm tabular-nums w-20 text-right"><b class="text-white">${fmtN(x.sc)}</b> <span class="text-[10px] text-slate-500">Pkt</span></div>
             <div class="hidden md:block text-xs tabular-nums w-40 text-slate-300">${gq(x.m)} Mats${x.c.gold ? ' · 🪙 ' + gGold(x.c.gold) : ''}</div>
-            <div class="flex-1 min-w-[80px]"><div class="h-2 rounded-full bg-ink-800 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-gold-600 to-gold-300" style="width:${Math.round(x.r / maxR * 100)}%"></div></div></div>
+            <div class="flex-1 min-w-[80px]"><div class="h-2 rounded-full bg-ink-800 overflow-hidden"><div class="bar-in h-full rounded-full bg-gradient-to-r from-gold-600 to-gold-300" style="width:${Math.round(x.r / maxR * 100)}%"></div></div></div>
             <div class="w-24 text-right text-sm font-bold tabular-nums text-gold-200">${fmtN(x.r)}<span class="block text-[10px] font-normal text-slate-500">pro 100 Mats</span></div></div>`).join('')}</div>`
           : '<div class="mt-2 text-sm text-slate-500">Noch keine Items mit passenden Werten.</div>'}
         <div class="mt-3 text-[11px] text-slate-500">${items.length - withStats.length} von ${items.length} Items haben noch keine Werte – im Item-Katalog unter „✎ Kosten & Werte“ eintragen. Feste Werte (z. B. Truppenkapazität +300) und Set-Effekte zählen nicht in die Punkte.</div>
@@ -2707,7 +2775,7 @@ window.RokMods.crafting = (R) => {
             <span class="${e.kind === 'hist' ? 'text-gold-300' : e.kind === 'manual' ? 'text-sky-300' : 'text-slate-500'}">${e.kind === 'auto' && e.src === 'scan' ? '🤖 per Scan' : k[0]}</span></div>
           <div class="flex items-center gap-1 shrink-0">
             ${e.kind === 'auto' && !e.changes.length ? '' : hVisPick(e.vis, `data-hvis="${R.esc(e.id)}"`)}
-            <button type="button" data-hnote=""${R.esc(e.id)}" class="text-slate-500 hover:text-gold-300 px-1 text-xs" title="Notiz bearbeiten">✎</button>
+            <button type="button" data-hnote="${R.esc(e.id)}" class="text-slate-500 hover:text-gold-300 px-1 text-xs" title="Notiz bearbeiten">✎</button>
             <button type="button" data-hdel="${R.esc(e.id)}" class="text-slate-500 hover:text-red-400 px-1 text-xs" title="Eintrag löschen">✕</button></div></div>
         ${e.changes.length ? `<div class="mt-1 divide-y divide-ink-800">${e.changes.map(c => hChangeRow(c, e.id)).join('')}</div>` : ''}
         ${e.changes.length > 1 ? (() => { const t = gZero(); let any = false; e.changes.forEach(c => { if (!c.to?.item) return; const x = gEst({ [c.slot]: c.from }, { [c.slot]: c.to }, () => c.n || 0, { crit: () => !!c.crit }); if (x.any) { gAdd(t, x.cost); any = true; } });
@@ -2719,6 +2787,8 @@ window.RokMods.crafting = (R) => {
     if (list.length > hf.limit) html += `<button type="button" data-hmore class="w-full mt-2 py-2 rounded-lg border border-ink-700 text-xs text-slate-400 hover:text-gold-300 hover:border-gold-500/60">Ältere anzeigen (${list.length - hf.limit} weitere)</button>`;
     box.innerHTML = html;
   }
+  const renderCraftHist0 = renderCraftHist;
+  renderCraftHist = function () { renderCraftHist0(); if (typeof renderYear === 'function' && R.$('chYear')) renderYear(); };
   R.$('craftHistSet').onchange = () => { hf.set = R.$('craftHistSet').value; hf.limit = 25; renderCraftHist(); };
   R.$('craftHistKind').addEventListener('click', (ev) => { const b = ev.target.closest('[data-hk]'); if (!b) return; hf.kind = b.dataset.hk; hf.limit = 25; renderCraftHist(); });
   const hLightbox = (src) => { const ov = document.createElement('div'); ov.className = 'fixed inset-0 z-[100] bg-black/85 grid place-items-center p-4 cursor-zoom-out';
@@ -2790,9 +2860,49 @@ window.RokMods.crafting = (R) => {
     sp.textContent = n > 9 ? '9+' : n; sp.classList.toggle('hidden', !n); }
   const frName = (id) => fr.users[id]?.username || 'Spieler';
   const frAva = (id, c = 'w-7 h-7') => { const u = fr.users[id]; return u?.avatar ? `<img src="${R.esc(u.avatar)}" alt="" class="${c} rounded-full object-cover border border-ink-600">` : `<span class="${c} rounded-full bg-ink-800 border border-ink-600 grid place-items-center text-[11px] text-slate-400">${R.esc(frName(id).slice(0, 1).toUpperCase())}</span>`; };
+  // Ein Fenster: 📜 Meine History · 👥 Freunde · 🌍 Öffentlich
+  var hTab = ['mine', 'friends', 'public'].includes(R.LS.get('rok_craft_htab', '')) ? R.LS.get('rok_craft_htab', '') : 'mine';
+  if (hTab !== 'mine') fr.tab = hTab;
+  function renderHTabs() {
+    const box = R.$('chTabs'); if (!box) return; const nNew = frMe() ? frNew() : 0;
+    const tab = (k, l) => `<button type="button" data-htab="${k}" class="px-4 py-2 rounded-lg text-sm font-semibold border transition ${hTab === k ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 text-slate-400 hover:text-gold-300'}">${l}</button>`;
+    box.innerHTML = tab('mine', '📜 Meine History') + tab('friends', `👥 Freunde${nNew ? ` <span class="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500 text-white font-bold">${nNew}</span>` : ''}`) + tab('public', '🌍 Öffentlich');
+    R.$('chMine').classList.toggle('hidden', hTab !== 'mine'); R.$('chFriends').classList.toggle('hidden', hTab === 'mine');
+  }
+  R.$('chTabs').addEventListener('click', (ev) => { const b = ev.target.closest('[data-htab]'); if (!b) return; hTab = b.dataset.htab; R.LS.set('rok_craft_htab', hTab);
+    if (hTab !== 'mine' && fr.tab !== hTab) { fr.tab = hTab; fr.loaded = false; frLoad(); } renderFriends(); });
+
+  // Ausgaben pro Jahr (aus den ⚒ History-Einträgen) – Jahr wechselt an Neujahr automatisch
+  var hYear = 0;
+  function renderYear() {
+    const box = R.$('chYear'); if (!box) return;
+    const now = new Date().getFullYear(), byY = {};
+    chist.forEach(e => { if (e.kind !== 'hist' || !e.changes?.length || (hf.set !== 'all' && e.setId !== hf.set)) return;
+      const d = new Date(e.ts), y = d.getFullYear(), m = d.getMonth(), t = gZero(); let any = false;
+      e.changes.forEach(c => { if (!c.to?.item) return; const x = gEst({ [c.slot]: c.from }, { [c.slot]: c.to }, () => c.n || 0, { crit: () => !!c.crit }); if (x.any) { gAdd(t, x.cost); any = true; } });
+      if (!any) return; const Y = byY[y] ||= { m: {}, n: 0 }; gAdd(Y.m[m] ||= gZero(), t); Y.n++; });
+    const years = [...new Set([now, ...Object.keys(byY).map(Number)])].sort((a, b) => b - a);
+    if (!years.includes(hYear)) hYear = now;
+    const Y = byY[hYear] || { m: {}, n: 0 }, cols = [...R.MATS.map(m => [m.k, mi(m), (v) => gq(v)]), ...GX.map(x => [x.k, mi(x), x.f])];
+    const tot = gZero(); Object.values(Y.m).forEach(c => gAdd(tot, c));
+    const colsU = cols.filter(([k]) => tot[k] > 1e-4); if (colsU.length) cols.splice(0, cols.length, ...colsU);   // leere Spalten weglassen
+    const MON = ['Jan', 'Feb', 'März', 'Apr', 'Mai', 'Juni', 'Juli', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+    const cell = (v, f) => `<td class="px-2 py-1.5 text-right tabular-nums ${v > 1e-4 ? 'text-slate-100' : 'text-slate-600'}">${v > 1e-4 ? f(v) : '–'}</td>`;
+    const rows = Object.keys(Y.m).map(Number).sort((a, b) => a - b).map(m => `<tr class="border-t border-ink-700/70"><td class="px-2 py-1.5 text-slate-300">${MON[m]}</td>${cols.map(([k, , f]) => cell(Y.m[m][k], f)).join('')}</tr>`).join('');
+    const chip = (y) => `<button type="button" data-hyear="${y}" class="px-2.5 py-1 rounded-lg text-xs font-semibold border ${y === hYear ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 text-slate-400 hover:text-gold-300'}">${y}</button>`;
+    box.innerHTML = `<div class="flex flex-wrap items-center gap-2"><h3 class="font-display text-lg gold-text mr-auto">💰 Ausgaben ${hYear}</h3>${years.length > 1 ? years.map(chip).join('') : ''}</div>
+      <p class="mt-0.5 text-[11px] text-slate-500">Summe aller ⚒ History-Einträge${hf.set !== 'all' ? ` von <span translate="no">${R.esc(gear.sets.find(s => s.id === hf.set)?.name || '')}</span>` : ''} in diesem Jahr · ${Y.n} ${Y.n === 1 ? 'Eintrag' : 'Einträge'}</p>
+      ${Y.n ? `<div class="mt-3 overflow-x-auto"><table class="w-full max-w-3xl text-xs border border-ink-700 rounded-lg">
+        <thead><tr class="bg-ink-950/60 text-slate-400"><th class="px-2 py-1.5 text-left font-semibold">Monat</th>${cols.map(([, ic]) => `<th class="px-2 py-1.5"><span class="inline-flex justify-end w-full">${ic}</span></th>`).join('')}</tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr class="border-t-2 border-gold-500/40 bg-gold-500/5 font-semibold"><td class="px-2 py-1.5 text-gold-200">Gesamt</td>${cols.map(([k, , f]) => cell(tot[k], f)).join('')}</tr></tfoot></table></div>`
+        : `<p class="mt-3 py-3 text-center text-sm text-slate-500">${hYear === now ? 'Dieses Jahr noch nichts ausgegeben.' : 'Keine Einträge.'}</p>`}`;
+  }
+  R.$('chYear').addEventListener('click', (ev) => { const b = ev.target.closest('[data-hyear]'); if (b) { hYear = +b.dataset.hyear; renderYear(); } });
+
   function renderFriends() {
     const box = R.$('chFriends'); if (!box) return; const me = frMe();
-    if (!me) { box.innerHTML = '<h3 class="font-display text-lg gold-text">👥 Freunde</h3><p class="mt-2 text-sm text-slate-500">Zum Teilen und für Freunde bitte einloggen.</p>'; return; }
+    renderHTabs(); if (!me) { box.innerHTML = '<p class="py-6 text-center text-sm text-slate-500">Zum Teilen und für Freunde bitte einloggen.</p>'; return; }
     const inc = fr.rel.filter(x => x.status === 'pending' && x.b === me), out = fr.rel.filter(x => x.status === 'pending' && x.a === me), acc = fr.rel.filter(x => x.status === 'accepted');
     const nNew = frNew(), seen = fr.seen;
     const tab = (k, l) => `<button type="button" data-frtab="${k}" class="px-3 py-1.5 rounded-lg text-xs font-semibold border ${fr.tab === k ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 text-slate-400 hover:text-gold-300'}">${l}</button>`;
@@ -2808,11 +2918,9 @@ window.RokMods.crafting = (R) => {
         ${(p.imgs || []).length ? `<div class="mt-2 flex flex-wrap gap-2">${p.imgs.slice(0, 6).map(u => `<button type="button" data-frimg="${R.esc(u)}" class="w-16 h-16 rounded-lg overflow-hidden border border-ink-700 hover:border-gold-500/60"><img src="${R.esc(u)}" alt="" loading="lazy" class="w-full h-full object-cover"></button>`).join('')}</div>` : ''}</div>`; };
     const person = (x, btns) => { const id = x.a === me ? x.b : x.a; return `<div class="flex items-center gap-2 py-1">${frAva(id, 'w-6 h-6')}<span class="text-sm truncate" translate="no">${R.esc(frName(id))}</span><span class="ml-auto flex gap-1">${btns}</span></div>`; };
     const sb = 'text-[11px] px-2 py-0.5 rounded-md border';
-    box.innerHTML = `<div class="flex flex-wrap items-center gap-2">
-        <h3 class="font-display text-lg gold-text mr-auto">👥 Freunde ${nNew ? `<span class="ml-1 align-middle text-[11px] px-1.5 py-0.5 rounded-full bg-red-500 text-white font-sans font-bold">${nNew} neu</span>` : ''}</h3>
-        ${tab('friends', '👥 Freunde')}${tab('public', '🌍 Öffentlich')}
-        <button type="button" data-frreload title="Aktualisieren" class="px-2 py-1.5 rounded-lg border border-ink-600 text-xs text-slate-400 hover:text-gold-300 ${fr.busy ? 'animate-pulse' : ''}">⟳</button></div>
-      <p class="mt-1 text-[11px] text-slate-500">Bei deinen Einträgen links mit 🔒 👥 🌍 wählen, wer sie sieht. Neue Crafts deiner Freunde sind hier markiert.</p>
+    box.innerHTML = `<div class="flex items-start gap-2">
+      <p class="mr-auto text-[11px] text-slate-500">Bei deinen Einträgen unter „Meine History“ mit 🔒 👥 🌍 wählen, wer sie sieht. Neue Crafts deiner Freunde sind hier markiert.</p>
+      <button type="button" data-frreload title="Aktualisieren" class="shrink-0 px-2 py-1 rounded-lg border border-ink-600 text-xs text-slate-400 hover:text-gold-300 ${fr.busy ? 'animate-pulse' : ''}">⟳</button></div>
       ${fr.err ? `<div class="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-200">${R.esc(fr.err)}</div>` : ''}
       <details class="mt-3 rounded-xl border border-ink-700 bg-ink-950/40 p-3" ${inc.length || !acc.length ? 'open' : ''}>
         <summary class="cursor-pointer select-none text-xs font-semibold text-slate-200">Freunde verwalten · ${acc.length}${inc.length ? ` <span class="text-red-300">· ${inc.length} Anfrage${inc.length > 1 ? 'n' : ''}</span>` : ''}</summary>
