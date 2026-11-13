@@ -805,7 +805,7 @@ window.RokMods.crafting = (R) => {
           <p class="text-xs text-slate-400">${steps.length} ${steps.length === 1 ? 'Schritt' : 'Schritte'} offen · ${sets.length} ${sets.length === 1 ? 'Set' : 'Sets'} im Gesamtziel · ziehen oder ▲▼ zum Umsortieren · grün = mit deinem Rucksack machbar (der Reihe nach)</p>
           ${!act.goal.on ? `<p class="mt-1 text-xs text-amber-300">⚠ „${R.esc(act.name)}“ ist nicht im Gesamtziel und fehlt in der Liste. <button type="button" data-pset-on class="underline hover:text-gold-300">aufnehmen</button></p>` : ''}</div>
         <div class="flex flex-wrap items-center gap-1.5 text-xs">
-          <select data-pfilter-sel translate="no" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs font-semibold focus:outline-none focus:border-gold-500" title="Welches Set in der Liste zeigen (unabhängig vom Set oben)"><option value="">🌍 Alle Sets</option>${gear.sets.filter(x => x.goal.on).map(x => `<option value="${R.esc(x.id)}"${fset === x ? ' selected' : ''}>${R.esc(x.name)}</option>`).join('')}</select>
+          <select data-pfilter-sel translate="no" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs font-semibold focus:outline-none focus:border-gold-500" title="Welches Set in der Liste zeigen (unabhängig vom Set oben)"><option value="">🌍 ${window.I18N?.lang?.() === 'en' ? 'All sets' : 'Alle Sets'}</option>${gear.sets.filter(x => x.goal.on).map(x => `<option value="${R.esc(x.id)}"${fset === x ? ' selected' : ''}>${R.esc(x.name)}</option>`).join('')}</select>
           <span class="w-px h-5 bg-ink-700 mx-1"></span>
           <span class="text-slate-400">Sortieren:</span>${Object.entries(PRIO_MODES).map(([k, l]) => `<button type="button" data-pmode="${k}" class="${hChip(P.mode === k && !P.order.some(o => !o.startsWith('ms:')))}">${l}</button>`).join('')}
           <button type="button" data-pms-add class="px-2.5 py-1 rounded-lg border border-gold-500/50 text-gold-300 hover:border-gold-400 font-semibold">🏁 + Etappe</button>
@@ -845,19 +845,19 @@ window.RokMods.crafting = (R) => {
         : [stepIconT(z, prevTier, x.meta.p, IC), 'Refine ' + gRefTxt(x.meta.p)];
       // links: Icon + Stand daneben · rechts: Ergebnis + Icon (am Handy Text unter dem Icon)
       const lab = (t, cls, al) => `<span class="text-[11px] sm:text-xl font-extrabold text-center ${al} leading-tight whitespace-nowrap ${cls}">${t}</span>`;
-      const refBtns = x.meta.k === 'refine' && x.meta.n > 1 ? `<div class="flex gap-0.5" title="Ein Refine gemacht – wie viel kam raus?">${[25, 50, 75].filter(a => a < (x.meta.p - (x.meta.from || 0))).map(a => `<button type="button" data-pdone="${R.esc(x.key)}|r${a}" class="px-1.5 py-0.5 rounded-md border border-ink-600 hover:border-emerald-400 hover:text-emerald-300 text-[10px] sm:text-[11px] font-semibold tabular-nums">+${a}%</button>`).join('')}</div>` : '';
+      const refBtns = false && x.meta.k === 'refine' && x.meta.n > 1 ? `<div class="flex gap-0.5" title="Ein Refine gemacht – wie viel kam raus?">${[25, 50, 75].filter(a => a < (x.meta.p - (x.meta.from || 0))).map(a => `<button type="button" data-pdone="${R.esc(x.key)}|r${a}" class="px-1.5 py-0.5 rounded-md border border-ink-600 hover:border-emerald-400 hover:text-emerald-300 text-[10px] sm:text-[11px] font-semibold tabular-nums">+${a}%</button>`).join('')}</div>` : '';
       const fromHtml = `<div class="shrink-0 flex flex-col sm:flex-row items-center gap-1 sm:gap-3">${from[0]}${lab(from[1], 'text-slate-300', 'sm:text-left')}</div>`;
       const toHtml = `<div class="shrink-0 flex flex-col-reverse sm:flex-row items-center gap-1 sm:gap-3"><div class="flex flex-col items-center sm:items-end gap-1">${lab(to[1], kind[1], 'sm:text-right')}${refBtns}</div>${to[0]}</div>`;
       const line = `<span class="flex-1 min-w-[10px] h-[3px] rounded-full bg-current opacity-60"></span>`;
       const odds = x.meta.k === 'refine' && x.meta.unit ? refOddsHtml(x.meta.from || 0, x.meta.p, x.meta.unit) : '';
       const col = setCol(x.set);
       return `<div draggable="true" data-pkey="${R.esc(x.key)}" class="prio-row flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-3 rounded-xl border-2 ${o.ok ? 'bg-emerald-500/5' : 'bg-ink-950/40'} p-2" style="border-color:${col}aa;box-shadow:0 0 12px ${col}22">
-        <div class="w-full sm:hidden pl-6 text-xs text-slate-300 truncate" translate="no">${R.esc(it?.name || '')} <span class="text-slate-500">· ${x.r.sl.label}</span> ${setTag(x.set)}</div>
+        <div class="w-full sm:hidden pl-6 text-xs text-slate-300 truncate" ><span translate="no">${R.esc(it?.name || '')}</span> <span class="text-slate-500">· ${x.r.sl.label}</span> ${setTag(x.set)}</div>
         <span class="cursor-grab text-slate-600 select-none hidden sm:inline" title="ziehen">⋮⋮</span>
         <span class="w-4 sm:w-5 text-center text-sm font-bold text-slate-500 tabular-nums">${n}</span>
         ${fromHtml}
         <div class="min-w-0 flex-1 flex flex-col items-center text-center gap-1">
-          <div class="hidden sm:block text-xs text-slate-300 truncate max-w-full" translate="no">${R.esc(it?.name || '')} <span class="text-slate-500">· ${x.r.sl.label}</span> ${setTag(x.set)}</div>
+          <div class="hidden sm:block text-xs text-slate-300 truncate max-w-full" ><span translate="no">${R.esc(it?.name || '')}</span> <span class="text-slate-500">· ${x.r.sl.label}</span> ${setTag(x.set)}</div>
           <div class="flex items-center w-full gap-1.5 ${kind[1]}">${line}
             ${x.cost ? `<div class="flex flex-wrap justify-center gap-1 text-slate-100">${costBoxes(x.cost, '!px-1 !gap-0.5 !text-[11px] sm:!px-2 sm:!gap-1 sm:!text-[13px]')}</div>` : '<span class="text-xs text-amber-300">⚠ Kosten fehlen</span>'}
             ${line}<span class="-ml-2 text-lg leading-none">➤</span></div>
@@ -905,16 +905,21 @@ window.RokMods.crafting = (R) => {
       const x = prioCache.list.find(y => y.key === key); if (!x || x.ms) return;
       const set = x.set, k = x.r.sl.k, z = x.r.z;
       // Schritt auf eine Kopie anwenden → zeigen, was sich ändert; dann fragen: History? Gear?
+      // Refine: was kam raus? (Auswahl im Dialog; +25/+50/+75/Voll ab dem jetzigen Stand)
+      const v0 = set.ist[x.r.from && x.r.from !== set.ist[k] ? (GEAR_SLOTS.find(sl => set.ist[sl.k] === x.r.from)?.k || k) : k] || {}, rBase = x.meta.k === 'refine' && v0.refType === z.refType ? v0.refine || 0 : 0;
+      const rOpts = x.meta.k === 'refine' ? [...new Set([25, 50, 75, 100].map(a => Math.min(100, rBase + a)))] : [];
+      let rVal = add ? Math.min(100, rBase + add) : x.meta.p;
       const applyTo = (ist) => {
         if (x.r.from) { const src = GEAR_SLOTS.find(sl => set.ist[sl.k] === x.r.from); if (src && src.k !== k) { const tmp = ist[k]; ist[k] = ist[src.k]; ist[src.k] = tmp; } }   // Accessoire aus dem anderen Slot → tauschen
         const v = ist[k];
         if (x.meta.k === 'craft') ist[k] = { item: z.item, rarity: z.rarity, tier: 0, refine: 0, refType: z.refType };
         else if (x.meta.k === 'tier') v.tier = x.meta.t;
-        else if (x.meta.k === 'refine') { const base = v.refType === z.refType ? v.refine || 0 : 0; v.refType = z.refType; v.refine = add ? Math.min(100, base + add) : x.meta.p; }
+        else if (x.meta.k === 'refine') { v.refType = z.refType; v.refine = rVal; }
       };
-      const copy = JSON.parse(JSON.stringify(set.ist)); applyTo(copy);
-      const changes = GEAR_SLOTS.filter(sl => !gSame(gSnap(set.ist[sl.k]), gSnap(copy[sl.k]))).map(sl => ({ slot: sl.k, from: gSnap(set.ist[sl.k]), to: gSnap(copy[sl.k]) }));
-      const ans = await stepDialog(set, changes); if (!ans) return;
+      const mkChanges = () => { const copy = JSON.parse(JSON.stringify(set.ist)); applyTo(copy);
+        return GEAR_SLOTS.filter(sl => !gSame(gSnap(set.ist[sl.k]), gSnap(copy[sl.k]))).map(sl => ({ slot: sl.k, from: gSnap(set.ist[sl.k]), to: gSnap(copy[sl.k]), ...(x.meta.k === 'refine' && sl.k === k ? { n: 1 } : {}) })); };   // Refine: 1 Versuch (in der History änderbar)
+      const ans = await stepDialog(set, mkChanges, rOpts.length ? { opts: rOpts, val: rVal, set: (v) => { rVal = v; } } : null); if (!ans) return;
+      const changes = mkChanges();
       if (ans.hist && changes.length) { chist.unshift({ id: R.newId(), ts: Date.now(), kind: 'hist', src: 'plan', setId: set.id, setName: set.name, slot: changes.length === 1 ? changes[0].slot : '', changes, note: '', imgs: [], vis: hd.vis, pid: '' });
         saveHist(); cloudSave(); const ne = chist[0]; if (ne.vis !== 'private') hPublish(ne).catch(() => {}); }
       if (ans.gear) {
@@ -1011,22 +1016,15 @@ window.RokMods.crafting = (R) => {
     saveGear(); renderGearMain();
   };
   // 💾 Speichern im Ziel = Ziel erreicht: Ziel-Items ins Ist (= Gear-Reiter), auf Wunsch in die History, erreichte Ziel-Slots leeren
-  R.$('gearZielSave') && (R.$('gearZielSave').onclick = async () => {
+  // 💾 speichert nur das Ziel (Planer) – ins Aktuelle + History kommt es erst über ✓ Erledigt in der Prio-Liste
+  R.$('gearZielSave') && (R.$('gearZielSave').onclick = () => {
     const s = activeSet(); if (!s) return;
-    const slots = GEAR_SLOTS.filter(sl => s.ziel[sl.k]?.item && gItem(s.ziel[sl.k].item));
-    if (!slots.length) { await UI.alert('In der Ziel-Ausrüstung ist noch nichts eingetragen.'); return; }
-    const same = (a, b) => a.item === b.item && (a.tier || 0) === (b.tier || 0) && (a.refine || 0) === (b.refine || 0) && (!a.refine || a.refType === b.refType);
-    const changed = slots.filter(sl => !same(s.ist[sl.k], s.ziel[sl.k]));
-    if (!changed.length) { gearMsg('✓ Ziel ist schon erreicht'); return; }
-    if (!(await UI.confirm(`Ziel erreicht? ${changed.length} Teil${changed.length > 1 ? 'e werden' : ' wird'} in „${s.name}“ als aktuelle Ausrüstung übernommen (auch im 🗡 Gear-Reiter).`, { title: '💾 Ziel speichern', ok: 'Übernehmen', cancel: 'Abbrechen', danger: false }))) return;
-    changed.forEach(sl => { s.ist[sl.k] = { ...s.ziel[sl.k] }; });
-    s.updated = Date.now();
-    const post = await UI.confirm('In der History posten?', { title: '📜 History', ok: 'Ja', cancel: 'Nein', danger: false });
-    let n = 0; if (post) n = cedHist(s); else s.histBase = JSON.parse(JSON.stringify(s.ist));
-    saveGear(); renderGearMain(); gearMsg(post && n ? `✓ Übernommen und ${n} Änderung${n > 1 ? 'en' : ''} in der History gespeichert` : '✓ Ins Aktuelle übernommen');
+    if (!GEAR_SLOTS.some(sl => s.ziel[sl.k]?.item)) { gearMsg('In der Ziel-Ausrüstung ist noch nichts eingetragen.', false); return; }
+    s.updated = Date.now(); saveGear(); cloudSave(); renderGearMain();
+    gearMsg('✓ Ziel gespeichert – fertige Schritte unten in der Prio-Liste mit ✓ Erledigt abhaken');
   });
   // Dialog beim Abhaken eines Schritts: „In History posten“ und „Im Gear übernehmen“ (beide vorausgewählt)
-  function stepDialog(set, changes) {
+  function stepDialog(set, mkChanges, ref) {
     const opt = (() => { try { return JSON.parse(R.LS.get('rok_craft_step_opt', '{}')) || {}; } catch { return {}; } })();
     return new Promise((resolve) => {
       const root = document.createElement('div'); root.className = 'fixed inset-0 z-[90] grid place-items-center p-4 bg-ink-950/80 backdrop-blur-sm';
@@ -1034,14 +1032,19 @@ window.RokMods.crafting = (R) => {
       root.innerHTML = `<div class="panel !bg-ink-900 w-full max-w-md rounded-2xl p-5 shadow-2xl">
         <h3 class="font-display text-xl gold-text">✓ Schritt erledigt</h3>
         <div class="mt-1 text-xs text-slate-400" translate="no">${R.esc(set.name)}</div>
-        <div class="mt-3 rounded-xl border border-ink-700 divide-y divide-ink-800">${changes.map(c => hChangeRow(c)).join('') || '<div class="p-3 text-sm text-slate-400">Keine Änderung.</div>'}</div>
+        ${ref ? `<div class="mt-3"><div class="text-xs font-semibold text-red-200">🎲 Was kam beim Refine raus?</div><div class="text-[11px] text-slate-500">Gerechnet als 1 Versuch – in der History änderbar</div><div data-sd-ref class="mt-1.5 flex flex-wrap gap-1.5"></div></div>` : ''}
+        <div data-sd-ch class="mt-3 rounded-xl border border-ink-700 divide-y divide-ink-800"></div>
         <div class="mt-3 grid gap-2">${box('hist', '📜 In History posten', 'Eintrag mit Datum und Kosten im Craft-Verlauf', opt.hist !== false)}${box('gear', '🗡 Im Gear übernehmen', 'Aktuelle Ausrüstung wird angepasst – Planer, Kosten und Kalender rechnen neu', opt.gear !== false)}</div>
         <div class="mt-4 flex justify-end gap-2"><button type="button" data-sd-no class="px-4 py-2.5 rounded-lg border border-ink-600 hover:border-gold-500/60 text-sm">Abbrechen</button><button type="button" data-sd-ok class="px-5 py-2.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-ink-950 font-semibold text-sm">✓ Fertig</button></div></div>`;
+      const draw = () => { const ch = mkChanges();
+        root.querySelector('[data-sd-ch]').innerHTML = ch.map(c => hChangeRow(c)).join('') || '<div class="p-3 text-sm text-slate-400">Keine Änderung.</div>';
+        if (ref) root.querySelector('[data-sd-ref]').innerHTML = ref.opts.map(o => `<button type="button" data-sd-rv="${o}" class="px-3 py-1.5 rounded-lg border text-sm font-semibold tabular-nums ${o === ref.val ? 'border-red-400 bg-red-500/20 text-red-100' : 'border-ink-600 text-slate-300 hover:border-red-400/60'}">${o >= 100 ? 'Voll ✦' : o + ' %'}</button>`).join(''); };
       const done = (v) => { root.remove(); document.removeEventListener('keydown', key, true); resolve(v); };
       const key = (ev) => { if (ev.key === 'Escape') { ev.preventDefault(); done(null); } };
       root.addEventListener('click', (ev) => { if (ev.target === root || ev.target.closest('[data-sd-no]')) return done(null);
+        const rv = ev.target.closest('[data-sd-rv]'); if (rv && ref) { ref.val = +rv.dataset.sdRv; ref.set(ref.val); draw(); return; }
         if (ev.target.closest('[data-sd-ok]')) { const v = { hist: root.querySelector('[data-sd="hist"]').checked, gear: root.querySelector('[data-sd="gear"]').checked }; R.LS.set('rok_craft_step_opt', JSON.stringify(v)); done(v); } });
-      document.addEventListener('keydown', key, true); document.body.appendChild(root); root.querySelector('[data-sd-ok]').focus();
+      draw(); document.addEventListener('keydown', key, true); document.body.appendChild(root); root.querySelector('[data-sd-ok]').focus();
     });
   }
   // Alles auf Max: Ziel-Items (oder sonst die Ist-Items) auf höchste Tier-Stufe + voll refined
@@ -1857,7 +1860,16 @@ window.RokMods.crafting = (R) => {
   const isoOf = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   R.matForecast = matForecast;
 
-  const cal = { setId: '', month: 0, sel: null, mode: 'prio', an: ['1', '3', '5', 'all'].includes(R.LS.get('rok_cal_an', 'all')) ? R.LS.get('rok_cal_an', 'all') : 'all' };
+  const cal = { setId: '', month: 0, sel: null, mode: 'prio', an: ['1', '3', '5', 'all'].includes(R.LS.get('rok_cal_an', 'all')) ? R.LS.get('rok_cal_an', 'all') : 'all', order: R.LS.get('rok_cal_order', 'prio') };
+  // Reihenfolge im Kalender: Prio-Liste (mit Etappen) · billigste zuerst · vorhandene Items zuerst (erst aufwerten, dann neu craften)
+  const CAL_ORDER = { prio: '📋 Prio-Liste & Etappen', cheap: '💰 Billigste zuerst', have: '🎒 Vorhandene Items zuerst' };
+  function calList(only, solo) {
+    if (cal.order === 'prio' || !CAL_ORDER[cal.order]) return solo ? prioListAll().filter(x => !x.ms && x.set === only) : prioListAll();
+    const queues = (solo ? [only] : planSets()).flatMap(s => gearQueues(gearCalc(s, setTarget(s)), s));
+    if (cal.order === 'cheap') return prioDefault(queues, 'cheap');
+    const own = queues.filter(q => !q.some(x => x.meta.k === 'craft')), neu = queues.filter(q => q.some(x => x.meta.k === 'craft'));
+    return [...prioDefault(own, 'cheap'), ...prioDefault(neu, 'cheap')];
+  }
   function renderCal() {
     const head = R.$('calHead'); if (!head) return;
     const fc = matForecast();
@@ -1865,7 +1877,7 @@ window.RokMods.crafting = (R) => {
     // gemeinsame Prio-Liste aller Sets im Gesamtziel; Anzeige optional nur für ein Set
     const only = cal.setId ? gear.sets.find(s => s.id === cal.setId) : null, solo = !!only && cal.mode === 'solo';
     // „nur dieses Set“ = als würdest du nur dieses Set bauen (eigene Reihenfolge, ganzer Rucksack); sonst gemeinsame Prio-Liste
-    const list = splitRefine(solo ? prioListAll().filter(x => !x.ms && x.set === only) : prioListAll()), proj = fc ? projectList(list, fc, calChoice()) : null;
+    const list = splitRefine(calList(only, solo)), proj = fc ? projectList(list, fc, calChoice()) : null;
     const showRow = (r) => r.x.ms ? !only : !only || r.x.set === only;
     const goalSets = (only ? [only] : planSets()).filter(s => s.goal.date), goalDays = new Map(goalSets.map(s => [dOffOf(s.goal.date), s]));
     const set = only || activeSet(), perWeek = fc ? MATK().reduce((a, k) => a + (fc.perDay[k] || 0), 0) * 7 + (fc.perDay.choice || 0) * 7 : 0;
@@ -1881,6 +1893,7 @@ window.RokMods.crafting = (R) => {
         <div class="flex flex-wrap items-center gap-2 text-xs">
           <select data-cal="set" translate="no" class="bg-ink-950 border border-ink-600 rounded-lg px-2.5 py-1.5 text-sm font-semibold focus:outline-none focus:border-gold-500"><option value="">🌍 Alle Sets im Gesamtziel (${planSets().length})</option>${planSets().map(s => `<option value="${R.esc(s.id)}"${only === s ? ' selected' : ''}>${R.esc(s.name)}</option>`).join('')}</select>
           ${only ? `<div class="inline-flex gap-0.5 p-0.5 rounded-lg bg-ink-950 border border-ink-700">${[['prio', '📋 nach Prio-Liste'], ['solo', '🎯 nur dieses Set']].map(([v, l]) => `<button type="button" data-cal="mode" data-v="${v}" class="px-2.5 py-1 rounded-md font-semibold ${(cal.mode || 'prio') === v ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'}">${l}</button>`).join('')}</div>` : ''}
+          <select data-cal="order" class="bg-ink-950 border border-ink-600 rounded-lg px-2.5 py-1.5 text-sm font-semibold focus:outline-none focus:border-gold-500" title="In welcher Reihenfolge gecraftet wird">${Object.entries(CAL_ORDER).map(([k, l]) => `<option value="${k}"${(CAL_ORDER[cal.order] ? cal.order : 'prio') === k ? ' selected' : ''}>${l}</option>`).join('')}</select>
           <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-300"><input type="checkbox" data-cal="bp" ${gearOpt.calBp !== false ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">📜 Blaupausen einrechnen</label>
           <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-300"><input type="checkbox" data-cal="choice" ${calChoice() ? 'checked' : ''} class="w-4 h-4 accent-yellow-500">📦 Wahlkisten einrechnen</label>
         </div></div>
@@ -1998,6 +2011,7 @@ window.RokMods.crafting = (R) => {
   R.$('craftCalPane').addEventListener('change', (ev) => {
     const a = ev.target.dataset.cal;
     if (a === 'set') { cal.setId = ev.target.value; cal.sel = null; renderCal(); }
+    else if (a === 'order') { cal.order = ev.target.value; R.LS.set('rok_cal_order', cal.order); renderCal(); }
     else if (a === 'choice') { gearOpt.calChoice = ev.target.checked; saveGearOpt(); fcCache = null; renderCal(); }
     else if (a === 'bp') { gearOpt.calBp = ev.target.checked; saveGearOpt(); renderCal(); renderGearMain(); }
   });
@@ -2299,7 +2313,7 @@ window.RokMods.crafting = (R) => {
         ${grid4(ps.map(([l, c]) => [l, c.map(noGoldCry)]), HEADS4)}<p class="mt-1 text-[11px] text-slate-500">Max = was das Item komplett kostet: craften + alle Iconic-Stufen + voll refined (Refine im Durchschnitt). Gold und Iconic-Kristalle stehen in der Aufschlüsselung.</p></section>`;
       // pro Mat (mit Animation)
       const mTot = (kk) => bz ? (k.inv[kk] || 0) + (k.toT[kk] || 0) : k.max[kk] || 0;
-      const matList = [...R.MATS, ...GX].filter(x => mTot(x.k) > 1e-4);
+      const matList = [...R.MATS, ...GX.filter(x => x.k !== 'gold')].filter(x => mTot(x.k) > 1e-4);
       const matBars = matList.map((x, i) => { const t = mTot(x.k), d = Math.min(t, k.inv[x.k] || 0), q = t ? d / t : 0, f = x.f || gq;
         return `<div style="${anim ? `animation:cstRowIn .35s ease-out ${(1.45 + i * 0.06).toFixed(2)}s both` : ''}" class="grid grid-cols-[1.5rem_6.5rem_1fr] sm:grid-cols-[1.5rem_7rem_1fr_15rem] items-center gap-x-2 gap-y-0.5 text-xs">${mi(x, 'w-5 h-5')}<span class="text-slate-300 truncate">${R.esc(x.label)}</span>
           <span class="h-2 rounded-full bg-ink-800 overflow-hidden"><span class="bar-in block h-full rounded-full ${q >= 1 ? 'bg-emerald-400' : 'bg-gradient-to-r from-gold-600 to-gold-400'}" style="--w:${Math.round(q * 100)}%;width:${Math.round(q * 100)}%;${anim ? `animation:cstBar .9s cubic-bezier(.2,.8,.2,1) ${(1.6 + i * 0.08).toFixed(2)}s both` : ''}"></span></span>
@@ -2317,7 +2331,7 @@ window.RokMods.crafting = (R) => {
           <div class="mt-3 flex items-end gap-1 h-28">${ks.filter(kk => c.rd.get(kk) >= 0.003).map((kk, i) => { const q = c.rd.get(kk);
             return `<div class="flex-1 min-w-[10px] flex flex-col items-center justify-end gap-1 h-full" title="${kk} Refines: ${pct(q)}"><span class="bar-up w-full rounded-t ${kk <= p90 ? 'bg-red-400/70' : 'bg-red-400/30'}" style="height:${Math.max(3, q / mx * 88)}px;animation-delay:${(i * 0.04).toFixed(2)}s"></span><span class="text-[9px] text-slate-500 tabular-nums">${kk}</span></div>`; }).join('')}</div>
           <div class="mt-3 grid gap-2 sm:grid-cols-3">${big('🍀 Mit Glück', c.best, 'text-emerald-300')}${big('Ø Durchschnitt', c.rest, 'text-slate-300')}${big('💀 Mit Pech', c.worst, 'text-red-300')}</div>
-          <div class="mt-2 text-[10px] text-slate-500">${c.refs.map(r => `${hSlot(r.slot).icon} ${r.craft ? 'neu' : gRefTxt(r.from)} → ${gRefTxt(r.to)}: ${r.sure ? '⚡ sicherer Crit (5er-Garantie)' : (r.odds.min === r.odds.max ? r.odds.min + '×' : `${r.odds.min}–${r.odds.max}× (Ø ${fx1(r.odds.exp)})`) + (r.craft ? ` inkl. ${pct(r.odds.crit)} Craft-Crit` : '')}`).join(' · ')}</div></section>`; }
+          </section>`; }
       // pro Charakter – nur wenn ein ganzes Set (Gruppe) gewählt ist
       if (cst.sel.startsWith('g:') && pk.list.length > 1) {
         const card = (name, list) => { const x = cstCalc(list);
@@ -2328,7 +2342,6 @@ window.RokMods.crafting = (R) => {
         html += `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">📋 Pro Charakter · <span translate="no">${R.esc(pk.label)}</span></h3>
           <div class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">${pk.list.map(s => card(s.name, [s])).join('')}</div></section>`;
       }
-      html += `<p class="text-[11px] text-slate-500 px-1">Ziel = was du im Planer als Ziel eingetragen hast (ohne Ziel: Full Max). Full Max = gleiche Items auf höchster Iconic-Stufe und 100 % refined. Neu gecraftet: 11 % direkt voll refined (Crit), das 5. Exemplar desselben Items zählt als sicherer Crit. Refine pro Versuch – bei 0 %: +25 (29 %) · +50 (30 %) · +75 (30 %) · +100 (11 %) · bei 25 %: +25 (59 %) · +50 (30 %) · +75 (11 %) · bei 50 %: +25 (89 %) · +50 (11 %) · bei 75 %: immer +25.</p>`;
     }
     box.innerHTML = html;
   }
@@ -2755,6 +2768,8 @@ window.RokMods.crafting = (R) => {
     if (craftPane === 'best') renderBest();
     if (craftPane === 'costs') renderCosts();
   }
+  // von außen (z. B. News-Knopf „Craft öffnen“): Craft öffnen, optional direkt einen Reiter
+  R.goCraft = (pane) => { if (pane && document.querySelector(`[data-cpane="${pane}"]`)) { craftPane = pane; cst.lastAnim = null; } R.goView('craft'); renderCraftPanes(); };
   document.querySelectorAll('[data-cpane]').forEach(b => b.onclick = () => { craftPane = b.dataset.cpane; cst.lastAnim = null; renderCraftPanes(); });
   document.querySelectorAll('[data-chpage]').forEach(b => b.onclick = () => { chPage = b.dataset.chpage; renderCraftPanes(); });
 
@@ -2832,7 +2847,8 @@ window.RokMods.crafting = (R) => {
 
   // ---- Teilen: privat / Freunde / öffentlich (public.craft_posts) + Freunde (public.friendships) ----
   const HVIS = { private: ['🔒', 'Privat', 'nur du'], friends: ['👥', 'Freunde', 'deine Freunde'], public: ['🌍', 'Öffentlich', 'alle'] };
-  const hVisPick = (cur, attr, big) => `<span class="inline-flex rounded-md border border-ink-600 overflow-hidden">${Object.entries(HVIS).map(([k, [ic, lb, who]]) =>
+  const FR_ON = false;   // 👥 Freunde vorerst aus – nur 🔒 Privat und 🌍 Öffentlich (auf true = Freunde wieder da)
+  const hVisPick = (cur, attr, big) => `<span class="inline-flex rounded-md border border-ink-600 overflow-hidden">${Object.entries(HVIS).filter(([k]) => FR_ON || k !== 'friends').map(([k, [ic, lb, who]]) =>
     `<button type="button" ${attr} data-v="${k}" aria-pressed="${cur === k}" title="${lb} – sichtbar für ${who}" class="${big ? 'px-2.5 py-1 text-xs' : 'px-1.5 py-0.5 text-[11px]'} ${cur === k ? (k === 'private' ? 'bg-ink-700 text-slate-100' : 'bg-gold-500/20 text-gold-200') : 'text-slate-500 hover:text-gold-300'}">${ic}${big ? ' ' + lb : ''}</button>`).join('')}</span>`;
   const hUuid = () => crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); });
   const hPubErr = (e) => R.tableMissing?.(e) || /craft_posts|friendships/i.test(String(e?.message || e)) ? 'Teilen geht erst, wenn das SQL für craft_posts/friendships in Supabase ausgeführt ist.' : 'Teilen fehlgeschlagen: ' + (e?.message || e);
@@ -2870,11 +2886,13 @@ window.RokMods.crafting = (R) => {
   const frAva = (id, c = 'w-7 h-7') => { const u = fr.users[id]; return u?.avatar ? `<img src="${R.esc(u.avatar)}" alt="" class="${c} rounded-full object-cover border border-ink-600">` : `<span class="${c} rounded-full bg-ink-800 border border-ink-600 grid place-items-center text-[11px] text-slate-400">${R.esc(frName(id).slice(0, 1).toUpperCase())}</span>`; };
   // Ein Fenster: 📜 Meine History · 👥 Freunde · 🌍 Öffentlich
   var hTab = ['mine', 'friends', 'public'].includes(R.LS.get('rok_craft_htab', '')) ? R.LS.get('rok_craft_htab', '') : 'mine';
+  if (hTab === 'friends' && !FR_ON) hTab = 'public';
   if (hTab !== 'mine') fr.tab = hTab;
+  if (!FR_ON) fr.tab = 'public';
   function renderHTabs() {
     const box = R.$('chTabs'); if (!box) return; const nNew = frMe() ? frNew() : 0;
     const tab = (k, l) => `<button type="button" data-htab="${k}" class="px-4 py-2 rounded-lg text-sm font-semibold border transition ${hTab === k ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 text-slate-400 hover:text-gold-300'}">${l}</button>`;
-    box.innerHTML = tab('mine', '📜 Meine History') + tab('friends', `👥 Freunde${nNew ? ` <span class="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500 text-white font-bold">${nNew}</span>` : ''}`) + tab('public', '🌍 Öffentlich');
+    box.innerHTML = tab('mine', '📜 Meine History') + (!FR_ON ? '' : tab('friends', `👥 Freunde${nNew ? ` <span class="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-500 text-white font-bold">${nNew}</span>` : ''}`)) + tab('public', '🌍 Öffentlich');
     R.$('chMine').classList.toggle('hidden', hTab !== 'mine'); R.$('chFriends').classList.toggle('hidden', hTab === 'mine');
   }
   R.$('chTabs').addEventListener('click', (ev) => { const b = ev.target.closest('[data-htab]'); if (!b) return; hTab = b.dataset.htab; R.LS.set('rok_craft_htab', hTab);
@@ -2931,10 +2949,10 @@ window.RokMods.crafting = (R) => {
     const person = (x, btns) => { const id = x.a === me ? x.b : x.a; return `<div class="flex items-center gap-2 py-1">${frAva(id, 'w-6 h-6')}<span class="text-sm truncate" translate="no">${R.esc(frName(id))}</span><span class="ml-auto flex gap-1">${btns}</span></div>`; };
     const sb = 'text-[11px] px-2 py-0.5 rounded-md border';
     box.innerHTML = `<div class="flex items-start gap-2">
-      <p class="mr-auto text-[11px] text-slate-500">Bei deinen Einträgen unter „Meine History“ mit 🔒 👥 🌍 wählen, wer sie sieht. Neue Crafts deiner Freunde sind hier markiert.</p>
+      <p class="mr-auto text-[11px] text-slate-500">${FR_ON ? 'Bei deinen Einträgen unter „Meine History“ mit 🔒 👥 🌍 wählen, wer sie sieht. Neue Crafts deiner Freunde sind hier markiert.' : 'Bei deinen Einträgen unter „Meine History“ mit 🔒 🌍 wählen, ob alle sie sehen.'}</p>
       <button type="button" data-frreload title="Aktualisieren" class="shrink-0 px-2 py-1 rounded-lg border border-ink-600 text-xs text-slate-400 hover:text-gold-300 ${fr.busy ? 'animate-pulse' : ''}">⟳</button></div>
       ${fr.err ? `<div class="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-200">${R.esc(fr.err)}</div>` : ''}
-      <details class="mt-3 rounded-xl border border-ink-700 bg-ink-950/40 p-3" ${inc.length || !acc.length ? 'open' : ''}>
+      ${!FR_ON ? '' : `<details class="mt-3 rounded-xl border border-ink-700 bg-ink-950/40 p-3" ${inc.length || !acc.length ? 'open' : ''}>
         <summary class="cursor-pointer select-none text-xs font-semibold text-slate-200">Freunde verwalten · ${acc.length}${inc.length ? ` <span class="text-red-300">· ${inc.length} Anfrage${inc.length > 1 ? 'n' : ''}</span>` : ''}</summary>
         <form data-frsearch class="mt-2 flex gap-2"><input name="q" value="${R.esc(fr.q)}" maxlength="40" placeholder="Spielername suchen …" class="flex-1 min-w-0 bg-ink-950 border border-ink-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-gold-500"><button class="px-3 py-1.5 rounded-lg border border-gold-500/60 text-gold-200 text-xs font-semibold">🔍 Suchen</button></form>
         ${fr.found.length ? `<div class="mt-1 divide-y divide-ink-800">${fr.found.map(u => { const r = fr.rel.find(x => x.a === u.user_id || x.b === u.user_id);
@@ -2944,7 +2962,7 @@ window.RokMods.crafting = (R) => {
         ${inc.length ? `<div class="mt-3 text-[10px] uppercase tracking-widest text-red-300">Anfragen an dich</div>${inc.map(x => person(x, `<button type="button" data-fracc="${x.id}" class="${sb} border-emerald-500/60 text-emerald-300">✓ Annehmen</button><button type="button" data-frdel="${x.id}" class="${sb} border-ink-600 text-slate-400">✕</button>`)).join('')}` : ''}
         ${out.length ? `<div class="mt-3 text-[10px] uppercase tracking-widest text-slate-500">Gesendet</div>${out.map(x => person(x, `<span class="text-[11px] text-slate-500">wartet …</span><button type="button" data-frdel="${x.id}" class="${sb} border-ink-600 text-slate-400" title="zurückziehen">✕</button>`)).join('')}` : ''}
         ${acc.length ? `<div class="mt-3 text-[10px] uppercase tracking-widest text-slate-500">Freunde</div>${acc.map(x => person(x, `<button type="button" data-frdel="${x.id}" data-frask="1" class="${sb} border-ink-600 text-slate-500 hover:text-red-300" title="Freund entfernen">✕</button>`)).join('')}` : ''}
-      </details>
+      </details>`}
       <div class="mt-3 space-y-2">${!fr.loaded && !fr.err ? '<p class="py-6 text-center text-sm text-slate-500">Lädt …</p>'
         : fr.posts.length ? fr.posts.map(post).join('')
         : `<p class="py-6 text-center text-sm text-slate-500">${fr.tab === 'friends' ? (acc.length ? 'Deine Freunde haben noch nichts geteilt.' : 'Noch keine Freunde – oben nach Namen suchen und anfragen.') : 'Noch keine öffentlichen Crafts.'}</p>`}</div>`;
@@ -2970,7 +2988,7 @@ window.RokMods.crafting = (R) => {
   setTimeout(() => frLoad(), 2500);
 
   // ---- Seite 1: Neue History (Set wählen → Item antippen → Tier/Refine → hinzufügen) ----
-  const hd = { open: false, setId: '', slots: null, vis: ['friends', 'public'].includes(R.LS.get('rok_craft_vis', '')) ? R.LS.get('rok_craft_vis', '') : 'private' };
+  const hd = { open: false, setId: '', slots: null, vis: R.LS.get('rok_craft_vis', '') === 'public' || (R.LS.get('rok_craft_vis', '') === 'friends' && FR_ON) ? R.LS.get('rok_craft_vis', '') : 'private' };
   const hdSet = () => gear.sets.find(s => s.id === hd.setId) || null;
   const hdLoad = (id) => { const s = gear.sets.find(x => x.id === id) || activeSet(); hd.setId = s.id; hd.slots = JSON.parse(JSON.stringify(s.ist)); gearSel.hist = gearSel.hist || 'helm'; };
   const hdChanges = () => { const s = hdSet(); return s && hd.slots ? GEAR_SLOTS.map(sl => ({ slot: sl.k, from: gSnap(s.ist[sl.k]), to: gSnap(hd.slots[sl.k]) })).filter(c => !gSame(c.from, c.to)) : []; };
