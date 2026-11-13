@@ -415,6 +415,25 @@ window.I18N = (() => {
         'Freies Set: Kommandanten, Namen und Ausrüstung einzeln verschieben, vergrößern und drehen': 'Free set: move, resize and rotate commanders, names and equipment separately',
         'Set gespeichert · in der Cloud (user_state)': 'Set saved · in the cloud (user_state)', 'Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': 'Saved locally · cloud unreachable, will sync automatically',
         // ---- Craft: Kosten, History, Freunde, Charakter Showcase, Help Me ----
+        "🌍 Overall – alle Charaktere zusammen": "🌍 Overall – all characters together",
+        "Helm, Brust, Waffe … von allen Charakteren zusammengerechnet.": "Helmet, chest, weapon … added up over all characters.",
+        "Investiert": "Invested",
+        "Bis Ziel": "To target",
+        "Bis Max": "To max",
+        "Max": "Max",
+        "kein Ziel gesetzt = Max": "no target set = max",
+        "alles zusammen": "everything together",
+        "⚡ Kurz": "⚡ Short",
+        "🔎 Detailliert": "🔎 Detailed",
+        "🧩 Pro Teil": "🧩 Per piece",
+        "📋 Pro Charakter & Set": "📋 Per character & set",
+        "⚒ Crafting = Items herstellen · ⬆ Iconic = Iconic-Stufen I–V · ⚡ Crit = Refine (Durchschnitt). „Bis Max“ hat kein Crafting, wenn alle Items schon da sind – das steckt dann in „Investiert“.": "⚒ Crafting = making the items · ⬆ Iconic = iconic levels I–V · ⚡ Crit = refine (average). “To max” has no crafting when all items already exist – that is then in “Invested”.",
+        "Wie viel von jedem Mat schon drinsteckt (bis Max) – so siehst du, was dich am meisten bremst.": "How much of each mat is already in (to max) – so you see what slows you down the most.",
+        "Was in jedem Teil steckt und was es noch kostet – über alle gewählten Charaktere zusammen.": "What is in each piece and what it still costs – for all selected characters together.",
+        "Was in jedem Teil steckt und was es noch kostet.": "What is in each piece and what it still costs.",
+        "⚒ Crafting": "⚒ Crafting",
+        "⬆ Iconic": "⬆ Iconic",
+        "⚡ Crit": "⚡ Crit",
         "max. 6 Bilder · auch per Drag & Drop": "max. 6 images · drag & drop works too",
         "💾 Eintrag speichern": "💾 Save entry",
         "⬆ Bild hochladen": "⬆ Upload image",
@@ -723,6 +742,8 @@ window.I18N = (() => {
         // ---- Craft: Kosten, History, Freunde, Charakter Showcase, Help Me (dynamische Texte) ----
         [/^\+[\d,.]+ (?:Mio\. |Tsd\. |Mrd\. )?(?:Proviant|Holz|Stein|Gold)[\s\S]*$/, (m) => units(m.replace(/Proviant/g, 'Food').replace(/Holz/g, 'Wood').replace(/Stein/g, 'Stone')).replace(/ \/ Tag$/, ' / day')],   // Zuwachs-Zeile
         [/^(\d+) von (\d+)$/, '$1 of $2'],
+        [/^(.+) – von Max geschafft(?: · noch (\d+) (Teile?) offen)?( 🎉)?$/, (m, w, n, t, e) => `${w === 'Alle Charaktere' ? 'All characters' : w} – of max done` + (n ? ` · ${n} ${n === '1' ? 'piece' : 'pieces'} still open` : '') + (e || '')],
+        [/^(\d+) Teile müssen bis Max noch refined werden\. Im Schnitt brauchst du$/, '$1 pieces still need to be refined to max. On average you need'], [/^1 Teil muss bis Max noch refined werden\. Im Schnitt brauchst du$/, '1 piece still needs to be refined to max. On average you need'],
         [/^⚒ (.+) neu$/, '⚒ $1 new'], [/^\(bis zu (\d+) Schritte\) – oder einfach nur einen Kommentar schreiben$/, '(up to $1 steps) – or just write a comment'],
         [/^(\d+)\/(\d+) Schritte – Reihenfolge = Priorität \(1 = zuerst\)$/, '$1/$2 steps – order = priority (1 = first)'], [/^(\d+) von (\d+) Sets$/, '$1 of $2 sets'],
         [/^(\d+) von 4 Materialien reichen noch nicht$/, '$1 of 4 materials are not enough yet'],
@@ -744,7 +765,7 @@ window.I18N = (() => {
         [/^Schätzung Ø ([\d,]+)$/, 'Estimate avg $1'],
         [/^📋 Pro Set · (.+)$/, (m, t) => '📋 Per set · ' + t.replace(/^noch bis (Full Max|Ziel)$/, (x, g) => 'still to ' + (g === 'Ziel' ? 'target' : g)).replace(/^bisher ausgegeben$/, 'spent so far').replace(/^gesamt bei (Full Max|Ziel)$/, (x, g) => 'total at ' + (g === 'Ziel' ? 'target' : g))],
         [/^\/ (.+) · noch (.+)$/, (m, a, b) => units('/ ' + a + ' · still ' + b)],
-        [/^([\s\S]*(?:→ Voll:|neu →)[\s\S]*)$/, (m) => m.replace(/→ Voll:/g, '→ full:').replace(/\bneu →/g, 'new →').replace(/inkl\. ([\d,]+ %) Craft-Crit/g, 'incl. $1 craft crit').replace(/⚡ sicherer Crit \(5er-Garantie\)/g, '⚡ sure crit (5th-copy guarantee)')],
+        [/^([\s\S]*(?:→ Voll:|neu →)[\s\S]*)$/, (m) => m.replace(/→ Voll:/g, '→ full:').replace(/Neu gecraftet →/g, 'Newly crafted →').replace(/\bneu →/g, 'new →').replace(/inkl\. ([\d,]+ %) Craft-Crit/g, 'incl. $1 craft crit').replace(/⚡ sicherer Crit \(5er-Garantie\)/g, '⚡ sure crit (5th-copy guarantee)')],
         [/^(\d+) Teile müssen noch refined werden\. Im Schnitt brauchst du$/, '$1 pieces still need to be refined. On average you need'], [/^1 Teil muss noch refined werden\. Im Schnitt brauchst du$/, '1 piece still needs to be refined. On average you need'],
         [/^, mit Glück (\d+), mit Pech (\d+)\. In 9 von 10 Fällen reichen$/, ', with luck $1, with bad luck $2. In 9 out of 10 cases it takes'],
         [/^noch bis (Full Max|Ziel) · antippen zum Auswählen$/, (m, g) => `still to ${g === 'Ziel' ? 'target' : g} · tap to select`],
@@ -968,7 +989,7 @@ window.I18N = (() => {
             .replace(/(\d) Tage$/, '$1 days').replace(/ Spieler$/, ' players').replace(/≈ ([\d.,]+) Tage/g, '≈ $1 days');
   }
   // Refine-Erklärtexte (mehrere Sätze) Stück für Stück übersetzen
-  const refDe = (s) => s.replace(/Neu gecraftet: 11 % direkt voll refined \(Crit\), das 5\. Exemplar desselben Items zählt als sicherer Crit\./, 'Newly crafted: 11 % come fully refined right away (crit), the 5th copy of the same item counts as a sure crit.')
+  const refDe = (s) => s.replace(/Full Max = gleiche Items auf höchster Iconic-Stufe und 100 % refined\./, 'Full Max = same items at the highest iconic level and 100 % refined.').replace(/Neu gecraftet: 11 % direkt voll refined \(Crit\), das 5\. Exemplar desselben Items zählt als sicherer Crit\./, 'Newly crafted: 11 % come fully refined right away (crit), the 5th copy of the same item counts as a sure crit.')
     .replace(/Refine pro Versuch – /, 'Refine per attempt – ').replace(/bei (\d+) %:/g, 'at $1 %:').replace(/immer \+25/g, 'always +25');
   // Übersetzt einen deutschen Text (ganzer Text, sonst mit führendem Symbol/Emoji, sonst Muster, sonst Einheiten)
   function tr(src) {

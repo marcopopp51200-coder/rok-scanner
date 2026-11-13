@@ -2123,17 +2123,10 @@ window.RokMods.crafting = (R) => {
       <p class="mt-2 text-[10px] text-slate-500">${view === 'ziel' ? 'Ziel = was du im Planer als Ziel eingetragen hast.' : 'Full Max = gleiche Items auf höchster Iconic-Stufe und 100 % refined.'} Refine bei 0 %: +25 (29 %) · +50 (30 %) · +75 (30 %) · +100 (11 %) · bei 25 %: +25 (59 %) · +50 (30 %) · +75 (11 %) · bei 50 %: +25 (89 %) · +50 (11 %) · bei 75 %: immer +25.${c.missing ? ' <span class="text-amber-300">Für manche Stufen fehlen Kosten im Katalog – die sind nicht mitgezählt.</span>' : ''}</p></details>`;
   }
   let st_costEdit = null; const st_costOpen = new Set();
-  // ---- 💰 Kosten-Reiter: alles zu Kosten an einem Ort ----
-  const cst = { sel: R.LS.get('rok_craft_cost_sel', 'all'), mode: R.LS.get('rok_craft_cost_mode', 'max') === 'ziel' ? 'ziel' : 'max', tab: 'rest' };
-  // eigene Anzahl Refines (Crits) je Auswahl + Max/Ziel – sonst gilt die Schätzung (Ø)
-  let cstRefN = {}; try { cstRefN = JSON.parse(R.LS.get('rok_craft_cost_refn', '{}')) || {}; } catch {}
-  const refNKey = () => cst.sel + '|' + cst.mode;
-  // Kosten mit eigener Refine-Anzahl: Crit-Kosten im Verhältnis eigene Anzahl / Ø umrechnen
-  const cstAdj = (c, key = refNKey()) => { const n = cstRefN[key], f = n != null && c.rexp > 0 ? n / c.rexp : 1, crit = gScale(c.catB.refine, f);
-    const rest = gAdd(gAdd(gAdd(gZero(), c.catB.craft), c.catB.tier), crit), total = gAdd(gAdd(gZero(), c.spent), rest);
-    return { n: n != null && c.rexp > 0 ? n : null, crit, rest, total, done: gMatSum(total) ? gMatSum(c.spent) / gMatSum(total) : 0 }; };
+  // ---- 💰 Kosten-Reiter: Investiert · bis Ziel · bis Max · Max – kurz oder detailliert ----
+  const cst = { sel: R.LS.get('rok_craft_cost_sel', 'all'), view: R.LS.get('rok_craft_cost_view', 'short') === 'detail' ? 'detail' : 'short' };
   const cstSets = () => gear.sets.filter(s => GEAR_SLOTS.some(sl => s.ist[sl.k]?.item));
-  const withMode = (list) => list.map(s => ({ ...s, costView: cst.mode }));   // Max/Ziel für den ganzen Reiter
+  const asView = (list, v) => list.map(s => ({ ...s, costView: v }));
   function cstPick() { const all = cstSets();
     if (cst.sel.startsWith('s:')) { const s = all.find(x => x.id === cst.sel.slice(2)); if (s) return { label: s.name, list: [s], one: s }; }
     if (cst.sel.startsWith('g:')) { const g = gear.groups.find(x => x.id === cst.sel.slice(2)); const mem = g ? g.members.map(id => all.find(x => x.id === id)).filter(Boolean) : []; if (mem.length) return { label: '🗂 ' + g.name, list: mem }; }
@@ -2156,112 +2149,117 @@ window.RokMods.crafting = (R) => {
     list.forEach((x, i) => { for (let j = 0; j < 4; j++) { const left = 4 + Math.random() * 88, y = Math.round(h - 34 - Math.random() * Math.max(10, h * 0.25)), d = (Math.random() * 0.55 + i * 0.05).toFixed(2), r0 = Math.round(Math.random() * 120 - 60), r1 = Math.round(Math.random() * 40 - 20);
       out += `<span data-cstrain class="absolute top-0" style="left:${left.toFixed(1)}%;--y:${y}px;--r0:${r0}deg;--r1:${r1}deg;animation:cstFall .75s ease-in ${d}s both, cstOut .3s ease-in ${(1.1 + Math.random() * 0.2).toFixed(2)}s forwards">${mi(x, 'w-7 h-7 drop-shadow')}</span>`; } });
     return out; };
-  // 🧾 Aufschlüsselung: Crafting · Iconic · Crit · Gesamt (Crit-Anzahl selbst anpassbar)
-  function breakdown(c, adj, goalTxt) {
-    const tab = cst.tab, cat = tab === 'spent' ? c.catA : tab === 'total' ? { craft: gAdd(gAdd(gZero(), c.catA.craft), c.catB.craft), tier: gAdd(gAdd(gZero(), c.catA.tier), c.catB.tier), refine: gAdd(gAdd(gZero(), c.catA.refine), adj.crit) } : { ...c.catB, refine: adj.crit };
-    const sum = gAdd(gAdd(gAdd(gZero(), cat.craft), cat.tier), cat.refine);
-    const boxes = (x) => gAny(x) ? `<span class="flex flex-wrap gap-1">${costBoxes(x, '!text-[12px] !px-1.5')}</span>` : '<span class="text-xs text-slate-500">–</span>';
-    const row = (ic, l, sub, x, extra = '', strong = false) => `<div class="grid sm:grid-cols-[13rem_1fr] gap-x-3 gap-y-1 items-center py-2.5 ${strong ? 'border-t-2 border-gold-500/40 mt-1' : 'border-t border-ink-800 first:border-t-0'}">
-      <div><div class="text-sm font-semibold ${strong ? 'text-gold-200' : 'text-slate-100'}">${ic} ${l}</div>${sub ? `<div class="text-[11px] text-slate-500">${sub}</div>` : ''}${extra}</div>${boxes(x)}</div>`;
-    const tabs = [['rest', 'Noch bis ' + goalTxt], ['spent', 'Bisher'], ['total', 'Gesamt bei ' + goalTxt]].map(([k, l]) => `<button type="button" data-cst-tab="${k}" class="px-3 py-1.5 font-semibold ${tab === k ? 'bg-gold-500/20 text-gold-200' : 'text-slate-400 hover:text-gold-300'}">${l}</button>`).join('');
-    const nCrit = c.refs.length && tab !== 'spent' ? `<div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400"><label class="flex items-center gap-1.5">Anzahl Refines
-        <input type="number" min="0" step="1" data-cst-refn value="${adj.n != null ? adj.n : Math.round(c.rexp)}" class="w-16 bg-ink-950 border ${adj.n != null ? 'border-gold-400' : 'border-ink-600'} rounded-md px-1.5 py-0.5 text-sm text-slate-100 tabular-nums focus:outline-none focus:border-gold-500"></label>
-        <span>Schätzung Ø ${fx1(c.rexp)}</span>${adj.n != null ? '<button type="button" data-cst-refn-reset class="underline hover:text-gold-300">↺ Schätzung nehmen</button>' : ''}</div>` : '';
-    return `<section class="panel rounded-2xl p-4 sm:p-5"><div class="flex flex-wrap items-center gap-2"><h3 class="font-display text-lg gold-text mr-auto">🧾 Aufschlüsselung</h3>
-        <span class="inline-flex flex-wrap rounded-lg border border-ink-600 overflow-hidden text-xs">${tabs}</span></div>
-      <div class="mt-2">
-        ${row('⚒', 'Crafting-Kosten', 'Items neu herstellen', cat.craft)}
-        ${row('⬆', 'Iconic-Kosten', 'Iconic-Stufen I–V', cat.tier)}
-        ${row('⚡', 'Crit-Kosten', tab === 'spent' ? 'Refine – geschätzt (Ø)' : adj.n != null ? 'Refine – mit deiner Anzahl' : 'Refine – geschätzt (Ø), unten anpassbar', cat.refine, nCrit)}
-        ${row('＝', 'Gesamt', '', sum, '', true)}
-      </div></section>`;
-  }
-  // 📋 Pro Set: jede Aufschlüsselung nebeneinander + Overall (alle Charaktere)
-  function perSet(all, goalTxt) {
-    const tab = cst.tab === 'spent' ? 'spent' : cst.tab === 'total' ? 'total' : 'rest';
-    const parts = (c, adj, tb = tab) => { const r = { ...c.catB, refine: adj.crit };
-      if (tb === 'spent') return c.catA;
-      if (tb === 'total') return { craft: gAdd(gAdd(gZero(), c.catA.craft), r.craft), tier: gAdd(gAdd(gZero(), c.catA.tier), r.tier), refine: gAdd(gAdd(gZero(), c.catA.refine), r.refine) };
-      return r; };
-    const card = (name, list, key, big) => { const c = setCostSum(withMode(list)), adj = cstAdj(c, key + '|' + cst.mode); if (adj.n != null) c.done = adj.done;
-      const q = c.open ? Math.min(99, Math.round(c.done * 100)) : 100, x = parts(c, adj), sum = gAdd(gAdd(gAdd(gZero(), x.craft), x.tier), x.refine);
-      const sumOf = (y) => gAdd(gAdd(gAdd(gZero(), y.craft), y.tier), y.refine);
-      const block = (ttl, cl, y) => `<div class="rounded-lg border border-ink-700 bg-ink-950/50 p-2.5"><div class="text-[10px] uppercase tracking-widest ${cl}">${ttl}</div>${ln('⚒', 'Crafting', y.craft)}${ln('⬆', 'Iconic', y.tier)}${ln('⚡', 'Crit', y.refine)}${ln('＝', 'Gesamt', sumOf(y), true)}</div>`;
-      const ln = (ic, l, v, strong) => `<div class="flex items-start gap-2 py-1 ${strong ? 'border-t border-gold-500/40 mt-1 pt-1.5' : ''}"><span class="w-20 shrink-0 text-[11px] ${strong ? 'text-gold-200 font-semibold' : 'text-slate-400'}">${ic} ${l}</span><span class="flex flex-wrap gap-1 min-w-0">${gAny(v) ? costBoxes(v, '!text-[11px] !px-1.5') : '<span class="text-[11px] text-slate-600">–</span>'}</span></div>`;
-      return `<div class="rounded-xl border ${big ? 'border-gold-400/60 bg-gold-500/5' : 'border-ink-700 bg-ink-950/40'} p-3">
-        <div class="flex items-center gap-2"><span class="font-semibold ${big ? 'text-gold-200 text-base' : 'text-slate-100 text-sm'} truncate mr-auto" ${big ? '' : 'translate="no"'}>${R.esc(name)}</span><span class="text-[11px] tabular-nums ${c.open ? 'text-slate-400' : 'text-emerald-300'}">${c.open ? q + ' %' : '✓'}</span>${adj.n != null ? '<span class="text-[10px] text-gold-300" title="mit deiner Refine-Anzahl">✎</span>' : ''}</div>
-        <div class="mt-1 h-1 rounded-full bg-ink-800 overflow-hidden"><span class="block h-full rounded-full bg-gradient-to-r from-gold-500 to-emerald-400" style="width:${q}%"></span></div>
-        ${big ? `<div class="mt-2 grid gap-2 lg:grid-cols-3">${block('Bisher ausgegeben', 'text-slate-400', parts(c, adj, 'spent'))}${block('Noch bis ' + goalTxt, 'text-sky-300', parts(c, adj, 'rest'))}${block('Gesamt bei ' + goalTxt, 'text-gold-300', parts(c, adj, 'total'))}</div>`
-          : `<div class="mt-1.5">${ln('⚒', 'Crafting', x.craft)}${ln('⬆', 'Iconic', x.tier)}${ln('⚡', 'Crit', x.refine)}${ln('＝', 'Gesamt', sum, true)}</div>`}</div>`; };
-    const grs = (gear.groups || []).map(g => ({ g, mem: g.members.map(id => all.find(x => x.id === id)).filter(Boolean) })).filter(x => x.mem.length);
-    const tl = tab === 'spent' ? 'bisher ausgegeben' : tab === 'total' ? 'gesamt bei ' + goalTxt : 'noch bis ' + goalTxt;
-    return `<section class="panel rounded-2xl p-4 sm:p-5"><div class="flex flex-wrap items-center gap-2"><h3 class="font-display text-lg gold-text mr-auto">📋 Pro Set · ${tl}</h3><span class="text-[11px] text-slate-500">Umschalten oben bei 🧾 Aufschlüsselung</span></div>
-      <div class="mt-3">${card('🌍 Overall – alle Charaktere', all, 'all', true)}</div>
-      <div class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">${all.map(s => card(s.name, [s], 's:' + s.id)).join('')}</div>
-      ${grs.length ? `<div class="mt-4 text-[10px] uppercase tracking-widest text-slate-500">🗂 Sets</div><div class="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">${grs.map(({ g, mem }) => card('🗂 ' + g.name, mem, 'g:' + g.id)).join('')}</div>` : ''}</section>`;
+  // alles für eine Auswahl auf einmal: investiert, bis Ziel, bis Max, Max (+ Aufteilung Crafting/Iconic/Crit)
+  const sumCat = (c) => gAdd(gAdd(gAdd(gZero(), c.craft), c.tier), c.refine);
+  const addCat = (a, b) => ({ craft: gAdd(gAdd(gZero(), a.craft), b.craft), tier: gAdd(gAdd(gZero(), a.tier), b.tier), refine: gAdd(gAdd(gZero(), a.refine), b.refine) });
+  function cstCalc(list) {
+    const cM = setCostSum(asView(list, 'max')), cT = setCostSum(asView(list, 'ziel')), zl = list.some(hasZiel);
+    return { cM, cT, zl, inv: cM.spent, toT: cT.rest, toM: cM.rest, max: cM.total, catInv: cM.catA, catT: cT.catB, catM: cM.catB, catMax: addCat(cM.catA, cM.catB),
+      pM: cM.open ? Math.min(99, Math.round(cM.done * 100)) : 100, pT: cT.open ? Math.min(99, Math.round(cT.done * 100)) : 100, missing: cM.missing || cT.missing }; }
+  // 3×2-Feld: oben Mats, unten Gold · Kristalle · Blaupausen
+  const CST_LOW = () => GX.filter(x => ['gold', 'crystal', 'bp'].includes(x.k));
+  const cstMats = (costs) => R.MATS.filter(m => costs.some(c => (c[m.k] || 0) > 1e-4));
+  const cell = (x, v) => `<div class="flex items-center gap-1.5 min-w-0 rounded-lg bg-ink-950/60 border border-ink-800 px-2 py-1.5">${mi(x, 'w-5 h-5 shrink-0')}<span class="text-[13px] font-semibold tabular-nums whitespace-nowrap ${v > 1e-4 ? 'text-slate-100' : 'text-slate-600'}">${v > 1e-4 ? (x.f || gq)(v) : '–'}</span></div>`;
+  const field = (l, cl, x, mats, sub = '') => `<div class="rounded-xl border border-ink-700 bg-ink-950/40 p-3 min-w-0">
+      <div class="flex items-baseline gap-2"><span class="text-[11px] uppercase tracking-widest font-semibold ${cl}">${l}</span>${sub}</div>
+      <div class="mt-2 grid gap-1.5" style="grid-template-columns:repeat(${Math.max(3, mats.length)},minmax(0,1fr))">${mats.map(m => cell(m, x[m.k] || 0)).join('')}</div>
+      <div class="mt-1.5 grid grid-cols-3 gap-1.5">${CST_LOW().map(g => cell(g, x[g.k] || 0)).join('')}</div></div>`;
+  const fields4 = (k, mats) => `<div class="grid gap-2 md:grid-cols-2">
+      ${field('Investiert', 'text-slate-300', k.inv, mats, `<span class="text-[11px] text-slate-500 tabular-nums">${k.pM} %</span>`)}
+      ${field('Bis Ziel', 'text-emerald-300', k.toT, mats, k.zl ? `<span class="text-[11px] text-slate-500 tabular-nums">${k.pT} % geschafft</span>` : '<span class="text-[11px] text-slate-500">kein Ziel gesetzt = Max</span>')}
+      ${field('Bis Max', 'text-sky-300', k.toM, mats, `<span class="text-[11px] text-slate-500 tabular-nums">${k.pM} % geschafft</span>`)}
+      ${field('Max', 'text-gold-300', k.max, mats, '<span class="text-[11px] text-slate-500">alles zusammen</span>')}</div>`;
+  const boxesOr = (x) => gAny(x) ? `<span class="flex flex-wrap gap-1">${costBoxes(x, '!text-[11px] !px-1.5')}</span>` : '<span class="text-[11px] text-slate-600">–</span>';
+  // Tabelle: Zeilen × Spalten (Investiert · bis Ziel · bis Max · Max)
+  const grid4 = (rows, heads) => `<div class="mt-2 overflow-x-auto"><table class="w-full text-left min-w-[760px]"><thead><tr class="text-[10px] uppercase tracking-widest">
+      <th class="py-1.5 pr-2 font-semibold text-slate-500"></th>${heads.map(([h, cl]) => `<th class="py-1.5 px-2 font-semibold ${cl}">${h}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map(([lab, cells, strong], i) => `<tr class="${strong ? 'border-t-2 border-gold-500/60' : 'border-t border-slate-600/60'} ${!strong && i % 2 ? 'bg-white/[.025]' : ''} align-top"><td class="py-2.5 pl-1 pr-2 whitespace-nowrap text-sm ${strong ? 'font-semibold text-gold-200' : 'text-slate-200'}">${lab}</td>${cells.map(x => `<td class="py-2.5 px-2 border-l border-ink-700/70">${boxesOr(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  const HEADS4 = [['Investiert', 'text-slate-400'], ['Bis Ziel', 'text-emerald-300'], ['Bis Max', 'text-sky-300'], ['Max', 'text-gold-300']];
+  // pro Slot: was steckt drin, was fehlt bis Ziel, was fehlt bis Max
+  function perSlot(list) {
+    return GEAR_SLOTS.map(sl => { const inv = gZero(), toT = gZero(), toM = gZero(); let has = false, icon = '';
+      list.forEach(s => { const v = s.ist[sl.k], z = s.ziel[sl.k]?.item ? s.ziel[sl.k] : null, mx = gMaxSlot(null, v); if (!v?.item && !z) return; has = true;
+        if (!icon && v?.item && list.length === 1) icon = hIcon(v);
+        const gT = hasZiel(s) ? z : mx;   // wie oben: mit Ziel zählen nur Slots, die im Ziel stehen – ohne Ziel = Max
+        gAdd(inv, gEst({}, { [sl.k]: v }).cost); if (gT) gAdd(toT, gEst({ [sl.k]: v }, { [sl.k]: gT }).cost); if (v?.item) gAdd(toM, gEst({ [sl.k]: v }, { [sl.k]: mx }).cost); });
+      return has ? [`<span class="inline-flex items-center gap-2">${icon || `<span class="w-11 text-center text-xl">${sl.icon}</span>`}<span>${R.esc(sl.label)}</span></span>`, [inv, toT, toM]] : null; }).filter(Boolean);
   }
   function renderCosts() {
     const box = R.$('craftCostPane'); if (!box) return;
     const all = cstSets();
     if (!all.length) { box.innerHTML = '<section class="panel rounded-2xl p-6 text-center text-sm text-slate-400">Noch keine Ausrüstung eingetragen – zuerst im 🗡 Gear-Reiter einen Charakter bearbeiten.</section>'; return; }
-    const pk = cstPick(), list = withMode(pk.list), c = setCostSum(list), goalTxt = cst.mode === 'ziel' ? 'Ziel' : 'Full Max';
-    const adj = cstAdj(c); if (adj.n != null) { c.rest = adj.rest; c.total = adj.total; c.done = adj.done; }
-    const anim = cst.lastAnim !== cst.sel + '|' + cst.mode; cst.lastAnim = cst.sel + '|' + cst.mode;   // Animation nur beim Öffnen / neuer Auswahl
-    const p = c.open ? Math.min(99, Math.round(c.done * 100)) : 100;
-    const chip = (v, l) => `<button type="button" data-cst-sel="${R.esc(v)}" class="px-3 py-1.5 rounded-lg text-xs font-semibold border ${cst.sel === v || (v === 'all' && pk.label === 'Alle Charaktere') ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 text-slate-300 hover:border-gold-500/60'}">${R.esc(l)}</button>`;
+    const pk = cstPick(), k = cstCalc(pk.list), mats = cstMats([k.inv, k.toT, k.toM, k.max]);
+    const anim = cst.lastAnim !== cst.sel + '|' + cst.view; cst.lastAnim = cst.sel + '|' + cst.view;
+    const chip = (v, l) => `<button type="button" data-cst-sel="${R.esc(v)}" class="px-3 py-1.5 rounded-lg text-xs font-semibold border whitespace-nowrap ${cst.sel === v || (v === 'all' && pk.label === 'Alle Charaktere') ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 text-slate-300 hover:border-gold-500/60'}">${R.esc(l)}</button>`;
     const grs = (gear.groups || []).filter(g => g.members.some(id => all.some(x => x.id === id)));
-    const big = (l, x, cl, sub = '') => `<div class="rounded-xl border border-ink-700 bg-ink-950/40 p-3"><div class="text-[10px] uppercase tracking-widest ${cl}">${l}</div>${sub}<div class="mt-2 flex flex-wrap gap-1">${gAny(x) ? costBoxes(x, '!text-[12px] !px-1.5') : '<span class="text-xs text-slate-500">–</span>'}</div></div>`;
-    // je Mat: wie viel schon drin ist
-    const matList = [...R.MATS, ...GX].filter(x => (c.total[x.k] || 0) > 1e-4);
-    const matBars = matList.map((x, i) => { const t = c.total[x.k], d = Math.min(t, c.spent[x.k] || 0), q = t ? d / t : 0, f = x.f || gq;
-      return `<div style="${anim ? `animation:cstRowIn .35s ease-out ${(1.45 + i * 0.06).toFixed(2)}s both` : ''}" class="grid grid-cols-[1.5rem_6.5rem_1fr] sm:grid-cols-[1.5rem_7rem_1fr_15rem] items-center gap-x-2 gap-y-0.5 text-xs">${mi(x, 'w-5 h-5')}<span class="text-slate-300 truncate">${R.esc(x.label)}</span>
-        <span class="h-2 rounded-full bg-ink-800 overflow-hidden"><span class="block h-full rounded-full ${q >= 1 ? 'bg-emerald-400' : 'bg-gradient-to-r from-gold-600 to-gold-400'}" style="--w:${Math.round(q * 100)}%;width:${Math.round(q * 100)}%;${anim ? `animation:cstBar .9s cubic-bezier(.2,.8,.2,1) ${(1.6 + i * 0.08).toFixed(2)}s both` : ''}"></span></span>
-        <span class="col-span-3 sm:col-span-1 pl-8 sm:pl-0 sm:text-right tabular-nums text-slate-400 whitespace-nowrap"><b class="text-slate-200">${f(d)}</b> / ${f(t)} · noch ${f(Math.max(0, t - d))}</span></div>`; }).join('');
-    // Refine-Glück
-    let ref = '';
-    if (c.rd && c.refs.length) { const ks = [...c.rd.keys()].sort((a, b) => a - b), lo = ks[0], hi = ks[ks.length - 1]; let exp = 0, cum = 0, p90 = hi; c.rd.forEach((q, k) => exp += q * k);
-      for (const k of ks) { cum += c.rd.get(k); if (cum >= 0.9) { p90 = k; break; } }
-      const mx = Math.max(...ks.map(k => c.rd.get(k)));
-      ref = `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">🎲 Refine – was noch kommt</h3>
-        <p class="mt-1 text-xs text-slate-400">${c.refs.length} Teil${c.refs.length > 1 ? 'e müssen' : ' muss'} noch refined werden. Im Schnitt brauchst du <b class="text-slate-200">${fx1(exp)} Refines</b>, mit Glück ${lo}, mit Pech ${hi}. In 9 von 10 Fällen reichen <b class="text-slate-200">${p90}</b>.</p>
-        <div class="mt-3 flex items-end gap-1 h-28">${ks.filter(k => c.rd.get(k) >= 0.003).map(k => { const q = c.rd.get(k);
-          return `<div class="flex-1 min-w-[10px] flex flex-col items-center gap-1" title="${k} Refines: ${pct(q)}"><span class="w-full rounded-t ${k <= p90 ? 'bg-red-400/70' : 'bg-red-400/30'}" style="height:${Math.max(3, q / mx * 88)}px"></span><span class="text-[9px] text-slate-500 tabular-nums">${k}</span></div>`; }).join('')}</div>
-        <div class="mt-3 grid gap-2 sm:grid-cols-3">${big('🍀 Mit Glück', c.best, 'text-emerald-300')}${big('Ø Durchschnitt', c.rest, 'text-slate-300')}${big('💀 Mit Pech', c.worst, 'text-red-300')}</div>
-        <div class="mt-2 text-[10px] text-slate-500">${c.refs.map(r => `${hSlot(r.slot).icon} ${r.craft ? 'neu' : gRefTxt(r.from)} → ${gRefTxt(r.to)}: ${r.sure ? '⚡ sicherer Crit (5er-Garantie)' : (r.odds.min === r.odds.max ? r.odds.min + '×' : `${r.odds.min}–${r.odds.max}× (Ø ${fx1(r.odds.exp)})`) + (r.craft ? ` inkl. ${pct(r.odds.crit)} Craft-Crit` : '')}`).join(' · ')}</div></section>`; }
-    // Tabelle je Charakter
-    const rows = withMode(all).map(s => { const x = setCostSum([s]), q = x.open ? Math.min(99, Math.round(x.done * 100)) : 100; let e = 0; if (x.rd) x.rd.forEach((v, k) => e += v * k);
-      return `<button type="button" data-cst-sel="s:${R.esc(s.id)}" class="w-full grid grid-cols-[minmax(6rem,10rem)_1fr_auto] sm:grid-cols-[10rem_8rem_1fr_auto] items-center gap-3 px-3 py-2 rounded-lg text-left ${cst.sel === 's:' + s.id ? 'bg-gold-500/10 ring-1 ring-gold-400/50' : 'hover:bg-ink-800/60'}">
-        <span class="font-semibold text-slate-100 truncate" translate="no">${R.esc(s.name)}</span>
-        <span class="hidden sm:flex items-center gap-2"><span class="flex-1 h-1.5 rounded-full bg-ink-800 overflow-hidden"><span class="block h-full rounded-full bg-gradient-to-r from-gold-500 to-emerald-400" style="width:${q}%"></span></span><span class="text-[11px] tabular-nums text-slate-400 w-9 text-right">${q}%</span></span>
-        <span class="flex flex-wrap gap-1 min-w-0">${gAny(x.rest) ? costBoxes(x.rest, '!text-[11px] !px-1.5') : '<span class="text-xs text-emerald-300">✓ fertig</span>'}</span>
-        <span class="text-[11px] tabular-nums text-red-200 whitespace-nowrap">${x.refs.length ? '🎲 Ø ' + fx1(e) : ''}</span></button>`; }).join('');
-    box.innerHTML = `<section class="panel rounded-2xl p-4 sm:p-5">
-        <div class="flex flex-wrap items-center gap-2"><h3 class="font-display text-xl gold-text mr-auto">💰 Kosten</h3>
-          <span class="inline-flex rounded-lg border border-ink-600 overflow-hidden text-xs">${[['max', '🏆 Full Max'], ['ziel', '🎯 Ziel']].map(([k, l]) => `<button type="button" data-cst-mode="${k}" class="px-3 py-1.5 font-semibold ${cst.mode === k ? 'bg-gold-500/20 text-gold-200' : 'text-slate-400 hover:text-gold-300'}">${l}</button>`).join('')}</span>
-          <button type="button" data-cst-xlsx class="px-3 py-1.5 rounded-lg border border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10 text-xs font-semibold">📊 Excel</button></div>
-        <div class="mt-3 flex flex-wrap gap-1.5">${chip('all', 'Alle Charaktere')}${all.map(s => chip('s:' + s.id, s.name)).join('')}${grs.map(g => chip('g:' + g.id, '🗂 ' + g.name)).join('')}</div>
-        <div id="cstMsg" class="hidden mt-2 text-xs"></div>
-        <div class="mt-4 flex items-baseline gap-3"><span class="text-4xl font-display font-bold tabular-nums ${c.open ? 'text-gold-300' : 'text-emerald-300'}">${p} %</span><span class="text-sm text-slate-400">von ${R.esc(pk.label)} bis ${goalTxt} geschafft${c.open ? ` · noch ${c.open} Teil${c.open > 1 ? 'e' : ''} offen` : ' 🎉'}</span></div>
-        <div class="mt-2 h-3 rounded-full bg-ink-800 overflow-hidden"><span class="block h-full rounded-full bg-gradient-to-r from-gold-500 to-emerald-400" style="width:${p}%"></span></div>
-        <div class="mt-4 grid gap-2 lg:grid-cols-3">${big('Bisher investiert', c.spent, 'text-slate-400')}${big('Noch bis ' + goalTxt, c.rest, 'text-sky-300', c.refs.length ? '<div class="text-[10px] text-slate-500">Refine mit Ø-Glück</div>' : '')}${big('Gesamt bei ' + goalTxt, c.total, 'text-gold-300')}</div>
-        ${c.missing ? '<p class="mt-2 text-[11px] text-amber-300">Für manche Stufen fehlen Kosten im Katalog – die sind nicht mitgezählt.</p>' : ''}</section>
-      ${breakdown(c, adj, goalTxt)}
-      ${perSet(all, goalTxt)}
-      ${matBars ? `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">📦 Pro Mat</h3><p class="mt-1 text-xs text-slate-400">Wie viel von jedem Mat schon drinsteckt – so siehst du, was dich am meisten bremst.</p>
-        <div class="relative mt-3"><div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">${anim ? matRain(matList) : ''}</div><div class="grid gap-2">${matBars}</div></div></section>` : ''}
-      ${ref}
-      <section class="panel rounded-2xl p-4 sm:p-5"><div class="flex items-center gap-2"><h3 class="font-display text-lg gold-text mr-auto">🧍 Charaktere</h3><span class="text-[11px] text-slate-500">noch bis ${goalTxt} · antippen zum Auswählen</span></div>
-        <div class="mt-2 grid gap-1">${rows}</div></section>
-      <p class="text-[11px] text-slate-500 px-1">${cst.mode === 'ziel' ? 'Ziel = was du im Planer als Ziel eingetragen hast (ohne Ziel: Full Max).' : 'Full Max = gleiche Items auf höchster Iconic-Stufe und 100 % refined.'} Neu gecraftet: 11 % direkt voll refined (Crit), das 5. Exemplar desselben Items zählt als sicherer Crit. Refine pro Versuch – bei 0 %: +25 (29 %) · +50 (30 %) · +75 (30 %) · +100 (11 %) · bei 25 %: +25 (59 %) · +50 (30 %) · +75 (11 %) · bei 50 %: +25 (89 %) · +50 (11 %) · bei 75 %: immer +25.</p>`;
+    const tabs = [['short', '⚡ Kurz'], ['detail', '🔎 Detailliert']].map(([v, l]) => `<button type="button" data-cst-view="${v}" class="min-w-[9rem] sm:min-w-[11rem] px-5 py-2.5 text-sm sm:text-base font-bold transition ${cst.view === v ? 'bg-gold-500 text-ink-950 shadow-inner' : 'text-slate-300 hover:text-gold-300 hover:bg-gold-500/10'}">${l}</button>`).join('');
+    // Leiste bleibt beim Scrollen oben stehen
+    const bar = `<div class="sticky top-0 z-30 -mx-1 px-1 pt-1 pb-2 bg-ink-950/90 backdrop-blur supports-[backdrop-filter]:bg-ink-950/70">
+      <div class="panel rounded-2xl px-3 py-2.5 sm:px-4 flex flex-wrap items-center gap-2 shadow-lg shadow-black/40">
+        <span class="font-display text-lg gold-text mr-1">💰 Kosten</span>
+        <div class="flex gap-1.5 overflow-x-auto max-w-full order-3 sm:order-none basis-full sm:basis-auto sm:flex-1 pb-0.5">${chip('all', 'Alle Charaktere')}${all.map(s => chip('s:' + s.id, s.name)).join('')}${grs.map(g => chip('g:' + g.id, '🗂 ' + g.name)).join('')}</div>
+        <button type="button" data-cst-xlsx class="ml-auto px-3 py-1.5 rounded-lg border border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10 text-xs font-semibold">📊 Excel</button>
+        <div class="basis-full order-last flex justify-center pt-1"><span class="inline-flex rounded-xl border-2 border-gold-500/50 overflow-hidden">${tabs}</span></div></div>
+      <div id="cstMsg" class="hidden mt-1 text-xs px-2"></div></div>`;
+    const head = `<section class="panel rounded-2xl p-4 sm:p-5">
+        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1"><span class="text-4xl font-display font-bold tabular-nums ${k.cM.open ? 'text-gold-300' : 'text-emerald-300'}">${k.pM} %</span>
+          <span class="text-sm text-slate-400">${R.esc(pk.label === 'Alle Charaktere' ? 'Alle Charaktere' : pk.label)} – von Max geschafft${k.cM.open ? ` · noch ${k.cM.open} Teil${k.cM.open > 1 ? 'e' : ''} offen` : ' 🎉'}</span></div>
+        <div class="mt-2 h-3 rounded-full bg-ink-800 overflow-hidden relative"><span class="block h-full rounded-full bg-gradient-to-r from-gold-500 to-emerald-400" style="width:${k.pM}%"></span>
+          ${k.zl && k.pT < 100 ? '' : ''}</div>
+        <div class="mt-4">${fields4(k, mats)}</div>
+        ${k.missing ? '<p class="mt-2 text-[11px] text-amber-300">Für manche Stufen fehlen Kosten im Katalog – die sind nicht mitgezählt.</p>' : ''}</section>`;
+    let html = bar + head;
+    if (cst.view === 'detail') {
+      // Aufschlüsselung Crafting / Iconic / Crit
+      html += `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">🧾 Aufschlüsselung</h3>
+        <p class="mt-1 text-xs text-slate-400">⚒ Crafting = Items herstellen · ⬆ Iconic = Iconic-Stufen I–V · ⚡ Crit = Refine (Durchschnitt). „Bis Max“ hat kein Crafting, wenn alle Items schon da sind – das steckt dann in „Investiert“.</p>
+        ${grid4([['⚒ Crafting', [k.catInv.craft, k.catT.craft, k.catM.craft, k.catMax.craft]], ['⬆ Iconic', [k.catInv.tier, k.catT.tier, k.catM.tier, k.catMax.tier]], ['⚡ Crit', [k.catInv.refine, k.catT.refine, k.catM.refine, k.catMax.refine]], ['＝ Gesamt', [k.inv, k.toT, k.toM, k.max], true]], HEADS4)}</section>`;
+      // pro Slot
+      const ps = perSlot(pk.list);
+      if (ps.length) html += `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">🧩 Pro Teil <span class="text-sm font-sans text-slate-300" ${pk.one ? 'translate="no"' : ''}>· ${R.esc(pk.label)}</span></h3><p class="mt-1 text-xs text-slate-400">Was in jedem Teil steckt und was es noch kostet${pk.list.length > 1 ? ' – über alle gewählten Charaktere zusammen' : ''}.</p>
+        ${grid4(ps.map(([l, c]) => [l, c]), HEADS4.slice(0, 3))}</section>`;
+      // pro Set
+      if (all.length > 1 || grs.length) {
+        const card = (name, list) => { const x = cstCalc(list);
+          const ln = (l, cl, v) => `<div class="flex items-start gap-2 py-1 border-t border-ink-800 first:border-t-0"><span class="w-20 shrink-0 text-[11px] ${cl}">${l}</span>${boxesOr(v)}</div>`;
+          return `<div class="rounded-xl border border-ink-700 bg-ink-950/40 p-3"><div class="flex items-center gap-2"><span class="font-semibold text-slate-100 text-sm truncate mr-auto" translate="no">${R.esc(name)}</span><span class="text-[11px] tabular-nums ${x.cM.open ? 'text-slate-400' : 'text-emerald-300'}">${x.cM.open ? x.pM + ' %' : '✓'}</span></div>
+            <div class="mt-1 h-1 rounded-full bg-ink-800 overflow-hidden"><span class="block h-full rounded-full bg-gradient-to-r from-gold-500 to-emerald-400" style="width:${x.pM}%"></span></div>
+            <div class="mt-1.5">${ln('Investiert', 'text-slate-400', x.inv)}${ln('Bis Ziel', 'text-emerald-300', x.toT)}${ln('Bis Max', 'text-sky-300', x.toM)}${ln('Max', 'text-gold-300', x.max)}</div></div>`; };
+        const ov = cst.sel === 'all' || pk.label === 'Alle Charaktere' ? '' : (() => { const p2 = perSlot(all); return p2.length ? `<div class="rounded-xl border-2 border-gold-400/50 bg-gold-500/5 p-3 sm:p-4"><div class="font-semibold text-gold-200">🌍 Overall – alle Charaktere zusammen</div>
+            <div class="text-[11px] text-slate-400">Helm, Brust, Waffe … von allen Charakteren zusammengerechnet.</div>${grid4(p2, HEADS4.slice(0, 3))}</div>` : ''; })();
+        html += `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">📋 Pro Charakter & Set</h3>
+          ${ov ? `<div class="mt-3">${ov}</div>` : ''}
+          <div class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">${all.map(s => card(s.name, [s])).join('')}</div>
+          ${grs.length ? `<div class="mt-4 text-[10px] uppercase tracking-widest text-slate-500">🗂 Sets</div><div class="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">${grs.map(g => card('🗂 ' + g.name, g.members.map(id => all.find(x => x.id === id)).filter(Boolean))).join('')}</div>` : ''}</section>`;
+      }
+      // pro Mat (mit Animation)
+      const matList = [...R.MATS, ...GX].filter(x => (k.max[x.k] || 0) > 1e-4);
+      const matBars = matList.map((x, i) => { const t = k.max[x.k], d = Math.min(t, k.inv[x.k] || 0), q = t ? d / t : 0, f = x.f || gq;
+        return `<div style="${anim ? `animation:cstRowIn .35s ease-out ${(1.45 + i * 0.06).toFixed(2)}s both` : ''}" class="grid grid-cols-[1.5rem_6.5rem_1fr] sm:grid-cols-[1.5rem_7rem_1fr_15rem] items-center gap-x-2 gap-y-0.5 text-xs">${mi(x, 'w-5 h-5')}<span class="text-slate-300 truncate">${R.esc(x.label)}</span>
+          <span class="h-2 rounded-full bg-ink-800 overflow-hidden"><span class="block h-full rounded-full ${q >= 1 ? 'bg-emerald-400' : 'bg-gradient-to-r from-gold-600 to-gold-400'}" style="--w:${Math.round(q * 100)}%;width:${Math.round(q * 100)}%;${anim ? `animation:cstBar .9s cubic-bezier(.2,.8,.2,1) ${(1.6 + i * 0.08).toFixed(2)}s both` : ''}"></span></span>
+          <span class="col-span-3 sm:col-span-1 pl-8 sm:pl-0 sm:text-right tabular-nums text-slate-400 whitespace-nowrap"><b class="text-slate-200">${f(d)}</b> / ${f(t)} · noch ${f(Math.max(0, t - d))}</span></div>`; }).join('');
+      if (matBars) html += `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">📦 Pro Mat</h3><p class="mt-1 text-xs text-slate-400">Wie viel von jedem Mat schon drinsteckt (bis Max) – so siehst du, was dich am meisten bremst.</p>
+        <div class="relative mt-3"><div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">${anim ? matRain(matList) : ''}</div><div class="grid gap-2">${matBars}</div></div></section>`;
+      // Refine-Glück bis Max
+      const c = k.cM;
+      if (c.rd && c.refs.length) { const ks = [...c.rd.keys()].sort((a, b) => a - b), lo = ks[0], hi = ks[ks.length - 1]; let cum = 0, p90 = hi;
+        for (const kk of ks) { cum += c.rd.get(kk); if (cum >= 0.9) { p90 = kk; break; } }
+        const mx = Math.max(...ks.map(kk => c.rd.get(kk)));
+        const big = (l, x, cl) => `<div class="rounded-xl border border-ink-700 bg-ink-950/40 p-3"><div class="text-[10px] uppercase tracking-widest ${cl}">${l}</div><div class="mt-2">${boxesOr(x)}</div></div>`;
+        html += `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">🎲 Refine – was noch kommt</h3>
+          <p class="mt-1 text-xs text-slate-400">${c.refs.length} Teil${c.refs.length > 1 ? 'e müssen' : ' muss'} bis Max noch refined werden. Im Schnitt brauchst du <b class="text-slate-200">${fx1(c.rexp)} Refines</b>, mit Glück ${lo}, mit Pech ${hi}. In 9 von 10 Fällen reichen <b class="text-slate-200">${p90}</b>.</p>
+          <div class="mt-3 flex items-end gap-1 h-28">${ks.filter(kk => c.rd.get(kk) >= 0.003).map(kk => { const q = c.rd.get(kk);
+            return `<div class="flex-1 min-w-[10px] flex flex-col items-center gap-1" title="${kk} Refines: ${pct(q)}"><span class="w-full rounded-t ${kk <= p90 ? 'bg-red-400/70' : 'bg-red-400/30'}" style="height:${Math.max(3, q / mx * 88)}px"></span><span class="text-[9px] text-slate-500 tabular-nums">${kk}</span></div>`; }).join('')}</div>
+          <div class="mt-3 grid gap-2 sm:grid-cols-3">${big('🍀 Mit Glück', c.best, 'text-emerald-300')}${big('Ø Durchschnitt', c.rest, 'text-slate-300')}${big('💀 Mit Pech', c.worst, 'text-red-300')}</div>
+          <div class="mt-2 text-[10px] text-slate-500">${c.refs.map(r => `${hSlot(r.slot).icon} ${r.craft ? 'neu' : gRefTxt(r.from)} → ${gRefTxt(r.to)}: ${r.sure ? '⚡ sicherer Crit (5er-Garantie)' : (r.odds.min === r.odds.max ? r.odds.min + '×' : `${r.odds.min}–${r.odds.max}× (Ø ${fx1(r.odds.exp)})`) + (r.craft ? ` inkl. ${pct(r.odds.crit)} Craft-Crit` : '')}`).join(' · ')}</div></section>`; }
+      html += `<p class="text-[11px] text-slate-500 px-1">Ziel = was du im Planer als Ziel eingetragen hast (ohne Ziel: Full Max). Full Max = gleiche Items auf höchster Iconic-Stufe und 100 % refined. Neu gecraftet: 11 % direkt voll refined (Crit), das 5. Exemplar desselben Items zählt als sicherer Crit. Refine pro Versuch – bei 0 %: +25 (29 %) · +50 (30 %) · +75 (30 %) · +100 (11 %) · bei 25 %: +25 (59 %) · +50 (30 %) · +75 (11 %) · bei 50 %: +25 (89 %) · +50 (11 %) · bei 75 %: immer +25.</p>`;
+    }
+    box.innerHTML = html;
   }
-  R.$('craftCostPane')?.addEventListener('change', (ev) => { const i = ev.target.closest?.('[data-cst-refn]'); if (!i) return;
-    const v = Math.max(0, Math.round(+i.value || 0)); cstRefN[refNKey()] = v; R.LS.set('rok_craft_cost_refn', JSON.stringify(cstRefN)); renderCosts(); });
   R.$('craftCostPane')?.addEventListener('click', async (ev) => { const t = ev.target, msg = (m, ok = true) => R.flash(R.$('cstMsg'), R.esc(m), ok);
     const sb = t.closest('[data-cst-sel]'); if (sb) { cst.sel = sb.dataset.cstSel; R.LS.set('rok_craft_cost_sel', cst.sel); renderCosts(); return; }
-    const tb = t.closest('[data-cst-tab]'); if (tb) { cst.tab = tb.dataset.cstTab; renderCosts(); return; }
-    if (t.closest('[data-cst-refn-reset]')) { delete cstRefN[refNKey()]; R.LS.set('rok_craft_cost_refn', JSON.stringify(cstRefN)); renderCosts(); return; }
-    const mb = t.closest('[data-cst-mode]'); if (mb) { cst.mode = mb.dataset.cstMode; R.LS.set('rok_craft_cost_mode', cst.mode); renderCosts(); return; }
-    const xb = t.closest('[data-cst-xlsx]'); if (xb) { xb.disabled = true; try { await exportCostsXlsx(withMode(cstSets())); msg('📊 Excel-Tabelle heruntergeladen'); } catch (e) { msg('Excel ging nicht: ' + (e.message || e), false); } xb.disabled = false; return; }
+    const vb = t.closest('[data-cst-view]'); if (vb) { cst.view = vb.dataset.cstView; R.LS.set('rok_craft_cost_view', cst.view); renderCosts(); return; }
+    const xb = t.closest('[data-cst-xlsx]'); if (xb) { xb.disabled = true; try { await exportCostsXlsx(cstSets()); msg('📊 Excel-Tabelle heruntergeladen'); } catch (e) { msg('Excel ging nicht: ' + (e.message || e), false); } xb.disabled = false; return; }
   });
   // ---- Excel-Download der Kosten (SheetJS wird erst beim Klick geladen) ----
   let xlsxLib = null;
