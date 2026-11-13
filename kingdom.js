@@ -1,5 +1,6 @@
 // Wiz fan Club – My Kingdom (Reiter oben über Feed / Rangliste / Craft)
 // Der R5 gründet das Königreich und lädt Mitglieder über ihre Governor-ID ein – nur Mitglieder sehen es.
+// Beitreten: Spieler sucht sein Königreich (Nummer) und fragt mit seiner Governor-ID an → R4/R5 prüft die ID (Abgleich mit dem Top-300-Scan) und bestätigt.
 // Inhalt: KD-Name & Mitglieder (R5–R1), Königreich-Feed, Ereignisse mit Timer, KvK-Planung, Autarch-Liste, Top 300 (RokTracker-Scans).
 // Läuft innerhalb von RokApp (scanner.js); R = geteilter Kontext (window.Rok).
 // Supabase: kingdoms · kingdom_members (rank 1–5, status invited|member) · kingdom_posts · kingdom_events (kind event|kvk) · kingdom_autarchs · kingdom_scans
@@ -8,7 +9,7 @@ window.RokMods.kingdom = (R) => {
   const $ = R.$, esc = R.esc, A = window.RokAuth, root = $('kingdomView');
   const db = () => A.db(), me = () => A.userId();
   const RANK = { 5: ['👑', 'R5 – König'], 4: ['⚜️', 'R4 – Offizier'], 3: ['🛡️', 'R3'], 2: ['⚔️', 'R2'], 1: ['🏹', 'R1'] };
-  const st = { loaded: false, loading: false, err: '', noTable: false, kd: null, mem: [], invites: [], posts: [], events: [], autarchs: [], users: {}, tab: 'members', search: [], q: '', busy: false, msg: ['', ''], cre: { name: '', number: '' }, evForm: { title: '', at: '', kind: 'event', note: '' }, auForm: { name: '', gid: '', kvk: '', note: '' } };
+  const st = { loaded: false, loading: false, err: '', noTable: false, kd: null, mem: [], invites: [], posts: [], events: [], autarchs: [], users: {}, tab: 'members', search: [], q: '', busy: false, msg: ['', ''], cre: { name: '', number: '' }, join: { q: '', res: [], searched: false, busy: false }, myReqs: [], requests: [], verify: null, evForm: { title: '', at: '', kind: 'event', note: '' }, auForm: { name: '', gid: '', kvk: '', note: '' } };
   const myRow = () => st.mem.find((m) => m.user_id === me());
   const myRank = () => (myRow() ? +myRow().rank || 1 : 0);
   const canManage = () => myRank() >= 4;
@@ -22,8 +23,9 @@ window.RokMods.kingdom = (R) => {
       if (mine.error) throw mine.error;
       const rows = mine.data || [];
       st.invites = rows.filter((r) => r.status === 'invited');
+      st.myReqs = rows.filter((r) => r.status === 'requested');
       const active = rows.find((r) => r.status === 'member');
-      st.kd = null; st.mem = []; st.posts = []; st.events = []; st.autarchs = [];
+      st.kd = null; st.mem = []; st.requests = []; st.posts = []; st.events = []; st.autarchs = [];
       const kdIds = [...new Set(rows.map((r) => r.kingdom_id))];
       const kds = kdIds.length ? await db().from('kingdoms').select('*').in('id', kdIds) : { data: [] };
       st.kdById = Object.fromEntries((kds.data || []).map((k) => [k.id, k]));
@@ -36,19 +38,25 @@ window.RokMods.kingdom = (R) => {
           db().from('kingdom_autarchs').select('*').eq('kingdom_id', st.kd.id).order('created_at', { ascending: false }).limit(100)]);
         st.mem = (m.data || []).filter((x) => x.status === 'member').sort((x, y) => (+y.rank || 0) - (+x.rank || 0));
         st.pending = (m.data || []).filter((x) => x.status === 'invited');
+        st.requests = (m.data || []).filter((x) => x.status === 'requested');
+        st.verify = null;
+        if (st.requests.length && canManage()) {   // ID-Abgleich: neuester Top-300-Scan
+          try { const v = await db().from('kingdom_scans').select('scanned_at,data').eq('kingdom_id', st.kd.id).order('scanned_at', { ascending: false }).limit(1);
+            const sc0 = !v.error && v.data && v.data[0]; if (sc0) st.verify = { date: sc0.scanned_at, by: new Map((sc0.data || []).map((r) => [String(r.id), r])) }; } catch {}
+        }
         st.posts = p.data || []; st.events = e.data || []; st.autarchs = a.data || [];
       }
-      const ids = [...st.mem.map((x) => x.user_id), ...(st.pending || []).map((x) => x.user_id), ...st.posts.map((x) => x.user_id), ...st.invites.map((x) => x.invited_by), ...Object.values(st.kdById).map((k) => k.owner)];
+      const ids = [...st.mem.map((x) => x.user_id), ...(st.pending || []).map((x) => x.user_id), ...st.posts.map((x) => x.user_id), ...st.invites.map((x) => x.invited_by), ...st.requests.map((x) => x.user_id), ...Object.values(st.kdById).map((k) => k.owner)];
       st.users = await R.users(ids);
       st.noTable = false;
     } catch (e) { if (R.tableMissing(e)) st.noTable = true; else st.err = A.germanError ? A.germanError(e) : String(e.message || e); }
     st.loading = false; st.loaded = true;
-    R.setBadge('[data-kd-badge]', st.invites.length);
+    R.setBadge('[data-kd-badge]', st.invites.length + (canManage() ? st.requests.length : 0));
     render();
     if (st.kd && st.tab === 'scan') { st.sc.loaded = false; loadScans(); }
   }
   // Einladungs-Badge auch ohne geöffnete Seite (einmal beim Start, dann alle 5 Minuten)
-  async function pollInvites() { try { const r = await db().from('kingdom_members').select('kingdom_id').eq('user_id', me()).eq('status', 'invited'); if (!r.error) R.setBadge('[data-kd-badge]', (r.data || []).length); } catch {} }
+  async function pollInvites() { try { const r = await db().from('kingdom_members').select('kingdom_id').eq('user_id', me()).eq('status', 'invited'); if (!r.error) R.setBadge('[data-kd-badge]', (r.data || []).length + (st.kd && canManage() ? st.requests.length : 0)); } catch {} }
   setTimeout(pollInvites, 1500); setInterval(pollInvites, 5 * 60000);
 
   // ---------- Aktionen ----------
@@ -56,7 +64,9 @@ window.RokMods.kingdom = (R) => {
   async function create() {
     const name = st.cre.name.trim(), number = st.cre.number.replace(/\D/g, '');
     if (!name) { msg('Bitte einen Namen eingeben.', 'warn'); return; }
-    if (st.busy) return; st.busy = true; render();
+    if (st.busy) return;
+    if (number) { try { const ex = await db().rpc('kd_search', { num: number }); if (!ex.error && (ex.data || []).length && !(await window.UI.confirm(`Königreich #${number} gibt es hier schon („${ex.data[0].name}“). Lieber dort per „Königreich beitreten“ anfragen. Trotzdem ein eigenes gründen?`))) return; } catch {} }
+    st.busy = true; render();
     try {
       const { data: kd, error } = await db().from('kingdoms').insert({ name: name.slice(0, 40), number, owner: me() }).select().single();
       if (error) throw error;
@@ -75,6 +85,43 @@ window.RokMods.kingdom = (R) => {
       } else { const { error } = await db().from('kingdom_members').delete().eq('kingdom_id', kid).eq('user_id', me()); if (error) throw error; }
       await load();
     } catch (e) { fail(e, 'Antwort'); }
+  }
+  // ---------- Beitritt per Anfrage (R4/R5 bestätigen die Governor-ID) ----------
+  async function myGovId() {
+    let gid = String((A.ownMeta && A.ownMeta().governor_id) || '').replace(/\D/g, '');
+    if (!gid) { try { const r = await db().from('leaderboard').select('governor_id').eq('user_id', me()).maybeSingle(); gid = String(r.data?.governor_id || '').replace(/\D/g, ''); } catch {} }
+    return gid;
+  }
+  async function joinSearch() {
+    const num = st.join.q.replace(/\D/g, ''); st.join.res = []; st.join.searched = false;
+    if (!num) { msg('Bitte die Nummer deines Königreichs eingeben.', 'warn'); render(); return; }
+    st.join.busy = true; render();
+    try { const { data, error } = await db().rpc('kd_search', { num }); if (error) throw error;
+      st.join.res = data || []; st.join.searched = true;
+      const own = await R.users(st.join.res.map((k) => k.owner)); Object.assign(st.users, own);
+    } catch (e) { fail(e, 'Suche'); }
+    st.join.busy = false; render();
+  }
+  async function requestJoin(kid) {
+    if (myRow()) { msg('Du bist schon in einem Königreich – erst dort austreten.', 'warn'); return; }
+    if (st.invites.some((i) => i.kingdom_id === kid)) { msg('Du hast von diesem Königreich schon eine Einladung – nimm sie oben an.', 'warn'); return; }
+    const gid = await myGovId();
+    if (!gid) { msg('Trag zuerst deine Governor-ID im Profil ein – R4/R5 prüfen damit, wer du im Spiel bist.', 'warn'); return; }
+    try { const { error } = await db().from('kingdom_members').insert({ kingdom_id: kid, user_id: me(), rank: 1, status: 'requested', governor_id: gid }); if (error) throw error;
+      msg('✓ Anfrage gesendet – ein R4 oder R5 muss deine ID bestätigen', 'ok'); st.join = { q: '', res: [], searched: false, busy: false }; await load();
+    } catch (e) { fail(e, 'Anfrage'); }
+  }
+  async function cancelRequest(kid) {
+    try { const { error } = await db().from('kingdom_members').delete().eq('kingdom_id', kid).eq('user_id', me()).eq('status', 'requested'); if (error) throw error; await load(); } catch (e) { fail(e, 'Zurückziehen'); }
+  }
+  async function answerRequest(uid, ok) {
+    if (!canManage()) return;
+    const rq = st.requests.find((r) => r.user_id === uid); if (!rq) return;
+    if (ok && !(await window.UI.confirm(`Governor-ID ${rq.governor_id || '?'} von ${u(uid).username || '?'} bestätigt? Hast du im Spiel geprüft, dass das wirklich dieser Spieler ist?`, { ok: '✓ Aufnehmen', danger: false }))) return;
+    try {
+      const q0 = db().from('kingdom_members'); const { error } = ok ? await q0.update({ status: 'member' }).eq('kingdom_id', st.kd.id).eq('user_id', uid) : await q0.delete().eq('kingdom_id', st.kd.id).eq('user_id', uid);
+      if (error) throw error; msg(ok ? '✓ Aufgenommen' : 'Anfrage abgelehnt', ok ? 'ok' : 'busy'); await load();
+    } catch (e) { fail(e, ok ? 'Aufnehmen' : 'Ablehnen'); }
   }
   async function search() {
     const q = st.q.trim(); st.search = [];
@@ -353,13 +400,21 @@ window.RokMods.kingdom = (R) => {
     return `${st.invites.length ? card('📨 Einladungen', st.invites.map((i) => { const k = st.kdById[i.kingdom_id] || {}; return `<div class="flex flex-wrap items-center gap-3 rounded-xl border border-gold-500/40 bg-gold-500/5 px-3 py-2">
         <span class="min-w-0 flex-1"><b class="text-slate-100">🏰 ${esc(k.name || '?')}${k.number ? ` #${esc(k.number)}` : ''}</b><span class="block text-xs text-slate-400">eingeladen von ${esc(u(i.invited_by).username || '?')}</span></span>
         ${btn(`data-kd-inv="${esc(i.kingdom_id)}|1"`, '✓ Annehmen', 'gold')}${btn(`data-kd-inv="${esc(i.kingdom_id)}|0"`, 'Ablehnen', 'red')}</div>`; }).join('')) : ''}
+      ${st.myReqs.length ? card('⏳ Deine Beitrittsanfrage', st.myReqs.map((r) => { const k = st.kdById[r.kingdom_id] || {}; return `<div class="flex flex-wrap items-center gap-3 rounded-xl border border-sky-500/40 bg-sky-500/5 px-3 py-2">
+        <span class="min-w-0 flex-1"><b class="text-slate-100">🏰 <span translate="no">${esc(k.name || '?')}</span>${k.number ? ` #${esc(k.number)}` : ''}</b><span class="block text-xs text-slate-400">Wartet auf Bestätigung durch R4/R5 · deine ID <span class="tabular-nums" translate="no">${esc(r.governor_id || '–')}</span></span></span>
+        ${btn(`data-kd-unreq="${esc(r.kingdom_id)}"`, 'Zurückziehen', 'red')}</div>`; }).join('')) : ''}
+      ${card('🔎 Königreich beitreten', `<p class="text-xs text-slate-500">Such dein Königreich über die Nummer und frag an. Ein R4 oder R5 prüft deine Governor-ID und nimmt dich auf.</p>
+        <div class="flex gap-2"><input type="text" inputmode="numeric" maxlength="5" data-kd-jq value="${esc(st.join.q)}" placeholder="z. B. 3079" class="${inp}">${btn('data-kd-jsearch' + (st.join.busy ? ' disabled' : ''), st.join.busy ? '⏳ …' : '🔍 Suchen')}</div>
+        ${st.join.res.length ? `<div class="flex flex-col gap-2">${st.join.res.map((k) => { const req = st.myReqs.some((r) => r.kingdom_id === k.id); return `<div class="flex flex-wrap items-center gap-3 rounded-xl border border-ink-600 bg-ink-950/50 px-3 py-2">
+          <span class="min-w-0 flex-1"><b class="text-slate-100">🏰 <span translate="no">${esc(k.name)}</span> #${esc(k.number || '')}</b><span class="block text-xs text-slate-400">${+k.members || 0} Mitglieder · R5: <span translate="no">${esc(u(k.owner).username || '?')}</span></span></span>
+          ${req ? '<span class="text-xs text-sky-300">⏳ angefragt</span>' : btn(`data-kd-req="${esc(k.id)}"`, '📨 Beitritt anfragen', 'gold')}</div>`; }).join('')}</div>` : st.join.searched ? '<p class="text-xs text-slate-500">Kein Königreich mit dieser Nummer gefunden – vielleicht hat es noch niemand angelegt.</p>' : ''}`)}
       ${card('🏰 Königreich gründen', `<p class="text-xs text-slate-500">Du wirst R5 und kannst Mitglieder über ihre Governor-ID einladen. Nur Mitglieder sehen das Königreich.</p>
         <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto] items-end">
           <label class="text-xs text-slate-400">Name<input type="text" maxlength="40" data-kd-cre="name" value="${esc(st.cre.name)}" placeholder="z. B. Saints of 79" class="mt-1 ${inp}"></label>
           <label class="text-xs text-slate-400">Königreich-Nr.<input type="text" inputmode="numeric" maxlength="5" data-kd-cre="number" value="${esc(st.cre.number)}" placeholder="1079" class="mt-1 ${inp}"></label>
           ${btn('data-kd-create' + (st.busy ? ' disabled' : ''), '👑 Gründen', 'gold')}
         </div>`)}
-      <p class="text-xs text-slate-500">Wenn dein R5 schon ein Königreich angelegt hat: Er muss dich über deine Governor-ID einladen – die Einladung erscheint dann hier.</p>`;
+      <p class="text-xs text-slate-500">Hat dein R5 das Königreich schon angelegt? Dann oben bei „Königreich beitreten“ anfragen – oder er lädt dich direkt über deine Governor-ID ein.</p>`;
   }
   function membersHTML() {
     const groups = [5, 4, 3, 2, 1].map((r) => ({ r, list: st.mem.filter((m) => (+m.rank || 1) === r) })).filter((g) => g.list.length);
@@ -367,7 +422,17 @@ window.RokMods.kingdom = (R) => {
         <button type="button" data-kd-prof="${esc(m.user_id)}" class="flex items-center gap-2.5 min-w-0 flex-1 text-left rounded-lg hover:bg-ink-800/60 pr-2">${R.userLine(x)}${x.governor_id ? `<span class="ml-auto text-[11px] text-slate-500 tabular-nums">ID ${esc(x.governor_id)}</span>` : ''}</button>
         ${canManage() && !(st.kd.owner === m.user_id && !isOwner()) ? `<select data-kd-rank="${esc(m.user_id)}" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs">${[5, 4, 3, 2, 1].filter((r) => isOwner() || r < 5).map((r) => `<option value="${r}" ${(+m.rank || 1) === r ? 'selected' : ''}>${RANK[r][0]} R${r}</option>`).join('')}</select>
         ${!own ? btn(`data-kd-kick="${esc(m.user_id)}"`, '✕', 'red') : ''}` : ''}</div>`; };
-    return `${groups.map((g) => `<div><div class="text-[11px] uppercase tracking-widest text-slate-500 mt-2 mb-1">${RANK[g.r][0]} ${RANK[g.r][1]} · ${g.list.length}</div>${g.list.map(row).join('')}</div>`).join('')}
+    const vr = (rq) => { const gid = String(rq.governor_id || ''), x = st.verify && st.verify.by.get(gid);
+      return !st.verify ? '<span class="text-amber-300">⚠ Kein Top-300-Scan zum Abgleichen – ID im Spiel prüfen</span>'
+        : x ? `<span class="text-emerald-300">✓ Im Scan vom ${new Date(st.verify.date + 'T12:00:00').toLocaleDateString('de-DE')}: <b translate="no">${esc(x.n || '?')}</b>${x.a ? ` · <span translate="no">${esc(x.a)}</span>` : ''}${x.p ? ` · Power ${Math.round(x.p).toLocaleString('de-DE')}` : ''}</span>`
+        : '<span class="text-amber-300">⚠ ID nicht im letzten Top-300-Scan – genau prüfen</span>'; };
+    const reqs = canManage() && st.requests.length ? `<div class="rounded-xl border border-sky-500/40 bg-sky-500/5 p-3 mb-2"><div class="text-[11px] uppercase tracking-widest text-sky-300 mb-1">📝 Beitrittsanfragen · ${st.requests.length}</div>
+      ${st.requests.map((rq) => `<div class="flex flex-wrap items-center gap-3 py-2 border-b border-ink-700/60 last:border-0">
+        <button type="button" data-kd-prof="${esc(rq.user_id)}" class="flex items-center gap-2.5 min-w-0 text-left rounded-lg hover:bg-ink-800/60 pr-2">${R.userLine(u(rq.user_id))}</button>
+        <div class="min-w-0 flex-1 text-xs"><div class="text-slate-300">Governor-ID <b class="tabular-nums text-slate-100" translate="no">${esc(rq.governor_id || '–')}</b></div><div>${vr(rq)}</div></div>
+        ${btn(`data-kd-rq="${esc(rq.user_id)}|1"`, '✓ Bestätigen', 'gold')}${btn(`data-kd-rq="${esc(rq.user_id)}|0"`, 'Ablehnen', 'red')}</div>`).join('')}
+      <p class="text-[11px] text-slate-500 mt-1">Erst bestätigen, wenn die ID im Spiel zu diesem Spieler gehört (Profil im Spiel öffnen → ID vergleichen).</p></div>` : '';
+    return `${reqs}${groups.map((g) => `<div><div class="text-[11px] uppercase tracking-widest text-slate-500 mt-2 mb-1">${RANK[g.r][0]} ${RANK[g.r][1]} · ${g.list.length}</div>${g.list.map(row).join('')}</div>`).join('')}
       ${(st.pending || []).length ? `<div class="text-[11px] uppercase tracking-widest text-slate-500 mt-3 mb-1">⏳ Eingeladen · ${st.pending.length}</div>${st.pending.map((m) => `<div class="flex items-center gap-3 py-1.5 text-sm text-slate-400">${R.userLine(u(m.user_id))}${canManage() ? `<span class="ml-auto">${btn(`data-kd-kick="${esc(m.user_id)}"`, 'Zurückziehen', 'red')}</span>` : ''}</div>`).join('')}` : ''}
       ${canManage() ? `<div class="mt-3 pt-3 border-t border-ink-700"><div class="text-xs text-slate-400 mb-1.5">➕ Einladen – Governor-ID oder Name</div>
         <div class="flex gap-2"><input type="text" data-kd-q value="${esc(st.q)}" placeholder="z. B. 148759624" class="${inp}">${btn('data-kd-search', '🔍 Suchen')}</div>
@@ -405,7 +470,7 @@ window.RokMods.kingdom = (R) => {
         ${btn('data-kd-addau', '➕ Eintragen', 'gold')}</div>` : ''}`;
   }
   function kdHTML() {
-    const k = st.kd, tabs = [['members', `👥 Mitglieder · ${st.mem.length}`], ['feed', '💬 Feed'], ['events', '📅 Ereignisse'], ['kvk', '⚔️ KvK-Planung'], ['autarch', '👑 Autarchen'], ['scan', '📊 Top 300']];
+    const k = st.kd, tabs = [['members', `👥 Mitglieder · ${st.mem.length}${canManage() && st.requests.length ? ` · 📝 ${st.requests.length}` : ''}`], ['feed', '💬 Feed'], ['events', '📅 Ereignisse'], ['kvk', '⚔️ KvK-Planung'], ['autarch', '👑 Autarchen'], ['scan', '📊 Top 300']];
     const next = st.events.filter((e) => new Date(e.starts_at).getTime() > Date.now()).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at))[0];
     return `<div class="panel rounded-2xl p-4 sm:p-5 flex flex-wrap items-center gap-4">
         <div class="w-16 h-16 rounded-2xl grid place-items-center text-3xl bg-gradient-to-br from-gold-300 to-gold-600 text-ink-950 shadow-[0_0_20px_rgba(245,197,66,.35)]">🏰</div>
@@ -435,6 +500,7 @@ window.RokMods.kingdom = (R) => {
     if (el.dataset.kdEv) st.evForm[el.dataset.kdEv] = el.value;
     if (el.dataset.kdAu) st.auForm[el.dataset.kdAu] = el.value;
     if (el.hasAttribute('data-kd-q')) st.q = el.value;
+    if (el.hasAttribute('data-kd-jq')) st.join.q = el.value;
     if (el.hasAttribute('data-kd-sc-q')) { st.sc.q = el.value; st.sc.showAll = false; scRefreshBody(); }
     if (el.dataset.kdScUp && st.sc.up) st.sc.up[el.dataset.kdScUp] = el.value; });
   root.addEventListener('change', (ev) => { const el = ev.target; if (el.dataset.kdRank) setRank(el.dataset.kdRank, +el.value);
@@ -442,7 +508,7 @@ window.RokMods.kingdom = (R) => {
     if (el.hasAttribute('data-kd-sc-allysel')) { st.sc.ally = el.value; st.sc.showAll = false; render(); }
     if (el.hasAttribute('data-kd-sc-sortsel')) { st.sc.sort = el.value; st.sc.dir = -1; render(); }
     if (el.hasAttribute('data-kd-sc-file')) { scFile(el.files && el.files[0]); el.value = ''; } });
-  root.addEventListener('keydown', (ev) => { if (ev.key !== 'Enter') return; const el = ev.target; if (el.hasAttribute('data-kd-q')) { ev.preventDefault(); search(); } if (el.id === 'kdPostText') { ev.preventDefault(); postKd(); } });
+  root.addEventListener('keydown', (ev) => { if (ev.key !== 'Enter') return; const el = ev.target; if (el.hasAttribute('data-kd-q')) { ev.preventDefault(); search(); } if (el.hasAttribute('data-kd-jq')) { ev.preventDefault(); joinSearch(); } if (el.id === 'kdPostText') { ev.preventDefault(); postKd(); } });
   root.addEventListener('click', (ev) => {
     const t = ev.target, c = (a) => t.closest(`[${a}]`);
     let b;
@@ -457,6 +523,10 @@ window.RokMods.kingdom = (R) => {
     else if (c('data-kd-sc-cancel')) { st.sc.up = null; render(); }
     else if ((b = c('data-kd-sc-del'))) scDelete(b.dataset.kdScDel);
     else if (c('data-kd-reload')) load();
+    else if (c('data-kd-jsearch')) joinSearch();
+    else if ((b = c('data-kd-req'))) requestJoin(b.dataset.kdReq);
+    else if ((b = c('data-kd-unreq'))) cancelRequest(b.dataset.kdUnreq);
+    else if ((b = c('data-kd-rq'))) { const [uid, ok] = b.dataset.kdRq.split('|'); answerRequest(uid, ok === '1'); }
     else if (c('data-kd-delete')) deleteKd();
     else if (c('data-kd-leave')) leave();
     else if (c('data-kd-search')) search();
