@@ -9,7 +9,7 @@ window.RokMods.kingdom = (R) => {
   const $ = R.$, esc = R.esc, A = window.RokAuth, root = $('kingdomView');
   const db = () => A.db(), me = () => A.userId();
   const RANK = { 5: ['👑', 'R5 – König'], 4: ['⚜️', 'R4 – Offizier'], 3: ['🛡️', 'R3'], 2: ['⚔️', 'R2'], 1: ['🏹', 'R1'] };
-  const st = { loaded: false, loading: false, err: '', noTable: false, kd: null, mem: [], invites: [], posts: [], events: [], autarchs: [], users: {}, tab: 'members', search: [], q: '', busy: false, msg: ['', ''], cre: { name: '', number: '' }, join: { q: '', res: [], searched: false, busy: false }, myReqs: [], requests: [], verify: null, evForm: { title: '', at: '', kind: 'event', note: '' }, auForm: { name: '', gid: '', kvk: '', note: '' } };
+  const st = { loaded: false, loading: false, err: '', noTable: false, kd: null, mem: [], invites: [], posts: [], events: [], autarchs: [], users: {}, tab: 'members', search: [], q: '', busy: false, msg: ['', ''], cre: { name: '', number: '' }, join: { q: '', res: [], searched: false, busy: false }, admin: false, myReqs: [], requests: [], verify: null, evForm: { title: '', at: '', kind: 'event', note: '' }, auForm: { name: '', gid: '', kvk: '', note: '' } };
   const myRow = () => st.mem.find((m) => m.user_id === me());
   const myRank = () => (myRow() ? +myRow().rank || 1 : 0);
   const canManage = () => myRank() >= 4;
@@ -62,6 +62,7 @@ window.RokMods.kingdom = (R) => {
   // ---------- Aktionen ----------
   const fail = (e, what) => msg(`${what} fehlgeschlagen: ${R.tableMissing(e) ? 'Tabellen fehlen in Supabase (SQL im Chat)' : (A.germanError ? A.germanError(e) : e.message || e)}`, 'err');
   async function create() {
+    if (!st.admin) { msg('Königreiche kann nur ein Admin anlegen.', 'warn'); return; }
     const name = st.cre.name.trim(), number = st.cre.number.replace(/\D/g, '');
     if (!name) { msg('Bitte einen Namen eingeben.', 'warn'); return; }
     if (st.busy) return;
@@ -408,13 +409,13 @@ window.RokMods.kingdom = (R) => {
         ${st.join.res.length ? `<div class="flex flex-col gap-2">${st.join.res.map((k) => { const req = st.myReqs.some((r) => r.kingdom_id === k.id); return `<div class="flex flex-wrap items-center gap-3 rounded-xl border border-ink-600 bg-ink-950/50 px-3 py-2">
           <span class="min-w-0 flex-1"><b class="text-slate-100">🏰 <span translate="no">${esc(k.name)}</span> #${esc(k.number || '')}</b><span class="block text-xs text-slate-400">${+k.members || 0} Mitglieder · R5: <span translate="no">${esc(u(k.owner).username || '?')}</span></span></span>
           ${req ? '<span class="text-xs text-sky-300">⏳ angefragt</span>' : btn(`data-kd-req="${esc(k.id)}"`, '📨 Beitritt anfragen', 'gold')}</div>`; }).join('')}</div>` : st.join.searched ? '<p class="text-xs text-slate-500">Kein Königreich mit dieser Nummer gefunden – vielleicht hat es noch niemand angelegt.</p>' : ''}`)}
-      ${card('🏰 Königreich gründen', `<p class="text-xs text-slate-500">Du wirst R5 und kannst Mitglieder über ihre Governor-ID einladen. Nur Mitglieder sehen das Königreich.</p>
+      ${!st.admin ? '' : card('🏰 Königreich gründen', `<p class="text-xs text-slate-500">Du wirst R5 und kannst Mitglieder über ihre Governor-ID einladen. Nur Mitglieder sehen das Königreich.</p>
         <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto] items-end">
           <label class="text-xs text-slate-400">Name<input type="text" maxlength="40" data-kd-cre="name" value="${esc(st.cre.name)}" placeholder="z. B. Saints of 79" class="mt-1 ${inp}"></label>
           <label class="text-xs text-slate-400">Königreich-Nr.<input type="text" inputmode="numeric" maxlength="5" data-kd-cre="number" value="${esc(st.cre.number)}" placeholder="1079" class="mt-1 ${inp}"></label>
           ${btn('data-kd-create' + (st.busy ? ' disabled' : ''), '👑 Gründen', 'gold')}
         </div>`)}
-      <p class="text-xs text-slate-500">Hat dein R5 das Königreich schon angelegt? Dann oben bei „Königreich beitreten“ anfragen – oder er lädt dich direkt über deine Governor-ID ein.</p>`;
+      <p class="text-xs text-slate-500">${st.admin ? '' : '<span>Neue Königreiche legt der Admin an.</span> '}Hat dein R5 das Königreich schon angelegt? Dann oben bei „Königreich beitreten“ anfragen – oder er lädt dich direkt über deine Governor-ID ein.</p>`;
   }
   function membersHTML() {
     const groups = [5, 4, 3, 2, 1].map((r) => ({ r, list: st.mem.filter((m) => (+m.rank || 1) === r) })).filter((g) => g.list.length);
@@ -540,5 +541,6 @@ window.RokMods.kingdom = (R) => {
     else if (c('data-kd-addau')) addAutarch();
     else if ((b = c('data-kd-delau'))) delAutarch(b.dataset.kdDelau);
   });
+  try { A.isAdmin && A.isAdmin().then((ok) => { st.admin = !!ok; if (st.loaded && !st.kd) render(); }).catch(() => {}); } catch {}
   R.viewHooks.kingdom = () => { if (!st.loaded && !st.loading) load(); else render(); };
 };
