@@ -548,7 +548,7 @@ window.RokMods.crafting = (R) => {
   // ---- Item von Hand aus den Bildern wählen: Reiter je Typ, sortiert nach Seltenheit und Name ----
   const gearPickTab = {}, gearPickOpen = {};
   function gearPickerHtml(side, sl, v) {
-    const key = side + ':' + sl.k, tab = gearPickTab[key] || sl.cat, open = gearPickOpen[key] || !gItem(v.item);
+    const key = side + ':' + sl.k, tab = sl.cat, open = gearPickOpen[key] || !gItem(v.item);
     const RO = Object.keys(GEAR_RAR), items = R.gearCat.filter(i => i.cat === tab && (i.icon || i.eq)).sort((a, b) => RO.indexOf(a.rarity) - RO.indexOf(b.rarity) || a.name.localeCompare(b.name));
     const byRar = Object.entries(GEAR_RAR).map(([r, info]) => [info, items.filter(i => i.rarity === r)]).filter(([, l]) => l.length);
     const tile = (i) => { const on = i.id === v.item, f = GFILL[i.rarity] || GFILL.legendary;
@@ -557,16 +557,13 @@ window.RokMods.crafting = (R) => {
         ${i.icon ? `<img src="${i.icon}" alt="" loading="lazy" class="w-full h-full object-contain">`
           : `<span class="absolute inset-0 grid place-items-center p-0.5 text-[8px] leading-[1.05] font-bold text-white text-center [text-shadow:0_1px_2px_#000] overflow-hidden" translate="no">${R.esc(i.name)}</span>`}</button>`; };
     return `<div class="mt-3 rounded-lg border border-ink-700 bg-ink-950/40" data-gpick="${key}">
-      <div class="px-3 pt-2 pb-2 text-xs font-semibold text-gold-300">🖼 Item wählen</div>
+      <div class="px-3 pt-2 pb-2 text-xs font-semibold text-gold-300">🖼 Item wählen <span class="text-slate-400 font-normal">· </span><span class="text-slate-300">${GEAR_CATS[sl.cat] || sl.label}</span></div>
       <div class="px-3 pb-3">
-        <div class="flex flex-wrap gap-1 mb-2">${Object.entries(GEAR_CATS).map(([k, l]) => `<button type="button" data-side="${side}" data-slot="${sl.k}" data-f="gtab" data-v="${k}"
-          class="px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${k === tab ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-700 text-slate-400 hover:text-gold-300'}">${l}${k === sl.cat ? ' ★' : ''}</button>`).join('')}</div>
         <div class="max-h-72 overflow-y-auto pr-1 space-y-2">
           ${byRar.length ? byRar.map(([info, l]) => `<div><div class="text-[10px] uppercase tracking-widest mb-1" style="color:${info.c}">${info.label} · ${l.length}</div>
             <div class="grid grid-cols-6 sm:grid-cols-8 gap-1.5">${l.map(tile).join('')}</div></div>`).join('')
             : '<div class="py-4 text-center text-xs text-slate-500">Keine Bilder für diesen Typ.</div>'}
         </div>
-        ${tab !== sl.cat ? '<div class="mt-2 text-[11px] text-amber-300">Hinweis: anderer Typ als dieser Slot – nur wählen, wenn das Item falsch einsortiert ist.</div>' : ''}
       </div></div>`;
   }
   function gearPickEvent(t) {                                // true = Ereignis war ein Reiter-Wechsel (nichts speichern)
@@ -2249,10 +2246,12 @@ window.RokMods.crafting = (R) => {
   const grid4 = (rows, heads) => `<div class="mt-2 overflow-x-auto"><table class="w-full text-left min-w-[760px]"><thead><tr class="text-[10px] uppercase tracking-widest">
       <th class="py-1.5 pr-2 font-semibold text-slate-500"></th>${heads.map(([h, cl]) => `<th class="py-1.5 px-2 font-semibold ${cl}">${h}</th>`).join('')}</tr></thead>
       <tbody>${rows.map(([lab, cells, strong], i) => `<tr class="${strong ? 'border-t-2 border-gold-500/60' : 'border-t border-slate-600/60'} ${!strong && i % 2 ? 'bg-white/[.025]' : ''} align-top"><td class="py-2.5 pl-1 pr-2 whitespace-nowrap text-sm ${strong ? 'font-semibold text-gold-200' : 'text-slate-200'}">${lab}</td>${cells.map(x => `<td class="py-2.5 px-2 border-l border-ink-700/70">${boxesOr(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
-  const catLbl = (img, l) => `<span class="inline-flex items-center gap-2"><img src="/icons/${img}" alt="" class="w-7 h-7 object-contain">${l}</span>`;
+  const catLbl = (img, l) => `<span class="flex flex-col items-center gap-1 w-20 text-center"><img src="/icons/${img}" alt="" class="w-8 h-8 object-contain">${l}</span>`;
   const HEADS4 = [['Investiert', 'text-slate-400'], ['Bis Ziel', 'text-emerald-300'], ['Bis Max', 'text-sky-300'], ['Max', 'text-gold-300']];
   // pro Slot: was steckt drin, was fehlt bis Ziel, was fehlt bis Max
-  const slotPic = (sl) => `<span class="w-11 h-11 shrink-0 grid place-items-center rounded-lg border border-slate-500/40 bg-gradient-to-b from-slate-600/40 to-ink-950/80 shadow-inner"><img src="/icons/slots/${sl.k}.webp" alt="" class="w-8 h-8 object-contain opacity-90"></span>`;
+  const SLOT_PIC = { weapon: 1, helm: 2, chest: 3, gloves: 4, legs: 5, boots: 6, acc1: 7, acc2: 7 };
+  const slotPic = (sl) => `<img src="/icons/gear/img_ItemTemplatEquipRightTopIcon${SLOT_PIC[sl.k]}.png" alt="" class="w-9 h-9 shrink-0 object-contain">`;
+  const noGoldCry = (c) => c && { ...c, gold: 0, crystal: 0 };   // Pro Teil: ohne Gold und Kristalle – übersichtlicher
   function perSlot(list) {
     return GEAR_SLOTS.map(sl => { const inv = gZero(), toT = gZero(), toM = gZero(), full = gZero(); let has = false, icon = '';
       list.forEach(s => { const v = s.ist[sl.k], z = s.ziel[sl.k]?.item ? s.ziel[sl.k] : null, mx = gMaxSlot(null, v); if (!v?.item && !z) return; has = true;
@@ -2292,11 +2291,11 @@ window.RokMods.crafting = (R) => {
       // Aufschlüsselung Crafting / Iconic / Crit
       html += `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">🧾 Aufschlüsselung</h3>
         <p class="mt-1 text-xs text-slate-400">Crafting = Items herstellen · Iconic = Iconic-Stufen I–V · Crit = Refine (Durchschnitt). „Bis Max“ hat kein Crafting, wenn alle Items schon da sind – das steckt dann in „Investiert“.</p>
-        ${grid4([[catLbl('ressourcen/craft.webp', 'Crafting'), [k.catInv.craft, k.catT.craft, k.catM.craft, k.catMax.craft]], [catLbl('geararnaments/iconCrystal.png', 'Iconic'), [k.catInv.tier, k.catT.tier, k.catM.tier, k.catMax.tier]], [catLbl('ressourcen/crit.webp', 'Crit'), [k.catInv.refine, k.catT.refine, k.catM.refine, k.catMax.refine]], ['＝ Gesamt', [k.inv, k.toT, k.toM, k.max], true]], HEADS4)}</section>`;
+        ${grid4([[catLbl('ressourcen/craft.webp', 'Crafting'), [k.catInv.craft, k.catT.craft, k.catM.craft, k.catMax.craft]], [catLbl('geararnaments/iconCrystal.png', 'Iconic'), [k.catInv.tier, k.catT.tier, k.catM.tier, k.catMax.tier]], [catLbl('ressourcen/crit.webp', 'Crit'), [k.catInv.refine, k.catT.refine, k.catM.refine, k.catMax.refine]], ['<span class="block w-20 text-center">＝ Gesamt</span>', [k.inv, k.toT, k.toM, k.max], true]], HEADS4)}</section>`;
       // pro Slot
       const ps = perSlot(pk.list);
       if (ps.length) html += `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">🧩 Pro Teil <span class="text-sm font-sans text-slate-300" ${pk.one ? 'translate="no"' : ''}>· ${R.esc(pk.label)}</span></h3><p class="mt-1 text-xs text-slate-400">Was in jedem Teil steckt und was es noch kostet${pk.list.length > 1 ? ' – über alle gewählten Charaktere zusammen' : ''}.</p>
-        ${grid4(ps.map(([l, c]) => [l, c]), HEADS4)}<p class="mt-1 text-[11px] text-slate-500">Max = was das Item komplett kostet: craften + alle Iconic-Stufen + voll refined (Refine im Durchschnitt).</p></section>`;
+        ${grid4(ps.map(([l, c]) => [l, c.map(noGoldCry)]), HEADS4)}<p class="mt-1 text-[11px] text-slate-500">Max = was das Item komplett kostet: craften + alle Iconic-Stufen + voll refined (Refine im Durchschnitt). Gold und Iconic-Kristalle stehen in der Aufschlüsselung.</p></section>`;
       // pro Mat (mit Animation)
       const matList = [...R.MATS, ...GX].filter(x => (k.max[x.k] || 0) > 1e-4);
       const matBars = matList.map((x, i) => { const t = k.max[x.k], d = Math.min(t, k.inv[x.k] || 0), q = t ? d / t : 0, f = x.f || gq;

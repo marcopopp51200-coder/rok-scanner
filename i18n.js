@@ -415,6 +415,7 @@ window.I18N = (() => {
         'Freies Set: Kommandanten, Namen und Ausrüstung einzeln verschieben, vergrößern und drehen': 'Free set: move, resize and rotate commanders, names and equipment separately',
         'Set gespeichert · in der Cloud (user_state)': 'Set saved · in the cloud (user_state)', 'Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': 'Saved locally · cloud unreachable, will sync automatically',
         // ---- Craft: Schritt-Dialog, Jahresausgaben, Kalender-Monate, Egg-Tag ----
+        "Max = was das Item komplett kostet: craften + alle Iconic-Stufen + voll refined (Refine im Durchschnitt). Gold und Iconic-Kristalle stehen in der Aufschlüsselung.": "Max = what the item costs in total: crafting + all iconic levels + fully refined (refine at average luck). Gold and iconic crystals are in the breakdown.",
         "Ablauf": "Schedule",
         "Nächster": "Next",
         "Nächste 3": "Next 3",
@@ -801,6 +802,7 @@ window.I18N = (() => {
       patterns: [
         // ---- Craft: Schritt-Dialog, Jahresausgaben, Kalender-Monate, Egg-Tag (dynamisch) ----
         [/^fertig: (.+)$/, 'done: $1'],
+        [/^Item wählen · (.+)$/, (m, c) => 'Pick item · ' + ({ Helm: 'Helmet', Brust: 'Chest', Waffe: 'Weapon', Handschuhe: 'Gloves', Beine: 'Legs', Accessoire: 'Accessory', Stiefel: 'Boots' }[c] || c)],
         [/^Alle \((\d+)\)$/, 'All ($1)'], [/^(\d{4}) \(aktuell\)$/, '$1 (current)'],
         [/^(📋 )?Pro Charakter ·\s*$/, (m, e) => (e || '') + 'Per character · '],
         [/^(Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember) (\d{4})(?: – (Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember) (\d{4}))?$/, (m, a, y, b, y2) => { const M = { Januar: 'January', Februar: 'February', März: 'March', April: 'April', Mai: 'May', Juni: 'June', Juli: 'July', August: 'August', September: 'September', Oktober: 'October', November: 'November', Dezember: 'December' }; return `${M[a]} ${y}` + (b ? ` – ${M[b]} ${y2}` : ''); }],
