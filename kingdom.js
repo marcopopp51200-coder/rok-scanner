@@ -9,9 +9,9 @@ window.RokMods.kingdom = (R) => {
   const $ = R.$, esc = R.esc, A = window.RokAuth, root = $('kingdomView');
   const db = () => A.db(), me = () => A.userId();
   const RANK = { 5: ['👑', 'R5 – König'], 4: ['⚜️', 'R4 – Offizier'], 3: ['🛡️', 'R3'], 2: ['⚔️', 'R2'], 1: ['🏹', 'R1'] };
-  const st = { loaded: false, loading: false, err: '', noTable: false, kd: null, mem: [], invites: [], posts: [], events: [], autarchs: [], users: {}, tab: 'members', search: [], q: '', busy: false, msg: ['', ''], cre: { name: '', number: '' }, join: { q: '', res: [], searched: false, busy: false }, admin: false, myReqs: [], requests: [], verify: null, evForm: { title: '', at: '', kind: 'event', note: '' }, auForm: { name: '', gid: '', kvk: '', note: '' } };
+  const st = { loaded: false, loading: false, err: '', noTable: false, kd: null, mem: [], invites: [], posts: [], events: [], autarchs: [], users: {}, tab: 'members', search: [], q: '', busy: false, msg: ['', ''], cre: { name: '', number: '' }, join: { q: '', res: [], searched: false, busy: false }, admin: false, area: 'off', myReqs: [], requests: [], verify: null, evForm: { title: '', at: '', kind: 'event', note: '' }, auForm: { name: '', gid: '', kvk: '', note: '' } };
   const myRow = () => st.mem.find((m) => m.user_id === me());
-  const myRank = () => (myRow() ? +myRow().rank || 1 : 0);
+  const myRank = () => (myRow() ? (st.kd && st.kd.owner === me() ? 5 : +myRow().rank || 1) : 0);   // Gründer bleibt immer R5
   const canManage = () => myRank() >= 4;
   const isOwner = () => st.kd && st.kd.owner === me();
 
@@ -54,6 +54,7 @@ window.RokMods.kingdom = (R) => {
     R.setBadge('[data-kd-badge]', st.invites.length + (canManage() ? st.requests.length : 0));
     render();
     if (st.kd && st.tab === 'scan') { st.sc.loaded = false; loadScans(); }
+    if (st.kd && st.tab === 'fights') { st.fi.loaded = false; loadFights(); }
   }
   // Einladungs-Badge auch ohne geöffnete Seite (einmal beim Start, dann alle 5 Minuten)
   async function pollInvites() { try { const r = await db().from('kingdom_members').select('kingdom_id').eq('user_id', me()).eq('status', 'invited'); if (!r.error) R.setBadge('[data-kd-badge]', (r.data || []).length + (st.kd && canManage() ? st.requests.length : 0)); } catch {} }
@@ -140,6 +141,7 @@ window.RokMods.kingdom = (R) => {
   }
   async function setRank(uid, rank) {
     if (!canManage()) return;
+    if (st.kd && uid === st.kd.owner) { msg('Der Gründer bleibt immer R5.', 'warn'); render(); return; }
     try { const { error } = await db().from('kingdom_members').update({ rank }).eq('kingdom_id', st.kd.id).eq('user_id', uid); if (error) throw error; await load(); } catch (e) { fail(e, 'Rang ändern'); }
   }
   async function kick(uid) {
@@ -366,10 +368,11 @@ window.RokMods.kingdom = (R) => {
       ${canManage() ? scUploadHTML() : ''}
       ${!sc.list.length ? `<div class="text-center py-6"><div class="text-4xl mb-2">📊</div><p class="text-sm text-slate-300">Noch kein Scan hochgeladen.</p>
           <p class="text-xs text-slate-500 mt-1">${canManage() ? 'Scanne die Top 300 mit RokTracker (Kingdom-Scan) und lade die Datei oben hoch. Mit zwei Scans (z. B. vor und nach dem KvK) siehst du, wer wie viel gekillt hat und gestorben ist.' : 'Sobald ein R4 oder R5 einen Scan hochlädt, siehst du hier die Top 300 deines Königreichs.'}</p></div>` : `
-      <div class="grid gap-2 sm:grid-cols-2">
+      <div class="grid gap-2 sm:grid-cols-2 ${sc.view === 'hist' ? 'hidden' : ''}">
         <label class="text-xs text-slate-400">Scan${sel('data-kd-sc-pick="cur"', sc.cur, sc.list)}</label>
         <label class="text-xs text-slate-400">Vergleichen mit${sel('data-kd-sc-pick="cmp"', sc.cmp, sc.list.filter((x) => x.id !== sc.cur), '— kein Vergleich —')}</label></div>
-      ${!sc.rows[sc.cur] ? '<p class="text-sm text-slate-500 text-center py-4">⏳ Wird geladen …</p>' : `
+      <div class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700">${[['table', '📋 Tabelle & Vergleich'], ['hist', '📈 Verlauf']].map(([v0, l]) => `<button type="button" data-kd-scview="${v0}" aria-pressed="${sc.view === v0}" class="seg-btn rounded-lg px-2 py-1.5 text-xs sm:text-sm font-semibold border border-ink-600 transition">${l}</button>`).join('')}</div>
+      ${sc.view === 'hist' ? histHTML() : !sc.rows[sc.cur] ? '<p class="text-sm text-slate-500 text-center py-4">⏳ Wird geladen …</p>' : `
       ${scSummary(v)}
       ${scAllies(v)}
       <div class="grid gap-2 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)_auto] items-end">
@@ -384,6 +387,152 @@ window.RokMods.kingdom = (R) => {
   root.addEventListener('dragover', (ev) => { if (ev.target.closest?.('[data-kd-sc-drop]')) { ev.preventDefault(); ev.target.closest('[data-kd-sc-drop]').classList.add('drop-active'); } });
   root.addEventListener('dragleave', (ev) => { ev.target.closest?.('[data-kd-sc-drop]')?.classList.remove('drop-active'); });
   root.addEventListener('drop', (ev) => { const z = ev.target.closest?.('[data-kd-sc-drop]'); if (!z) return; ev.preventDefault(); z.classList.remove('drop-active'); scFile(ev.dataTransfer?.files?.[0]); });
+
+  // ---------- 📈 Top 300 – Verlauf: alle Scans nacheinander (z. B. monatlich) → Power/KP-Entwicklung ----------
+  sc.view = 'table'; sc.hq = ''; sc.hid = ''; sc.hLoading = false;
+  let charts = [];
+  const killCharts = () => { charts.forEach((c) => { try { c.destroy(); } catch {} }); charts = []; };
+  const chronList = () => [...sc.list].sort((a, b) => String(a.scanned_at).localeCompare(String(b.scanned_at)) || String(a.created_at).localeCompare(String(b.created_at)));
+  async function loadAllRows() {
+    if (sc.hLoading) return; const miss = sc.list.filter((x) => !sc.rows[x.id]); if (!miss.length) return;
+    sc.hLoading = true; render();
+    try { const ids = miss.map((x) => x.id); const { data, error } = await db().from('kingdom_scans').select('id,data').in('id', ids); if (error) throw error; (data || []).forEach((r) => { sc.rows[r.id] = Array.isArray(r.data) ? r.data : []; }); }
+    catch (e) { fail(e, 'Laden'); }
+    sc.hLoading = false; render();
+  }
+  const sumTop = (rows, k, n = 300) => rows.filter((r) => (r.rk || 0) <= n).reduce((a, r) => a + (scVal(r, k) || 0), 0);
+  function histHTML() {
+    const list = chronList();
+    if (list.length < 2) return '<p class="text-sm text-slate-500 text-center py-6">Für den Verlauf brauchst du mindestens zwei Scans – am besten jeden Monat einen.</p>';
+    if (list.some((x) => !sc.rows[x.id])) return '<p class="text-sm text-slate-500 text-center py-6">⏳ Alle Scans werden geladen …</p>';
+    const all = new Map(); list.forEach((x) => sc.rows[x.id].forEach((r) => { if (r.id && !all.has(r.id)) all.set(r.id, r); }));
+    sc.rows[list[list.length - 1].id].forEach((r) => r.id && all.set(r.id, r));   // neuester Name gewinnt
+    const q = sc.hq.trim().toLowerCase();
+    const hits = q ? [...all.values()].filter((r) => String(r.n || '').toLowerCase().includes(q) || String(r.id).includes(q)).slice(0, 8) : [];
+    const pick = sc.hid ? all.get(sc.hid) : null;
+    const n = Math.min(...list.map((x) => (sc.rows[x.id] || []).length));
+    const rowsOf = (id) => list.map((x) => ({ s: x, r: (sc.rows[x.id] || []).find((y) => y.id === id) || null }));
+    const pr = pick ? rowsOf(pick.id) : [];
+    return `<div class="rounded-xl border border-ink-700 bg-ink-950/40 p-3 flex flex-col gap-2">
+        <div class="flex flex-wrap items-baseline gap-2"><b class="text-sm text-slate-100">🏰 Königreich gesamt</b><span class="text-[11px] text-slate-500">Summe der Top <span>${n}</span> je Scan</span></div>
+        <div class="relative h-56"><canvas id="kdChKd"></canvas></div></div>
+      <div class="rounded-xl border border-ink-700 bg-ink-950/40 p-3 flex flex-col gap-2">
+        <b class="text-sm text-slate-100">👤 Spieler-Verlauf</b>
+        <div class="flex gap-2"><input type="search" data-kd-hq value="${esc(sc.hq)}" placeholder="Name oder Governor-ID" class="${inp}"></div>
+        ${hits.length ? `<div class="flex flex-wrap gap-1.5">${hits.map((r) => `<button type="button" data-kd-hpick="${esc(r.id)}" class="text-xs px-2.5 py-1 rounded-lg border ${r.id === sc.hid ? 'border-gold-400 text-gold-300' : 'border-ink-600 text-slate-300 hover:border-gold-500/60'}"><span translate="no">${esc(r.n || '?')}</span> <span class="text-slate-500 tabular-nums" translate="no">${esc(r.id)}</span></button>`).join('')}</div>` : q ? '<p class="text-xs text-slate-500">Keine Treffer.</p>' : ''}
+        ${pick ? `<div class="text-sm"><b class="text-slate-100" translate="no">${esc(pick.n || '?')}</b> <span class="text-xs text-slate-500 tabular-nums" translate="no">ID ${esc(pick.id)}${pick.a ? ' · ' + esc(pick.a) : ''}</span></div>
+          <div class="relative h-56"><canvas id="kdChGov"></canvas></div>
+          <div class="overflow-x-auto"><table class="w-full text-xs"><thead><tr class="text-[10px] uppercase tracking-widest text-slate-500"><th class="text-left py-1 pr-2 font-medium">Scan</th><th class="text-right px-2 font-medium">Platz</th><th class="text-right px-2 font-medium">Power</th><th class="text-right px-2 font-medium">Kill-Punkte</th><th class="text-right px-2 font-medium">T4+T5 Kills</th><th class="text-right px-2 font-medium">Tote</th></tr></thead>
+          <tbody>${pr.map((x, i) => { const pv = i ? pr[i - 1].r : null, d = (k) => x.r && pv && scVal(x.r, k) != null && scVal(pv, k) != null ? `<div>${delta(scVal(x.r, k) - scVal(pv, k), 'text-[10px]')}</div>` : '';
+            return `<tr class="border-t border-ink-700/60"><td class="py-1.5 pr-2 text-slate-300">${scDate(x.s.scanned_at)} <span class="text-slate-500" translate="no">${esc(x.s.name)}</span></td>${x.r ? `<td class="px-2 text-right tabular-nums">${x.r.rk}</td>${['p', 'kp', 't45', 'd'].map((k) => `<td class="px-2 text-right tabular-nums" title="${full(scVal(x.r, k))}">${big(scVal(x.r, k))}${d(k)}</td>`).join('')}` : '<td colspan="5" class="px-2 text-right text-slate-500">nicht im Scan</td>'}</tr>`; }).join('')}</tbody></table></div>`
+        : '<p class="text-xs text-slate-500">Spieler suchen und antippen – dann siehst du seine Power und Kill-Punkte über alle Scans.</p>'}</div>`;
+  }
+  function drawCharts() {
+    killCharts(); if (!window.Chart || st.tab !== 'scan' || sc.view !== 'hist') return;
+    const list = chronList(); if (list.length < 2 || list.some((x) => !sc.rows[x.id])) return;
+    const n = Math.min(...list.map((x) => (sc.rows[x.id] || []).length)), labels = list.map((x) => scDate(x.scanned_at));
+    const opt = (y2) => ({ responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { labels: { color: '#cbd5e1', boxWidth: 12 } }, tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: ${full(c.raw)}` } } },
+      scales: { x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } }, y: { position: 'left', ticks: { color: '#f5c542', callback: (v) => big(v) }, grid: { color: 'rgba(148,163,184,.08)' } }, ...(y2 ? { y2: { position: 'right', ticks: { color: '#f87171', callback: (v) => big(v) }, grid: { display: false } } } : {}) } });
+    const ds = (label, data, color, axis = 'y') => ({ label, data, borderColor: color, backgroundColor: color + '33', tension: .25, pointRadius: 3, spanGaps: true, yAxisID: axis });
+    const c1 = $('kdChKd'); if (c1) charts.push(new window.Chart(c1, { type: 'line', data: { labels, datasets: [ds('Power', list.map((x) => sumTop(sc.rows[x.id], 'p', n)), '#f5c542'), ds('Kill-Punkte', list.map((x) => sumTop(sc.rows[x.id], 'kp', n)), '#f87171', 'y2')] }, options: opt(true) }));
+    const c2 = $('kdChGov'); if (c2 && sc.hid) { const pr = list.map((x) => (sc.rows[x.id] || []).find((y) => y.id === sc.hid) || null);
+      charts.push(new window.Chart(c2, { type: 'line', data: { labels, datasets: [ds('Power', pr.map((r) => r ? r.p ?? null : null), '#f5c542'), ds('Kill-Punkte', pr.map((r) => r ? r.kp ?? null : null), '#f87171', 'y2')] }, options: opt(true) })); }
+  }
+
+  // ---------- ⚔️ KvK: Kämpfe auswerten (Scan vorher ↔ Scan nachher) ----------
+  // Supabase: kingdom_fights (kind zone5|altar|pass7|kingsland|kvk|other, scan_before, scan_after)
+  const FIGHT = { zone5: ['🔥', 'Zone 5 Fight'], altar: ['⛩️', 'Altar Fight'], pass7: ['🚪', 'Pass 7'], kingsland: ['👑', 'Kingsland'], kvk: ['🏆', 'KvK gesamt'], other: ['⚔️', 'Sonstiger Kampf'] };
+  const fi = st.fi = { list: [], loaded: false, loading: false, noTable: false, open: '', form: null, sort: 'Δkp', dir: -1, q: '', busy: false };
+  async function loadFights() {
+    if (fi.loading || !st.kd) return; fi.loading = true; render();
+    try {
+      const [f] = await Promise.all([db().from('kingdom_fights').select('*').eq('kingdom_id', st.kd.id).order('fight_date', { ascending: false }).order('created_at', { ascending: false }).limit(100), sc.loaded ? null : loadScansQuiet()]);
+      if (f.error) throw f.error; fi.list = f.data || []; fi.noTable = false;
+    } catch (e) { if (R.tableMissing(e)) fi.noTable = true; else fail(e, 'Laden'); }
+    fi.loading = false; fi.loaded = true; render();
+  }
+  async function loadScansQuiet() { try { const { data, error } = await db().from('kingdom_scans').select('id,name,scanned_at,row_count,user_id,created_at').eq('kingdom_id', st.kd.id).order('scanned_at', { ascending: false }).limit(60); if (!error) { sc.list = data || []; } } catch {} }
+  async function openFight(id) {
+    fi.open = fi.open === id ? '' : id; fi.q = ''; render();
+    const f = fi.list.find((x) => x.id === id); if (!f || fi.open !== id) return;
+    try { await Promise.all([scRows(f.scan_before), scRows(f.scan_after)]); } catch (e) { fail(e, 'Laden'); } render();
+  }
+  async function saveFight() {
+    const f = fi.form; if (!f || !canManage() || fi.busy) return;
+    if (!f.before || !f.after || f.before === f.after) { msg('Bitte zwei verschiedene Scans wählen: vor und nach dem Kampf.', 'warn'); return; }
+    const b = sc.list.find((x) => x.id === f.before), a = sc.list.find((x) => x.id === f.after);
+    if (b && a && String(b.scanned_at) > String(a.scanned_at)) { msg('Der Scan „vorher“ ist neuer als der Scan „nachher“ – bitte tauschen.', 'warn'); return; }
+    fi.busy = true; render();
+    try { const { error } = await db().from('kingdom_fights').insert({ kingdom_id: st.kd.id, user_id: me(), kind: FIGHT[f.kind] ? f.kind : 'other', title: (f.title || '').trim().slice(0, 60) || null, kvk: (f.kvk || '').trim().slice(0, 40) || null, fight_date: /^\d{4}-\d\d-\d\d$/.test(f.date) ? f.date : (a?.scanned_at || today()), scan_before: f.before, scan_after: f.after, note: (f.note || '').slice(0, 300) || null });
+      if (error) throw error; fi.form = null; msg('✓ Kampf gespeichert', 'ok'); fi.busy = false; fi.loaded = false; await loadFights(); return; }
+    catch (e) { fail(e, 'Speichern'); }
+    fi.busy = false; render();
+  }
+  async function delFight(id) {
+    if (!canManage()) return; if (!(await window.UI.confirm('Diese Kampf-Auswertung löschen? Die Scans bleiben erhalten.'))) return;
+    try { const { error } = await db().from('kingdom_fights').delete().eq('id', id); if (error) throw error; if (fi.open === id) fi.open = ''; fi.loaded = false; await loadFights(); } catch (e) { fail(e, 'Löschen'); }
+  }
+  const FKEYS = [['kp', 'Kill-Punkte'], ['t45', 'T4+T5 Kills'], ['t4', 'T4 Kills'], ['t5', 'T5 Kills'], ['d', 'Tote'], ['p', 'Power']];
+  function fightData(f) {
+    const B = sc.rows[f.scan_before], A0 = sc.rows[f.scan_after]; if (!B || !A0) return null;
+    const by = new Map(B.map((r) => [r.id, r]));
+    const rows = A0.filter((r) => r.id && by.has(r.id)).map((r) => { const o = by.get(r.id), x = { id: r.id, n: r.n, a: r.a, rk: r.rk };
+      FKEYS.forEach(([k]) => { const v1 = scVal(r, k), v0 = scVal(o, k); x[k] = v1 != null && v0 != null ? v1 - v0 : null; }); x.part = (x.kp || 0) > 0 || (x.d || 0) > 0; return x; });
+    return { rows, missing: A0.length - rows.length };
+  }
+  function fightHTML(f) {
+    const D = fightData(f); if (!D) return '<p class="text-sm text-slate-500 text-center py-4">⏳ Wird geladen …</p>';
+    if (!D.rows.length) return '<p class="text-sm text-amber-300">⚠ Die beiden Scans haben keine gemeinsamen Spieler (Governor-IDs).</p>';
+    const sum = (k) => D.rows.reduce((a, r) => a + (r[k] || 0), 0), part = D.rows.filter((r) => r.part);
+    const tile = (lab, v, cls = 'text-slate-100') => `<div class="rounded-xl bg-ink-950/60 border border-ink-700 px-3 py-2"><div class="text-[11px] text-slate-500">${lab}</div><div class="font-semibold tabular-nums ${cls}" ${typeof v === 'number' ? `title="${full(v)}"` : ''}>${typeof v === 'number' ? (v > 0 ? '+' : '') + big(v) : v}</div></div>`;
+    const top = (k, lab, ico) => { const t = [...D.rows].filter((r) => (r[k] || 0) > 0).sort((a, b) => b[k] - a[k]).slice(0, 5);
+      return `<div class="rounded-xl border border-ink-700 bg-ink-950/40 p-3"><div class="text-xs font-semibold text-slate-200 mb-1">${ico} ${lab}</div>${t.length ? t.map((r, i) => `<div class="flex items-center gap-2 py-0.5 text-xs"><span class="w-4 text-slate-500">${i + 1}</span><span class="min-w-0 flex-1 truncate text-slate-100" translate="no">${esc(r.n || '?')}</span><span class="tabular-nums text-emerald-300">+${big(r[k])}</span></div>`).join('') : '<div class="text-xs text-slate-500">–</div>'}</div>`; };
+    const g = new Map(); D.rows.forEach((r) => { const o = g.get(r.a || '') || { a: r.a || '', n: 0, kp: 0, d: 0, t45: 0 }; if (r.part) o.n++; o.kp += r.kp || 0; o.d += r.d || 0; o.t45 += r.t45 || 0; g.set(o.a, o); });
+    const allies = [...g.values()].filter((o) => o.kp || o.d).sort((x, y) => y.kp - x.kp).slice(0, 10);
+    const q = fi.q.trim().toLowerCase(), key = fi.sort.slice(1);
+    const list = D.rows.filter((r) => !q || String(r.n || '').toLowerCase().includes(q) || String(r.id).includes(q) || String(r.a || '').toLowerCase().includes(q))
+      .sort((a, b) => key === 'n' ? String(a.n || '').localeCompare(String(b.n || '')) * -fi.dir : ((a[key] ?? -Infinity) - (b[key] ?? -Infinity)) * fi.dir || a.rk - b.rk);
+    const th = (k, l) => `<th class="py-1.5 px-2 font-medium text-right whitespace-nowrap cursor-pointer hover:text-gold-300 ${fi.sort === 'Δ' + k ? 'text-gold-300' : ''}" data-kd-fsort="${k}">${l}<span>${fi.sort === 'Δ' + k ? (fi.dir < 0 ? ' ▼' : ' ▲') : ''}</span></th>`;
+    return `<div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        ${tile('Beteiligt', `${part.length} / ${D.rows.length}`)}${tile('Kill-Punkte', sum('kp'), 'text-emerald-300')}${tile('T4+T5 Kills', sum('t45'), 'text-emerald-300')}${tile('Tote', sum('d'), 'text-red-300')}${tile('Power', sum('p'), sum('p') < 0 ? 'text-red-300' : 'text-emerald-300')}</div>
+      <p class="text-[11px] text-slate-500">Nur Spieler, die in beiden Scans sind. Beteiligt = Kill-Punkte oder Tote gestiegen.${D.missing ? ` <span>${D.missing}</span> <span>Spieler aus dem Nachher-Scan fehlen im Vorher-Scan.</span>` : ''}</p>
+      <div class="grid gap-2 sm:grid-cols-3">${top('kp', 'Top Kill-Punkte', '⚔️')}${top('t45', 'Top T4+T5 Kills', '🗡️')}${top('d', 'Top Tote', '💀')}</div>
+      ${allies.length > 1 ? `<div class="overflow-x-auto rounded-xl border border-ink-700"><table class="w-full text-xs"><thead class="bg-ink-950/80"><tr class="text-[10px] uppercase tracking-widest text-slate-500"><th class="text-left py-1.5 px-2 font-medium">Allianz</th><th class="text-right px-2 font-medium">Beteiligt</th><th class="text-right px-2 font-medium">Kill-Punkte</th><th class="text-right px-2 font-medium">T4+T5 Kills</th><th class="text-right px-2 font-medium">Tote</th></tr></thead>
+        <tbody>${allies.map((o) => `<tr class="border-t border-ink-700/60"><td class="py-1.5 px-2 font-semibold text-slate-100" ${o.a ? 'translate="no"' : ''}>${o.a ? esc(o.a) : '<span class="text-slate-500 font-normal">ohne Allianz</span>'}</td><td class="px-2 text-right tabular-nums">${o.n}</td><td class="px-2 text-right">${delta(o.kp, 'text-xs')}</td><td class="px-2 text-right">${delta(o.t45, 'text-xs')}</td><td class="px-2 text-right">${delta(o.d, 'text-xs')}</td></tr>`).join('')}</tbody></table></div>` : ''}
+      <input type="search" data-kd-fq value="${esc(fi.q)}" placeholder="Name, ID oder Allianz" class="${inp}">
+      <div id="kdFiBody" class="overflow-x-auto rounded-xl border border-ink-700"><table class="w-full text-sm"><thead class="bg-ink-950/80"><tr class="text-[10px] uppercase tracking-widest text-slate-500"><th class="py-1.5 px-2 font-medium text-left">#</th><th class="py-1.5 px-2 font-medium text-left cursor-pointer hover:text-gold-300" data-kd-fsort="n">Statthalter</th>${FKEYS.map(([k, l]) => th(k, l)).join('')}</tr></thead>
+        <tbody>${list.map((r, i) => `<tr class="border-t border-ink-700/60 hover:bg-ink-800/40 ${r.part ? '' : 'opacity-50'}"><td class="py-1.5 px-2 text-slate-500 tabular-nums">${i + 1}</td>
+          <td class="py-1.5 px-2 min-w-[10rem]"><div class="font-semibold text-slate-100 truncate max-w-[14rem]" translate="no">${esc(r.n || '?')}</div><div class="text-[11px] text-slate-500"><span class="tabular-nums" translate="no">ID ${esc(r.id)}</span>${r.a ? ` · <span translate="no">${esc(r.a)}</span>` : ''}</div></td>
+          ${FKEYS.map(([k]) => `<td class="py-1.5 px-2 text-right">${r[k] == null ? '<span class="text-slate-600">–</span>' : delta(r[k], 'text-sm')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  }
+  function fightsHTML() {
+    if (fi.noTable) return `<div class="text-sm text-amber-300">⚠ Die Tabelle „kingdom_fights“ fehlt noch in Supabase. Bitte das SQL aus dem Chat ausführen.</div>`;
+    if (!fi.loaded) return '<p class="text-sm text-slate-500 text-center py-6">⏳ Wird geladen …</p>';
+    const scOpt = (val) => sc.list.map((x) => `<option value="${esc(x.id)}" ${x.id === val ? 'selected' : ''}>${scDate(x.scanned_at)} · ${esc(x.name)}</option>`).join('');
+    const f = fi.form;
+    const form = !canManage() ? '' : !f ? `<div>${btn('data-kd-fnew', '➕ Kampf auswerten', 'gold')}</div>` : !sc.list.length ? `<div class="text-xs text-amber-300">Lade zuerst unter 🌿 Offseason → 📊 Top 300 die Scans vor und nach dem Kampf hoch.</div>` : `
+      <div class="rounded-xl border border-gold-500/50 bg-gold-500/5 p-3 grid gap-2 sm:grid-cols-3 items-end">
+        <label class="text-xs text-slate-400">Kampf<select data-kd-ff="kind" class="${inp} mt-1">${Object.entries(FIGHT).map(([k, [i, l]]) => `<option value="${k}" ${f.kind === k ? 'selected' : ''}>${i} ${l}</option>`).join('')}</select></label>
+        <label class="text-xs text-slate-400">KvK / Season<input type="text" maxlength="40" data-kd-ff="kvk" value="${esc(f.kvk)}" placeholder="z. B. KvK 3 – Heroic Anthem" class="mt-1 ${inp}"></label>
+        <label class="text-xs text-slate-400">Titel (optional)<input type="text" maxlength="60" data-kd-ff="title" value="${esc(f.title)}" placeholder="z. B. gegen 2911" class="mt-1 ${inp}"></label>
+        <label class="text-xs text-slate-400">Scan vorher<select data-kd-ff="before" class="${inp} mt-1"><option value="">– wählen –</option>${scOpt(f.before)}</select></label>
+        <label class="text-xs text-slate-400">Scan nachher<select data-kd-ff="after" class="${inp} mt-1"><option value="">– wählen –</option>${scOpt(f.after)}</select></label>
+        <label class="text-xs text-slate-400">Datum des Kampfs<input type="date" data-kd-ff="date" value="${esc(f.date)}" class="mt-1 ${inp} [color-scheme:dark]"></label>
+        <label class="text-xs text-slate-400 sm:col-span-2">Notiz<input type="text" maxlength="300" data-kd-ff="note" value="${esc(f.note)}" class="mt-1 ${inp}"></label>
+        <div class="flex gap-2 justify-end">${btn('data-kd-fsave' + (fi.busy ? ' disabled' : ''), fi.busy ? '⏳ Speichere …' : '💾 Speichern', 'gold')}${btn('data-kd-fcancel', 'Abbrechen', 'red')}</div>
+        <p class="sm:col-span-3 text-[11px] text-slate-500">So geht's: direkt vor dem Kampf mit RokTracker scannen und hochladen, direkt danach noch einmal – dann hier beide Scans wählen.</p></div>`;
+    const groups = new Map(); fi.list.forEach((x) => { const k = x.kvk || ''; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(x); });
+    const nameOf = (id) => { const s0 = sc.list.find((x) => x.id === id); return s0 ? `${scDate(s0.scanned_at)} · ${esc(s0.name)}` : '<span class="text-red-300">Scan gelöscht</span>'; };
+    return `${form}
+      ${!fi.list.length ? `<div class="text-center py-6"><div class="text-4xl mb-2">⚔️</div><p class="text-sm text-slate-300">Noch keine Kampf-Auswertung.</p><p class="text-xs text-slate-500 mt-1">Zone 5, Altar, Pass 7, Kingsland … – jeweils mit einem Scan vorher und nachher. Dann siehst du, wer gekämpft hat.</p></div>` :
+      [...groups].map(([kvk, arr]) => `<div class="flex flex-col gap-2"><div class="text-[11px] uppercase tracking-widest text-slate-500 mt-1">${kvk ? `🏆 <span translate="no">${esc(kvk)}</span>` : 'Ohne KvK-Angabe'}</div>
+        ${arr.map((x) => { const [ico, lab] = FIGHT[x.kind] || FIGHT.other, open = fi.open === x.id; return `<div class="rounded-xl border ${open ? 'border-gold-500/60' : 'border-ink-700'} bg-ink-950/40">
+          <button type="button" data-kd-fopen="${esc(x.id)}" class="w-full flex flex-wrap items-center gap-3 px-3 py-2.5 text-left hover:bg-ink-800/40 rounded-xl">
+            <span class="text-2xl">${ico}</span><span class="min-w-0 flex-1"><b class="text-slate-100">${lab}</b>${x.title ? ` · <span class="text-slate-300" translate="no">${esc(x.title)}</span>` : ''}
+              <span class="block text-xs text-slate-500">${scDate(x.fight_date)} · ${nameOf(x.scan_before)} → ${nameOf(x.scan_after)}</span>${x.note ? `<span class="block text-xs text-slate-400">${esc(x.note)}</span>` : ''}</span>
+            <span class="text-xs text-gold-300">${open ? '▲ zu' : '▼ Auswertung'}</span></button>
+          ${open ? `<div class="px-3 pb-3 flex flex-col gap-3">${fightHTML(x)}${canManage() ? `<div class="text-right">${btn(`data-kd-fdel="${esc(x.id)}"`, '🗑 Auswertung löschen', 'red')}</div>` : ''}</div>` : ''}</div>`; }).join('')}</div>`).join('')}`;
+  }
 
   // ---------- Timer ----------
   const cd = (ts) => { let d = Math.round((new Date(ts).getTime() - Date.now()) / 1000); const past = d < 0; d = Math.abs(d);
@@ -418,10 +567,10 @@ window.RokMods.kingdom = (R) => {
       <p class="text-xs text-slate-500">${st.admin ? '' : '<span>Neue Königreiche legt der Admin an.</span> '}Hat dein R5 das Königreich schon angelegt? Dann oben bei „Königreich beitreten“ anfragen – oder er lädt dich direkt über deine Governor-ID ein.</p>`;
   }
   function membersHTML() {
-    const groups = [5, 4, 3, 2, 1].map((r) => ({ r, list: st.mem.filter((m) => (+m.rank || 1) === r) })).filter((g) => g.list.length);
+    const groups = [5, 4, 3, 2, 1].map((r) => ({ r, list: st.mem.filter((m) => (m.user_id === st.kd.owner ? 5 : +m.rank || 1) === r) })).filter((g) => g.list.length);
     const row = (m) => { const x = u(m.user_id), own = m.user_id === me(); return `<div class="flex items-center gap-3 py-2 border-b border-ink-700/60 last:border-0">
         <button type="button" data-kd-prof="${esc(m.user_id)}" class="flex items-center gap-2.5 min-w-0 flex-1 text-left rounded-lg hover:bg-ink-800/60 pr-2">${R.userLine(x)}${x.governor_id ? `<span class="ml-auto text-[11px] text-slate-500 tabular-nums">ID ${esc(x.governor_id)}</span>` : ''}</button>
-        ${canManage() && !(st.kd.owner === m.user_id && !isOwner()) ? `<select data-kd-rank="${esc(m.user_id)}" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs">${[5, 4, 3, 2, 1].filter((r) => isOwner() || r < 5).map((r) => `<option value="${r}" ${(+m.rank || 1) === r ? 'selected' : ''}>${RANK[r][0]} R${r}</option>`).join('')}</select>
+        ${st.kd.owner === m.user_id ? '<span class="text-[11px] px-2 py-1 rounded-lg border border-gold-500/40 text-gold-300 whitespace-nowrap">👑 Gründer</span>' : ''}${canManage() && st.kd.owner !== m.user_id ? `<select data-kd-rank="${esc(m.user_id)}" class="bg-ink-950 border border-ink-600 rounded-lg px-2 py-1 text-xs">${[5, 4, 3, 2, 1].filter((r) => isOwner() || r < 5).map((r) => `<option value="${r}" ${(+m.rank || 1) === r ? 'selected' : ''}>${RANK[r][0]} R${r}</option>`).join('')}</select>
         ${!own ? btn(`data-kd-kick="${esc(m.user_id)}"`, '✕', 'red') : ''}` : ''}</div>`; };
     const vr = (rq) => { const gid = String(rq.governor_id || ''), x = st.verify && st.verify.by.get(gid);
       return !st.verify ? '<span class="text-amber-300">⚠ Kein Top-300-Scan zum Abgleichen – ID im Spiel prüfen</span>'
@@ -471,7 +620,8 @@ window.RokMods.kingdom = (R) => {
         ${btn('data-kd-addau', '➕ Eintragen', 'gold')}</div>` : ''}`;
   }
   function kdHTML() {
-    const k = st.kd, tabs = [['members', `👥 Mitglieder · ${st.mem.length}${canManage() && st.requests.length ? ` · 📝 ${st.requests.length}` : ''}`], ['feed', '💬 Feed'], ['events', '📅 Ereignisse'], ['kvk', '⚔️ KvK-Planung'], ['autarch', '👑 Autarchen'], ['scan', '📊 Top 300']];
+    const k = st.kd, AREAS = { off: [['members', `👥 Mitglieder · ${st.mem.length}${canManage() && st.requests.length ? ` · 📝 ${st.requests.length}` : ''}`], ['feed', '💬 Feed'], ['events', '📅 Ereignisse'], ['scan', '📊 Top 300']],
+      kvk: [['kvk', '🗓️ KvK-Planung'], ['fights', '⚔️ Kämpfe'], ['autarch', '👑 Autarchen']] }, tabs = AREAS[st.area] || AREAS.off;
     const next = st.events.filter((e) => new Date(e.starts_at).getTime() > Date.now()).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at))[0];
     return `<div class="panel rounded-2xl p-4 sm:p-5 flex flex-wrap items-center gap-4">
         <div class="w-16 h-16 rounded-2xl grid place-items-center text-3xl bg-gradient-to-br from-gold-300 to-gold-600 text-ink-950 shadow-[0_0_20px_rgba(245,197,66,.35)]">🏰</div>
@@ -480,12 +630,15 @@ window.RokMods.kingdom = (R) => {
           ${next ? `<div class="mt-1 text-xs"><span class="text-slate-500">Nächstes:</span> <b class="text-gold-300">${next.kind === 'kvk' ? '⚔️' : '📅'} ${esc(next.title)}</b> · ${when(next.starts_at)} · <span data-kd-cd="${esc(next.starts_at)}" class="font-mono text-gold-200">${cd(next.starts_at)}</span></div>` : ''}</div>
         <div class="flex flex-wrap gap-2">${btn('data-kd-reload', '↻')}${isOwner() ? btn('data-kd-delete', '🗑 Löschen', 'red') : btn('data-kd-leave', 'Verlassen', 'red')}</div>
       </div>
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist">${tabs.map(([k0, l]) => `<button type="button" data-kd-tab="${k0}" aria-pressed="${st.tab === k0}" class="seg-btn rounded-lg px-2 py-2 text-xs sm:text-sm font-semibold border border-ink-600 transition">${l}</button>`).join('')}</div>
-      ${st.tab === 'members' ? card('👥 Mitglieder', membersHTML()) : st.tab === 'feed' ? card('💬 Königreich-Feed', feedHTML()) : st.tab === 'events' ? card('📅 Ereignisse', eventsHTML('event')) : st.tab === 'kvk' ? card('⚔️ KvK-Planung', eventsHTML('kvk')) : st.tab === 'scan' ? card('📊 Top 300 – Königreichs-Scan', scanHTML()) : card('👑 Autarch-Liste', autarchHTML())}`;
+      <div class="grid grid-cols-2 gap-2" role="tablist">${[['off', '🌿 Offseason', 'Mitglieder, Feed, Ereignisse, Top 300'], ['kvk', '⚔️ KvK', 'Planung, Kämpfe, Autarchen']].map(([a, l, sub]) => `<button type="button" data-kd-area="${a}" aria-pressed="${st.area === a}" class="seg-btn rounded-xl px-3 py-3 border border-ink-600 bg-ink-950 transition text-left"><span class="block font-display text-lg font-bold">${l}</span><span class="block text-[11px] opacity-70">${sub}</span></button>`).join('')}</div>
+      <div class="grid grid-cols-2 ${tabs.length === 4 ? 'sm:grid-cols-4' : 'sm:grid-cols-3'} gap-1 p-1 rounded-xl bg-ink-950 border border-ink-700" role="tablist">${tabs.map(([k0, l]) => `<button type="button" data-kd-tab="${k0}" aria-pressed="${st.tab === k0}" class="seg-btn rounded-lg px-2 py-2 text-xs sm:text-sm font-semibold border border-ink-600 transition">${l}</button>`).join('')}</div>
+      ${st.tab === 'members' ? card('👥 Mitglieder', membersHTML()) : st.tab === 'feed' ? card('💬 Königreich-Feed', feedHTML()) : st.tab === 'events' ? card('📅 Ereignisse', eventsHTML('event')) : st.tab === 'kvk' ? card('🗓️ KvK-Planung', eventsHTML('kvk')) : st.tab === 'fights' ? card('⚔️ Kämpfe auswerten', fightsHTML()) : st.tab === 'scan' ? card('📊 Top 300 – Königreichs-Scan', scanHTML()) : card('👑 Autarch-Liste', autarchHTML())}`;
   }
   function msg(t, tone) { st.msg = [t, tone]; const el = $('kdMsg'); if (!el) return; el.textContent = t; el.className = 'text-xs min-h-[1em] ' + ({ ok: 'text-emerald-400', warn: 'text-amber-300', err: 'text-red-300', busy: 'text-slate-300' }[tone] || 'text-slate-500'); }
   function render() {
     if (!root) return;
+    const act = document.activeElement, focusAttr = act && root.contains(act) ? ['data-kd-hq', 'data-kd-fq', 'data-kd-jq'].find((a) => act.hasAttribute(a)) : null;
+    killCharts();
     const keep = {}; root.querySelectorAll('[data-kd-cre],[data-kd-ev],[data-kd-au],[data-kd-q],#kdPostText').forEach((el) => { keep[el.id || el.dataset.kdCre || el.dataset.kdEv || el.dataset.kdAu || 'q'] = el.value; });
     root.innerHTML = `<div class="flex flex-wrap items-end justify-between gap-3"><div><h2 class="font-display text-2xl gold-text">🏰 My Kingdom</h2><p class="text-xs text-slate-500">Nur für Mitglieder deines Königreichs sichtbar</p></div></div>
       <div id="kdMsg" class="text-xs min-h-[1em]"></div>
@@ -495,6 +648,8 @@ window.RokMods.kingdom = (R) => {
     if (keep.q != null) { const q = root.querySelector('[data-kd-q]'); if (q) q.value = keep.q; }
     if (keep.kdPostText != null && $('kdPostText')) $('kdPostText').value = keep.kdPostText;
     msg(st.msg[0], st.msg[1]);
+    if (focusAttr) { const el = root.querySelector(`[${focusAttr}]`); if (el) { el.focus(); try { el.setSelectionRange(el.value.length, el.value.length); } catch {} } }
+    if (st.tab === 'scan' && sc.view === 'hist') setTimeout(drawCharts, 0);
   }
   root.addEventListener('input', (ev) => { const el = ev.target;
     if (el.dataset.kdCre) st.cre[el.dataset.kdCre] = el.value;
@@ -502,10 +657,14 @@ window.RokMods.kingdom = (R) => {
     if (el.dataset.kdAu) st.auForm[el.dataset.kdAu] = el.value;
     if (el.hasAttribute('data-kd-q')) st.q = el.value;
     if (el.hasAttribute('data-kd-jq')) st.join.q = el.value;
+    if (el.hasAttribute('data-kd-hq')) { st.sc.hq = el.value; render(); }
+    if (el.hasAttribute('data-kd-fq')) { st.fi.q = el.value; render(); }
+    if (el.dataset.kdFf && st.fi.form && el.tagName !== 'SELECT') st.fi.form[el.dataset.kdFf] = el.value;
     if (el.hasAttribute('data-kd-sc-q')) { st.sc.q = el.value; st.sc.showAll = false; scRefreshBody(); }
     if (el.dataset.kdScUp && st.sc.up) st.sc.up[el.dataset.kdScUp] = el.value; });
   root.addEventListener('change', (ev) => { const el = ev.target; if (el.dataset.kdRank) setRank(el.dataset.kdRank, +el.value);
     if (el.dataset.kdScPick) scPick(el.dataset.kdScPick, el.value);
+    if (el.dataset.kdFf && st.fi.form && el.tagName === 'SELECT') { st.fi.form[el.dataset.kdFf] = el.value; if (el.dataset.kdFf === 'after') { const x = st.sc.list.find((y) => y.id === el.value); if (x) st.fi.form.date = x.scanned_at; } render(); }
     if (el.hasAttribute('data-kd-sc-allysel')) { st.sc.ally = el.value; st.sc.showAll = false; render(); }
     if (el.hasAttribute('data-kd-sc-sortsel')) { st.sc.sort = el.value; st.sc.dir = -1; render(); }
     if (el.hasAttribute('data-kd-sc-file')) { scFile(el.files && el.files[0]); el.value = ''; } });
@@ -515,7 +674,16 @@ window.RokMods.kingdom = (R) => {
     let b;
     if (c('data-kd-create')) create();
     else if ((b = c('data-kd-inv'))) { const [kid, ok] = b.dataset.kdInv.split('|'); answerInvite(kid, ok === '1'); }
-    else if ((b = c('data-kd-tab'))) { st.tab = b.dataset.kdTab; render(); if (st.tab === 'scan' && !st.sc.loaded) loadScans(); }
+    else if ((b = c('data-kd-area'))) { st.area = b.dataset.kdArea; st.tab = st.area === 'kvk' ? 'kvk' : 'members'; render(); }
+    else if ((b = c('data-kd-tab'))) { st.tab = b.dataset.kdTab; render(); if (st.tab === 'scan' && !st.sc.loaded) loadScans(); if (st.tab === 'fights' && !st.fi.loaded) loadFights(); }
+    else if ((b = c('data-kd-scview'))) { st.sc.view = b.dataset.kdScview; render(); if (st.sc.view === 'hist') loadAllRows(); }
+    else if ((b = c('data-kd-hpick'))) { st.sc.hid = b.dataset.kdHpick; render(); }
+    else if ((b = c('data-kd-fsort'))) { const k = 'Δ' + b.dataset.kdFsort; if (st.fi.sort === k) st.fi.dir *= -1; else { st.fi.sort = k; st.fi.dir = -1; } render(); }
+    else if (c('data-kd-fnew')) { const L = [...st.sc.list].sort((a, z) => String(z.scanned_at).localeCompare(String(a.scanned_at))); st.fi.form = { kind: 'zone5', kvk: st.fi.list[0]?.kvk || '', title: '', before: L[1]?.id || '', after: L[0]?.id || '', date: L[0]?.scanned_at || today(), note: '' }; render(); }
+    else if (c('data-kd-fsave')) saveFight();
+    else if (c('data-kd-fcancel')) { st.fi.form = null; render(); }
+    else if ((b = c('data-kd-fopen'))) openFight(b.dataset.kdFopen);
+    else if ((b = c('data-kd-fdel'))) delFight(b.dataset.kdFdel);
     else if ((b = c('data-kd-sc-sort'))) { const k = b.dataset.kdScSort; if (st.sc.sort === k) st.sc.dir *= -1; else { st.sc.sort = k; st.sc.dir = -1; } render(); }
     else if ((b = c('data-kd-sc-ally'))) { st.sc.ally = st.sc.ally === b.dataset.kdScAlly ? '' : b.dataset.kdScAlly; st.sc.showAll = false; render(); }
     else if (c('data-kd-sc-all')) { st.sc.showAll = true; scRefreshBody(); }
