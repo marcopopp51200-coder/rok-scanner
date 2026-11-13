@@ -415,6 +415,9 @@ window.I18N = (() => {
         'Freies Set: Kommandanten, Namen und Ausrüstung einzeln verschieben, vergrößern und drehen': 'Free set: move, resize and rotate commanders, names and equipment separately',
         'Set gespeichert · in der Cloud (user_state)': 'Set saved · in the cloud (user_state)', 'Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': 'Saved locally · cloud unreachable, will sync automatically',
         // ---- Craft: Schritt-Dialog, Jahresausgaben, Kalender-Monate, Egg-Tag ----
+        "Wie viel von jedem Mat schon drinsteckt (bis Ziel) – so siehst du, was dich am meisten bremst.": "How much of each mat is already in (to target) – so you see what slows you down the most.",
+        "Ändert die % oben, Pro Mat und Refine": "Changes the % at the top, per mat and refine",
+        "Kein Ziel gesetzt – es wird mit Max gerechnet.": "No target set – calculated with max.",
         "Max = was das Item komplett kostet: craften + alle Iconic-Stufen + voll refined (Refine im Durchschnitt). Gold und Iconic-Kristalle stehen in der Aufschlüsselung.": "Max = what the item costs in total: crafting + all iconic levels + fully refined (refine at average luck). Gold and iconic crystals are in the breakdown.",
         "Ablauf": "Schedule",
         "Nächster": "Next",
@@ -819,7 +822,7 @@ window.I18N = (() => {
         [/^\+[\d,.]+ (?:Mio\. |Tsd\. |Mrd\. )?(?:Proviant|Holz|Stein|Gold)[\s\S]*$/, (m) => units(m.replace(/Proviant/g, 'Food').replace(/Holz/g, 'Wood').replace(/Stein/g, 'Stone')).replace(/ \/ Tag$/, ' / day')],   // Zuwachs-Zeile
         [/^(\d+) von (\d+)$/, '$1 of $2'],
         [/^(.+) – von (Max|Ziel) geschafft(?: · noch (\d+) (Teile?) offen)?( 🎉)?$/, (m, w, g, n, t, e) => `${w === 'Alle Charaktere' ? 'All characters' : w} – of ${g === 'Ziel' ? 'target' : 'max'} done` + (n ? ` · ${n} ${n === '1' ? 'piece' : 'pieces'} still open` : '') + (e || '')],
-        [/^(\d+) Teile müssen bis Max noch refined werden\. Im Schnitt brauchst du$/, '$1 pieces still need to be refined to max. On average you need'], [/^1 Teil muss bis Max noch refined werden\. Im Schnitt brauchst du$/, '1 piece still needs to be refined to max. On average you need'],
+        [/^(\d+) Teile müssen bis (Max|Ziel) noch refined werden\. Im Schnitt brauchst du$/, (m, n, g) => `${n} pieces still need to be refined to ${g === 'Ziel' ? 'target' : 'max'}. On average you need`], [/^1 Teil muss bis (Max|Ziel) noch refined werden\. Im Schnitt brauchst du$/, (m, g) => `1 piece still needs to be refined to ${g === 'Ziel' ? 'target' : 'max'}. On average you need`],
         [/^⚒ (.+) neu$/, '⚒ $1 new'], [/^\(bis zu (\d+) Schritte\) – oder einfach nur einen Kommentar schreiben$/, '(up to $1 steps) – or just write a comment'],
         [/^(\d+)\/(\d+) Schritte – Reihenfolge = Priorität \(1 = zuerst\)$/, '$1/$2 steps – order = priority (1 = first)'], [/^(\d+) von (\d+) Sets$/, '$1 of $2 sets'],
         [/^(\d+) von 4 Materialien reichen noch nicht$/, '$1 of 4 materials are not enough yet'],
