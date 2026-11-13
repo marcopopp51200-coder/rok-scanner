@@ -1860,7 +1860,7 @@ window.RokMods.crafting = (R) => {
   const isoOf = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   R.matForecast = matForecast;
 
-  const cal = { setId: '', month: 0, sel: null, mode: 'prio', n: [1, 3, 5].includes(+R.LS.get('rok_cal_n', '1')) ? +R.LS.get('rok_cal_n', '1') : 1 };
+  const cal = { setId: '', month: 0, sel: null, mode: 'prio', an: ['1', '3', '5', 'all'].includes(R.LS.get('rok_cal_an', 'all')) ? R.LS.get('rok_cal_an', 'all') : 'all' };
   function renderCal() {
     const head = R.$('calHead'); if (!head) return;
     const fc = matForecast();
@@ -1900,7 +1900,7 @@ window.RokMods.crafting = (R) => {
     // Monatsansicht (1, 3 oder 5 Monate untereinander)
     const base = dayDate(0), evAll = bpEvents();
     const byDay = new Map(); (proj?.rows || []).filter(showRow).forEach(r => { if (r.day == null) return; if (!byDay.has(r.day)) byDay.set(r.day, []); byDay.get(r.day).push(r); });
-    const nM = Math.min(cal.n, 12 - cal.month);
+    const nM = 1;
     const monthHtml = (mo) => { const first = new Date(base.getFullYear(), base.getMonth() + mo, 1), lastDay = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
     const lead = (first.getDay() + 6) % 7, cells = [];
     for (let i = 0; i < lead; i++) cells.push('<div></div>');
@@ -1923,8 +1923,7 @@ window.RokMods.crafting = (R) => {
     R.$('calMonth').innerHTML = `<div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <button type="button" data-cal="prev" ${cal.month <= 0 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 disabled:opacity-30">◀</button>
         <div class="font-display text-lg gold-text text-center">${nM > 1 ? `${mName(cal.month)} – ${mName(cal.month + nM - 1)}` : mName(cal.month)}</div>
-        <div class="flex items-center gap-2"><div class="inline-flex gap-0.5 p-0.5 rounded-lg bg-ink-950 border border-ink-700 text-xs" title="Wie viele Monate anzeigen">${[1, 3, 5].map(n => `<button type="button" data-cal="n" data-v="${n}" class="px-2.5 py-1 rounded-md font-semibold ${cal.n === n ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'}">${n} ${n === 1 ? 'Monat' : 'Monate'}</button>`).join('')}</div>
-        <button type="button" data-cal="next" ${cal.month + nM >= 12 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 disabled:opacity-30">▶</button></div></div>
+        <button type="button" data-cal="next" ${cal.month + nM >= 12 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-ink-600 hover:border-gold-500/60 disabled:opacity-30">▶</button></div>
       ${Array.from({ length: nM }, (_, i) => monthHtml(cal.month + i)).join('')}
       <div class="mt-2 text-[11px] text-slate-500">Grünes Feld = an dem Tag kannst du craften (✓ = Teil danach fertig) · 🏁 Etappe · 🎯 alles fertig · 📅 Zieldatum · 🏰 KvK-Start · 🥚/🔨 BP-Event · Zahlen = dein Bestand nach dem Craften (legendär, 📦 = Wahlkisten)</div>`;
 
@@ -1943,11 +1942,14 @@ window.RokMods.crafting = (R) => {
     } else dayBox.classList.add('hidden');
 
     // Ablauf als Liste: Kosten als Kästchen, danach Zwischenstand, rechts Datum + woher (Rucksack / passiv) + Tage
-    const rowsA = (proj?.rows || []).filter(showRow), fc0 = fc;
+    const rowsAll = (proj?.rows || []).filter(showRow), fc0 = fc, nSteps = rowsAll.filter(r => !r.x.ms).length;
+    // nur die nächsten 1 / 3 / 5 Schritte (Etappen dazwischen bleiben stehen)
+    const rowsA = (() => { if (cal.an === 'all') return rowsAll; let n = 0; const lim = +cal.an; return rowsAll.filter(r => r.x.ms ? n < lim : n++ < lim); })();
+    const anSw = nSteps > 1 ? `<div class="inline-flex gap-0.5 p-0.5 rounded-lg bg-ink-950 border border-ink-700 text-xs" title="Wie viele Schritte anzeigen">${[['1', 'Nächster'], ['3', 'Nächste 3'], ['5', 'Nächste 5'], ['all', `Alle (${nSteps})`]].map(([v, l]) => `<button type="button" data-cal="an" data-v="${v}" class="px-2.5 py-1 rounded-md font-semibold ${cal.an === v ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'}">${l}</button>`).join('')}</div>` : '';
     const when = (r) => r.unknown ? '<span class="text-amber-300">Kosten fehlen</span>' : r.day == null ? '<span class="text-red-300">nicht in 12 Monaten</span>'
       : r.day === 0 ? '<span class="text-emerald-300 font-semibold">✓ jetzt</span><span class="block text-[11px] text-slate-400">aus dem Rucksack</span>'
       : `<span class="text-slate-100 font-semibold">${dTxt(r.day, true)}</span><span class="block text-[11px] text-slate-400">${r.bpWait ? '📜 wartet auf Blaupause' : '📈 Passiv-Einkommen'} · in ${r.day} ${r.day === 1 ? 'Tag' : 'Tagen'}</span>`;
-    R.$('calAgenda').innerHTML = `<h3 class="font-display text-lg gold-text mb-2">Ablauf</h3>${!rowsA.length ? '<div class="text-sm text-slate-500">Keine offenen Schritte – im Planer ein Ziel festlegen.</div>'
+    R.$('calAgenda').innerHTML = `<div class="flex flex-wrap items-center justify-between gap-2 mb-2"><h3 class="font-display text-lg gold-text">Ablauf</h3>${anSw}</div>${!rowsA.length ? '<div class="text-sm text-slate-500">Keine offenen Schritte – im Planer ein Ziel festlegen.</div>'
       : `<div class="space-y-1">${fc0 ? `<div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-2 text-[11px] text-slate-400 tabular-nums"><span class="font-semibold text-slate-300">🎒 Rucksack heute</span>${stockChips(fc0.days[0])}</div>` : ''}${rowsA.map(r => r.x.ms
         ? `<div class="flex items-center gap-2 rounded-lg border border-dashed border-gold-500/50 bg-gold-500/5 px-3 py-1.5"><span>🏁</span><b class="text-gold-200">${R.esc(r.x.ms.name)}</b><span class="ml-auto text-sm font-semibold ${r.day == null ? 'text-red-300' : 'text-emerald-300'}">${r.day == null ? 'nicht in 12 Monaten' : dTxt(r.day, true)}</span></div>`
         : `<div class="rounded-xl border border-ink-700 bg-ink-950/40 px-2 py-2">
@@ -1990,7 +1992,7 @@ window.RokMods.crafting = (R) => {
     if (b.dataset.calDay != null) { const d = +b.dataset.calDay; cal.sel = cal.sel === d ? null : d; renderCal(); return; }
     const a = b.dataset.cal;
     if (a === 'prev' || a === 'next') { cal.month = Math.max(0, Math.min(11, cal.month + (a === 'next' ? 1 : -1))); renderCal(); }
-    if (a === 'n') { cal.n = +b.dataset.v || 1; R.LS.set('rok_cal_n', String(cal.n)); renderCal(); }
+    if (a === 'an') { cal.an = b.dataset.v; R.LS.set('rok_cal_an', cal.an); renderCal(); }
     else if (a === 'closeday') { cal.sel = null; renderCal(); }
     else if (a === 'mode') { cal.mode = b.dataset.v; renderCal(); }
     else if (a === 'passive') { R.goScan?.('mats'); R.setAreaTab?.('stats'); }
@@ -2193,7 +2195,7 @@ window.RokMods.crafting = (R) => {
   }
   let st_costEdit = null; const st_costOpen = new Set();
   // ---- 💰 Kosten-Reiter: Investiert · bis Ziel · bis Max · Max – kurz oder detailliert ----
-  const cst = { sel: R.LS.get('rok_craft_cost_sel', 'all'), view: 'detail' };
+  const cst = { sel: R.LS.get('rok_craft_cost_sel', 'all'), view: 'detail', bar: R.LS.get('rok_craft_cost_bar', 'max') === 'ziel' ? 'ziel' : 'max' };
   const cstSets = () => gear.sets.filter(s => GEAR_SLOTS.some(sl => s.ist[sl.k]?.item));
   const asView = (list, v) => list.map(s => ({ ...s, costView: v }));
   function cstPick() { const all = cstSets();
@@ -2250,13 +2252,15 @@ window.RokMods.crafting = (R) => {
   const catLbl = (img, l) => `<span class="inline-flex items-center gap-2"><img src="/icons/${img}" alt="" class="w-7 h-7 object-contain">${l}</span>`;
   const HEADS4 = [['Investiert', 'text-slate-400'], ['Bis Ziel', 'text-emerald-300'], ['Bis Max', 'text-sky-300'], ['Max', 'text-gold-300']];
   // pro Slot: was steckt drin, was fehlt bis Ziel, was fehlt bis Max
+  const slotPic = (sl) => `<span class="w-11 h-11 shrink-0 grid place-items-center rounded-lg border border-slate-500/40 bg-gradient-to-b from-slate-600/40 to-ink-950/80 shadow-inner"><img src="/icons/slots/${sl.k}.webp" alt="" class="w-8 h-8 object-contain opacity-90"></span>`;
   function perSlot(list) {
-    return GEAR_SLOTS.map(sl => { const inv = gZero(), toT = gZero(), toM = gZero(); let has = false, icon = '';
+    return GEAR_SLOTS.map(sl => { const inv = gZero(), toT = gZero(), toM = gZero(), full = gZero(); let has = false, icon = '';
       list.forEach(s => { const v = s.ist[sl.k], z = s.ziel[sl.k]?.item ? s.ziel[sl.k] : null, mx = gMaxSlot(null, v); if (!v?.item && !z) return; has = true;
         if (!icon && v?.item && list.length === 1) icon = hIcon(v);
         const gT = hasZiel(s) ? z : mx;   // wie oben: mit Ziel zählen nur Slots, die im Ziel stehen – ohne Ziel = Max
-        gAdd(inv, gEst({}, { [sl.k]: v }).cost); if (gT) gAdd(toT, gEst({ [sl.k]: v }, { [sl.k]: gT }).cost); if (v?.item) gAdd(toM, gEst({ [sl.k]: v }, { [sl.k]: mx }).cost); });
-      return has ? [`<span class="inline-flex items-center gap-2">${icon || `<span class="w-11 text-center text-xl">${sl.icon}</span>`}<span>${R.esc(sl.label)}</span></span>`, [inv, toT, toM]] : null; }).filter(Boolean);
+        gAdd(inv, gEst({}, { [sl.k]: v }).cost); if (gT) gAdd(toT, gEst({ [sl.k]: v }, { [sl.k]: gT }).cost); if (v?.item) gAdd(toM, gEst({ [sl.k]: v }, { [sl.k]: mx }).cost);
+        gAdd(full, gEst({}, { [sl.k]: gMaxSlot(null, v?.item ? v : z) }).cost); });   // Max = was das Item komplett kostet (craften + Iconic V + voll refined)
+      return has ? [`<span class="inline-flex items-center gap-2">${slotPic(sl)}${icon}<span>${R.esc(sl.label)}</span></span>`, [inv, toT, toM, full]] : null; }).filter(Boolean);
   }
   function renderCosts() {
     const box = R.$('craftCostPane'); if (!box) return;
@@ -2274,11 +2278,13 @@ window.RokMods.crafting = (R) => {
         <button type="button" data-cst-xlsx class="ml-auto px-3 py-1.5 rounded-lg border border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10 text-xs font-semibold">📊 Excel</button>
 </div>
       <div id="cstMsg" class="hidden mt-1 text-xs px-2"></div></div>`;
+    const bz = cst.bar === 'ziel' && k.zl, hp = bz ? k.pT : k.pM, hc = bz ? k.cT : k.cM;
+    const bsw = `<div class="ml-auto inline-flex gap-0.5 p-0.5 rounded-lg bg-ink-950 border border-ink-700 text-xs" title="Bestimmt nur den Balken hier oben">${[['ziel', '🎯 Ziel'], ['max', '🏆 Max']].map(([v, l]) => `<button type="button" data-cst-bar="${v}" class="px-3 py-1 rounded-md font-semibold ${(cst.bar === 'ziel') === (v === 'ziel') ? 'bg-gold-500 text-ink-950' : 'text-slate-300 hover:text-gold-300'}">${l}</button>`).join('')}</div>`;
     const head = `<section class="panel rounded-2xl p-4 sm:p-5">
-        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1"><span class="text-4xl font-display font-bold tabular-nums ${k.cM.open ? 'text-gold-300' : 'text-emerald-300'}">${k.pM} %</span>
-          <span class="text-sm text-slate-400">${R.esc(pk.label === 'Alle Charaktere' ? 'Alle Charaktere' : pk.label)} – von Max geschafft${k.cM.open ? ` · noch ${k.cM.open} Teil${k.cM.open > 1 ? 'e' : ''} offen` : ' 🎉'}</span></div>
-        <div class="mt-2 h-3 rounded-full bg-ink-800 overflow-hidden relative"><span class="bar-in block h-full rounded-full bg-gradient-to-r from-gold-500 to-emerald-400" style="width:${k.pM}%"></span>
-          ${k.zl && k.pT < 100 ? '' : ''}</div>
+        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1"><span class="text-4xl font-display font-bold tabular-nums ${hc.open ? 'text-gold-300' : 'text-emerald-300'}">${hp} %</span>
+          <span class="text-sm text-slate-400">${R.esc(pk.label === 'Alle Charaktere' ? 'Alle Charaktere' : pk.label)} – von ${bz ? 'Ziel' : 'Max'} geschafft${hc.open ? ` · noch ${hc.open} Teil${hc.open > 1 ? 'e' : ''} offen` : ' 🎉'}</span>${bsw}</div>
+        ${cst.bar === 'ziel' && !k.zl ? '<div class="mt-1 text-[11px] text-slate-500">Kein Ziel gesetzt – der Balken zeigt Max.</div>' : ''}
+        <div class="mt-2 h-3 rounded-full bg-ink-800 overflow-hidden relative"><span class="bar-in block h-full rounded-full ${bz ? 'bg-gradient-to-r from-emerald-500 to-emerald-300' : 'bg-gradient-to-r from-gold-500 to-emerald-400'}" style="width:${hp}%"></span></div>
         <div class="mt-4">${fields4(k, mats)}</div>
         ${k.missing ? '<p class="mt-2 text-[11px] text-amber-300">Für manche Stufen fehlen Kosten im Katalog – die sind nicht mitgezählt.</p>' : ''}</section>`;
     let html = bar + head;
@@ -2290,7 +2296,7 @@ window.RokMods.crafting = (R) => {
       // pro Slot
       const ps = perSlot(pk.list);
       if (ps.length) html += `<section class="panel rounded-2xl p-4 sm:p-5"><h3 class="font-display text-lg gold-text">🧩 Pro Teil <span class="text-sm font-sans text-slate-300" ${pk.one ? 'translate="no"' : ''}>· ${R.esc(pk.label)}</span></h3><p class="mt-1 text-xs text-slate-400">Was in jedem Teil steckt und was es noch kostet${pk.list.length > 1 ? ' – über alle gewählten Charaktere zusammen' : ''}.</p>
-        ${grid4(ps.map(([l, c]) => [l, c]), HEADS4.slice(0, 3))}</section>`;
+        ${grid4(ps.map(([l, c]) => [l, c]), HEADS4)}<p class="mt-1 text-[11px] text-slate-500">Max = was das Item komplett kostet: craften + alle Iconic-Stufen + voll refined (Refine im Durchschnitt).</p></section>`;
       // pro Mat (mit Animation)
       const matList = [...R.MATS, ...GX].filter(x => (k.max[x.k] || 0) > 1e-4);
       const matBars = matList.map((x, i) => { const t = k.max[x.k], d = Math.min(t, k.inv[x.k] || 0), q = t ? d / t : 0, f = x.f || gq;
@@ -2326,6 +2332,7 @@ window.RokMods.crafting = (R) => {
     box.innerHTML = html;
   }
   R.$('craftCostPane')?.addEventListener('click', async (ev) => { const t = ev.target, msg = (m, ok = true) => R.flash(R.$('cstMsg'), R.esc(m), ok);
+    const bb = t.closest('[data-cst-bar]'); if (bb) { cst.bar = bb.dataset.cstBar; R.LS.set('rok_craft_cost_bar', cst.bar); renderCosts(); return; }
     const sb = t.closest('[data-cst-sel]'); if (sb) { cst.sel = sb.dataset.cstSel; R.LS.set('rok_craft_cost_sel', cst.sel); renderCosts(); return; }
     const xb = t.closest('[data-cst-xlsx]'); if (xb) { xb.disabled = true; try { await exportCostsXlsx(cstSets()); msg('📊 Excel-Tabelle heruntergeladen'); } catch (e) { msg('Excel ging nicht: ' + (e.message || e), false); } xb.disabled = false; return; }
   });
@@ -2881,6 +2888,10 @@ window.RokMods.crafting = (R) => {
       const d = new Date(e.ts), y = d.getFullYear(), m = d.getMonth(), t = gZero(); let any = false;
       e.changes.forEach(c => { if (!c.to?.item) return; const x = gEst({ [c.slot]: c.from }, { [c.slot]: c.to }, () => c.n || 0, { crit: () => !!c.crit }); if (x.any) { gAdd(t, x.cost); any = true; } });
       if (!any) return; const Y = byY[y] ||= { m: {}, n: 0 }; gAdd(Y.m[m] ||= gZero(), t); Y.n++; });
+    // gespeicherte Jahre (bleiben auch, wenn alte History-Einträge mal rausfallen) – nur ohne Set-Filter speichern
+    let saved = {}; try { saved = JSON.parse(R.LS.get('rok_scanner_craft_year_spend', '{}')) || {}; } catch {}
+    if (hf.set === 'all') { let ch = false; Object.entries(byY).forEach(([y, Y]) => { if (!saved[y] || Y.n >= (saved[y].n || 0)) { if (JSON.stringify(saved[y]) !== JSON.stringify(Y)) { saved[y] = Y; ch = true; } } else byY[y] = saved[y]; });
+      Object.keys(saved).forEach(y => { if (!byY[y]) byY[y] = saved[y]; }); if (ch) R.LS.set('rok_scanner_craft_year_spend', JSON.stringify(saved)); }
     const years = [...new Set([now, ...Object.keys(byY).map(Number)])].sort((a, b) => b - a);
     if (!years.includes(hYear)) hYear = now;
     const Y = byY[hYear] || { m: {}, n: 0 }, cols = [...R.MATS.map(m => [m.k, mi(m), (v) => gq(v)]), ...GX.map(x => [x.k, mi(x), x.f])];
@@ -2889,8 +2900,8 @@ window.RokMods.crafting = (R) => {
     const MON = ['Jan', 'Feb', 'März', 'Apr', 'Mai', 'Juni', 'Juli', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
     const cell = (v, f) => `<td class="px-2 py-1.5 text-right tabular-nums ${v > 1e-4 ? 'text-slate-100' : 'text-slate-600'}">${v > 1e-4 ? f(v) : '–'}</td>`;
     const rows = Object.keys(Y.m).map(Number).sort((a, b) => a - b).map(m => `<tr class="border-t border-ink-700/70"><td class="px-2 py-1.5 text-slate-300">${MON[m]}</td>${cols.map(([k, , f]) => cell(Y.m[m][k], f)).join('')}</tr>`).join('');
-    const chip = (y) => `<button type="button" data-hyear="${y}" class="px-2.5 py-1 rounded-lg text-xs font-semibold border ${y === hYear ? 'border-gold-400 bg-gold-500/15 text-gold-200' : 'border-ink-600 text-slate-400 hover:text-gold-300'}">${y}</button>`;
-    box.innerHTML = `<div class="flex flex-wrap items-center gap-2"><h3 class="font-display text-lg gold-text mr-auto">💰 Ausgaben ${hYear}</h3>${years.length > 1 ? years.map(chip).join('') : ''}</div>
+    box.innerHTML = `<div class="flex flex-wrap items-center gap-2"><h3 class="font-display text-lg gold-text mr-auto">💰 Ausgaben ${hYear}</h3>
+      <label class="inline-flex items-center gap-2 text-xs text-slate-400">Jahr<select data-hyear-sel class="bg-ink-950 border border-ink-600 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-slate-100 focus:outline-none focus:border-gold-500">${years.map(y => `<option value="${y}"${y === hYear ? ' selected' : ''}>${y}${y === now ? ' (aktuell)' : ''}</option>`).join('')}</select></label></div>
       <p class="mt-0.5 text-[11px] text-slate-500">Summe aller ⚒ History-Einträge${hf.set !== 'all' ? ` von <span translate="no">${R.esc(gear.sets.find(s => s.id === hf.set)?.name || '')}</span>` : ''} in diesem Jahr · ${Y.n} ${Y.n === 1 ? 'Eintrag' : 'Einträge'}</p>
       ${Y.n ? `<div class="mt-3 overflow-x-auto"><table class="w-full max-w-3xl text-xs border border-ink-700 rounded-lg">
         <thead><tr class="bg-ink-950/60 text-slate-400"><th class="px-2 py-1.5 text-left font-semibold">Monat</th>${cols.map(([, ic]) => `<th class="px-2 py-1.5"><span class="inline-flex justify-end w-full">${ic}</span></th>`).join('')}</tr></thead>
@@ -2898,7 +2909,7 @@ window.RokMods.crafting = (R) => {
         <tfoot><tr class="border-t-2 border-gold-500/40 bg-gold-500/5 font-semibold"><td class="px-2 py-1.5 text-gold-200">Gesamt</td>${cols.map(([k, , f]) => cell(tot[k], f)).join('')}</tr></tfoot></table></div>`
         : `<p class="mt-3 py-3 text-center text-sm text-slate-500">${hYear === now ? 'Dieses Jahr noch nichts ausgegeben.' : 'Keine Einträge.'}</p>`}`;
   }
-  R.$('chYear').addEventListener('click', (ev) => { const b = ev.target.closest('[data-hyear]'); if (b) { hYear = +b.dataset.hyear; renderYear(); } });
+  R.$('chYear').addEventListener('change', (ev) => { if (ev.target.matches('[data-hyear-sel]')) { hYear = +ev.target.value; renderYear(); } });
 
   function renderFriends() {
     const box = R.$('chFriends'); if (!box) return; const me = frMe();

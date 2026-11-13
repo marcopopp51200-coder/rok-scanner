@@ -415,6 +415,17 @@ window.I18N = (() => {
         'Freies Set: Kommandanten, Namen und Ausrüstung einzeln verschieben, vergrößern und drehen': 'Free set: move, resize and rotate commanders, names and equipment separately',
         'Set gespeichert · in der Cloud (user_state)': 'Set saved · in the cloud (user_state)', 'Lokal gespeichert · Cloud gerade nicht erreichbar, wird automatisch nachgeholt': 'Saved locally · cloud unreachable, will sync automatically',
         // ---- Craft: Schritt-Dialog, Jahresausgaben, Kalender-Monate, Egg-Tag ----
+        "Ablauf": "Schedule",
+        "Nächster": "Next",
+        "Nächste 3": "Next 3",
+        "Nächste 5": "Next 5",
+        "Wie viele Schritte anzeigen": "How many steps to show",
+        "Jahr": "Year",
+        "Bestimmt nur den Balken hier oben": "Only sets the bar up here",
+        "🎯 Ziel": "🎯 Target",
+        "🏆 Max": "🏆 Max",
+        "Kein Ziel gesetzt – der Balken zeigt Max.": "No target set – the bar shows max.",
+        "Max = was das Item komplett kostet: craften + alle Iconic-Stufen + voll refined (Refine im Durchschnitt).": "Max = what the item costs in total: crafting + all iconic levels + fully refined (refine at average luck).",
         "Crafting = Items herstellen · Iconic = Iconic-Stufen I–V · Crit = Refine (Durchschnitt). „Bis Max“ hat kein Crafting, wenn alle Items schon da sind – das steckt dann in „Investiert“.": "Crafting = making the items · Iconic = iconic levels I–V · Crit = refine (average). “To max” has no crafting when all items already exist – that is then in “Invested”.",
         "heute": "today",
         "Bestand nach dem Craften bis zu diesem Tag:": "Stock after crafting up to this day:",
@@ -790,6 +801,7 @@ window.I18N = (() => {
       patterns: [
         // ---- Craft: Schritt-Dialog, Jahresausgaben, Kalender-Monate, Egg-Tag (dynamisch) ----
         [/^fertig: (.+)$/, 'done: $1'],
+        [/^Alle \((\d+)\)$/, 'All ($1)'], [/^(\d{4}) \(aktuell\)$/, '$1 (current)'],
         [/^(📋 )?Pro Charakter ·\s*$/, (m, e) => (e || '') + 'Per character · '],
         [/^(Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember) (\d{4})(?: – (Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember) (\d{4}))?$/, (m, a, y, b, y2) => { const M = { Januar: 'January', Februar: 'February', März: 'March', April: 'April', Mai: 'May', Juni: 'June', Juli: 'July', August: 'August', September: 'September', Oktober: 'October', November: 'November', Dezember: 'December' }; return `${M[a]} ${y}` + (b ? ` – ${M[b]} ${y2}` : ''); }],
         [/^(\d+) (Monat|Monate)$/, (m, n) => n + (n === '1' ? ' month' : ' months')],
@@ -804,7 +816,7 @@ window.I18N = (() => {
         // ---- Craft: Kosten, History, Freunde, Charakter Showcase, Help Me (dynamische Texte) ----
         [/^\+[\d,.]+ (?:Mio\. |Tsd\. |Mrd\. )?(?:Proviant|Holz|Stein|Gold)[\s\S]*$/, (m) => units(m.replace(/Proviant/g, 'Food').replace(/Holz/g, 'Wood').replace(/Stein/g, 'Stone')).replace(/ \/ Tag$/, ' / day')],   // Zuwachs-Zeile
         [/^(\d+) von (\d+)$/, '$1 of $2'],
-        [/^(.+) – von Max geschafft(?: · noch (\d+) (Teile?) offen)?( 🎉)?$/, (m, w, n, t, e) => `${w === 'Alle Charaktere' ? 'All characters' : w} – of max done` + (n ? ` · ${n} ${n === '1' ? 'piece' : 'pieces'} still open` : '') + (e || '')],
+        [/^(.+) – von (Max|Ziel) geschafft(?: · noch (\d+) (Teile?) offen)?( 🎉)?$/, (m, w, g, n, t, e) => `${w === 'Alle Charaktere' ? 'All characters' : w} – of ${g === 'Ziel' ? 'target' : 'max'} done` + (n ? ` · ${n} ${n === '1' ? 'piece' : 'pieces'} still open` : '') + (e || '')],
         [/^(\d+) Teile müssen bis Max noch refined werden\. Im Schnitt brauchst du$/, '$1 pieces still need to be refined to max. On average you need'], [/^1 Teil muss bis Max noch refined werden\. Im Schnitt brauchst du$/, '1 piece still needs to be refined to max. On average you need'],
         [/^⚒ (.+) neu$/, '⚒ $1 new'], [/^\(bis zu (\d+) Schritte\) – oder einfach nur einen Kommentar schreiben$/, '(up to $1 steps) – or just write a comment'],
         [/^(\d+)\/(\d+) Schritte – Reihenfolge = Priorität \(1 = zuerst\)$/, '$1/$2 steps – order = priority (1 = first)'], [/^(\d+) von (\d+) Sets$/, '$1 of $2 sets'],
